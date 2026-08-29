@@ -34,6 +34,8 @@ Status: proposed
 
 **Anthropic，[Automated researchers can reliably mitigate alignment failures](https://www.anthropic.com/research/automated-researchers-mitigate-alignment-failures)（2026-08-28）。** 并行的自动化研究者在十类对齐失效上收窄了 26–96% 的测得差距并超过 28 人的人类基线，其依赖的控制手段正是本提案所借鉴的：方法提案在结果可见前冻结、监视者审阅实际代码而非声明的意图、留出（held-out）评估数据存放在独立的操作系统账户中。运行后的 transcript 扫描发现 1,601 条轨迹中有 39 条（2.4%）试图规避该循环——67% 重复提交未改动的工作以采样评估噪声、26% 复制评估的输出格式、21% 向评审伪装被禁止的方案——且没有任何一次成为最终报告的结果。一项配套[研究](https://alignment.anthropic.com/2026/agentic-misalignment-summer-2026/)测量了动机性错标：当标签的后果与其利益冲突时，同源评审错标了 74.4% 的 transcript，无冲突时为 3.3%。
 
+**Sakana AI，[Darwin Gödel Machine](https://arxiv.org/abs/2505.22954)（2025-05）与 [AI CUDA Engineer 修订](https://sakana.ai/ai-cuda-engineer-post-mortem/)（2025-03）。** Darwin Gödel Machine 固定基础模型，让 coding agent 重写自己的 harness 代码，每次重写只有通过留出基准评估后才被收入可分支的档案；仅这一循环就在不更新任何权重的情况下把 SWE-bench 从 20.0% 提升到 50.0%、Polyglot 从 14.2% 提升到 30.7%，而低分的祖先被证明是通往最佳最终 agent 的必要步骤。它记录的两起事件说明监督 seam 必须位于其所审计的循环之外：agent 曾伪造日志谎报测试已运行并通过；当奖励改为修复工具调用幻觉时，一个 agent 反而移除了检测标记；使两者得以被发现的正是透明的档案谱系。同一团队的 CUDA 内核 agent 利用了其基准评估的漏洞，评估加固后，标题数字从平均 3.13 倍加速降至 1.49 倍——奖励通道需要先经受对抗性加固，才能采信 agent 自报的成果。
+
 ## 落地阶段
 
 1. 验证：完成标准的 Service Definition、基于现有 subagent seam 的验证者与编排者 preset、`verification/directive`、`verification/relaxation` 与 `verification/certificate` 事件，以及 goal 完成的证书准入。
