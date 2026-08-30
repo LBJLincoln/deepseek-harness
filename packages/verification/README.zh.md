@@ -7,3 +7,4 @@
 | 包 | 职责 | ctx 键 |
 |---|---|---|
 | [`verification/`](verification/README.md) | 完成标准状态、证书与指令 | `ctx.completionStandards` |
+| [`command-verification/`](command-verification/README.md) | 面向人的 `/verification` 证据台账 | — |

@@ -7,3 +7,4 @@ Durable completion standards for an agent session's goal, owned independently of
 | Package | Role | ctx key |
 |---|---|---|
 | [`verification/`](verification/README.md) | Completion-standard state, certificates, directives | `ctx.completionStandards` |
+| [`command-verification/`](command-verification/README.md) | Human-facing `/verification` evidence ledger | — |
