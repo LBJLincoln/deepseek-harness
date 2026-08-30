@@ -10,12 +10,12 @@ export const VERIFICATION_CHANGE_VERSION = 1
 const KEBAB_CASE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/
 
 /**
- * Whether a value is a lower-kebab-case identifier.
+ * Whether a string is a lower-kebab-case identifier.
  * @param value - candidate identifier.
  * @returns `true` only for `[a-z][a-z0-9]*(-[a-z0-9]+)*`.
  */
-export function isKebabCase(value: unknown): value is string {
-  return typeof value === 'string' && KEBAB_CASE.test(value)
+export function isKebabCase(value: string): boolean {
+  return KEBAB_CASE.test(value)
 }
 
 /**

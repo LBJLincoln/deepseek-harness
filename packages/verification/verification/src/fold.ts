@@ -15,6 +15,7 @@ import type {
 import type {
   CertificateChangeMeta,
   DirectiveChangeMeta,
+  FoldedVerification,
   RelaxationChangeMeta,
   StandardChangeMeta,
   StandardOperation,
@@ -50,6 +51,8 @@ export function emptyVerificationFoldState(): VerificationFoldState {
   }
 }
 
+// Strict per-domain decoders keep their own guards (the goal fold is the template).
+/* jscpd:ignore-start */
 /** Whether a value is a JSON record rather than an array. */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -70,6 +73,7 @@ function nonNegativeInteger(value: unknown, field: string): number {
   }
   return value
 }
+/* jscpd:ignore-end */
 
 /** Require one non-empty trim-normalized string. */
 function normalizedText(value: unknown, field: string): string {
@@ -92,11 +96,12 @@ function requireKeys(value: Record<string, unknown>, expected: readonly string[]
 function decodeCheck(value: unknown, subject: string): StandardCheck {
   if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
   requireKeys(value, ['id', 'outcome', 'run'], subject)
-  if (!isKebabCase(value['id'])) {
+  const rawId = value['id']
+  if (typeof rawId !== 'string' || !isKebabCase(rawId)) {
     throw new Error(`verification change ${subject}.id must be lower-kebab-case`)
   }
   return {
-    id: CheckId(value['id']),
+    id: CheckId(rawId),
     outcome: normalizedText(value['outcome'], `${subject}.outcome`),
     run: normalizedText(value['run'], `${subject}.run`),
   }
@@ -160,14 +165,15 @@ function decodeRef(value: unknown, subject: string): StandardRef {
 function decodeCertificateResult(value: unknown, subject: string): CheckResult {
   if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
   requireKeys(value, ['checkId', 'evidence', 'status'], subject)
-  if (!isKebabCase(value['checkId'])) {
+  const rawCheckId = value['checkId']
+  if (typeof rawCheckId !== 'string' || !isKebabCase(rawCheckId)) {
     throw new Error(`verification change ${subject}.checkId must be lower-kebab-case`)
   }
   if (value['status'] !== 'pass') {
     throw new Error(`verification change ${subject}.status must be "pass" inside a certificate`)
   }
   return {
-    checkId: CheckId(value['checkId']),
+    checkId: CheckId(rawCheckId),
     status: 'pass',
     evidence: normalizedText(value['evidence'], `${subject}.evidence`),
   }
@@ -220,18 +226,19 @@ export function decodeRelaxationChange(value: unknown): RelaxationChangeMeta | u
   if (!isRecord(value) || value['kind'] !== 'verification/relaxation') return undefined
   requireVersion(value)
   requireKeys(value, ['checkId', 'createdAt', 'kind', 'standard', 'updatedAt', 'version'], 'relaxation')
-  if (!isKebabCase(value['checkId'])) {
+  const rawCheckId = value['checkId']
+  if (typeof rawCheckId !== 'string' || !isKebabCase(rawCheckId)) {
     throw new Error('verification change relaxation checkId must be lower-kebab-case')
   }
   const standard = decodeSnapshot(value['standard'])
   const last = standard.relaxed[standard.relaxed.length - 1]
-  if (last === undefined || last.check.id !== value['checkId']) {
+  if (last === undefined || last.check.id !== rawCheckId) {
     throw new Error('verification change relaxation must end the snapshot relaxed list with its check')
   }
   return {
     kind: 'verification/relaxation',
     version: VERIFICATION_CHANGE_VERSION,
-    checkId: CheckId(value['checkId']),
+    checkId: CheckId(rawCheckId),
     standard,
     ...decodeTimestamps(value),
   }
@@ -486,7 +493,7 @@ export function applyVerificationEvent(state: VerificationFoldState, event: Sess
  * @param events - session events in sequence order.
  * @returns a fresh durable projection.
  */
-export function foldVerification(events: readonly SessionEvent[]): import('./domain.ts').FoldedVerification {
+export function foldVerification(events: readonly SessionEvent[]): FoldedVerification {
   const state = emptyVerificationFoldState()
   for (const event of events) applyVerificationEvent(state, event)
   return {

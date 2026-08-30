@@ -18,7 +18,7 @@ Status: proposed
 
 新增三个能力 seam，每个都以 Service Definition、Service Provider 与 Consumer 三种角色完整落地，并从已文档化的扩展点组合而成。`agent-loop` 不发生任何改动。
 
-**完成标准（`verification/` 组）。** `ctx.completionStandard` 为每个 goal 持有一份可执行的完成标准：任务必须建立的结果清单、每项结果对应的可执行检查，以及针对工作区运行这些检查得到的当前证据。验证者角色——一个拥有独立会话的 continuable subagent——在实现开始前依据任务来源撰写该标准，并可随认知加深扩展或细化它；每次放宽某项检查都会追加一条 `verification/relaxation` 会话事件，说明更严格形式不可满足的证据，因此标准可以增长但不能悄然弱化。编排者策略仅在出现一条通过且检查运行已被记录的 `verification/certificate` 事件后，才允许 `goal/change` 进入 `complete`；缺少证书的 worker 报告会让 goal 保持 `active`。
+**完成标准（`verification/` 组）。** `ctx.completionStandard` 为每个 goal 持有一份可执行的完成标准：任务必须建立的结果清单、每项结果对应的可执行检查，以及针对工作区运行这些检查得到的当前证据。验证者角色——一个拥有独立会话的 continuable subagent——在实现开始前依据任务来源撰写该标准，并可随认知加深扩展或细化它；每次放宽某项检查都会追加一条 `verification/relaxation` 会话事件，说明更严格形式不可满足的证据，因此标准可以增长但不能悄然弱化。撰写与扩展会追加完整快照的 `verification/standard` 事件，因此检查的持久清单可以仅凭日志回放。编排者策略仅在出现一条通过且检查运行已被记录的 `verification/certificate` 事件后，才允许 `goal/change` 进入 `complete`；缺少证书的 worker 报告会让 goal 保持 `active`。
 
 实现者永远不读取该标准。检查失败以按根因聚合的 `verification/directive` 事件到达实现者，且现有文件系统四层拆分中的一个 fs 策略插件会拒绝实现者对验证者所属根目录的工具读取。`tools.restrict()` 与 subagent `toolFilter` 依照 [agent 作用域上下文](../../implemented/architecture/2026-07-08-agent-scope-contexts.md) 仍是可见性组合；读取屏障是文件系统权限，其子进程一侧是下文列出的未决约束。
 
@@ -38,7 +38,7 @@ Status: proposed
 
 ## 落地阶段
 
-1. 验证：完成标准的 Service Definition、基于现有 subagent seam 的验证者与编排者 preset、`verification/directive`、`verification/relaxation` 与 `verification/certificate` 事件，以及 goal 完成的证书准入。
+1. 验证：完成标准的 Service Definition、基于现有 subagent seam 的验证者与编排者 preset、`verification/standard`、`verification/directive`、`verification/relaxation` 与 `verification/certificate` 事件，以及 goal 完成的证书准入。
 2. 改进：轨迹导出、带长时程基准的环境注册表，以及置于「评估加审批」晋升之后的 skill 合成。
 3. 监督：监视标记、跨提供方审计者，以及 `cordis_run` 与 skill 晋升的评估前置条件。
 
@@ -49,6 +49,8 @@ Status: proposed
 [沙箱 seam](../../../../packages/sandbox/sandbox/README.md) 的策略词汇仅覆盖文件写入效果；受限子进程仍可读取其可达的任何路径，因此实现者的 shell 可以读到存放在其工作区内的标准。在该 seam 获得读取范围或网络限制之前，标准与留出评估数据存放在实现者文件系统可达范围之外——独立操作系统账户或独立主机，即 Anthropic 采用的布置——进程内工具读取则由上述 fs 策略插件拒绝。
 
 验证者与编排者的运行远长于当前会话；[recallable-compaction](../feature/2026-07-06-recallable-compaction.md) 在该场景下不再是可选项，应纳入第二阶段。
+
+`GoalService.complete()` 没有准入扩展点，因此证书准入先通过 `assertCertified()` 约束编排者调用方，而安装了 `dsh-verification` 不变量配套文件的部署会拒绝对被度量 goal 的未认证完成；服务内准入随 preset 切片补齐。
 
 循环今天没有 token、货币与耗时的总量预算；改进 seam 的评分提供这些度量，准入策略随后可以作为普通的 `agent/pre-step` 插件加入。
 

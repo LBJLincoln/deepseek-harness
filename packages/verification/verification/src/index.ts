@@ -11,7 +11,7 @@ import { randomUUID } from 'node:crypto'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { GoalId } from '@deepseek-ai/dsh-goal'
+import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 import type { Session } from '@deepseek-ai/dsh-session'
 import {
   applyVerificationEvent,
@@ -247,12 +247,6 @@ export class CompletionStandardService extends Service {
     const current = this.expectCurrent(cache, ref)
     const byCheck = new Map<string, CheckResult>()
     for (const result of results) {
-      if (result.status !== 'pass' && result.status !== 'fail') {
-        throw new VerificationError(
-          `result for "${result.checkId}" has an invalid status`,
-          'VERIFICATION_INVALID_RESULTS',
-        )
-      }
       if (byCheck.has(result.checkId)) {
         throw new VerificationError(`duplicate result for check "${result.checkId}"`, 'VERIFICATION_INVALID_RESULTS')
       }
@@ -360,7 +354,7 @@ export class CompletionStandardService extends Service {
 
   /** Validate, trim, and cap one recorded text. */
   private text(value: string, field: string, code: VerificationErrorCode): string {
-    const trimmed = typeof value === 'string' ? value.trim() : ''
+    const trimmed = value.trim()
     if (trimmed.length === 0) {
       throw new VerificationError(`${field} must be a non-empty string`, code)
     }
@@ -490,7 +484,7 @@ export class CompletionStandardService extends Service {
     type: 'verification/standard' | 'verification/relaxation' | 'verification/certificate' | 'verification/directive',
     change: StandardChangeMeta | RelaxationChangeMeta | CertificateChangeMeta | DirectiveChangeMeta,
   ): void {
-    agent.session.append(type, change as never)
+    agent.session.append(type, change)
     this.sync(agent.session, cache)
   }
 

@@ -18,7 +18,7 @@ External measurements, collected under Source findings below, quantify the cost 
 
 Add three capability seams, each complete with Service Definition, Service Provider, and Consumer roles, composed from documented extension points. `agent-loop` does not change.
 
-**Completion standard (`verification/` group).** `ctx.completionStandard` owns one executable standard per goal: an inventory of outcomes the task must establish, an executable check for each, and current evidence from running those checks against the workspace. A validator role — a continuable subagent in its own session — authors the standard from the task's sources before implementation begins and may extend or refine it as it learns; every relaxation of a check appends a `verification/relaxation` event naming the evidence that the stricter form is unsatisfiable, so the standard can grow but cannot silently weaken. An orchestrator policy admits `goal/change` to `complete` only after a passing `verification/certificate` event whose check run is logged; a worker report without one leaves the goal `active`.
+**Completion standard (`verification/` group).** `ctx.completionStandard` owns one executable standard per goal: an inventory of outcomes the task must establish, an executable check for each, and current evidence from running those checks against the workspace. A validator role — a continuable subagent in its own session — authors the standard from the task's sources before implementation begins and may extend or refine it as it learns; every relaxation of a check appends a `verification/relaxation` event naming the evidence that the stricter form is unsatisfiable, so the standard can grow but cannot silently weaken. Authorship and extension append whole-snapshot `verification/standard` events, so the durable registry of checks replays from the log alone. An orchestrator policy admits `goal/change` to `complete` only after a passing `verification/certificate` event whose check run is logged; a worker report without one leaves the goal `active`.
 
 The implementer never reads the standard. Check failures reach it as `verification/directive` events aggregated by root cause, and an fs policy plugin in the existing four-layer filesystem split denies implementer tool reads under the validator-owned root. `tools.restrict()` and subagent `toolFilter` remain visibility composition per [agent-scope-contexts](../../implemented/architecture/2026-07-08-agent-scope-contexts.md); the read barrier is filesystem authority, and its subprocess half is an open constraint below.
 
@@ -38,7 +38,7 @@ The implementer never reads the standard. Check failures reach it as `verificati
 
 ## Rollout
 
-1. Verification: the completion-standard Service Definition, validator and orchestrator presets over the existing subagent seam, the `verification/directive`, `verification/relaxation`, and `verification/certificate` events, and certificate admission on goal completion.
+1. Verification: the completion-standard Service Definition, validator and orchestrator presets over the existing subagent seam, the `verification/standard`, `verification/directive`, `verification/relaxation`, and `verification/certificate` events, and certificate admission on goal completion.
 2. Improvement: trajectory export, the environment registry with the long-horizon benchmark, and skill synthesis behind evaluation-plus-approval promotion.
 3. Oversight: monitor flags, the cross-provider auditor, and evaluation preconditions on `cordis_run` and skill promotion.
 
@@ -49,6 +49,8 @@ Each phase is independently landable and ships keyless snapshot scenarios throug
 The [sandbox seam's](../../../../packages/sandbox/sandbox/README.md) policy vocabulary covers file write effects; a confined subprocess can still read any path it can reach, so an implementer shell could read a standard stored inside its workspace. Until the seam grows a read-scope or network posture, the standard and held-out fixtures live outside the implementer's filesystem reach — a separate operating-system account or host, the arrangement Anthropic used — and in-process tool reads are denied by the fs policy plugin.
 
 Validator and orchestrator campaigns run far longer than today's sessions; [recallable-compaction](../feature/2026-07-06-recallable-compaction.md) stops being optional there and belongs inside the second phase.
+
+`GoalService.complete()` has no admission extension point, so certificate admission first binds the orchestrator caller through `assertCertified()` while the `dsh-verification` invariant companion rejects an uncertified completion of a measured goal wherever it is installed; in-service admission follows with the preset slice.
 
 Aggregate token, currency, and elapsed-time budgets are absent from the loop today; the improvement seam's scoring supplies the measurements, and admission policies can follow as ordinary `agent/pre-step` plugins.
 
