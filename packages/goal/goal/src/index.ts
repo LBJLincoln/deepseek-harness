@@ -43,6 +43,7 @@ import type {
   GoalChangeMeta,
   GoalChanged,
   GoalClearChangeMeta,
+  GoalCompletionGuard,
   GoalOperation,
   GoalSnapshotChangeMeta,
 } from './domain.ts'
@@ -189,6 +190,7 @@ export class GoalService extends TypertRemoteService {
 
   private readonly resolved: ResolvedConfig
   private readonly caches = new WeakMap<Session, GoalCache>()
+  private readonly completionGuards = new Set<GoalCompletionGuard>()
 
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'goals')
@@ -389,6 +391,19 @@ export class GoalService extends TypertRemoteService {
     return { ...tombstone }
   }
 
+  /**
+   * Register a deny-only completion admission guard. Every registered guard
+   * runs inside {@link complete} after transition validation and before the
+   * durable commit; a guard rejects by throwing, and its error reaches the
+   * completing caller unchanged with no goal state written.
+   * @param guard - admission check receiving the live agent and the snapshot being completed.
+   * @returns the exact disposer that unregisters the guard.
+   */
+  completionGuard(guard: GoalCompletionGuard): () => void {
+    this.completionGuards.add(guard)
+    return () => { this.completionGuards.delete(guard) }
+  }
+
   /** Resolve and validate the cache used by a mutation. */
   private prepareMutation(agent: Agent): GoalCache {
     this.assertLive(agent)
@@ -469,6 +484,10 @@ export class GoalService extends TypertRemoteService {
     const cache = this.prepareMutation(agent)
     const current = this.expectCurrent(cache, ref)
     if (!allowed.includes(current.phase)) throw this.transitionError(current, operation, allowed)
+    if (operation === 'complete') {
+      const snapshot = { ...current }
+      for (const guard of this.completionGuards) guard(agent, snapshot)
+    }
     return this.commitCurrent(agent, cache, operation, this.withPhase(current, phase), activation)
   }
 

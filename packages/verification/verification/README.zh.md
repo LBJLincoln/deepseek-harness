@@ -18,7 +18,7 @@
 
 ## 服务约定
 
-`ctx.completionStandards` 只接受注册表中该 id 对应的那个 live `Agent` 实例。`get()` 返回一份游离的 `StandardView`；变更操作使用 `StandardRef { id, revision }` 比较并交换栅栏，并拒绝过期引用。每个会话至多有一个当前标准；`author()` 为一个 goal 创建修订号为一的标准，并拒绝为同一 goal 再次创建，而针对不同 goal 的新标准会取代之前的标准。`extend()` 追加检查且从不改写既有检查；`relax()` 恰好移除一个检查，并记录非空的不可满足证据。`recordRun()` 要求每个活动检查恰好对应一条结果：完整通过的运行会按检查顺序提交一份持久证书，任何失败都只返回失败子集而不产生持久记录。`issueDirective()` 记录由消费方转达给实现者的根因聚合。`assertCertified()` 返回恰好覆盖当前修订的目标 goal 证书，否则抛出异常，因此它是编排者在调用 `ctx.goals.complete()` 之前执行的准入调用。
+`ctx.completionStandards` 只接受注册表中该 id 对应的那个 live `Agent` 实例。`get()` 返回一份游离的 `StandardView`；变更操作使用 `StandardRef { id, revision }` 比较并交换栅栏，并拒绝过期引用。每个会话至多有一个当前标准；`author()` 为一个 goal 创建修订号为一的标准，并拒绝为同一 goal 再次创建，而针对不同 goal 的新标准会取代之前的标准。`extend()` 追加检查且从不改写既有检查；`relax()` 恰好移除一个检查，并记录非空的不可满足证据。`recordRun()` 要求每个活动检查恰好对应一条结果：完整通过的运行会按检查顺序提交一份持久证书，任何失败都只返回失败子集而不产生持久记录。`issueDirective()` 记录由消费方转达给实现者的根因聚合。`assertCertified()` 返回恰好覆盖当前修订的目标 goal 证书，否则抛出异常，因此它是编排者在调用 `ctx.goals.complete()` 之前执行的准入读取。当 goal 服务同时组合时，本服务还会把同一准入注册为 `ctx.goals` 上只可否决的 `completionGuard()`，使 `GoalService.complete()` 自身拒绝对被度量 goal 的未认证完成；未被度量的 goal 照常完成。
 
 每次变更都会追加一条携带完整变更后状态的持久会话事件：`verification/standard`（author、extend）、`verification/relaxation`、`verification/certificate` 或 `verification/directive`。严格回放校验修订序列、仅追加的检查增长、放宽的结构、证书覆盖范围与时间戳连续性，且任何标准变更都会使先前证书失效。会话日志是唯一的持久权威；新的服务实例从日志重建其视图。
 
@@ -38,7 +38,7 @@
 
 ## 已知限制与暂缓事项
 
-- **建议性准入** — `assertCertified()` 只约束调用它的一方；`GoalService.complete()` 没有准入扩展点，跳过该检查的调用方仍能完成被度量的 goal。安装了不变量配套文件的部署会拒绝这样的事件流；服务内准入需要 `dsh-goal` 提供扩展点。
+- **准入依赖 goal 服务** — 当两个服务同时组合时，强制执行发生在 `GoalService.complete()` 内部注册的完成 guard 中；没有 `ctx.goals` 的组合只保留服务动词与供自身调用方使用的 `assertCertified()`，而安装了不变量配套文件的部署仍会拒绝未认证的完成事件流。
 - **没有读取屏障** — 本包只承载持久状态；拒绝实现者读取标准产物属于另一个插件的文件系统策略工作，在它存在之前，日志的任何进程内消费方都能读到标准的 `run` 指令。
 - **指令投递属于消费方** — 指令是仅日志记录；没有把它们作为插件来源用户消息转达的消费方，实现者永远看不到它们。
 - **没有运行执行器** — 验证者 agent 用自己的工具执行检查并报告结果；本包只记录结论，从不派生进程。

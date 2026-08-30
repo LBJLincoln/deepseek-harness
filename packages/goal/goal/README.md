@@ -31,7 +31,7 @@ The separately published `./invariant` companion maintains an independent fold o
 
 ## Extension points
 
-Policy plugins call the service verbs and react to the scoped `goal/changed` event. A continuation consumer admits rounds as `user/message` events with `GoalMessageSource`; ordinary human turns never increment `roundsStarted`. Consumers use the `Agent` interface and events rather than importing `dsh-agent-loop`.
+Policy plugins call the service verbs and react to the scoped `goal/changed` event. A continuation consumer admits rounds as `user/message` events with `GoalMessageSource`; ordinary human turns never increment `roundsStarted`. Consumers use the `Agent` interface and events rather than importing `dsh-agent-loop`. `completionGuard()` registers a deny-only admission check that runs inside `complete()` after transition validation and before the durable commit: a guard rejects by throwing, its error reaches the completing caller unchanged with no goal state written, and the returned disposer unregisters it. `@deepseek-ai/dsh-verification` registers the certificate guard through this point when both services are composed.
 
 ## Model Experience
 
@@ -53,6 +53,6 @@ There is no KV-cache effect until another component exposes goal state in model-
 
 - **State, not scheduling** — this package does not decide when an armed goal continues, retry abnormal failures, or cancel an active turn; those policies belong to agent-seam consumers.
 - **Round-count budget only** — `maxGoalRounds` does not meter tokens, currency, wall time, or provider quotas.
-- **No independent evaluator** — the caller that records completion or blocking is authoritative; evaluator-backed certification is deferred to a separate policy layer.
+- **No built-in evaluator** — this package records what its callers and registered completion guards decide; certificate-backed admission comes from composing `@deepseek-ai/dsh-verification`, and blocking remains caller-authoritative.
 - **One current goal** — parallel objectives and a separate goal database are intentionally absent; history remains available in the session log after replacement or clear.
 - **Trusted in-process producers** — a plugin with direct `Session` access can append counterfeit `goal/change` data. Strict replay detects malformed or inconsistent records and leaves goal access failed at that record until the log is repaired; this is integrity detection, not plugin isolation.

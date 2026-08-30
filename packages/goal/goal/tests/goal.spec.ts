@@ -794,3 +794,37 @@ describe('goal replay validation', () => {
     })
   })
 })
+
+describe('GoalService completion guards', () => {
+  it('runs registered guards before committing a completion and propagates rejections', async () => {
+    const { ctx, agent, session } = await harness()
+    const goal = ctx.goals.create(agent, { objective: 'guarded work' })
+    const seen: string[] = []
+    ctx.goals.completionGuard((guardedAgent, snapshot) => {
+      seen.push(`${guardedAgent.id}:${snapshot.id}:${snapshot.phase}`)
+      throw new HarnessError('not certified yet', 'TEST_GUARD_REJECTION')
+    })
+    expect(() => ctx.goals.complete(agent, { id: goal.id, revision: goal.revision }))
+      .toThrow(expect.objectContaining({ code: 'TEST_GUARD_REJECTION' }))
+    expect(seen).toEqual([`${String(agent.id)}:${String(goal.id)}:active`])
+    expect(ctx.goals.get(agent)?.phase).toBe('active')
+    expect(session.events.filter(event => event.type === 'goal/change')).toHaveLength(1)
+  })
+
+  it('completes when guards pass, skips guards for other transitions, and honors the disposer', async () => {
+    const { ctx, agent } = await harness()
+    const goal = ctx.goals.create(agent, { objective: 'guarded work' })
+    let calls = 0
+    const dispose = ctx.goals.completionGuard(() => { calls += 1 })
+    const paused = ctx.goals.pause(agent, { id: goal.id, revision: 1 })
+    expect(calls).toBe(0)
+    const resumed = ctx.goals.resume(agent, { id: paused.id, revision: paused.revision })
+    const completed = ctx.goals.complete(agent, { id: resumed.id, revision: resumed.revision })
+    expect(completed.phase).toBe('complete')
+    expect(calls).toBe(1)
+    dispose()
+    const next = ctx.goals.create(agent, { objective: 'unguarded work' })
+    ctx.goals.complete(agent, { id: next.id, revision: next.revision })
+    expect(calls).toBe(1)
+  })
+})

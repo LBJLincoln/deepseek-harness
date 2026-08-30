@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import { GoalId } from '@deepseek-ai/dsh-goal'
+import GoalService, { GoalId } from '@deepseek-ai/dsh-goal'
 import { Session as SessionClass, SessionId } from '@deepseek-ai/dsh-session'
 import CompletionStandardService, {
   CheckId,
@@ -326,5 +326,56 @@ describe('CompletionStandardService replay', () => {
     first.ctx.completionStandards.extend(first.agent, ref, [check('b')])
     expect(second.completionStandards.get(stub.agent)?.revision).toBe(2)
     expect(second.completionStandards.certified(stub.agent)).toBeUndefined()
+  })
+})
+
+describe('CompletionStandardService certificate-gated goal completion', () => {
+  async function composed() {
+    const ctx = new Context()
+    await ctx.plugin(AgentRegistry)
+    await ctx.plugin(GoalService)
+    const fiber = await ctx.plugin(CompletionStandardService)
+    const stub = stubAgentForSession(SessionClass.create(SessionId(`verification-admission-${Math.random()}`)))
+    ctx.agents.register(stub.agent)
+    return { ctx, fiber, ...stub }
+  }
+
+  it('rejects completing a measured goal without a covering certificate and admits it after one', async () => {
+    const { ctx, agent } = await composed()
+    const created = ctx.goals.create(agent, { objective: 'ship verified work' })
+    const view = ctx.completionStandards.author(agent, { goalId: created.id, checks: [check('build-passes')] })
+    expect(() => ctx.goals.complete(agent, { id: created.id, revision: created.revision }))
+      .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
+    expect(ctx.goals.get(agent)?.phase).toBe('active')
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: view.revision }, 'process', passes(['build-passes']))
+    const completed = ctx.goals.complete(agent, { id: created.id, revision: created.revision })
+    expect(completed.phase).toBe('complete')
+  })
+
+  it('re-arms the gate when a mutation invalidates the certificate', async () => {
+    const { ctx, agent } = await composed()
+    const created = ctx.goals.create(agent, { objective: 'ship verified work' })
+    const view = ctx.completionStandards.author(agent, { goalId: created.id, checks: [check('build-passes')] })
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'process', passes(['build-passes']))
+    ctx.completionStandards.extend(agent, { id: view.id, revision: 1 }, [check('tests-pass')])
+    expect(() => ctx.goals.complete(agent, { id: created.id, revision: created.revision }))
+      .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
+  })
+
+  it('never blocks unmeasured goals or goals measured by another standard', async () => {
+    const { ctx, agent } = await composed()
+    const first = ctx.goals.create(agent, { objective: 'unmeasured work' })
+    expect(ctx.goals.complete(agent, { id: first.id, revision: first.revision }).phase).toBe('complete')
+    const second = ctx.goals.create(agent, { objective: 'second work' })
+    ctx.completionStandards.author(agent, { goalId: GoalId('goal-elsewhere'), checks: [check('a')] })
+    expect(ctx.goals.complete(agent, { id: second.id, revision: second.revision }).phase).toBe('complete')
+  })
+
+  it('removes the guard when the service fiber is disposed', async () => {
+    const { ctx, agent, fiber } = await composed()
+    const created = ctx.goals.create(agent, { objective: 'ship verified work' })
+    ctx.completionStandards.author(agent, { goalId: created.id, checks: [check('build-passes')] })
+    await fiber.dispose()
+    expect(ctx.goals.complete(agent, { id: created.id, revision: created.revision }).phase).toBe('complete')
   })
 })

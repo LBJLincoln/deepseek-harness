@@ -12,6 +12,8 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
+// Type-only: resolves ctx.goals for the optional admission child.
+import type {} from '@deepseek-ai/dsh-goal'
 import type { Session } from '@deepseek-ai/dsh-session'
 import {
   applyVerificationEvent,
@@ -108,6 +110,13 @@ export class CompletionStandardService extends Service {
       maxChecks: resolveBound(config.maxChecks ?? 256, 'maxChecks'),
       maxTextChars: resolveBound(config.maxTextChars ?? 16384, 'maxTextChars'),
     }
+    // Certificate admission activates only when a goal service is composed
+    // (assemblies without goals keep the service verbs alone).
+    ctx.inject(['goals'], (goalsCtx) => {
+      goalsCtx.effect(() => goalsCtx.goals.completionGuard((agent, goal) => {
+        this.guardCompletion(agent, goal.id)
+      }))
+    })
   }
 
   /**
@@ -350,6 +359,24 @@ export class CompletionStandardService extends Service {
       )
     }
     return certificate
+  }
+
+  /**
+   * Completion admission for one goal: pass when no current standard
+   * measures it, reject when the measured goal lacks a covering certificate.
+   * The goal service asserts agent liveness before its guards run.
+   */
+  private guardCompletion(agent: Agent, goalId: GoalId): void {
+    const cache = this.cache(agent.session)
+    this.sync(agent.session, cache)
+    const current = cache.state.standard
+    if (current === undefined || current.goalId !== goalId) return
+    if (cache.state.certificate === undefined) {
+      throw new VerificationError(
+        `goal "${goalId}" cannot complete: standard "${current.id}" revision ${current.revision} has no covering certificate`,
+        'VERIFICATION_NOT_CERTIFIED',
+      )
+    }
   }
 
   /** Validate, trim, and cap one recorded text. */

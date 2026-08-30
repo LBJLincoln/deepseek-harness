@@ -50,7 +50,7 @@ Status: proposed
 
 验证者与编排者的运行远长于当前会话；[recallable-compaction](../feature/2026-07-06-recallable-compaction.md) 在该场景下不再是可选项，应纳入第二阶段。
 
-`GoalService.complete()` 没有准入扩展点，因此证书准入先通过 `assertCertified()` 约束编排者调用方，而安装了 `dsh-verification` 不变量配套文件的部署会拒绝对被度量 goal 的未认证完成；服务内准入随 preset 切片补齐。
+`GoalService.complete()` 在转换校验后运行只可否决的完成 guard，且只要两个服务同时组合，`dsh-verification` 就会注册证书 guard，因此对被度量 goal 的未认证完成会在操作内部被拒绝；`assertCertified()` 仍是编排者的读取调用，安装了不变量配套文件的部署仍会拒绝违规事件流。
 
 循环今天没有 token、货币与耗时的总量预算；改进 seam 的评分提供这些度量，准入策略随后可以作为普通的 `agent/pre-step` 插件加入。
 

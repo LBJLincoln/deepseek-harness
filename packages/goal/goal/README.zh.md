@@ -31,7 +31,7 @@
 
 ## 扩展点
 
-策略插件调用服务动词，并响应限定范围的 `goal/changed` 事件。续行消费方将 Round 准入为 `user/message` 事件，并携带 `GoalMessageSource`；普通的人类轮次绝不会增加 `roundsStarted`。消费方使用 `Agent` 接口和事件，不导入 `dsh-agent-loop`。
+策略插件调用服务动词，并响应限定范围的 `goal/changed` 事件。续行消费方将 Round 准入为 `user/message` 事件，并携带 `GoalMessageSource`；普通的人类轮次绝不会增加 `roundsStarted`。消费方使用 `Agent` 接口和事件，不导入 `dsh-agent-loop`。`completionGuard()` 注册只可否决的准入检查，它在 `complete()` 内、转换校验之后且持久提交之前运行：guard 通过抛出异常来拒绝，其错误原样到达发起完成的调用方且不写入任何 goal 状态，返回的释放器负责注销它。当两个服务同时组合时，`@deepseek-ai/dsh-verification` 通过该扩展点注册证书 guard。
 
 ## 模型体验
 
@@ -53,6 +53,6 @@ Goal 变更事件本身不增加模型 token。工具结果和续行调度提示
 
 - **只负责状态，不负责任务调度**：此包不决定已启用续行的目标何时继续，不重试异常失败，也不取消活跃轮次；这些策略属于 agent seam 消费方。
 - **只有 Round 数量预算**：`maxGoalRounds` 不计量 token、货币、挂钟时间或提供方配额。
-- **没有独立评估器**：记录完成或阻塞的调用方拥有最终决定权；由评估器支持的认证暂缓到独立策略层。
+- **没有内置评估器**：本包记录其调用方与已注册完成 guard 所做的决定；证书支持的准入来自组合 `@deepseek-ai/dsh-verification`，阻塞仍由调用方决定。
 - **只有一个当前目标**：系统有意不支持并行目标或独立目标数据库；替换或清除后，历史仍可在会话日志中读取。
 - **信任进程内生产方**：能直接访问 `Session` 的插件可以追加伪造的 `goal/change` 数据。严格回放会检测格式错误或不一致的记录，并使 goal 访问从该记录起失败，直到日志修复；这是完整性检测，不是插件隔离。

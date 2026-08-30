@@ -81,6 +81,16 @@ export interface FoldedGoal {
   readonly lastRef?: GoalRef
 }
 
+/**
+ * Deny-only completion admission check. Runs inside `complete()` after
+ * transition validation and before the durable commit; rejecting means
+ * throwing, and the error reaches the completing caller unchanged with no
+ * goal state written.
+ * @param agent - live agent whose goal is completing.
+ * @param goal - detached snapshot of the exact revision being completed.
+ */
+export type GoalCompletionGuard = (agent: Agent, goal: GoalSnapshot) => void
+
 /** Live notification after one durable goal mutation commits. */
 export interface GoalChanged {
   readonly operation: GoalOperation

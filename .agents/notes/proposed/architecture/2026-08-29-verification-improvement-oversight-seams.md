@@ -50,7 +50,7 @@ The [sandbox seam's](../../../../packages/sandbox/sandbox/README.md) policy voca
 
 Validator and orchestrator campaigns run far longer than today's sessions; [recallable-compaction](../feature/2026-07-06-recallable-compaction.md) stops being optional there and belongs inside the second phase.
 
-`GoalService.complete()` has no admission extension point, so certificate admission first binds the orchestrator caller through `assertCertified()` while the `dsh-verification` invariant companion rejects an uncertified completion of a measured goal wherever it is installed; in-service admission follows with the preset slice.
+`GoalService.complete()` runs deny-only completion guards after transition validation, and `dsh-verification` registers the certificate guard whenever both services are composed, so an uncertified completion of a measured goal is rejected inside the operation itself; `assertCertified()` remains the orchestrator's read, and the invariant companion rejects a violating stream wherever it is installed.
 
 Aggregate token, currency, and elapsed-time budgets are absent from the loop today; the improvement seam's scoring supplies the measurements, and admission policies can follow as ordinary `agent/pre-step` plugins.
 
