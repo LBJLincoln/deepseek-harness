@@ -26,7 +26,7 @@ The separately published `./invariant` companion maintains an independent fold o
 
 ## Extension points
 
-Policy consumers call the service verbs and fold the four events from the session log. A certificate is a replayable record of which checks passed with what evidence and under which isolation level (`none`, `process`, `host`), so evaluation and training-data pipelines can score sessions from the log alone: per-agent tallies of certificates earned, directives received, and relaxations recorded derive from the events without new instrumentation. Consumers use the `Agent` interface and session events rather than importing the agent loop.
+Policy consumers call the service verbs and fold the four events from the session log. When a projection registry is composed, a `verification` session projection serves the same state to clients: the whole current standard with its certificate and directive count, `null` before authorship. A certificate is a replayable record of which checks passed with what evidence and under which isolation level (`none`, `process`, `host`), so evaluation and training-data pipelines can score sessions from the log alone: per-agent tallies of certificates earned, directives received, and relaxations recorded derive from the events without new instrumentation. Consumers use the `Agent` interface and session events rather than importing the agent loop.
 
 ## Model Experience
 

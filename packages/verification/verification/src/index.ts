@@ -10,13 +10,21 @@
 import { randomUUID } from 'node:crypto'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import { z as zod } from 'zod'
+import type { ZodType } from 'zod'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 // Type-only: resolves ctx.goals for the optional admission child.
 import type {} from '@deepseek-ai/dsh-goal'
-import type { Session } from '@deepseek-ai/dsh-session'
+import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+// Type-only: resolves ctx.sessionProjections for the optional unit child.
+import type {} from '@deepseek-ai/dsh-session-projection'
 import {
   applyVerificationEvent,
+  decodeCertificateChange,
+  decodeDirectiveChange,
+  decodeRelaxationChange,
+  decodeStandardChange,
   emptyVerificationFoldState,
 } from './fold.ts'
 import type { VerificationFoldState } from './fold.ts'
@@ -33,6 +41,7 @@ import type {
   StandardRef,
   StandardView,
   VerificationCertificate,
+  VerificationProjection,
 } from './types.ts'
 import type {
   CertificateChangeMeta,
@@ -59,6 +68,99 @@ export type { VerificationFoldState } from './fold.ts'
 declare module '@deepseek-ai/cordis' {
   interface Context {
     completionStandards: CompletionStandardService
+  }
+}
+
+/** Wire payload schema of the `verification` projection (whole current standard or pre-authorship null). */
+const verificationProjectionSchema: ZodType<VerificationProjection | null> = zod.union([
+  zod.object({
+    standard: zod.object({
+      id: zod.string().min(1),
+      revision: zod.number().int().positive(),
+      goalId: zod.string().min(1),
+      checks: zod.array(zod.object({
+        id: zod.string().min(1),
+        outcome: zod.string().min(1),
+        run: zod.string().min(1),
+      })),
+      relaxed: zod.array(zod.object({
+        check: zod.object({
+          id: zod.string().min(1),
+          outcome: zod.string().min(1),
+          run: zod.string().min(1),
+        }),
+        evidence: zod.string().min(1),
+      })),
+    }),
+    certificate: zod.object({
+      standard: zod.object({ id: zod.string().min(1), revision: zod.number().int().positive() }),
+      goalId: zod.string().min(1),
+      isolation: zod.union([zod.literal('none'), zod.literal('process'), zod.literal('host')]),
+      results: zod.array(zod.object({
+        checkId: zod.string().min(1),
+        status: zod.union([zod.literal('pass'), zod.literal('fail')]),
+        evidence: zod.string().min(1),
+      })),
+      recordedAt: zod.number(),
+    }).optional(),
+    directivesIssued: zod.number().int().nonnegative(),
+    createdAt: zod.number(),
+    updatedAt: zod.number(),
+  }),
+  zod.null(),
+]) as ZodType<VerificationProjection | null>
+
+/**
+ * Light last-wins fold of the `verification` projection unit. Unlike the
+ * strict replay fold (fold.ts: transition validation, fail-loud on malformed
+ * changes), this transition is projection-grade: the state is plain JSON, any
+ * non-verification or malformed event returns the same reference, and
+ * correctness of the written change is the write side's job.
+ * @param state - the projection covering all prior events.
+ * @param event - the next committed session event.
+ * @returns the next projection (same reference when the event is not a well-formed verification change).
+ */
+export function applyVerificationProjection(
+  state: VerificationProjection | null,
+  event: SessionEvent,
+): VerificationProjection | null {
+  try {
+    switch (event.type) {
+      case 'verification/standard': {
+        const change = decodeStandardChange(event.data)
+        if (change === undefined) return state
+        return {
+          standard: change.standard,
+          directivesIssued: state?.directivesIssued ?? 0,
+          createdAt: change.createdAt,
+          updatedAt: change.updatedAt,
+        }
+      }
+      case 'verification/relaxation': {
+        const change = decodeRelaxationChange(event.data)
+        if (change === undefined) return state
+        return {
+          standard: change.standard,
+          directivesIssued: state?.directivesIssued ?? 0,
+          createdAt: change.createdAt,
+          updatedAt: change.updatedAt,
+        }
+      }
+      case 'verification/certificate': {
+        const change = decodeCertificateChange(event.data)
+        if (change === undefined || state === null) return state
+        return { ...state, certificate: change.certificate }
+      }
+      case 'verification/directive': {
+        const change = decodeDirectiveChange(event.data)
+        if (change === undefined || state === null) return state
+        return { ...state, directivesIssued: state.directivesIssued + 1 }
+      }
+      default:
+        return state
+    }
+  } catch (_invalidPersistedVerificationChange) {
+    return state
   }
 }
 
@@ -116,6 +218,19 @@ export class CompletionStandardService extends Service {
       goalsCtx.effect(() => goalsCtx.goals.completionGuard((agent, goal) => {
         this.guardCompletion(agent, goal.id)
       }))
+    })
+    // The `verification` projection unit: last-wins fold of the four
+    // verification events (see applyVerificationProjection). The unit child
+    // activates only when a projection registry is composed.
+    ctx.inject(['sessionProjections'], (projectionCtx) => {
+      projectionCtx.sessionProjections.register<'verification', VerificationProjection | null>({
+        key: 'verification',
+        schema: verificationProjectionSchema,
+        init: () => null,
+        apply: applyVerificationProjection,
+        view: state => state,
+        stateVersion: 1,
+      })
     })
   }
 

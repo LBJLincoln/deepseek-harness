@@ -119,3 +119,31 @@ export interface AuthorStandardRequest {
   /** Initial non-empty check inventory. */
   readonly checks: readonly StandardCheck[]
 }
+
+/**
+ * The `verification` projection value: the current standard exactly as the
+ * latest verification events carried it, with its covering certificate and
+ * the session's cumulative directive count.
+ */
+export interface VerificationProjection {
+  /** Current standard snapshot. */
+  readonly standard: CompletionStandardSnapshot
+  /** Certificate covering exactly the current revision, absent otherwise. */
+  readonly certificate?: VerificationCertificate
+  /** Count of directives issued across the session. */
+  readonly directivesIssued: number
+  /** Epoch milliseconds of the author mutation. */
+  readonly createdAt: number
+  /** Epoch milliseconds of the latest standard mutation. */
+  readonly updatedAt: number
+}
+
+declare module '@deepseek-ai/dsh-session-projection/types' {
+  interface SessionProjectionMap {
+    /**
+     * The session's current completion standard (last-wins over the four
+     * verification events), or `null` before the first authorship.
+     */
+    verification: VerificationProjection | null
+  }
+}
