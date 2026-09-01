@@ -15,6 +15,7 @@ npm scope 为 `@deepseek-ai/dsh-*`；Cordis `Service` 子类和函数插件通�
 | [`typert/`](typert/README.md) | 类型图生成、产物加载与运行时注册表 | 产品：稳定 API |
 | [`goal/`](goal/README.md) | 同会话 goal 的持久化与生命周期 | 产品：稳定 API |
 | [`verification/`](verification/README.md) | 可执行完成标准，其证书约束 goal 完成 | 产品：稳定 API |
+| [`components/`](components/README.md) | 组件注册表：组合中每个可寻址单元及其类别、来源、谱系与可调用路径，附 seam 适配器 | 产品：稳定 API |
 | [`schedule/`](schedule/README.md) | 仅限会话内的定时后续操作 | 产品：稳定 API |
 | [`feedback/`](feedback/README.md) | 人类反馈 | 产品：稳定 API |
 | [`identity/`](identity/README.md) | 共享匿名身份 | 产品：稳定 API |

@@ -1,0 +1,35 @@
+# @deepseek-ai/dsh-components-subagents
+
+English | [中文](README.zh.md)
+
+Mirrors every subagent provider registered with `ctx.subagents` into the component registry as an `agent-provider` component, following the seam's own `subagent/provider-added` and `subagent/provider-removed` events so the inventory tracks the live registry.
+
+## Config
+
+```yaml
+- id: subagents
+  name: '@deepseek-ai/dsh-subagent'
+- id: components
+  name: '@deepseek-ai/dsh-components'
+- id: components-subagents
+  name: '@deepseek-ai/dsh-components-subagents'
+```
+
+The adapter takes no configuration and requires both services.
+
+## Contract
+
+At mount the adapter registers one component per name in `ctx.subagents.list()`; afterwards it registers on `subagent/provider-added` and disposes on `subagent/provider-removed`, ignoring a duplicate addition or an unknown removal. Each component has id `agent-provider:<provider>`, kind `agent-provider`, `provenance: 'curated'`, an `invoke` pointer to the `subagent` tool with the fixed `provider` argument, and `detail: { provider }`. Disposing the adapter fiber removes every component it registered. `agentProviderComponentId(provider)` builds the id for consumers.
+
+## Model Experience
+
+None, as the adapter registers component metadata only; the subagent tool owns every model-visible effect of the mirrored providers.
+
+#### KV Cache effect
+
+None; the adapter neither adds to nor changes any model request.
+
+## Known Limitations and Deferred Work
+
+- **Names only** — the component detail carries the provider name; provider capabilities (`outputSchema`, `depthLimit`, `toolFilter`, `persona`) are not mirrored until a consumer needs them.
+- **Curated provenance for every provider** — providers are composed plugins today; a synthesized provider registered at runtime would need its producer to declare its own provenance and lineage.

@@ -160,6 +160,8 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/util/output-retention': { kind: 'indirect', reason: 'Only retention consumers render retained content and omission metadata.' },
   'packages/util/native-command': { kind: 'none', reason: 'The host-side subprocess runner registers nothing model-facing.' },
   'packages/verification/verification': { kind: 'indirect', reason: 'The service writes log-only standard, relaxation, certificate, and directive events; policy consumers own any relayed directive text.' },
+  'packages/components/components': { kind: 'none', reason: 'The registry holds composition-time inventory and registers nothing model-facing; consumers own any rendered use.' },
+  'packages/components/components-subagents': { kind: 'none', reason: 'The adapter registers component metadata only; the subagent tool owns every model-visible effect of the mirrored providers.' },
   'packages/web/web': { kind: 'indirect', reason: 'The provider registry delegates model rendering to dsh-tool-web.' },
   'packages/web/web-fetch-http': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },
   'packages/web/web-search-exa': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },
