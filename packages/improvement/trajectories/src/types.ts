@@ -99,6 +99,8 @@ export interface TrajectoryReward {
   readonly directives: number
   /** Checks relaxed out of the standard during the session. */
   readonly relaxations: number
+  /** Runs of the standard recorded during the session, passing or failing. */
+  readonly attempts: number
 }
 
 /** What was in play while the trajectory ran, in the component registry's id scheme. */

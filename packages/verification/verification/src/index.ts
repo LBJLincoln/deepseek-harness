@@ -24,8 +24,10 @@ import {
   decodeCertificateChange,
   decodeDirectiveChange,
   decodeRelaxationChange,
+  decodeRunChange,
   decodeStandardChange,
   emptyVerificationFoldState,
+  nextRunAttempt,
 } from './fold.ts'
 import type { VerificationFoldState } from './fold.ts'
 import { isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION, VerificationError } from './runtime.ts'
@@ -36,6 +38,7 @@ import type {
   CheckResult,
   CompletionStandardSnapshot,
   DirectiveRequest,
+  RunEvidence,
   RunOutcome,
   StandardCheck,
   StandardRef,
@@ -49,6 +52,7 @@ import type {
   RelaxationChangeMeta,
   StandardChangeMeta,
   VerificationErrorCode,
+  VerificationRunChangeMeta,
 } from './domain.ts'
 
 export type * from './types.ts'
@@ -59,6 +63,7 @@ export {
   decodeCertificateChange,
   decodeDirectiveChange,
   decodeRelaxationChange,
+  decodeRunChange,
   decodeStandardChange,
   emptyVerificationFoldState,
   foldVerification,
@@ -104,6 +109,7 @@ const verificationProjectionSchema: ZodType<VerificationProjection | null> = zod
       recordedAt: zod.number(),
     }).optional(),
     directivesIssued: zod.number().int().nonnegative(),
+    runsRecorded: zod.number().int().nonnegative(),
     createdAt: zod.number(),
     updatedAt: zod.number(),
   }),
@@ -132,6 +138,7 @@ export function applyVerificationProjection(
         return {
           standard: change.standard,
           directivesIssued: state?.directivesIssued ?? 0,
+          runsRecorded: state?.runsRecorded ?? 0,
           createdAt: change.createdAt,
           updatedAt: change.updatedAt,
         }
@@ -142,9 +149,15 @@ export function applyVerificationProjection(
         return {
           standard: change.standard,
           directivesIssued: state?.directivesIssued ?? 0,
+          runsRecorded: state?.runsRecorded ?? 0,
           createdAt: change.createdAt,
           updatedAt: change.updatedAt,
         }
+      }
+      case 'verification/run': {
+        const change = decodeRunChange(event.data)
+        if (change === undefined || state === null) return state
+        return { ...state, runsRecorded: state.runsRecorded + 1 }
       }
       case 'verification/certificate': {
         const change = decodeCertificateChange(event.data)
@@ -219,7 +232,7 @@ export class CompletionStandardService extends Service {
         this.guardCompletion(agent, goal.id)
       }))
     })
-    // The `verification` projection unit: last-wins fold of the four
+    // The `verification` projection unit: last-wins fold of the five
     // verification events (see applyVerificationProjection). The unit child
     // activates only when a projection registry is composed.
     ctx.inject(['sessionProjections'], (projectionCtx) => {
@@ -229,7 +242,7 @@ export class CompletionStandardService extends Service {
         init: () => null,
         apply: applyVerificationProjection,
         view: state => state,
-        stateVersion: 1,
+        stateVersion: 2,
       })
     })
   }
@@ -351,14 +364,16 @@ export class CompletionStandardService extends Service {
   }
 
   /**
-   * Record one complete run of the current standard. A fully passing run
-   * commits a durable certificate; any failure returns the failing subset
-   * without a durable record — the validator aggregates those into a
-   * {@link issueDirective} directive.
+   * Record one complete run of the current standard. Every run appends a
+   * durable `verification/run` event carrying all of its results; a fully
+   * passing run then commits a certificate, while any failure returns the
+   * failing subset the validator aggregates into a {@link issueDirective}
+   * directive.
    * @param agent - owning live agent.
    * @param ref - expected current revision.
    * @param isolation - isolation level the run executed under.
    * @param results - exactly one result per active check, any order.
+   * @param evidence - executor of the checks and the workspace digest it covered.
    * @returns the certificate, or the failing results.
    */
   recordRun(
@@ -366,6 +381,7 @@ export class CompletionStandardService extends Service {
     ref: StandardRef,
     isolation: CertificateIsolation,
     results: readonly CheckResult[],
+    evidence: RunEvidence,
   ): RunOutcome {
     const cache = this.prepareMutation(agent)
     const current = this.expectCurrent(cache, ref)
@@ -396,10 +412,23 @@ export class CompletionStandardService extends Service {
         'VERIFICATION_INVALID_RESULTS',
       )
     }
+    const standard: StandardRef = { id: current.id, revision: current.revision }
+    const run: VerificationRunChangeMeta = {
+      kind: 'verification/run',
+      version: VERIFICATION_CHANGE_VERSION,
+      standard,
+      attempt: nextRunAttempt(cache.state, current.id),
+      isolation,
+      executor: evidence.executor,
+      results: ordered,
+      ...evidence.treeHash === undefined ? {} : { treeHash: evidence.treeHash },
+      recordedAt: this.nextMutationTime(cache),
+    }
+    this.commit(agent, cache, 'verification/run', run)
     const failures = ordered.filter(result => result.status === 'fail')
     if (failures.length > 0) return { certified: false, failures }
     const certificate: VerificationCertificate = {
-      standard: { id: current.id, revision: current.revision },
+      standard,
       goalId: current.goalId,
       isolation,
       results: ordered,
@@ -623,8 +652,10 @@ export class CompletionStandardService extends Service {
   private commit(
     agent: Agent,
     cache: VerificationCache,
-    type: 'verification/standard' | 'verification/relaxation' | 'verification/certificate' | 'verification/directive',
-    change: StandardChangeMeta | RelaxationChangeMeta | CertificateChangeMeta | DirectiveChangeMeta,
+    type: 'verification/standard' | 'verification/relaxation' | 'verification/run' | 'verification/certificate'
+      | 'verification/directive',
+    change: StandardChangeMeta | RelaxationChangeMeta | VerificationRunChangeMeta | CertificateChangeMeta
+      | DirectiveChangeMeta,
   ): void {
     agent.session.append(type, change)
     this.sync(agent.session, cache)
@@ -654,6 +685,7 @@ export class CompletionStandardService extends Service {
       updatedAt,
       ...cache.state.certificate === undefined ? {} : { certificate: cache.state.certificate },
       directivesIssued: cache.state.directivesIssued,
+      runsRecorded: cache.state.runsRecorded,
     }
   }
 }

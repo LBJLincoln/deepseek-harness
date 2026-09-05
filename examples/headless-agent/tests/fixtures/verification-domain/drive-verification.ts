@@ -44,13 +44,13 @@ export function apply(ctx: Context): void {
     const failing = ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'process', [
       { checkId: CheckId('round-trip-prints'), status: 'pass', evidence: 'printf CLI_TOOL_ROUND_TRIP exited 0' },
       { checkId: CheckId('final-answer-quotes'), status: 'fail', evidence: 'no assistant text exists yet' },
-    ])
+    ], { executor: 'agent-reported' })
     requireStep(!failing.certified, 'expected the first run to fail')
 
     const passing = ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'process', [
       { checkId: CheckId('round-trip-prints'), status: 'pass', evidence: 'printf CLI_TOOL_ROUND_TRIP exited 0' },
       { checkId: CheckId('final-answer-quotes'), status: 'pass', evidence: 'assistant text repeats CLI_TOOL_ROUND_TRIP' },
-    ])
+    ], { executor: 'agent-reported' })
     requireStep(passing.certified, 'expected the second run to certify')
 
     const completed = ctx.goals.complete(agent, { id: goal.id, revision: goal.revision })

@@ -38,6 +38,7 @@ describe('environment runs through a real cordis.yml and headless process', () =
     const [roundTrip, unsatisfiable, reserved] = result.reports
     expect(roundTrip).toMatchObject({ environment: 'smoke:round-trip', certified: true })
     expect(roundTrip?.attempts).toHaveLength(1)
+    expect(roundTrip?.attempts[0]?.treeHash).toMatch(/^[0-9a-f]{64}$/)
     expect(roundTrip?.stamp).toMatchObject({ environmentId: 'smoke:round-trip', heldOut: false, repetition: 0, isolation: 'none', model: { provider: 'cli-mock', model: 'cli-mock' } })
     expect(roundTrip?.certificate?.results).toEqual([{ checkId: 'round-trip-prints', status: 'pass', evidence: 'exit 0\nstdout: CLI_TOOL_ROUND_TRIP' }])
     expect(roundTrip?.usage?.inputTokens).toBeGreaterThan(0)
@@ -52,13 +53,13 @@ describe('environment runs through a real cordis.yml and headless process', () =
     const trajectories = lines.map(line => JSON.parse(line) as Trajectory)
     const byEnvironment = new Map(trajectories.map(trajectory => [trajectory.environment?.environmentId, trajectory]))
     const certified = byEnvironment.get(roundTrip?.stamp.environmentId)
-    expect(certified?.reward).toMatchObject({ outcome: 1, basis: 'certificate', goal: { phase: 'complete' }, directives: 0 })
+    expect(certified?.reward).toMatchObject({ outcome: 1, basis: 'certificate', goal: { phase: 'complete' }, directives: 0, attempts: 1 })
     expect(certified?.environment).toEqual(roundTrip?.stamp)
     expect(certified?.provenance.components).toContain('environment:smoke:round-trip')
     expect(certified?.messages[0]).toMatchObject({ role: 'user', content: [{ type: 'text', text: 'Prove the CLI tool round trip.' }] })
 
     const failed = byEnvironment.get(unsatisfiable?.stamp.environmentId)
-    expect(failed?.reward).toMatchObject({ outcome: 0, basis: 'certificate', goal: { phase: 'active' }, directives: 2 })
+    expect(failed?.reward).toMatchObject({ outcome: 0, basis: 'certificate', goal: { phase: 'active' }, directives: 2, attempts: 2 })
     const followups = failed?.messages.filter(message => message.role === 'user').map(message => message.content[0]) ?? []
     expect(followups).toHaveLength(2)
     expect(followups[1]).toMatchObject({ type: 'text' })

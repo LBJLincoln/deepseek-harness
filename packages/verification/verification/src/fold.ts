@@ -6,8 +6,10 @@ import { CheckId, isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION } from '.
 import type {
   CertificateIsolation,
   CheckResult,
+  CheckStatus,
   CompletionStandardSnapshot,
   RelaxedCheck,
+  RunExecutor,
   StandardCheck,
   StandardRef,
   VerificationCertificate,
@@ -19,20 +21,41 @@ import type {
   RelaxationChangeMeta,
   StandardChangeMeta,
   StandardOperation,
+  VerificationRunChangeMeta,
 } from './domain.ts'
 
 const OPERATIONS: ReadonlySet<StandardOperation> = new Set(['author', 'extend'])
 const ISOLATIONS: ReadonlySet<CertificateIsolation> = new Set(['none', 'process', 'host'])
+const EXECUTORS: ReadonlySet<RunExecutor> = new Set(['runner', 'agent-reported'])
+const CERTIFIED_STATUSES: ReadonlySet<CheckStatus> = new Set(['pass'])
+const RUN_STATUSES: ReadonlySet<CheckStatus> = new Set(['pass', 'fail'])
+const RUN_KEYS = ['attempt', 'executor', 'isolation', 'kind', 'recordedAt', 'results', 'standard', 'version']
+const HEX_DIGEST = /^[0-9a-f]+$/
 
 /** Mutable accumulator kept private to the pure fold. */
 export interface VerificationFoldState {
   standard: CompletionStandardSnapshot | undefined
   certificate: VerificationCertificate | undefined
   directivesIssued: number
+  runsRecorded: number
+  lastRun: VerificationRunChangeMeta | undefined
   createdAt: number | undefined
   updatedAt: number | undefined
   lastRef: StandardRef | undefined
   seenStandardIds: Set<CompletionStandardSnapshot['id']>
+}
+
+/**
+ * Attempt number the next run of one standard must carry. Authorship never
+ * reuses a standard id, so the runs of one standard are contiguous in the log
+ * and the last one carries their count.
+ * @param state - fold accumulator covering every prior event.
+ * @param id - standard the next run covers.
+ * @returns one plus the runs already recorded for that standard id.
+ */
+export function nextRunAttempt(state: VerificationFoldState, id: CompletionStandardSnapshot['id']): number {
+  const last = state.lastRun
+  return (last !== undefined && last.standard.id === id ? last.attempt : 0) + 1
 }
 
 /**
@@ -44,6 +67,8 @@ export function emptyVerificationFoldState(): VerificationFoldState {
     standard: undefined,
     certificate: undefined,
     directivesIssued: 0,
+    runsRecorded: 0,
+    lastRun: undefined,
     createdAt: undefined,
     updatedAt: undefined,
     lastRef: undefined,
@@ -74,6 +99,14 @@ function nonNegativeInteger(value: unknown, field: string): number {
   return value
 }
 /* jscpd:ignore-end */
+
+/** Require one lowercase hex digest. */
+function hexDigest(value: unknown, field: string): string {
+  if (typeof value !== 'string' || !HEX_DIGEST.test(value)) {
+    throw new Error(`verification change ${field} must be a lowercase hex digest`)
+  }
+  return value
+}
 
 /** Require one non-empty trim-normalized string. */
 function normalizedText(value: unknown, field: string): string {
@@ -161,22 +194,38 @@ function decodeRef(value: unknown, subject: string): StandardRef {
   return { id: StandardId(value['id']), revision: positiveInteger(value['revision'], `${subject}.revision`) }
 }
 
-/** Decode one passing certificate result. */
-function decodeCertificateResult(value: unknown, subject: string): CheckResult {
+/** Decode one check result, admitting exactly the statuses its carrier allows. */
+function decodeResult(
+  value: unknown,
+  subject: string,
+  admitted: ReadonlySet<CheckStatus>,
+  requirement: string,
+): CheckResult {
   if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
   requireKeys(value, ['checkId', 'evidence', 'status'], subject)
   const rawCheckId = value['checkId']
   if (typeof rawCheckId !== 'string' || !isKebabCase(rawCheckId)) {
     throw new Error(`verification change ${subject}.checkId must be lower-kebab-case`)
   }
-  if (value['status'] !== 'pass') {
-    throw new Error(`verification change ${subject}.status must be "pass" inside a certificate`)
+  const status = value['status'] as CheckStatus
+  if (!admitted.has(status)) {
+    throw new Error(`verification change ${subject}.status must be ${requirement}`)
   }
   return {
     checkId: CheckId(rawCheckId),
-    status: 'pass',
+    status,
     evidence: normalizedText(value['evidence'], `${subject}.evidence`),
   }
+}
+
+/** Decode one passing certificate result. */
+function decodeCertificateResult(value: unknown, subject: string): CheckResult {
+  return decodeResult(value, subject, CERTIFIED_STATUSES, '"pass" inside a certificate')
+}
+
+/** Decode one recorded run result, passing or failing. */
+function decodeRunResult(value: unknown, subject: string): CheckResult {
+  return decodeResult(value, subject, RUN_STATUSES, '"pass" or "fail"')
 }
 
 /** Shared timestamp validation for standard-shaped changes. */
@@ -241,6 +290,39 @@ export function decodeRelaxationChange(value: unknown): RelaxationChangeMeta | u
     checkId: CheckId(rawCheckId),
     standard,
     ...decodeTimestamps(value),
+  }
+}
+
+/**
+ * Decode a value that declares itself as a run. Unrelated values return
+ * `undefined`; malformed runs fail replay loudly.
+ * @param value - candidate durable payload.
+ * @returns validated run or `undefined` for another value kind.
+ */
+export function decodeRunChange(value: unknown): VerificationRunChangeMeta | undefined {
+  if (!isRecord(value) || value['kind'] !== 'verification/run') return undefined
+  requireVersion(value)
+  const treeHash = value['treeHash']
+  requireKeys(value, treeHash === undefined ? RUN_KEYS : [...RUN_KEYS, 'treeHash'], 'run')
+  if (typeof value['isolation'] !== 'string' || !ISOLATIONS.has(value['isolation'] as CertificateIsolation)) {
+    throw new Error('verification change run.isolation is invalid')
+  }
+  if (typeof value['executor'] !== 'string' || !EXECUTORS.has(value['executor'] as RunExecutor)) {
+    throw new Error('verification change run.executor is invalid')
+  }
+  if (!Array.isArray(value['results']) || value['results'].length === 0) {
+    throw new Error('verification change run.results must be a non-empty array')
+  }
+  return {
+    kind: 'verification/run',
+    version: VERIFICATION_CHANGE_VERSION,
+    standard: decodeRef(value['standard'], 'run.standard'),
+    attempt: positiveInteger(value['attempt'], 'run.attempt'),
+    isolation: value['isolation'] as CertificateIsolation,
+    executor: value['executor'] as RunExecutor,
+    results: value['results'].map((result, index) => decodeRunResult(result, `run.results[${index}]`)),
+    ...treeHash === undefined ? {} : { treeHash: hexDigest(treeHash, 'run.treeHash') },
+    recordedAt: nonNegativeInteger(value['recordedAt'], 'run.recordedAt'),
   }
 }
 
@@ -408,6 +490,43 @@ function applyRelaxationChange(state: VerificationFoldState, change: RelaxationC
   state.lastRef = { id: next.id, revision: next.revision }
 }
 
+/** Require one result per active check, in the standard's check order. */
+function requireResultsCover(
+  current: CompletionStandardSnapshot,
+  results: readonly CheckResult[],
+  subject: string,
+): void {
+  if (results.length !== current.checks.length) {
+    throw new Error(`verification ${subject} must carry one result per active check`)
+  }
+  for (const [index, check] of current.checks.entries()) {
+    if (results[index]?.checkId !== check.id) {
+      throw new Error(`verification ${subject} result ${index} must answer check "${check.id}"`)
+    }
+  }
+}
+
+/** Validate and apply one executed run. */
+function applyRunChange(state: VerificationFoldState, change: VerificationRunChangeMeta): void {
+  const current = state.standard
+  if (current === undefined) throw new Error('verification run requires a current standard')
+  if (change.standard.id !== current.id || change.standard.revision !== current.revision) {
+    throw new Error('verification run must cover the exact current standard revision')
+  }
+  requireResultsCover(current, change.results, 'run')
+  /* v8 ignore next -- a current standard established by this fold always has an updatedAt */
+  if (state.updatedAt === undefined) throw new Error('current standard fold lacks updatedAt')
+  if (change.recordedAt < state.updatedAt) {
+    throw new Error('verification run cannot precede the current standard update')
+  }
+  const expected = nextRunAttempt(state, current.id)
+  if (change.attempt !== expected) {
+    throw new Error(`verification run must number attempt ${expected} for standard "${current.id}"`)
+  }
+  state.runsRecorded += 1
+  state.lastRun = change
+}
+
 /** Validate and apply one certificate. */
 function applyCertificateChange(state: VerificationFoldState, change: CertificateChangeMeta): void {
   const current = state.standard
@@ -417,14 +536,7 @@ function applyCertificateChange(state: VerificationFoldState, change: Certificat
     || certificate.goalId !== current.goalId) {
     throw new Error('verification certificate must cover the exact current standard revision')
   }
-  if (certificate.results.length !== current.checks.length) {
-    throw new Error('verification certificate must carry one result per active check')
-  }
-  for (const [index, check] of current.checks.entries()) {
-    if (certificate.results[index]?.checkId !== check.id) {
-      throw new Error(`verification certificate result ${index} must answer check "${check.id}"`)
-    }
-  }
+  requireResultsCover(current, certificate.results, 'certificate')
   /* v8 ignore next -- a current standard established by this fold always has an updatedAt */
   if (state.updatedAt === undefined) throw new Error('current standard fold lacks updatedAt')
   if (certificate.recordedAt < state.updatedAt) {
@@ -469,6 +581,13 @@ export function applyVerificationEvent(state: VerificationFoldState, event: Sess
       applyRelaxationChange(state, change)
       return
     }
+    case 'verification/run': {
+      const change = decodeRunChange(event.data)
+      /* v8 ignore next -- the event's declared payload always identifies itself as a run */
+      if (change === undefined) throw new Error(`verification change at session event ${event.seq} has an invalid kind`)
+      applyRunChange(state, change)
+      return
+    }
     case 'verification/certificate': {
       const change = decodeCertificateChange(event.data)
       /* v8 ignore next -- the event's declared payload always identifies itself as a certificate */
@@ -500,6 +619,8 @@ export function foldVerification(events: readonly SessionEvent[]): FoldedVerific
     ...state.standard === undefined ? {} : { standard: state.standard },
     ...state.certificate === undefined ? {} : { certificate: state.certificate },
     directivesIssued: state.directivesIssued,
+    runsRecorded: state.runsRecorded,
+    ...state.lastRun === undefined ? {} : { lastRun: state.lastRun },
     ...state.createdAt === undefined ? {} : { createdAt: state.createdAt },
     ...state.updatedAt === undefined ? {} : { updatedAt: state.updatedAt },
     ...state.lastRef === undefined ? {} : { lastRef: { ...state.lastRef } },

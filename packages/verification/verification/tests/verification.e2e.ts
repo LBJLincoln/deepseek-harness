@@ -7,6 +7,7 @@ import { decodeGoalChange } from '@deepseek-ai/dsh-goal'
 import {
   decodeCertificateChange,
   decodeDirectiveChange,
+  decodeRunChange,
   decodeStandardChange,
 } from '@deepseek-ai/dsh-verification'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
@@ -59,6 +60,8 @@ describe('certificate-gated completion through a real cordis.yml and headless pr
       'goal/change',
       'verification/standard',
       'verification/directive',
+      'verification/run',
+      'verification/run',
       'verification/certificate',
       'goal/change',
     ])
@@ -82,6 +85,17 @@ describe('certificate-gated completion through a real cordis.yml and headless pr
     if (directive === undefined) throw new Error('expected durable directive')
     expect(directive.rootCause).toBe('uncertified completion refused')
     expect(directive.detail).toContain('no covering certificate')
+
+    const runs = events.filter(event => event.type === 'verification/run').map((event) => {
+      const change = decodeRunChange(event.data)
+      if (change === undefined) throw new Error('expected durable run')
+      return change
+    })
+    expect(runs.map(item => [item.attempt, item.executor, item.results.map(result => result.status)])).toEqual([
+      [1, 'agent-reported', ['pass', 'fail']],
+      [2, 'agent-reported', ['pass', 'pass']],
+    ])
+    expect(runs.every(item => item.treeHash === undefined)).toBe(true)
 
     const certificateEvent = events.find(event => event.type === 'verification/certificate')
     const certificate = decodeCertificateChange(certificateEvent?.data)

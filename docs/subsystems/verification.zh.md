@@ -52,7 +52,7 @@ interface VerificationCertificate {
 }
 ```
 
-四个持久事件（`verification/standard`、`verification/relaxation`、`verification/certificate`、`verification/directive`）编目于 [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only)；`verification` 会话投影提供当前标准及其覆盖证书。
+五个持久事件（`verification/standard`、`verification/relaxation`、`verification/run`、`verification/certificate`、`verification/directive`）编目于 [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only)；每次执行的运行都会被记录，而证书只覆盖结果全部通过的运行。`verification` 会话投影提供当前标准及其覆盖证书。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -109,17 +109,19 @@ extend(agent: Agent, ref: StandardRef, checks: readonly StandardCheck[]): Standa
 relax(agent: Agent, ref: StandardRef, checkId: CheckId, evidence: string): StandardView
 
 /**
- * Record one complete run of the current standard. A fully passing run
- * commits a durable certificate; any failure returns the failing subset
- * without a durable record — the validator aggregates those into a
- * {@link issueDirective} directive.
+ * Record one complete run of the current standard. Every run appends a
+ * durable `verification/run` event carrying all of its results; a fully
+ * passing run then commits a certificate, while any failure returns the
+ * failing subset the validator aggregates into a {@link issueDirective}
+ * directive.
  * @param agent - owning live agent.
  * @param ref - expected current revision.
  * @param isolation - isolation level the run executed under.
  * @param results - exactly one result per active check, any order.
+ * @param evidence - executor of the checks and the workspace digest it covered.
  * @returns the certificate, or the failing results.
  */
-recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], ): RunOutcome
+recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], evidence: RunEvidence, ): RunOutcome
 
 /**
  * Record one root-cause failure aggregation for the implementer. The
@@ -151,5 +153,5 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 
 Types: [Agent](core.md)
 
-Source: [`packages/verification/verification/src/index.ts:198`](../../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:211`](../../packages/verification/verification/src/index.ts)
 <!-- END GENERATED cordis-surface -->

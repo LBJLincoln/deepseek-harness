@@ -523,6 +523,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   CheckId: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   CheckResult: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   DirectiveRequest: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
+  RunEvidence: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   RunOutcome: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   StandardCheck: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   StandardRef: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',

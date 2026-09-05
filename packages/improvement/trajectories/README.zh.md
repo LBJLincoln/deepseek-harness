@@ -32,7 +32,7 @@
 | `config`、`system`、`tools` | 最后一条 `request/header` 的调用配置、渲染后的系统提示与工具 schema |
 | `messages` | 压缩替换之后按模型可见顺序排列的表面消息：`user`、`assistant`（有请求时带 `toolCalls`）与 `tool`（带 `toolCallId`、`isError`）角色；每条携带来源事件的 `seq`、其 `turn` 与 `step`、逐字的内容块（含 reasoning）以及记录的来源 kind |
 | `steps` | 每次模型调用一条，附适配器报告的用量 |
-| `reward` | 当证书覆盖当前标准修订时 `outcome` 为 `1`，存在标准而无证书时为 `0`，其余为 `null`；`basis` 为 `certificate`、`uncertified-completion`（goal 完成但从未编写标准）或 `none`（无 goal）；附 goal 快照、覆盖证书以及 directive 与 relaxation 计数 |
+| `reward` | 当证书覆盖当前标准修订时 `outcome` 为 `1`，存在标准而无证书时为 `0`，其余为 `null`；`basis` 为 `certificate`、`uncertified-completion`（goal 完成但从未编写标准）或 `none`（无 goal）；附 goal 快照、覆盖证书以及尝试、directive 与 relaxation 计数 |
 | `provenance` | 组件注册表方案中的组件 id（`composition:<preset>`、`environment:<id>`、`model-provider:<provider>`、`tool:<name>`）、按首次使用顺序排列的工具名，以及证书的隔离级别 |
 
 不含 token id 与 logprob：harness 从不看到 token id，on-policy 采集属于训练器的推理代理。

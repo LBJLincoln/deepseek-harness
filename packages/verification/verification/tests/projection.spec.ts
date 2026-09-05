@@ -104,6 +104,7 @@ describe('verification projection unit', () => {
     expect(bench.tailValues()['verification']).toMatchObject({
       standard: { id: view.id, revision: 1, goalId: goal },
       directivesIssued: 0,
+      runsRecorded: 0,
     })
 
     bench.ctx.completionStandards.issueDirective(bench.agent, ref, { rootCause: 'stub', detail: 'placeholder output' })
@@ -111,10 +112,11 @@ describe('verification projection unit', () => {
 
     bench.ctx.completionStandards.recordRun(bench.agent, ref, 'process', [
       { checkId: CheckId('build-passes'), status: 'pass', evidence: 'exit 0' },
-    ])
+    ], { executor: 'runner', treeHash: 'c0ffee' })
     expect(bench.tailValues()['verification']).toMatchObject({
       certificate: { standard: { id: view.id, revision: 1 }, isolation: 'process' },
       directivesIssued: 1,
+      runsRecorded: 1,
     })
 
     bench.ctx.completionStandards.extend(bench.agent, ref, [
@@ -124,17 +126,20 @@ describe('verification projection unit', () => {
     expect(extended.standard.revision).toBe(2)
     expect(extended.certificate).toBeUndefined()
     expect(extended.directivesIssued).toBe(1)
+    expect(extended.runsRecorded).toBe(1)
 
     bench.ctx.completionStandards.relax(bench.agent, { id: view.id, revision: 2 }, CheckId('tests-pass'), 'unstable host')
     const relaxed = bench.tailValues()['verification'] as VerificationProjection
     expect(relaxed.standard.revision).toBe(3)
     expect(relaxed.standard.relaxed.map(item => item.check.id)).toEqual(['tests-pass'])
+    expect(relaxed.runsRecorded).toBe(1)
   })
 
   it('ignores malformed and mismatched verification-shaped events fail-soft', () => {
     const mismatched = (type: string) => ({ seq: 9, type, data: { kind: 'other' } }) as never
     expect(applyVerificationProjection(null, mismatched('verification/standard'))).toBeNull()
     expect(applyVerificationProjection(null, mismatched('verification/relaxation'))).toBeNull()
+    expect(applyVerificationProjection(null, mismatched('verification/run'))).toBeNull()
     expect(applyVerificationProjection(null, mismatched('verification/certificate'))).toBeNull()
     expect(applyVerificationProjection(null, mismatched('verification/directive'))).toBeNull()
     const malformed = {
@@ -166,10 +171,10 @@ describe('verification projection unit', () => {
       },
     } as never
     const projected = applyVerificationProjection(null, relaxation)
-    expect(projected).toMatchObject({ directivesIssued: 0, createdAt: 1, updatedAt: 2 })
+    expect(projected).toMatchObject({ directivesIssued: 0, runsRecorded: 0, createdAt: 1, updatedAt: 2 })
   })
 
-  it('keeps pre-authorship certificates and directives inert', () => {
+  it('keeps pre-authorship runs, certificates, and directives inert', () => {
     const certificate = {
       kind: 'verification/certificate',
       version: 1,
@@ -189,10 +194,22 @@ describe('verification projection unit', () => {
       detail: 'y',
       issuedAt: 1,
     }
+    const run = {
+      kind: 'verification/run',
+      version: 1,
+      standard: { id: 'standard-x', revision: 1 },
+      attempt: 1,
+      isolation: 'none',
+      executor: 'runner',
+      results: [{ checkId: 'a', status: 'pass', evidence: 'ok' }],
+      recordedAt: 1,
+    }
     const certEvent = { seq: 0, type: 'verification/certificate', data: certificate } as never
     const directiveEvent = { seq: 1, type: 'verification/directive', data: directive } as never
+    const runEvent = { seq: 2, type: 'verification/run', data: run } as never
     expect(applyVerificationProjection(null, certEvent)).toBeNull()
     expect(applyVerificationProjection(null, directiveEvent)).toBeNull()
+    expect(applyVerificationProjection(null, runEvent)).toBeNull()
   })
 
   it('drops the key when the service fiber is disposed', async () => {

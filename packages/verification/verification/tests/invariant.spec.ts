@@ -5,7 +5,11 @@ import type { GoalSnapshotChangeMeta } from '@deepseek-ai/dsh-goal'
 import InvariantRegistry, { InvariantError } from '@deepseek-ai/dsh-invariants'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId, StandardId, VERIFICATION_CHANGE_VERSION } from '@deepseek-ai/dsh-verification'
-import type { CertificateChangeMeta, StandardChangeMeta } from '@deepseek-ai/dsh-verification'
+import type {
+  CertificateChangeMeta,
+  StandardChangeMeta,
+  VerificationRunChangeMeta,
+} from '@deepseek-ai/dsh-verification'
 import * as VerificationInvariantCompanion from '@deepseek-ai/dsh-verification/invariant'
 
 const goalId = GoalId('goal-invariant')
@@ -45,6 +49,19 @@ function authored(goal = goalId): StandardChangeMeta {
   }
 }
 
+function executed(status: 'pass' | 'fail' = 'pass', attempt = 1): VerificationRunChangeMeta {
+  return {
+    kind: 'verification/run',
+    version: VERIFICATION_CHANGE_VERSION,
+    standard: { id: StandardId('standard-invariant'), revision: 1 },
+    attempt,
+    isolation: 'process',
+    executor: 'runner',
+    results: [{ checkId: CheckId('build-passes'), status, evidence: `exit ${status === 'pass' ? 0 : 1}` }],
+    recordedAt: 6,
+  }
+}
+
 function certified(): CertificateChangeMeta {
   return {
     kind: 'verification/certificate',
@@ -80,6 +97,7 @@ describe('verification stream invariants', () => {
     expect(session.seq).toBe(0)
     session.append('goal/change', goalChange('create', 1))
     session.append('verification/standard', authored())
+    session.append('verification/run', executed())
     session.append('verification/certificate', certified())
     expect(() => {
       session.append('goal/change', goalChange('complete', 2))
@@ -94,6 +112,7 @@ describe('verification stream invariants', () => {
     expect(() => {
       session.append('goal/change', goalChange('complete', 2))
     }).toThrow(/completes goal "goal-invariant" while standard "standard-invariant" revision 1 has no covering certificate/)
+    session.append('verification/run', executed())
     session.append('verification/certificate', certified())
     expect(() => {
       session.append('goal/change', goalChange('complete', 2))
@@ -113,6 +132,35 @@ describe('verification stream invariants', () => {
     expect(() => {
       other.append('goal/change', goalChange('complete', 2))
     }).not.toThrow()
+  })
+
+  it('rejects a certificate that no fully passing run preceded', async () => {
+    const ctx = await setup()
+    const unexecuted = ctx.sessions.create(SessionId('verification-invariant-unexecuted'))
+    unexecuted.append('verification/standard', authored())
+    expect(() => {
+      unexecuted.append('verification/certificate', certified())
+    }).toThrow(/certifies standard "standard-invariant" revision 1 without a preceding fully passing verification\/run/)
+
+    const failed = ctx.sessions.create(SessionId('verification-invariant-failed-run'))
+    failed.append('verification/standard', authored())
+    failed.append('verification/run', executed('fail'))
+    expect(() => {
+      failed.append('verification/certificate', certified())
+    }).toThrow(/without a preceding fully passing verification\/run/)
+    failed.append('verification/run', executed('pass', 2))
+    expect(() => {
+      failed.append('verification/certificate', certified())
+    }).not.toThrow()
+  })
+
+  it('leaves a malformed certificate to the strict fold', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-malformed-certificate'))
+    session.append('verification/standard', authored())
+    expect(() => {
+      session.append('verification/certificate', { ...certified(), extra: true } as never)
+    }).toThrow(/violates the durable verification stream: verification change certificate must have exactly/)
   })
 
   it('leaves malformed goal changes to the goal companion', async () => {
@@ -138,6 +186,7 @@ describe('verification stream invariants', () => {
       code: 'INVARIANT',
       packageName: '@deepseek-ai/dsh-verification',
     }))
+    session.append('verification/run', executed())
     session.append('verification/certificate', certified())
     expect(() => {
       session.append('goal/change', goalChange('complete', 2))

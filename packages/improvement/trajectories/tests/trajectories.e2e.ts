@@ -41,6 +41,7 @@ describe('trajectory export through a real cordis.yml and headless process', () 
       basis: 'certificate',
       goal: { phase: 'complete' },
       directives: 1,
+      attempts: 2,
     })
     expect(trajectory.reward.certificate?.results.map(result => result.checkId)).toEqual(['round-trip-prints', 'final-answer-quotes'])
     expect(trajectory.provenance.isolation).toBe('process')

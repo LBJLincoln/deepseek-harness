@@ -82,6 +82,19 @@ function certificate(): Raw {
   }
 }
 
+function runRecord(attempt: number, status: 'pass' | 'fail'): Raw {
+  return {
+    kind: 'verification/run',
+    version: 1,
+    standard: { id: 'standard-1', revision: 1 },
+    attempt,
+    isolation: 'process',
+    executor: 'runner',
+    results: checks.map(check => ({ checkId: check.id, status, evidence: `${status} ${check.id}` })),
+    recordedAt: 20 + attempt,
+  }
+}
+
 function requestHeader(): Raw {
   return {
     header: {
@@ -111,9 +124,11 @@ function certifiedLog(): Log {
   log.toolResult(1, 1, 'call-1', 'X')
   log.push('step/end', { turn: 1, step: 1 })
   log.push('step/start', { turn: 1, step: 2 })
+  log.push('verification/run', runRecord(1, 'fail'))
   log.push('verification/directive', {
     kind: 'verification/directive', version: 1, standard: { id: 'standard-1', revision: 1 }, rootCause: 'uncertified', detail: 'no certificate yet', issuedAt: 20,
   })
+  log.push('verification/run', runRecord(2, 'pass'))
   log.push('verification/certificate', certificate())
   log.push('goal/change', goalChange('complete', 'complete', 2))
   log.push('tool/call', { turn: 1, step: 2, callId: 'call-2', name: 'bash', arguments: '{"command":"true"}' })
@@ -137,7 +152,7 @@ describe('foldTrajectory', () => {
       ['user', 3, 1, 1],
       ['assistant', 6, 1, 1],
       ['tool', 8, 1, 1],
-      ['assistant', 15, 1, 2],
+      ['assistant', 17, 1, 2],
     ])
     expect(trajectory.messages[1]).toMatchObject({
       sourceKind: 'model',
@@ -157,6 +172,7 @@ describe('foldTrajectory', () => {
       goal: { id: 'goal-1', objective: 'Prove the export', phase: 'complete' },
       directives: 1,
       relaxations: 0,
+      attempts: 2,
     })
     expect(trajectory.reward.certificate?.results.map(result => result.checkId)).toEqual(['round-trip', 'answer'])
     expect(trajectory.provenance).toEqual({
@@ -187,6 +203,7 @@ describe('foldTrajectory', () => {
     log.user('try')
     log.push('goal/change', goalChange('create', 'active', 1))
     log.push('verification/standard', standard())
+    log.push('verification/run', runRecord(1, 'fail'))
     log.push('verification/relaxation', {
       kind: 'verification/relaxation',
       version: 1,
@@ -205,6 +222,7 @@ describe('foldTrajectory', () => {
       goal: { id: 'goal-1', objective: 'Prove the export', phase: 'active' },
       directives: 0,
       relaxations: 1,
+      attempts: 1,
     })
     expect(trajectory.provenance).toEqual({ components: ['model-provider:cli-mock'], toolNames: [] })
     expect(trajectory.steps).toEqual([{ turn: 1, step: 1 }])
@@ -220,6 +238,7 @@ describe('foldTrajectory', () => {
       goal: { id: 'goal-1', objective: 'Prove the export', phase: 'complete' },
       directives: 0,
       relaxations: 0,
+      attempts: 0,
     })
 
     const cleared = new Log()
@@ -235,7 +254,7 @@ describe('foldTrajectory', () => {
       source: { sessionId: 'bare', createdAt: 1 },
       messages: [],
       steps: [],
-      reward: { outcome: null, basis: 'none', directives: 0, relaxations: 0 },
+      reward: { outcome: null, basis: 'none', directives: 0, relaxations: 0, attempts: 0 },
       provenance: { components: [], toolNames: [] },
     })
   })

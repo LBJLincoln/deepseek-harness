@@ -4,8 +4,9 @@ import type { Context } from '@deepseek-ai/cordis'
 import { decodeGoalChange } from '@deepseek-ai/dsh-goal'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
-import { applyVerificationEvent, emptyVerificationFoldState } from './fold.ts'
+import { applyVerificationEvent, decodeCertificateChange, emptyVerificationFoldState } from './fold.ts'
 import type { VerificationFoldState } from './fold.ts'
+import type { CertificateChangeMeta } from './domain.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-verification'
 
@@ -20,11 +21,37 @@ function cloneState(state: VerificationFoldState): VerificationFoldState {
     standard: state.standard,
     certificate: state.certificate,
     directivesIssued: state.directivesIssued,
+    runsRecorded: state.runsRecorded,
+    lastRun: state.lastRun,
     createdAt: state.createdAt,
     updatedAt: state.updatedAt,
     lastRef: state.lastRef,
     seenStandardIds: new Set(state.seenStandardIds),
   }
+}
+
+/** Decode a certificate for a relation check, leaving malformed payloads to the strict fold. */
+function certificateOf(event: SessionEvent): CertificateChangeMeta | undefined {
+  try {
+    return decodeCertificateChange(event.data)
+  } catch (_malformedCertificateChange) {
+    // A malformed certificate is applyChecked's own subject: the strict fold rejects it.
+    return undefined
+  }
+}
+
+/** Reject a certificate that no fully passing run of the same standard revision preceded. */
+function checkCertifiedRunExecuted(state: VerificationFoldState, event: SessionEvent, fail: InvariantFailure): void {
+  if (event.type !== 'verification/certificate') return
+  const change = certificateOf(event)
+  if (change === undefined) return
+  const covered = change.certificate.standard
+  const run = state.lastRun
+  if (run !== undefined && run.standard.id === covered.id && run.standard.revision === covered.revision
+    && run.results.every(result => result.status === 'pass')) {
+    return
+  }
+  fail(`session event ${event.seq} certifies standard "${covered.id}" revision ${covered.revision} without a preceding fully passing verification/run`)
 }
 
 /** Reject a goal completion that a current standard measures without a covering certificate. */
@@ -49,6 +76,7 @@ function checkGoalCompletion(state: VerificationFoldState, event: SessionEvent, 
 /** Apply one event through the strict verification decoder and attribute failures. */
 function applyChecked(state: VerificationFoldState, event: SessionEvent, fail: InvariantFailure): void {
   checkGoalCompletion(state, event, fail)
+  checkCertifiedRunExecuted(state, event, fail)
   try {
     applyVerificationEvent(state, event)
   } catch (error) {
