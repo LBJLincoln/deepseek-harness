@@ -237,6 +237,25 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 来源：[`packages/core/session/src/types.ts:273`](../packages/core/session/src/types.ts)
 
+### `budget/*`
+
+<a id="budgetbreach--log-only"></a>
+
+#### `budget/breach` — log-only
+
+```ts persistence-catalog
+/**
+ * One configured session budget stopped the step that was about to make a
+ * model request: the cap that tripped, the spend measured from the events
+ * preceding this one, and the configured value that spend exceeded. The
+ * step is rejected after this event, so the record is the only durable
+ * explanation for a turn that ends without a model call.
+ */
+'budget/breach': BudgetBreach
+```
+
+来源：[`packages/guard/budget-policy/src/types.ts:64`](../packages/guard/budget-policy/src/types.ts)
+
 ### `command/*`
 
 <a id="commanddone--log-only"></a>
