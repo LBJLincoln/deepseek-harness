@@ -180,9 +180,9 @@ interface FsEditOutcome {
 
 ## fs 策略事件（提供方约定词汇）
 
-`dsh-fs` 拥有三个事件，由工具分发、策略插件监听，使事件发出方（`dsh-tool-fs`）与监听方（`dsh-fs-observation-policy`）共享词汇，而事件发出方无需依赖策略插件。它们只携带 `dsh-fs` 词汇加一个不透明的 `object` actor，不含面向模型的概念，也不含 agent/会话所有者结构。
+`dsh-fs` 拥有四个事件，由工具分发、策略插件监听，使事件发出方（`dsh-tool-fs`）与监听方（`dsh-fs-observation-policy`、`dsh-fs-read-barrier`）共享词汇，而事件发出方无需依赖任一策略插件。它们只携带 `dsh-fs` 词汇加一个不透明的 `object` actor，不含面向模型的概念，也不含 agent/会话所有者结构。
 
-`fs/write-intent` 与 `fs/edit-intent` 是**单槽决策 waterfall**：工具分发时附带一个默认 thunk（返回 `undefined`，即裸提供方），监听方完全决策而不调用 `next()`。该 slot 按注册顺序先到先得——由策略插件占据是部署约定，而非强制不变式。`fs/observed` 是一个即发即弃的记录事件，携带 `FsObservation`：存在于某个版本，或确认缺失。该事件通过普通 `ctx.emit` 分发；其监听方必须是同步的、仅产生副作用，因为工具不会捕获该 emit 抛出的异常——抛出异常的监听方可能取代读取操作原本待返回的错误，或使工具在变更已经成功后返回 `isError` 结果。下方生成的 [cordis surface](#cordis-surface) 展示确切签名。
+`fs/write-intent` 与 `fs/edit-intent` 是**单槽决策 waterfall**：工具分发时附带一个默认 thunk（返回 `undefined`，即裸提供方），监听方完全决策而不调用 `next()`。该 slot 按注册顺序先到先得——由策略插件占据是部署约定，而非强制不变式。`fs/observed` 是一个即发即弃的记录事件，携带 `FsObservation`：存在于某个版本，或确认缺失。该事件通过普通 `ctx.emit` 分发；其监听方必须是同步的、仅产生副作用，因为工具不会捕获该 emit 抛出的异常——抛出异常的监听方可能取代读取操作原本待返回的错误，或使工具在变更已经成功后返回 `isError` 结果。`fs/read-intent` 是**委派式 waterfall**：它返回 `FsReadDenial` 或 `undefined`，不拒绝的监听方必须调用 `next()`，首个返回的拒绝结束该次读取，因此多个读取政策可以依次判定。下方生成的 [cordis surface](#cordis-surface) 展示确切签名。
 
 ```ts type-equiv
 /**
@@ -216,6 +216,25 @@ interface FsObservationActor {
     /** The session that owns observed-file state, used as an opaque key. */
     session?: object
   }
+}
+```
+
+## 读取拒绝（策略插件）
+
+读取执行器在其元数据探测之前分派 `fs/read-intent`，并把首个返回的拒绝按该错误码与消息抛为 `FsError`。与两个单槽变更意图不同，该事件是委派式的，因此多个读取政策依次判定，不拒绝的监听器必须调用 `next()`。
+
+```ts type-equiv
+/**
+ * A read policy's refusal of one resolved target, returned from the
+ * `fs/read-intent` waterfall. The executor raises it as an {@link FsError}
+ * before any metadata round-trip, so the message is the whole model-facing
+ * account of the refusal and the code routes it without parsing text.
+ */
+interface FsReadDenial {
+  /** Stable classification of the refusal. */
+  code: FsErrorCode
+  /** Complete model-facing reason, owned by the deciding policy. */
+  message: string
 }
 ```
 
@@ -259,6 +278,7 @@ type FsErrorCode =
   | 'FS_TOO_LARGE'
   | 'FS_PERMISSION_DENIED'
   | 'FS_SANDBOX_DENIED'
+  | 'FS_READ_BARRIER_DENIED'
   | 'FS_IO_ERROR'
   | 'FS_STALE_VERSION'
   | 'FS_NOT_OBSERVED'
@@ -267,7 +287,7 @@ type FsErrorCode =
   | 'FS_ABORTED'
 ```
 
-目录列表使用 `FS_NOT_DIRECTORY`、`FS_PERMISSION_DENIED` 与 `FS_IO_ERROR` 区分已存在但并非目录的目标、被拒绝的列表操作和意外的后端 I/O 失败。`FS_SANDBOX_DENIED` 是强制执行沙箱的后端（`dsh-fs-sandbox`）所作的策略拒绝——模式边界拒绝了写入/编辑——与 `FS_PERMISSION_DENIED`（宿主内核拒绝）不同。`FS_NOT_OBSERVED` 表示策略插件没有此所有者的先前观测记录（或 `createIfAbsent` 遇到了现有文件）。`FS_NOT_FOUND` 也表示策略因确认缺失而拒绝 edit。`FS_STALE_VERSION` 表示后端版本不再与观测到的版本匹配（或提供方本身收到针对缺失目标的 edit）。新鲜度授权没有部分/完整之分，因此不存在 `FS_PARTIAL_OBSERVATION`。
+目录列表使用 `FS_NOT_DIRECTORY`、`FS_PERMISSION_DENIED` 与 `FS_IO_ERROR` 区分已存在但并非目录的目标、被拒绝的列表操作和意外的后端 I/O 失败。`FS_SANDBOX_DENIED` 是强制执行沙箱的后端（`dsh-fs-sandbox`）所作的策略拒绝——模式边界拒绝了写入/编辑——与 `FS_PERMISSION_DENIED`（宿主内核拒绝）不同。`FS_READ_BARRIER_DENIED` 是监听方从 `fs/read-intent` 返回的读取侧策略拒绝（`dsh-fs-read-barrier` 对读取屏障按调用会话角色所拒绝的目录返回它），在任何元数据探测之前抛出，因此不泄露目标的任何信息。`FS_NOT_OBSERVED` 表示策略插件没有此所有者的先前观测记录（或 `createIfAbsent` 遇到了现有文件）。`FS_NOT_FOUND` 也表示策略因确认缺失而拒绝 edit。`FS_STALE_VERSION` 表示后端版本不再与观测到的版本匹配（或提供方本身收到针对缺失目标的 edit）。新鲜度授权没有部分/完整之分，因此不存在 `FS_PARTIAL_OBSERVATION`。
 
 ## 文件 IO 不设超时
 
@@ -427,7 +447,7 @@ abstract editText( target: FsTarget, edit: FsEditRequest, expected?: { version: 
 
 Types: [SandboxExecutionPolicy](sandbox.md)
 
-Source: [`packages/fs/fs/src/index.ts:86`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:99`](../../packages/fs/fs/src/index.ts)
 
 <a id="fs-events"></a>
 
@@ -450,7 +470,7 @@ Single-slot decision for the next FileSystem.editText. Calling `next()` yields a
 'fs/edit-intent'(target: FsTarget, actor: object | undefined, next: () => { version: FsVersion } | undefined | Promise<{ version: FsVersion } | undefined>): Promise<{ version: FsVersion } | undefined>
 ```
 
-Source: [`packages/fs/fs/src/index.ts:66`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:68`](../../packages/fs/fs/src/index.ts)
 
 <a id="fsobserved--emit"></a>
 
@@ -471,7 +491,29 @@ Record an authoritative positive or negative observation. Listeners must be sync
 'fs/observed'(target: FsTarget, observation: FsObservation, actor: object | undefined): void
 ```
 
-Source: [`packages/fs/fs/src/index.ts:76`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:89`](../../packages/fs/fs/src/index.ts)
+
+<a id="fsread-intent--waterfall"></a>
+
+#### `fs/read-intent` — waterfall
+
+Delegating read decision, dispatched by a read executor before any metadata round-trip so a refusal discloses neither presence nor absence. Unlike the two single-slot intent events, a listener that does not refuse MUST call `next()`: the slot holds a chain of read policies, and the first returned denial ends the read.
+
+```ts cordis-catalog
+/**
+ * Delegating read decision, dispatched by a read executor before any
+ * metadata round-trip so a refusal discloses neither presence nor absence.
+ * Unlike the two single-slot intent events, a listener that does not refuse
+ * MUST call `next()`: the slot holds a chain of read policies, and the first
+ * returned denial ends the read.
+ * @param target - the resolved target about to be read.
+ * @param actor - the opaque tool-execution context the decider keys off.
+ * @mode waterfall
+ */
+'fs/read-intent'(target: FsTarget, actor: object | undefined, next: () => FsReadDenial | undefined | Promise<FsReadDenial | undefined>): Promise<FsReadDenial | undefined>
+```
+
+Source: [`packages/fs/fs/src/index.ts:79`](../../packages/fs/fs/src/index.ts)
 
 <a id="fswrite-intent--waterfall"></a>
 
@@ -491,5 +533,5 @@ Single-slot decision for the next FileSystem.writeText. Calling `next()` yields 
 'fs/write-intent'(target: FsTarget, actor: object | undefined, next: () => FsWriteIntent | undefined | Promise<FsWriteIntent | undefined>): Promise<FsWriteIntent | undefined>
 ```
 
-Source: [`packages/fs/fs/src/index.ts:58`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:60`](../../packages/fs/fs/src/index.ts)
 <!-- END GENERATED cordis-surface -->

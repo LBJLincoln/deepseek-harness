@@ -54,6 +54,75 @@ interface VerificationCertificate {
 
 The five durable events (`verification/standard`, `verification/relaxation`, `verification/run`, `verification/certificate`, `verification/directive`) are catalogued in [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only); every executed run is recorded, and a certificate covers only a run whose results all passed. The `verification` session projection serves the current standard with its covering certificate.
 
+## The read barrier
+
+Types the read barrier decides from, declared by [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md). A session's role decides what it may read; a reservation is what makes a session the implementer.
+
+```ts type-equiv
+/**
+ * Authority a session holds against the barrier. `implementer` is denied every
+ * directory the barrier owns; `validator` and `unrestricted` are denied
+ * nothing, and `unrestricted` is what a session holds without a reservation.
+ * Which directories a role may read is a security invariant, never a
+ * deployment choice.
+ */
+type ReadBarrierRole = 'implementer' | 'validator' | 'unrestricted'
+```
+
+```ts type-equiv
+/**
+ * Capability seam that refused one read. Each member names a seam that opens
+ * paths and can therefore decide a refusal in the operation that opens them.
+ */
+type ReadBarrierCapability = 'fs' | 'shell' | 'subprocess' | 'terminal'
+```
+
+```ts type-equiv
+/** Inputs that select the barrier policy for one capability call. */
+interface ReadBarrierRequest {
+  /** Calling session; its reservation decides the role. Absent means an agentless call. */
+  session?: Session
+}
+```
+
+```ts type-equiv
+/**
+ * The barrier's complete decision inputs for one session, resolved once per
+ * capability call. `denied` lists every directory the role may not read,
+ * canonicalized only at the moment of the containment test.
+ */
+interface ReadBarrierPolicy {
+  /** Authority the calling session holds. */
+  readonly role: ReadBarrierRole
+  /** The barrier's own validator-owned root, always the first denied directory. */
+  readonly root: string
+  /** Every denied directory: the root, the configured extras, and the registered ones. */
+  readonly denied: readonly string[]
+}
+```
+
+The barrier appends one `read-barrier/denied` event per refusal, catalogued in [persistence-catalog.md](../persistence-catalog.md#read-barrierdenied--log-only).
+
+```ts type-equiv
+/**
+ * One refusal, as the `read-barrier/denied` session event carries it. The path
+ * is already in the log inside the model's own `tool/call` arguments, so the
+ * record adds evidence and no new disclosure.
+ */
+interface ReadBarrierDenial {
+  /** Self-declared payload version. */
+  readonly version: 1
+  /** Role the refused session held. */
+  readonly role: ReadBarrierRole
+  /** Seam that refused the read. */
+  readonly capability: ReadBarrierCapability
+  /** Model-facing path of the refused target, exactly as the refusal reported it. */
+  readonly displayPath: string
+  /** The barrier root in force when the read was refused. */
+  readonly root: string
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -154,4 +223,71 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 Types: [Agent](core.md)
 
 Source: [`packages/verification/verification/src/index.ts:211`](../../packages/verification/verification/src/index.ts)
+
+<a id="ctxreadbarrier--readbarrierservice"></a>
+
+### `ctx.readBarrier` — `ReadBarrierService`
+
+The read-barrier service (`ctx.readBarrier`). It owns the validator root, the per-session reservations that make a session an implementer, and the denied set every enforcing capability resolves against.
+
+```ts cordis-catalog
+/**
+ * Mint the run directory for one agent's session and record that session as
+ * the implementer. The validator writes its standard snapshot, one script per
+ * check, and any held-out fixture there, so the command line the implementer
+ * can observe in a process listing names a file whose content it cannot read.
+ * Reserving the same session twice returns the same directory.
+ *
+ * Synchronous so the role is in force the moment the caller returns: an
+ * awaited reservation would leave a window in which the session's own reads
+ * are still unrestricted.
+ * @param agent - the implementer agent whose session the run belongs to.
+ * @returns the absolute run directory, created owner-only.
+ */
+reserve(agent: Agent): string
+
+/**
+ * Deny one more directory for as long as the registration lives, so a plugin
+ * that owns a directory contributes it as an effect instead of a deployment
+ * repeating it in configuration.
+ * @param path - absolute or `~`-prefixed directory to deny.
+ * @returns the registration's disposer.
+ */
+protect(path: string): () => void
+
+/**
+ * Resolve the complete policy for one capability call. A session holding a
+ * reservation is the implementer; every other session and every agentless
+ * call is unrestricted.
+ * @param request - the calling session, when there is one.
+ * @returns the role, the barrier root, and every denied directory.
+ */
+resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy
+
+/**
+ * Decide whether the policy denies reading one resolved target. Each denied
+ * directory is canonicalized through the filesystem seam immediately before
+ * its containment test, so an ancestor symlink swapped since the target was
+ * resolved is caught. A target whose containment cannot be decided is denied.
+ * @param policy - the policy {@link resolve} returned for this call.
+ * @param target - the already-resolved target the caller is about to read.
+ * @returns true when the read must be refused.
+ */
+async denies(policy: ReadBarrierPolicy, target: FsTarget): Promise<boolean>
+
+/**
+ * Append the durable record of one refusal. The barrier owns the write so
+ * every seam that refuses produces the same evidence.
+ * @param session - the refused session, whose log receives the record.
+ * @param policy - the policy that refused, supplying the role and root.
+ * @param capability - the seam that refused the read.
+ * @param target - the refused target, supplying the model-facing path.
+ * @returns the payload exactly as it was appended.
+ */
+recordDenial( session: Session, policy: ReadBarrierPolicy, capability: ReadBarrierCapability, target: FsTarget, ): ReadBarrierDenial
+```
+
+Types: [Agent](core.md) · [FsTarget](filesystem.md) · [Session](session.md)
+
+Source: [`packages/verification/read-barrier/src/index.ts:120`](../../packages/verification/read-barrier/src/index.ts)
 <!-- END GENERATED cordis-surface -->

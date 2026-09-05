@@ -509,6 +509,9 @@ importers:
       '@deepseek-ai/dsh-fs-observation-policy':
         specifier: workspace:*
         version: link:../packages/fs/fs-observation-policy
+      '@deepseek-ai/dsh-fs-read-barrier':
+        specifier: workspace:*
+        version: link:../packages/fs/fs-read-barrier
       '@deepseek-ai/dsh-fs-sandbox':
         specifier: workspace:^
         version: link:../packages/fs/fs-sandbox
@@ -560,6 +563,9 @@ importers:
       '@deepseek-ai/dsh-pwsh-local':
         specifier: workspace:*
         version: link:../packages/shell/pwsh-local
+      '@deepseek-ai/dsh-read-barrier':
+        specifier: workspace:*
+        version: link:../packages/verification/read-barrier
       '@deepseek-ai/dsh-repeat-tool-reminder':
         specifier: workspace:*
         version: link:../packages/guard/repeat-tool-reminder
@@ -4313,6 +4319,33 @@ importers:
         specifier: workspace:^
         version: link:../../llm/llm
 
+  packages/fs/fs-read-barrier:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@deepseek-ai/dsh-fs':
+        specifier: workspace:^
+        version: link:../fs
+      '@deepseek-ai/dsh-fs-local':
+        specifier: workspace:^
+        version: link:../fs-local
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-read-barrier':
+        specifier: workspace:^
+        version: link:../../verification/read-barrier
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+
   packages/fs/fs-sandbox:
     devDependencies:
       '@deepseek-ai/cordis':
@@ -5105,6 +5138,9 @@ importers:
       '@deepseek-ai/dsh-loader-smoke':
         specifier: workspace:^
         version: link:../../test-support/loader-smoke
+      '@deepseek-ai/dsh-read-barrier':
+        specifier: workspace:^
+        version: link:../../verification/read-barrier
       '@deepseek-ai/dsh-session':
         specifier: workspace:^
         version: link:../../core/session
@@ -8240,6 +8276,40 @@ importers:
       '@deepseek-ai/dsh-verification':
         specifier: workspace:^
         version: link:../verification
+
+  packages/verification/read-barrier:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@deepseek-ai/dsh-fs':
+        specifier: workspace:^
+        version: link:../../fs/fs
+      '@deepseek-ai/dsh-fs-local':
+        specifier: workspace:^
+        version: link:../../fs/fs-local
+      '@deepseek-ai/dsh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-loader-smoke':
+        specifier: workspace:^
+        version: link:../../test-support/loader-smoke
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
 
   packages/verification/verification:
     dependencies:

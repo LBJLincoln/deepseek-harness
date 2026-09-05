@@ -115,13 +115,16 @@ flowchart LR
   svc_completionStandards["ctx.completionStandards<br/>Executable completion standards"]
   pkg_command_verification["command-verification"]
   pkg_trajectories["trajectories"]
+  pkg_read_barrier["read-barrier"]
+  svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
+  pkg_fs_read_barrier["fs-read-barrier"]
+  pkg_environment_runner["environment-runner"]
   pkg_components["components"]
   svc_components["ctx.components<br/>Component registry"]
   pkg_components_subagents["components-subagents"]
   pkg_command_components["command-components"]
   pkg_environments["environments"]
   svc_environments["ctx.environments<br/>Environment registry"]
-  pkg_environment_runner["environment-runner"]
   svc_environmentRuns["ctx.environmentRuns<br/>Environment runner"]
   pkg_fleet["fleet"]
   pkg_headless_agent["headless-agent"]
@@ -260,6 +263,7 @@ flowchart LR
   pkg_permission_presets --> svc_permissionPresets
   pkg_plan_mode --> svc_planMode
   pkg_pwsh_local --> svc_shell
+  pkg_read_barrier --> svc_readBarrier
   pkg_sandbox --> svc_sandbox
   pkg_sandbox_local --> svc_sandbox
   pkg_sandbox_policy --> svc_sandboxPolicy
@@ -361,6 +365,8 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_readBarrier --> pkg_environment_runner
+  svc_readBarrier --> pkg_fs_read_barrier
   svc_sandbox --> pkg_bash_sandbox
   svc_sandbox --> pkg_terminal_bash
   svc_sandboxPolicy --> pkg_bash_sandbox
@@ -478,6 +484,7 @@ flowchart LR
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | 唯一的具体循环插件；扩展包依赖 dsh-agent 的事件和服务，而不依赖此包。 |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | 每个 goal 拥有一份可执行标准，从完全通过的运行记录证书，并在 goal 操作内部拒绝未认证的 goal 完成。 |
+| `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | 拥有验证者所有的目录树，为每个实现者会话铸造一份运行预留，并判定该会话不得读取哪些目录。 |
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | 组合期清单，收录每个可寻址单元及其种类、来源、谱系、成员关系与可调用路由；适配器将活跃 seam 镜像入内。 |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | 组合期任务清单，任务携带以完成标准词汇书写的可执行检查，标记为留出或可用于训练；拥有 environment/run stamp 词汇。 |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | 把一个环境作为一个全新的、已盖章的会话运行，由其检查编写标准，作为验证者执行检查，并且只在有证书时才完成 goal。 |

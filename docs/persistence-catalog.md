@@ -565,6 +565,23 @@ Source: [`packages/interaction/permission-presets/src/index.ts:50`](../packages/
 
 Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/src/index.ts)
 
+### `read-barrier/*`
+
+<a id="read-barrierdenied--log-only"></a>
+
+#### `read-barrier/denied` — log-only
+
+```ts persistence-catalog
+/**
+ * One read the barrier refused: the role that was refused, the seam that
+ * refused it, the model-facing path, and the barrier root in force.
+ * Log-only — it never enters model history.
+ */
+'read-barrier/denied': ReadBarrierDenial
+```
+
+Source: [`packages/verification/read-barrier/src/index.ts:40`](../packages/verification/read-barrier/src/index.ts)
+
 ### `request/*`
 
 <a id="requestcontext--log-only"></a>

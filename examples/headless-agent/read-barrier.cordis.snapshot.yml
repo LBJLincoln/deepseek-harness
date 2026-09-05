@@ -1,0 +1,21 @@
+# Replay counterpart to cordis.yml for the read-barrier denial snapshot. It
+# includes cordis.yml directly because a config patch cannot target an entry
+# behind a nested include, then adds the barrier, its filesystem decider, and
+# the test-only validator stand-in that reserves the pre-created agent.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ./cordis.yml
+    patches:
+      - id: llm-deepseek
+        name: '@deepseek-ai/dsh-llm-deepseek'
+        disabled: true
+      - insert:
+          - id: read-barrier
+            name: '@deepseek-ai/dsh-read-barrier'
+          - id: fs-read-barrier
+            name: '@deepseek-ai/dsh-fs-read-barrier'
+          - id: reserve-implementer
+            name: './tests/fixtures/read-barrier/reserve-implementer.ts'
+          - id: llm-replay
+            name: '@deepseek-ai/dsh-llm-replay'

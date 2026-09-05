@@ -1106,6 +1106,48 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'readBarrier',
+    summary: 'The read-barrier service (`ctx.readBarrier`).',
+    description: 'The read-barrier service (`ctx.readBarrier`). It owns the validator root, the per-session reservations that make a session an implementer, and the denied set every enforcing capability resolves against.',
+    methods: [
+      {
+        signature: 'readonly root: string',
+        description: 'The absolute directory the barrier owns; always the first denied directory.',
+        parameters: [],
+      },
+      {
+        signature: 'reserve(agent: Agent): string',
+        description: 'Mint the run directory for one agent\'s session and record that session as the implementer. The validator writes its standard snapshot, one script per check, and any held-out fixture there, so the command line the implementer can observe in a process listing names a file whose content it cannot read. Reserving the same session twice returns the same directory.\n\nSynchronous so the role is in force the moment the caller returns: an awaited reservation would leave a window in which the session\'s own reads are still unrestricted.',
+        parameters: [{ name: 'agent', description: 'the implementer agent whose session the run belongs to.' }],
+        returns: 'the absolute run directory, created owner-only.',
+      },
+      {
+        signature: 'protect(path: string): () => void',
+        description: 'Deny one more directory for as long as the registration lives, so a plugin that owns a directory contributes it as an effect instead of a deployment repeating it in configuration.',
+        parameters: [{ name: 'path', description: 'absolute or `~`-prefixed directory to deny.' }],
+        returns: 'the registration\'s disposer.',
+      },
+      {
+        signature: 'resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy',
+        description: 'Resolve the complete policy for one capability call. A session holding a reservation is the implementer; every other session and every agentless call is unrestricted.',
+        parameters: [{ name: 'request', description: 'the calling session, when there is one.' }],
+        returns: 'the role, the barrier root, and every denied directory.',
+      },
+      {
+        signature: 'async denies(policy: ReadBarrierPolicy, target: FsTarget): Promise<boolean>',
+        description: 'Decide whether the policy denies reading one resolved target. Each denied directory is canonicalized through the filesystem seam immediately before its containment test, so an ancestor symlink swapped since the target was resolved is caught. A target whose containment cannot be decided is denied.',
+        parameters: [{ name: 'policy', description: 'the policy {@link resolve} returned for this call.' }, { name: 'target', description: 'the already-resolved target the caller is about to read.' }],
+        returns: 'true when the read must be refused.',
+      },
+      {
+        signature: 'recordDenial( session: Session, policy: ReadBarrierPolicy, capability: ReadBarrierCapability, target: FsTarget, ): ReadBarrierDenial',
+        description: 'Append the durable record of one refusal. The barrier owns the write so every seam that refuses produces the same evidence.',
+        parameters: [{ name: 'session', description: 'the refused session, whose log receives the record.' }, { name: 'policy', description: 'the policy that refused, supplying the role and root.' }, { name: 'capability', description: 'the seam that refused the read.' }, { name: 'target', description: 'the refused target, supplying the model-facing path.' }],
+        returns: 'the payload exactly as it was appended.',
+      },
+    ],
+  },
+  {
     key: 'sandbox',
     summary: 'Abstract process-sandbox service.',
     description: 'Abstract process-sandbox service. confine must return enforcing argv or fail closed at wrap or runner-execution time; silent unconfined passthrough is forbidden. Functional probes arbitrate multi-runner chains and may be skipped for a sole candidate, whose own refusal remains the fail-closed end.',
@@ -2521,6 +2563,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'target', description: 'the target whose presence or absence was observed.' }, { name: 'observation', description: 'present with its version, or confirmed absent.' }, { name: 'actor', description: 'the observing tool-execution context; undefined records nothing useful.' }],
   },
   {
+    name: 'fs/read-intent',
+    mode: 'waterfall',
+    signature: '\'fs/read-intent\'(target: FsTarget, actor: object | undefined, next: () => FsReadDenial | undefined | Promise<FsReadDenial | undefined>): Promise<FsReadDenial | undefined>',
+    summary: 'Delegating read decision, dispatched by a read executor before any metadata round-trip so a refusal discloses neither presence nor absence.',
+    description: 'Delegating read decision, dispatched by a read executor before any metadata round-trip so a refusal discloses neither presence nor absence. Unlike the two single-slot intent events, a listener that does not refuse MUST call `next()`: the slot holds a chain of read policies, and the first returned denial ends the read.',
+    parameters: [{ name: 'target', description: 'the resolved target about to be read.' }, { name: 'actor', description: 'the opaque tool-execution context the decider keys off.' }],
+  },
+  {
     name: 'fs/write-intent',
     mode: 'waterfall',
     signature: '\'fs/write-intent\'(target: FsTarget, actor: object | undefined, next: () => FsWriteIntent | undefined | Promise<FsWriteIntent | undefined>): Promise<FsWriteIntent | undefined>',
@@ -3349,6 +3399,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface FsEditRequest {\n    oldString: string;\n    newString: string;\n    replaceAll: boolean;\n}',
   },
   {
+    name: 'FsErrorCode',
+    declaration: 'export type FsErrorCode = \'FS_NOT_FOUND\' | \'FS_NOT_DIRECTORY\' | \'FS_NOT_TEXT\' | \'FS_NOT_REGULAR_FILE\' | \'FS_TOO_LARGE\' | \'FS_PERMISSION_DENIED\' | \'FS_SANDBOX_DENIED\' | \'FS_READ_BARRIER_DENIED\' | \'FS_IO_ERROR\' | \'FS_STALE_VERSION\' | \'FS_NOT_OBSERVED\' | \'FS_AMBIGUOUS_EDIT\' | \'FS_EDIT_NOT_FOUND\' | \'FS_ABORTED\';',
+  },
+  {
     name: 'FsInfo',
     declaration: 'export interface FsInfo {\n    version: FsVersion;\n    type: \'file\' | \'directory\' | \'other\';\n    size?: number;\n}',
   },
@@ -3359,6 +3413,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'FsPathInfo',
     declaration: 'export interface FsPathInfo {\n    version: FsVersion;\n    type: \'file\' | \'directory\' | \'symlink\' | \'other\';\n    size?: number;\n}',
+  },
+  {
+    name: 'FsReadDenial',
+    declaration: 'export interface FsReadDenial {\n    code: FsErrorCode;\n    message: string;\n}',
   },
   {
     name: 'FsTarget',
@@ -3855,6 +3913,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PruneResult',
     declaration: 'export interface PruneResult {\n    readonly pruned: readonly PrunedEntry[];\n    readonly charsRemoved: number;\n}',
+  },
+  {
+    name: 'ReadBarrierCapability',
+    declaration: 'export type ReadBarrierCapability = \'fs\' | \'shell\' | \'subprocess\' | \'terminal\';',
+  },
+  {
+    name: 'ReadBarrierDenial',
+    declaration: 'export interface ReadBarrierDenial {\n    readonly version: 1;\n    readonly role: ReadBarrierRole;\n    readonly capability: ReadBarrierCapability;\n    readonly displayPath: string;\n    readonly root: string;\n}',
+  },
+  {
+    name: 'ReadBarrierPolicy',
+    declaration: 'export interface ReadBarrierPolicy {\n    readonly role: ReadBarrierRole;\n    readonly root: string;\n    readonly denied: readonly string[];\n}',
+  },
+  {
+    name: 'ReadBarrierRequest',
+    declaration: 'export interface ReadBarrierRequest {\n    session?: Session;\n}',
+  },
+  {
+    name: 'ReadBarrierRole',
+    declaration: 'export type ReadBarrierRole = \'implementer\' | \'validator\' | \'unrestricted\';',
   },
   {
     name: 'ReadFileLine',

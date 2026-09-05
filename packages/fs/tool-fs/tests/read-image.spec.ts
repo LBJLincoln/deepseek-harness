@@ -172,6 +172,17 @@ describe('imageRefFromValue', () => {
   })
 })
 
+describe('read_image read policy dispatch', () => {
+  it('returns the policy denial without disclosing the file', async () => {
+    await writeFile(join(dir, 'red.png'), PNG_1X1)
+    const ctx = await setup()
+    ctx.on('fs/read-intent', () => Promise.resolve({ code: 'FS_READ_BARRIER_DENIED' as const, message: 'read denied: policy owns it' }))
+    const result = await readImage(ctx, { file_path: 'red.png' }, agentOn('vision-model'))
+    expect(result.isError).toBe(true)
+    expect(text(result)).toBe('Error: read denied: policy owns it')
+  })
+})
+
 describe('read_image happy path', () => {
   it('commits the bytes durably and renders the envelope beside an image block', async () => {
     await writeFile(join(dir, 'red.png'), PNG_1X1)
