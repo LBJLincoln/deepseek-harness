@@ -6,6 +6,7 @@
  */
 
 import type { ComponentId } from '@deepseek-ai/dsh-components/types'
+import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { GoalId, GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { CallId, ContentBlock, LlmCallConfig, TokenUsage, ToolSchema } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -116,6 +117,8 @@ export interface Trajectory {
   /** Trajectory identity, the session id. */
   readonly id: SessionId
   readonly source: TrajectorySource
+  /** The environment the session ran, from its `environment/run` stamp; absent for a session no runner stamped. */
+  readonly environment?: EnvironmentRunStamp
   /** Call configuration of the last logged request header, absent for a session that made no request. */
   readonly config?: LlmCallConfig
   /** Rendered system prompt of the last logged request header, absent for a system-less request. */
@@ -149,6 +152,8 @@ export interface TrajectoryExportRequest {
   readonly sink: TrajectorySink
   /** Write only trajectories whose reward outcome is `1`. */
   readonly rewardedOnly?: boolean
+  /** Also write sessions whose environment is held out; absent withholds them, so evaluation tasks never train by default. */
+  readonly includeHeldOut?: boolean
 }
 
 /** One session the export could not read. */
@@ -168,6 +173,8 @@ export interface TrajectoryExportReport {
   readonly rewarded: number
   /** Readable sessions withheld by `rewardedOnly`. */
   readonly filtered: number
+  /** Readable sessions withheld because their environment is held out. */
+  readonly heldOut: number
   /** Sessions that could not be read or folded. */
   readonly skipped: readonly TrajectoryExportSkip[]
 }

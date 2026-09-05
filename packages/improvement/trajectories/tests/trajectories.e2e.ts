@@ -30,7 +30,7 @@ describe('trajectory export through a real cordis.yml and headless process', () 
     expect(stderr).toBe('')
     const result = JSON.parse(stdout.trimEnd().split('\n').at(-1) ?? '') as { type: string; report: TrajectoryExportReport }
     expect(result.type).toBe('result')
-    expect(result.report).toEqual({ sessions: 1, exported: 1, rewarded: 1, filtered: 0, skipped: [] })
+    expect(result.report).toEqual({ sessions: 1, exported: 1, rewarded: 1, filtered: 0, heldOut: 0, skipped: [] })
 
     expect(lines).toHaveLength(1)
     const trajectory = JSON.parse(lines[0] as string) as Trajectory

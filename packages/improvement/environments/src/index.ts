@@ -8,11 +8,120 @@
  * @module @deepseek-ai/dsh-environments
  */
 
+import { createHash } from 'node:crypto'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
-import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType } from './types.ts'
+// Type-only: the durable event vocabulary this package augments.
+import type {} from '@deepseek-ai/dsh-session'
+import type {
+  EnvironmentContentHashes,
+  EnvironmentDefinition,
+  EnvironmentFilter,
+  EnvironmentId as EnvironmentIdType,
+  EnvironmentRunStamp,
+} from './types.ts'
 
 export type * from './types.ts'
+
+declare module '@deepseek-ai/dsh-session/types' {
+  interface SessionEventMap {
+    /**
+     * Environment run stamp: the environment, its content hashes, the
+     * repetition and group, the model route, and the declared isolation of
+     * one run, appended once before the run's first turn.
+     */
+    'environment/run': EnvironmentRunStamp
+  }
+}
+
+/** Self-declared payload version of the `environment/run` event. */
+export const ENVIRONMENT_RUN_VERSION = 1
+
+const ISOLATIONS = new Set(['none', 'process', 'host'])
+const HEX_64 = /^[0-9a-f]{64}$/
+
+/** SHA-256 hex digest of one UTF-8 string. */
+function sha256(text: string): string {
+  return createHash('sha256').update(text).digest('hex')
+}
+
+/**
+ * Content hashes of one environment: the prompt, the check inventory in
+ * authored order, the caller-computed fixture digest, and the combined key.
+ * @param environment - the task and checks to hash.
+ * @param fixtureSha256 - digest of the fixture files, absent for a task without a fixture.
+ * @returns the four digests; identical inputs give identical digests.
+ */
+export function environmentContentHashes(
+  environment: Pick<EnvironmentDefinition, 'task' | 'checks'>,
+  fixtureSha256?: string,
+): EnvironmentContentHashes {
+  const promptSha256 = sha256(environment.task.prompt)
+  const checksSha256 = sha256(JSON.stringify(environment.checks.map(check => [check.id, check.outcome, check.run])))
+  const contentSha256 = sha256([promptSha256, fixtureSha256 ?? '', checksSha256].join('\n'))
+  return { promptSha256, checksSha256, ...fixtureSha256 === undefined ? {} : { fixtureSha256 }, contentSha256 }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** Require one non-empty string field of a durable stamp. */
+function stampText(value: Record<string, unknown>, key: string): string {
+  const field = value[key]
+  if (typeof field !== 'string' || field === '') throw new Error(`environment/run ${key} must be a non-empty string`)
+  return field
+}
+
+/** Require one SHA-256 hex field of a durable stamp. */
+function stampHex(value: Record<string, unknown>, key: string): string {
+  const field = stampText(value, key)
+  if (!HEX_64.test(field)) throw new Error(`environment/run ${key} must be a SHA-256 hex digest`)
+  return field
+}
+
+/**
+ * Decode a value that declares itself as an environment run stamp. Unrelated
+ * values return `undefined`; a malformed stamp fails replay loudly, as every
+ * durable payload does at the log boundary.
+ * @param value - candidate durable payload.
+ * @returns the validated stamp, or `undefined` for another value kind.
+ */
+export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | undefined {
+  if (!isRecord(value) || value['kind'] !== 'environment/run') return undefined
+  if (value['version'] !== ENVIRONMENT_RUN_VERSION) {
+    throw new Error(`unsupported environment/run version ${String(value['version'])}`)
+  }
+  const heldOut = value['heldOut']
+  if (typeof heldOut !== 'boolean') throw new Error('environment/run heldOut must be a boolean')
+  const repetition = value['repetition']
+  if (typeof repetition !== 'number' || !Number.isSafeInteger(repetition) || repetition < 0) {
+    throw new Error('environment/run repetition must be a non-negative integer')
+  }
+  const model = value['model']
+  if (!isRecord(model)) throw new Error('environment/run model must be a record')
+  const isolation = value['isolation']
+  if (typeof isolation !== 'string' || !ISOLATIONS.has(isolation)) {
+    throw new Error('environment/run isolation must be none, process, or host')
+  }
+  const fixture = value['fixtureSha256'] === undefined ? {} : { fixtureSha256: stampHex(value, 'fixtureSha256') }
+  const group = value['group'] === undefined ? {} : { group: stampText(value, 'group') }
+  return {
+    kind: 'environment/run',
+    version: ENVIRONMENT_RUN_VERSION,
+    environmentId: EnvironmentId(stampText(value, 'environmentId')),
+    environmentKind: stampText(value, 'environmentKind'),
+    heldOut,
+    promptSha256: stampHex(value, 'promptSha256'),
+    checksSha256: stampHex(value, 'checksSha256'),
+    ...fixture,
+    contentSha256: stampHex(value, 'contentSha256'),
+    repetition,
+    ...group,
+    model: { provider: stampText(model, 'provider'), model: stampText(model, 'model') },
+    isolation: isolation as EnvironmentRunStamp['isolation'],
+  }
+}
 
 declare module '@deepseek-ai/cordis' {
   interface Context {

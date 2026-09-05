@@ -3,8 +3,14 @@ import { Context } from '@deepseek-ai/cordis'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import SessionStore from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
-import EnvironmentRegistry, { EnvironmentError, EnvironmentId } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentDefinition } from '@deepseek-ai/dsh-environments'
+import EnvironmentRegistry, {
+  decodeEnvironmentRun,
+  ENVIRONMENT_RUN_VERSION,
+  environmentContentHashes,
+  EnvironmentError,
+  EnvironmentId,
+} from '@deepseek-ai/dsh-environments'
+import type { EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments'
 import * as invariantCompanion from '@deepseek-ai/dsh-environments/invariant'
 
 declare module '@deepseek-ai/dsh-environments/types' {
@@ -119,5 +125,85 @@ describe('EnvironmentRegistry', () => {
     await ctx.plugin(SessionStore)
     await ctx.plugin(InvariantRegistry, { enabled: true })
     await expect(ctx.plugin(invariantCompanion)).resolves.toBeDefined()
+  })
+})
+
+describe('environment run stamps', () => {
+  const HEX = 'a'.repeat(64)
+  function stamp(rest: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      kind: 'environment/run',
+      version: ENVIRONMENT_RUN_VERSION,
+      environmentId: 'swe-task:alpha',
+      environmentKind: 'swe-task',
+      heldOut: false,
+      promptSha256: HEX,
+      checksSha256: HEX,
+      contentSha256: HEX,
+      repetition: 0,
+      model: { provider: 'cli-mock', model: 'cli-mock' },
+      isolation: 'none',
+      ...rest,
+    }
+  }
+
+  it('hashes prompt, checks, and fixture deterministically and keys the content on all three', () => {
+    const definition = sweTask('swe-task:alpha')
+    const bare = environmentContentHashes(definition)
+    expect(bare).toEqual(environmentContentHashes(sweTask('swe-task:alpha')))
+    expect(bare.fixtureSha256).toBeUndefined()
+    expect(bare.promptSha256).toMatch(/^[0-9a-f]{64}$/)
+    const withFixture = environmentContentHashes(definition, HEX)
+    expect(withFixture.fixtureSha256).toBe(HEX)
+    expect(withFixture.promptSha256).toBe(bare.promptSha256)
+    expect(withFixture.checksSha256).toBe(bare.checksSha256)
+    expect(withFixture.contentSha256).not.toBe(bare.contentSha256)
+    const otherChecks = environmentContentHashes(sweTask('swe-task:alpha', {
+      checks: [{ id: CheckId('tests-pass'), outcome: 'the suite passes', run: 'pnpm test -- --changed' }],
+    }))
+    expect(otherChecks.checksSha256).not.toBe(bare.checksSha256)
+  })
+
+  it('decodes a complete stamp, leaves unrelated values alone, and keeps optional fields exact', () => {
+    const decoded = decodeEnvironmentRun(stamp({ fixtureSha256: HEX, group: 'batch-7', heldOut: true, repetition: 3 }))
+    expect(decoded).toEqual<EnvironmentRunStamp>({
+      kind: 'environment/run',
+      version: 1,
+      environmentId: EnvironmentId('swe-task:alpha'),
+      environmentKind: 'swe-task',
+      heldOut: true,
+      promptSha256: HEX,
+      checksSha256: HEX,
+      fixtureSha256: HEX,
+      contentSha256: HEX,
+      repetition: 3,
+      group: 'batch-7',
+      model: { provider: 'cli-mock', model: 'cli-mock' },
+      isolation: 'none',
+    })
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('fixtureSha256')
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('group')
+    expect(decodeEnvironmentRun({ kind: 'goal/change' })).toBeUndefined()
+    expect(decodeEnvironmentRun('environment/run')).toBeUndefined()
+    expect(decodeEnvironmentRun([stamp()])).toBeUndefined()
+  })
+
+  it('fails replay loudly on a malformed stamp', () => {
+    const cases: [Record<string, unknown>, string][] = [
+      [stamp({ version: 2 }), 'unsupported environment/run version 2'],
+      [stamp({ heldOut: 'no' }), 'heldOut must be a boolean'],
+      [stamp({ repetition: -1 }), 'repetition must be a non-negative integer'],
+      [stamp({ repetition: 1.5 }), 'repetition must be a non-negative integer'],
+      [stamp({ model: 'cli-mock' }), 'model must be a record'],
+      [stamp({ model: { provider: 'cli-mock' } }), 'model must be a non-empty string'],
+      [stamp({ isolation: 'shared' }), 'isolation must be none, process, or host'],
+      [stamp({ environmentId: '' }), 'environmentId must be a non-empty string'],
+      [stamp({ promptSha256: 'xyz' }), 'promptSha256 must be a SHA-256 hex digest'],
+      [stamp({ fixtureSha256: 12 }), 'fixtureSha256 must be a non-empty string'],
+      [stamp({ group: '' }), 'group must be a non-empty string'],
+    ]
+    for (const [value, message] of cases) {
+      expect(() => decodeEnvironmentRun(value), message).toThrow(message)
+    }
   })
 })

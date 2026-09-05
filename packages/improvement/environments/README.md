@@ -19,9 +19,13 @@ The service takes no configuration; producers and consumers compose beside it.
 
 A definition carries a branded `EnvironmentId`, a `kind` from the merge-extensible `EnvironmentKindMap` (each producer declares its kind and detail type by declaration merging on `@deepseek-ai/dsh-environments/types`; this package declares none), `name`, `description`, the `task` (`prompt` plus an optional workspace `fixture`), the `checks` a validator authors the task's completion standard from, the `heldOut` flag, the owning package, `provenance` (`curated` or `synthesized`), an optional `lineage` parent id, and kind-specific `detail`.
 
+## Run stamp
+
+The `environment/run` session event is the durable link from a session to the environment it ran. The runner appends one `EnvironmentRunStamp` before the run's first turn: the environment id and kind, the `heldOut` flag, the content hashes, the zero-based `repetition` and optional `group` of the run inside its batch, the model route, and the isolation the deployment declared. `environmentContentHashes(environment, fixtureSha256?)` computes the prompt, check-inventory, and combined `contentSha256` digests deterministically; the combined digest is the decontamination key a curator compares against held-out environments. `decodeEnvironmentRun(value)` validates a durable payload at the log boundary: unrelated values return `undefined`, a malformed stamp throws, so a fold never reads a partial stamp.
+
 ## Extension points
 
-Producers register environments from curated suites or from synthesis; consumers are the environment runner that mounts a task as a session, the trajectory exporter that filters training data by held-out status, and the component registry adapter that lists environments as components.
+Producers register environments from curated suites or from synthesis; consumers are the environment runner that mounts a task as a session and writes the run stamp, the trajectory exporter that reads the stamp to attribute sessions and withhold held-out ones, and the component registry adapter that lists environments as components.
 
 ## Model Experience
 
@@ -33,6 +37,7 @@ None; the registry neither adds to nor changes any model request.
 
 ## Known Limitations and Deferred Work
 
-- **No runner** — nothing in this package mounts an environment as a session; the runner that authors the completion standard from `checks`, runs the agent, and records the run is the next slice of the improvement seam.
-- **Fixture is a name** — `task.fixture` is an identifier the runner resolves; the registry does not verify that it exists.
+- **Executes nothing** — the environment runner (`@deepseek-ai/dsh-environment-runner`) mounts an environment as a session, authors the standard from `checks`, executes them, and writes the run stamp; this package only holds the vocabulary.
+- **Fixture is a path the runner resolves** — `task.fixture` names an absolute directory the runner overlays and hashes; the registry does not verify that it exists.
+- **No registration events** — adapters and observers cannot yet follow registrations; the stamp records what ran, not what was registered.
 - **Kinds arrive with producers** — a program with no producer composed sees `EnvironmentKind` as `string` and an empty inventory.

@@ -1,6 +1,6 @@
 {
-  "name": "@deepseek-ai/dsh-environments",
-  "description": "Environment registry: tasks with executable verifiers, held out or training-eligible, in the completion-standard vocabulary",
+  "name": "@deepseek-ai/dsh-environment-runner",
+  "description": "Environment runner: one fresh session per registered environment, the completion standard authored from its checks, the checks executed as the validator, and the goal completed only under a certificate",
   "version": "0.1.0-rc.5",
   "publishConfig": {
     "access": "public"
@@ -8,7 +8,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
-    "directory": "packages/improvement/environments"
+    "directory": "packages/improvement/environment-runner"
   },
   "type": "module",
   "main": "lib/index.js",
@@ -38,18 +38,30 @@
   "license": "MIT",
   "peerDependencies": {
     "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/dsh-brand": "workspace:^",
+    "@deepseek-ai/dsh-agent": "workspace:^",
+    "@deepseek-ai/dsh-agent-default-model": "workspace:^",
+    "@deepseek-ai/dsh-environments": "workspace:^",
+    "@deepseek-ai/dsh-goal": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^",
     "@deepseek-ai/dsh-llm": "workspace:^",
     "@deepseek-ai/dsh-session": "workspace:^",
-    "@deepseek-ai/dsh-verification": "workspace:^"
+    "@deepseek-ai/dsh-shell": "workspace:^",
+    "@deepseek-ai/dsh-verification": "workspace:^",
+    "@deepseek-ai/schemastery": "workspace:^"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/dsh-brand": "workspace:^",
+    "@deepseek-ai/dsh-agent": "workspace:^",
+    "@deepseek-ai/dsh-agent-default-model": "workspace:^",
+    "@deepseek-ai/dsh-environments": "workspace:^",
+    "@deepseek-ai/dsh-goal": "workspace:^",
     "@deepseek-ai/dsh-invariants": "workspace:^",
     "@deepseek-ai/dsh-llm": "workspace:^",
+    "@deepseek-ai/dsh-loader-smoke": "workspace:^",
     "@deepseek-ai/dsh-session": "workspace:^",
-    "@deepseek-ai/dsh-verification": "workspace:^"
+    "@deepseek-ai/dsh-shell": "workspace:^",
+    "@deepseek-ai/dsh-trajectories": "workspace:^",
+    "@deepseek-ai/dsh-verification": "workspace:^",
+    "@deepseek-ai/schemastery": "workspace:^"
   }
 }

@@ -19,9 +19,13 @@
 
 一个定义携带带品牌的 `EnvironmentId`、来自可合并扩展的 `EnvironmentKindMap` 的 `kind`（每个生产方通过在 `@deepseek-ai/dsh-environments/types` 上做声明合并来声明其 kind 与 detail 类型；本包不声明任何 kind）、`name`、`description`、`task`（`prompt` 加可选的工作区 `fixture`）、验证者据以编写任务完成标准的 `checks`、`heldOut` 标志、所属包、`provenance`（`curated` 或 `synthesized`）、可选的 `lineage` 父 id，以及特定于 kind 的 `detail`。
 
+## Run stamp
+
+`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、模型路由，以及部署方声明的隔离级别。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；合并摘要是策展者用来与留出环境比对的去污染键。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
+
 ## Extension points
 
-生产方从精选套件或合成过程注册环境；消费方是把任务挂载为会话的环境运行器、按留出状态过滤训练数据的轨迹导出器，以及把环境列为组件的组件注册表适配器。
+生产方从精选套件或合成过程注册环境；消费方是把任务挂载为会话并写入运行 stamp 的环境运行器、读取 stamp 以归属会话并扣留留出会话的轨迹导出器，以及把环境列为组件的组件注册表适配器。
 
 ## Model Experience
 
@@ -33,6 +37,7 @@
 
 ## Known Limitations and Deferred Work
 
-- **没有运行器**——本包不把环境挂载为会话；由 `checks` 编写完成标准、运行 agent 并记录运行的运行器是改进 seam 的下一个切片。
-- **夹具只是名字**——`task.fixture` 是运行器解析的标识符；注册表不验证其存在。
+- **不执行任何东西**——环境运行器（`@deepseek-ai/dsh-environment-runner`）把环境挂载为会话、由 `checks` 编写标准、执行检查并写入运行 stamp；本包只持有词汇。
+- **夹具是运行器解析的路径**——`task.fixture` 指向运行器覆盖并哈希的绝对目录；注册表不验证其存在。
+- **没有注册事件**——适配器与观察者尚无法跟随注册；stamp 记录的是运行了什么，而不是注册了什么。
 - **kind 随生产方到来**——未组合任何生产方的程序把 `EnvironmentKind` 视为 `string`，清单为空。

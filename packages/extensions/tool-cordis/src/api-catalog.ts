@@ -645,6 +645,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'environmentRuns',
+    summary: 'Environment runner (`ctx.environmentRuns`): one registered environment as one validated session.',
+    description: 'Environment runner (`ctx.environmentRuns`): one registered environment as one validated session.',
+    methods: [
+      {
+        signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
+        description: 'Run one environment as one fresh session and validate it.',
+        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional model route, repetition, group, and abort signal.' }],
+        returns: 'the stamp, the attempts, the certificate when one run passed, and the accumulated usage.',
+        throws: ['{@link EnvironmentRunError} for an unknown environment, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+      },
+    ],
+  },
+  {
     key: 'environments',
     summary: 'Environment registry (`ctx.environments`): tasks with verifiers, held at composition time.',
     description: 'Environment registry (`ctx.environments`): tasks with verifiers, held at composition time.',
@@ -2061,8 +2075,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>',
         description: 'Fold the requested sessions and write one line per trajectory. A session that cannot be read or folded is reported and the export continues; the sink is closed exactly once when every session has been handled.',
-        parameters: [{ name: 'request', description: 'sessions to export, the destination sink, and the reward filter.' }],
-        returns: 'counts of sessions, written lines, rewarded lines, filtered sessions, and skips with reasons.',
+        parameters: [{ name: 'request', description: 'sessions to export, the destination sink, the reward filter, and the held-out opt-in.' }],
+        returns: 'counts of sessions, written lines, rewarded lines, filtered sessions, withheld held-out sessions, and skips with reasons.',
       },
     ],
   },
@@ -3209,6 +3223,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface EditGoalRequest {\n    readonly objective?: string;\n    readonly maxGoalRounds?: number;\n}',
   },
   {
+    name: 'EnvironmentContentHashes',
+    declaration: 'export interface EnvironmentContentHashes {\n    readonly promptSha256: string;\n    readonly checksSha256: string;\n    readonly fixtureSha256?: string;\n    readonly contentSha256: string;\n}',
+  },
+  {
     name: 'EnvironmentDefinition',
     declaration: 'export interface EnvironmentDefinition<K extends EnvironmentKind = EnvironmentKind> {\n    readonly id: EnvironmentId;\n    readonly kind: K;\n    readonly name: string;\n    readonly description: string;\n    readonly task: EnvironmentTask;\n    readonly checks: readonly StandardCheck[];\n    readonly heldOut: boolean;\n    readonly owner: string;\n    readonly provenance: EnvironmentProvenance;\n    readonly lineage?: EnvironmentId;\n    readonly detail: EnvironmentDetail<K>;\n}',
   },
@@ -3235,6 +3253,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EnvironmentProvenance',
     declaration: 'export type EnvironmentProvenance = \'curated\' | \'synthesized\';',
+  },
+  {
+    name: 'EnvironmentRunAttempt',
+    declaration: 'export interface EnvironmentRunAttempt {\n    readonly attempt: number;\n    readonly results: readonly CheckResult[];\n}',
+  },
+  {
+    name: 'EnvironmentRunModel',
+    declaration: 'export interface EnvironmentRunModel {\n    readonly provider: string;\n    readonly model: string;\n}',
+  },
+  {
+    name: 'EnvironmentRunReport',
+    declaration: 'export interface EnvironmentRunReport {\n    readonly environment: EnvironmentId;\n    readonly sessionId: SessionId;\n    readonly stamp: EnvironmentRunStamp;\n    readonly attempts: readonly EnvironmentRunAttempt[];\n    readonly certified: boolean;\n    readonly certificate?: VerificationCertificate;\n    readonly usage?: TokenUsage;\n}',
+  },
+  {
+    name: 'EnvironmentRunRequest',
+    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'EnvironmentRunStamp',
+    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
   },
   {
     name: 'EnvironmentTask',
@@ -4694,11 +4732,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TrajectoryExportReport',
-    declaration: 'export interface TrajectoryExportReport {\n    readonly sessions: number;\n    readonly exported: number;\n    readonly rewarded: number;\n    readonly filtered: number;\n    readonly skipped: readonly TrajectoryExportSkip[];\n}',
+    declaration: 'export interface TrajectoryExportReport {\n    readonly sessions: number;\n    readonly exported: number;\n    readonly rewarded: number;\n    readonly filtered: number;\n    readonly heldOut: number;\n    readonly skipped: readonly TrajectoryExportSkip[];\n}',
   },
   {
     name: 'TrajectoryExportRequest',
-    declaration: 'export interface TrajectoryExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n    readonly rewardedOnly?: boolean;\n}',
+    declaration: 'export interface TrajectoryExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n    readonly rewardedOnly?: boolean;\n    readonly includeHeldOut?: boolean;\n}',
   },
   {
     name: 'TrajectoryExportSkip',

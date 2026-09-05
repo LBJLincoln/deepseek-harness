@@ -434,6 +434,9 @@ importers:
       '@deepseek-ai/dsh-agent':
         specifier: workspace:*
         version: link:../packages/core/agent
+      '@deepseek-ai/dsh-agent-default-model':
+        specifier: workspace:*
+        version: link:../packages/core/agent-default-model
       '@deepseek-ai/dsh-agent-instructions':
         specifier: workspace:*
         version: link:../packages/context/agent-instructions
@@ -485,6 +488,12 @@ importers:
       '@deepseek-ai/dsh-e2b':
         specifier: workspace:*
         version: link:../packages/e2b/e2b
+      '@deepseek-ai/dsh-environment-runner':
+        specifier: workspace:*
+        version: link:../packages/improvement/environment-runner
+      '@deepseek-ai/dsh-environments':
+        specifier: workspace:*
+        version: link:../packages/improvement/environments
       '@deepseek-ai/dsh-fs-e2b':
         specifier: workspace:*
         version: link:../packages/e2b/fs-e2b
@@ -5032,6 +5041,49 @@ importers:
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
 
+  packages/improvement/environment-runner:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@deepseek-ai/dsh-agent-default-model':
+        specifier: workspace:^
+        version: link:../../core/agent-default-model
+      '@deepseek-ai/dsh-environments':
+        specifier: workspace:^
+        version: link:../environments
+      '@deepseek-ai/dsh-goal':
+        specifier: workspace:^
+        version: link:../../goal/goal
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-loader-smoke':
+        specifier: workspace:^
+        version: link:../../test-support/loader-smoke
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@deepseek-ai/dsh-shell':
+        specifier: workspace:^
+        version: link:../../shell/shell
+      '@deepseek-ai/dsh-trajectories':
+        specifier: workspace:^
+        version: link:../trajectories
+      '@deepseek-ai/dsh-verification':
+        specifier: workspace:^
+        version: link:../../verification/verification
+
   packages/improvement/environments:
     devDependencies:
       '@deepseek-ai/cordis':
@@ -5061,6 +5113,9 @@ importers:
       '@deepseek-ai/dsh-components':
         specifier: workspace:^
         version: link:../../components/components
+      '@deepseek-ai/dsh-environments':
+        specifier: workspace:^
+        version: link:../environments
       '@deepseek-ai/dsh-goal':
         specifier: workspace:^
         version: link:../../goal/goal

@@ -6,7 +6,7 @@
  */
 
 import type { Branded } from '@deepseek-ai/dsh-brand'
-import type { StandardCheck } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 
 /** Identifies one environment across compositions; derived from its producer's stable name, never from mount order. */
 export type EnvironmentId = Branded<'EnvironmentId'>
@@ -71,4 +71,49 @@ export interface EnvironmentFilter {
   readonly kind?: EnvironmentKind
   /** Only held-out (`true`) or only training-eligible (`false`) environments. */
   readonly heldOut?: boolean
+}
+
+/** Model route one environment run used. */
+export interface EnvironmentRunModel {
+  /** Registered provider route. */
+  readonly provider: string
+  /** Provider-owned model id. */
+  readonly model: string
+}
+
+/** Content hashes of one environment as it was run; `fixtureSha256` is absent for a task without a fixture. */
+export interface EnvironmentContentHashes {
+  /** SHA-256 hex of the task prompt. */
+  readonly promptSha256: string
+  /** SHA-256 hex of the check inventory (ids, outcomes, run instructions in authored order). */
+  readonly checksSha256: string
+  /** SHA-256 hex over every fixture file (relative path and bytes, sorted). */
+  readonly fixtureSha256?: string
+  /** SHA-256 hex over the three hashes above; the decontamination key. */
+  readonly contentSha256: string
+}
+
+/**
+ * Durable link from a session to the environment it ran, written by the
+ * runner as the `environment/run` event before the run's first turn. Every
+ * fold that groups, decontaminates, or ranks sessions by environment reads it
+ * from the log instead of from an in-memory report.
+ */
+export interface EnvironmentRunStamp extends EnvironmentContentHashes {
+  readonly kind: 'environment/run'
+  readonly version: 1
+  /** Environment that was run. */
+  readonly environmentId: EnvironmentId
+  /** Declared kind of the environment. */
+  readonly environmentKind: string
+  /** Whether the environment is reserved for evaluation; exports drop held-out sessions unless asked to keep them. */
+  readonly heldOut: boolean
+  /** Zero-based repetition of this environment inside its batch; paired designs match repetitions across variants. */
+  readonly repetition: number
+  /** Batch or sampling group the run belongs to, absent for a single run. */
+  readonly group?: string
+  /** Model route the implementer ran on. */
+  readonly model: EnvironmentRunModel
+  /** Isolation the deployment declared for the run's checks. */
+  readonly isolation: CertificateIsolation
 }

@@ -378,7 +378,16 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'environments',
     title: 'Environment registry',
     mode: 'core',
-    note: 'Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible.',
+    consumers: ['environment-runner', 'trajectories'],
+    note: 'Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible; owns the environment/run stamp vocabulary.',
+  },
+  {
+    key: 'environmentRuns',
+    pkg: 'environment-runner',
+    title: 'Environment runner',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate.',
   },
   {
     key: 'trajectories',

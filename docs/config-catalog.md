@@ -585,6 +585,32 @@ export interface Config {
 
 Source: [`packages/e2b/e2b/src/index.ts:43`](../packages/e2b/e2b/src/index.ts)
 
+<a id="deepseek-aidsh-environment-runner"></a>
+
+## `@deepseek-ai/dsh-environment-runner`
+
+Requires: `environments` · `agents` · `agentDefaultModel` · `goals` · `completionStandards` · `shell` · `sessions`
+
+```ts config-catalog
+/** Deployment choices of the runner, validated from `cordis.yml`. */
+export interface Config {
+  /** Isolation the deployment can defend for its check runs; written into every certificate and stamp. */
+  isolation: CertificateIsolation
+  /** Implementer turns before the run is reported uncertified; each is followed by one validation. */
+  maxAttempts?: number
+  /** Round cap handed to goal creation; absent applies the goal service default. */
+  maxGoalRounds?: number
+  /** Timeout override for each check command, capped by the executor; absent applies the executor default. */
+  checkTimeoutMs?: number
+  /** Bound of each evidence string and of the directive detail. */
+  evidenceMaxChars?: number
+}
+```
+
+Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
+
+Source: [`packages/improvement/environment-runner/src/index.ts:71`](../packages/improvement/environment-runner/src/index.ts)
+
 <a id="deepseek-aidsh-fs-local"></a>
 
 ## `@deepseek-ai/dsh-fs-local`

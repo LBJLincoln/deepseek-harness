@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam's two registries. An environment declares one task with executable checks in the completion-standard vocabulary; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided. The [trajectory-export Agent Note](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) owns the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts) and [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) and [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts) and [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts).
 
 ## Environment definition
 
@@ -15,6 +15,37 @@ interface EnvironmentTask {
   readonly prompt: string
   /** Workspace fixture the runner mounts before the task starts, absent for a task that needs no files. */
   readonly fixture?: string
+}
+```
+
+## Run stamp
+
+The runner appends one `environment/run` event before a run's first turn. It is the durable link from a session to its environment: every fold that groups, decontaminates, or ranks sessions by environment reads it from the log, and the exporter withholds held-out sessions by it.
+
+```ts type-equiv
+/**
+ * Durable link from a session to the environment it ran, written by the
+ * runner as the `environment/run` event before the run's first turn. Every
+ * fold that groups, decontaminates, or ranks sessions by environment reads it
+ * from the log instead of from an in-memory report.
+ */
+interface EnvironmentRunStamp extends EnvironmentContentHashes {
+  readonly kind: 'environment/run'
+  readonly version: 1
+  /** Environment that was run. */
+  readonly environmentId: EnvironmentId
+  /** Declared kind of the environment. */
+  readonly environmentKind: string
+  /** Whether the environment is reserved for evaluation; exports drop held-out sessions unless asked to keep them. */
+  readonly heldOut: boolean
+  /** Zero-based repetition of this environment inside its batch; paired designs match repetitions across variants. */
+  readonly repetition: number
+  /** Batch or sampling group the run belongs to, absent for a single run. */
+  readonly group?: string
+  /** Model route the implementer ran on. */
+  readonly model: EnvironmentRunModel
+  /** Isolation the deployment declared for the run's checks. */
+  readonly isolation: CertificateIsolation
 }
 ```
 
@@ -49,6 +80,25 @@ Messages are projected from the session surface after compaction replacements, e
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — this section is byte-identical in both language sides of the page. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxenvironmentruns--environmentrunner"></a>
+
+### `ctx.environmentRuns` — `EnvironmentRunner`
+
+Environment runner (`ctx.environmentRuns`): one registered environment as one validated session.
+
+```ts cordis-catalog
+/**
+ * Run one environment as one fresh session and validate it.
+ * @param request - environment id, absolute workspace directory, optional model route, repetition, group, and abort signal.
+ * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
+ * @throws {@link EnvironmentRunError} for an unknown environment, an unusable
+ *   workspace or fixture, an implementer that replaced the goal, or a lost standard.
+ */
+async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
+```
+
+Source: [`packages/improvement/environment-runner/src/index.ts:206`](../../packages/improvement/environment-runner/src/index.ts)
+
 <a id="ctxenvironments--environmentregistry"></a>
 
 ### `ctx.environments` — `EnvironmentRegistry`
@@ -81,7 +131,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:71`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:180`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 
@@ -94,8 +144,8 @@ Trajectory exporter (`ctx.trajectories`): persisted sessions as training and eva
  * Fold the requested sessions and write one line per trajectory. A session
  * that cannot be read or folded is reported and the export continues; the
  * sink is closed exactly once when every session has been handled.
- * @param request - sessions to export, the destination sink, and the reward filter.
- * @returns counts of sessions, written lines, rewarded lines, filtered sessions, and skips with reasons.
+ * @param request - sessions to export, the destination sink, the reward filter, and the held-out opt-in.
+ * @returns counts of sessions, written lines, rewarded lines, filtered sessions, withheld held-out sessions, and skips with reasons.
  */
 async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>
 ```

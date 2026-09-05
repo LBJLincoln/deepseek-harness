@@ -389,6 +389,23 @@ Types: [ContentBlock](subsystems/core.md) · [TokenUsage](subsystems/llm-streami
 
 Source: [`packages/compaction/compaction/src/types.ts:33`](../packages/compaction/compaction/src/types.ts)
 
+### `environment/*`
+
+<a id="environmentrun--log-only"></a>
+
+#### `environment/run` — log-only
+
+```ts persistence-catalog
+/**
+ * Environment run stamp: the environment, its content hashes, the
+ * repetition and group, the model route, and the declared isolation of
+ * one run, appended once before the run's first turn.
+ */
+'environment/run': EnvironmentRunStamp
+```
+
+Source: [`packages/improvement/environments/src/index.ts:33`](../packages/improvement/environments/src/index.ts)
+
 ### `feedback/*`
 
 <a id="feedbackrecord--log-only"></a>

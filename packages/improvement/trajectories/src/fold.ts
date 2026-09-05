@@ -7,6 +7,8 @@
 
 import { ComponentId } from '@deepseek-ai/dsh-components'
 import type { ComponentId as ComponentIdType } from '@deepseek-ai/dsh-components/types'
+import { decodeEnvironmentRun } from '@deepseek-ai/dsh-environments'
+import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import { decodeGoalChange } from '@deepseek-ai/dsh-goal'
 import type { GoalSnapshot } from '@deepseek-ai/dsh-goal/types'
 import type { ContentBlock, ToolCallBlock } from '@deepseek-ai/dsh-llm'
@@ -34,6 +36,7 @@ interface StepPosition {
 interface LogScan {
   header?: EpochHeader
   agentPreset?: string
+  environment?: EnvironmentRunStamp
   goal?: GoalSnapshot
   goalCompleted: boolean
   readonly positions: Map<number, StepPosition>
@@ -95,6 +98,12 @@ function scanLog(events: readonly SessionEvent[]): LogScan {
         if (change === undefined || change.operation === 'clear') break
         scan.goal = change.goal
         scan.goalCompleted = change.operation === 'complete'
+        break
+      }
+      case 'environment/run': {
+        // The durable boundary validates the stamp; a malformed one fails the fold loudly.
+        const stamp = decodeEnvironmentRun(event.data)
+        if (stamp !== undefined) scan.environment = stamp
         break
       }
       default: {
@@ -170,6 +179,7 @@ function decideReward(scan: LogScan, events: readonly SessionEvent[]): Trajector
 function componentsOf(scan: LogScan): ComponentIdType[] {
   const ids: string[] = []
   if (scan.agentPreset !== undefined) ids.push(`composition:${scan.agentPreset}`)
+  if (scan.environment !== undefined) ids.push(`environment:${scan.environment.environmentId}`)
   if (scan.header !== undefined) ids.push(`model-provider:${scan.header.config.provider}`)
   for (const name of scan.toolNames) ids.push(`tool:${name}`)
   return ids.map(ComponentId)
@@ -204,6 +214,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
       ...meta.parentSession === undefined ? {} : { parentSession: meta.parentSession },
       ...scan.agentPreset === undefined ? {} : { agentPreset: scan.agentPreset },
     },
+    ...scan.environment === undefined ? {} : { environment: scan.environment },
     ...header === undefined ? {} : { config: header.config },
     ...header?.system === undefined ? {} : { system: header.system },
     ...header?.tools === undefined ? {} : { tools: header.tools },

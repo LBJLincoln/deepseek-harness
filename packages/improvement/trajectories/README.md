@@ -19,7 +19,7 @@ The service takes no configuration and requires a session persistence backend.
 
 ## Service contract
 
-`ctx.trajectories.export({ sessions?, sink, rewardedOnly? })` folds each named session (or every persisted session when `sessions` is absent) through `ctx.sessionPersistence.inspect()` and writes `JSON.stringify(trajectory) + '\n'` to `sink.write()`; a session that cannot be read or folded is added to `skipped` with its reason and the export continues; `rewardedOnly: true` withholds trajectories whose reward outcome is not `1` and counts them as `filtered`. The sink is closed exactly once, after the last write or after a failure. The report carries `sessions`, `exported`, `rewarded`, `filtered`, and `skipped`. `jsonlFileSink(path)` is the shipped file sink; it truncates the file on first use.
+`ctx.trajectories.export({ sessions?, sink, rewardedOnly?, includeHeldOut? })` folds each named session (or every persisted session when `sessions` is absent) through `ctx.sessionPersistence.inspect()` and writes `JSON.stringify(trajectory) + '\n'` to `sink.write()`; a session that cannot be read or folded is added to `skipped` with its reason and the export continues. A session whose `environment/run` stamp marks a held-out environment is withheld and counted as `heldOut` unless `includeHeldOut: true`, so evaluation tasks never become training data by default; `rewardedOnly: true` then withholds trajectories whose reward outcome is not `1` and counts them as `filtered`. The sink is closed exactly once, after the last write or after a failure. The report carries `sessions`, `exported`, `rewarded`, `filtered`, `heldOut`, and `skipped`. `jsonlFileSink(path)` is the shipped file sink; it truncates the file on first use.
 
 `foldTrajectory(meta, events)` is the pure projection behind the service and is exported for tests and offline tools. It is deterministic for the same inputs.
 
@@ -28,11 +28,12 @@ The service takes no configuration and requires a session persistence backend.
 | Field | Content |
 |---|---|
 | `id`, `source` | Session id; creation time, working directory, parent session, and the agent preset the log last selected |
+| `environment` | The `environment/run` stamp the runner appended: environment id and kind, held-out flag, content hashes of prompt, fixture, and checks, repetition and group, model route, declared isolation; absent for a session no runner stamped |
 | `config`, `system`, `tools` | Call configuration, rendered system prompt, and tool schemas of the last `request/header` |
 | `messages` | Surface messages in model-visible order after compaction replacements: `user`, `assistant` (with `toolCalls` when requested), and `tool` (with `toolCallId`, `isError`) roles; each carries the `seq` of its source event, its `turn` and `step`, its content blocks verbatim (reasoning included), and the recorded source kind |
 | `steps` | One entry per model call with the adapter-reported usage |
 | `reward` | `outcome` `1` when a certificate covers the current standard revision, `0` when a standard exists without one, `null` otherwise; `basis` `certificate`, `uncertified-completion` (goal completed, no standard ever authored), or `none` (no goal); the goal snapshot, the covering certificate, and the directive and relaxation counts |
-| `provenance` | Component ids in the component registry's scheme (`composition:<preset>`, `model-provider:<provider>`, `tool:<name>`), tool names in first-use order, and the certificate's isolation level |
+| `provenance` | Component ids in the component registry's scheme (`composition:<preset>`, `environment:<id>`, `model-provider:<provider>`, `tool:<name>`), tool names in first-use order, and the certificate's isolation level |
 
 Token ids and logprobs are absent: the harness never sees token ids, and on-policy capture belongs to a trainer's inference proxy.
 
@@ -49,4 +50,5 @@ None; the service neither adds to nor changes any model request.
 - **Off-policy text** — a trainer re-tokenizes exported text through its chat template, which suits supervised and rejection-sampled training; strict on-policy reinforcement learning needs an inference proxy in front of the harness.
 - **No redaction** — tool results may carry credentials or private data; the sink is where a deployment applies a filter, and the telemetry redaction rules are the precedent.
 - **One standard per session** — the reward reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.
-- **No per-environment grouping** — rejection-sampling export grouped by environment follows the environment runner.
+- **No rejection-sampling export** — lines carry the environment stamp, so a consumer can group by environment, repetition, and group, but the exporter does not yet select the best of N per environment or emit per-environment statistics.
+- **Truncation scores as failure** — a session that stopped on a token limit, an abort, or a provider error under a measured goal exports with outcome `0`; the turn-end reason is not yet a field of the record, so a trainer cannot mask it.

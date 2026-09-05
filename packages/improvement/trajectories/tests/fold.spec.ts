@@ -277,6 +277,27 @@ describe('foldTrajectory', () => {
     expect(trajectory.provenance.toolNames).toEqual(['fs_read'])
   })
 
+  it('carries the environment stamp, names the environment among the components, and fails on a malformed stamp', () => {
+    const hex = 'c'.repeat(64)
+    const stamp = {
+      kind: 'environment/run', version: 1, environmentId: 'smoke:marker', environmentKind: 'smoke', heldOut: false,
+      promptSha256: hex, checksSha256: hex, fixtureSha256: hex, contentSha256: hex, repetition: 1, group: 'batch-1',
+      model: { provider: 'cli-mock', model: 'cli-mock' }, isolation: 'process',
+    }
+    const log = new Log()
+    log.push('environment/run', stamp)
+    log.push('environment/run', { kind: 'unrelated/record' })
+    log.push('request/header', requestHeader())
+    log.push('tool/call', { turn: 1, step: 1, callId: 'call-1', name: 'bash', arguments: '{}' })
+    const trajectory = foldTrajectory(header, log.events)
+    expect(trajectory.environment).toEqual(stamp)
+    expect(trajectory.provenance.components).toEqual(['environment:smoke:marker', 'model-provider:cli-mock', 'tool:bash'])
+
+    const malformed = new Log()
+    malformed.push('environment/run', { ...stamp, heldOut: 'yes' })
+    expect(() => foldTrajectory(header, malformed.events)).toThrow('environment/run heldOut must be a boolean')
+  })
+
   it('leaves the position empty for messages outside any step', () => {
     const log = new Log()
     log.user('before any step')
