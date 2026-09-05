@@ -1,6 +1,6 @@
-import { mkdtemp, stat } from 'node:fs/promises'
+import { mkdtemp, readdir, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
@@ -11,7 +11,7 @@ import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
 import FleetService, { FleetError, leaderboardMarkdown, resolveConfig } from '@deepseek-ai/dsh-fleet'
-import type { Config, FleetPlan, LeaderboardRow } from '@deepseek-ai/dsh-fleet'
+import type { Config, FleetPlan, LeaderboardRow, WorkspaceRetention } from '@deepseek-ai/dsh-fleet'
 import * as invariantCompanion from '@deepseek-ai/dsh-fleet/invariant'
 
 declare module '@deepseek-ai/dsh-environments/types' {
@@ -157,10 +157,10 @@ interface Harness {
   plan: (overrides?: Partial<FleetPlan>, group?: string | null) => FleetPlan
 }
 
-async function harness(config: Config = {}): Promise<Harness> {
+async function harness(config: Partial<Config> = {}): Promise<Harness> {
   const ctx = new Context()
   for (const stub of [StubEnvironments, StubDefaultModel, StubRuns]) await ctx.plugin(stub)
-  await ctx.plugin(FleetService, config)
+  await ctx.plugin(FleetService, { workspaceRetention: 'keep', ...config } satisfies Config)
   const root = await mkdtemp(join(tmpdir(), 'fleet-'))
   const plan = (overrides: Partial<FleetPlan> = {}, group: string | null = 'batch-1'): FleetPlan => ({
     environments: { ids: [ROUND_TRIP, UNSATISFIABLE] },
@@ -196,6 +196,8 @@ describe('FleetService', () => {
     expect(requests.map(request => request.group)).toEqual(Array<string>(8).fill('batch-1'))
     expect(requests.map(request => request.repetition)).toEqual([0, 1, 0, 1, 0, 1, 0, 1])
     expect(requests[0]).not.toHaveProperty('signal')
+    expect(requests[0]).not.toHaveProperty('district')
+    expect(result.spend).toEqual({ inputTokens: 60, outputTokens: 16 })
     const workspaces = requests.map(request => request.workspace)
     expect(new Set(workspaces).size).toBe(8)
     for (const workspace of workspaces) {
@@ -270,6 +272,9 @@ describe('FleetService', () => {
     await expect(empty).rejects.toMatchObject({ code: 'FLEET_EMPTY_PLAN' })
     await expect(ctx.fleet.run(plan({ repetitions: 0 }))).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN' })
     await expect(ctx.fleet.run(plan({ repetitions: 1.5 }))).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN' })
+    await expect(ctx.fleet.run(plan({ tokenCeiling: 0 }))).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN' })
+    const fractional = ctx.fleet.run(plan({ tokenCeiling: 2.5 }))
+    await expect(fractional).rejects.toMatchObject({ message: 'tokenCeiling must be a positive integer, got 2.5' })
     const unknown = ctx.fleet.run(plan({ environments: { ids: [EnvironmentId('smoke:missing')] } }))
     await expect(unknown).rejects.toBeInstanceOf(FleetError)
     await expect(unknown).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN', message: 'environment "smoke:missing" is not registered' })
@@ -292,9 +297,127 @@ describe('FleetService', () => {
     expect(single.cells).toHaveLength(1)
   })
 
+  it('carries the plan district into every cell request', async () => {
+    const { ctx, plan } = await harness()
+    const result = await ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 2, district: 'workshop' }))
+    expect(StubRuns.current.requests.map(request => request.district)).toEqual(['workshop', 'workshop'])
+    expect(result.cells.every(outcome => 'report' in outcome)).toBe(true)
+  })
+
+  it('stops scheduling a route once it errors consecutively, keeping the plan order and the row counts', async () => {
+    const { ctx, plan } = await harness({ routeBreaker: { consecutiveErrors: 2 } })
+    StubRuns.current.script = (request) => {
+      if (request.model?.model === 'a') throw new Error('route a is down')
+      return report(request, { certified: true, usage: { inputTokens: 4, outputTokens: 1 } })
+    }
+    const result = await ctx.fleet.run(plan())
+
+    const order = result.cells.map(outcome => [outcome.cell.environment, outcome.cell.model.model, outcome.cell.repetition])
+    expect(order).toEqual([
+      [ROUND_TRIP, 'a', 0], [ROUND_TRIP, 'a', 1], [ROUND_TRIP, 'b', 0], [ROUND_TRIP, 'b', 1],
+      [UNSATISFIABLE, 'a', 0], [UNSATISFIABLE, 'a', 1], [UNSATISFIABLE, 'b', 0], [UNSATISFIABLE, 'b', 1],
+    ])
+    expect(result.cells.flatMap(outcome => ('error' in outcome ? [outcome.error] : []))).toEqual([
+      { message: 'route a is down' },
+      { message: 'route a is down' },
+      { code: 'FLEET_ROUTE_BREAKER_OPEN', message: 'route mock/a stopped after 2 consecutive errors' },
+      { code: 'FLEET_ROUTE_BREAKER_OPEN', message: 'route mock/a stopped after 2 consecutive errors' },
+    ])
+    expect(StubRuns.current.requests.map(request => request.model?.model)).toEqual(['a', 'a', 'b', 'b', 'b', 'b'])
+    expect(result.leaderboard.map(row => [row.model, row.environmentId, row.runs, row.errors])).toEqual([
+      ['a', ROUND_TRIP, 0, 2], ['b', ROUND_TRIP, 2, 0],
+      ['a', UNSATISFIABLE, 0, 2], ['b', UNSATISFIABLE, 2, 0],
+    ])
+    expect(result.spend).toEqual({ inputTokens: 16, outputTokens: 4 })
+
+    StubRuns.current.script = (request) => {
+      if (request.model?.model === 'a' && request.repetition === 0) throw new Error('route a flickered')
+      return report(request, { certified: true })
+    }
+    const recovered = await ctx.fleet.run(plan())
+    expect(recovered.cells.flatMap(outcome => ('error' in outcome ? [outcome.error] : []))).toEqual([
+      { message: 'route a flickered' },
+      { message: 'route a flickered' },
+    ])
+  })
+
+  it('refuses every unstarted cell once the reported spend crosses the ceiling, and lets the in-flight ones finish', async () => {
+    const { ctx, plan } = await harness({ maxConcurrent: 2 })
+    StubRuns.current.script = async (request) => {
+      await new Promise(resolve => setTimeout(resolve, request.repetition === 0 ? 20 : 1))
+      return report(request, { certified: true, usage: { inputTokens: 10, outputTokens: 0 } })
+    }
+    const result = await ctx.fleet.run(plan({
+      environments: { ids: [ROUND_TRIP] },
+      models: [MODEL_A],
+      repetitions: 4,
+      tokenCeiling: 10,
+    }))
+
+    expect(result.cells.map(outcome => ('report' in outcome ? 'report' : outcome.error.code))).toEqual([
+      'report', 'report', 'FLEET_TOKEN_CEILING_REACHED', 'FLEET_TOKEN_CEILING_REACHED',
+    ])
+    expect(result.cells.at(-1)).toMatchObject({
+      error: { message: "the plan's token ceiling of 10 was reached at 10 tokens" },
+    })
+    expect(StubRuns.current.requests.map(request => request.repetition)).toEqual([0, 1])
+    expect(result.spend).toEqual({ inputTokens: 20, outputTokens: 0 })
+    expect(result.leaderboard).toEqual([
+      row({ model: 'a', environmentId: ROUND_TRIP, errors: 2, inputTokens: 20 }),
+    ])
+  })
+
+  it('removes each settled cell workspace as the configured retention says', async () => {
+    const script: Script = (request) => {
+      if (request.environment === RESERVED) throw new Error('the cell could not boot')
+      return report(request, { certified: request.environment === ROUND_TRIP })
+    }
+    const observe = async (workspaceRetention: WorkspaceRetention): Promise<string[]> => {
+      const { ctx, root, plan } = await harness({ workspaceRetention })
+      StubRuns.current.script = script
+      await ctx.fleet.run(plan({
+        environments: { ids: [ROUND_TRIP, UNSATISFIABLE, RESERVED] },
+        models: [MODEL_A],
+        repetitions: 1,
+      }))
+      const kept = new Set(await readdir(root))
+      return StubRuns.current.requests
+        .filter(request => kept.has(basename(request.workspace)))
+        .map(request => request.environment)
+    }
+    expect(await observe('keep')).toEqual([ROUND_TRIP, UNSATISFIABLE, RESERVED])
+    expect(await observe('remove-certified')).toEqual([UNSATISFIABLE, RESERVED])
+    expect(await observe('remove-all')).toEqual([])
+  })
+
+  it('keeps a cell whose workspace could not be minted as an error outcome with nothing to reap', async () => {
+    const { ctx, root, plan } = await harness({ workspaceRetention: 'remove-all' })
+    const result = await ctx.fleet.run(plan({
+      environments: { ids: [ROUND_TRIP] },
+      models: [MODEL_A],
+      repetitions: 1,
+      workspaceRoot: join(root, 'absent'),
+    }))
+    expect(result.cells).toHaveLength(1)
+    const failure = result.cells[0]
+    expect(failure !== undefined && 'error' in failure && failure.error.message).toContain('ENOENT')
+    expect(StubRuns.current.requests).toEqual([])
+  })
+
+  it('throws through the exhaustiveness guard for a rogue retention value (closed union)', async () => {
+    // Only a cast reaches this tag: the config schema refuses it, so a retention
+    // mode added later fails to compile here instead of silently keeping a workspace.
+    const { ctx, plan } = await harness()
+    ;(ctx.fleet as unknown as { resolved: { workspaceRetention: string } }).resolved.workspaceRetention = 'archive'
+    const rogue = ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 1 }))
+    await expect(rogue).rejects.toThrow('unreachable variant')
+  })
+
   it('resolves defaults once, at the boundary', () => {
-    expect(resolveConfig({})).toEqual({ maxConcurrent: 1 })
-    expect(resolveConfig({ maxConcurrent: 4 })).toEqual({ maxConcurrent: 4 })
+    expect(resolveConfig({ workspaceRetention: 'keep' }))
+      .toEqual({ maxConcurrent: 1, routeBreaker: undefined, workspaceRetention: 'keep' })
+    expect(resolveConfig({ maxConcurrent: 4, routeBreaker: { consecutiveErrors: 3 }, workspaceRetention: 'remove-all' }))
+      .toEqual({ maxConcurrent: 4, routeBreaker: { consecutiveErrors: 3 }, workspaceRetention: 'remove-all' })
   })
 
   it('registers its empty invariant companion', async () => {

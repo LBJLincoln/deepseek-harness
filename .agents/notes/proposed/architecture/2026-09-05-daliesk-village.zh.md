@@ -96,7 +96,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 ## Rollout
 
-1. **零号班次（Proving Ground，NDA）。** 需要：证书上的 executor（读取屏障切片 4，进行中）、stamp 上的 `district`、`usage/priced` 事件、组合门禁、cell 保留策略与按路由的熔断器；有人值班运行。
+1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；以及其 `workspaceRetention`。仍需要：证书上的 executor（读取屏障切片 4，进行中）、`usage/priced` 事件与组合门禁；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
 3. **无人值守的班次。** 需要四目标 note 的 rollout 第 11 项（幂等 cell、程序账本）与计划级支出聚合器；主机级监督进程退为后备。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。

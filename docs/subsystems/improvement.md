@@ -20,7 +20,7 @@ interface EnvironmentTask {
 
 ## Run stamp
 
-The runner appends one `environment/run` event before a run's first turn. It is the durable link from a session to its environment: every fold that groups, decontaminates, or ranks sessions by environment reads it from the log, and the exporter withholds held-out sessions by it.
+The runner appends one `environment/run` event before a run's first turn. It is the durable link from a session to its environment: every fold that groups, decontaminates, or ranks sessions by environment reads it from the log, and the exporter withholds held-out sessions and configured districts by it.
 
 ```ts type-equiv
 /**
@@ -42,6 +42,8 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly repetition: number
   /** Batch or sampling group the run belongs to, absent for a single run. */
   readonly group?: string
+  /** District the run belongs to; exports withhold the districts a deployment configures by it, absent for a run outside every district. */
+  readonly district?: string
   /** Model route the implementer ran on. */
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
@@ -169,7 +171,7 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 ```ts cordis-catalog
 /**
  * Run one environment as one fresh session and validate it.
- * @param request - environment id, absolute workspace directory, optional model route, repetition, group, and abort signal.
+ * @param request - environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.
  * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
  * @throws {@link EnvironmentRunError} for an unknown environment, an unusable
  *   workspace or fixture, an implementer that replaced the goal, or a lost standard.
@@ -211,7 +213,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:180`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:182`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -247,16 +249,18 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
 ```ts cordis-catalog
 /**
  * Run every cell of a plan and fold the leaderboard. A cell whose run
- * throws is kept as an error outcome; the fleet run itself rejects only for
- * a plan it cannot start.
- * @param plan - environments, model routes, repetitions, workspace root, group, and abort signal.
- * @returns every cell's outcome in plan order and the leaderboard folded from the reports.
- * @throws {@link FleetError} when the plan selects no environment or asks for no repetition.
+ * throws is kept as an error outcome, as is a cell the route breaker or the
+ * token ceiling refused to start; the fleet run itself rejects only for a
+ * plan it cannot start.
+ * @param plan - environments, model routes, repetitions, workspace root, group, district, token ceiling, and abort signal.
+ * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
+ * @throws {@link FleetError} when the plan selects no environment, asks for
+ *   no repetition, or sets a token ceiling that is not a positive integer.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:155`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:254`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 
@@ -307,11 +311,12 @@ Trajectory exporter (`ctx.trajectories`): persisted sessions as training and eva
  * Fold the requested sessions and write one line per trajectory. A session
  * that cannot be read or folded is reported and the export continues; the
  * sink is closed exactly once when every session has been handled.
- * @param request - sessions to export, the destination sink, the reward filter, and the held-out opt-in.
- * @returns counts of sessions, written lines, rewarded lines, filtered sessions, withheld held-out sessions, and skips with reasons.
+ * @param request - sessions to export, the destination sink, the reward filter, the held-out opt-in, and the districts to write.
+ * @returns counts of sessions, written lines, rewarded lines, filtered
+ *   sessions, withheld held-out and district sessions, and skips with reasons.
  */
 async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>
 ```
 
-Source: [`packages/improvement/trajectories/src/index.ts:55`](../../packages/improvement/trajectories/src/index.ts)
+Source: [`packages/improvement/trajectories/src/index.ts:80`](../../packages/improvement/trajectories/src/index.ts)
 <!-- END GENERATED cordis-surface -->

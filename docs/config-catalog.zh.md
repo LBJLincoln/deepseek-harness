@@ -687,10 +687,28 @@ export interface Config {
 export interface Config {
   /** Cells run at the same time; each cell is its own session and workspace. */
   maxConcurrent?: number
+  /** Per-route circuit breaker; absent keeps scheduling a route however often it fails. */
+  routeBreaker?: RouteBreakerConfig
+  /**
+   * Fate of each cell's workspace directory: `keep` leaves every directory
+   * under `workspaceRoot`, `remove-certified` removes the directories of
+   * certified cells, `remove-all` removes each cell's directory once its
+   * report or error is recorded. The session log, not the checkout, is the record.
+   */
+  workspaceRetention: WorkspaceRetention
 }
+
+/** Per-route circuit breaker: how many consecutive error cells stop a model route. */
+export interface RouteBreakerConfig {
+  /** Consecutive error outcomes on one route inside one plan before its remaining cells are refused. */
+  consecutiveErrors: number
+}
+
+/** What happens to a cell's `cell-*` workspace directory once its outcome is recorded. */
+export type WorkspaceRetention = 'keep' | 'remove-certified' | 'remove-all'
 ```
 
-来源：[`packages/improvement/fleet/src/index.ts:50`](../packages/improvement/fleet/src/index.ts)
+来源：[`packages/improvement/fleet/src/index.ts:68`](../packages/improvement/fleet/src/index.ts)
 
 <a id="deepseek-aidsh-fs-local"></a>
 
@@ -2948,6 +2966,26 @@ export type ToolPresentationMode = 'native' | 'code' | 'both'
 
 来源：[`packages/core/tools/src/index.ts:654`](../packages/core/tools/src/index.ts)
 
+<a id="deepseek-aidsh-trajectories"></a>
+
+## `@deepseek-ai/dsh-trajectories`
+
+需要：`sessionPersistence`
+
+```ts config-catalog
+/** Deployment choices of the exporter, validated from `cordis.yml`. */
+export interface Config {
+  /**
+   * Districts an export that names none withholds, counted as `withheld`. The
+   * package ships no district name: a deployment states the districts whose
+   * sessions may not leave it by default.
+   */
+  withheldDistricts?: string[]
+}
+```
+
+来源：[`packages/improvement/trajectories/src/index.ts:34`](../packages/improvement/trajectories/src/index.ts)
+
 <a id="deepseek-aidsh-typert-loader"></a>
 
 ## `@deepseek-ai/dsh-typert-loader`
@@ -3264,7 +3302,6 @@ export interface Config {
 - `@deepseek-ai/dsh-tool-call-timeout-policy` — 需要 `tools`（[`packages/guard/timeout-policy/src/index.ts`](../packages/guard/timeout-policy/src/index.ts)）
 - `@deepseek-ai/dsh-tool-cordis` — 需要 `tools` · `systemPrompt` · `dynamicCordisRunner` · `cordisInspect`（[`packages/extensions/tool-cordis/src/index.ts`](../packages/extensions/tool-cordis/src/index.ts)）
 - `@deepseek-ai/dsh-tool-subagent-control` — 需要 `tools` · `subagents`（[`packages/subagent/tool-subagent-control/src/index.ts`](../packages/subagent/tool-subagent-control/src/index.ts)）
-- `@deepseek-ai/dsh-trajectories` — 需要 `sessionPersistence`（[`packages/improvement/trajectories/src/index.ts`](../packages/improvement/trajectories/src/index.ts)）
 - `@deepseek-ai/dsh-user-questions`（[`packages/interaction/user-questions/src/index.ts`](../packages/interaction/user-questions/src/index.ts)）
 - `@deepseek-ai/dsh-workspace` — 需要 `storageDomain` · `sessionPersistence`（[`packages/workspace/workspace/src/index.ts`](../packages/workspace/workspace/src/index.ts)）
 

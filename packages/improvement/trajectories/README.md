@@ -13,13 +13,24 @@ Trajectory export: persisted sessions folded into `dsh-trajectory/1` records, on
     root: './.sessions'
 - id: trajectories
   name: '@deepseek-ai/dsh-trajectories'
+  config:
+    withheldDistricts:
+      - workshop
 ```
 
-The service takes no configuration and requires a session persistence backend.
+| Field | Meaning |
+|---|---|
+| `withheldDistricts` (default `[]`) | Districts an export that names none withholds, counted as `withheld`. The package ships no district name: a deployment states which of its districts may not leave by default, the way a client-facing district does. |
+
+The service requires a session persistence backend. `resolveConfig(config)` is the exported defaulting step.
 
 ## Service contract
 
-`ctx.trajectories.export({ sessions?, sink, rewardedOnly?, includeHeldOut? })` folds each named session (or every persisted session when `sessions` is absent) through `ctx.sessionPersistence.inspect()` and writes `JSON.stringify(trajectory) + '\n'` to `sink.write()`; a session that cannot be read or folded is added to `skipped` with its reason and the export continues. A session whose `environment/run` stamp marks a held-out environment is withheld and counted as `heldOut` unless `includeHeldOut: true`, so evaluation tasks never become training data by default; `rewardedOnly: true` then withholds trajectories whose reward outcome is not `1` and counts them as `filtered`. The sink is closed exactly once, after the last write or after a failure. The report carries `sessions`, `exported`, `rewarded`, `filtered`, `heldOut`, and `skipped`. `jsonlFileSink(path)` is the shipped file sink; it truncates the file on first use.
+`ctx.trajectories.export({ sessions?, sink, rewardedOnly?, includeHeldOut?, districts? })` folds each named session (or every persisted session when `sessions` is absent) through `ctx.sessionPersistence.inspect()` and writes `JSON.stringify(trajectory) + '\n'` to `sink.write()`; a session that cannot be read or folded is added to `skipped` with its reason and the export continues.
+
+Three filters run in order over each readable session. A session whose `environment/run` stamp marks a held-out environment is withheld and counted as `heldOut` unless `includeHeldOut: true`, so evaluation tasks never become training data by default. Then the district decides: with `districts` named, only a session whose stamp carries one of them is written, which is how an export reaches a district the deployment otherwise withholds; with no `districts` named, a session whose stamp carries a configured `withheldDistricts` entry is withheld. Either way the withheld sessions are counted as `withheld`. Last, `rewardedOnly: true` withholds trajectories whose reward outcome is not `1` and counts them as `filtered`.
+
+The sink is closed exactly once, after the last write or after a failure. The report carries `sessions`, `exported`, `rewarded`, `filtered`, `heldOut`, `withheld`, and `skipped`. `jsonlFileSink(path)` is the shipped file sink; it truncates the file on first use.
 
 `foldTrajectory(meta, events)` is the pure projection behind the service and is exported for tests and offline tools. It is deterministic for the same inputs.
 
@@ -28,7 +39,7 @@ The service takes no configuration and requires a session persistence backend.
 | Field | Content |
 |---|---|
 | `id`, `source` | Session id; creation time, working directory, parent session, and the agent preset the log last selected |
-| `environment` | The `environment/run` stamp the runner appended: environment id and kind, held-out flag, content hashes of prompt, fixture, and checks, repetition and group, model route, declared isolation; absent for a session no runner stamped |
+| `environment` | The `environment/run` stamp the runner appended: environment id and kind, held-out flag, content hashes of prompt, fixture, and checks, repetition, group, and district, model route, declared isolation; absent for a session no runner stamped |
 | `config`, `system`, `tools` | Call configuration, rendered system prompt, and tool schemas of the last `request/header` |
 | `messages` | Surface messages in model-visible order after compaction replacements: `user`, `assistant` (with `toolCalls` when requested), and `tool` (with `toolCallId`, `isError`) roles; each carries the `seq` of its source event, its `turn` and `step`, its content blocks verbatim (reasoning included), and the recorded source kind |
 | `steps` | One entry per model call with the adapter-reported usage |
@@ -49,6 +60,7 @@ None; the service neither adds to nor changes any model request.
 
 - **Off-policy text** — a trainer re-tokenizes exported text through its chat template, which suits supervised and rejection-sampled training; strict on-policy reinforcement learning needs an inference proxy in front of the harness.
 - **No redaction** — tool results may carry credentials or private data; the sink is where a deployment applies a filter, and the telemetry redaction rules are the precedent.
+- **District withholding reads the stamp** — a session no runner stamped, or one stamped before its district was configured, carries no district and no configured withholding reaches it; an export that names districts writes only stamped sessions.
 - **One standard per session** — the reward reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.
 - **No rejection-sampling export** — lines carry the environment stamp, so a consumer can group by environment, repetition, and group, but the exporter does not yet select the best of N per environment or emit per-environment statistics.
 - **Truncation scores as failure** — a session that stopped on a token limit, an abort, or a provider error under a measured goal exports with outcome `0`; the turn-end reason is not yet a field of the record, so a trainer cannot mask it.

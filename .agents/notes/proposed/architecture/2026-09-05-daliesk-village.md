@@ -96,7 +96,7 @@ Six judges reviewed the first draft with the AI Village sources and the harness 
 
 ## Rollout
 
-1. **Shift zero (Proving Ground, NDA).** Needs: executor on certificates (read-barrier slice 4, in progress), `district` on the stamp, the `usage/priced` event, the composition gate, cell retention, and the per-route circuit breaker; runs with a human on call.
+1. **Shift zero (Proving Ground, NDA).** Landed: `district` on the `environment/run` stamp with the exporter's `withheldDistricts` and per-request `districts`, the fleet's per-route circuit breaker (`FLEET_ROUTE_BREAKER_OPEN`), its plan-level `tokenCeiling` with the run's `spend` (`FLEET_TOKEN_CEILING_REACHED`), and its `workspaceRetention`. Still needed: executor on certificates (read-barrier slice 4, in progress), the `usage/priced` event, and the composition gate; runs with a human on call. TODO: the observatory withholds a district only once `ScoreboardRow` carries the stamp's `district`, which the scorekeeper owns.
 2. **Public certificate rates.** Needs read-barrier slices 5 and 6 (shell denial and tamper verdicts) and the tamper column; rates then feed the archive's quality term.
 3. **Unattended shifts.** Needs rollout item 11 of the four-goal note (idempotent cells, program ledger) and the plan-level spend aggregator; the host-level supervisor becomes a fallback.
 4. **Named comparisons and the Commons.** Needs the composition manifest slices (digest on the stamp, preset as an experiment arm, `harnessVariantId` on the leaderboard) and the archive with `parked` and sibling summaries.

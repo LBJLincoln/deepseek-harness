@@ -8,8 +8,8 @@ import { createAssistantMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
-import TrajectoryService, { jsonlFileSink } from '@deepseek-ai/dsh-trajectories'
-import type { Trajectory, TrajectorySink } from '@deepseek-ai/dsh-trajectories'
+import TrajectoryService, { jsonlFileSink, resolveConfig } from '@deepseek-ai/dsh-trajectories'
+import type { Config, Trajectory, TrajectorySink } from '@deepseek-ai/dsh-trajectories'
 import * as invariantCompanion from '@deepseek-ai/dsh-trajectories/invariant'
 
 const roots: string[] = []
@@ -18,31 +18,39 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
 
-async function harness() {
+async function harness(config: Config = {}) {
   const root = await mkdtemp(join(tmpdir(), 'dsh-trajectories-'))
   roots.push(root)
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   await ctx.plugin(JsonlSessionPersistence, { root, compression: 'none' })
-  await ctx.plugin(TrajectoryService)
+  await ctx.plugin(TrajectoryService, config)
   return { ctx, root }
 }
 
 const HEX = 'b'.repeat(64)
 
-/** The runner's stamp for a held-out environment, as the log carries it. */
-function heldOutStamp(): unknown {
+/** What a stamped session's `environment/run` event declares. */
+interface Stamped {
+  heldOut?: boolean
+  district?: string
+}
+
+/** The runner's stamp as the log carries it. */
+function stamp(stamped: Stamped): unknown {
   return {
-    kind: 'environment/run', version: 1, environmentId: 'smoke:reserved', environmentKind: 'smoke', heldOut: true,
+    kind: 'environment/run', version: 1, environmentId: 'smoke:reserved', environmentKind: 'smoke',
+    heldOut: stamped.heldOut === true,
     promptSha256: HEX, checksSha256: HEX, contentSha256: HEX, repetition: 0,
+    ...stamped.district === undefined ? {} : { district: stamped.district },
     model: { provider: 'cli-mock', model: 'cli-mock' }, isolation: 'none',
   }
 }
 
-/** A balanced one-step log, certified when `certified` is set, stamped as held out when `heldOut` is set. */
-function events(certified: boolean, heldOut = false): SessionEvent[] {
+/** A balanced one-step log, certified when `certified` is set, carrying a run stamp when `stamped` is given. */
+function events(certified: boolean, stamped?: Stamped): SessionEvent[] {
   const raw: unknown[] = [
-    ...heldOut ? [{ type: 'environment/run', data: heldOutStamp() }] : [],
+    ...stamped === undefined ? [] : [{ type: 'environment/run', data: stamp(stamped) }],
     { type: 'turn/start', data: { turn: 1 } },
     { type: 'step/start', data: { turn: 1, step: 1 } },
     { type: 'request/header', data: { header: { config: { provider: 'cli-mock', model: 'cli-mock' } }, reason: 'initial' } },
@@ -85,10 +93,10 @@ function events(certified: boolean, heldOut = false): SessionEvent[] {
   return raw.map((event, seq) => ({ ...event as object, seq, time: 1_000 + seq }) as SessionEvent)
 }
 
-async function persist(ctx: Context, id: string, certified: boolean, heldOut = false): Promise<void> {
+async function persist(ctx: Context, id: string, certified: boolean, stamped?: Stamped): Promise<void> {
   const header: SessionHeader = { version: SESSION_FORMAT_VERSION, id: SessionId(id), createdAt: 100 }
   await ctx.sessionPersistence.create(header)
-  await ctx.sessionPersistence.append(header.id, events(certified, heldOut))
+  await ctx.sessionPersistence.append(header.id, events(certified, stamped))
 }
 
 function memorySink(): TrajectorySink & { lines: string[]; closed: number } {
@@ -108,7 +116,7 @@ describe('TrajectoryService', () => {
     await persist(ctx, 'measured', false)
     const sink = memorySink()
     const report = await ctx.trajectories.export({ sink })
-    expect(report).toEqual({ sessions: 2, exported: 2, rewarded: 1, filtered: 0, heldOut: 0, skipped: [] })
+    expect(report).toEqual({ sessions: 2, exported: 2, rewarded: 1, filtered: 0, heldOut: 0, withheld: 0, skipped: [] })
     expect(sink.closed).toBe(1)
     const trajectories = sink.lines.map(line => JSON.parse(line) as Trajectory)
     expect(sink.lines.every(line => line.endsWith('\n'))).toBe(true)
@@ -142,26 +150,60 @@ describe('TrajectoryService', () => {
 
   it('withholds held-out sessions unless the request includes them, before the reward filter', async () => {
     const { ctx } = await harness()
-    await persist(ctx, 'reserved', true, true)
+    await persist(ctx, 'reserved', true, { heldOut: true })
     await persist(ctx, 'certified', true)
     const withheld = memorySink()
     expect(await ctx.trajectories.export({ sink: withheld, rewardedOnly: true }))
-      .toEqual({ sessions: 2, exported: 1, rewarded: 1, filtered: 0, heldOut: 1, skipped: [] })
+      .toEqual({ sessions: 2, exported: 1, rewarded: 1, filtered: 0, heldOut: 1, withheld: 0, skipped: [] })
     expect(withheld.lines.map(line => (JSON.parse(line) as Trajectory).id)).toEqual(['certified'])
 
     const included = memorySink()
     expect(await ctx.trajectories.export({ sink: included, includeHeldOut: true }))
-      .toEqual({ sessions: 2, exported: 2, rewarded: 2, filtered: 0, heldOut: 0, skipped: [] })
+      .toEqual({ sessions: 2, exported: 2, rewarded: 2, filtered: 0, heldOut: 0, withheld: 0, skipped: [] })
     const reserved = included.lines.map(line => JSON.parse(line) as Trajectory).find(trajectory => trajectory.id === 'reserved')
     expect(reserved?.environment).toMatchObject({ environmentId: 'smoke:reserved', heldOut: true })
     expect(reserved?.provenance.components).toContain('environment:smoke:reserved')
+  })
+
+  it('withholds a configured district unless the request names it, after the held-out split', async () => {
+    const { ctx } = await harness({ withheldDistricts: ['workshop'] })
+    await persist(ctx, 'workshop-run', true, { district: 'workshop' })
+    await persist(ctx, 'proving-run', true, { district: 'proving-ground' })
+    await persist(ctx, 'workshop-reserved', true, { district: 'workshop', heldOut: true })
+    await persist(ctx, 'unstamped', true)
+
+    const byDefault = memorySink()
+    expect(await ctx.trajectories.export({ sink: byDefault }))
+      .toEqual({ sessions: 4, exported: 2, rewarded: 2, filtered: 0, heldOut: 1, withheld: 1, skipped: [] })
+    expect(byDefault.lines.map(line => (JSON.parse(line) as Trajectory).id).sort())
+      .toEqual(['proving-run', 'unstamped'])
+
+    const named = memorySink()
+    expect(await ctx.trajectories.export({ sink: named, districts: ['workshop'] }))
+      .toEqual({ sessions: 4, exported: 1, rewarded: 1, filtered: 0, heldOut: 1, withheld: 2, skipped: [] })
+    const exported = named.lines.map(line => JSON.parse(line) as Trajectory)
+    expect(exported.map(trajectory => trajectory.id)).toEqual(['workshop-run'])
+    expect(exported[0]?.environment?.district).toBe('workshop')
+  })
+
+  it('writes every district when the deployment withholds none', async () => {
+    const { ctx } = await harness()
+    await persist(ctx, 'workshop-run', true, { district: 'workshop' })
+    const sink = memorySink()
+    expect(await ctx.trajectories.export({ sink }))
+      .toEqual({ sessions: 1, exported: 1, rewarded: 1, filtered: 0, heldOut: 0, withheld: 0, skipped: [] })
+  })
+
+  it('resolves defaults once, at the boundary', () => {
+    expect(resolveConfig({})).toEqual({ withheldDistricts: [] })
+    expect(resolveConfig({ withheldDistricts: ['workshop'] })).toEqual({ withheldDistricts: ['workshop'] })
   })
 
   it('returns zero counts over an empty store and closes the sink after a write failure', async () => {
     const { ctx } = await harness()
     const idle = memorySink()
     await expect(ctx.trajectories.export({ sink: idle }))
-      .resolves.toEqual({ sessions: 0, exported: 0, rewarded: 0, filtered: 0, heldOut: 0, skipped: [] })
+      .resolves.toEqual({ sessions: 0, exported: 0, rewarded: 0, filtered: 0, heldOut: 0, withheld: 0, skipped: [] })
     expect(idle.closed).toBe(1)
 
     await persist(ctx, 'certified', true)
@@ -201,6 +243,7 @@ describe('TrajectoryService', () => {
       rewarded: 0,
       filtered: 0,
       heldOut: 0,
+      withheld: 0,
       skipped: [{ sessionId: 'broken', reason: 'artifact unreadable' }],
     })
     expect(sink.closed).toBe(1)

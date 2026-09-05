@@ -296,7 +296,7 @@ export class EnvironmentRunner extends Service {
 
   /**
    * Run one environment as one fresh session and validate it.
-   * @param request - environment id, absolute workspace directory, optional model route, repetition, group, and abort signal.
+   * @param request - environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.
    * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
    * @throws {@link EnvironmentRunError} for an unknown environment, an unusable
    *   workspace or fixture, an implementer that replaced the goal, or a lost standard.
@@ -317,6 +317,7 @@ export class EnvironmentRunner extends Service {
       ...environmentContentHashes(definition, fixtureSha256),
       repetition: request.repetition ?? 0,
       ...request.group === undefined ? {} : { group: request.group },
+      ...request.district === undefined ? {} : { district: request.district },
       model,
       isolation: this.resolved.isolation,
     }

@@ -26,6 +26,15 @@ export interface FleetPlan {
   readonly workspaceRoot: string
   /** Batch identity written into every run stamp as `group`; absent mints one. */
   readonly group?: string
+  /** District written into every cell's run stamp; absent leaves the cells outside every district. */
+  readonly district?: string
+  /**
+   * Positive integer bound on the input plus output tokens the reported cells
+   * may sum to. Once the reports in hand cross it, every cell that has not
+   * started is recorded as a `FLEET_TOKEN_CEILING_REACHED` error and the cells
+   * already in flight still complete; absent runs the plan uncapped.
+   */
+  readonly tokenCeiling?: number
   /** Aborts the remaining cells when it fires; started cells abort through the runner. */
   readonly signal?: AbortSignal
 }
@@ -42,7 +51,19 @@ export type FleetCellOutcome =
   | { readonly cell: FleetCell; readonly report: EnvironmentRunReport }
   | { readonly cell: FleetCell; readonly error: FleetCellError }
 
-/** A cell that produced no report; the code is the thrown harness error's when it had one. */
+/**
+ * Stable codes the fleet records on a cell it never handed to the runner:
+ * `FLEET_ROUTE_BREAKER_OPEN` for a route the circuit breaker stopped
+ * scheduling, `FLEET_TOKEN_CEILING_REACHED` for a cell left unstarted once the
+ * plan's reported spend crossed its ceiling.
+ */
+export type FleetCellErrorCode = 'FLEET_ROUTE_BREAKER_OPEN' | 'FLEET_TOKEN_CEILING_REACHED'
+
+/**
+ * A cell that produced no report. The code is the thrown harness error's when
+ * the run threw one, and a {@link FleetCellErrorCode} for a cell the fleet
+ * never started.
+ */
 export interface FleetCellError {
   readonly code?: string
   readonly message: string
@@ -76,6 +97,12 @@ export interface LeaderboardRow {
   readonly outputTokens: number
 }
 
+/** Model usage of one whole fleet run, summed over every reported cell. */
+export interface FleetSpend {
+  readonly inputTokens: number
+  readonly outputTokens: number
+}
+
 /** Outcome of one fleet run: every cell in plan order and the leaderboard folded from them. */
 export interface FleetRunReport {
   /** Batch identity every run stamp of this fleet run carries. */
@@ -83,4 +110,6 @@ export interface FleetRunReport {
   readonly cells: readonly FleetCellOutcome[]
   /** One row per model route and environment, in first-appearance order. */
   readonly leaderboard: readonly LeaderboardRow[]
+  /** Model usage of the whole run; the same sum `tokenCeiling` is measured against. */
+  readonly spend: FleetSpend
 }

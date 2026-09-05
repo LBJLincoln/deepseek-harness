@@ -156,6 +156,12 @@ export interface TrajectoryExportRequest {
   readonly rewardedOnly?: boolean
   /** Also write sessions whose environment is held out; absent withholds them, so evaluation tasks never train by default. */
   readonly includeHeldOut?: boolean
+  /**
+   * Districts to export: a session is written only when its stamp carries one
+   * of these, so a named list reaches a district the deployment otherwise
+   * withholds. Absent applies the configured `withheldDistricts` instead.
+   */
+  readonly districts?: readonly string[]
 }
 
 /** One session the export could not read. */
@@ -177,6 +183,8 @@ export interface TrajectoryExportReport {
   readonly filtered: number
   /** Readable sessions withheld because their environment is held out. */
   readonly heldOut: number
+  /** Readable sessions withheld because their stamp's district is not one this export writes. */
+  readonly withheld: number
   /** Sessions that could not be read or folded. */
   readonly skipped: readonly TrajectoryExportSkip[]
 }
