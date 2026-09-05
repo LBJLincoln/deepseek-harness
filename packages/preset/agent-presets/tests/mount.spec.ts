@@ -6,6 +6,8 @@ import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import Include from '@deepseek-ai/cordis-plugin-include'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
+import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
+import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
@@ -13,7 +15,7 @@ import AgentRegistry, { assembleContextFor, type Agent } from '@deepseek-ai/dsh-
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AgentPresets, {
-  COMPOSITION_FILE, leakedServices, livePresetMounts, mountPreset, PresetMountError, serviceForAgent,
+  COMPOSITION_FILE, leakedServices, livePresetMounts, mountPreset, PresetMountError, roleAudit, serviceForAgent,
 } from '@deepseek-ai/dsh-agent-presets'
 import type { Config } from '@deepseek-ai/dsh-agent-presets'
 import type {} from '@deepseek-ai/dsh-agent-presets/types'
@@ -732,5 +734,141 @@ describe('editing a composition file', () => {
     await racer.ensureStanding({ id: 'stale', trust: 'user', path })
 
     expect(livePresetMounts().filter(mount => mount.presetId === 'stale')).toHaveLength(1)
+  })
+})
+
+describe('the declared role and the composition it admits', () => {
+  /** A preset root holding one preset whose composition mounts `rows` and whose metadata declares `role`. */
+  async function roleRoot(id: string, role: string | undefined, rows: string): Promise<Context> {
+    const root = await mkdtemp(join(tmpdir(), 'dsh-preset-role-'))
+    await mkdir(join(root, id))
+    await writeFile(join(root, id, COMPOSITION_FILE), rows)
+    if (role !== undefined) await writeFile(join(root, id, 'preset.yml'), `role: ${role}\n`)
+    return await harness({ default: id, roots: [{ path: root, trust: 'system' as const }], includeUserRoot: false })
+  }
+
+  const authorityRow = (tool: string, authority: string) =>
+    `- id: privileged\n  name: ${join(FIXTURES, 'plugins', 'authority.js')}\n`
+    + `  config:\n    tool: ${tool}\n    authority: ${authority}\n`
+
+  const plainRow = `- id: plain\n  name: ${join(FIXTURES, 'plugins', 'contribute.js')}\n  config:\n    tool: plain\n`
+
+  it('rejects an implementer preset that composes a tool carrying an authority', async () => {
+    const scoped = await roleRoot('implementing', 'implementer', authorityRow('session_search', 'session-log'))
+
+    await expect(agentOn(scoped, 'sess-role-refused', 'implementing')).rejects.toThrow(
+      'agent-presets: preset "implementing" declares role "implementer" but composes "session_search", which carries the "session-log" authority',
+    )
+    // The refusal rolls the whole session back: nothing half-composed survives.
+    expect(livePresetMounts().filter(mount => mount.presetId === 'implementing')).toHaveLength(0)
+    expect(scoped.agents.get(SessionId('sess-role-refused'))).toBeUndefined()
+  })
+
+  it('reports the authority refusal unwrapped rather than as a mount failure', async () => {
+    const scoped = await roleRoot('introspecting', 'implementer', authorityRow('cordis_inspect', 'runtime-introspection'))
+
+    // The actionable fact is the tool and the authority to remove, which a
+    // "failed to mount" wrapper carrying the composition path would bury.
+    await expect(agentOn(scoped, 'sess-role-unwrapped', 'introspecting')).rejects.not.toBeInstanceOf(PresetMountError)
+    await expect(agentOn(scoped, 'sess-role-unwrapped-2', 'introspecting')).rejects.toMatchObject({
+      presetId: 'introspecting',
+      role: 'implementer',
+      tool: 'cordis_inspect',
+      authority: 'runtime-introspection',
+    })
+  })
+
+  it('admits an implementer preset composing only ordinary tools, and records its role on the mount', async () => {
+    const scoped = await roleRoot('plain-implementer', 'implementer', plainRow)
+
+    const agent = await agentOn(scoped, 'sess-role-plain', 'plain-implementer')
+
+    expect(toolNames(scoped, agent)).toEqual(['plain'])
+    expect(livePresetMounts().find(mount => mount.presetId === 'plain-implementer')?.role).toBe('implementer')
+  })
+
+  it.each(['validator', undefined])('admits an authority-bearing tool under role %s', async (role) => {
+    const id = `open-${role ?? 'absent'}`
+    const scoped = await roleRoot(id, role, authorityRow('session_search', 'session-log'))
+
+    const agent = await agentOn(scoped, `sess-role-${id}`, id)
+
+    expect(toolNames(scoped, agent)).toEqual(['session_search'])
+    expect(livePresetMounts().find(mount => mount.presetId === id)?.role).toBe(role)
+  })
+
+  it('audits inherited global tools, not only the preset\'s own rows', async () => {
+    const scoped = await roleRoot('inheriting', 'implementer', plainRow)
+    scoped.tools.register({
+      name: 'session_trace',
+      description: 'global authority-bearing tool',
+      authority: ['session-log'],
+      parameters: { type: 'object', properties: {} },
+      output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value as string }] },
+      execute: () => Promise.resolve('traced'),
+    })
+
+    // A session sees the global layer too, so an audit that read only the
+    // preset's rows would certify a composition the guard then denies.
+    await expect(agentOn(scoped, 'sess-role-inherited', 'inheriting')).rejects.toThrow(
+      'agent-presets: preset "inheriting" declares role "implementer" but composes "session_trace", which carries the "session-log" authority',
+    )
+  })
+
+  it('audits nothing when the composition has no tool registry', async () => {
+    const bare = new Context()
+    bare.baseUrl = pathToFileURL(FIXTURES).href + '/'
+    await bare.plugin(Loader)
+    bare.loader.builtins.include = Include
+    const preset = { id: 'registryless', trust: 'system' as const, path: 'unused', role: 'implementer' as const }
+    expect(roleAudit(bare, preset)).toBeUndefined()
+  })
+})
+
+describe('handing the composed role to the read barrier', () => {
+  /** The roster over one temporary preset root, beside a barrier owning its own temporary tree. */
+  async function withBarrier(id: string, role: string | undefined): Promise<Context> {
+    const root = await mkdtemp(join(tmpdir(), 'dsh-preset-barrier-'))
+    await mkdir(join(root, id))
+    await writeFile(
+      join(root, id, COMPOSITION_FILE),
+      `- id: plain\n  name: ${join(FIXTURES, 'plugins', 'contribute.js')}\n  config:\n    tool: plain\n`,
+    )
+    if (role !== undefined) await writeFile(join(root, id, 'preset.yml'), `role: ${role}\n`)
+    const scoped = await harness({ default: id, roots: [{ path: root, trust: 'system' as const }], includeUserRoot: false })
+    await scoped.plugin(LocalFileSystem, { cwd: root })
+    await scoped.plugin(ReadBarrierService, { root: join(root, '.verification') })
+    return scoped
+  }
+
+  it('declares the role its preset published, so the session holds it without a reservation', async () => {
+    const scoped = await withBarrier('implementing', 'implementer')
+
+    const agent = await agentOn(scoped, 'sess-barrier-implementer', 'implementing')
+
+    expect(scoped.readBarrier.resolve({ session: agent.session }).role).toBe('implementer')
+  })
+
+  it('declares the preset without a role, leaving the reservation to decide', async () => {
+    const scoped = await withBarrier('unmarked', undefined)
+
+    const agent = await agentOn(scoped, 'sess-barrier-unmarked', 'unmarked')
+
+    // A preset that declares nothing must not become unrestricted-by-decree: a
+    // validator reserving for this session still makes it the implementer.
+    expect(scoped.readBarrier.resolve({ session: agent.session }).role).toBe('unrestricted')
+    scoped.readBarrier.reserve(agent)
+    expect(scoped.readBarrier.resolve({ session: agent.session }).role).toBe('implementer')
+  })
+
+  it('leaves an unrelated durable event to its own owner', async () => {
+    const scoped = await withBarrier('quiet', 'validator')
+    const agent = await agentOn(scoped, 'sess-barrier-quiet', 'quiet')
+    const selected = vi.fn()
+    scoped.on('agent-preset/selected', selected)
+
+    agent.session.append('turn/start', { turn: 1 })
+
+    expect(selected).not.toHaveBeenCalled()
   })
 })

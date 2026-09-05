@@ -27,6 +27,8 @@ import z from '@deepseek-ai/schemastery'
 import { bindScopeParent, createScope, scopeOf, type Scope, type ScopeKey, type ScopeParentBinding } from '@deepseek-ai/dsh-scope'
 // Type-only: resolves the `agent/created` lifecycle event this service watches.
 import type {} from '@deepseek-ai/dsh-agent'
+// Type-only: resolves the optional `ctx.readBarrier` the roster declares roles to.
+import type {} from '@deepseek-ai/dsh-read-barrier'
 import { settingsNamespace, type SettingsScope, type default as SettingsService } from '@deepseek-ai/dsh-settings'
 import { dshHomePath } from '@deepseek-ai/dsh-home-paths'
 import { discoverPresets, USER_PRESET_DIR } from './discovery.ts'
@@ -52,10 +54,10 @@ export const AgentPresetSettingsSchema: z<AgentPresetSettings> = z.object({
 
 export { COMPOSITION_FILE, discoverPresets, scanRoot } from './discovery.ts'
 export {
-  METADATA_FILE, readPresetMetadata, renderPresetMetadata, type PresetMetadata,
+  METADATA_FILE, PRESET_ROLES, readPresetMetadata, renderPresetMetadata, type PresetMetadata,
 } from './metadata.ts'
 export {
-  inactiveRows, leakedServices, livePresetMounts, mountPreset, serviceForAgent, standingMountFor,
+  inactiveRows, leakedServices, livePresetMounts, mountPreset, roleAudit, serviceForAgent, standingMountFor,
   type JoinedPresetMount, type PresetMount,
 } from './mount.ts'
 export {
@@ -63,7 +65,7 @@ export {
   PresetNotWritableError, readComposition, writableRoot,
 } from './authoring.ts'
 export { resolveSessionPreset, type PresetBearingSession } from './session.ts'
-export { PresetMountError, UnknownPresetError } from './preset.ts'
+export { PresetMountError, PresetRoleError, UnknownPresetError } from './preset.ts'
 export type { AgentPreset, Config, PresetRoot, PresetTrust } from './preset.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -164,8 +166,18 @@ export class AgentPresets extends Service {
     // does that today — the Web surface mounts in `setup` and children join
     // through `composeFrom` before publication.
     ctx.on('agent/created', ({ agent }) => {
+      // The roster is the only authority that may set a session's role: the
+      // standing mount carries the declaration its preset published, so a child
+      // joining through `composeFrom` inherits exactly the parent's role.
+      const standing = standingMountFor(agent.ctx)
+      if (standing !== undefined) {
+        ctx.get('readBarrier')?.declareComposition(agent, {
+          presetId: standing.presetId,
+          ...standing.role === undefined ? {} : { role: standing.role },
+        })
+      }
       if (this.resolvedRoots.length === 0) return
-      if (this.composedPreset(agent.ctx) !== undefined) return
+      if (standing !== undefined) return
       ctx.logger.warn(
         `agent "${agent.id}" was published without joining an agent preset; `
         + 'its tools, prompt sections, and skill catalog resolve against the empty global layer '

@@ -7,6 +7,29 @@
 import type { CallId } from '@deepseek-ai/dsh-llm/brand'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm/types'
 
+/**
+ * Privileged authorities a tool may declare about itself, keyed by their own
+ * name. Merge-extensible: a package shipping a tool whose authority is not one
+ * of these declares it here by declaration merging, so a tool added later is
+ * covered by its own declaration instead of by a name list held elsewhere.
+ *
+ * An authority states what the tool reaches beyond the workspace; a session
+ * whose role forbids it may neither compose nor call the tool. Every member is
+ * denied to an `implementer` session, and an unrecognised member is denied
+ * too — a new authority is privileged until something says otherwise.
+ */
+export interface ToolAuthorityMap {
+  /** The tool reads durable session events. */
+  'session-log': 'session-log'
+  /** The tool mounts or evaluates code in the live runtime. */
+  'plugin-mount': 'plugin-mount'
+  /** The tool reports the live composition. */
+  'runtime-introspection': 'runtime-introspection'
+}
+
+/** Every declared tool authority; widens as packages add entries to {@link ToolAuthorityMap}. */
+export type ToolAuthority = ToolAuthorityMap[keyof ToolAuthorityMap]
+
 /** Payload recorded when one nested Code Mode Tool dispatch starts. */
 export interface CodeDispatchStartEventData {
   rootCallId: CallId

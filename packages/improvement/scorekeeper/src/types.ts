@@ -11,7 +11,7 @@ import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
 import type { GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { TrajectoryRewardBasis, TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
-import type { CertificateIsolation } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, RunExecutor } from '@deepseek-ai/dsh-verification/types'
 
 /**
  * The fields of the `environment/run` stamp the facts keep: the cell identity
@@ -66,6 +66,12 @@ export interface SessionFactsOutcome {
   readonly certified: boolean
   /** Standard revision that certificate covers, absent without one. */
   readonly certificateRevision?: number
+  /**
+   * Executor of the run that certificate cites, absent without one. A
+   * leaderboard partitions on it: an `agent-reported` certificate is the
+   * implementer's own account of its checks and can only claim `none`.
+   */
+  readonly certificateExecutor?: RunExecutor
   /** `verification/run` events recorded across the session, passing or failing. */
   readonly runsRecorded: number
   /** Attempt number the last recorded run carried; it restarts at one for each authored standard. */

@@ -68,18 +68,21 @@ A **relative** path still resolves from the preset's own directory, so a preset'
 
 An **absolute** filesystem path keeps its own location. The mount converts it to a `file:` URL before ESM import so POSIX paths and Windows drive-letter or UNC paths use a specifier Node accepts.
 
-### Display metadata
+### Display metadata and the declared role
 
-A preset may publish display text in an optional `preset.yml` beside its composition:
+A preset may publish display text and one authority claim in an optional `preset.yml` beside its composition:
 
 ```yaml
 name: 极简模式
 description: 仅提供持久 bash 与 str_replace_editor 的双工具编码 Agent。
+role: implementer
 ```
 
-It carries display text ONLY. `id` is the directory name and `trust` comes from the root the preset was discovered under, so neither is writable here — otherwise a locally authored preset could name itself into the shipped set. It is a separate file because the composition is a top-level list of plugin rows: YAML cannot carry sibling keys beside it, and a fake metadata row would hand the Loader something to load.
+`id` is the directory name and `trust` comes from the root the preset was discovered under, so neither is writable here — otherwise a locally authored preset could name itself into the shipped set. It is a separate file because the composition is a top-level list of plugin rows: YAML cannot carry sibling keys beside it, and a fake metadata row would hand the Loader something to load.
 
-Every read failure degrades to no metadata — absent, malformed, wrongly typed, or blank all mean the same thing, and a picker falls back to the id. Presentation is not capability: a preset with a broken name still mounts.
+Every read failure degrades to no metadata — absent, malformed, wrongly typed, or blank all mean the same thing, and a picker falls back to the id. Presentation is not capability: a preset with a broken name still mounts. A `role` outside `implementer | validator | unrestricted` is no declaration, which leaves the composition exactly as unrestricted as it is without the key.
+
+`role` is the one authority claim the file carries, and it is what [`dsh-read-barrier`](../../verification/read-barrier/README.md) reads for every session composed from the preset. Absent means `unrestricted`, which is what every preset without the key declares and what leaves every shipped preset exactly as it is.
 
 ## Config
 
@@ -132,7 +135,15 @@ The mounted subtree therefore overrides `write()` as a no-op. Nothing in this pa
 
 ## Trust
 
-Presets are compositions, so a preset is exactly as privileged as the plugins it names. A `user` preset — authored by a person or by an agent — carries the same trust as shell access; the `trust` field exists so consumers can present that difference, not to enforce it.
+Presets are compositions, so a preset is exactly as privileged as the plugins it names. A `user` preset — authored by a person or by an agent — carries the same trust as shell access; the `trust` field exists so consumers can present that difference, and for one field it also enforces it: a `user`-trust preset declaring `role: validator` is listed `broken` rather than mounted, because `validator` is the role the barrier denies nothing and a locally authored preset naming itself one would grant itself every read the barrier exists to refuse. `implementer` and `unrestricted` are accepted from any root, because neither adds reach.
+
+`mountPreset` audits the composition against the declared role after the subtree settles, beside the inactive-row check, and rejects the mount when an `implementer` preset composes a tool whose definition carries any [tool authority](../../core/tools/README.md). The audit reads the tool registry as the scope the preset mounted into resolves it, so it covers the preset's own rows and every inherited global row alike. The refusal names what to remove and is reported unwrapped rather than inside a "failed to mount" wrapper:
+
+```markdown
+agent-presets: preset "<id>" declares role "<role>" but composes "<tool>", which carries the "<authority>" authority
+```
+
+Because the audit runs inside the agent factory's `setup`, a rejected composition rolls the whole session creation back: the failure is loud and nothing half-composed survives.
 
 ## Model Experience
 
@@ -152,3 +163,4 @@ Prefix-stable for the life of an agent: a composition is installed once, before 
 - **Health is a shape check, not a mount** — discovery proves the composition parses in the loader dialect and holds named rows, not that every row's module resolves or activates; a row naming an absent package still fails at the first session, which rolls the creation back.
 - **A copy is a snapshot that drifts** — upgrading the deployment does not update copies of shipped presets, and there is no patch semantics at this layer to express "standard plus one change" (that is the bundle layer's `cordis.patch.yml`); the shipped set itself accepts the same cost — `cordis` and `code` are full copies of `standard` — so the whole assembly stays readable in one file.
 - **Root scans are not watched** — every read hits the filesystem instead, which keeps the roster fresh but puts one `readdir` per root on each `list()`.
+- **The role audit reads visible tools** — a tool a restriction filtered out of the preset's scope is not audited, because that scope cannot call it either; the barrier's own execution guard is what covers a tool registered into an agent's layer after the mount.

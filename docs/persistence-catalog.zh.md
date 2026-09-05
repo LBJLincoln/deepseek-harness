@@ -569,6 +569,21 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 ### `read-barrier/*`
 
+<a id="read-barrierattestation--log-only"></a>
+
+#### `read-barrier/attestation` — log-only
+
+```ts persistence-catalog
+/**
+ * One host attestation the barrier verified: a file at the configured
+ * `hostAttestation` path that is owned by another operating-system account
+ * and unwritable by this one. Log-only — it never enters model history.
+ */
+'read-barrier/attestation': ReadBarrierAttestation
+```
+
+来源：[`packages/verification/read-barrier/src/index.ts:67`](../packages/verification/read-barrier/src/index.ts)
+
 <a id="read-barrierdenied--log-only"></a>
 
 #### `read-barrier/denied` — log-only
@@ -582,7 +597,24 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'read-barrier/denied': ReadBarrierDenial
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:40`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:53`](../packages/verification/read-barrier/src/index.ts)
+
+<a id="read-barrierscope--log-only"></a>
+
+#### `read-barrier/scope` — log-only
+
+```ts persistence-catalog
+/**
+ * The composition one session was granted, appended before its first
+ * `request/header`: the role, the preset that declared it, the denied
+ * directories, one census entry per visible tool with the authorities its
+ * definition declares, and one enforcement entry per path-opening
+ * capability. Log-only — it never enters model history.
+ */
+'read-barrier/scope': ReadBarrierScope
+```
+
+来源：[`packages/verification/read-barrier/src/index.ts:61`](../packages/verification/read-barrier/src/index.ts)
 
 ### `request/*`
 
@@ -818,7 +850,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'tool/code-dispatch': CodeDispatchEventData
 ```
 
-来源：[`packages/core/tools/src/types.ts:56`](../packages/core/tools/src/types.ts)
+来源：[`packages/core/tools/src/types.ts:79`](../packages/core/tools/src/types.ts)
 
 <a id="toolcode-dispatch-start--log-only"></a>
 
@@ -841,7 +873,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'tool/code-dispatch-start': CodeDispatchStartEventData
 ```
 
-来源：[`packages/core/tools/src/types.ts:40`](../packages/core/tools/src/types.ts)
+来源：[`packages/core/tools/src/types.ts:63`](../packages/core/tools/src/types.ts)
 
 <a id="toolresult--surface"></a>
 

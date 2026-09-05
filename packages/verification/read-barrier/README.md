@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-The read barrier (`ctx.readBarrier`): the policy home for reads an implementer session must not perform, in the role [`dsh-sandbox-policy`](../../sandbox/sandbox-policy/README.md) plays for sandbox mode and workspace root. It owns one validator-owned directory tree, mints the per-run directory a validator stocks with what its checks execute, collects the directories other plugins register, resolves one policy per session, and decides containment through the filesystem seam. It denies nothing by itself: each path-opening capability enforces the decision in the operation that opens paths, which is what [`@deepseek-ai/dsh-fs-read-barrier`](../../fs/fs-read-barrier/README.md) does for `ctx.fs`. The [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md) owns the design rationale.
+The read barrier (`ctx.readBarrier`): the policy home for reads an implementer session must not perform, in the role [`dsh-sandbox-policy`](../../sandbox/sandbox-policy/README.md) plays for sandbox mode and workspace root. It owns one validator-owned directory tree, mints the per-run directory a validator stocks with what its checks execute, collects the directories other plugins register, resolves one policy per session, decides containment through the filesystem seam, records what each session composed, and verifies the host attestation a `host` isolation claim needs. It denies nothing by itself: each path-opening capability enforces the decision in the operation that opens paths, which is what [`@deepseek-ai/dsh-fs-read-barrier`](../../fs/fs-read-barrier/README.md) does for `ctx.fs`. The [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md) owns the design rationale.
 
 ## Config
 
@@ -13,14 +13,16 @@ The read barrier (`ctx.readBarrier`): the policy home for reads an implementer s
     root: ~/.dsh/verification
     denyRoots:
       - /srv/evaluation/fixtures
+    hostAttestation: /srv/attestation/run.json
 ```
 
 | Field | Meaning |
 |---|---|
 | `root` (default `<harness home>/verification`) | Absolute or `~`-prefixed directory the barrier owns. Created `0700` at load; an existing directory readable beyond its owner is rejected there, and so is a path that is not absolute after `~` expansion. |
 | `denyRoots` (default `[]`) | Further absolute or `~`-prefixed directories denied alongside `root`, for directories no plugin registers through `protect()`. |
+| `hostAttestation` (default none) | Absolute or `~`-prefixed file an external account writes. Without a file the barrier verified, no certificate may claim `host` isolation. |
 
-The denied set for a role is deliberately not a field: which directories an `implementer` may read is a security invariant, not a deployment choice. The service requires `fs`, because containment is decided through that seam rather than by parsing path strings.
+The denied set for a role is deliberately not a field, and neither are the authorities a role may hold: both are security invariants, not deployment choices. The service requires `fs`, because containment is decided through that seam rather than by parsing path strings.
 
 ## Service contract
 
@@ -28,13 +30,25 @@ The denied set for a role is deliberately not a field: which directories an `imp
 
 `ctx.readBarrier.protect(path)` denies one more directory for as long as the registration lives and returns its disposer, so a plugin that owns a directory contributes it as an effect instead of a deployment repeating it in configuration. Two registrations of one path both hold; the directory leaves the denied set when the last is disposed.
 
-`ctx.readBarrier.resolve({ session })` answers one `ReadBarrierPolicy { role, root, denied }`. A session holding a reservation is the `implementer`; every other session and every agentless call is `unrestricted`. `denied` lists the root first, then the configured extras, then each registration, without repeats.
+`ctx.readBarrier.enforce(capability)` records that one path-opening capability — `fs`, `shell`, `subprocess`, `terminal`, `subagent`, or `workflow` — denies the barrier's directories in the operation that opens paths, for as long as the registration lives, and returns its disposer. A composed capability without one is `unenforced` in the census, and an isolation claim above `none` is refused while any such entry stands.
+
+`ctx.readBarrier.declareComposition(agent, { presetId, role })` records what a preset roster composed for one agent. A declared role outranks a reservation, because only the composition knows what was actually mounted; a preset that declares none leaves the reservation to decide. [`dsh-agent-presets`](../../preset/agent-presets/README.md) is the only caller: nothing a session itself runs may raise its own role.
+
+`ctx.readBarrier.resolve({ session })` answers one `ReadBarrierPolicy { role, root, denied }`. A session whose preset declared a role holds that role; otherwise a session holding a reservation is the `implementer`, and every other session and every agentless call is `unrestricted`. `denied` lists the root first, then the configured extras, then each registration, without repeats.
 
 `ctx.readBarrier.denies(policy, target)` decides containment for an already-resolved `FsTarget`. Roles `validator` and `unrestricted` are denied nothing. For an `implementer`, each denied directory is canonicalized through `ctx.fs.resolve` immediately before `ctx.fs.contains` tests it, so an ancestor symlink swapped since the target was resolved is caught; a directory the backend cannot resolve leaves containment undecidable and the read is denied.
 
 `ctx.readBarrier.recordDenial(session, policy, capability, target)` appends the log-only `read-barrier/denied` event — `{ version, role, capability, displayPath, root }`, with `capability` naming the seam that refused — and returns the payload it appended. The barrier owns the write so every refusing seam produces the same evidence; the path is already in the log inside the model's own `tool/call` arguments, so the record adds evidence and no new disclosure.
 
-The separately published `./invariant` companion rejects a refusal recorded for any role but `implementer`, one carrying an unknown payload version or capability, and one naming a different barrier root than the session's earlier refusals.
+`deniedAuthority(role, authority)` answers the first authority a role may not hold. Every authority a [`ToolDefinition`](../../core/tools/README.md) declares is denied to an `implementer` and none to any other role, so an authority merged into `ToolAuthorityMap` later is denied by this same rule rather than by a list that would go stale. `authorityDenialMessage(tool, authority)` owns the text the guard returns.
+
+### The composition census
+
+Before a session's first `request/header`, the barrier appends one log-only `read-barrier/scope` carrying `{ version, role, presetId?, root, denied, census, enforcement }`. `census` is one `{ name, authority }` entry per tool the session's registry view resolves, which makes the composition's authority durable rather than composition-time-only; `enforcement` is one entry per path-opening capability, valued `denied-at-executor`, `unenforced`, or `not-composed`, in a fixed capability order. When a `hostAttestation` file is configured and verifies — a regular file owned by another operating-system account and unwritable by this one — the barrier appends one log-only `read-barrier/attestation` beside it, carrying `{ version, path, owner, sha256 }`. An absent or unverifiable file records nothing and logs a warning; the claim it would have supported is refused instead of the run failing.
+
+The barrier also registers one `ctx.tools.guard()` on each agent's own context at `agent/created`, denying any execution whose definition carries an authority that session's role forbids. Guards run after every `tools/pre-execute` listener and are monotonic, so no later listener can turn the denial back into permission. The `mountPreset` audit covers the preset's composition; the guard covers a tool registered into the agent's own layer afterwards.
+
+The separately published `./invariant` companion rejects a refusal recorded for any role but `implementer`, one carrying an unknown payload version or capability, and one naming a different barrier root than the session's earlier records. It rejects a census of unknown version, one for an unknown role, one recording enforcement for a capability that opens no path or a decision outside the vocabulary, and a second census in one session; and an attestation of unknown version or with no file path.
 
 ## Model Experience
 
@@ -50,12 +64,32 @@ Zero direct tokens. A refused read replaces the tool result the model would have
 
 #### KV Cache effect
 
-Append-only, and prefix-stable: the barrier adds nothing to the system prompt or to tool schemas, and its own event is log-only, so an existing reusable request prefix survives every refusal.
+Append-only, and prefix-stable: the barrier adds nothing to the system prompt or to tool schemas, and its own events are log-only, so an existing reusable request prefix survives every refusal.
+
+### Refused tool calls
+
+#### What the model sees
+
+An implementer session calling a tool whose definition declares an authority gets the tool registry's ordinary `Error: ` framing around the text below, and no recovery instruction, because no retry of the same call succeeds. `authority` is never model-visible on its own: `schemas()` whitelists name, description, and parameters, so the tool stays listed and callable-looking until it is called.
+
+##### Authority denial
+
+```markdown
+"<tool>" carries the "<authority>" authority and is not callable in an implementer session
+```
+
+#### Token effect
+
+One short error in place of the tool result, once per attempt. A model that retries the same tool spends that error again; nothing shortens the schema it keeps seeing.
+
+#### KV Cache effect
+
+Prefix-stable. The guard changes no schema and no prompt section, so the denial is an ordinary appended tool result.
 
 ## Known Limitations and Deferred Work
 
-- **The role comes from a reservation only** — a session is the `implementer` because a validator reserved its run directory; a preset cannot declare `implementer` or `validator` for itself yet, so `validator` and `unrestricted` are indistinguishable at the deny decision (both are denied nothing).
-- **Nothing enforces beyond `ctx.fs`** — `shell`, `subprocess`, `terminal`, and out-of-process subagent and workflow executors open paths this service does not fence, so a composed bash tool still reads the barrier root. The `ReadBarrierCapability` vocabulary names those seams; only `fs` decides today.
-- **No isolation claim reads this policy** — `dsh-verification` still records the isolation level its caller passes, and no certificate precondition consults the barrier or the refusals it recorded.
+- **Nothing enforces beyond `ctx.fs`** — `shell`, `subprocess`, `terminal`, and out-of-process subagent and workflow executors open paths this service does not fence, so a composed bash tool still reads the barrier root. Those capabilities register no `enforce()`, so a composition holding one records `unenforced` and cannot claim `process` isolation at all; the claim fails rather than the barrier.
+- **The census is a snapshot** — it lists the tools the session started with. A tool registered afterwards is covered by the runtime guard and by the certificate rule that cross-checks each `request/header` against the census, not by the census itself.
+- **The attestation proves an owner, not a run** — the barrier verifies that another operating-system account owns an unwritable file and records its digest; it does not yet compare that digest against the environment content hashes the `environment/run` stamp carries.
 - **Trusted code in the implementer's own process** — a plugin with direct `Session` or `ctx.fs` access appends counterfeit refusals and reads any path. The barrier confines the composed executors, not the process.
 - **Owner-only modes stop other accounts, not the model** — the `0700` root is protection against another operating-system user; the harness process runs as the same user as its tools, so the barrier, not the mode, is what denies the model.

@@ -298,7 +298,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:165`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:166`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 

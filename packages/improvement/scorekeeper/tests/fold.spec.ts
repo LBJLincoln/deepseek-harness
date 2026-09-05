@@ -69,6 +69,7 @@ describe('foldSessionFacts', () => {
       rewardBasis: 'certificate',
       certified: true,
       certificateRevision: 1,
+      certificateExecutor: 'runner',
       runsRecorded: 1,
       attempts: 1,
       directives: 0,
@@ -101,6 +102,7 @@ describe('foldSessionFacts', () => {
       goalPhase: 'active',
     })
     expect(facts.outcome.certificateRevision).toBeUndefined()
+    expect(facts.outcome.certificateExecutor).toBeUndefined()
     expect(facts.identity.environment?.group).toBeUndefined()
     expect(facts.identity.requestProvider).toBeUndefined()
   })

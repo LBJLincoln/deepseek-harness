@@ -4,6 +4,8 @@
 
 自引用 Cordis 工具集：五个面向模型的工具，操作当前 DSH 进程中的实时运行时。注册表、vm 沙箱与浏览器广播属于 [`@deepseek-ai/dsh-cordis-host-runner`](../cordis-host-runner/README.md)（`ctx.dynamic`），本工具集注入它——只装这些工具而不装 runner 的组合永远不会激活它们。沙箱语义、动态包生命周期与组合及既定决策详见[工具集 Agent Note](../../../.agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md)。
 
+`cordis_define`、`cordis_run`、`cordis_stop` 和 `cordis_undefine` 声明 `plugin-mount` 工具权限，因为它们在活动运行时中挂载或求值代码；三个 `cordis_inspect_*` 工具声明 `runtime-introspection`，因为它们报告活动组合。挂载了读取屏障的组合会在 preset 声明 `role: implementer` 的会话中拒绝这两组工具——挂载时拒绝一次，执行时再拒绝一次；两处拒绝及其确切文案见 [`dsh-read-barrier`](../../verification/read-barrier/README.md)。
+
 ## 功能
 
 两组配对动词，外加只读报告。

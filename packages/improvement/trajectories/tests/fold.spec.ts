@@ -76,6 +76,7 @@ function certificate(): Raw {
       standard: { id: 'standard-1', revision: 1 },
       goalId: 'goal-1',
       isolation: 'process',
+      executor: 'runner',
       results: checks.map(check => ({ checkId: check.id, status: 'pass', evidence: `ok ${check.id}` })),
       recordedAt: 30,
     },

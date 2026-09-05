@@ -44,7 +44,7 @@ describe('trajectory export through a real cordis.yml and headless process', () 
       attempts: 2,
     })
     expect(trajectory.reward.certificate?.results.map(result => result.checkId)).toEqual(['round-trip-prints', 'final-answer-quotes'])
-    expect(trajectory.provenance.isolation).toBe('process')
+    expect(trajectory.provenance.isolation).toBe('none')
     expect(trajectory.provenance.components).toContain('model-provider:cli-mock')
     expect(trajectory.messages[0]).toMatchObject({ role: 'user', sourceKind: 'user' })
     expect(trajectory.messages.some(message => message.role === 'tool')).toBe(true)

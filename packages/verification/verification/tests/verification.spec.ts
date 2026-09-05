@@ -4,6 +4,9 @@ import { Context } from '@deepseek-ai/cordis'
 import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import GoalService, { GoalId } from '@deepseek-ai/dsh-goal'
+// Type-only: resolves the read-barrier members of the session event vocabulary.
+import type {} from '@deepseek-ai/dsh-read-barrier'
+import type { ReadBarrierScope } from '@deepseek-ai/dsh-read-barrier/types'
 import { Session as SessionClass, SessionId } from '@deepseek-ai/dsh-session'
 import CompletionStandardService, {
   CheckId,
@@ -61,6 +64,22 @@ function passes(ids: readonly string[]) {
 }
 
 const reported: RunEvidence = { executor: 'agent-reported' }
+
+/** A census that proves process-level isolation: implementer role, no unenforced capability, no authority. */
+function proving(): ReadBarrierScope {
+  return {
+    version: 1,
+    role: 'implementer',
+    presetId: 'implementing',
+    root: '/srv/verification',
+    denied: ['/srv/verification'],
+    census: [{ name: 'read', authority: [] }],
+    enforcement: [
+      { capability: 'fs', state: 'denied-at-executor' },
+      { capability: 'shell', state: 'not-composed' },
+    ],
+  }
+}
 
 afterEach(() => {
   vi.useRealTimers()
@@ -178,7 +197,7 @@ describe('CompletionStandardService lifecycle', () => {
 
   it('extends append-only, bumps the revision, and invalidates the certificate', async () => {
     const { ctx, agent, ref } = await authored()
-    const outcome = ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']), reported)
+    const outcome = ctx.completionStandards.recordRun(agent, ref, 'none', passes(['build-passes', 'tests-pass']), reported)
     expect(outcome.certified).toBe(true)
     expect(ctx.completionStandards.certified(agent)?.standard).toEqual(ref)
     const extended = ctx.completionStandards.extend(agent, ref, [check('lint-passes')])
@@ -296,20 +315,60 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
     vi.setSystemTime(1_700_000_000_000)
     const { ctx, agent, ref, session } = await authored()
     vi.setSystemTime(1_600_000_000_000)
-    const outcome = ctx.completionStandards.recordRun(agent, ref, 'host', [
+    const outcome = ctx.completionStandards.recordRun(agent, ref, 'none', [
       ...passes(['tests-pass']),
       ...passes(['build-passes']),
     ], { executor: 'runner', treeHash: 'beef01' })
     expect(outcome.certified).toBe(true)
     if (!outcome.certified) throw new Error('expected a certificate')
     expect(outcome.certificate.results.map(result => result.checkId)).toEqual(['build-passes', 'tests-pass'])
-    expect(outcome.certificate.isolation).toBe('host')
+    expect(outcome.certificate.isolation).toBe('none')
     expect(outcome.certificate.recordedAt).toBe(1_700_000_000_000)
     expect(session.events.map(event => event.type))
       .toEqual(['verification/standard', 'verification/run', 'verification/certificate'])
     expect(session.events[1]?.data).toMatchObject({ executor: 'runner', treeHash: 'beef01', recordedAt: 1_700_000_000_000 })
     expect(ctx.completionStandards.get(agent)?.certificate).toEqual(outcome.certificate)
     expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(1)
+  })
+
+  it('refuses an unproven isolation claim before anything is logged', async () => {
+    const { ctx, agent, ref, session } = await authored()
+    const before = session.seq
+    expect(() => ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']), { executor: 'runner' }))
+      .toThrow(expect.objectContaining({
+        code: 'VERIFICATION_ISOLATION_UNPROVEN',
+        message: 'run cannot claim "process" isolation: no read-barrier/scope records what this session composed',
+      }))
+    expect(() => ctx.completionStandards.recordRun(agent, ref, 'host', passes(['build-passes', 'tests-pass']), { executor: 'runner' }))
+      .toThrow(expect.objectContaining({ code: 'VERIFICATION_ISOLATION_UNPROVEN' }))
+    // The run event carries the claim too, so the refusal precedes every append.
+    expect(session.seq).toBe(before)
+    expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(0)
+  })
+
+  it('refuses an agent-reported run above "none" and certifies it at "none"', async () => {
+    const { ctx, agent, ref, session } = await authored()
+    session.append('read-barrier/scope', proving())
+    expect(() => ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']), reported))
+      .toThrow(expect.objectContaining({
+        code: 'VERIFICATION_ISOLATION_UNPROVEN',
+        message: 'run cannot claim "process" isolation: the run was agent-reported, so no validator executed its checks',
+      }))
+    const outcome = ctx.completionStandards.recordRun(agent, ref, 'none', passes(['build-passes', 'tests-pass']), reported)
+    expect(outcome.certified).toBe(true)
+    if (!outcome.certified) throw new Error('expected a certificate')
+    expect(outcome.certificate.executor).toBe('agent-reported')
+  })
+
+  it('certifies "process" once the census proves every composed capability denies', async () => {
+    const { ctx, agent, ref, session } = await authored()
+    session.append('read-barrier/scope', proving())
+    const outcome = ctx.completionStandards.recordRun(
+      agent, ref, 'process', passes(['build-passes', 'tests-pass']), { executor: 'runner' },
+    )
+    expect(outcome.certified).toBe(true)
+    if (!outcome.certified) throw new Error('expected a certificate')
+    expect(outcome.certificate).toMatchObject({ isolation: 'process', executor: 'runner' })
   })
 
   it('records directives and counts them on the view', async () => {
@@ -332,7 +391,7 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_STANDARD_NOT_FOUND' }))
     expect(() => ctx.completionStandards.assertCertified(agent, goal))
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
-    ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']), reported)
+    ctx.completionStandards.recordRun(agent, ref, 'none', passes(['build-passes', 'tests-pass']), reported)
     expect(ctx.completionStandards.assertCertified(agent, goal).standard).toEqual(ref)
   })
 
@@ -386,7 +445,7 @@ describe('CompletionStandardService certificate-gated goal completion', () => {
     expect(() => ctx.goals.complete(agent, { id: created.id, revision: created.revision }))
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
     expect(ctx.goals.get(agent)?.phase).toBe('active')
-    ctx.completionStandards.recordRun(agent, { id: view.id, revision: view.revision }, 'process', passes(['build-passes']), reported)
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: view.revision }, 'none', passes(['build-passes']), reported)
     const completed = ctx.goals.complete(agent, { id: created.id, revision: created.revision })
     expect(completed.phase).toBe('complete')
   })
@@ -395,7 +454,7 @@ describe('CompletionStandardService certificate-gated goal completion', () => {
     const { ctx, agent } = await composed()
     const created = ctx.goals.create(agent, { objective: 'ship verified work' })
     const view = ctx.completionStandards.author(agent, { goalId: created.id, checks: [check('build-passes')] })
-    ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'process', passes(['build-passes']), reported)
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'none', passes(['build-passes']), reported)
     ctx.completionStandards.extend(agent, { id: view.id, revision: 1 }, [check('tests-pass')])
     expect(() => ctx.goals.complete(agent, { id: created.id, revision: created.revision }))
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))

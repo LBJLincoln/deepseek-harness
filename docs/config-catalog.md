@@ -200,7 +200,7 @@ export interface PresetRoot {
 export type PresetTrust = 'system' | 'user'
 ```
 
-Source: [`packages/preset/agent-presets/src/preset.ts:52`](../packages/preset/agent-presets/src/preset.ts)
+Source: [`packages/preset/agent-presets/src/preset.ts:60`](../packages/preset/agent-presets/src/preset.ts)
 
 <a id="deepseek-aidsh-agent-spine-demo"></a>
 
@@ -1574,10 +1574,17 @@ export interface Config {
    * plugin registers through {@link ReadBarrierService.protect} (default: none).
    */
   denyRoots?: string[]
+  /**
+   * Absolute or `~`-prefixed file an external account writes (default: none).
+   * The barrier records a `read-barrier/attestation` only after the file proves
+   * to be owned by another operating-system account and unwritable by this one;
+   * without that record no certificate may claim `host` isolation.
+   */
+  hostAttestation?: string
 }
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:58`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:170`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="deepseek-aidsh-repeat-tool-reminder"></a>
 
@@ -1686,7 +1693,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:136`](../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:137`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 
@@ -2721,7 +2728,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/session-query/tool-session-query/src/index.ts:29`](../packages/session-query/tool-session-query/src/index.ts)
+Source: [`packages/session-query/tool-session-query/src/index.ts:30`](../packages/session-query/tool-session-query/src/index.ts)
 
 <a id="deepseek-aidsh-tool-skill"></a>
 
@@ -2962,7 +2969,7 @@ export interface Config {
 export type ToolPresentationMode = 'native' | 'code' | 'both'
 ```
 
-Source: [`packages/core/tools/src/index.ts:654`](../packages/core/tools/src/index.ts)
+Source: [`packages/core/tools/src/index.ts:665`](../packages/core/tools/src/index.ts)
 
 <a id="deepseek-aidsh-trajectories"></a>
 
@@ -3047,7 +3054,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/verification/verification/src/index.ts:181`](../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:184`](../packages/verification/verification/src/index.ts)
 
 <a id="deepseek-aidsh-web"></a>
 

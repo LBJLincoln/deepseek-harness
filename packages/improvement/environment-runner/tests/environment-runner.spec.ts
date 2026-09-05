@@ -195,7 +195,14 @@ class StubStandards extends Service {
     if (failures.length > 0) return { certified: false, failures }
     return {
       certified: true,
-      certificate: { standard: ref, goalId: (this.view as StandardView).goalId, isolation, results: [...results], recordedAt: 5 },
+      certificate: {
+        standard: ref,
+        goalId: (this.view as StandardView).goalId,
+        isolation,
+        executor: evidence.executor,
+        results: [...results],
+        recordedAt: 5,
+      },
     }
   }
   issueDirective(_agent: Agent, _ref: StandardRef, request: DirectiveRequest): void {

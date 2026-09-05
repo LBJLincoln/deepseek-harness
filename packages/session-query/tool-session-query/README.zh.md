@@ -4,6 +4,8 @@
 
 位于 `ctx.sessionQuery` 之上、经工作区授权的模型工具。该 opt-in 包只依赖统一接口，并注册 `session_search`、`session_event_search`、`session_trace`、`session_event_trace` 和 `session_event_read`；已发布的宿主组合默认不挂载它。
 
+这五个工具都声明 `session-log` 工具权限，因为每一个都读取持久会话事件。挂载了读取屏障的组合会拒绝把它们组合进 preset 声明了 `role: implementer` 的会话，也拒绝在那里执行它们；两处拒绝及其确切文案见 [`dsh-read-barrier`](../../verification/read-barrier/README.md)。
+
 ## 配置
 
 | 键 | 默认值 | 含义 |

@@ -1,0 +1,62 @@
+# Test-only composition: a preset roster whose presets declare read-barrier
+# roles, beside the barrier, the verification domain, and the session-log tools
+# one of those presets composes.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+# The root defaults to <harness home>/verification, which the smoke isolates per run.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+# The one composed path-opening capability that denies at its executor, so the
+# scope census proves process-level isolation for everything but the attestation.
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+# Present only so the session-log tools the `log-reading` preset composes reach a
+# usable state; the index is never opened, because no test searches it.
+- id: session-query
+  name: '@deepseek-ai/dsh-session-query-sqlite'
+  config:
+    path: './.session-query.sqlite'
+    openAt: never
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+
+# The roster's roots are absolute: the smoke runs in an isolated temporary cwd,
+# so the presets beside this file are reachable only through the path it exports.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: implementing
+    roots:
+      - path: !!js process.env.DSH_READ_BARRIER_GUARD_PRESETS
+        trust: system
+    includeUserRoot: false
+
+# The driver creates every agent from a named preset; the spine composes none of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Prove the authority guards and the enforcement-backed certificate.'
+    workspaceContext: false

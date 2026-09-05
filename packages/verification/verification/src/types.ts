@@ -67,9 +67,16 @@ export interface CheckResult {
 
 /**
  * Isolation the standard and its fixtures had from the implementer while the
- * certified run executed: `none` (shared filesystem reach), `process`
- * (in-process read policy only), or `host` (separate operating-system
- * account or host).
+ * certified run executed. Every level above `none` is refused unless the
+ * session's own log carries the enforcement it asserts:
+ *
+ * - `none` asserts nothing; implementer and validator share a filesystem.
+ * - `process` asserts that no executor of the implementer's session opened a
+ *   denied path: a `read-barrier/scope` census recorded before the session's
+ *   first request, with role `implementer`, no composed capability left
+ *   `unenforced`, and no visible tool carrying an authority.
+ * - `host` asserts everything `process` does plus a `read-barrier/attestation`
+ *   the barrier verified from a file this account cannot write.
  */
 export type CertificateIsolation = 'none' | 'process' | 'host'
 
@@ -81,6 +88,12 @@ export interface VerificationCertificate {
   readonly goalId: GoalId
   /** Isolation level the certified run executed under. */
   readonly isolation: CertificateIsolation
+  /**
+   * Executor of the certified run, copied from the `verification/run` this
+   * certificate cites. An `agent-reported` run is the implementer's own account
+   * of its checks, so it may certify only at `isolation: 'none'`.
+   */
+  readonly executor: RunExecutor
   /** One passing result per active check, in the standard's check order. */
   readonly results: readonly CheckResult[]
   /** Epoch milliseconds of the certificate commit. */

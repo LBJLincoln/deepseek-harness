@@ -20,7 +20,10 @@ import { Context, type Fiber } from '@deepseek-ai/cordis'
 import { Include } from '@deepseek-ai/cordis-plugin-include'
 import type { EntryTree } from '@deepseek-ai/cordis-plugin-loader'
 import { scopeOf, scopeParentOf, type ScopeKey } from '@deepseek-ai/dsh-scope'
-import { PresetMountError, type AgentPreset } from './preset.ts'
+import { deniedAuthority } from '@deepseek-ai/dsh-read-barrier'
+import type { ReadBarrierRole } from '@deepseek-ai/dsh-read-barrier/types'
+import type {} from '@deepseek-ai/dsh-tools'
+import { PresetMountError, PresetRoleError, type AgentPreset } from './preset.ts'
 
 /** What one mounted subtree publishes about itself for the audit to read. */
 interface MountedTree {
@@ -119,6 +122,13 @@ export interface PresetMount {
   readonly fiber: Fiber
   /** The standing scope key agents are parented to (undefined only in torn-down records). */
   readonly key: ScopeKey | undefined
+  /**
+   * Read-barrier role the preset declared, absent when it declared none. Held
+   * on the mount so an agent joining a standing composition — including a child
+   * joining through `composeFrom` — resolves the same role synchronously,
+   * without re-reading the roster.
+   */
+  readonly role?: ReadBarrierRole
 }
 
 const mounts = new Set<PresetMount>()
@@ -301,6 +311,31 @@ export function inactiveRows(tree: EntryTree): string[] {
 }
 
 /**
+ * How the composition contradicts the role the preset declared, or undefined
+ * when it does not.
+ *
+ * Read from the scope the preset mounted into, so it covers what a session
+ * composed from this preset actually sees: the preset's own rows and every
+ * inherited global row alike. The tool registry is optional because a
+ * deployment may compose none; without one nothing is composed to audit.
+ * @param ctx - the standing scope context the subtree was mounted under.
+ * @param preset - the preset whose declared role is being audited.
+ * @returns the refusal to throw, or undefined when the composition holds.
+ */
+export function roleAudit(ctx: Context, preset: AgentPreset): PresetRoleError | undefined {
+  const role: ReadBarrierRole = preset.role ?? 'unrestricted'
+  const tools = ctx.get('tools')
+  if (tools === undefined) return undefined
+  const scope = scopeOf(ctx)
+  for (const schema of tools.schemas(scope)) {
+    const denied = deniedAuthority(role, tools.get(schema.name, scope)?.authority)
+    if (denied === undefined) continue
+    return new PresetRoleError(preset.id, role, schema.name, denied)
+  }
+  return undefined
+}
+
+/**
  * The reportable text of a mount failure.
  *
  * The loader reports several failed rows as one `AggregateError`, whose own
@@ -365,7 +400,14 @@ export async function mountPreset(agentCtx: Context, preset: AgentPreset): Promi
         + 'a preset service must sit behind an `isolate` realm or move to the host composition',
       )
     }
-    mounts.add({ presetId: preset.id, fiber, key: scopeOf(agentCtx) })
+    // After the subtree settles, beside `inactiveRows`: the audit reads the
+    // registry the rows actually contributed to, not the file they came from.
+    const refusal = roleAudit(agentCtx, preset)
+    if (refusal !== undefined) throw refusal
+    mounts.add({
+      presetId: preset.id, fiber, key: scopeOf(agentCtx),
+      ...preset.role === undefined ? {} : { role: preset.role },
+    })
   } catch (error) {
     try {
       await handle.dispose()
@@ -376,6 +418,9 @@ export async function mountPreset(agentCtx: Context, preset: AgentPreset): Promi
       // Swallows only this subtree's teardown failure. The mount error below is
       // the actionable one, and the discarded fiber is unreachable either way.
     }
+    // Reported as authored: the authority refusal names the tool and the
+    // authority to remove, which a "failed to mount" wrapper would bury.
+    if (error instanceof PresetRoleError) throw error
     throw new PresetMountError(preset.id, `${mountDetail(error)} (${preset.path})`, { cause: error })
   }
 }

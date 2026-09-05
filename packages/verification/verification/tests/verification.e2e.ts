@@ -100,7 +100,8 @@ describe('certificate-gated completion through a real cordis.yml and headless pr
     const certificateEvent = events.find(event => event.type === 'verification/certificate')
     const certificate = decodeCertificateChange(certificateEvent?.data)
     if (certificate === undefined) throw new Error('expected durable certificate')
-    expect(certificate.certificate.isolation).toBe('process')
+    expect(certificate.certificate.isolation).toBe('none')
+    expect(certificate.certificate.executor).toBe('agent-reported')
     expect(certificate.certificate.results.map(item => item.checkId)).toEqual(['round-trip-prints', 'final-answer-quotes'])
 
     const certificateSeq = certificateEvent?.seq ?? Number.NaN

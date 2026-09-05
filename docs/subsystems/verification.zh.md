@@ -45,6 +45,12 @@ interface VerificationCertificate {
   readonly goalId: GoalId
   /** Isolation level the certified run executed under. */
   readonly isolation: CertificateIsolation
+  /**
+   * Executor of the certified run, copied from the `verification/run` this
+   * certificate cites. An `agent-reported` run is the implementer's own account
+   * of its checks, so it may certify only at `isolation: 'none'`.
+   */
+  readonly executor: RunExecutor
   /** One passing result per active check, in the standard's check order. */
   readonly results: readonly CheckResult[]
   /** Epoch milliseconds of the certificate commit. */
@@ -189,6 +195,8 @@ relax(agent: Agent, ref: StandardRef, checkId: CheckId, evidence: string): Stand
  * @param results - exactly one result per active check, any order.
  * @param evidence - executor of the checks and the workspace digest it covered.
  * @returns the certificate, or the failing results.
+ * @throws {@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN`
+ *   when the session's durable record does not support the claimed isolation.
  */
 recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], evidence: RunEvidence, ): RunOutcome
 
@@ -222,7 +230,7 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 
 Types: [Agent](core.md)
 
-Source: [`packages/verification/verification/src/index.ts:211`](../../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:214`](../../packages/verification/verification/src/index.ts)
 
 <a id="ctxreadbarrier--readbarrierservice"></a>
 
@@ -256,13 +264,43 @@ reserve(agent: Agent): string
 protect(path: string): () => void
 
 /**
- * Resolve the complete policy for one capability call. A session holding a
- * reservation is the implementer; every other session and every agentless
- * call is unrestricted.
+ * Record that one capability denies the barrier's directories in the
+ * operation that opens paths, for as long as the registration lives. The
+ * scope census reports a composed capability without one as `unenforced`, and
+ * an isolation claim above `none` is refused while any such entry stands.
+ * @param capability - the path-opening capability that enforces.
+ * @returns the registration's disposer.
+ */
+enforce(capability: ReadBarrierEnforcedCapability): () => void
+
+/**
+ * Record what a preset roster composed for one agent. A declared role
+ * outranks a reservation, because only the composition knows what was
+ * actually mounted; a preset that declares none leaves the reservation to
+ * decide. The roster is the only caller: nothing a session itself runs may
+ * raise its own role.
+ * @param agent - the agent whose composition was resolved.
+ * @param composition - the preset id and the role it declared, if any.
+ */
+declareComposition(agent: Agent, composition: ReadBarrierComposition): void
+
+/**
+ * Resolve the complete policy for one capability call. A session whose preset
+ * declared a role holds that role; otherwise a session holding a reservation
+ * is the implementer, and every other session and every agentless call is
+ * unrestricted.
  * @param request - the calling session, when there is one.
  * @returns the role, the barrier root, and every denied directory.
  */
 resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy
+
+/**
+ * One entry per path-opening capability: `denied-at-executor` when the
+ * capability registered enforcement, `unenforced` when it is composed without
+ * one, and `not-composed` when this composition does not have it.
+ * @returns the enforcement census in the fixed capability order.
+ */
+enforcementCensus(): ReadBarrierEnforcementEntry[]
 
 /**
  * Decide whether the policy denies reading one resolved target. Each denied
@@ -289,5 +327,5 @@ recordDenial( session: Session, policy: ReadBarrierPolicy, capability: ReadBarri
 
 Types: [Agent](core.md) · [FsTarget](filesystem.md) · [Session](session.md)
 
-Source: [`packages/verification/read-barrier/src/index.ts:120`](../../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:239`](../../packages/verification/read-barrier/src/index.ts)
 <!-- END GENERATED cordis-surface -->

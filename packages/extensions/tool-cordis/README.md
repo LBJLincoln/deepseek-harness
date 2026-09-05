@@ -4,6 +4,8 @@ English | [中文](README.zh.md)
 
 The self-referential Cordis toolset: five model-facing tools over the live runtime in the current DSH process. The registry, the vm sandbox, and the browser broadcast belong to [`@deepseek-ai/dsh-cordis-host-runner`](../cordis-host-runner/README.md) (`ctx.dynamic`), which this toolset injects — a composition with these tools but no runner never activates them. Design home — sandbox semantics, dynamic-package lifecycle and composition, standing decisions: [the toolset Agent Note](../../../.agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md).
 
+`cordis_define`, `cordis_run`, `cordis_stop`, and `cordis_undefine` declare the `plugin-mount` tool authority because they mount or evaluate code in the live runtime; the three `cordis_inspect_*` tools declare `runtime-introspection` because they report the live composition. A composition that mounts a read barrier refuses either group in a session whose preset declares `role: implementer`, at the mount and again at execution; see [`dsh-read-barrier`](../../verification/read-barrier/README.md) for both refusals and their exact text.
+
 ## What it does
 
 Two paired verbs, plus the read-only report.

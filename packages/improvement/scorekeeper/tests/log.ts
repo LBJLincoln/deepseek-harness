@@ -7,7 +7,7 @@ import type { TokenUsage } from '@deepseek-ai/dsh-llm'
 import { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
-import type { CertificateIsolation } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, RunExecutor } from '@deepseek-ai/dsh-verification/types'
 
 /** One durable payload as the log carries it, before the fold's decoders narrow it. */
 export type Raw = Record<string, unknown>
@@ -181,9 +181,10 @@ export function runRecord(attempt: number, status: 'pass' | 'fail', isolation: C
 /**
  * The certificate of a fully passing run.
  * @param isolation - the isolation the certified run executed under.
+ * @param executor - the executor of the run the certificate cites.
  * @returns the durable certificate payload.
  */
-export function certificate(isolation: CertificateIsolation = 'none'): Raw {
+export function certificate(isolation: CertificateIsolation = 'none', executor: RunExecutor = 'runner'): Raw {
   return {
     kind: 'verification/certificate',
     version: 1,
@@ -191,6 +192,7 @@ export function certificate(isolation: CertificateIsolation = 'none'): Raw {
       standard: { id: 'standard-1', revision: 1 },
       goalId: 'goal-1',
       isolation,
+      executor,
       results: [{ checkId: CHECK.id, status: 'pass', evidence: 'pass round-trip' }],
       recordedAt: 30,
     },

@@ -78,6 +78,17 @@ describe('reading display metadata', () => {
     expect(await readPresetMetadata(await presetDir('order: .inf\n'))).toEqual({})
   })
 
+  it.each(['implementer', 'validator', 'unrestricted'] as const)('reads the declared role %s', async (role) => {
+    expect(await readPresetMetadata(await presetDir(`role: ${role}\n`))).toEqual({ role })
+  })
+
+  it('treats a role outside the vocabulary as no declaration', async () => {
+    // No declaration leaves the composition exactly as unrestricted as it is
+    // without the key, which is the only degradation that removes no capability.
+    expect(await readPresetMetadata(await presetDir('role: auditor\n'))).toEqual({})
+    expect(await readPresetMetadata(await presetDir('role: 3\n'))).toEqual({})
+  })
+
   it('cannot carry identity or trust', async () => {
     const dir = await presetDir('name: mine\nid: standard\ntrust: system\n')
 
@@ -103,6 +114,11 @@ describe('rendering display metadata', () => {
     expect(renderPresetMetadata({ name: '极简模式' })).toBe('name: 极简模式\n')
     // Description without a name is legal too: the picker falls back to the id.
     expect(renderPresetMetadata({ description: '只做检索。' })).toBe('description: 只做检索。\n')
+  })
+
+  it('stores a declared role and drops one outside the vocabulary', () => {
+    expect(renderPresetMetadata({ name: '实施模式', role: 'implementer' })).toBe('name: 实施模式\nrole: implementer\n')
+    expect(renderPresetMetadata({ role: 'auditor' as never })).toBeUndefined()
   })
 
   it('renders nothing when there is nothing to store', () => {
