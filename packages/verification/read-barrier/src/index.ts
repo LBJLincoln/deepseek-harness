@@ -12,7 +12,8 @@
  * @module @deepseek-ai/dsh-read-barrier
  */
 
-import { mkdirSync, statSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { mkdirSync, readFileSync, statSync } from 'node:fs'
 import { isAbsolute, join, resolve as resolvePath } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
@@ -20,7 +21,19 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { FsTarget } from '@deepseek-ai/dsh-fs'
 import { dshHomePath, expandHomePath } from '@deepseek-ai/dsh-home-paths'
 import type { Session, SessionId } from '@deepseek-ai/dsh-session'
-import type { ReadBarrierCapability, ReadBarrierDenial, ReadBarrierPolicy, ReadBarrierRole } from './types.ts'
+import type { ToolAuthority, ToolExecution } from '@deepseek-ai/dsh-tools'
+import type {
+  ReadBarrierAttestation,
+  ReadBarrierCapability,
+  ReadBarrierCensusEntry,
+  ReadBarrierComposition,
+  ReadBarrierDenial,
+  ReadBarrierEnforcedCapability,
+  ReadBarrierEnforcementEntry,
+  ReadBarrierPolicy,
+  ReadBarrierRole,
+  ReadBarrierScope,
+} from './types.ts'
 
 export type * from './types.ts'
 
@@ -38,17 +51,116 @@ declare module '@deepseek-ai/dsh-session/types' {
      * Log-only — it never enters model history.
      */
     'read-barrier/denied': ReadBarrierDenial
+    /**
+     * The composition one session was granted, appended before its first
+     * `request/header`: the role, the preset that declared it, the denied
+     * directories, one census entry per visible tool with the authorities its
+     * definition declares, and one enforcement entry per path-opening
+     * capability. Log-only — it never enters model history.
+     */
+    'read-barrier/scope': ReadBarrierScope
+    /**
+     * One host attestation the barrier verified: a file at the configured
+     * `hostAttestation` path that is owned by another operating-system account
+     * and unwritable by this one. Log-only — it never enters model history.
+     */
+    'read-barrier/attestation': ReadBarrierAttestation
   }
 }
 
 /** Self-declared payload version of the `read-barrier/denied` event. */
 export const READ_BARRIER_DENIED_VERSION = 1
 
+/** Self-declared payload version of the `read-barrier/scope` event. */
+export const READ_BARRIER_SCOPE_VERSION = 1
+
+/** Self-declared payload version of the `read-barrier/attestation` event. */
+export const READ_BARRIER_ATTESTATION_VERSION = 1
+
 /** Directory holding one reservation per session, under the barrier root. */
 export const RUNS_DIR = 'runs'
 
 /** Permission bits that would let another operating-system account read the barrier's files. */
 const GROUP_OTHER_BITS = 0o077
+
+/** Permission bits that would let this harness account write a file another account owns. */
+const FOREIGN_WRITABLE_BITS = 0o022
+
+/**
+ * Every path-opening capability the scope census reports, mapped to the service
+ * name that provides it. Iteration order fixes the census order, so two runs of
+ * one composition record the same enforcement list.
+ */
+export const ENFORCED_CAPABILITY_SERVICES: Readonly<Record<ReadBarrierEnforcedCapability, string>> = {
+  fs: 'fs',
+  shell: 'shell',
+  subprocess: 'subprocess',
+  terminal: 'terminals',
+  subagent: 'subagents',
+  workflow: 'workflowEngine',
+}
+
+/**
+ * The first authority `role` may not hold, or `undefined` when it may hold
+ * every one it was given. Every declared authority is denied to an
+ * `implementer` and none to any other role: which authorities a role may hold
+ * is a security invariant rather than a deployment choice, and an authority
+ * merged into `ToolAuthorityMap` later is denied by this same rule instead of
+ * by being added to a list somewhere.
+ * @param role - the calling session's role.
+ * @param authority - authorities the tool definition declared, absent for an ordinary tool.
+ * @returns the denied authority to report, or undefined when nothing is denied.
+ */
+export function deniedAuthority(
+  role: ReadBarrierRole,
+  authority: readonly ToolAuthority[] | undefined,
+): ToolAuthority | undefined {
+  if (role !== 'implementer') return undefined
+  return authority?.[0]
+}
+
+/**
+ * The complete account of one execution the barrier refused for its authority.
+ * No recovery instruction follows it: the tool is not callable in this session
+ * at all.
+ * @param tool - the tool name the call named.
+ * @param authority - the denied authority its definition declares.
+ * @returns the exact guard-denial reason.
+ */
+export function authorityDenialMessage(tool: string, authority: ToolAuthority): string {
+  return `"${tool}" carries the "${authority}" authority and is not callable in an implementer session`
+}
+
+/** The attestation file's decision inputs, read once per verification. */
+export interface AttestationFile {
+  /** Numeric owner reported by `stat`. */
+  readonly uid: number
+  /** Permission bits reported by `stat`. */
+  readonly mode: number
+  /** Whether the path resolves to a regular file. */
+  readonly isFile: boolean
+  /** SHA-256 hex digest of the file's bytes. */
+  readonly sha256: string
+}
+
+/**
+ * Why `file` does not prove another operating-system account wrote the
+ * attestation, or `undefined` when it does. The property the `host` level
+ * asserts is exactly this: an in-process component cannot produce such a file
+ * without already holding another account's privileges.
+ * @param file - the attestation file's owner, mode, kind, and digest.
+ * @param effectiveUid - this process's effective uid; absent on a platform without one.
+ * @returns the human-readable problem, or undefined when the file verifies.
+ */
+export function attestationProblem(file: AttestationFile, effectiveUid: number | undefined): string | undefined {
+  if (!file.isFile) return 'is not a regular file'
+  if (effectiveUid === undefined) return 'cannot be attributed to an operating-system owner on this platform'
+  if (file.uid === effectiveUid) return `is owned by this harness account (uid ${String(effectiveUid)})`
+  if ((file.mode & FOREIGN_WRITABLE_BITS) !== 0) {
+    return `is writable outside its owner (mode ${(file.mode & 0o777).toString(8)})`
+  }
+  return undefined
+}
 
 /**
  * Plugin config: which directories the barrier owns. The denied set for a role
@@ -67,6 +179,13 @@ export interface Config {
    * plugin registers through {@link ReadBarrierService.protect} (default: none).
    */
   denyRoots?: string[]
+  /**
+   * Absolute or `~`-prefixed file an external account writes (default: none).
+   * The barrier records a `read-barrier/attestation` only after the file proves
+   * to be owned by another operating-system account and unwritable by this one;
+   * without that record no certificate may claim `host` isolation.
+   */
+  hostAttestation?: string
 }
 
 /** Inputs that select the barrier policy for one capability call. */
@@ -126,6 +245,7 @@ export class ReadBarrierService extends Service {
     // stored root is always absolute regardless of how it was supplied.
     root: z.string(),
     denyRoots: z.array(z.string()).default([]),
+    hostAttestation: z.string(),
   })
 
   /** The absolute directory the barrier owns; always the first denied directory. */
@@ -134,11 +254,23 @@ export class ReadBarrierService extends Service {
   /** Absolute directories denied alongside {@link root} by deployment config. */
   private readonly configuredDenyRoots: readonly string[]
 
+  /** Absolute path of the file an external account writes, absent when none is configured. */
+  private readonly hostAttestation: string | undefined
+
   /** Registered denied directories, keyed per registration so two registrations of one path both hold. */
   private readonly protectedRoots = new Map<object, string>()
 
   /** Reserved run directory per session; holding one is what makes a session the implementer. */
   private readonly reservations = new Map<SessionId, string>()
+
+  /** Composition a preset roster declared per session; a declared role outranks a reservation. */
+  private readonly compositions = new Map<SessionId, ReadBarrierComposition>()
+
+  /** Capabilities that registered enforcement, keyed per registration so two registrations both hold. */
+  private readonly enforcing = new Map<object, ReadBarrierEnforcedCapability>()
+
+  /** Sessions whose scope census is already durable, so the census is appended exactly once. */
+  private readonly censused = new Set<SessionId>()
 
   constructor(ctx: Context, config: Config) {
     super(ctx, 'readBarrier')
@@ -147,12 +279,26 @@ export class ReadBarrierService extends Service {
     // that runtime fact. `root` has NO schema default, so its fallback to the
     // harness home is real branching, resolved absolute either way.
     this.configuredDenyRoots = (config.denyRoots as string[]).map(entry => absoluteDirectory(entry, 'denyRoots entry'))
+    this.hostAttestation = config.hostAttestation === undefined
+      ? undefined
+      : absoluteDirectory(config.hostAttestation, 'hostAttestation')
     createOwnerOnlyRoot(this.root)
+    ctx.on('agent/created', ({ agent }) => { this.installGuard(agent) })
+    // The census is taken here rather than at creation because a validator
+    // reserves AFTER the agent exists: the role is settled by the time the
+    // first request is composed, and this waterfall runs before the loop
+    // appends that request's `request/header`.
+    ctx.on('agent/request', async ({ agent }, next) => {
+      this.recordScope(agent)
+      return await next()
+    })
     ctx.on('agent/disposed', ({ agent }) => {
       // The role belongs to the live session: a disposed agent can no longer
       // read, and keeping its reservation would grow the map for a process
       // running many environments.
       this.reservations.delete(agent.id)
+      this.compositions.delete(agent.id)
+      this.censused.delete(agent.id)
     })
   }
 
@@ -196,21 +342,165 @@ export class ReadBarrierService extends Service {
   }
 
   /**
-   * Resolve the complete policy for one capability call. A session holding a
-   * reservation is the implementer; every other session and every agentless
-   * call is unrestricted.
+   * Record that one capability denies the barrier's directories in the
+   * operation that opens paths, for as long as the registration lives. The
+   * scope census reports a composed capability without one as `unenforced`, and
+   * an isolation claim above `none` is refused while any such entry stands.
+   * @param capability - the path-opening capability that enforces.
+   * @returns the registration's disposer.
+   */
+  enforce(capability: ReadBarrierEnforcedCapability): () => void {
+    const registration = {}
+    // oxlint-disable-next-line typescript/no-misused-promises -- synchronous cleanup; direct return preserves disposer identity
+    return this.ctx.effect(() => {
+      this.enforcing.set(registration, capability)
+      return () => { this.enforcing.delete(registration) }
+    }, `read-barrier enforcement ${capability}`)
+  }
+
+  /**
+   * Record what a preset roster composed for one agent. A declared role
+   * outranks a reservation, because only the composition knows what was
+   * actually mounted; a preset that declares none leaves the reservation to
+   * decide. The roster is the only caller: nothing a session itself runs may
+   * raise its own role.
+   * @param agent - the agent whose composition was resolved.
+   * @param composition - the preset id and the role it declared, if any.
+   */
+  declareComposition(agent: Agent, composition: ReadBarrierComposition): void {
+    this.compositions.set(agent.id, composition)
+  }
+
+  /**
+   * Resolve the complete policy for one capability call. A session whose preset
+   * declared a role holds that role; otherwise a session holding a reservation
+   * is the implementer, and every other session and every agentless call is
+   * unrestricted.
    * @param request - the calling session, when there is one.
    * @returns the role, the barrier root, and every denied directory.
    */
   resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy {
-    const role: ReadBarrierRole = request.session !== undefined && this.reservations.has(request.session.id)
-      ? 'implementer'
-      : 'unrestricted'
     return {
-      role,
+      role: this.roleOf(request.session),
       root: this.root,
       denied: [...new Set([this.root, ...this.configuredDenyRoots, ...this.protectedRoots.values()])],
     }
+  }
+
+  /** The role one session holds: the preset's declaration first, then the reservation. */
+  private roleOf(session: Session | undefined): ReadBarrierRole {
+    if (session === undefined) return 'unrestricted'
+    const declared = this.compositions.get(session.id)?.role
+    if (declared !== undefined) return declared
+    return this.reservations.has(session.id) ? 'implementer' : 'unrestricted'
+  }
+
+  /**
+   * One entry per path-opening capability: `denied-at-executor` when the
+   * capability registered enforcement, `unenforced` when it is composed without
+   * one, and `not-composed` when this composition does not have it.
+   * @returns the enforcement census in the fixed capability order.
+   */
+  enforcementCensus(): ReadBarrierEnforcementEntry[] {
+    const enforced = new Set(this.enforcing.values())
+    return Object.entries(ENFORCED_CAPABILITY_SERVICES).map(([capability, service]) => ({
+      capability: capability as ReadBarrierEnforcedCapability,
+      state: enforced.has(capability as ReadBarrierEnforcedCapability)
+        ? 'denied-at-executor'
+        : this.ctx.get(service) === undefined ? 'not-composed' : 'unenforced',
+    }))
+  }
+
+  /** One census entry per tool the agent's registry view resolves, with the authorities each declares. */
+  private toolCensus(agent: Agent): ReadBarrierCensusEntry[] {
+    const tools = agent.ctx.get('tools')
+    if (tools === undefined) return []
+    return tools.schemas(agent).map(schema => ({
+      name: schema.name,
+      authority: [...tools.get(schema.name, agent)?.authority ?? []],
+    }))
+  }
+
+  /**
+   * Append this session's composition census, and its host attestation when one
+   * verifies, exactly once. Called before the loop composes the session's first
+   * `request/header`, so the census is durable before any tool schema reaches a
+   * model.
+   */
+  private recordScope(agent: Agent): void {
+    if (this.censused.has(agent.id)) return
+    this.censused.add(agent.id)
+    const composition = this.compositions.get(agent.id)
+    const scope: ReadBarrierScope = {
+      version: READ_BARRIER_SCOPE_VERSION,
+      role: this.roleOf(agent.session),
+      ...composition === undefined ? {} : { presetId: composition.presetId },
+      root: this.root,
+      denied: this.resolve({ session: agent.session }).denied,
+      census: this.toolCensus(agent),
+      enforcement: this.enforcementCensus(),
+    }
+    agent.session.append('read-barrier/scope', scope)
+    const attestation = this.verifiedAttestation()
+    /* v8 ignore start -- only a file owned by another operating-system account reaches this append,
+       which an unprivileged test process cannot create; `attestationProblem` covers every decision
+       the record depends on. */
+    if (attestation !== undefined) agent.session.append('read-barrier/attestation', attestation)
+    /* v8 ignore stop */
+  }
+
+  /**
+   * Verify the configured host attestation file.
+   * @returns the record to append, or undefined when no file is configured, it
+   * cannot be read, or it does not prove another account owns it.
+   */
+  private verifiedAttestation(): ReadBarrierAttestation | undefined {
+    const path = this.hostAttestation
+    if (path === undefined) return undefined
+    let file: AttestationFile
+    try {
+      const stats = statSync(path)
+      file = {
+        uid: stats.uid,
+        mode: stats.mode,
+        isFile: stats.isFile(),
+        sha256: createHash('sha256').update(readFileSync(path)).digest('hex'),
+      }
+    } catch {
+      // An absent or unreadable attestation file is simply no attestation: the
+      // claim it would have supported is refused instead of the run failing.
+      this.ctx.logger.warn(`read-barrier: host attestation ${path} cannot be read; no certificate may claim host isolation`)
+      return undefined
+    }
+    const problem = attestationProblem(file, process.geteuid?.())
+    /* v8 ignore start -- the verifying arm needs a file owned by another operating-system account,
+       which an unprivileged test process cannot create; `attestationProblem` covers every decision
+       this arm depends on. */
+    if (problem === undefined) {
+      return { version: READ_BARRIER_ATTESTATION_VERSION, path, owner: file.uid, sha256: file.sha256 }
+    }
+    /* v8 ignore stop */
+    this.ctx.logger.warn(`read-barrier: host attestation ${path} ${problem}; no certificate may claim host isolation`)
+    return undefined
+  }
+
+  /**
+   * Register this agent's authority guard on its own scope, so a tool
+   * registered into the agent's layer after its preset mounted is refused at
+   * execution even though no composition audit saw it.
+   */
+  private installGuard(agent: Agent): void {
+    // Registered through the AGENT's context: `tools.guard()` scopes the effect
+    // to the caller's context, so the guard covers exactly this agent and
+    // unwinds with it.
+    agent.ctx.get('tools')?.guard(execution => this.guardExecution(agent, execution))
+  }
+
+  /** Deny one execution whose definition carries an authority this session's role forbids. */
+  private guardExecution(agent: Agent, execution: Readonly<ToolExecution>): string | undefined {
+    const definition = agent.ctx.get('tools')?.get(execution.name, agent)
+    const denied = deniedAuthority(this.roleOf(agent.session), definition?.authority)
+    return denied === undefined ? undefined : authorityDenialMessage(execution.name, denied)
   }
 
   /**

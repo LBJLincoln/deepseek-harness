@@ -18,6 +18,7 @@ import type { CodeRuntime } from '@deepseek-ai/dsh-code-runtime'
 // Type-only: makes `ctx.get('approval')` resolve to the ApprovalService
 // augmentation. The seam stays optional at runtime — see `serviceAsk`.
 import type {} from '@deepseek-ai/dsh-user-approval'
+import type { ToolAuthority } from './types.ts'
 import type { ToolCallView, ToolResultView } from './presentation.ts'
 import { assertSupportedJsonSchema, validateJsonSchemaValue } from './json-schema.ts'
 import type { JsonSchemaNode } from './json-schema.ts'
@@ -99,7 +100,9 @@ export {
 } from './json-schema.ts'
 
 export type { JsonValue } from '@deepseek-ai/dsh-session'
-export type { CodeDispatchEventData, CodeDispatchStartEventData } from './types.ts'
+export type {
+  CodeDispatchEventData, CodeDispatchStartEventData, ToolAuthority, ToolAuthorityMap,
+} from './types.ts'
 
 export { CodeRunFailedError, RUN_CODE_NAME } from './code-mode.ts'
 export { jsonSchemaToTs, renderToolsSdk } from './ts-types.ts'
@@ -253,6 +256,14 @@ export interface ToolDefinition extends ToolSchema {
    * cooperative implementation that can reach quiescence when the signal aborts.
    */
   timeoutMs?: number
+  /**
+   * Privileged reach this tool holds beyond the workspace, empty when it holds
+   * none. NEVER model-visible — `schemas()` whitelists only name/description/
+   * parameters — and never enforced here: the declaration is what a composition
+   * audit and a session's `tools.guard()` read to refuse a tool whose authority
+   * the calling session's role forbids.
+   */
+  authority?: readonly ToolAuthority[]
   /**
    * Pure synchronous classifier for overlap with sibling tool calls. Only
    * `true` opts in; omission, exceptions, non-`true` returns, and invalid

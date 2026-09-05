@@ -128,12 +128,12 @@ describe('/verification human command', () => {
     expect(uncertified.text).not.toContain('— pass:')
     expect(uncertified.text).not.toContain('Relaxed')
 
-    test.ctx.completionStandards.recordRun(test.agent, ref, 'process', [
+    test.ctx.completionStandards.recordRun(test.agent, ref, 'none', [
       { checkId: CheckId('build-passes'), status: 'pass', evidence: 'exit 0' },
       { checkId: CheckId('tests-pass'), status: 'pass', evidence: '212 passed' },
     ], { executor: 'agent-reported' })
     const certified = await run(test)
-    expect(certified.text).toContain('Status: certified (isolation: process, 2 checks passed)')
+    expect(certified.text).toContain('Status: certified (isolation: none, 2 checks passed)')
     expect(certified.text).toContain('- build-passes: build exits zero — pass: exit 0')
 
     test.ctx.completionStandards.relax(test.agent, ref, CheckId('tests-pass'), 'unstable on wine')

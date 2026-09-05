@@ -8,6 +8,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { defineTool } from '@deepseek-ai/dsh-tools'
+import type { ToolAuthority } from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { toolInput } from './input.ts'
 import { operations } from './operations.ts'
@@ -44,6 +45,12 @@ interface ResolvedConfig {
   readonly searchTimeoutMs: number
 }
 
+/**
+ * Every tool here reads durable session events, which is the authority a
+ * session denied the session log may neither compose nor call.
+ */
+const SESSION_LOG_AUTHORITY: readonly ToolAuthority[] = ['session-log']
+
 const TEXT_OUTPUT = {
   schema: { type: 'string' as const },
   render: (_args: unknown, value: string) => [{ type: 'text' as const, text: value }],
@@ -65,6 +72,7 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'session_search',
+    authority: SESSION_LOG_AUTHORITY,
     description: 'Search prior sessions in the caller workspace and return the strongest matching event from each session.',
     parameters: toolInput.sessionSearchParameters,
     output: TEXT_OUTPUT,
@@ -75,6 +83,7 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'session_event_search',
+    authority: SESSION_LOG_AUTHORITY,
     description: 'Search prior events in one authorized session; the current session excludes the step performing this call.',
     parameters: toolInput.eventSearchParameters,
     output: TEXT_OUTPUT,
@@ -85,6 +94,7 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'session_trace',
+    authority: SESSION_LOG_AUTHORITY,
     description: 'Read the authorized session lineage around one session, including complete visible ancestor and descendant relationships.',
     parameters: toolInput.targetSessionParameter,
     output: TEXT_OUTPUT,
@@ -95,6 +105,7 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'session_event_trace',
+    authority: SESSION_LOG_AUTHORITY,
     description: 'Read every direct replacement and relationship to a cited source event for one event in an authorized session.',
     parameters: {
       ...toolInput.targetSessionParameter,
@@ -108,6 +119,7 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'session_event_read',
+    authority: SESSION_LOG_AUTHORITY,
     description: 'Read one full unabridged event and optional neighboring raw-event summaries from an authorized session.',
     parameters: {
       ...toolInput.targetSessionParameter,

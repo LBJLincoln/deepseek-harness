@@ -1,4 +1,9 @@
-/** Test-only Loader plugin that drives the certificate-gated completion lifecycle at the first real step edge. */
+/**
+ * Test-only Loader plugin that drives the certificate-gated completion lifecycle
+ * at the first real step edge. Its runs are `agent-reported` — the session's own
+ * account of its checks — so they claim `isolation: 'none'`, the only level that
+ * evidence admits.
+ */
 
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-goal'
@@ -41,13 +46,13 @@ export function apply(ctx: Context): void {
       detail: (refusal as VerificationError).message,
     })
 
-    const failing = ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'process', [
+    const failing = ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'none', [
       { checkId: CheckId('round-trip-prints'), status: 'pass', evidence: 'printf CLI_TOOL_ROUND_TRIP exited 0' },
       { checkId: CheckId('final-answer-quotes'), status: 'fail', evidence: 'no assistant text exists yet' },
     ], { executor: 'agent-reported' })
     requireStep(!failing.certified, 'expected the first run to fail')
 
-    const passing = ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'process', [
+    const passing = ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'none', [
       { checkId: CheckId('round-trip-prints'), status: 'pass', evidence: 'printf CLI_TOOL_ROUND_TRIP exited 0' },
       { checkId: CheckId('final-answer-quotes'), status: 'pass', evidence: 'assistant text repeats CLI_TOOL_ROUND_TRIP' },
     ], { executor: 'agent-reported' })

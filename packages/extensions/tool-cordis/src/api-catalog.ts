@@ -531,6 +531,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Record one complete run of the current standard. Every run appends a durable `verification/run` event carrying all of its results; a fully passing run then commits a certificate, while any failure returns the failing subset the validator aggregates into a issueDirective directive.',
         parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'isolation', description: 'isolation level the run executed under.' }, { name: 'results', description: 'exactly one result per active check, any order.' }, { name: 'evidence', description: 'executor of the checks and the workspace digest it covered.' }],
         returns: 'the certificate, or the failing results.',
+        throws: ['{@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN` when the session\'s durable record does not support the claimed isolation.'],
       },
       {
         signature: 'issueDirective(agent: Agent, ref: StandardRef, request: DirectiveRequest): void',
@@ -1142,10 +1143,27 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the registration\'s disposer.',
       },
       {
+        signature: 'enforce(capability: ReadBarrierEnforcedCapability): () => void',
+        description: 'Record that one capability denies the barrier\'s directories in the operation that opens paths, for as long as the registration lives. The scope census reports a composed capability without one as `unenforced`, and an isolation claim above `none` is refused while any such entry stands.',
+        parameters: [{ name: 'capability', description: 'the path-opening capability that enforces.' }],
+        returns: 'the registration\'s disposer.',
+      },
+      {
+        signature: 'declareComposition(agent: Agent, composition: ReadBarrierComposition): void',
+        description: 'Record what a preset roster composed for one agent. A declared role outranks a reservation, because only the composition knows what was actually mounted; a preset that declares none leaves the reservation to decide. The roster is the only caller: nothing a session itself runs may raise its own role.',
+        parameters: [{ name: 'agent', description: 'the agent whose composition was resolved.' }, { name: 'composition', description: 'the preset id and the role it declared, if any.' }],
+      },
+      {
         signature: 'resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy',
-        description: 'Resolve the complete policy for one capability call. A session holding a reservation is the implementer; every other session and every agentless call is unrestricted.',
+        description: 'Resolve the complete policy for one capability call. A session whose preset declared a role holds that role; otherwise a session holding a reservation is the implementer, and every other session and every agentless call is unrestricted.',
         parameters: [{ name: 'request', description: 'the calling session, when there is one.' }],
         returns: 'the role, the barrier root, and every denied directory.',
+      },
+      {
+        signature: 'enforcementCensus(): ReadBarrierEnforcementEntry[]',
+        description: 'One entry per path-opening capability: `denied-at-executor` when the capability registered enforcement, `unenforced` when it is composed without one, and `not-composed` when this composition does not have it.',
+        parameters: [],
+        returns: 'the enforcement census in the fixed capability order.',
       },
       {
         signature: 'async denies(policy: ReadBarrierPolicy, target: FsTarget): Promise<boolean>',
@@ -2880,7 +2898,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'AgentPreset',
-    declaration: 'export interface AgentPreset {\n    readonly id: string;\n    readonly trust: PresetTrust;\n    readonly path: string;\n    readonly name?: string;\n    readonly description?: string;\n    readonly order?: number;\n    readonly broken?: string;\n}',
+    declaration: 'export interface AgentPreset {\n    readonly id: string;\n    readonly trust: PresetTrust;\n    readonly path: string;\n    readonly name?: string;\n    readonly description?: string;\n    readonly order?: number;\n    readonly role?: ReadBarrierRole;\n    readonly broken?: string;\n}',
   },
   {
     name: 'AgentSetup',
@@ -4023,8 +4041,24 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ReadBarrierCapability = \'fs\' | \'shell\' | \'subprocess\' | \'terminal\';',
   },
   {
+    name: 'ReadBarrierComposition',
+    declaration: 'export interface ReadBarrierComposition {\n    readonly presetId: string;\n    readonly role?: ReadBarrierRole;\n}',
+  },
+  {
     name: 'ReadBarrierDenial',
     declaration: 'export interface ReadBarrierDenial {\n    readonly version: 1;\n    readonly role: ReadBarrierRole;\n    readonly capability: ReadBarrierCapability;\n    readonly displayPath: string;\n    readonly root: string;\n}',
+  },
+  {
+    name: 'ReadBarrierEnforcedCapability',
+    declaration: 'export type ReadBarrierEnforcedCapability = ReadBarrierCapability | \'subagent\' | \'workflow\';',
+  },
+  {
+    name: 'ReadBarrierEnforcementEntry',
+    declaration: 'export interface ReadBarrierEnforcementEntry {\n    readonly capability: ReadBarrierEnforcedCapability;\n    readonly state: ReadBarrierEnforcementState;\n}',
+  },
+  {
+    name: 'ReadBarrierEnforcementState',
+    declaration: 'export type ReadBarrierEnforcementState = \'denied-at-executor\' | \'unenforced\' | \'not-composed\';',
   },
   {
     name: 'ReadBarrierPolicy',
@@ -4316,7 +4350,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsOutcome',
-    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
+    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
   },
   {
     name: 'SessionFactsRecord',
@@ -4895,6 +4929,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface TokenUsage {\n    inputTokens: number;\n    outputTokens: number;\n    cacheReadTokens?: number;\n    cacheWriteTokens?: number;\n    reasoningTokens?: number;\n}',
   },
   {
+    name: 'ToolAuthority',
+    declaration: 'export type ToolAuthority = ToolAuthorityMap[keyof ToolAuthorityMap];',
+  },
+  {
+    name: 'ToolAuthorityMap',
+    declaration: 'export interface ToolAuthorityMap {\n    \'session-log\': \'session-log\';\n    \'plugin-mount\': \'plugin-mount\';\n    \'runtime-introspection\': \'runtime-introspection\';\n}',
+  },
+  {
     name: 'ToolCallKind',
     declaration: 'export type ToolCallKind = \'read\' | \'edit\' | \'delete\' | \'move\' | \'search\' | \'execute\' | \'fetch\' | \'other\';',
   },
@@ -4904,7 +4946,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolDefinition',
-    declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
+    declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    authority?: readonly ToolAuthority[];\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
   },
   {
     name: 'ToolDispatchExecution',
@@ -5104,7 +5146,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'VerificationCertificate',
-    declaration: 'export interface VerificationCertificate {\n    readonly standard: StandardRef;\n    readonly goalId: GoalId;\n    readonly isolation: CertificateIsolation;\n    readonly results: readonly CheckResult[];\n    readonly recordedAt: number;\n}',
+    declaration: 'export interface VerificationCertificate {\n    readonly standard: StandardRef;\n    readonly goalId: GoalId;\n    readonly isolation: CertificateIsolation;\n    readonly executor: RunExecutor;\n    readonly results: readonly CheckResult[];\n    readonly recordedAt: number;\n}',
   },
   {
     name: 'WebBootEntry',

@@ -70,4 +70,7 @@ export function apply(ctx: Context): void {
   // later read policy from deciding. The waterfall is unbound (the executor
   // dispatches it with no `this`), so the listener takes the raw arguments.
   ctx.on('fs/read-intent', async (target, actor, next) => await decide(ctx, target, actor) ?? await next())
+  // What makes the scope census report `fs` as `denied-at-executor`: the
+  // registration lives exactly as long as the listener above.
+  ctx.readBarrier.enforce('fs')
 }

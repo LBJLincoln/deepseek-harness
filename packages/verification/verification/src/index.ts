@@ -30,6 +30,7 @@ import {
   nextRunAttempt,
 } from './fold.ts'
 import type { VerificationFoldState } from './fold.ts'
+import { isolationProblem } from './isolation.ts'
 import { isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION, VerificationError } from './runtime.ts'
 import type {
   AuthorStandardRequest,
@@ -69,6 +70,7 @@ export {
   foldVerification,
 } from './fold.ts'
 export type { VerificationFoldState } from './fold.ts'
+export { isolationProblem, recordedScope } from './isolation.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -101,6 +103,7 @@ const verificationProjectionSchema: ZodType<VerificationProjection | null> = zod
       standard: zod.object({ id: zod.string().min(1), revision: zod.number().int().positive() }),
       goalId: zod.string().min(1),
       isolation: zod.union([zod.literal('none'), zod.literal('process'), zod.literal('host')]),
+      executor: zod.union([zod.literal('runner'), zod.literal('agent-reported')]),
       results: zod.array(zod.object({
         checkId: zod.string().min(1),
         status: zod.union([zod.literal('pass'), zod.literal('fail')]),
@@ -375,6 +378,8 @@ export class CompletionStandardService extends Service {
    * @param results - exactly one result per active check, any order.
    * @param evidence - executor of the checks and the workspace digest it covered.
    * @returns the certificate, or the failing results.
+   * @throws {@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN`
+   *   when the session's durable record does not support the claimed isolation.
    */
   recordRun(
     agent: Agent,
@@ -385,6 +390,15 @@ export class CompletionStandardService extends Service {
   ): RunOutcome {
     const cache = this.prepareMutation(agent)
     const current = this.expectCurrent(cache, ref)
+    // Before anything is committed: the run event carries the claim too, so an
+    // unproven level must not reach the log at all.
+    const unproven = isolationProblem(agent.session.events, isolation, evidence.executor)
+    if (unproven !== undefined) {
+      throw new VerificationError(
+        `run cannot claim "${isolation}" isolation: ${unproven}`,
+        'VERIFICATION_ISOLATION_UNPROVEN',
+      )
+    }
     const byCheck = new Map<string, CheckResult>()
     for (const result of results) {
       if (byCheck.has(result.checkId)) {
@@ -431,6 +445,7 @@ export class CompletionStandardService extends Service {
       standard,
       goalId: current.goalId,
       isolation,
+      executor: evidence.executor,
       results: ordered,
       recordedAt: this.nextMutationTime(cache),
     }

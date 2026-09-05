@@ -68,18 +68,21 @@ subagent 的子 agent 通过 `composeFrom()` 加入其父方的常驻组装，�
 
 **绝对**文件系统路径则保留其自身位置。挂载会先将它转换为 `file:` URL 再交给 ESM 导入，从而使 POSIX 路径和 Windows 盘符或 UNC 路径都采用 Node 能够接受的说明符。
 
-### 展示用元信息
+### 展示用元信息与声明的角色
 
-preset 可以在组装文件旁的可选 `preset.yml` 里发布展示文本：
+preset 可以在组装文件旁的可选 `preset.yml` 里发布展示文本和一项权限声明：
 
 ```yaml
 name: 极简模式
 description: 仅提供持久 bash 与 str_replace_editor 的双工具编码 Agent。
+role: implementer
 ```
 
-它**只**承载展示文本。`id` 是目录名，`trust` 取自 preset 被发现时所在的根目录，两者都不可写在这里——否则本地创作的 preset 就能把自己命名进随附集合。之所以是独立文件：组装是插件行的顶层列表，YAML 无法在其旁携带同级键，而伪造一个元信息行等于递给 Loader 一个要加载的东西。
+`id` 是目录名，`trust` 取自 preset 被发现时所在的根目录，两者都不可写在这里——否则本地创作的 preset 就能把自己命名进随附集合。之所以是独立文件：组装是插件行的顶层列表，YAML 无法在其旁携带同级键，而伪造一个元信息行等于递给 Loader 一个要加载的东西。
 
-任何读取失败都退化为「没有元信息」——缺失、格式错误、类型不对、内容为空，含义相同，选择器回退到 id。展示不是能力：名字坏掉的 preset 依然能挂载。
+任何读取失败都退化为「没有元信息」——缺失、格式错误、类型不对、内容为空，含义相同，选择器回退到 id。展示不是能力：名字坏掉的 preset 依然能挂载。`implementer | validator | unrestricted` 之外的 `role` 不构成声明，这让组合与没有该键时同样不受限制。
+
+`role` 是该文件承载的唯一一项权限声明，也是 [`dsh-read-barrier`](../../verification/read-barrier/README.md) 为每个由该 preset 组合出的会话读取的内容。缺省即 `unrestricted`，这正是所有不含该键的 preset 所声明的，也让每个随附 preset 保持原样。
 
 ## 配置
 
@@ -132,7 +135,15 @@ agent-presets:
 
 ## 信任
 
-preset 就是组装，因此一个 preset 的权限恰好等于它所引用的插件。`user` preset——无论由人还是由 agent 写出——与 shell 访问权限同级；`trust` 字段的存在是为了让消费方呈现这一差异，而不是用来强制隔离。
+preset 就是组装，因此一个 preset 的权限恰好等于它所引用的插件。`user` preset——无论由人还是由 agent 写出——与 shell 访问权限同级；`trust` 字段的存在是为了让消费方呈现这一差异，而对其中一个字段它也确实强制执行：声明 `role: validator` 的 `user` 信任 preset 会被列为 `broken` 而不被挂载，因为 `validator` 是屏障不拒绝任何内容的角色，本地创作的 preset 自称该角色就等于给自己授予屏障本要拒绝的每一次读取。`implementer` 与 `unrestricted` 在任何根目录下都被接受，因为两者都不增加触及范围。
+
+`mountPreset` 在子树稳定后、紧挨未激活行检查处，按声明的角色审计组合，并在 `implementer` preset 组合了定义携带任何[工具权限](../../core/tools/README.md)的工具时拒绝挂载。审计按 preset 挂入的作用域解析工具注册表，因此它同时覆盖 preset 自己的行和每一条继承而来的全局行。拒绝文案指出要移除什么，并原样上报，而不是包在「挂载失败」的外壳里：
+
+```markdown
+agent-presets: preset "<id>" declares role "<role>" but composes "<tool>", which carries the "<authority>" authority
+```
+
+由于审计运行在 agent 工厂的 `setup` 内部，被拒绝的组合会回滚整次会话创建：失败是响亮的，且不会留下任何半成品组合。
 
 ## 模型体验
 
@@ -152,3 +163,4 @@ Indirectly, through the plugins a standing composition registers, which own ever
 - **健康是形状检查，不是挂载** —— 发现过程只证明组装能以加载器方言解析、由具名行组成，不证明每一行的模块都能解析并激活；引用不存在的包的行仍在第一个会话处失败，并回滚该会话的创建。
 - **副本是会漂移的快照** —— 升级部署不会更新随附 preset 的副本，本层也没有表达「standard 加一处改动」的 patch 语义（那是 bundle 层 `cordis.patch.yml` 的能力）；随附集合自己也接受同样的代价——`cordis` 与 `code` 就是 `standard` 的完整副本——换来整份组装在一个文件里可读。
 - **根目录扫描不做监听** —— 每次读取都实际访问文件系统，这让名单保持新鲜，但每次 `list()` 会对每个根目录产生一次 `readdir`。
+- **角色审计读取的是可见工具** —— 被限制规则从 preset 作用域中过滤掉的工具不参与审计，因为该作用域同样无法调用它；挂载之后注册进 agent 层的工具由屏障自己的执行守卫覆盖。

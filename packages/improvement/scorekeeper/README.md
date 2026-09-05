@@ -50,7 +50,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | Field | Source |
 |---|---|
 | `reward`, `rewardBasis` | The trajectory reward fold over `goal/change` and the `verification/*` events |
-| `certified`, `certificateRevision` | The verification fold's certificate for the current standard revision |
+| `certified`, `certificateRevision`, `certificateExecutor` | The verification fold's certificate for the current standard revision, and the executor of the run it cites |
 | `runsRecorded` | `verification/run` events, passing or failing |
 | `attempts` | The `attempt` of the last `verification/run`; it restarts at one for each authored standard |
 | `directives` | `verification/directive` events |

@@ -202,7 +202,7 @@ export interface PresetRoot {
 export type PresetTrust = 'system' | 'user'
 ```
 
-来源：[`packages/preset/agent-presets/src/preset.ts:52`](../packages/preset/agent-presets/src/preset.ts)
+来源：[`packages/preset/agent-presets/src/preset.ts:60`](../packages/preset/agent-presets/src/preset.ts)
 
 <a id="deepseek-aidsh-agent-spine-demo"></a>
 
@@ -1558,10 +1558,17 @@ export interface Config {
    * plugin registers through {@link ReadBarrierService.protect} (default: none).
    */
   denyRoots?: string[]
+  /**
+   * Absolute or `~`-prefixed file an external account writes (default: none).
+   * The barrier records a `read-barrier/attestation` only after the file proves
+   * to be owned by another operating-system account and unwritable by this one;
+   * without that record no certificate may claim `host` isolation.
+   */
+  hostAttestation?: string
 }
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:58`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:170`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="deepseek-aidsh-repeat-tool-reminder"></a>
 
@@ -1670,7 +1677,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/improvement/scorekeeper/src/index.ts:136`](../packages/improvement/scorekeeper/src/index.ts)
+来源：[`packages/improvement/scorekeeper/src/index.ts:137`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 
@@ -2705,7 +2712,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/session-query/tool-session-query/src/index.ts:29`](../packages/session-query/tool-session-query/src/index.ts)
+来源：[`packages/session-query/tool-session-query/src/index.ts:30`](../packages/session-query/tool-session-query/src/index.ts)
 
 <a id="deepseek-aidsh-tool-skill"></a>
 
@@ -2946,7 +2953,7 @@ export interface Config {
 export type ToolPresentationMode = 'native' | 'code' | 'both'
 ```
 
-来源：[`packages/core/tools/src/index.ts:654`](../packages/core/tools/src/index.ts)
+来源：[`packages/core/tools/src/index.ts:665`](../packages/core/tools/src/index.ts)
 
 <a id="deepseek-aidsh-typert-loader"></a>
 
@@ -3011,7 +3018,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/verification/verification/src/index.ts:181`](../packages/verification/verification/src/index.ts)
+来源：[`packages/verification/verification/src/index.ts:184`](../packages/verification/verification/src/index.ts)
 
 <a id="deepseek-aidsh-web"></a>
 

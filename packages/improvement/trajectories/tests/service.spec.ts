@@ -68,7 +68,7 @@ function events(certified: boolean, heldOut = false): SessionEvent[] {
       data: {
         kind: 'verification/certificate', version: 1,
         certificate: {
-          standard: { id: 'standard-1', revision: 1 }, goalId: 'goal-1', isolation: 'host',
+          standard: { id: 'standard-1', revision: 1 }, goalId: 'goal-1', isolation: 'host', executor: 'runner',
           results: [{ checkId: 'done', status: 'pass', evidence: 'true exited 0' }], recordedAt: 2,
         },
       },

@@ -24,6 +24,8 @@ await ctx.plugin(FsReadBarrier)
 
 该槽位委派而非独自决定，因为占据该槽位的屏障会让之后所有读取政策都无法判定。没有 agent 会话的 actor——插件的直接调用——同样委派：屏障按会话解析角色，没有会话的调用不受限制。
 
+在该监听器旁，本插件调用 `ctx.readBarrier.enforce('fs')`，这正是让组合的作用域普查把 `fs` 记为 `denied-at-executor` 而非 `unenforced` 的原因。该登记与监听器存续时间完全一致，因此去掉本插件的组合同时失去这项声明，也就不再能取得 `process` 隔离的证书。
+
 拒绝在任何元数据往返之前分发。[`dsh-tool-fs`](../tool-fs/README.md) 在 `resolveRegularReadTarget` 中于 `ctx.fs.stat` 之前分发，覆盖 `read` 与 `read_image`；[`dsh-tool-str-replace-editor`](../tool-str-replace-editor/README.md) 在 `view` 命令上于它自己的 stat 之前分发，因此被拒路径绝不暴露存在与否。
 
 ## 没有方法耦合

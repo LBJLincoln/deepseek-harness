@@ -3,8 +3,20 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
-import type { ReadBarrierCapability, ReadBarrierDenial } from './types.ts'
-import { READ_BARRIER_DENIED_VERSION } from './index.ts'
+import type {
+  ReadBarrierAttestation,
+  ReadBarrierCapability,
+  ReadBarrierDenial,
+  ReadBarrierEnforcementState,
+  ReadBarrierRole,
+  ReadBarrierScope,
+} from './types.ts'
+import {
+  ENFORCED_CAPABILITY_SERVICES,
+  READ_BARRIER_ATTESTATION_VERSION,
+  READ_BARRIER_DENIED_VERSION,
+  READ_BARRIER_SCOPE_VERSION,
+} from './index.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-read-barrier'
 
@@ -15,6 +27,15 @@ export const inject = ['invariants']
 
 /** Every seam that can refuse a read. */
 const CAPABILITIES: readonly ReadBarrierCapability[] = ['fs', 'shell', 'subprocess', 'terminal']
+
+/** Every role a session can hold. */
+const ROLES: readonly ReadBarrierRole[] = ['implementer', 'validator', 'unrestricted']
+
+/** Every enforcement decision a capability can record. */
+const ENFORCEMENT_STATES: readonly ReadBarrierEnforcementState[] = ['denied-at-executor', 'unenforced', 'not-composed']
+
+/** Sessions whose census is already recorded, so a second one is caught as a contradiction. */
+const sessionScope = new WeakMap<object, ReadBarrierScope>()
 
 /**
  * The barrier root the first refusal in a session named. One composition owns
@@ -38,23 +59,71 @@ function checkPayload(denial: ReadBarrierDenial, seq: number, fail: InvariantFai
   }
 }
 
-/** Reject a refusal that names a different barrier root than the session's earlier refusals. */
-function checkConstantRoot(session: object, root: string, seq: number, fail: InvariantFailure): void {
+/** Reject a record that names a different barrier root than the session's earlier records. */
+function checkConstantRoot(session: object, type: string, root: string, seq: number, fail: InvariantFailure): void {
   const first = sessionRoot.get(session)
   if (first === undefined) {
     sessionRoot.set(session, root)
     return
   }
   if (first !== root) {
-    fail(`session event ${seq} records a read-barrier/denied under root ${JSON.stringify(root)} after ${JSON.stringify(first)}`)
+    fail(`session event ${seq} records a ${type} under root ${JSON.stringify(root)} after ${JSON.stringify(first)}`)
   }
 }
 
-/** Validate the package-owned refusal record and ignore unrelated events. */
+/** Reject a census that is not the record this package writes, or a second one in the same session. */
+function checkScope(session: object, scope: ReadBarrierScope, seq: number, fail: InvariantFailure): void {
+  // Widened: the durable log is a boundary, so a version this build does not
+  // write can still appear here even though the declared type pins one literal.
+  const version: number = scope.version
+  if (version !== READ_BARRIER_SCOPE_VERSION) {
+    fail(`session event ${seq} records a read-barrier/scope of unknown version ${JSON.stringify(version)}`)
+  }
+  if (!ROLES.includes(scope.role)) {
+    fail(`session event ${seq} records a read-barrier/scope for unknown role ${JSON.stringify(scope.role)}`)
+  }
+  for (const entry of scope.enforcement) {
+    if (!(entry.capability in ENFORCED_CAPABILITY_SERVICES)) {
+      fail(`session event ${seq} records read-barrier/scope enforcement for unknown capability ${JSON.stringify(entry.capability)}`)
+    }
+    if (!ENFORCEMENT_STATES.includes(entry.state)) {
+      fail(`session event ${seq} records read-barrier/scope enforcement state ${JSON.stringify(entry.state)} for ${JSON.stringify(entry.capability)}`)
+    }
+  }
+  const first = sessionScope.get(session)
+  if (first === undefined) {
+    sessionScope.set(session, scope)
+    return
+  }
+  fail(`session event ${seq} records a second read-barrier/scope; one session composes one census`)
+}
+
+/** Reject an attestation whose payload is not the record this package writes. */
+function checkAttestation(attestation: ReadBarrierAttestation, seq: number, fail: InvariantFailure): void {
+  // Widened for the same durable-boundary reason as the census version.
+  const version: number = attestation.version
+  if (version !== READ_BARRIER_ATTESTATION_VERSION) {
+    fail(`session event ${seq} records a read-barrier/attestation of unknown version ${JSON.stringify(version)}`)
+  }
+  if (attestation.path === '') {
+    fail(`session event ${seq} records a read-barrier/attestation with no file path`)
+  }
+}
+
+/** Validate the package-owned records and ignore unrelated events. */
 function validateEvent(session: object, event: SessionEvent, fail: InvariantFailure): void {
+  if (event.type === 'read-barrier/scope') {
+    checkScope(session, event.data, event.seq, fail)
+    checkConstantRoot(session, event.type, event.data.root, event.seq, fail)
+    return
+  }
+  if (event.type === 'read-barrier/attestation') {
+    checkAttestation(event.data, event.seq, fail)
+    return
+  }
   if (event.type !== 'read-barrier/denied') return
   checkPayload(event.data, event.seq, fail)
-  checkConstantRoot(session, event.data.root, event.seq, fail)
+  checkConstantRoot(session, event.type, event.data.root, event.seq, fail)
 }
 
 /* jscpd:ignore-start -- package companions share replay and dispatch plumbing */

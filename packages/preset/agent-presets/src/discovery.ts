@@ -19,7 +19,7 @@ import { join, resolve } from 'node:path'
 import { load } from 'js-yaml'
 import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
 import { expandHomePath } from '@deepseek-ai/dsh-home-paths'
-import { readPresetMetadata } from './metadata.ts'
+import { readPresetMetadata, type PresetMetadata } from './metadata.ts'
 import { PRESET_ID, type AgentPreset, type PresetRoot } from './preset.ts'
 
 /** The composition file that makes a directory a preset. */
@@ -106,6 +106,23 @@ async function compositionProblem(path: string): Promise<string | undefined> {
 }
 
 /**
+ * Why a preset's declared role is not one this root may grant, or undefined
+ * when it may.
+ *
+ * `validator` is the role denied nothing, so a locally authored preset that
+ * named itself one would grant itself every read the barrier exists to refuse.
+ * `implementer` only removes capability and is therefore accepted from any
+ * root. This is the roster's first enforcing use of `trust`.
+ * @param root - the scanned root, supplying the trust its presets inherit.
+ * @param metadata - the preset's published metadata.
+ * @returns one human-readable reason, or undefined when the declaration holds.
+ */
+function roleProblem(root: PresetRoot, metadata: PresetMetadata): string | undefined {
+  if (root.trust !== 'user' || metadata.role !== 'validator') return undefined
+  return 'a locally authored preset cannot declare role "validator"; only a preset shipped with the deployment may claim the role the read barrier denies nothing'
+}
+
+/**
  * Whether `path` names an existing regular file.
  * @param path - absolute path to test.
  * @returns true when the path resolves to a file.
@@ -150,12 +167,14 @@ export async function scanRoot(root: PresetRoot): Promise<AgentPreset[]> {
     if (!child.isDirectory() || !PRESET_ID.test(child.name)) continue
     const directory = join(dir, child.name)
     const path = join(directory, COMPOSITION_FILE)
-    const broken = await isFile(path)
+    const composition = await isFile(path)
       ? await compositionProblem(path)
       : `the composition file ${COMPOSITION_FILE} is missing — the directory still occupies the id; delete it or restore the file`
-    // Display text only, and never fatal: a preset with unreadable metadata
-    // still mounts, it just shows its id.
+    // Display text and one authority claim, never fatal on its own: a preset
+    // with unreadable metadata still mounts, it just shows its id. Only the
+    // role it declares can break a preset, and only from an untrusted root.
     const metadata = await readPresetMetadata(directory)
+    const broken = composition ?? roleProblem(root, metadata)
     found.push({
       id: child.name, trust: root.trust, path, ...metadata,
       ...broken === undefined ? {} : { broken },

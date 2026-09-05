@@ -50,7 +50,7 @@
 | 字段 | 来源 |
 |---|---|
 | `reward`、`rewardBasis` | 轨迹奖励折叠，读取 `goal/change` 与各 `verification/*` 事件 |
-| `certified`、`certificateRevision` | 验证折叠中覆盖当前标准修订的证书 |
+| `certified`、`certificateRevision`、`certificateExecutor` | 验证折叠中覆盖当前标准修订的证书，以及它所引运行的执行者 |
 | `runsRecorded` | `verification/run` 事件，无论通过与否 |
 | `attempts` | 最后一条 `verification/run` 的 `attempt`；每编写一个标准便从一重新开始 |
 | `directives` | `verification/directive` 事件 |

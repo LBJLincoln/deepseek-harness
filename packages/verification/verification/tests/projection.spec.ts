@@ -110,11 +110,11 @@ describe('verification projection unit', () => {
     bench.ctx.completionStandards.issueDirective(bench.agent, ref, { rootCause: 'stub', detail: 'placeholder output' })
     expect(bench.tailValues()['verification']).toMatchObject({ directivesIssued: 1 })
 
-    bench.ctx.completionStandards.recordRun(bench.agent, ref, 'process', [
+    bench.ctx.completionStandards.recordRun(bench.agent, ref, 'none', [
       { checkId: CheckId('build-passes'), status: 'pass', evidence: 'exit 0' },
     ], { executor: 'runner', treeHash: 'c0ffee' })
     expect(bench.tailValues()['verification']).toMatchObject({
-      certificate: { standard: { id: view.id, revision: 1 }, isolation: 'process' },
+      certificate: { standard: { id: view.id, revision: 1 }, isolation: 'none', executor: 'runner' },
       directivesIssued: 1,
       runsRecorded: 1,
     })

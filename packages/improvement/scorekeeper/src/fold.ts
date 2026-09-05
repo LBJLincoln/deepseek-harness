@@ -125,7 +125,10 @@ function foldOutcome(events: readonly SessionEvent[]): SessionFactsOutcome {
     certified: verification.certificate !== undefined,
     ...verification.certificate === undefined
       ? {}
-      : { certificateRevision: verification.certificate.standard.revision },
+      : {
+        certificateRevision: verification.certificate.standard.revision,
+        certificateExecutor: verification.certificate.executor,
+      },
     runsRecorded: verification.runsRecorded,
     attempts: verification.lastRun?.attempt ?? 0,
     directives: reward.directives,

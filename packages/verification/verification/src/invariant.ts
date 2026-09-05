@@ -6,6 +6,7 @@ import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-inva
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
 import { applyVerificationEvent, decodeCertificateChange, emptyVerificationFoldState } from './fold.ts'
 import type { VerificationFoldState } from './fold.ts'
+import { isolationProblem } from './isolation.ts'
 import type { CertificateChangeMeta } from './domain.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-verification'
@@ -49,9 +50,30 @@ function checkCertifiedRunExecuted(state: VerificationFoldState, event: SessionE
   const run = state.lastRun
   if (run !== undefined && run.standard.id === covered.id && run.standard.revision === covered.revision
     && run.results.every(result => result.status === 'pass')) {
+    if (run.executor !== change.certificate.executor) {
+      fail(`session event ${event.seq} certifies executor ${JSON.stringify(change.certificate.executor)} while the run it cites recorded ${JSON.stringify(run.executor)}`)
+    }
     return
   }
   fail(`session event ${event.seq} certifies standard "${covered.id}" revision ${covered.revision} without a preceding fully passing verification/run`)
+}
+
+/**
+ * Reject a certificate whose isolation the session's own record does not
+ * support. The identical rule `recordRun` applies live, so a forged
+ * certificate fails replay wherever this companion is installed.
+ */
+function checkIsolationProven(session: Session, event: SessionEvent, fail: InvariantFailure): void {
+  if (event.type !== 'verification/certificate') return
+  const change = certificateOf(event)
+  if (change === undefined) return
+  const { isolation, executor } = change.certificate
+  // Strictly the events before this certificate, so a loaded log and a live
+  // append judge the same evidence: a live dispatch has not published the
+  // certificate yet, while a replayed log holds everything after it too.
+  const unproven = isolationProblem(session.events.filter(prior => prior.seq < event.seq), isolation, executor)
+  if (unproven === undefined) return
+  fail(`session event ${event.seq} certifies "${isolation}" isolation the session does not prove: ${unproven}`)
 }
 
 /** Reject a goal completion that a current standard measures without a covering certificate. */
@@ -74,9 +96,15 @@ function checkGoalCompletion(state: VerificationFoldState, event: SessionEvent, 
 }
 
 /** Apply one event through the strict verification decoder and attribute failures. */
-function applyChecked(state: VerificationFoldState, event: SessionEvent, fail: InvariantFailure): void {
+function applyChecked(
+  state: VerificationFoldState,
+  session: Session,
+  event: SessionEvent,
+  fail: InvariantFailure,
+): void {
   checkGoalCompletion(state, event, fail)
   checkCertifiedRunExecuted(state, event, fail)
+  checkIsolationProven(session, event, fail)
   try {
     applyVerificationEvent(state, event)
   } catch (error) {
@@ -95,7 +123,7 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
 
   const seed = (session: Session): VerificationFoldState => {
     const state = emptyVerificationFoldState()
-    for (const event of session.events) applyChecked(state, event, fail)
+    for (const event of session.events) applyChecked(state, session, event, fail)
     states.set(session, state)
     return state
   }
@@ -108,7 +136,7 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
     if (eventName !== 'session/event') return
     const [session, event] = args as [Session, SessionEvent]
     const state = cloneState(stateFor(session))
-    applyChecked(state, event, fail)
+    applyChecked(state, session, event, fail)
     staged.set(event, { session, state })
   }, { global: true })
   ctx.on('session/event', (session, event) => {

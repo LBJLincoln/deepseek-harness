@@ -7,6 +7,7 @@ import type { ToolDefinition, ToolExecution, ToolExecutionResult, ToolRunContext
 import { assertSupportedJsonSchema, isJsonSchemaRecord, isPlainJsonArray, JsonSchemaError, validateJsonSchemaValue } from './json-schema.ts'
 import type { JsonSchemaNode, JsonSchemaScalar, ObjectJsonSchema } from './json-schema.ts'
 import type { ToolCallView, ToolResultView } from './presentation.ts'
+import type { ToolAuthority } from './types.ts'
 
 /** Annotation keywords shared by every author-facing schema node. */
 export interface ValueSchemaAnnotations {
@@ -498,6 +499,8 @@ export interface DefineToolOptions<S extends ParameterSchemaSpec, O extends Valu
   }
   /** Optional positive cooperative timeout budget in milliseconds. */
   readonly timeoutMs?: number
+  /** Privileged reach beyond the workspace; see {@link ToolDefinition.authority}. */
+  readonly authority?: readonly ToolAuthority[]
   /**
    * Pure classifier for sibling overlap.
    * @param args - typed validated arguments.
@@ -582,6 +585,7 @@ export function defineTool<const S extends ParameterSchemaSpec, const O extends 
       } : {},
     },
     ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+    ...(options.authority === undefined ? {} : { authority: options.authority }),
     async execute(args: unknown, exec: ToolRunContext): Promise<JsonValue> {
       const violations = validate(args)
       if (violations.length > 0) throw new ToolArgsError(violations)

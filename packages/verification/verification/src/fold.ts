@@ -338,13 +338,16 @@ export function decodeCertificateChange(value: unknown): CertificateChangeMeta |
   requireKeys(value, ['certificate', 'kind', 'version'], 'certificate')
   const certificate = value['certificate']
   if (!isRecord(certificate)) throw new Error('verification change certificate must be a record')
-  requireKeys(certificate, ['goalId', 'isolation', 'recordedAt', 'results', 'standard'], 'certificate')
+  requireKeys(certificate, ['executor', 'goalId', 'isolation', 'recordedAt', 'results', 'standard'], 'certificate')
   if (typeof certificate['goalId'] !== 'string' || certificate['goalId'].length === 0) {
     throw new Error('verification change certificate.goalId must be a non-empty string')
   }
   if (typeof certificate['isolation'] !== 'string'
     || !ISOLATIONS.has(certificate['isolation'] as CertificateIsolation)) {
     throw new Error('verification change certificate.isolation is invalid')
+  }
+  if (typeof certificate['executor'] !== 'string' || !EXECUTORS.has(certificate['executor'] as RunExecutor)) {
+    throw new Error('verification change certificate.executor is invalid')
   }
   if (!Array.isArray(certificate['results']) || certificate['results'].length === 0) {
     throw new Error('verification change certificate.results must be a non-empty array')
@@ -356,6 +359,7 @@ export function decodeCertificateChange(value: unknown): CertificateChangeMeta |
       standard: decodeRef(certificate['standard'], 'certificate.standard'),
       goalId: GoalId(certificate['goalId']),
       isolation: certificate['isolation'] as CertificateIsolation,
+      executor: certificate['executor'] as RunExecutor,
       results: certificate['results'].map((result, index) =>
         decodeCertificateResult(result, `certificate.results[${index}]`)),
       recordedAt: nonNegativeInteger(certificate['recordedAt'], 'certificate.recordedAt'),

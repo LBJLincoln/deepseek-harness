@@ -567,6 +567,21 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 
 ### `read-barrier/*`
 
+<a id="read-barrierattestation--log-only"></a>
+
+#### `read-barrier/attestation` — log-only
+
+```ts persistence-catalog
+/**
+ * One host attestation the barrier verified: a file at the configured
+ * `hostAttestation` path that is owned by another operating-system account
+ * and unwritable by this one. Log-only — it never enters model history.
+ */
+'read-barrier/attestation': ReadBarrierAttestation
+```
+
+Source: [`packages/verification/read-barrier/src/index.ts:67`](../packages/verification/read-barrier/src/index.ts)
+
 <a id="read-barrierdenied--log-only"></a>
 
 #### `read-barrier/denied` — log-only
@@ -580,7 +595,24 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 'read-barrier/denied': ReadBarrierDenial
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:40`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:53`](../packages/verification/read-barrier/src/index.ts)
+
+<a id="read-barrierscope--log-only"></a>
+
+#### `read-barrier/scope` — log-only
+
+```ts persistence-catalog
+/**
+ * The composition one session was granted, appended before its first
+ * `request/header`: the role, the preset that declared it, the denied
+ * directories, one census entry per visible tool with the authorities its
+ * definition declares, and one enforcement entry per path-opening
+ * capability. Log-only — it never enters model history.
+ */
+'read-barrier/scope': ReadBarrierScope
+```
+
+Source: [`packages/verification/read-barrier/src/index.ts:61`](../packages/verification/read-barrier/src/index.ts)
 
 ### `request/*`
 
@@ -816,7 +848,7 @@ Source: [`packages/core/session/src/types.ts:279`](../packages/core/session/src/
 'tool/code-dispatch': CodeDispatchEventData
 ```
 
-Source: [`packages/core/tools/src/types.ts:56`](../packages/core/tools/src/types.ts)
+Source: [`packages/core/tools/src/types.ts:79`](../packages/core/tools/src/types.ts)
 
 <a id="toolcode-dispatch-start--log-only"></a>
 
@@ -839,7 +871,7 @@ Source: [`packages/core/tools/src/types.ts:56`](../packages/core/tools/src/types
 'tool/code-dispatch-start': CodeDispatchStartEventData
 ```
 
-Source: [`packages/core/tools/src/types.ts:40`](../packages/core/tools/src/types.ts)
+Source: [`packages/core/tools/src/types.ts:63`](../packages/core/tools/src/types.ts)
 
 <a id="toolresult--surface"></a>
 

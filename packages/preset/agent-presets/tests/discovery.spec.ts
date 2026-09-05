@@ -219,3 +219,52 @@ describe('composition health', () => {
     expect(await scanned('[]\n')).toBeUndefined()
   })
 })
+
+describe('the declared role', () => {
+  /** One healthy preset under a fresh root of `trust`, declaring `role`, scanned. */
+  async function scannedRole(trust: 'system' | 'user', role: string) {
+    const root = await mkdtemp(join(tmpdir(), 'dsh-presets-role-'))
+    await mkdir(join(root, 'probe'))
+    await writeFile(join(root, 'probe', COMPOSITION_FILE), '[]\n')
+    await writeFile(join(root, 'probe', 'preset.yml'), `role: ${role}\n`)
+    const [preset] = await scanRoot({ path: root, trust })
+    return preset
+  }
+
+  it('carries the declaration onto the preset', async () => {
+    expect(await scannedRole('system', 'implementer')).toMatchObject({ role: 'implementer' })
+    const validator = await scannedRole('system', 'validator')
+    expect(validator?.role).toBe('validator')
+    expect(validator?.broken).toBeUndefined()
+  })
+
+  it('breaks a user-trust preset that names itself validator', async () => {
+    // `validator` is the role denied nothing, so a locally authored preset
+    // claiming it would grant itself every read the barrier exists to refuse.
+    const preset = await scannedRole('user', 'validator')
+    expect(preset?.role).toBe('validator')
+    expect(preset?.broken).toBe(
+      'a locally authored preset cannot declare role "validator"; only a preset shipped with the deployment may claim the role the read barrier denies nothing',
+    )
+  })
+
+  it('accepts implementer and unrestricted from a user root', async () => {
+    // Neither adds reach: `implementer` only removes capability, and
+    // `unrestricted` is what every preset without the key already declares.
+    expect((await scannedRole('user', 'implementer'))?.broken).toBeUndefined()
+    expect((await scannedRole('user', 'unrestricted'))?.broken).toBeUndefined()
+  })
+
+  it('reports the composition problem ahead of the role', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'dsh-presets-role-broken-'))
+    await mkdir(join(root, 'probe'))
+    await writeFile(join(root, 'probe', COMPOSITION_FILE), 'name: not-a-list\n')
+    await writeFile(join(root, 'probe', 'preset.yml'), 'role: validator\n')
+
+    const [preset] = await scanRoot({ path: root, trust: 'user' })
+
+    // A composition that cannot mount at all is the actionable failure; the
+    // role refusal would be noise beside it.
+    expect(preset?.broken).toMatch(/top-level list of plugin rows/)
+  })
+})

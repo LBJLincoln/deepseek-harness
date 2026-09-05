@@ -13,6 +13,7 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { JsonValue } from '@deepseek-ai/dsh-session'
 import type { UserMessage } from '@deepseek-ai/dsh-session'
 import { defineTool } from '@deepseek-ai/dsh-tools'
+import type { ToolAuthority } from '@deepseek-ai/dsh-tools'
 import type { ToolExecution } from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { missingServices, providedServices } from './inspect.ts'
@@ -25,6 +26,12 @@ import { hostInspectProviders } from './providers.ts'
 
 export const name = 'tool-cordis'
 export const inject = ['tools', 'systemPrompt', 'dynamicCordisRunner', 'cordisInspect']
+
+/** Authority of the four tools that mount or evaluate code in the live runtime. */
+const PLUGIN_MOUNT_AUTHORITY: readonly ToolAuthority[] = ['plugin-mount']
+
+/** Authority of the three tools that report the live composition. */
+const RUNTIME_INTROSPECTION_AUTHORITY: readonly ToolAuthority[] = ['runtime-introspection']
 
 function requireAgent(exec: ToolExecution): Agent {
   if (exec.agent === undefined) throw new Error('Cordis dynamic tools require an Agent-backed session')
@@ -40,6 +47,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_inspect_list',
+    authority: RUNTIME_INTROSPECTION_AUTHORITY,
     description:
       'List every Cordis Inspect Provider currently known to the Host, including local Host Providers and the latest '
       + 'manifests synchronized from the Client. Each entry includes its platform, purpose, read-only methods, and '
@@ -59,6 +67,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_inspect_query',
+    authority: RUNTIME_INTROSPECTION_AUTHORITY,
     description:
       'Run a read-only query explicitly declared by an Inspect Provider. platform, provider, and method must come '
       + 'from cordis_inspect_list, and input must satisfy that method\'s schema. Use this Tool before cordis_define '
@@ -95,6 +104,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_inspect_self',
+    authority: RUNTIME_INTROSPECTION_AUTHORITY,
     description:
       'Inspect dynamic Cordis objects owned by the current Session at increasing levels of detail. With no IDs, '
       + 'list only Plugin summaries. With pluginId alone, return version pointers, the latest Run, and every Package '
@@ -147,6 +157,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_define',
+    authority: PLUGIN_MOUNT_AUTHORITY,
     description:
       'Define an immutable Cordis Package. For a new Plugin, use kind:"new" and provide only a semantic prefix of '
       + '3–6 lowercase English letters; the Host returns the final pluginId and packageId. To modify an existing '
@@ -239,6 +250,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_run',
+    authority: PLUGIN_MOUNT_AUTHORITY,
     description:
       'Activate one exact Package of a dynamic Plugin. Use mode:"run" for the first activation, restarting '
       + 'currentPackageId, or rollback. When current exists, use mode:"update" to switch to a different Package, '
@@ -328,6 +340,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_stop',
+    authority: PLUGIN_MOUNT_AUTHORITY,
     description:
       'Stop the current Run of a dynamic Plugin and cancel unfinished approval or activation requests. Retain the '
       + 'Plugin, every immutable Package, grants, currentPackageId, and nextPackageId so it can later run or update '
@@ -350,6 +363,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'cordis_undefine',
+    authority: PLUGIN_MOUNT_AUTHORITY,
     description:
       'Permanently remove a dynamic Plugin owned by the current Session. If it is running or awaiting approval, '
       + 'first stop it and cancel the request, then delete every Package, grant, and version pointer. After this '

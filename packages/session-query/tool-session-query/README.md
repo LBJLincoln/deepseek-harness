@@ -4,6 +4,8 @@ English | [中文](README.zh.md)
 
 Workspace-authorized model tools over `ctx.sessionQuery`. The opt-in package depends only on the unified interface and registers `session_search`, `session_event_search`, `session_trace`, `session_event_trace`, and `session_event_read`; shipped host compositions do not mount it by default.
 
+Every one of the five declares the `session-log` tool authority, because every one reads durable session events. A composition that mounts a read barrier refuses to compose them into a session whose preset declares `role: implementer`, and refuses to execute them there; see [`dsh-read-barrier`](../../verification/read-barrier/README.md) for both refusals and their exact text.
+
 ## Configuration
 
 | Key | Default | Meaning |

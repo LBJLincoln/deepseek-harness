@@ -1,5 +1,8 @@
 /** Agent-preset vocabulary shared by discovery, mounting, and consumers. */
 
+import type { ReadBarrierRole } from '@deepseek-ai/dsh-read-barrier/types'
+import type { ToolAuthority } from '@deepseek-ai/dsh-tools/types'
+
 /**
  * Where a preset's composition came from. A `system` preset ships with the
  * deployment; a `user` preset was authored locally, by a person or by an
@@ -31,6 +34,11 @@ export interface AgentPreset {
   readonly description?: string
   /** Declared position within its group; absent sorts after those that declare one. */
   readonly order?: number
+  /**
+   * Read-barrier role this preset declares for the sessions it composes, absent
+   * when it declares none. The one authority claim `preset.yml` carries.
+   */
+  readonly role?: ReadBarrierRole
   /**
    * Why this preset cannot compose a session, absent when it can. A broken
    * preset stays on the roster — hiding it would leave its directory blocking
@@ -76,6 +84,29 @@ export class UnknownPresetError extends Error {
     readonly available: readonly string[],
   ) {
     super(`agent-presets: preset "${presetId}" not found (available: ${available.join(', ') || 'none'})`)
+  }
+}
+
+/**
+ * A preset's composition contradicts the role it declared.
+ *
+ * Its own class, and reported unwrapped by {@link mountPreset}, because the
+ * failure is not "this composition is broken" but "this composition may not
+ * hold what it holds under that role": the exact text names the tool and the
+ * authority an operator has to remove.
+ */
+export class PresetRoleError extends Error {
+  constructor(
+    /** The preset whose declaration the composition contradicts. */
+    readonly presetId: string,
+    /** The role the preset declared. */
+    readonly role: ReadBarrierRole,
+    /** The composed tool the role forbids. */
+    readonly tool: string,
+    /** The authority that tool's definition declares. */
+    readonly authority: ToolAuthority,
+  ) {
+    super(`agent-presets: preset "${presetId}" declares role "${role}" but composes "${tool}", which carries the "${authority}" authority`)
   }
 }
 

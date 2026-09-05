@@ -3,6 +3,9 @@ import { Context } from '@deepseek-ai/cordis'
 import { GoalId } from '@deepseek-ai/dsh-goal'
 import type { GoalSnapshotChangeMeta } from '@deepseek-ai/dsh-goal'
 import InvariantRegistry, { InvariantError } from '@deepseek-ai/dsh-invariants'
+// Type-only: resolves the read-barrier members of the session event vocabulary.
+import type {} from '@deepseek-ai/dsh-read-barrier'
+import type { ReadBarrierScope } from '@deepseek-ai/dsh-read-barrier/types'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId, StandardId, VERIFICATION_CHANGE_VERSION } from '@deepseek-ai/dsh-verification'
 import type {
@@ -55,24 +58,40 @@ function executed(status: 'pass' | 'fail' = 'pass', attempt = 1): VerificationRu
     version: VERIFICATION_CHANGE_VERSION,
     standard: { id: StandardId('standard-invariant'), revision: 1 },
     attempt,
-    isolation: 'process',
+    isolation: 'none',
     executor: 'runner',
     results: [{ checkId: CheckId('build-passes'), status, evidence: `exit ${status === 'pass' ? 0 : 1}` }],
     recordedAt: 6,
   }
 }
 
-function certified(): CertificateChangeMeta {
+function certified(inner: Partial<CertificateChangeMeta['certificate']> = {}): CertificateChangeMeta {
   return {
     kind: 'verification/certificate',
     version: VERIFICATION_CHANGE_VERSION,
     certificate: {
       standard: { id: StandardId('standard-invariant'), revision: 1 },
       goalId,
-      isolation: 'process',
+      isolation: 'none',
+      executor: 'runner',
       results: [{ checkId: CheckId('build-passes'), status: 'pass', evidence: 'exit 0' }],
       recordedAt: 6,
+      ...inner,
     },
+  }
+}
+
+/** A census that proves process-level isolation, as the barrier appends it before the first request. */
+function proving(overrides: Partial<ReadBarrierScope> = {}): ReadBarrierScope {
+  return {
+    version: 1,
+    role: 'implementer',
+    presetId: 'implementing',
+    root: '/srv/verification',
+    denied: ['/srv/verification'],
+    census: [{ name: 'read', authority: [] }],
+    enforcement: [{ capability: 'fs', state: 'denied-at-executor' }],
+    ...overrides,
   }
 }
 
@@ -152,6 +171,61 @@ describe('verification stream invariants', () => {
     expect(() => {
       failed.append('verification/certificate', certified())
     }).not.toThrow()
+  })
+
+  it('rejects a certificate whose executor differs from the run it cites', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-executor'))
+    session.append('verification/standard', authored())
+    session.append('verification/run', executed())
+    expect(() => {
+      session.append('verification/certificate', certified({ executor: 'agent-reported' }))
+    }).toThrow(/certifies executor "agent-reported" while the run it cites recorded "runner"/)
+  })
+
+  it('rejects a certificate claiming isolation the session does not prove', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-unproven'))
+    session.append('verification/standard', authored())
+    session.append('verification/run', executed())
+    expect(() => {
+      session.append('verification/certificate', certified({ isolation: 'process' }))
+    }).toThrow(/certifies "process" isolation the session does not prove: no read-barrier\/scope records what this session composed/)
+    expect(() => {
+      session.append('verification/certificate', certified({ isolation: 'host' }))
+    }).toThrow(/certifies "host" isolation the session does not prove/)
+  })
+
+  it('rejects an agent-reported certificate above "none" and accepts the census-proved one', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-proved'))
+    session.append('read-barrier/scope', proving())
+    session.append('verification/standard', authored())
+    session.append('verification/run', { ...executed(), isolation: 'process', executor: 'agent-reported' })
+    expect(() => {
+      session.append('verification/certificate', certified({ isolation: 'process', executor: 'agent-reported' }))
+    }).toThrow(/certifies "process" isolation the session does not prove: the run was agent-reported/)
+
+    const proved = ctx.sessions.create(SessionId('verification-invariant-runner'))
+    proved.append('read-barrier/scope', proving())
+    proved.append('verification/standard', authored())
+    proved.append('verification/run', { ...executed(), isolation: 'process' })
+    expect(() => {
+      proved.append('verification/certificate', certified({ isolation: 'process' }))
+    }).not.toThrow()
+  })
+
+  it('rejects a certificate whose census composed an authority-bearing tool, even at "none"', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-authority'))
+    session.append('read-barrier/scope', proving({ census: [{ name: 'session_search', authority: ['session-log'] }] }))
+    session.append('verification/standard', authored())
+    session.append('verification/run', executed())
+    expect(() => {
+      session.append('verification/certificate', certified())
+    }).toThrow(
+      /certifies "none" isolation the session does not prove: the session composed "session_search",/,
+    )
   })
 
   it('leaves a malformed certificate to the strict fold', async () => {
