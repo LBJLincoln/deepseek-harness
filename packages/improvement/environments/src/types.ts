@@ -1,0 +1,74 @@
+/**
+ * Pure types of the environment domain: identities, the merge-extensible kind
+ * map, and the task-with-verifiers definition, free of host-side imports.
+ *
+ * @module @deepseek-ai/dsh-environments/types
+ */
+
+import type { Branded } from '@deepseek-ai/dsh-brand'
+import type { StandardCheck } from '@deepseek-ai/dsh-verification/types'
+
+/** Identifies one environment across compositions; derived from its producer's stable name, never from mount order. */
+export type EnvironmentId = Branded<'EnvironmentId'>
+
+/**
+ * Merge-extensible map from environment kind to that kind's detail type. Each
+ * producer package declares its kind by declaration merging; the registry
+ * itself ships no kind.
+ */
+export interface EnvironmentKindMap {}
+
+/** Every declared environment kind; `string` while no producer has merged a kind into the program. */
+export type EnvironmentKind = [keyof EnvironmentKindMap] extends [never] ? string : Extract<keyof EnvironmentKindMap, string>
+
+/** Kind-specific detail declared by the kind's producer; `unknown` for kinds outside this program. */
+export type EnvironmentDetail<K extends string> = K extends keyof EnvironmentKindMap ? EnvironmentKindMap[K] : unknown
+
+/** Whether people curated an environment or an agent synthesized it. */
+export type EnvironmentProvenance = 'curated' | 'synthesized'
+
+/** The work an environment asks of an agent. */
+export interface EnvironmentTask {
+  /** Complete task statement handed to the agent as its first user message. */
+  readonly prompt: string
+  /** Workspace fixture the runner mounts before the task starts, absent for a task that needs no files. */
+  readonly fixture?: string
+}
+
+/** One task with its verifiers, as the registry stores it. */
+export interface EnvironmentDefinition<K extends EnvironmentKind = EnvironmentKind> {
+  /** Stable identity across compositions. */
+  readonly id: EnvironmentId
+  /** Declared kind. */
+  readonly kind: K
+  /** Human-readable name. */
+  readonly name: string
+  /** What the task establishes, stated for people and models. */
+  readonly description: string
+  /** The task statement and its fixture. */
+  readonly task: EnvironmentTask
+  /**
+   * Executable checks in the completion-standard vocabulary. A validator
+   * authors the task's completion standard from exactly these checks, so
+   * evaluation and production measure the same outcomes.
+   */
+  readonly checks: readonly StandardCheck[]
+  /** Reserved for evaluation: never exported as training data and never shown to an implementer outside a run. */
+  readonly heldOut: boolean
+  /** Package that produced the registration. */
+  readonly owner: string
+  /** Curated by people or synthesized by an agent. */
+  readonly provenance: EnvironmentProvenance
+  /** Environment this one derived from, absent for roots. */
+  readonly lineage?: EnvironmentId
+  /** Kind-specific detail. */
+  readonly detail: EnvironmentDetail<K>
+}
+
+/** Selection over the registry's inventory; absent fields match everything. */
+export interface EnvironmentFilter {
+  /** Only environments of this kind. */
+  readonly kind?: EnvironmentKind
+  /** Only held-out (`true`) or only training-eligible (`false`) environments. */
+  readonly heldOut?: boolean
+}

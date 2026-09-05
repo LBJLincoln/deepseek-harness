@@ -12,6 +12,9 @@ One page per subsystem of the DeepSeek Harness: what it is, the data structures 
 | [scope.md](scope.md) | scoped registration identity, dispatch carriers, and the owned `Scope` context |
 | [typert.md](typert.md) | Remote invocation descriptors, lookup/Context declarations, Typert registries, and the Host Gateway/Client API boundaries |
 | [goal.md](goal.md) | persisted goal identity, lifecycle snapshots, activation, change records, and round attribution |
+| [verification.md](verification.md) | completion standards: check inventories per goal, certificates from fully passing runs, and the isolation level they ran under |
+| [components.md](components.md) | the component registry's descriptor: kind, provenance, lineage, membership, and the callable route to every addressable unit |
+| [improvement.md](improvement.md) | environments as tasks with verifiers and trajectories as `dsh-trajectory/1` records with certificate-decided rewards |
 | [schedule.md](schedule.md) | Session-local reminder records, durable transitions, active views, and ordinary-conversation delivery |
 | [commands.md](commands.md) | the human-command registry service: definitions, adapter discovery, direct invocation, results, and parsing views |
 | [session.md](session.md) | the full `SessionEventMap` variant catalog, `TurnTrigger`/`TurnEndReason`, `deriveMessages()`, execution enclosure, and standalone events |

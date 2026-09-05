@@ -25,7 +25,7 @@ The command registers globally through `ctx.commands` and requires the component
 
 #### What the model sees
 
-Nothing. The slash input and the rendered inventory are absent from model requests, and the command writes no session events.
+Nothing. The `/components` input and the rendered inventory are absent from model requests, and the command writes no session events.
 
 #### Token effect
 

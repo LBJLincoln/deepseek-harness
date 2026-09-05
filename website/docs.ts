@@ -300,6 +300,7 @@ const subsystemGroups = [
     ['user-questions.md', '用户交互', 'User interaction'],
     ['commands.md', '命令', 'Human commands'],
     ['goal.md', '目标', 'Goals'],
+    ['verification.md', '完成标准', 'Completion standards'],
     ['schedule.md', '定时提醒', 'Scheduled reminders'],
   ]],
   ['平台与接入', 'Platform and access', [
@@ -308,6 +309,8 @@ const subsystemGroups = [
     ['client-modules.md', '客户端模块', 'Client modules'],
     ['storage.md', '存储', 'Storage'],
     ['workspace.md', '工作区', 'Workspaces'],
+    ['components.md', '组件注册表', 'Component registry'],
+    ['improvement.md', '环境与轨迹', 'Environments and trajectories'],
     ['settings.md', '用户设置', 'User settings'],
     ['credentials.md', '用户凭据', 'User credentials'],
   ]],

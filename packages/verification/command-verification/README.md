@@ -25,7 +25,7 @@ The command registers globally through `ctx.commands` and requires the completio
 
 #### What the model sees
 
-Nothing. The slash input and the rendered ledger are absent from model requests, the command writes no session events, and the completion-standard state it reads is itself log-only.
+Nothing. The `/verification` input and the rendered ledger are absent from model requests, the command writes no session events, and the completion-standard state it reads is itself log-only.
 
 #### Token effect
 

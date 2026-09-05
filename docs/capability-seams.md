@@ -109,6 +109,18 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
+  pkg_verification["verification"]
+  svc_completionStandards["ctx.completionStandards<br/>Executable completion standards"]
+  pkg_command_verification["command-verification"]
+  pkg_trajectories["trajectories"]
+  pkg_components["components"]
+  svc_components["ctx.components<br/>Component registry"]
+  pkg_components_subagents["components-subagents"]
+  pkg_command_components["command-components"]
+  pkg_environments["environments"]
+  svc_environments["ctx.environments<br/>Environment registry"]
+  svc_trajectories["ctx.trajectories<br/>Trajectory export"]
+  pkg_headless_agent["headless-agent"]
   pkg_e2b["e2b"]
   svc_e2b["ctx.e2b<br/>E2B sandbox lifecycle owner"]
   pkg_fs_e2b["fs-e2b"]
@@ -211,6 +223,7 @@ flowchart LR
   pkg_compaction --> svc_compaction
   pkg_compaction_basic --> svc_compaction
   pkg_compaction_tool_result_pruner --> svc_toolResultPruner
+  pkg_components --> svc_components
   pkg_cordis_host_runner --> svc_cordisInspect
   pkg_cordis_host_runner --> svc_dynamicCordisRunner
   pkg_credentials --> svc_credentials
@@ -219,6 +232,7 @@ flowchart LR
   pkg_directory_picker_browse --> svc_directoryPicker
   pkg_directory_picker_native --> svc_directoryPicker
   pkg_e2b --> svc_e2b
+  pkg_environments --> svc_environments
   pkg_fs --> svc_fs
   pkg_fs_e2b --> svc_fs
   pkg_fs_local --> svc_fs
@@ -283,8 +297,10 @@ flowchart LR
   pkg_terminal_bash --> svc_terminals
   pkg_token_meter --> svc_tokenMeter
   pkg_tools --> svc_tools
+  pkg_trajectories --> svc_trajectories
   pkg_typert_registry --> svc_typert
   pkg_user_questions --> svc_userQuestions
+  pkg_verification --> svc_completionStandards
   pkg_web --> svc_web
   pkg_web_fetch_http --> svc_web
   pkg_web_search_deepseek --> svc_web
@@ -308,6 +324,10 @@ flowchart LR
   svc_clientModules --> pkg_hmr
   svc_codeRuntime --> pkg_tools
   svc_compaction --> pkg_compaction_basic
+  svc_completionStandards --> pkg_command_verification
+  svc_completionStandards --> pkg_trajectories
+  svc_components --> pkg_command_components
+  svc_components --> pkg_components_subagents
   svc_cordisInspect --> pkg_tool_cordis
   svc_credentials --> pkg_apiproxy
   svc_credentials --> pkg_llm_deepseek
@@ -396,6 +416,7 @@ flowchart LR
   svc_tools --> pkg_tool_terminal
   svc_tools --> pkg_tool_todo
   svc_tools --> pkg_tool_web
+  svc_trajectories --> pkg_headless_agent
   svc_typert --> pkg_api_gateway
   svc_typert --> pkg_typert_loader
   svc_userQuestions --> pkg_tool_ask_user
@@ -443,6 +464,10 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | Layers the default ModelSelection through settings so direct and Host-backed Agent entry points share one state owner. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | The one concrete loop plugin; extension packages depend on dsh-agent events and services, not on this package. |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
+| `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | Owns one executable standard per goal, records certificates from fully passing runs, and denies uncertified goal completion inside the goal operation. |
+| `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, provenance, lineage, membership, and callable route; adapters mirror live seams into it. |
+| `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | - | - | Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible. |
+| `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent` | - | Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event. |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | Owns one shared E2B SDK handle, remote working directory, and final sandbox disposition so both fundamental E2B providers inhabit the same Linux runtime. |
 | `ctx.subprocess` | `seam` | [`subprocess`](../packages/subprocess/subprocess) | [`subprocess-local`](../packages/subprocess/subprocess-local), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`terminal-bash`](../packages/terminal/terminal-bash), [`lsp-stdio`](../packages/lsp/lsp-stdio), [`subagent-acp`](../packages/subagent/subagent-acp), [`subagent-codex`](../packages/subagent/subagent-codex), [`subagent-claude-code`](../packages/subagent/subagent-claude-code) | - | The bash executors, the PTY shell backend, the LSP host, and the out-of-process ACP, Codex, and Claude Code subagent backends spawn through ctx.subprocess; the service owns process coordinates, tree/session lifetime, stdio dispositions, terminal mechanics, and kill escalation. |
 | `ctx.shell` | `seam` | [`shell`](../packages/shell/shell) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`pwsh-local`](../packages/shell/pwsh-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`hooks-claude-code`](../packages/hooks/hooks-claude-code), [`hooks-codex`](../packages/hooks/hooks-codex) | - | The model-facing shell tools and hook bridges consume this seam; sandboxed, remote, or PowerShell executors replace bash-local without touching them. |

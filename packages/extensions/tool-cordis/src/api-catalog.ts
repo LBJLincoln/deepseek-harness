@@ -497,6 +497,88 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'completionStandards',
+    summary: 'Completion-standard service (`ctx.completionStandards`) backed exclusively by the owning session log.',
+    description: 'Completion-standard service (`ctx.completionStandards`) backed exclusively by the owning session log.',
+    methods: [
+      {
+        signature: 'get(agent: Agent): StandardView | undefined',
+        description: 'Read the current standard for one exact live agent.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }],
+        returns: 'a fresh view or `undefined` when no standard is current.',
+        throws: ['{@link VerificationError} when the agent is not the registry\'s live instance.'],
+      },
+      {
+        signature: 'author(agent: Agent, request: AuthorStandardRequest): StandardView',
+        description: 'Author the executable standard for one goal before implementation begins. A current standard for a different goal is superseded; authoring twice for the same goal is rejected — grow it with extend instead.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'request', description: 'goal identity and the initial non-empty check inventory.' }],
+        returns: 'the authored view at revision one.',
+      },
+      {
+        signature: 'extend(agent: Agent, ref: StandardRef, checks: readonly StandardCheck[]): StandardView',
+        description: 'Add checks to the current standard. Existing checks and relaxations are preserved exactly; the mutation invalidates any prior certificate.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'checks', description: 'one or more checks to append.' }],
+        returns: 'the extended view.',
+      },
+      {
+        signature: 'relax(agent: Agent, ref: StandardRef, checkId: CheckId, evidence: string): StandardView',
+        description: 'Remove one check with recorded evidence that its stricter form is unsatisfiable. The mutation invalidates any prior certificate.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'checkId', description: 'active check to relax.' }, { name: 'evidence', description: 'non-empty unsatisfiability evidence.' }],
+        returns: 'the relaxed view.',
+      },
+      {
+        signature: 'recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], ): RunOutcome',
+        description: 'Record one complete run of the current standard. A fully passing run commits a durable certificate; any failure returns the failing subset without a durable record — the validator aggregates those into a issueDirective directive.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'isolation', description: 'isolation level the run executed under.' }, { name: 'results', description: 'exactly one result per active check, any order.' }],
+        returns: 'the certificate, or the failing results.',
+      },
+      {
+        signature: 'issueDirective(agent: Agent, ref: StandardRef, request: DirectiveRequest): void',
+        description: 'Record one root-cause failure aggregation for the implementer. The directive is the durable channel across the read barrier: it names where the candidate is weak without revealing individual checks.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'request', description: 'root cause and actionable detail.' }],
+      },
+      {
+        signature: 'certified(agent: Agent): VerificationCertificate | undefined',
+        description: 'Read the certificate covering exactly the current standard revision.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }],
+        returns: 'the valid certificate, or `undefined` when none covers the current revision.',
+      },
+      {
+        signature: 'assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate',
+        description: 'Require a valid certificate for one goal before admitting its completion. The orchestrator policy calls this immediately before `ctx.goals.complete()`.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'goalId', description: 'goal whose completion is being admitted.' }],
+        returns: 'the covering certificate.',
+        throws: ['{@link VerificationError} without a current standard for the goal or a covering certificate.'],
+      },
+    ],
+  },
+  {
+    key: 'components',
+    summary: 'Component registry (`ctx.components`): the composition-time inventory mirrored from live seams.',
+    description: 'Component registry (`ctx.components`): the composition-time inventory mirrored from live seams.',
+    methods: [
+      {
+        signature: 'register(descriptor: ComponentDescriptor): () => void',
+        description: 'Register one component. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the component.',
+        parameters: [{ name: 'descriptor', description: 'complete component description.' }],
+        returns: 'the exact disposer that removes this registration and no later one under the same id.',
+        throws: ['{@link ComponentError} when the id is already registered.'],
+      },
+      {
+        signature: 'get(id: ComponentIdType): ComponentDescriptor | undefined',
+        description: 'Read one component.',
+        parameters: [{ name: 'id', description: 'component identity.' }],
+        returns: 'a detached descriptor, or `undefined` when nothing is registered under the id.',
+      },
+      {
+        signature: 'list(kind?: ComponentKind): ComponentDescriptor[]',
+        description: 'List components in registration order.',
+        parameters: [{ name: 'kind', description: 'when given, only components of this kind.' }],
+        returns: 'detached descriptors.',
+      },
+    ],
+  },
+  {
     key: 'credentials',
     summary: 'Abstract credential service.',
     description: 'Abstract credential service. Providers implement the four operations over their source layers; one seam-wide rule binds them all: an empty stored value is absent everywhere — `resolve` skips it, `describe` reports it unconfigured — so a blank never masquerades as a configured secret.',
@@ -559,6 +641,32 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
         returns: 'the created sandbox after the configured cwd exists.',
         throws: ['when E2B rejects creation or the service is disposing.'],
+      },
+    ],
+  },
+  {
+    key: 'environments',
+    summary: 'Environment registry (`ctx.environments`): tasks with verifiers, held at composition time.',
+    description: 'Environment registry (`ctx.environments`): tasks with verifiers, held at composition time.',
+    methods: [
+      {
+        signature: 'register(definition: EnvironmentDefinition): () => void',
+        description: 'Register one environment. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the entry.',
+        parameters: [{ name: 'definition', description: 'complete environment definition.' }],
+        returns: 'the exact disposer that removes this registration and no later one under the same id.',
+        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, or two checks share an id.'],
+      },
+      {
+        signature: 'get(id: EnvironmentIdType): EnvironmentDefinition | undefined',
+        description: 'Read one environment.',
+        parameters: [{ name: 'id', description: 'environment identity.' }],
+        returns: 'a detached definition, or `undefined` when nothing is registered under the id.',
+      },
+      {
+        signature: 'list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]',
+        description: 'List environments in registration order.',
+        parameters: [{ name: 'filter', description: 'kind and held-out selection; absent fields match everything.' }],
+        returns: 'detached definitions.',
       },
     ],
   },
@@ -700,6 +808,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Clear the current goal while retaining a durable tombstone and history.',
         parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }],
         returns: 'the tombstone ref whose revision is one past the cleared snapshot.',
+      },
+      {
+        signature: 'completionGuard(guard: GoalCompletionGuard): () => void',
+        description: 'Register a deny-only completion admission guard. Every registered guard runs inside complete after transition validation and before the durable commit; a guard rejects by throwing, and its error reaches the completing caller unchanged with no goal state written.',
+        parameters: [{ name: 'guard', description: 'admission check receiving the live agent and the snapshot being completed.' }],
+        returns: 'the exact disposer that unregisters the guard.',
       },
       {
         signature: '@Remote(\'create\') remoteExportCreate(agent: Agent, request: CreateGoalRequest): CreateGoalResult',
@@ -1940,6 +2054,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'trajectories',
+    summary: 'Trajectory exporter (`ctx.trajectories`): persisted sessions as training and evaluation records.',
+    description: 'Trajectory exporter (`ctx.trajectories`): persisted sessions as training and evaluation records.',
+    methods: [
+      {
+        signature: 'async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>',
+        description: 'Fold the requested sessions and write one line per trajectory. A session that cannot be read or folded is reported and the export continues; the sink is closed exactly once when every session has been handled.',
+        parameters: [{ name: 'request', description: 'sessions to export, the destination sink, and the reward filter.' }],
+        returns: 'counts of sessions, written lines, rewarded lines, filtered sessions, and skips with reasons.',
+      },
+    ],
+  },
+  {
     key: 'typert',
     summary: 'Registry of generated schemas, package reflection, invocations, and Remote dependency providers.',
     description: 'Registry of generated schemas, package reflection, invocations, and Remote dependency providers.',
@@ -2714,6 +2841,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type AttachmentId = Branded<\'AttachmentId\'>;',
   },
   {
+    name: 'AuthorStandardRequest',
+    declaration: 'export interface AuthorStandardRequest {\n    readonly goalId: GoalId;\n    readonly checks: readonly StandardCheck[];\n}',
+  },
+  {
     name: 'BackendRegistry',
     declaration: 'export class BackendRegistry {\n    register(name: string, backend: StorageBackend): () => void;\n    get(name: string): StorageBackend;\n    names(): string[];\n}',
   },
@@ -2736,6 +2867,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'CancelOptions',
     declaration: 'export interface CancelOptions {\n    keepInbox?: boolean | undefined;\n}',
+  },
+  {
+    name: 'CertificateIsolation',
+    declaration: 'export type CertificateIsolation = \'none\' | \'process\' | \'host\';',
+  },
+  {
+    name: 'CheckId',
+    declaration: 'export type CheckId = Branded<\'CheckId\'>;',
+  },
+  {
+    name: 'CheckResult',
+    declaration: 'export interface CheckResult {\n    readonly checkId: CheckId;\n    readonly status: CheckStatus;\n    readonly evidence: string;\n}',
+  },
+  {
+    name: 'CheckStatus',
+    declaration: 'export type CheckStatus = \'pass\' | \'fail\';',
   },
   {
     name: 'ClientResponse',
@@ -2820,6 +2967,38 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'CompactionTrigger',
     declaration: 'export type CompactionTrigger = \'pressure\' | \'context-overflow\';',
+  },
+  {
+    name: 'CompletionStandardSnapshot',
+    declaration: 'export interface CompletionStandardSnapshot extends StandardRef {\n    readonly goalId: GoalId;\n    readonly checks: readonly StandardCheck[];\n    readonly relaxed: readonly RelaxedCheck[];\n}',
+  },
+  {
+    name: 'ComponentDescriptor',
+    declaration: 'export interface ComponentDescriptor<K extends ComponentKind = ComponentKind> {\n    readonly id: ComponentId;\n    readonly kind: K;\n    readonly name: string;\n    readonly description: string;\n    readonly owner: string;\n    readonly provenance: ComponentProvenance;\n    readonly lineage?: ComponentId;\n    readonly members?: readonly ComponentId[];\n    readonly invoke?: ComponentInvoke;\n    readonly detail: ComponentDetail<K>;\n}',
+  },
+  {
+    name: 'ComponentDetail',
+    declaration: 'export type ComponentDetail<K extends string> = K extends keyof ComponentKindMap ? ComponentKindMap[K] : unknown;',
+  },
+  {
+    name: 'ComponentId',
+    declaration: 'export type ComponentId = Branded<\'ComponentId\'>;',
+  },
+  {
+    name: 'ComponentInvoke',
+    declaration: 'export interface ComponentInvoke {\n    readonly tool: string;\n    readonly arguments?: Readonly<Record<string, string>>;\n}',
+  },
+  {
+    name: 'ComponentKind',
+    declaration: 'export type ComponentKind = [\n    keyof ComponentKindMap\n] extends [\n    never\n] ? string : Extract<keyof ComponentKindMap, string>;',
+  },
+  {
+    name: 'ComponentKindMap',
+    declaration: 'export interface ComponentKindMap {\n}',
+  },
+  {
+    name: 'ComponentProvenance',
+    declaration: 'export type ComponentProvenance = \'curated\' | \'synthesized\';',
   },
   {
     name: 'ConfinedArgv',
@@ -2930,6 +3109,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface DiffResultView {\n    card: \'diff\';\n    title?: string;\n    diffs: FileDiff[];\n}',
   },
   {
+    name: 'DirectiveRequest',
+    declaration: 'export interface DirectiveRequest {\n    readonly rootCause: string;\n    readonly detail: string;\n}',
+  },
+  {
     name: 'DirectoryPickerBrowseCapability',
     declaration: 'export interface DirectoryPickerBrowseCapability {\n    kind: \'browse\';\n    list(path?: string, signal?: AbortSignal): Promise<DirectoryListing>;\n    createDirectory(path: string, name: string): Promise<string>;\n}',
   },
@@ -3026,6 +3209,38 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface EditGoalRequest {\n    readonly objective?: string;\n    readonly maxGoalRounds?: number;\n}',
   },
   {
+    name: 'EnvironmentDefinition',
+    declaration: 'export interface EnvironmentDefinition<K extends EnvironmentKind = EnvironmentKind> {\n    readonly id: EnvironmentId;\n    readonly kind: K;\n    readonly name: string;\n    readonly description: string;\n    readonly task: EnvironmentTask;\n    readonly checks: readonly StandardCheck[];\n    readonly heldOut: boolean;\n    readonly owner: string;\n    readonly provenance: EnvironmentProvenance;\n    readonly lineage?: EnvironmentId;\n    readonly detail: EnvironmentDetail<K>;\n}',
+  },
+  {
+    name: 'EnvironmentDetail',
+    declaration: 'export type EnvironmentDetail<K extends string> = K extends keyof EnvironmentKindMap ? EnvironmentKindMap[K] : unknown;',
+  },
+  {
+    name: 'EnvironmentFilter',
+    declaration: 'export interface EnvironmentFilter {\n    readonly kind?: EnvironmentKind;\n    readonly heldOut?: boolean;\n}',
+  },
+  {
+    name: 'EnvironmentId',
+    declaration: 'export type EnvironmentId = Branded<\'EnvironmentId\'>;',
+  },
+  {
+    name: 'EnvironmentKind',
+    declaration: 'export type EnvironmentKind = [\n    keyof EnvironmentKindMap\n] extends [\n    never\n] ? string : Extract<keyof EnvironmentKindMap, string>;',
+  },
+  {
+    name: 'EnvironmentKindMap',
+    declaration: 'export interface EnvironmentKindMap {\n}',
+  },
+  {
+    name: 'EnvironmentProvenance',
+    declaration: 'export type EnvironmentProvenance = \'curated\' | \'synthesized\';',
+  },
+  {
+    name: 'EnvironmentTask',
+    declaration: 'export interface EnvironmentTask {\n    readonly prompt: string;\n    readonly fixture?: string;\n}',
+  },
+  {
     name: 'EpochHeader',
     declaration: 'export interface EpochHeader {\n    config: LlmCallConfig;\n    adapterDefaults?: LlmCallConfigAdapterDefaults;\n    system?: string;\n    tools?: ToolSchema[];\n}',
   },
@@ -3112,6 +3327,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'GoalChanged',
     declaration: 'export interface GoalChanged {\n    readonly operation: GoalOperation;\n    readonly ref: GoalRef;\n    readonly goal?: GoalView;\n}',
+  },
+  {
+    name: 'GoalCompletionGuard',
+    declaration: 'export type GoalCompletionGuard = (agent: Agent, goal: GoalSnapshot) => void;',
   },
   {
     name: 'GoalOperation',
@@ -3578,6 +3797,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'RelaxedCheck',
+    declaration: 'export interface RelaxedCheck {\n    readonly check: StandardCheck;\n    readonly evidence: string;\n}',
+  },
+  {
     name: 'RequestContext',
     declaration: 'export interface RequestContext {\n    provider: string;\n    model: string;\n    contextWindow?: number;\n}',
   },
@@ -3652,6 +3875,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RunnerFailureRule',
     declaration: 'export interface RunnerFailureRule {\n    allowedExitCodes?: readonly number[];\n    fatalSignatures: readonly string[];\n    informationalLines?: readonly string[];\n}',
+  },
+  {
+    name: 'RunOutcome',
+    declaration: 'export type RunOutcome = {\n    readonly certified: true;\n    readonly certificate: VerificationCertificate;\n} | {\n    readonly certified: false;\n    readonly failures: readonly CheckResult[];\n};',
   },
   {
     name: 'SandboxEnforcement',
@@ -4078,6 +4305,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SpillSource {\n    toolName: string;\n    callId: CallId;\n    label: string;\n}',
   },
   {
+    name: 'StandardCheck',
+    declaration: 'export interface StandardCheck {\n    readonly id: CheckId;\n    readonly outcome: string;\n    readonly run: string;\n}',
+  },
+  {
+    name: 'StandardId',
+    declaration: 'export type StandardId = Branded<\'StandardId\'>;',
+  },
+  {
+    name: 'StandardRef',
+    declaration: 'export interface StandardRef {\n    readonly id: StandardId;\n    readonly revision: number;\n}',
+  },
+  {
+    name: 'StandardView',
+    declaration: 'export interface StandardView extends CompletionStandardSnapshot {\n    readonly createdAt: number;\n    readonly updatedAt: number;\n    readonly certificate?: VerificationCertificate;\n    readonly directivesIssued: number;\n}',
+  },
+  {
     name: 'StorageBackend',
     declaration: 'export interface StorageBackend {\n    readonly kv?: KvFacet;\n    close(): Promise<void>;\n}',
   },
@@ -4450,6 +4693,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ToolSchema {\n    name: string;\n    description: string;\n    parameters: Record<string, unknown>;\n}',
   },
   {
+    name: 'TrajectoryExportReport',
+    declaration: 'export interface TrajectoryExportReport {\n    readonly sessions: number;\n    readonly exported: number;\n    readonly rewarded: number;\n    readonly filtered: number;\n    readonly skipped: readonly TrajectoryExportSkip[];\n}',
+  },
+  {
+    name: 'TrajectoryExportRequest',
+    declaration: 'export interface TrajectoryExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n    readonly rewardedOnly?: boolean;\n}',
+  },
+  {
+    name: 'TrajectoryExportSkip',
+    declaration: 'export interface TrajectoryExportSkip {\n    readonly sessionId: SessionId;\n    readonly reason: string;\n}',
+  },
+  {
+    name: 'TrajectorySink',
+    declaration: 'export interface TrajectorySink {\n    write(line: string): Promise<void> | void;\n    close(): Promise<void> | void;\n}',
+  },
+  {
     name: 'TurnEndCancelCause',
     declaration: 'export type TurnEndCancelCause = AgentCancelCause | {\n    readonly kind: \'legacy\';\n};',
   },
@@ -4528,6 +4787,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'UserQuestionProvider',
     declaration: 'export interface UserQuestionProvider {\n    ask(request: AskUserQuestionRequest): Promise<AskUserQuestionAnswer>;\n}',
+  },
+  {
+    name: 'VerificationCertificate',
+    declaration: 'export interface VerificationCertificate {\n    readonly standard: StandardRef;\n    readonly goalId: GoalId;\n    readonly isolation: CertificateIsolation;\n    readonly results: readonly CheckResult[];\n    readonly recordedAt: number;\n}',
   },
   {
     name: 'WebBootEntry',

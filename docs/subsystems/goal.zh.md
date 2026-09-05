@@ -237,6 +237,16 @@ block(agent: Agent, ref: GoalRef, reason: GoalBlockReason): GoalView
 @Remote('clear') clear(agent: Agent, ref: GoalRef): GoalRef
 
 /**
+ * Register a deny-only completion admission guard. Every registered guard
+ * runs inside {@link complete} after transition validation and before the
+ * durable commit; a guard rejects by throwing, and its error reaches the
+ * completing caller unchanged with no goal state written.
+ * @param guard - admission check receiving the live agent and the snapshot being completed.
+ * @returns the exact disposer that unregisters the guard.
+ */
+completionGuard(guard: GoalCompletionGuard): () => void
+
+/**
  * Create one Goal through the remote boundary.
  * @param agent - exact live Agent resolved from the wire identity.
  * @param request - objective and optional round cap.
@@ -247,7 +257,7 @@ block(agent: Agent, ref: GoalRef, reason: GoalBlockReason): GoalView
 
 Types: [Agent](core.md)
 
-Source: [`packages/goal/goal/src/index.ts:183`](../../packages/goal/goal/src/index.ts)
+Source: [`packages/goal/goal/src/index.ts:184`](../../packages/goal/goal/src/index.ts)
 
 <a id="goal-events"></a>
 
@@ -273,5 +283,5 @@ Goal mutation accepted by one live agent. The matching `goal/change` session eve
 
 Types: [Agent](core.md) · [Scoped](scope.md)
 
-Source: [`packages/goal/goal/src/domain.ts:114`](../../packages/goal/goal/src/domain.ts)
+Source: [`packages/goal/goal/src/domain.ts:124`](../../packages/goal/goal/src/domain.ts)
 <!-- END GENERATED cordis-surface -->

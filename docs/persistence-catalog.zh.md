@@ -932,6 +932,60 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 来源：[`packages/core/session/src/types.ts:264`](../packages/core/session/src/types.ts)
 
+### `verification/*`
+
+<a id="verificationcertificate--log-only"></a>
+
+#### `verification/certificate` — log-only
+
+```ts persistence-catalog
+/**
+ * Fully passing run of the current standard revision.
+ */
+'verification/certificate': CertificateChangeMeta
+```
+
+来源：[`packages/verification/verification/src/domain.ts:72`](../packages/verification/verification/src/domain.ts)
+
+<a id="verificationdirective--log-only"></a>
+
+#### `verification/directive` — log-only
+
+```ts persistence-catalog
+/**
+ * Root-cause failure aggregation addressed to the implementer.
+ */
+'verification/directive': DirectiveChangeMeta
+```
+
+来源：[`packages/verification/verification/src/domain.ts:76`](../packages/verification/verification/src/domain.ts)
+
+<a id="verificationrelaxation--log-only"></a>
+
+#### `verification/relaxation` — log-only
+
+```ts persistence-catalog
+/**
+ * One evidenced check removal with the complete post-relaxation state.
+ */
+'verification/relaxation': RelaxationChangeMeta
+```
+
+来源：[`packages/verification/verification/src/domain.ts:68`](../packages/verification/verification/src/domain.ts)
+
+<a id="verificationstandard--log-only"></a>
+
+#### `verification/standard` — log-only
+
+```ts persistence-catalog
+/**
+ * Complete post-mutation completion-standard state (author or extend).
+ */
+'verification/standard': StandardChangeMeta
+```
+
+来源：[`packages/verification/verification/src/domain.ts:64`](../packages/verification/verification/src/domain.ts)
+
 ### `web/*`
 
 <a id="webdeepseek-search-llm-request--log-only"></a>
