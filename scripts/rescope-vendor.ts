@@ -67,9 +67,12 @@ interface ExactEdit {
 }
 
 /**
- * A file where an upstream name also appears as a vendor DIRECTORY name or an
- * upstream runtime identifier: the generic pass is disabled for the listed
- * names and {@link EXACT_EDITS} renames the real package-name occurrences.
+ * A file where an upstream name also appears as a vendor DIRECTORY name, an
+ * upstream runtime identifier, or an unrelated product name that reuses the
+ * token (an agent-preset id, or the self-referential dynamic-package
+ * extension's `cordis` event/locale namespace): the generic pass is disabled
+ * for the listed names, and {@link EXACT_EDITS} renames the real package-name
+ * occurrences in the same file, if any remain.
  */
 interface GenericSkip {
   readonly file: string
@@ -104,6 +107,47 @@ const GENERIC_SKIPS: readonly GenericSkip[] = [
   // GROUP_ORDER holds `packages/<group>/` directory names, not package names.
   { file: 'scripts/gen-module-graph.ts', upstream: ['cordis'] },
   { file: 'scripts/gen-doc-graphs.ts', upstream: ['cordis'] },
+  // The self-referential dynamic-package extension (packages/extensions/
+  // {tool-cordis,ui-cordis,cordis-client-runner,cordis-host-runner}) names
+  // its own event family `cordis/request-run`, `cordis/request-run-resolved`,
+  // `cordis/dynamic-package`, `cordis/dynamic-retract`, `cordis/inspect-query`,
+  // and `cordis/inspect-query-resolved`, plus a `cordis` locale namespace and
+  // `@`-trigger id — a product event/locale family this feature happens to
+  // share a name with the vendored framework, not a reference to it. The doc
+  // and generator sites below record and render that same event family.
+  { file: 'packages/extensions/tool-cordis/src/api-catalog.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/tool-cordis/src/providers.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/CordisActionRow.tsx', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/CordisDefineRow.tsx', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/CordisPanel.tsx', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/CordisRunRow.tsx', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/index.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/inventory.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/ui-cordis/src/client/locales.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-client-runner/src/client/index.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-client-runner/src/client/runtime.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-client-runner/tests/orchestrator.client.spec.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-client-runner/tests/plugin.client.spec.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-host-runner/src/index.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-host-runner/src/inspect-registry.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-host-runner/src/types.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-host-runner/tests/helpers.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-host-runner/tests/runner.spec.ts', upstream: ['cordis'] },
+  { file: 'packages/extensions/cordis-host-runner/tests/versioning.spec.ts', upstream: ['cordis'] },
+  // The event-producer/consumer catalog and the extensions subsystem page
+  // record the same product event family, byte-quoted from the sites above.
+  { file: 'docs/event-producer-consumer.md', upstream: ['cordis'] },
+  { file: 'docs/event-producer-consumer.zh.md', upstream: ['cordis'] },
+  { file: 'docs/subsystems/extensions.md', upstream: ['cordis'] },
+  { file: 'docs/subsystems/extensions.zh.md', upstream: ['cordis'] },
+  // `EVENT_SCOPE_PAGE['cordis']` maps the same event family's scope prefix to
+  // its owning subsystems page, not a package specifier.
+  { file: 'scripts/gen-cordis-catalog.ts', upstream: ['cordis'] },
+  // A settings-tab locale key for the extension's own `cordis` namespace.
+  { file: 'packages/client/ui-settings-plugin-inventory/src/client/PluginInventorySettingsTab.tsx', upstream: ['cordis'] },
+  // The remote-events allowlist names the same product event family so the
+  // gateway forwards it to a browser; it is not importing the framework.
+  { file: 'packages/api/remotes/src/remote-events.ts', upstream: ['cordis'] },
 ]
 
 /** A string that must appear exactly `count` times once the rescope has run. */
