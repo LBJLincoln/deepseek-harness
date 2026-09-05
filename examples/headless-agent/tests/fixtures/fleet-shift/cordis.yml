@@ -48,6 +48,14 @@
       consecutiveErrors: 2
     workspaceRetention: remove-all
 
+# Village rule: a shift carries a session budget beneath the plan's token
+# ceiling. The caps are far out of reach of the mock route, so no cell breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'
   config:

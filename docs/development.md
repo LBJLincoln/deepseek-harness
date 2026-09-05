@@ -120,6 +120,12 @@ Contributors can opt into the comprehensive local gate set with `pnpm run check:
 
 The keyless [CI workflow](../.github/workflows/ci.yml) groups independent gates into broad lanes and runs a smaller compatibility signal across supported Node versions. Artifact consumers wait for one build within their lane. The separate real-API workflow runs `pnpm run test:e2e` with its configured worker bound. See [scripts/run-gates.ts](../scripts/run-gates.ts) and the workflow files for the current gate and job inventory.
 
+### Composition gates
+
+Two gates read every Cordis Loader configuration in the repository. `verify-cordis-config` owns Loader entry metadata and plugin package resolution. `verify-village-composition` owns the district rules of the [Daliesk Village note](../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md): a configuration composing `@deepseek-ai/dsh-environment-runner`, `@deepseek-ai/dsh-fleet`, or `@deepseek-ai/dsh-experiments` runs sessions nobody watches, so it must also compose `@deepseek-ai/dsh-budget-policy` with at least one enforced cap, a session persistence backend, and `@deepseek-ai/dsh-session-checkpoint-policy`, and a fleet entry must set `workspaceRetention`.
+
+A runner declaring `isolation: process` or `host` reports a warning rather than a failure: the claim reaches the certificate, and the read-barrier slices that would make it true are not on this branch. `--strict` fails on those warnings too. Both gates run in `pnpm run hygiene` and in the static CI lanes, and each diagnostic names the configuration file, the entry id, and the rule.
+
 ### Daily commands
 
 The root [contributor instructions](../AGENTS.md#commands) summarize common commands, while [`package.json`](../package.json) and [scripts/run-gates.ts](../scripts/run-gates.ts) own the current script and gate inventories. Select the smallest checks that cover the changed surface. Documentation changes use `pnpm run doc-sync`; package-public behavior changes also update the owning README or JSDoc, and built-artifact checks require `pnpm run build` first.
