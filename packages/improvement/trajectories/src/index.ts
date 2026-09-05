@@ -21,7 +21,7 @@ import type {
 } from './types.ts'
 
 export type * from './types.ts'
-export { foldTrajectory, TRAJECTORY_FORMAT } from './fold.ts'
+export { foldTrajectory, foldTrajectoryReward, TRAJECTORY_FORMAT } from './fold.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {

@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)与[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts) 与 [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)与[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 与 [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -108,6 +108,20 @@ interface TrajectoryReward {
 
 消息从压缩替换之后的会话表面投影而来，每条携带来源事件的 seq；不含 token id 与 logprob，因为 harness 从不看到它们。
 
+## 会话事实
+
+记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。记分板的一行就是这些记录按模型路由、环境、隔离级别与留出划分分组后的结果。
+
+```ts type-equiv
+/** One session log folded into the four fact groups. */
+interface SessionFacts {
+  readonly identity: SessionFactsIdentity
+  readonly outcome: SessionFactsOutcome
+  readonly efficiency: SessionFactsEfficiency
+  readonly tools: SessionFactsTools
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -188,6 +202,44 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
 Source: [`packages/improvement/fleet/src/index.ts:155`](../../packages/improvement/fleet/src/index.ts)
+
+<a id="ctxscorekeeper--scorekeeperservice"></a>
+
+### `ctx.scorekeeper` — `ScorekeeperService`
+
+Scorekeeper (`ctx.scorekeeper`): session facts, the scoreboard, and the facts export.
+
+```ts cordis-catalog
+/**
+ * Fold one persisted session into its facts record.
+ * @param sessionId - the persisted session to read.
+ * @returns the four fact groups with the stored header's identity.
+ * @throws when the session cannot be read, or its goal or verification stream is malformed.
+ */
+async facts(sessionId: SessionId): Promise<SessionFactsRecord>
+
+/**
+ * Fold a scoreboard from persisted session logs, one row per model route,
+ * environment, isolation level, and held-out split. A session that cannot be
+ * read or folded is reported and the fold continues.
+ * @param filter - the sessions to fold and the group and held-out conditions a stamped session must meet.
+ * @returns the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.
+ */
+async leaderboard(filter: LeaderboardFilter = {}): Promise<ScoreboardBatch>
+
+/**
+ * Write one JSON line per session's facts record. A session that cannot be
+ * read or folded is reported and the export continues; the sink is closed
+ * exactly once when every session has been handled.
+ * @param request - sessions to export and the destination sink.
+ * @returns counts of sessions, written lines, and skips with reasons.
+ */
+async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
+```
+
+Types: [SessionId](core.md)
+
+Source: [`packages/improvement/scorekeeper/src/index.ts:165`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 
