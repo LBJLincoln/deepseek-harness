@@ -51,4 +51,4 @@ None; the fleet neither adds to nor changes any model request.
 - **The leaderboard is a fold of one fleet run** — cross-run comparison, paired designs across variants, and confidence intervals read the `environment/run` stamps and certificates from the session logs; this package folds only the reports it just produced.
 - **Sampling is by repetition count** — group sampling with early stop, per-cell budgets, and retry policies are the caller's until a policy plugin exists.
 - **Workspaces are never removed** — every `cell-*` directory stays under `workspaceRoot` for inspection; a caller that wants a clean root removes it.
-- **A cell error carries only code and message** — the thrown error's stack and cause stay in the process; a durable failure record per cell arrives with the `verification/run` event.
+- **A cell error carries only code and message** — the thrown error's stack and cause stay in the process, and a cell that failed before its run leaves no session; a cell that ran has every attempt as a `verification/run` event in its own session log, which is where a cross-run fold reads run evidence from.

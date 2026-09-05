@@ -51,4 +51,4 @@ None; the fleet neither adds to nor changes any model request.
 - **排行榜是一次 fleet 运行的折叠**——跨运行比较、跨变体的配对设计与置信区间要从会话日志读取 `environment/run` stamp 与证书；本包只折叠它刚刚产生的报告。
 - **采样以重复次数为准**——带提前停止的分组采样、按 cell 的预算与重试策略在策略插件出现之前属于调用方。
 - **工作区从不删除**——每个 `cell-*` 目录都留在 `workspaceRoot` 下供检查；想要干净根目录的调用方自行删除。
-- **cell 错误只携带代码与消息**——抛出错误的栈与 cause 留在进程内；按 cell 的持久失败记录随 `verification/run` 事件到来。
+- **cell 错误只携带代码与消息**——抛出错误的栈与 cause 留在进程内，在运行之前就失败的 cell 不留下会话；已运行的 cell 在自己的会话日志中以 `verification/run` 事件记录每次尝试，跨运行的折叠从那里读取运行证据。
