@@ -6,7 +6,7 @@ Status: proposed
 
 ## Problem
 
-一张证书只证明实现者够不到的那部分，而仓库里没有任何东西决定这一点。[`dsh-verification`](../../../../packages/verification/verification/README.md) 只为完全通过的运行提交 `verification/certificate`，并为其打上 `none`、`process` 或 `host` 之一的 `CertificateIsolation` 标记，但它自己的 Known Limitations 就点名了缺失的读取屏障：标准的 `run` 指令对日志的任何进程内消费方都可读，而拒绝实现者读取是一个尚不存在的插件的文件系统策略工作。
+一张证书只证明实现者够不到的那部分，而仓库里没有任何东西决定这一点。[`dsh-verification`](../../../../packages/verification/verification/README.md) 只为完全通过的运行提交 `verification/certificate`，并为其打上 `none`、`process` 或 `host` 之一的 `CertificateIsolation` 标记，但它自己的 Known Limitations 就点名了缺失的读取屏障：标准的 `run` 指令对日志的任何进程内消费方都可读，而拒绝实现者读取是一个尚不存在的插件的文件系统策略工作。[四目标工作流 note](2026-09-05-four-goal-workflows.md) 把这一要求表述为原则 P4，即读取屏障是文件系统与进程层面的权威而非承诺；本 note 是它的设计。
 
 实现者与检查共享同一个文件系统和同一个操作系统用户。`EnvironmentRunner.run()` 以 `meta.cwd = workspace` 创建实现者的 agent，随后在同一进程内以 `workdir: workspace` 通过 `ctx.shell` 执行每个检查（[`packages/improvement/environment-runner/src/index.ts`](../../../../packages/improvement/environment-runner/src/index.ts)）；它的 README 写明读取屏障是部署方的事。标准就在实现者自己的会话日志里，而 [`dsh-session-persistence-jsonl`](../../../../packages/session/session-persistence-jsonl/README.md) 把日志作为普通文件放在其配置的根目录下。[`dsh-credentials-local`](../../../../packages/credentials/credentials-local/README.md) 已经记录了这样做的代价：仅属主可读的权限位挡住的是其他操作系统用户而不是模型，因为工具进程以同一用户运行，而随附的文件策略约束的是修改而非读取。
 

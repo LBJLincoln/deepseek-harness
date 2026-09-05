@@ -59,7 +59,7 @@ Goal 1 —— 让任意 LLM 都成为最强 coding agent 的 harness。一场以
 |---|---|---|---|---|---|---|
 | 1. Model matrix intake | Scorekeeper | D | partial | `CapabilityMatrix` | 现有：llm、agent-default-model、agent-presets、bundle patch layer；新增：`EnvironmentRunRequest` 上的模型与 preset 覆盖 | 没有已注册适配器的路由会被排除，并在矩阵中记名。 |
 | 2. Suite selection | Scorekeeper | D | partial | `SuitePlan` | 现有：environments；新增：`EnvironmentStats`（按 policy 版本计算的 pass@k）、`LlmCallConfig` 上的 seed 与 topP | 一个空的划分会大声失败；留出环境永远不会进入训练或 mutation cell。 |
-| 3. Fleet run | Fleet Orchestrator + environment runner | D | partial | `EnvironmentRunStamp`、`VerificationRun`、`EnvironmentRunReport` | 现有：environment-runner、fleet、workflow、subagent provider、sandbox / E2B；新增：`verification/run` 会话事件（进行中）、预算策略插件 | 无法启动的 cell 会是一行带错误码的记录，而不是缺失的一行。 |
+| 3. Fleet run | Fleet Orchestrator + environment runner | D | partial | `EnvironmentRunStamp`、`VerificationRun`、`EnvironmentRunReport` | 现有：environment-runner、fleet、budget-policy、workflow、subagent provider、sandbox / E2B；新增：按 header 哈希 × 环境 × 重复序号幂等的 cell | 无法启动的 cell 会是一行带错误码的记录，而不是缺失的一行。 |
 | 4. Facts projection | Scorekeeper | STORE | proposed | `ScoreboardBatch` | 现有：trajectories、session-projection；新增：scorekeeper 的 `SessionFacts` 投影加排行榜存储 | 没有源事件的指标不算作一个字段。 |
 | 5. Diagnosis | Trajectory Analyst（跨模型） | DS | proposed | `SessionDiagnosis` | 现有：session-query、subagent `outputSchema`；新增：trajectory-analyst preset | 不存在的 evidence seq 会导致诊断被拒绝；environment-defect 标签只会打开一个争议，不会淘汰任何东西。 |
 | 6. Parent selection | Archive sampler | D | proposed | `ParentSample` | 现有：storage；新增：`dsh-archive`（`ctx.storage` 之上的 `HarnessVariant` 记录） | 空存档会以 master 作为第 0 代播种。 |
@@ -89,7 +89,7 @@ Goal 2 —— 通过该 harness 实现的最佳 agentic 软件构建。先把已
 | 3. Spec freeze | Attributed human signer（客户方产品负责人与项目对接人） | HUMAN | partial | `SignoffRecord` | 现有：approval seam、session persistence；新增：`signoff/recorded` 事件、经由 web host 的 IdP principal | 没有它，任何 standard 都不会被编译。 |
 | 4. Standards compiled and hidden | Validator | DS | proposed | `CompletionStandard` | 现有：verification、fs policy、tools guard；新增：validator-root fs-policy 插件、人类确认型检查种类 | 没有检查项的 standard 会被拒绝；由组合了日志读取工具的会话签发的证书会被不变式拒绝。 |
 | 5. Program ledger | Program service | STORE | proposed | `ProgramLedger`、`Plan` | 现有：goal、plan mode；新增：`dsh-program` seam、可日志化恢复的 workflow engine provider | 没有每个 goal 都有 ledger 条目的 program，无法启动任何 department。 |
-| 6. Departments | Implementer departments（顶层 agent） | S | partial | `Handoff` | 现有：tool-ralph、agent-presets、sandbox、user-approval、tools guard；新增：可拒绝的 monitor、headless 审批应答器、预算策略插件 | 被拦截的 handoff 会带着理由暂停该 goal；预算突破会持久地阻塞该 goal。 |
+| 6. Departments | Implementer departments（顶层 agent） | S | partial | `Handoff` | 现有：tool-ralph、agent-presets、sandbox、user-approval、tools guard、budget-policy；新增：可拒绝的 monitor、headless 审批应答器 | 被拦截的 handoff 会带着理由暂停该 goal；预算突破会持久地阻塞该 goal。 |
 | 7. Validation | Environment runner | GATE | partial | `VerificationRun`、`EnvironmentRunReport` | 现有：environment-runner、verification；新增：`verification/run` 事件、证书上的 `treeHash` 与 `checkHash`、派生出的隔离证据 | 失败的运行会返回一条 directive；放宽安全或合规检查需要客户方签字。 |
 | 8. Integration goal | Integrator | DS | proposed | `IntegrationReport` | 现有：shell、hooks、run-gates | 红色的检查套件会返回给对应的 department。 |
 | 9. Review council | Attributed human signer（lab 评审人与客户方评审人）+ Review council | S | proposed | `ReviewVerdict` | 现有：subagent `outputSchema`；新增：oversight seam 评审委员会 | 阻断性发现会返回给第 6 阶段。 |
@@ -189,7 +189,7 @@ Knowledge ledger（第 9 阶段）保留每一个 `id@digest`，连同 lineage�
 - **`AuditReport`** —— 自动改动了什么、谁批准的、monitor 标记了什么。字段：`period`（string）；`automatedChanges[]`（`{noteRef, sessions[]}`）；`approvals[]`（`PromotionDecision`）；`anomalies[]`（string）；`spendEur`（number）。
 - **`RunBatch`** —— 编排器的扇出记录。字段：`plan`（`SuitePlan` 或 `ExperimentPlan`）；`agentCap`（int）；`runs[]`（`EnvironmentRunReport`）；`spendEur`（number）。
 - **`EnvironmentRunStamp`** —— 已实现：runner 在运行首轮之前追加的 `environment/run` 事件；会话与其环境之间的持久链接。字段：`environmentId`（`EnvironmentId`）；`environmentKind`（string）；`heldOut`（boolean，除非要求保留，否则导出会扣下这一行）；`promptSha256`（hex）；`checksSha256`（hex）；`fixtureSha256?`（hex，任务没有 fixture 时缺席）；`contentSha256`（hex，上述三个哈希之上的哈希，即去污染的键）；`repetition`（int，从零开始，即分组采样的下标）；`group?`（string，批次标识）；`model`（`{provider, model}`）；`isolation`（`CertificateIsolation`）。`seed`、`policyVersion`、`harnessVariant` 与 `reasoningEffort` 是该事件尚未携带的拟议扩展字段。
-- **`VerificationRun`** —— proposed：一个记录每次执行运行（无论通过与否）的纯日志事件，使尝试次数与不稳定性能从日志重放；今天只有完全通过的运行才会留下一份持久的 `VerificationCertificate`（`standard`、`goalId`、`isolation`、`results[]`、`recordedAt`），失败的运行则不留任何记录。在证书自身字段之外的拟议字段：`attempt`（int）；`exec[]`（每个检查项一份：`{argv, cwd, exitCode, stdoutSha256, durationMs}`）；`treeHash`（sha，该次运行覆盖到的 workspace tree）；把 `isolation` 表述为 `IsolationEvidence`（从 `sandbox/mode` 与配置派生，绝不是调用方传入的参数，取代证书原本朴素的 `CertificateIsolation`）；`executor`（`runner` / `agent-reported`）。
+- **`VerificationRun`** —— 已实现为 `dsh-verification` 在任何证书之前、为标准的每一次执行运行（无论通过与否）追加的 `verification/run` 事件：`standard`（`StandardRef`，id 与修订号）；`attempt`（int，按标准 id 连续编号）；`isolation`（`CertificateIsolation`）；`executor`（`runner` / `agent-reported`）；`results[]`（`CheckResult`，每个活动检查一条）；`treeHash?`（该次运行覆盖到的 workspace tree 的十六进制摘要，由环境运行器在恢复夹具之后提供）；`recordedAt`（epoch 毫秒）。没有同一标准修订号的完全通过运行在前的证书，会被包级不变量拒绝。尚未携带的拟议扩展：`exec[]`（每个检查项一份：`{argv, cwd, exitCode, stdoutSha256, durationMs}`），以及把 `isolation` 表述为从 `sandbox/mode` 与配置派生、而非调用方传入的 `IsolationEvidence`。
 - **`IsolationEvidence`** —— 支撑一份证书隔离级别声明背后的、带 brand 的事实。字段：`level`（`none` / `process` / `host`）；`sandboxMode`（string，来自 `sandbox/mode` 事件）；`checksRunOnSeparateHost`（boolean，一个配置标记）。
 - **`ProgramLedger`** —— 把一个 program 中每个 goal 映射到其会话、workspace、preset、隔离级别、预算与状态的持久化 `program/*` 事件。字段：`programId`（string）；`goals[]`（`{goalId, sessionId, workspace, preset, isolation, budgetEur, status}`）；`integrationGoal`（`GoalId`）；`updatedAt`（epoch ms）。
 - **`ParentSample`** —— 工程师要 mutate 哪个已存档的变体，以及它是怎么被抽中的。字段：`variantId`（string）；`weights`（`{quality, novelty, children}`）；`island`（string，环境种类）；`rngSeed`（int）。
@@ -278,12 +278,12 @@ Training and data（10 个字段，全部为 D）：`content_hash`、`dedupe_clu
 
 ## Rollout
 
-1. **Blocking** —— `verification/run` 事件，以及为追加它而对 runner 做的改动。`environment/run` stamp 与追加它的 runner 都已实现；这一项是剩下的另一半：为每一次执行的检查（无论通过与否）留下记录，使尝试次数与不稳定性能从日志重放，也让证书能引用自己的运行。它解锁了 W1 第 4 阶段的折叠、W2 第 7 阶段的失败运行记录，以及 W3 第 1 到 5 阶段的逐次尝试证据；`@deepseek-ai/dsh-fleet`（`ctx.fleet`）已经能仅凭证书运行并折叠出一份排行榜，等这一项落地后，该排行榜会获得逐项检查运行的证据。
+1. **已落地** —— `environment/run` stamp、`verification/run` 事件，以及同时追加两者的 runner：标准的每一次执行运行（无论通过与否）都连同其执行者与 workspace tree 哈希被持久记录，证书需要其修订号的一次完全通过运行，轨迹携带尝试次数，`@deepseek-ai/dsh-fleet`（`ctx.fleet`）运行各 cell 并按路由与环境折叠出排行榜。这一项剩下的是基于运行事件的 `EnvironmentStats` 折叠（按策略版本的 pass@k），供 W1 第 2 阶段与 W3 第 2 阶段读取。
 2. **Blocking** —— 作为文件系统与进程层面权威的读取屏障。一个 validator-root fs-policy 插件、单调的工具 guard、不含日志读取工具的实现者 preset，以及证书上的一条不变式；在此之前，每一份证书衡量的都只是实现者能看到的东西。
 3. **Blocking** —— 可归因的决策，以及被钉选的数据用途条款。`signoff/recorded`、审批上带参数摘要的 `decidedBy`、会话创建时的 `dataUse/terms`、随包发布的脱敏规则，以及一个记录规则命中次数的 curator；没有它们，任何客户方审计员都无法核实一个关口，任何文本记录也不得成为训练数据。
 4. **Major** —— 按内容寻址的身份：组件与 skill 摘要，以及 composition manifest 事件。Lineage、按版本的排行榜、动态包的隔离检验，以及 manifest 与 ledger 之间的一致性不变式，全都以 `id@digest` 为键。
 5. **Major** —— 作为会话投影的 scorekeeper，以及存档 ledger。`SessionFacts` 与 goal 及 verification 投影并列折叠；`HarnessVariant` 记录建立在 storage 之上，带 parent、operator、evaluations 与 status。
-6. **Major** —— 预算策略插件。来自配置的 token、墙钟时间与成本上限，在 `agent/pre-step` 上折叠，一旦突破就持久地阻塞该 goal；这是目前每一次扇出都缺少的失败路径。
+6. **已落地** —— 预算策略插件（`@deepseek-ai/dsh-budget-policy`）：来自配置的 token、墙钟时间与成本上限，在 `agent/pre-step` 上从会话日志折叠，一条 `budget/breach` 事件，以及任何 round driver 都不会恢复的持久 goal 阻塞；由于步骤从未开启，模型什么也看不到。剩下的是从 fleet 计划接入按 cell 的上限。
 7. **Major** —— experiment 插件：阶梯式评估、配对重复、bootstrap 区间、成本。Cell 由规则派生，计划被冻结并记录在案；这是花费决策唯一的落脚点。
 8. **Major** —— 作为插件的顶层 preset 结构化输出。把结构化输出运行时接到任意 preset 的 agent context 上；Intake、Program service 与 Trajectory Analyst 因此获得带日志化拒绝路径的强制 schema。
 9. **Major** —— trainer operator、model registry、model lineage、environment factory 与准入。让 W3 端到端可用，包括从 lineage 记录生成的 Article 53 文档。
