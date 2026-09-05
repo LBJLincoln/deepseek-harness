@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -254,6 +254,22 @@ class StubSessions extends Service {
   }
 }
 
+class StubReadBarrier extends Service {
+  static current: StubReadBarrier
+  root = ''
+  readonly reserved: string[] = []
+  constructor(ctx: Context) {
+    super(ctx, 'readBarrier')
+    StubReadBarrier.current = this
+  }
+  reserve(agent: Agent): string {
+    this.reserved.push(agent.id)
+    const directory = join(this.root, 'runs', agent.id)
+    mkdirSync(directory, { recursive: true })
+    return directory
+  }
+}
+
 const MARKER = 'test -f MARKER'
 
 function environment(rest: Partial<EnvironmentDefinition> = {}): EnvironmentDefinition {
@@ -276,11 +292,14 @@ interface Scenario {
   config?: Partial<Config>
   definition?: EnvironmentDefinition
   onTurn?: (turn: number, session: FakeSession) => void
+  /** Mount the read barrier so the run reserves a directory; its prefix names the barrier root. */
+  barrierPrefix?: string
 }
 
 interface Harness {
   ctx: Context
   workspace: string
+  barrierRoot: string | undefined
   run: (extra?: object) => Promise<EnvironmentRunReport>
 }
 
@@ -289,13 +308,19 @@ async function harness(scenario: Scenario = {}): Promise<Harness> {
   for (const stub of [StubEnvironments, StubDefaultModel, StubAgents, StubGoals, StubStandards, StubShell, StubSessions]) {
     await ctx.plugin(stub)
   }
+  let barrierRoot: string | undefined
+  if (scenario.barrierPrefix !== undefined) {
+    await ctx.plugin(StubReadBarrier)
+    barrierRoot = await mkdtemp(join(tmpdir(), scenario.barrierPrefix))
+    StubReadBarrier.current.root = barrierRoot
+  }
   await ctx.plugin(EnvironmentRunner, { isolation: 'process', ...scenario.config })
   const definition = scenario.definition ?? environment()
   StubEnvironments.current.definitions.set(definition.id, definition)
   StubAgents.current.agent = new FakeAgent('environment-test', scenario.onTurn ?? assistantTurns)
   const workspace = await mkdtemp(join(tmpdir(), 'environment-runner-'))
   const run = (extra: object = {}) => ctx.environmentRuns.run({ environment: definition.id, workspace, ...extra })
-  return { ctx, workspace, run }
+  return { ctx, workspace, barrierRoot, run }
 }
 
 describe('EnvironmentRunner', () => {
@@ -339,6 +364,49 @@ describe('EnvironmentRunner', () => {
     expect(StubStandards.current.directives).toEqual([])
     expect(StubShell.current.requests).toEqual([{ command: MARKER, workdir: workspace, timeoutMs: undefined, signal: undefined }])
     expect(StubSessions.current.flushed).toBe(1)
+  })
+
+  it('reserves the run, writes the standard and one script per check, and runs the script', async () => {
+    const { run, barrierRoot, workspace } = await harness({ barrierPrefix: 'environment-runner-barrier-' })
+    const reservation = join(barrierRoot ?? '', 'runs', 'environment-test')
+    const script = join(reservation, 'checks', 'marker')
+    StubShell.current.script(`. ${script}`, shellResult({ stdout: 'present\n' }))
+    const report = await run()
+
+    expect(report.certified).toBe(true)
+    expect(StubReadBarrier.current.reserved).toEqual(['environment-test'])
+    expect(await readFile(script, 'utf8')).toBe(`${MARKER}\n`)
+    expect(JSON.parse(await readFile(join(reservation, 'standard.json'), 'utf8')))
+      .toMatchObject({ id: 'standard-1', revision: 1, checks: [{ id: 'marker', run: MARKER }] })
+    // The command line names the script, never the instruction it carries.
+    expect(StubShell.current.requests).toEqual([{ command: `. ${script}`, workdir: workspace, timeoutMs: undefined, signal: undefined }])
+  })
+
+  it('copies a held-out environment fixture into the reservation', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-runner-heldout-'))
+    await writeFile(join(fixture, 'expected.txt'), 'reference\n')
+    const { run, barrierRoot } = await harness({
+      barrierPrefix: 'environment-runner-heldout-barrier-',
+      definition: environment({ heldOut: true, task: { prompt: 'Create a file named MARKER in the workspace.', fixture } }),
+    })
+    const script = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker')
+    StubShell.current.script(`. ${script}`, shellResult())
+    await run()
+    expect(await readFile(join(barrierRoot ?? '', 'runs', 'environment-test', 'fixture', 'expected.txt'), 'utf8')).toBe('reference\n')
+  })
+
+  it('refuses a check id that cannot name a reserved script file', async () => {
+    const { run } = await harness({
+      barrierPrefix: 'environment-runner-badid-',
+      definition: environment({ checks: [{ id: CheckId('../escape'), outcome: 'escapes', run: MARKER }] }),
+    })
+    await expect(run()).rejects.toThrow(new EnvironmentRunError('check "../escape" cannot name a reserved script file', 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'))
+  })
+
+  it('refuses a reservation whose path the check command line cannot carry unquoted', async () => {
+    const { run, barrierRoot } = await harness({ barrierPrefix: 'environment runner spaced ' })
+    const script = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker')
+    await expect(run()).rejects.toThrow(new EnvironmentRunError(`reserved check script "${script}" contains characters the check command line cannot carry unquoted`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'))
   })
 
   it('issues a directive, sends the validation follow-up as a user turn, and certifies on the second attempt', async () => {

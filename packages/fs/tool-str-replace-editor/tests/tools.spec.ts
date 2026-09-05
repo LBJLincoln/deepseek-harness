@@ -568,6 +568,26 @@ describe('tool-str-replace-editor', () => {
     expect(text(insert)).toContain('backend write failed')
   })
 
+  it('returns a read policy denial from view without disclosing the path', async () => {
+    const { ctx, root, owner } = await setup()
+    const path = join(root, 'standard.json')
+    await writeFile(path, '{}\n')
+    ctx.on('fs/read-intent', () => Promise.resolve({ code: 'FS_READ_BARRIER_DENIED' as const, message: 'read denied: policy owns it' }))
+    const result = await call(ctx, owner, { command: 'view', path })
+    expect(result.isError).toBe(true)
+    expect(text(result)).toBe('Error: read denied: policy owns it')
+  })
+
+  it('views normally when every read policy delegates', async () => {
+    const { ctx, root, owner } = await setup()
+    const path = join(root, 'plain.txt')
+    await writeFile(path, 'kept\n')
+    ctx.on('fs/read-intent', async (_target, _actor, next) => await next())
+    const result = await call(ctx, owner, { command: 'view', path })
+    expect(result.isError).toBe(false)
+    expect(text(result)).toContain('kept')
+  })
+
   it('rejects invalid plugin config', () => {
     expect(() => {
       ToolStrReplaceEditor.apply(new Context(), { maxOutputChars: 0 })

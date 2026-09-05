@@ -11,7 +11,7 @@
  */
 
 import { createHash, randomUUID } from 'node:crypto'
-import { cp, readdir, readFile, stat } from 'node:fs/promises'
+import { cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { isAbsolute, join, relative, sep } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
@@ -24,6 +24,7 @@ import type {} from '@deepseek-ai/dsh-goal'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 import { createUserMessage, HarnessError } from '@deepseek-ai/dsh-llm'
 import type { TokenUsage } from '@deepseek-ai/dsh-llm'
+import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellRunResult } from '@deepseek-ai/dsh-shell'
@@ -51,6 +52,7 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT'
   | 'ENVIRONMENT_RUN_INVALID_WORKSPACE'
   | 'ENVIRONMENT_RUN_INVALID_FIXTURE'
+  | 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'
   | 'ENVIRONMENT_RUN_GOAL_REPLACED'
   | 'ENVIRONMENT_RUN_STANDARD_LOST'
 
@@ -105,6 +107,43 @@ export function resolveConfig(config: Config): ResolvedConfig {
   }
 }
 
+/**
+ * Characters a reserved check script's path may contain. The script is sourced
+ * as the second word of the check command line, so the path must need no shell
+ * quoting: quoting is dialect-specific and the runner does not know the composed
+ * shell's dialect.
+ */
+const UNQUOTED_COMMAND_WORD = /^[A-Za-z0-9_@%+=:,./\\-]+$/
+
+/** Subdirectory of a reservation holding one script per check. */
+const CHECKS_DIR = 'checks'
+/** Reservation file holding the standard the current attempt measures. */
+const STANDARD_FILE = 'standard.json'
+/** Reservation subdirectory holding a held-out environment's fixture. */
+const FIXTURE_DIR = 'fixture'
+
+/** A check id usable as one path segment of its reserved script. */
+const SAFE_CHECK_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
+
+/**
+ * Absolute path of one check's reserved script, refusing a check id that is not
+ * a single path segment or a path the check command line cannot carry unquoted.
+ * @param runDirectory - the reservation the barrier minted for this run.
+ * @param checkId - the check's id, used verbatim as the script's file name.
+ * @returns the absolute script path.
+ * @throws {@link EnvironmentRunError} when the id or the resulting path is unusable.
+ */
+function scriptPath(runDirectory: string, checkId: string): string {
+  if (!SAFE_CHECK_SEGMENT.test(checkId)) {
+    throw new EnvironmentRunError(`check "${checkId}" cannot name a reserved script file`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT')
+  }
+  const script = join(runDirectory, CHECKS_DIR, checkId)
+  if (!UNQUOTED_COMMAND_WORD.test(script)) {
+    throw new EnvironmentRunError(`reserved check script "${script}" contains characters the check command line cannot carry unquoted`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT')
+  }
+  return script
+}
+
 /** Directory test that treats a missing or unreadable path as no directory. */
 async function isDirectory(path: string): Promise<boolean> {
   try {
@@ -153,6 +192,28 @@ async function prepareWorkspace(workspace: string, fixture: string | undefined):
 async function restoreFixture(workspace: string, fixture: string | undefined): Promise<string> {
   if (fixture !== undefined) await cp(fixture, workspace, { recursive: true })
   return hashDirectory(workspace)
+}
+
+/**
+ * Write the attempt's standard snapshot and one script per active check into
+ * the reservation, so what the checks execute lives where the implementer
+ * cannot read it.
+ * @param runDirectory - the reservation, absent when no barrier is composed.
+ * @param standard - the standard this attempt measures.
+ * @returns the script path per check id; empty without a reservation.
+ * @throws {@link EnvironmentRunError} when a check id cannot name a script file.
+ */
+async function materializeChecks(runDirectory: string | undefined, standard: StandardView): Promise<Map<string, string>> {
+  const scripts = new Map<string, string>()
+  if (runDirectory === undefined) return scripts
+  await mkdir(join(runDirectory, CHECKS_DIR), { recursive: true, mode: 0o700 })
+  await writeFile(join(runDirectory, STANDARD_FILE), `${JSON.stringify(standard, null, 2)}\n`, { mode: 0o600 })
+  for (const check of standard.checks) {
+    const script = scriptPath(runDirectory, check.id)
+    await writeFile(script, `${check.run}\n`, { mode: 0o600 })
+    scripts.set(check.id, script)
+  }
+  return scripts
 }
 
 /** Whether one executed check passed: a zero exit that neither timed out nor was aborted. */
@@ -290,6 +351,7 @@ export class EnvironmentRunner extends Service {
   ): Promise<EnvironmentRunReport> {
     const { goals, completionStandards, sessions } = this.ctx
     await agent.whenIdle()
+    const runDirectory = await this.reserve(agent, definition)
     agent.session.append('environment/run', stamp)
     const goal = goals.create(agent, {
       objective: definition.task.prompt,
@@ -306,7 +368,8 @@ export class EnvironmentRunner extends Service {
         await agent.whenIdle()
         const standard = this.currentStandard(agent, goal.id)
         const treeHash = await restoreFixture(request.workspace, definition.task.fixture)
-        const results = await this.execute(standard.checks, request)
+        const scripts = await materializeChecks(runDirectory, standard)
+        const results = await this.execute(standard.checks, request, scripts)
         attempts.push({ attempt, results, treeHash })
         const ref = { id: standard.id, revision: standard.revision }
         const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
@@ -350,12 +413,42 @@ export class EnvironmentRunner extends Service {
     return standard
   }
 
-  /** Run every active check in order through the shell executor rooted at the workspace. */
-  private async execute(checks: readonly StandardCheck[], request: EnvironmentRunRequest): Promise<CheckResult[]> {
+  /**
+   * Reserve the run's validator-owned directory and stock what the checks read
+   * from it. Without a composed barrier there is no reservation and the checks
+   * run their instructions inline, exactly as the run's declared isolation says.
+   * @param agent - the implementer agent this run drives.
+   * @param definition - the environment being run, supplying the held-out fixture.
+   * @returns the reservation, or `undefined` when no barrier is composed.
+   */
+  private async reserve(agent: Agent, definition: EnvironmentDefinition): Promise<string | undefined> {
+    const barrier = this.ctx.get('readBarrier')
+    if (barrier === undefined) return undefined
+    const runDirectory = barrier.reserve(agent)
+    // A held-out environment's fixture is evaluation material: the copy under
+    // the reservation is the one an inspecting validator reads, never the
+    // workspace overlay the implementer works in.
+    if (definition.heldOut && definition.task.fixture !== undefined) {
+      await cp(definition.task.fixture, join(runDirectory, FIXTURE_DIR), { recursive: true })
+    }
+    return runDirectory
+  }
+
+  /**
+   * Run every active check in order through the shell executor rooted at the
+   * workspace. A reserved check runs its script; an unreserved one runs its
+   * instruction inline.
+   */
+  private async execute(
+    checks: readonly StandardCheck[],
+    request: EnvironmentRunRequest,
+    scripts: ReadonlyMap<string, string>,
+  ): Promise<CheckResult[]> {
     const results: CheckResult[] = []
     for (const check of checks) {
+      const script = scripts.get(check.id)
       const spec = this.ctx.shell.resolve({
-        command: check.run,
+        command: script === undefined ? check.run : `. ${script}`,
         workdir: request.workspace,
         timeoutMs: this.resolved.checkTimeoutMs,
         signal: request.signal,

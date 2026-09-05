@@ -366,6 +366,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Owns one executable standard per goal, records certificates from fully passing runs, and denies uncertified goal completion inside the goal operation.',
   },
   {
+    key: 'readBarrier',
+    pkg: 'read-barrier',
+    title: 'Read barrier',
+    mode: 'core',
+    consumers: ['fs-read-barrier', 'environment-runner'],
+    note: 'Owns the validator-owned directory tree, mints one run reservation per implementer session, and decides which directories that session may not read.',
+  },
+  {
     key: 'components',
     pkg: 'components',
     title: 'Component registry',

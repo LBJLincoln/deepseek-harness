@@ -180,12 +180,26 @@ export type FsErrorCode =
   | 'FS_TOO_LARGE'
   | 'FS_PERMISSION_DENIED'
   | 'FS_SANDBOX_DENIED'
+  | 'FS_READ_BARRIER_DENIED'
   | 'FS_IO_ERROR'
   | 'FS_STALE_VERSION'
   | 'FS_NOT_OBSERVED'
   | 'FS_AMBIGUOUS_EDIT'
   | 'FS_EDIT_NOT_FOUND'
   | 'FS_ABORTED'
+
+/**
+ * A read policy's refusal of one resolved target, returned from the
+ * `fs/read-intent` waterfall. The executor raises it as an {@link FsError}
+ * before any metadata round-trip, so the message is the whole model-facing
+ * account of the refusal and the code routes it without parsing text.
+ */
+export interface FsReadDenial {
+  /** Stable classification of the refusal. */
+  code: FsErrorCode
+  /** Complete model-facing reason, owned by the deciding policy. */
+  message: string
+}
 
 /**
  * Typed filesystem error. Extends {@link HarnessError} so it carries a stable

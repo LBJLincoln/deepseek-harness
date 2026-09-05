@@ -43,6 +43,8 @@ const credentialsConfigPath = fileURLToPath(new URL('../credentials.cordis.snaps
 // never dialed either way, because a supplied-but-unusable key fails credential
 // resolution exactly where an absent one does.
 const invalidCredentialScenarioDir = join(snapshotsDir, 'invalid-credential')
+const readBarrierScenarioDir = join(snapshotsDir, 'read-barrier-denied')
+const readBarrierConfigPath = fileURLToPath(new URL('../read-barrier.cordis.snapshot.yml', import.meta.url))
 const ralphScenarioDir = join(snapshotsDir, 'ralph-loop')
 const ralphConfigPath = fileURLToPath(new URL('../ralph.cordis.snapshot.yml', import.meta.url))
 const settlementScenarioDir = join(snapshotsDir, 'subagent-settlement')
@@ -697,6 +699,41 @@ describe('headless stream-json snapshots', () => {
 
     expect(result.stderr).toBe('')
     const normalized = normalizeGoalStream(result.stdout, runCwd)
+    if (refreshing) await writeFile(streamExpected, normalized)
+    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins the read-barrier denial the model sees for a validator-owned path', async () => {
+    const prompt = await scenarioPrompt(readBarrierScenarioDir, 'read-barrier-denied')
+    const streamExpected = join(readBarrierScenarioDir, 'stream-json.expected.jsonl')
+    let runCwd = ''
+    const result = await runLoaderSmoke({
+      label: 'read-barrier denial headless stream-json snapshot',
+      tempDirPrefix: 'headless-snapshot-read-barrier-',
+      binScript,
+      libBinScript: binScript,
+      configPath: readBarrierConfigPath,
+      binArgs: [readBarrierConfigPath, prompt],
+      tsconfigPath,
+      env: {
+        DSH_SNAPSHOT: 'replay',
+        DSH_SNAPSHOT_FILE: join(readBarrierScenarioDir, 'session.jsonl'),
+        DSH_SNAPSHOT_OVERRIDE: join(readBarrierScenarioDir, 'replay.override.json'),
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      prepare: (cwd) => { runCwd = cwd },
+      inspect: async (cwd) => {
+        const logs = await persistedLogs(cwd)
+        expect(logs).toHaveLength(1)
+        const records = parseJsonl(logs[0]?.content ?? '')
+        const denials = records.filter(record => record.type === 'read-barrier/denied')
+        expect(denials).toHaveLength(1)
+        expect(denials[0]?.data).toMatchObject({ version: 1, role: 'implementer', capability: 'fs' })
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
     if (refreshing) await writeFile(streamExpected, normalized)
     expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)

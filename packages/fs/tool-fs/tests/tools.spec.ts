@@ -367,6 +367,35 @@ describe('read tool', () => {
   })
 })
 
+describe('read policy dispatch (fs/read-intent)', () => {
+  it('returns the policy denial before any metadata round-trip', async () => {
+    const { ctx, fs } = await setup()
+    fs.files.set('key:secret.txt', 'hidden')
+    const stat = vi.spyOn(fs, 'stat')
+    ctx.on('fs/read-intent', () => Promise.resolve({ code: 'FS_READ_BARRIER_DENIED' as const, message: 'read denied: policy owns it' }))
+    const result = await call(ctx, 'read', { file_path: 'secret.txt' })
+    expect(result.isError).toBe(true)
+    expect(result.error).toMatchObject({ info: { code: 'FS_READ_BARRIER_DENIED', name: 'FsError' } })
+    // The policy's message reaches the model whole, with no appended remedy.
+    expect(text(result)).toBe('Error: read denied: policy owns it')
+    // No presence or absence is disclosed: the denial precedes the stat.
+    expect(stat).not.toHaveBeenCalled()
+  })
+
+  it('reads normally when every listener delegates', async () => {
+    const { ctx, fs } = await setup()
+    fs.files.set('key:a.txt', 'plain')
+    const delegated = vi.fn()
+    ctx.on('fs/read-intent', async (_target, _actor, next) => {
+      delegated()
+      return await next()
+    })
+    const result = await call(ctx, 'read', { file_path: 'a.txt' })
+    expect(result.isError).toBe(false)
+    expect(delegated).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('formatReadOutput footer variants', () => {
   const base: FileReadOutcome = { offset: 1, lines: [{ number: 1, text: 'x' }], totalLines: 1 }
 

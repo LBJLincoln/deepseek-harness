@@ -221,6 +221,9 @@ async function viewPath(
   exec: ToolRunContext,
 ): Promise<string> {
   const target = await resolveTarget(ctx, path, exec.signal)
+  // Before the stat, so a refused target discloses neither presence nor absence.
+  const denial = await ctx.waterfall('fs/read-intent', target, exec, () => undefined)
+  if (denial !== undefined) throw new FsError(denial.message, denial.code)
   const info = await statExisting(ctx, target, 'view', exec)
   if (info.type === 'directory') {
     if (viewRange !== undefined) {

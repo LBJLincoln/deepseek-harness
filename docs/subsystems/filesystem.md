@@ -180,9 +180,9 @@ interface FsEditOutcome {
 
 ## The fs policy events (provider contract vocabulary)
 
-`dsh-fs` owns three events the tool dispatches and the policy plugin listens for, so the emitter (`dsh-tool-fs`) and the listener (`dsh-fs-observation-policy`) share a vocabulary without the emitter depending on the policy plugin. They carry only `dsh-fs` vocabulary plus an opaque `object` actor — no model-facing concepts and no agent/session owner structure.
+`dsh-fs` owns four events the tool dispatches and the policy plugins listen for, so the emitter (`dsh-tool-fs`) and the listeners (`dsh-fs-observation-policy`, `dsh-fs-read-barrier`) share a vocabulary without the emitter depending on either policy plugin. They carry only `dsh-fs` vocabulary plus an opaque `object` actor — no model-facing concepts and no agent/session owner structure.
 
-`fs/write-intent` and `fs/edit-intent` are **single-slot decision waterfalls**: the tool dispatches each with a default thunk returning `undefined` (the bare provider), and a listener fully decides without calling `next()`. The slot is first-wins by registration order — the policy plugin owning it is a deployment convention, not an enforced invariant. `fs/observed` is a fire-and-forget recording event carrying an `FsObservation`: present at a version or confirmed absent. It is dispatched with a plain `ctx.emit`; its listener MUST be synchronous and side-effect-only, because the tool does NOT guard the emit — a throwing listener can replace a read error or surface as the tool's `isError` result after a mutation already succeeded. The generated [cordis surface](#cordis-surface) below shows the exact signatures.
+`fs/write-intent` and `fs/edit-intent` are **single-slot decision waterfalls**: the tool dispatches each with a default thunk returning `undefined` (the bare provider), and a listener fully decides without calling `next()`. The slot is first-wins by registration order — the policy plugin owning it is a deployment convention, not an enforced invariant. `fs/observed` is a fire-and-forget recording event carrying an `FsObservation`: present at a version or confirmed absent. It is dispatched with a plain `ctx.emit`; its listener MUST be synchronous and side-effect-only, because the tool does NOT guard the emit — a throwing listener can replace a read error or surface as the tool's `isError` result after a mutation already succeeded. `fs/read-intent` is a **delegating waterfall**: it returns an `FsReadDenial` or `undefined`, a listener that does not refuse must call `next()`, and the first returned denial ends the read, so several read policies can decide in turn. The generated [cordis surface](#cordis-surface) below shows the exact signatures.
 
 ```ts type-equiv
 /**
@@ -216,6 +216,25 @@ interface FsObservationActor {
     /** The session that owns observed-file state, used as an opaque key. */
     session?: object
   }
+}
+```
+
+## Read denial (policy plugin)
+
+A read executor dispatches `fs/read-intent` before its metadata probe and raises the first returned denial as an `FsError` carrying that code and message. The event delegates, unlike the two single-slot mutation intents, so several read policies decide in turn and a listener that does not refuse must call `next()`.
+
+```ts type-equiv
+/**
+ * A read policy's refusal of one resolved target, returned from the
+ * `fs/read-intent` waterfall. The executor raises it as an {@link FsError}
+ * before any metadata round-trip, so the message is the whole model-facing
+ * account of the refusal and the code routes it without parsing text.
+ */
+interface FsReadDenial {
+  /** Stable classification of the refusal. */
+  code: FsErrorCode
+  /** Complete model-facing reason, owned by the deciding policy. */
+  message: string
 }
 ```
 
@@ -259,6 +278,7 @@ type FsErrorCode =
   | 'FS_TOO_LARGE'
   | 'FS_PERMISSION_DENIED'
   | 'FS_SANDBOX_DENIED'
+  | 'FS_READ_BARRIER_DENIED'
   | 'FS_IO_ERROR'
   | 'FS_STALE_VERSION'
   | 'FS_NOT_OBSERVED'
@@ -267,7 +287,7 @@ type FsErrorCode =
   | 'FS_ABORTED'
 ```
 
-`FS_NOT_DIRECTORY`, `FS_PERMISSION_DENIED`, and `FS_IO_ERROR` are used by directory listing to distinguish an existing non-directory target, a denied listing, and an unexpected backend I/O failure. `FS_SANDBOX_DENIED` is a POLICY refusal from a sandbox-enforcing backend (`dsh-fs-sandbox`) — the mode fence denied a write/edit — distinct from `FS_PERMISSION_DENIED` (the host kernel refusing). `FS_NOT_OBSERVED` means the policy plugin has no prior-observation record for this owner (or a `createIfAbsent` hit an existing file). `FS_NOT_FOUND` also represents an edit rejected from confirmed absence. `FS_STALE_VERSION` means the backend version no longer matches the observed one (or the provider itself receives an edit for a missing target). Freshness authorization has no partial/full distinction, so there is no `FS_PARTIAL_OBSERVATION`.
+`FS_NOT_DIRECTORY`, `FS_PERMISSION_DENIED`, and `FS_IO_ERROR` are used by directory listing to distinguish an existing non-directory target, a denied listing, and an unexpected backend I/O failure. `FS_SANDBOX_DENIED` is a POLICY refusal from a sandbox-enforcing backend (`dsh-fs-sandbox`) — the mode fence denied a write/edit — distinct from `FS_PERMISSION_DENIED` (the host kernel refusing). `FS_READ_BARRIER_DENIED` is the read-side policy refusal a listener returns from `fs/read-intent` (`dsh-fs-read-barrier` returns it for a directory the read barrier denies the calling session's role), raised before any metadata probe so it reveals nothing about the target. `FS_NOT_OBSERVED` means the policy plugin has no prior-observation record for this owner (or a `createIfAbsent` hit an existing file). `FS_NOT_FOUND` also represents an edit rejected from confirmed absence. `FS_STALE_VERSION` means the backend version no longer matches the observed one (or the provider itself receives an edit for a missing target). Freshness authorization has no partial/full distinction, so there is no `FS_PARTIAL_OBSERVATION`.
 
 ## No timeouts on file IO
 
@@ -427,7 +447,7 @@ abstract editText( target: FsTarget, edit: FsEditRequest, expected?: { version: 
 
 Types: [SandboxExecutionPolicy](sandbox.md)
 
-Source: [`packages/fs/fs/src/index.ts:86`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:99`](../../packages/fs/fs/src/index.ts)
 
 <a id="fs-events"></a>
 
@@ -450,7 +470,7 @@ Single-slot decision for the next FileSystem.editText. Calling `next()` yields a
 'fs/edit-intent'(target: FsTarget, actor: object | undefined, next: () => { version: FsVersion } | undefined | Promise<{ version: FsVersion } | undefined>): Promise<{ version: FsVersion } | undefined>
 ```
 
-Source: [`packages/fs/fs/src/index.ts:66`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:68`](../../packages/fs/fs/src/index.ts)
 
 <a id="fsobserved--emit"></a>
 
@@ -471,7 +491,29 @@ Record an authoritative positive or negative observation. Listeners must be sync
 'fs/observed'(target: FsTarget, observation: FsObservation, actor: object | undefined): void
 ```
 
-Source: [`packages/fs/fs/src/index.ts:76`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:89`](../../packages/fs/fs/src/index.ts)
+
+<a id="fsread-intent--waterfall"></a>
+
+#### `fs/read-intent` — waterfall
+
+Delegating read decision, dispatched by a read executor before any metadata round-trip so a refusal discloses neither presence nor absence. Unlike the two single-slot intent events, a listener that does not refuse MUST call `next()`: the slot holds a chain of read policies, and the first returned denial ends the read.
+
+```ts cordis-catalog
+/**
+ * Delegating read decision, dispatched by a read executor before any
+ * metadata round-trip so a refusal discloses neither presence nor absence.
+ * Unlike the two single-slot intent events, a listener that does not refuse
+ * MUST call `next()`: the slot holds a chain of read policies, and the first
+ * returned denial ends the read.
+ * @param target - the resolved target about to be read.
+ * @param actor - the opaque tool-execution context the decider keys off.
+ * @mode waterfall
+ */
+'fs/read-intent'(target: FsTarget, actor: object | undefined, next: () => FsReadDenial | undefined | Promise<FsReadDenial | undefined>): Promise<FsReadDenial | undefined>
+```
+
+Source: [`packages/fs/fs/src/index.ts:79`](../../packages/fs/fs/src/index.ts)
 
 <a id="fswrite-intent--waterfall"></a>
 
@@ -491,5 +533,5 @@ Single-slot decision for the next FileSystem.writeText. Calling `next()` yields 
 'fs/write-intent'(target: FsTarget, actor: object | undefined, next: () => FsWriteIntent | undefined | Promise<FsWriteIntent | undefined>): Promise<FsWriteIntent | undefined>
 ```
 
-Source: [`packages/fs/fs/src/index.ts:58`](../../packages/fs/fs/src/index.ts)
+Source: [`packages/fs/fs/src/index.ts:60`](../../packages/fs/fs/src/index.ts)
 <!-- END GENERATED cordis-surface -->

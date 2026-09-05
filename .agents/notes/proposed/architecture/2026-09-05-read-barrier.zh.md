@@ -20,19 +20,19 @@ Status: proposed
 
 把屏障做成执行器处的权威：一个策略拥有者，在每个打开路径的能力处各自拒绝，以及一张只能声明组合所记录之物的证书。
 
-**验证者拥有的根目录。** 在 `packages/verification/read-barrier/` 加入 `@deepseek-ai/dsh-read-barrier`（`ctx.readBarrier`）：被拒读取的策略之家，扮演 [`dsh-sandbox-policy`](../../../../packages/sandbox/sandbox-policy/README.md) 为沙箱模式与工作区根目录所扮演的角色。它的 `root` 配置默认经由 [`dsh-home-paths`](../../../../packages/util/home-paths/README.md) 取 `dshHomePath('verification')`，并接受任何绝对路径或以 `~` 开头的目录；服务在构造时以仅属主权限（`0700`）创建它，若它已存在且权限更宽则大声失败。`reserve(agent)` 为一次运行铸造 `<root>/runs/<sessionId>/` 并返回其绝对路径；环境运行器在追加 `environment/run` stamp 之前调用它，并在那里写入标准快照、每个检查一份位于 `checks/<checkId>` 的脚本，以及环境标记为留出的任何 fixture，随后把每个检查的 `run` 解析到该目录，于是实现者能在进程列表里看到的命令行指向的是一份它读不到内容的文件。`protect(path)` 再登记一个被拒目录并返回其 disposer，于是 `dsh-session-persistence-jsonl` 以 effect 的方式贡献自己的会话存储根目录，而不是让部署方在配置里重复一遍；`denyRoots` 仍作为配置字段服务于没有插件拥有的目录。`resolve({ session? })` 回答一份 `ReadBarrierPolicy { role, root, denied, enforcement }`，而 `denies(policy, target)` 判定包含关系。
+**验证者拥有的根目录。** 位于 `packages/verification/read-barrier/` 的 [`@deepseek-ai/dsh-read-barrier`](../../../../packages/verification/read-barrier/README.md)（`ctx.readBarrier`）是被拒读取的策略之家，扮演 [`dsh-sandbox-policy`](../../../../packages/sandbox/sandbox-policy/README.md) 为沙箱模式与工作区根目录所扮演的角色。它的 `root` 配置默认经由 [`dsh-home-paths`](../../../../packages/util/home-paths/README.md) 取 `dshHomePath('verification')`，并接受任何绝对路径或以 `~` 开头的目录，每个 `denyRoots` 条目同理；服务在构造时以仅属主权限（`0700`）创建根目录，若它已存在且权限更宽，或某个配置路径展开后仍非绝对路径，则大声失败。`reserve(agent)` 为一次运行铸造 `<root>/runs/<sessionId>/` 并同步返回其绝对路径，因此调用方返回的那一刻角色即已生效；环境运行器在追加 `environment/run` stamp 之前调用它，并在那里写入标准快照、每个检查一份位于 `checks/<checkId>` 的脚本，以及环境标记为留出的任何 fixture，随后把每个检查的 `run` 解析到该目录，于是实现者能在进程列表里看到的命令行指向的是一份它读不到内容的文件。正因为该预留是使会话成为实现者的原因，运行器经 `ctx.get('readBarrier')` 读取屏障：没有屏障的组合不预留任何目录，就地运行其检查，这正是它 `isolation: none` 声明已经表达的含义。`protect(path)` 再登记一个被拒目录并返回其 disposer，于是拥有某个目录的插件——例如带着会话存储根目录的 `dsh-session-persistence-jsonl`——以 effect 的方式贡献它，而不是让部署方在配置里重复一遍；`denyRoots` 仍作为配置字段服务于没有插件拥有的目录。`resolve({ session? })` 回答一份 `ReadBarrierPolicy { role, root, denied }`，而 `denies(policy, target)` 判定包含关系。`enforcement` 会与能记录它的那些能力一同加入该策略，即使 `process` 可声明的那个切片。
 
 | 字段 | 含义 |
 |---|---|
 | `root`（默认 `dshHomePath('verification')`） | 屏障拥有的绝对路径或以 `~` 开头的目录；以 `0700` 创建，若已存在且权限更宽则拒绝。 |
 | `denyRoots`（默认 `[]`） | 与 `root` 并列被拒的额外绝对目录，服务于没有插件通过 `protect()` 登记的目录。 |
-| `hostAttestation`（可选绝对路径） | 由外部账户写入的文件；没有经过验证的该文件，屏障拒绝 `host` 声明。 |
+| `hostAttestation`（可选绝对路径） | 由外部账户写入的文件；没有经过验证的该文件，屏障拒绝 `host` 声明。它与读取它的证书不变量一同到来。 |
 
 某个角色的被拒集合不在其中：`implementer` 可以持有哪些权限是安全不变量，不是部署选择。
 
-**拒绝规则。** 对角色为 `implementer` 的会话，当目标的规范路径就是某个被拒目录或其后代时，读取被拒绝。包含关系的判定方式与 [`dsh-fs-sandbox`](../../implemented/feature/2026-07-14-cross-family-fs-sandbox.md) 相同：先规范化，再在已解析的 target 上通过 `ctx.fs.contains(parent, child)` 检验同一性或后代关系，于是策略不解析任何路径字符串，而自解析以来被替换的祖先符号链接会因判定前的就地重新规范化而被抓住。无法判定包含关系的目标一律拒绝。角色 `validator` 与 `unrestricted` 不被拒绝任何东西；`unrestricted` 是默认值，让每一个随附 preset 与今天完全一致。
+**拒绝规则。** 对角色为 `implementer` 的会话，当目标的规范路径就是某个被拒目录或其后代时，读取被拒绝。包含关系的判定方式与 [`dsh-fs-sandbox`](../../implemented/feature/2026-07-14-cross-family-fs-sandbox.md) 相同：先规范化，再在已解析的 target 上通过 `ctx.fs.contains(parent, child)` 检验同一性或后代关系，于是策略不解析任何路径字符串，而自解析以来被替换的祖先符号链接会因判定前的就地重新规范化而被抓住。无法判定包含关系的目标一律拒绝。角色 `validator` 与 `unrestricted` 不被拒绝任何东西；`unrestricted` 是默认值，让每一个随附 preset 与今天完全一致。在 preset 尚不能声明角色之前，持有预留的会话是 `implementer`，其余会话都是 `unrestricted`，因此两个开放角色在判定处无从区分，只有被拒的那个可达。
 
-**fs 策略插件。** 在 `packages/fs/fs-read-barrier/` 加入 `@deepseek-ai/dsh-fs-read-barrier`，它是 [`dsh-fs-observation-policy`](../../../../packages/fs/fs-observation-policy/README.md) 通过同一事件门为写入与编辑所贡献策略的读取对应物。它不注册服务，也不声明 `Config`，因为每一个随部署而变的取值都属于上面那个屏障：它注入 `readBarrier` 并决定一个新事件。[`dsh-fs`](../../../../packages/fs/fs/README.md) 在 `fs/write-intent` 与 `fs/edit-intent` 旁声明 `fs/read-intent(target, actor, next)`，是一个返回 `FsReadDenial { code: FsErrorCode; message: string } | undefined` 的 `@mode waterfall`；与那两个单槽 intent 不同，这一个会委派，因为独占该槽的屏障会让之后的每一条读取策略无从判定。插件对被包含的目标返回拒绝，否则调用 `next()`。`FsErrorCode` 新增 `FS_READ_BARRIER_DENIED`。`dsh-tool-fs` 在 `resolveRegularReadTarget` 内、`ctx.fs.stat` 之前派发该事件，于是被拒路径绝不透露存在与否，而 `dsh-tool-str-replace-editor` 在 `view` 命令上派发它。工具层不追加任何恢复指示，因为同一次调用重试不会成功；模型看到的就是策略消息的原文。
+**fs 策略插件。** 在 `packages/fs/fs-read-barrier/` 加入 `@deepseek-ai/dsh-fs-read-barrier`，它是 [`dsh-fs-observation-policy`](../../../../packages/fs/fs-observation-policy/README.md) 通过同一事件门为写入与编辑所贡献策略的读取对应物。它不注册服务，也不声明 `Config`，因为每一个随部署而变的取值都属于上面那个屏障：它注入 `readBarrier` 并决定一个新事件。[`dsh-fs`](../../../../packages/fs/fs/README.md) 在 `fs/write-intent` 与 `fs/edit-intent` 旁声明 `fs/read-intent(target, actor, next)`，是一个返回 `FsReadDenial { code: FsErrorCode; message: string } | undefined` 的 `@mode waterfall`；与那两个单槽 intent 不同，这一个会委派，因为独占该槽的屏障会让之后的每一条读取策略无从判定。插件对被包含的目标返回拒绝，否则调用 `next()`，并以 `readBarrierDenialMessage` 拥有那条确切文案。`FsErrorCode` 新增 `FS_READ_BARRIER_DENIED`。`dsh-tool-fs` 在 `resolveRegularReadTarget` 内、`ctx.fs.stat` 之前派发该事件，覆盖 `read` 与 `read_image`，于是被拒路径绝不透露存在与否，而 `dsh-tool-str-replace-editor` 在 `view` 命令上派发它。工具层不追加任何恢复指示，因为同一次调用重试不会成功；模型在工具注册表寻常的 `Error: ` 外壳内看到的就是策略消息的原文。
 
 ##### Exact error
 
@@ -40,7 +40,7 @@ Status: proposed
 read denied: "<path>" is validator-owned — it is not part of this task; continue without it
 ```
 
-**一次拒绝记录了什么。** 屏障为每次拒绝追加一条仅日志的 `read-barrier/denied` 会话事件，携带 `{ version, role, capability, displayPath, root }`，其中 `capability` 命名做出拒绝的 seam（`fs`、`shell`、`subprocess`、`terminal`）。该路径本就在模型自己的 `tool/call` 参数里进入了日志，因此该事件增加的是证据而非新的泄露。它是一个带 `ignorable: true` 的 `SessionEventMap` 成员，于是按[版本机制](../../implemented/architecture/2026-08-10-session-log-version-mechanism.md)，不认识该类型的构建仍能读取日志。
+**一次拒绝记录了什么。** 屏障为每次拒绝追加一条仅日志的 `read-barrier/denied` 会话事件，携带 `{ version, role, capability, displayPath, root }`，其中 `capability` 命名做出拒绝的 seam（`fs`、`shell`、`subprocess`、`terminal`）。该路径本就在模型自己的 `tool/call` 参数里进入了日志，因此该事件增加的是证据而非新的泄露。它是一个由 `gen-persistence-catalog` 登记进 `KNOWN_SESSION_EVENT_TYPES` 的 `SessionEventMap` 成员，因此本构建把它当作必读事件读取。信封的 `ignorable` 标记仍未启用：`Session.append` 没有对应参数，仓库中也没有任何事件设置它，因此为这一个加上标记将是对核心 append 的改动，而不是屏障的一个切片。
 
 **工具权限与组合期守卫。** [`dsh-tools`](../../../../packages/core/tools/README.md) 中的 `ToolDefinition` 新增对模型永不可见的 `authority?: readonly ToolAuthority[]`，其中 `ToolAuthority` 是由 `dsh-tools` 声明的可合并扩展联合，起步有三个成员：`session-log`（该工具读取持久会话事件）、`plugin-mount`（它在活动运行时中挂载或求值代码）与 `runtime-introspection`（它报告活动组合）。`dsh-tool-session-query` 在它的五个工具上都声明 `session-log`；`dsh-tool-cordis` 在 `cordis_define`、`cordis_run`、`cordis_stop` 与 `cordis_undefine` 上声明 `plugin-mount`，在 `cordis_inspect` 上声明 `runtime-introspection`。`implementer` 会话三者一个都不得组合。把权限声明在工具处而不是在屏障处列一份名单，意味着日后新增的工具由它自己的声明覆盖。
 
@@ -64,7 +64,7 @@ agent-presets: preset "<id>" declares role "implementer" but composes "<tool>", 
 
 **屏障无法约束的执行器。** 有两个已组合的能力打开的路径无法在进程内围住。[`dsh-workflow-worker-thread`](../../../../packages/workflow/workflow-worker-thread/README.md) 写明它的 worker 不是安全沙箱，逃逸的脚本会以宿主进程的权限重新取得 Node 能力。进程外的 [subagent](../../../../packages/subagent/subagent/README.md) 提供方——`subagent-acp`、`subagent-claude-code`、`subagent-codex`、`subagent-dsh-sdk`——启动的是自带工具栈、不受 harness 策略约束的外部 agent。对 `implementer` 会话，二者在 `process` 或 `host` 声明下拒绝启动，在 `none` 声明下记录为 `unenforced`。进程内的 subagent driver 不需要例外：子 agent 通过 `composeFrom()` 加入父级的常驻组合，因此继承同一份清单、同一个作用域层与同一个角色。
 
-**作用域清单。** 在会话的第一条 `request/header` 之前，屏障追加一条仅日志的 `read-barrier/scope` 事件，携带 `{ version, role, presetId, root, denied, census, enforcement }`。`census` 是该 agent 可见的每个工具一条 `{ name, authority }`，让组合的权限成为持久事实而不只是组合期事实；invariant 会拿它与每条 `request/header` 已装配 schema 中的工具名交叉核对，于是清单之后新增的工具会被抓住。`enforcement` 是组合所注册的每个打开路径的能力一条——`fs`、`shell`、`subprocess`、`terminal`、`subagent`、`workflow`——取值 `denied-at-executor`、`unenforced` 或 `not-composed`。
+**作用域清单。** 它与 `ToolAuthority` 一同到来，它的 `census` 正由那些声明构成。在会话的第一条 `request/header` 之前，屏障追加一条仅日志的 `read-barrier/scope` 事件，携带 `{ version, role, presetId, root, denied, census, enforcement }`。`census` 是该 agent 可见的每个工具一条 `{ name, authority }`，让组合的权限成为持久事实而不只是组合期事实；invariant 会拿它与每条 `request/header` 已装配 schema 中的工具名交叉核对，于是清单之后新增的工具会被抓住。`enforcement` 是组合所注册的每个打开路径的能力一条——`fs`、`shell`、`subprocess`、`terminal`、`subagent`、`workflow`——取值 `denied-at-executor`、`unenforced` 或 `not-composed`。
 
 **证书 invariant。** `recordRun()` 读取 `ctx.get('readBarrier')`，并以 `VERIFICATION_ISOLATION_UNPROVEN` 拒绝提交隔离级别超出会话所记录内容的证书；[`./invariant`](../../../../packages/verification/verification/README.md) 伴生插件把同一条规则施加于持久事件流，于是伪造的证书在任何安装了该伴生插件的地方都会在重放时失败。与级别无关地，两者都拒绝作用域清单中带有被拒权限的会话上的证书：即便守卫不知怎么被绕过，组合一个读日志的工具也要付出证书的代价。`CertificateIsolation` 的 JSDoc 随规则改变：`process` 意味着下方阶梯所述之物，而不再只是进程内读取策略。
 
@@ -102,7 +102,7 @@ agent-presets: preset "<id>" declares role "implementer" but composes "<tool>", 
 
 ## Acceptance criteria
 
-- 在基于 `examples/headless-agent/tests/fixtures/read-barrier/` 的 Loader 启动组合中，来自 `implementer` 角色会话、对屏障根目录下某文件的 `read` 以 `FS_READ_BARRIER_DENIED` 与上文原文消息失败，追加一条 `read-barrier/denied` 事件，而同一进程内来自 `validator` 角色会话的同一次调用返回该文件内容。
+- 在基于 `examples/headless-agent/tests/fixtures/read-barrier/` 的 Loader 启动组合中，来自 `implementer` 角色会话、对屏障根目录下某文件的 `read` 以 `FS_READ_BARRIER_DENIED` 与上文原文消息失败，追加一条 `read-barrier/denied` 事件，而同一进程内来自屏障不拒绝任何内容的会话——不持有预留的会话，以及 preset 能声明该角色之后的 `validator`——的同一次调用返回该文件内容。
 - 拒绝在执行器处被证明，而不是靠 schema：实现者的 `read` 工具已注册且可见，来自受信插件的直接 `ctx.fs.readText` 仍然成功，测试断言这一点，好让威胁模型保持明确。
 - 挂载 `examples/headless-agent/tests/fixtures/read-barrier-guard/` 处那个声明 `role: implementer` 又组合了 `dsh-tool-session-query` 的 preset，以上文原文拒绝并且不留下任何会话；一个声明 `role: validator` 的 `user` 信任级 preset 连同理由被列为 `broken`；而 invariant 伴生插件拒绝作用域清单携带 `session-log` 权限的手工编写日志上的证书。
 - 在没有已验证证明的会话上以 `isolation: 'host'` 调用 `recordRun()`，以 `VERIFICATION_ISOLATION_UNPROVEN` 拒绝且不提交证书；invariant 伴生插件在证书那条记录处拒绝携带该证书的手工编写日志。
@@ -115,8 +115,8 @@ agent-presets: preset "<id>" declares role "implementer" but composes "<tool>", 
 
 每个切片带着自己的测试落地，并各自让各项 gate 保持绿色。
 
-1. `@deepseek-ai/dsh-read-barrier`，含根目录、`reserve`、`protect`、`resolve`、`denies`、`read-barrier/scope` 与 `read-barrier/denied` 事件，以及它的 invariant 伴生插件。强制执行处处记录 `unenforced`；尚未拒绝任何东西，现有组合的行为不变。
-2. `dsh-fs` 中的 `fs/read-intent`、`FS_READ_BARRIER_DENIED`、`dsh-tool-fs` 与 `dsh-tool-str-replace-editor` 中的派发，以及 `@deepseek-ai/dsh-fs-read-barrier`。加入 `read-barrier` fixture 与 `read-barrier-denied` 快照。
+1. **已落地。** `@deepseek-ai/dsh-read-barrier`，含根目录、`reserve`、`protect`、`resolve`、`denies`、`recordDenial`、`read-barrier/denied` 事件，以及它的 invariant 伴生插件——该伴生插件拒绝为 `implementer` 以外角色记录的拒绝、载荷版本或 capability 未知的拒绝，以及在一个会话内指向第二个屏障根目录的拒绝。环境运行器经 `ctx.get('readBarrier')` 预留，并在每次尝试写入 `standard.json` 与每个检查一份 `checks/<checkId>` 脚本，以 `. <script>` 运行每一个，使同一个 shell 执行同一条指令；检查 id 不是单个路径段，或预留路径无法被命令行以不加引号的方式承载时，本次运行以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。`read-barrier/scope` 与 `ReadBarrierPolicy.enforcement` 不在其中：清单是每个可见工具一条 `{ name, authority }`，而 `enforcement` 是每个记录判定的能力一条，两者都等待提供其内容的那些切片。`dsh-session-persistence-jsonl` 尚未调用 `protect()`，现有组合的行为不变。
+2. **已落地。** `dsh-fs` 中作为返回 `FsReadDenial` 的委派式 waterfall 的 `fs/read-intent`、`FS_READ_BARRIER_DENIED`、`dsh-tool-fs` 中的派发（`read` 与 `read_image`，位于 `resolveRegularReadTarget` 内 stat 之前）与 `dsh-tool-str-replace-editor` 中的派发（`view`，位于它自己的 stat 之前），以及拥有那条确切文案的 `@deepseek-ai/dsh-fs-read-barrier`。`read-barrier` fixture 在 Loader 引导的组合中于执行器处证明该拒绝，`read-barrier-denied` 快照钉住面向模型的文案与持久记录；两者都无需密钥，快照经 `dsh-llm-replay` 重放一份已提交的脚本。
 3. `ToolDefinition` 上的 `ToolAuthority`、`dsh-tool-session-query` 与 `dsh-tool-cordis` 中的声明、`preset.yml` 中的 `role`、`mountPreset` 审计，以及逐 agent 的工具守卫。加入 `read-barrier-guard` fixture。
 4. 证书 invariant：`recordRun` 前置条件、伴生插件的规则、`read-barrier/attestation` 事件及其文件检验，以及 `CertificateIsolation` 的文档变更。环境运行器新增 `EnvironmentRunRequest.preset`，并在解析出的 preset 角色不是 `implementer` 时拒绝高于 `none` 的声明。
 5. `SandboxPolicy` 与 `SandboxExecutionPolicy` 上的 `deniedReadRoots`、`dsh-sandbox-local` 各后端、`dsh-sandbox-policy` 从屏障的填充、`dsh-tool-fs-search` 中被约束的 ripgrep 启动，以及 workflow 引擎与进程外 subagent 提供方中的拒绝。这一切片才让 `process` 可被声明。

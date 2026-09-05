@@ -17,6 +17,7 @@ import type {
   FsInfo,
   FsPathInfo,
   FsObservation,
+  FsReadDenial,
   FsTarget,
   FsVersion,
   FsWriteIntent,
@@ -36,6 +37,7 @@ export type {
   FsInfo,
   FsObservation,
   FsPathInfo,
+  FsReadDenial,
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
@@ -64,6 +66,17 @@ declare module '@deepseek-ai/cordis' {
      * @mode waterfall
      */
     'fs/edit-intent'(target: FsTarget, actor: object | undefined, next: () => { version: FsVersion } | undefined | Promise<{ version: FsVersion } | undefined>): Promise<{ version: FsVersion } | undefined>
+    /**
+     * Delegating read decision, dispatched by a read executor before any
+     * metadata round-trip so a refusal discloses neither presence nor absence.
+     * Unlike the two single-slot intent events, a listener that does not refuse
+     * MUST call `next()`: the slot holds a chain of read policies, and the first
+     * returned denial ends the read.
+     * @param target - the resolved target about to be read.
+     * @param actor - the opaque tool-execution context the decider keys off.
+     * @mode waterfall
+     */
+    'fs/read-intent'(target: FsTarget, actor: object | undefined, next: () => FsReadDenial | undefined | Promise<FsReadDenial | undefined>): Promise<FsReadDenial | undefined>
     /**
      * Record an authoritative positive or negative observation. Listeners must
      * be synchronous recorders: throws fail the tool call and returned promises

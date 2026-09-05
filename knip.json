@@ -46,6 +46,8 @@
         "headless-agent/tests/fixtures/trajectory-export/driver.ts",
         "headless-agent/tests/fixtures/environment-run/driver.ts",
         "headless-agent/tests/fixtures/environment-run/register-environments.ts",
+        "headless-agent/tests/fixtures/read-barrier/driver.ts",
+        "headless-agent/tests/fixtures/read-barrier/reserve-implementer.ts",
         "headless-agent/tests/fixtures/fleet-run/driver.ts",
         "headless-agent/tests/fixtures/scoreboard/driver.ts",
         "headless-agent/tests/fixtures/experiment/driver.ts",
@@ -167,6 +169,16 @@
       ]
     },
     "packages/improvement/environment-runner": {
+      "entry": [
+        "tests/**/*.spec.ts",
+        "tests/**/*.e2e.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
+    "packages/verification/read-barrier": {
       "entry": [
         "tests/**/*.spec.ts",
         "tests/**/*.e2e.ts"

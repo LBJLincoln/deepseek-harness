@@ -648,7 +648,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:71`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:73`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -1531,6 +1531,35 @@ export type Config = LocalConfig
 Depends on: [`LocalConfig`](#deepseek-aidsh-pwsh-local)
 
 Source: [`packages/shell/pwsh-sandbox/src/index.ts:40`](../packages/shell/pwsh-sandbox/src/index.ts)
+
+<a id="deepseek-aidsh-read-barrier"></a>
+
+## `@deepseek-ai/dsh-read-barrier`
+
+Requires: `fs`
+
+```ts config-catalog
+/**
+ * Plugin config: which directories the barrier owns. The denied set for a role
+ * is deliberately absent — which authorities an implementer may hold is a
+ * security invariant, not a deployment choice.
+ */
+export interface Config {
+  /**
+   * Directory the barrier owns, absolute or `~`-prefixed (default:
+   * `<harness home>/verification`). Created `0700`; an existing directory
+   * readable beyond its owner is rejected at load.
+   */
+  root?: string
+  /**
+   * Further denied directories, absolute or `~`-prefixed, for directories no
+   * plugin registers through {@link ReadBarrierService.protect} (default: none).
+   */
+  denyRoots?: string[]
+}
+```
+
+Source: [`packages/verification/read-barrier/src/index.ts:58`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="deepseek-aidsh-repeat-tool-reminder"></a>
 
@@ -2708,7 +2737,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/fs/tool-str-replace-editor/src/index.ts:497`](../packages/fs/tool-str-replace-editor/src/index.ts)
+Source: [`packages/fs/tool-str-replace-editor/src/index.ts:500`](../packages/fs/tool-str-replace-editor/src/index.ts)
 
 <a id="deepseek-aidsh-tool-subagent"></a>
 
@@ -3211,6 +3240,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-environments` ([`packages/improvement/environments/src/index.ts`](../packages/improvement/environments/src/index.ts))
 - `@deepseek-ai/dsh-fs-e2b` — requires `e2b` ([`packages/e2b/fs-e2b/src/index.ts`](../packages/e2b/fs-e2b/src/index.ts))
 - `@deepseek-ai/dsh-fs-observation-policy` ([`packages/fs/fs-observation-policy/src/index.ts`](../packages/fs/fs-observation-policy/src/index.ts))
+- `@deepseek-ai/dsh-fs-read-barrier` — requires `readBarrier` ([`packages/fs/fs-read-barrier/src/index.ts`](../packages/fs/fs-read-barrier/src/index.ts))
 - `@deepseek-ai/dsh-goal-round-driver` — requires `agents` · `goals` · `sessions` ([`packages/goal/goal-round-driver/src/index.ts`](../packages/goal/goal-round-driver/src/index.ts))
 - `@deepseek-ai/dsh-host-directory-picker-auto` — requires `webServer` · `loader` ([`packages/host/directory-picker-auto/src/index.ts`](../packages/host/directory-picker-auto/src/index.ts))
 - `@deepseek-ai/dsh-host-directory-picker-native` ([`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts))
