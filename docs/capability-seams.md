@@ -124,6 +124,8 @@ flowchart LR
   pkg_fleet["fleet"]
   pkg_headless_agent["headless-agent"]
   svc_fleet["ctx.fleet<br/>Fleet runs"]
+  pkg_experiments["experiments"]
+  svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
   svc_scorekeeper["ctx.scorekeeper<br/>Session facts and the scoreboard"]
@@ -240,6 +242,7 @@ flowchart LR
   pkg_e2b --> svc_e2b
   pkg_environment_runner --> svc_environmentRuns
   pkg_environments --> svc_environments
+  pkg_experiments --> svc_experiments
   pkg_fleet --> svc_fleet
   pkg_fs --> svc_fs
   pkg_fs_e2b --> svc_fs
@@ -349,6 +352,8 @@ flowchart LR
   svc_environmentRuns --> pkg_headless_agent
   svc_environments --> pkg_environment_runner
   svc_environments --> pkg_trajectories
+  svc_experiments --> pkg_headless_agent
+  svc_fleet --> pkg_experiments
   svc_fleet --> pkg_headless_agent
   svc_fs --> pkg_tool_fs
   svc_invariants --> pkg_agent
@@ -484,7 +489,8 @@ flowchart LR
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, provenance, lineage, membership, and callable route; adapters mirror live seams into it. |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible; owns the environment/run stamp vocabulary. |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate. |
-| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent` | - | Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split. |
+| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`, [`experiments`](../packages/improvement/experiments) | - | Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split. |
+| `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | Freezes a plan by a content digest, runs both arms through the fleet at paired repetition indexes under digest-derived stamp groups, and folds the certificate-rate delta with a bootstrap interval and a verdict. |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`, [`scorekeeper`](../packages/improvement/scorekeeper) | - | Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event. |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export. |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | Owns one shared E2B SDK handle, remote working directory, and final sandbox disposition so both fundamental E2B providers inhabit the same Linux runtime. |

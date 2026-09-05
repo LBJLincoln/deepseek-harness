@@ -652,6 +652,30 @@ export interface Config {
 
 来源：[`packages/improvement/environment-runner/src/index.ts:71`](../packages/improvement/environment-runner/src/index.ts)
 
+<a id="deepseek-aidsh-experiments"></a>
+
+## `@deepseek-ai/dsh-experiments`
+
+需要：`environments` · `fleet`
+
+```ts config-catalog
+/** Deployment choices of the experiment service, validated from `cordis.yml`. */
+export interface Config {
+  /** Resamples drawn per bootstrap interval. */
+  bootstrapResamples?: number
+  /** Coverage of every reported interval, between `0` and `1`. */
+  confidenceLevel?: number
+  /** Certificate-rate delta the overall interval's lower bound must exceed to promote. */
+  minimumDelta?: number
+  /** Tokens one cell may spend; the plan's projection multiplies it by every cell of both arms. */
+  cellTokenCap: number
+  /** Tokens one plan's projection may reach; a plan projecting more is refused before it starts. */
+  tokenBudget: number
+}
+```
+
+来源：[`packages/improvement/experiments/src/index.ts:63`](../packages/improvement/experiments/src/index.ts)
+
 <a id="deepseek-aidsh-fleet"></a>
 
 ## `@deepseek-ai/dsh-fleet`

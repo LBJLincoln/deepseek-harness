@@ -126,6 +126,8 @@ flowchart LR
   pkg_fleet["fleet"]
   pkg_headless_agent["headless-agent"]
   svc_fleet["ctx.fleet<br/>Fleet runs"]
+  pkg_experiments["experiments"]
+  svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
   svc_scorekeeper["ctx.scorekeeper<br/>Session facts and the scoreboard"]
@@ -242,6 +244,7 @@ flowchart LR
   pkg_e2b --> svc_e2b
   pkg_environment_runner --> svc_environmentRuns
   pkg_environments --> svc_environments
+  pkg_experiments --> svc_experiments
   pkg_fleet --> svc_fleet
   pkg_fs --> svc_fs
   pkg_fs_e2b --> svc_fs
@@ -351,6 +354,8 @@ flowchart LR
   svc_environmentRuns --> pkg_headless_agent
   svc_environments --> pkg_environment_runner
   svc_environments --> pkg_trajectories
+  svc_experiments --> pkg_headless_agent
+  svc_fleet --> pkg_experiments
   svc_fleet --> pkg_headless_agent
   svc_fs --> pkg_tool_fs
   svc_invariants --> pkg_agent
@@ -486,7 +491,8 @@ flowchart LR
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | 组合期清单，收录每个可寻址单元及其种类、来源、谱系、成员关系与可调用路由；适配器将活跃 seam 镜像入内。 |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | 组合期任务清单，任务携带以完成标准词汇书写的可执行检查，标记为留出或可用于训练；拥有 environment/run stamp 词汇。 |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | 把一个环境作为一个全新的、已盖章的会话运行，由其检查编写标准，作为验证者执行检查，并且只在有证书时才完成 goal。 |
-| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent` | - | 把环境 × 模型 × 重复的 cell 计划通过运行器运行，保留每个 cell 的结果，并折叠出按隔离级别与留出划分分区的排行榜。 |
+| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`、[`experiments`](../packages/improvement/experiments) | - | 把环境 × 模型 × 重复的 cell 计划通过运行器运行，保留每个 cell 的结果，并折叠出按隔离级别与留出划分分区的排行榜。 |
+| `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | 以内容摘要冻结一份计划，让两个 arm 都经 fleet 以配对的重复索引、在由摘要派生的 stamp group 之下运行，并连同 bootstrap 区间与判定一起折叠出证书率 delta。 |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`、[`scorekeeper`](../packages/improvement/scorekeeper) | - | 将已持久化会话折叠为带证书判定奖励与组件来源的 dsh-trajectory/1 记录；不写入任何会话事件。 |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | 注册 sessionFacts 投影单元，并把已持久化日志折叠为事实记录、按路由、环境、隔离级别与留出划分分区的记分板，以及 JSONL 导出。 |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | 拥有一个共享的 E2B SDK 句柄、远程工作目录和最终沙箱处置，使两个基础 E2B 提供方处于同一个 Linux 运行时中。 |

@@ -394,8 +394,16 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'fleet',
     title: 'Fleet runs',
     mode: 'core',
-    consumers: ['headless-agent'],
+    consumers: ['headless-agent', 'experiments'],
     note: 'Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split.',
+  },
+  {
+    key: 'experiments',
+    pkg: 'experiments',
+    title: 'Paired experiments',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Freezes a plan by a content digest, runs both arms through the fleet at paired repetition indexes under digest-derived stamp groups, and folds the certificate-rate delta with a bootstrap interval and a verdict.',
   },
   {
     key: 'trajectories',
