@@ -56,6 +56,15 @@
     cellTokenCap: 20000
     tokenBudget: 200000
 
+# Village rule: a composition that runs unattended cells carries a session
+# budget. The caps sit far above the experiment's own cellTokenCap, so the
+# budget never preempts the arm that owns the comparison.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'
   config:

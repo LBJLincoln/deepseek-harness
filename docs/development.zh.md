@@ -120,6 +120,12 @@ vendor manifest 守卫检查 `vendor/*/src` 下的改动是否连同对应的 `v
 
 keyless [CI 工作流](../.github/workflows/ci.yml) 将独立门禁分组到若干宽粒度 lane，并在受支持的 Node 版本上运行一组较小的兼容性检查。产物消费方在各自 lane 内等待一次 build。单独的真实 API 工作流按其配置的 worker 上限运行 `pnpm run test:e2e`。当前门禁和 job 清单以 [scripts/run-gates.ts](../scripts/run-gates.ts) 和工作流文件为准。
 
+### 组合门禁
+
+有两个门禁读取仓库中的每一份 Cordis Loader 配置。`verify-cordis-config` 负责 Loader 条目元数据与插件包解析。`verify-village-composition` 负责 [Daliesk Village note](../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md) 中的区规则：组合了 `@deepseek-ai/dsh-environment-runner`、`@deepseek-ai/dsh-fleet` 或 `@deepseek-ai/dsh-experiments` 的配置会运行无人看管的会话，因此还必须组合至少设置一个生效上限的 `@deepseek-ai/dsh-budget-policy`、一个会话持久化后端和 `@deepseek-ai/dsh-session-checkpoint-policy`，并且 fleet 条目必须设置 `workspaceRetention`。
+
+声明 `isolation: process` 或 `host` 的运行器只报告警告而不失败：该声明会进入证书，而能让它成立的读取屏障切片尚未进入本分支。`--strict` 让这些警告同样导致失败。两个门禁都在 `pnpm run hygiene` 与 CI 静态 lane 中运行，每条诊断都会指明配置文件、条目 id 与规则。
+
 ### 日常命令
 
 根目录的[贡献者说明](../AGENTS.md#commands)概述常用命令，[`package.json`](../package.json) 与 [scripts/run-gates.ts](../scripts/run-gates.ts) 则负责当前脚本和门禁清单。请选择覆盖变更表面的最小检查集。文档变更使用 `pnpm run doc-sync`；包公开行为变更还需更新所属 README 或 JSDoc，而基于构建产物的检查需要先运行 `pnpm run build`。

@@ -40,6 +40,14 @@
     maxAttempts: 2
     evidenceMaxChars: 512
 
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'
   config:

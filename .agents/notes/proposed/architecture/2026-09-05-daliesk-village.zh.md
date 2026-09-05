@@ -89,14 +89,14 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 - 零号班次运行 Proving Ground 七天，每个 cell 都以一行（报告或错误）出现，持久化日志中没有缺失的序号，有人值班且每次干预都连同主体一起记录。
 - 观测台在每一行上显示 `isolation`、executor、组合摘要（或 `pending`）与篡改状态，没有 `ExperimentResult` 裁决就不发布排名，在组合摘要盖章之前不点名任何前沿路由；一个快照测试证明公开导出扣留了 Workshop 与留出会话。
-- `verify-village-composition` 拒绝没有预算策略、没有持久化，或带有能外联的工具却没有 monitor 的区组合，并由一个 fixture 证明该拒绝。
+- `verify-village-composition` 与 `verify-cordis-config` 并列存在，出现在 `hygiene` 与 CI 静态 lane 中，扫描同一份配置清单：区组合——即组合了 `@deepseek-ai/dsh-environment-runner`、`@deepseek-ai/dsh-fleet` 或 `@deepseek-ai/dsh-experiments` 的配置——如果缺少至少设置一个上限的 `@deepseek-ai/dsh-budget-policy`、缺少会话持久化后端或缺少 `@deepseek-ai/dsh-session-checkpoint-policy`，即被拒绝；fleet 条目缺少 `workspaceRetention` 也被拒绝；声明 `isolation: process` 或 `host` 的运行器只发出警告，直到使用 `--strict`，因为本分支上没有任何读取屏障切片能证明该声明。每条拒绝都由一个 fixture 证明，并且都会指明文件、条目 id 与规则。仍需要：拒绝在没有 monitor 的情况下组合能外联的工具，这要等 `external-communication` 权限。
 - 证书携带其 executor；agent 自报的运行不能在 `none` 之上认证；在发布任何公开证书率之前，一个篡改 fixture 产出奖励零。
 - 每个已认证会话的成本只在携带价格表摘要的 `usage/priced` 事件存在且 scorekeeper 折叠它之后出现；一个 fixture 证明价格表变更后同一份日志在摘要不同时定价不同。
 - 由 AI Village 数据集派生的会话携带限定为评估的数据使用条款，且绝不出现在训练导出中，由一个导出 fixture 证明。
 
 ## Rollout
 
-1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；以及其 `workspaceRetention`。仍需要：证书上的 executor（读取屏障切片 4，进行中）、`usage/priced` 事件与组合门禁；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
+1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；以及组合门禁。仍需要：证书上的 executor（读取屏障切片 4，进行中）与 `usage/priced` 事件；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
 3. **无人值守的班次。** 需要四目标 note 的 rollout 第 11 项（幂等 cell、程序账本）与计划级支出聚合器；主机级监督进程退为后备。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。
