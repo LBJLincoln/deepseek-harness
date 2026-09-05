@@ -1,4 +1,4 @@
-# Test-only composition: a fleet run over the training-eligible environments of the environment-run fixture, then the scorekeeper folding the same cells back out of the persisted logs.
+# Test-only composition: one shift of the Daliesk Village Proving Ground — a districted fleet run under a token ceiling, workspaces reaped, then two trajectory exports.
 - id: cli-mock-llm
   name: '../cli-mock-llm.ts'
 
@@ -44,7 +44,9 @@
   name: '@deepseek-ai/dsh-fleet'
   config:
     maxConcurrent: 1
-    workspaceRetention: keep
+    routeBreaker:
+      consecutiveErrors: 2
+    workspaceRetention: remove-all
 
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'
@@ -61,14 +63,10 @@
 - id: checkpoint-policy
   name: '@deepseek-ai/dsh-session-checkpoint-policy'
 
-# The registry the scorekeeper's sessionFacts unit registers on; the driver reads
-# the same facts back from the persisted logs instead of from a live session.
-- id: session-projection
-  name: '@deepseek-ai/dsh-session-projection'
-
-- id: scorekeeper
-  name: '@deepseek-ai/dsh-scorekeeper'
+# The Workshop is this deployment's withheld district: an export that names no
+# district leaves its sessions behind.
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'
   config:
-    passAtK:
-      - 1
-      - 2
+    withheldDistricts:
+      - workshop

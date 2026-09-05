@@ -54,7 +54,8 @@ describe('fleet runs through a real cordis.yml and headless process', () => {
     expect(result.markdown.startsWith('Fleet run `fleet-e2e`\n')).toBe(true)
     expect(result.markdown).toContain('| cli-mock/cli-mock | smoke:round-trip | no | none | 2 | 0 | 2 | 1.00 | 1.00 |')
 
-    expect(result.exported).toEqual({ sessions: 4, exported: 4, rewarded: 2, filtered: 0, heldOut: 0, skipped: [] })
+    expect(report.spend.inputTokens).toBe(report.leaderboard.reduce((sum, row) => sum + row.inputTokens, 0))
+    expect(result.exported).toEqual({ sessions: 4, exported: 4, rewarded: 2, filtered: 0, heldOut: 0, withheld: 0, skipped: [] })
     expect(lines).toHaveLength(4)
     const trajectories = lines.map(line => JSON.parse(line) as Trajectory)
     expect(trajectories.every(trajectory => trajectory.environment?.group === 'fleet-e2e')).toBe(true)

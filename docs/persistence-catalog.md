@@ -417,8 +417,8 @@ Source: [`packages/compaction/compaction/src/types.ts:33`](../packages/compactio
 ```ts persistence-catalog
 /**
  * Environment run stamp: the environment, its content hashes, the
- * repetition and group, the model route, and the declared isolation of
- * one run, appended once before the run's first turn.
+ * repetition, group, and district, the model route, and the declared
+ * isolation of one run, appended once before the run's first turn.
  */
 'environment/run': EnvironmentRunStamp
 ```

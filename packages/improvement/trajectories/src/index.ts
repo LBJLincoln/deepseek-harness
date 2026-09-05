@@ -10,6 +10,7 @@
 
 import { open } from 'node:fs/promises'
 import { Context, Service } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
 // Type-only: resolves ctx.sessionPersistence.
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import { foldTrajectory } from './fold.ts'
@@ -27,6 +28,30 @@ declare module '@deepseek-ai/cordis' {
   interface Context {
     trajectories: TrajectoryService
   }
+}
+
+/** Deployment choices of the exporter, validated from `cordis.yml`. */
+export interface Config {
+  /**
+   * Districts an export that names none withholds, counted as `withheld`. The
+   * package ships no district name: a deployment states the districts whose
+   * sessions may not leave it by default.
+   */
+  withheldDistricts?: string[]
+}
+
+/** The exporter's choices with every default applied. */
+export interface ResolvedConfig {
+  readonly withheldDistricts: readonly string[]
+}
+
+/**
+ * Apply the exporter's defaults to a validated config.
+ * @param config - validated deployment config.
+ * @returns the resolved choices: no district withheld unless configured.
+ */
+export function resolveConfig(config: Config): ResolvedConfig {
+  return { withheldDistricts: config.withheldDistricts ?? [] }
 }
 
 /** Render a read or fold failure for the export report without trusting the thrown value. */
@@ -55,16 +80,24 @@ export function jsonlFileSink(path: string): TrajectorySink {
 export class TrajectoryService extends Service {
   static inject = ['sessionPersistence']
 
-  constructor(ctx: Context) {
+  static Config: z<Config> = z.object({
+    withheldDistricts: z.array(z.string()).default([]),
+  })
+
+  private readonly resolved: ResolvedConfig
+
+  constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'trajectories')
+    this.resolved = resolveConfig(config)
   }
 
   /**
    * Fold the requested sessions and write one line per trajectory. A session
    * that cannot be read or folded is reported and the export continues; the
    * sink is closed exactly once when every session has been handled.
-   * @param request - sessions to export, the destination sink, the reward filter, and the held-out opt-in.
-   * @returns counts of sessions, written lines, rewarded lines, filtered sessions, withheld held-out sessions, and skips with reasons.
+   * @param request - sessions to export, the destination sink, the reward filter, the held-out opt-in, and the districts to write.
+   * @returns counts of sessions, written lines, rewarded lines, filtered
+   *   sessions, withheld held-out and district sessions, and skips with reasons.
    */
   async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport> {
     const persistence = this.ctx.sessionPersistence
@@ -74,16 +107,19 @@ export class TrajectoryService extends Service {
     let rewarded = 0
     let filtered = 0
     let heldOut = 0
+    let withheld = 0
     try {
       for (const sessionId of sessions) {
         let line: string
         let outcome: 1 | 0 | null
         let reserved: boolean
+        let district: string | undefined
         try {
           const { meta, events } = await persistence.inspect(sessionId)
           const trajectory = foldTrajectory(meta, events)
           outcome = trajectory.reward.outcome
           reserved = trajectory.environment?.heldOut === true
+          district = trajectory.environment?.district
           line = `${JSON.stringify(trajectory)}\n`
         } catch (error: unknown) {
           skipped.push({ sessionId, reason: reasonOf(error) })
@@ -91,6 +127,10 @@ export class TrajectoryService extends Service {
         }
         if (reserved && request.includeHeldOut !== true) {
           heldOut += 1
+          continue
+        }
+        if (this.withholds(district, request.districts)) {
+          withheld += 1
           continue
         }
         if (request.rewardedOnly === true && outcome !== 1) {
@@ -104,7 +144,17 @@ export class TrajectoryService extends Service {
     } finally {
       await request.sink.close()
     }
-    return { sessions: sessions.length, exported, rewarded, filtered, heldOut, skipped }
+    return { sessions: sessions.length, exported, rewarded, filtered, heldOut, withheld, skipped }
+  }
+
+  /**
+   * Whether a session's district keeps it out of this export: a request that
+   * names districts writes exactly those, and one that names none withholds
+   * the configured districts.
+   */
+  private withholds(district: string | undefined, districts: readonly string[] | undefined): boolean {
+    if (districts !== undefined) return district === undefined || !districts.includes(district)
+    return district !== undefined && this.resolved.withheldDistricts.includes(district)
   }
 }
 

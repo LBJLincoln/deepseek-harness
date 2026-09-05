@@ -22,6 +22,8 @@ export interface EnvironmentRunRequest {
   readonly repetition?: number
   /** Batch or sampling group the run belongs to, absent for a single run. */
   readonly group?: string
+  /** District the run belongs to, written into the stamp so exports can withhold it; absent for a run outside every district. */
+  readonly district?: string
   /** Aborts the implementer's turns and the check commands when it fires. */
   readonly signal?: AbortSignal
 }

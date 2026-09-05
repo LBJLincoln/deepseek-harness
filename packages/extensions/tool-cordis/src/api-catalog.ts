@@ -652,7 +652,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
         description: 'Run one environment as one fresh session and validate it.',
-        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional model route, repetition, group, and abort signal.' }],
+        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.' }],
         returns: 'the stamp, the attempts, the certificate when one run passed, and the accumulated usage.',
         throws: ['{@link EnvironmentRunError} for an unknown environment, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
       },
@@ -705,10 +705,10 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     methods: [
       {
         signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
-        description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome; the fleet run itself rejects only for a plan it cannot start.',
-        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, workspace root, group, and abort signal.' }],
-        returns: 'every cell\'s outcome in plan order and the leaderboard folded from the reports.',
-        throws: ['{@link FleetError} when the plan selects no environment or asks for no repetition.'],
+        description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
+        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, workspace root, group, district, token ceiling, and abort signal.' }],
+        returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
+        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, or sets a token ceiling that is not a positive integer.'],
       },
     ],
   },
@@ -2171,8 +2171,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>',
         description: 'Fold the requested sessions and write one line per trajectory. A session that cannot be read or folded is reported and the export continues; the sink is closed exactly once when every session has been handled.',
-        parameters: [{ name: 'request', description: 'sessions to export, the destination sink, the reward filter, and the held-out opt-in.' }],
-        returns: 'counts of sessions, written lines, rewarded lines, filtered sessions, withheld held-out sessions, and skips with reasons.',
+        parameters: [{ name: 'request', description: 'sessions to export, the destination sink, the reward filter, the held-out opt-in, and the districts to write.' }],
+        returns: 'counts of sessions, written lines, rewarded lines, filtered sessions, withheld held-out and district sessions, and skips with reasons.',
       },
     ],
   },
@@ -3380,11 +3380,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunRequest',
-    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'EnvironmentRunStamp',
-    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
+    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
   },
   {
     name: 'EnvironmentStats',
@@ -3472,11 +3472,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'FleetPlan',
-    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'FleetRunReport',
-    declaration: 'export interface FleetRunReport {\n    readonly group: string;\n    readonly cells: readonly FleetCellOutcome[];\n    readonly leaderboard: readonly LeaderboardRow[];\n}',
+    declaration: 'export interface FleetRunReport {\n    readonly group: string;\n    readonly cells: readonly FleetCellOutcome[];\n    readonly leaderboard: readonly LeaderboardRow[];\n    readonly spend: FleetSpend;\n}',
+  },
+  {
+    name: 'FleetSpend',
+    declaration: 'export interface FleetSpend {\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
   {
     name: 'FsDirEntry',
@@ -5004,11 +5008,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TrajectoryExportReport',
-    declaration: 'export interface TrajectoryExportReport {\n    readonly sessions: number;\n    readonly exported: number;\n    readonly rewarded: number;\n    readonly filtered: number;\n    readonly heldOut: number;\n    readonly skipped: readonly TrajectoryExportSkip[];\n}',
+    declaration: 'export interface TrajectoryExportReport {\n    readonly sessions: number;\n    readonly exported: number;\n    readonly rewarded: number;\n    readonly filtered: number;\n    readonly heldOut: number;\n    readonly withheld: number;\n    readonly skipped: readonly TrajectoryExportSkip[];\n}',
   },
   {
     name: 'TrajectoryExportRequest',
-    declaration: 'export interface TrajectoryExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n    readonly rewardedOnly?: boolean;\n    readonly includeHeldOut?: boolean;\n}',
+    declaration: 'export interface TrajectoryExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n    readonly rewardedOnly?: boolean;\n    readonly includeHeldOut?: boolean;\n    readonly districts?: readonly string[];\n}',
   },
   {
     name: 'TrajectoryExportSkip',

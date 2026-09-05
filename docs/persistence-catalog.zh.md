@@ -419,8 +419,8 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 ```ts persistence-catalog
 /**
  * Environment run stamp: the environment, its content hashes, the
- * repetition and group, the model route, and the declared isolation of
- * one run, appended once before the run's first turn.
+ * repetition, group, and district, the model route, and the declared
+ * isolation of one run, appended once before the run's first turn.
  */
 'environment/run': EnvironmentRunStamp
 ```

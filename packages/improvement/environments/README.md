@@ -21,11 +21,11 @@ A definition carries a branded `EnvironmentId`, a `kind` from the merge-extensib
 
 ## Run stamp
 
-The `environment/run` session event is the durable link from a session to the environment it ran. The runner appends one `EnvironmentRunStamp` before the run's first turn: the environment id and kind, the `heldOut` flag, the content hashes, the zero-based `repetition` and optional `group` of the run inside its batch, the model route, and the isolation the deployment declared. `environmentContentHashes(environment, fixtureSha256?)` computes the prompt, check-inventory, and combined `contentSha256` digests deterministically; the combined digest is the decontamination key a curator compares against held-out environments. `decodeEnvironmentRun(value)` validates a durable payload at the log boundary: unrelated values return `undefined`, a malformed stamp throws, so a fold never reads a partial stamp.
+The `environment/run` session event is the durable link from a session to the environment it ran. The runner appends one `EnvironmentRunStamp` before the run's first turn: the environment id and kind, the `heldOut` flag, the content hashes, the zero-based `repetition` and optional `group` of the run inside its batch, the optional `district` the run belongs to, the model route, and the isolation the deployment declared. `environmentContentHashes(environment, fixtureSha256?)` computes the prompt, check-inventory, and combined `contentSha256` digests deterministically; the combined digest is the decontamination key a curator compares against held-out environments. `decodeEnvironmentRun(value)` validates a durable payload at the log boundary: unrelated values return `undefined`, a malformed stamp throws, so a fold never reads a partial stamp.
 
 ## Extension points
 
-Producers register environments from curated suites or from synthesis; consumers are the environment runner that mounts a task as a session and writes the run stamp, the trajectory exporter that reads the stamp to attribute sessions and withhold held-out ones, and the component registry adapter that lists environments as components.
+Producers register environments from curated suites or from synthesis; consumers are the environment runner that mounts a task as a session and writes the run stamp, the trajectory exporter that reads the stamp to attribute sessions and withhold held-out ones and the districts a deployment withholds, and the component registry adapter that lists environments as components.
 
 ## Model Experience
 

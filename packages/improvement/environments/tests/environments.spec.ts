@@ -165,7 +165,7 @@ describe('environment run stamps', () => {
   })
 
   it('decodes a complete stamp, leaves unrelated values alone, and keeps optional fields exact', () => {
-    const decoded = decodeEnvironmentRun(stamp({ fixtureSha256: HEX, group: 'batch-7', heldOut: true, repetition: 3 }))
+    const decoded = decodeEnvironmentRun(stamp({ fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3 }))
     expect(decoded).toEqual<EnvironmentRunStamp>({
       kind: 'environment/run',
       version: 1,
@@ -178,11 +178,13 @@ describe('environment run stamps', () => {
       contentSha256: HEX,
       repetition: 3,
       group: 'batch-7',
+      district: 'workshop',
       model: { provider: 'cli-mock', model: 'cli-mock' },
       isolation: 'none',
     })
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('fixtureSha256')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('group')
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('district')
     expect(decodeEnvironmentRun({ kind: 'goal/change' })).toBeUndefined()
     expect(decodeEnvironmentRun('environment/run')).toBeUndefined()
     expect(decodeEnvironmentRun([stamp()])).toBeUndefined()
@@ -201,6 +203,7 @@ describe('environment run stamps', () => {
       [stamp({ promptSha256: 'xyz' }), 'promptSha256 must be a SHA-256 hex digest'],
       [stamp({ fixtureSha256: 12 }), 'fixtureSha256 must be a non-empty string'],
       [stamp({ group: '' }), 'group must be a non-empty string'],
+      [stamp({ district: 7 }), 'district must be a non-empty string'],
     ]
     for (const [value, message] of cases) {
       expect(() => decodeEnvironmentRun(value), message).toThrow(message)

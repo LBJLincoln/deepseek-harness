@@ -27,8 +27,8 @@ declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
     /**
      * Environment run stamp: the environment, its content hashes, the
-     * repetition and group, the model route, and the declared isolation of
-     * one run, appended once before the run's first turn.
+     * repetition, group, and district, the model route, and the declared
+     * isolation of one run, appended once before the run's first turn.
      */
     'environment/run': EnvironmentRunStamp
   }
@@ -106,6 +106,7 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
   }
   const fixture = value['fixtureSha256'] === undefined ? {} : { fixtureSha256: stampHex(value, 'fixtureSha256') }
   const group = value['group'] === undefined ? {} : { group: stampText(value, 'group') }
+  const district = value['district'] === undefined ? {} : { district: stampText(value, 'district') }
   return {
     kind: 'environment/run',
     version: ENVIRONMENT_RUN_VERSION,
@@ -118,6 +119,7 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
     contentSha256: stampHex(value, 'contentSha256'),
     repetition,
     ...group,
+    ...district,
     model: { provider: stampText(model, 'provider'), model: stampText(model, 'model') },
     isolation: isolation as EnvironmentRunStamp['isolation'],
   }

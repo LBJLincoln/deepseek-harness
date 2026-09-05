@@ -346,6 +346,7 @@ describe('EnvironmentRunner', () => {
     })
     expect(stamp).not.toHaveProperty('fixtureSha256')
     expect(stamp).not.toHaveProperty('group')
+    expect(stamp).not.toHaveProperty('district')
     const agent = StubAgents.current.agent
     expect(agent.session.events[0]).toMatchObject({ type: 'environment/run', data: stamp })
     expect(agent.turns).toEqual(['Create a file named MARKER in the workspace.'])
@@ -412,11 +413,11 @@ describe('EnvironmentRunner', () => {
   it('issues a directive, sends the validation follow-up as a user turn, and certifies on the second attempt', async () => {
     const { run } = await harness({ config: { maxAttempts: 2 } })
     StubShell.current.script(MARKER, shellResult({ exitCode: 1, stderr: 'no MARKER\n' }), shellResult())
-    const report = await run({ repetition: 2, group: 'batch-7' })
+    const report = await run({ repetition: 2, group: 'batch-7', district: 'workshop' })
 
     expect(report.certified).toBe(true)
     expect(report.attempts.map(attempt => attempt.results[0]?.status)).toEqual(['fail', 'pass'])
-    expect(report.stamp).toMatchObject({ repetition: 2, group: 'batch-7' })
+    expect(report.stamp).toMatchObject({ repetition: 2, group: 'batch-7', district: 'workshop' })
     expect(report.usage).toEqual({ inputTokens: 18, outputTokens: 8, cacheReadTokens: 2, reasoningTokens: 1 })
     expect(StubStandards.current.directives).toEqual([{ rootCause: "1 of the standard's checks failed", detail: '1. exit 1\nstderr: no MARKER' }])
     expect(StubAgents.current.agent.turns[1]).toBe(

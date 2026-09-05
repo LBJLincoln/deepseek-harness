@@ -48,7 +48,7 @@ describe('environment runs through a real cordis.yml and headless process', () =
     expect(reserved?.stamp.heldOut).toBe(true)
     expect(new Set(result.reports.map(report => report.sessionId)).size).toBe(3)
 
-    expect(result.report).toEqual({ sessions: 3, exported: 2, rewarded: 1, filtered: 0, heldOut: 1, skipped: [] })
+    expect(result.report).toEqual({ sessions: 3, exported: 2, rewarded: 1, filtered: 0, heldOut: 1, withheld: 0, skipped: [] })
     expect(lines).toHaveLength(2)
     const trajectories = lines.map(line => JSON.parse(line) as Trajectory)
     const byEnvironment = new Map(trajectories.map(trajectory => [trajectory.environment?.environmentId, trajectory]))

@@ -106,7 +106,16 @@ function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
         : { cell, report: runReport(cell, group, shape) })
     }
   }
-  return { group, cells, leaderboard: [] }
+  const reports = cells.flatMap(outcome => ('report' in outcome ? [outcome.report] : []))
+  return {
+    group,
+    cells,
+    leaderboard: [],
+    spend: {
+      inputTokens: reports.reduce((sum, entry) => sum + (entry.usage?.inputTokens ?? 0), 0),
+      outputTokens: reports.reduce((sum, entry) => sum + (entry.usage?.outputTokens ?? 0), 0),
+    },
+  }
 }
 
 class StubFleet extends Service {

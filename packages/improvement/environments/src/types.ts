@@ -112,6 +112,8 @@ export interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly repetition: number
   /** Batch or sampling group the run belongs to, absent for a single run. */
   readonly group?: string
+  /** District the run belongs to; exports withhold the districts a deployment configures by it, absent for a run outside every district. */
+  readonly district?: string
   /** Model route the implementer ran on. */
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
