@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), and [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), and [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), and [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), and [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts).
 
 ## Environment definition
 
@@ -108,6 +108,20 @@ interface TrajectoryReward {
 
 Messages are projected from the session surface after compaction replacements, each carrying the seq of its source event; token ids and logprobs are absent because the harness never sees them.
 
+## Session facts
+
+The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). A scoreboard row is these records grouped by model route, environment, isolation level, and held-out split.
+
+```ts type-equiv
+/** One session log folded into the four fact groups. */
+interface SessionFacts {
+  readonly identity: SessionFactsIdentity
+  readonly outcome: SessionFactsOutcome
+  readonly efficiency: SessionFactsEfficiency
+  readonly tools: SessionFactsTools
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -188,6 +202,44 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
 Source: [`packages/improvement/fleet/src/index.ts:155`](../../packages/improvement/fleet/src/index.ts)
+
+<a id="ctxscorekeeper--scorekeeperservice"></a>
+
+### `ctx.scorekeeper` — `ScorekeeperService`
+
+Scorekeeper (`ctx.scorekeeper`): session facts, the scoreboard, and the facts export.
+
+```ts cordis-catalog
+/**
+ * Fold one persisted session into its facts record.
+ * @param sessionId - the persisted session to read.
+ * @returns the four fact groups with the stored header's identity.
+ * @throws when the session cannot be read, or its goal or verification stream is malformed.
+ */
+async facts(sessionId: SessionId): Promise<SessionFactsRecord>
+
+/**
+ * Fold a scoreboard from persisted session logs, one row per model route,
+ * environment, isolation level, and held-out split. A session that cannot be
+ * read or folded is reported and the fold continues.
+ * @param filter - the sessions to fold and the group and held-out conditions a stamped session must meet.
+ * @returns the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.
+ */
+async leaderboard(filter: LeaderboardFilter = {}): Promise<ScoreboardBatch>
+
+/**
+ * Write one JSON line per session's facts record. A session that cannot be
+ * read or folded is reported and the export continues; the sink is closed
+ * exactly once when every session has been handled.
+ * @param request - sessions to export and the destination sink.
+ * @returns counts of sessions, written lines, and skips with reasons.
+ */
+async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
+```
+
+Types: [SessionId](core.md)
+
+Source: [`packages/improvement/scorekeeper/src/index.ts:165`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 

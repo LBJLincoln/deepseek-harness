@@ -402,8 +402,16 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'trajectories',
     title: 'Trajectory export',
     mode: 'core',
-    consumers: ['headless-agent'],
+    consumers: ['headless-agent', 'scorekeeper'],
     note: 'Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event.',
+  },
+  {
+    key: 'scorekeeper',
+    pkg: 'scorekeeper',
+    title: 'Session facts and the scoreboard',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export.',
   },
   {
     key: 'e2b',

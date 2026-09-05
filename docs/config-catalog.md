@@ -1601,6 +1601,22 @@ Depends on: [`SandboxMode`](subsystems/sandbox.md)
 
 Source: [`packages/sandbox/sandbox-policy/src/index.ts:67`](../packages/sandbox/sandbox-policy/src/index.ts)
 
+<a id="deepseek-aidsh-scorekeeper"></a>
+
+## `@deepseek-ai/dsh-scorekeeper`
+
+Requires: `sessionPersistence`
+
+```ts config-catalog
+/** Deployment choices of the scorekeeper, validated from `cordis.yml`. */
+export interface Config {
+  /** Repetition draws the scoreboard estimates pass@k for. */
+  passAtK?: number[]
+}
+```
+
+Source: [`packages/improvement/scorekeeper/src/index.ts:136`](../packages/improvement/scorekeeper/src/index.ts)
+
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 
 ## `@deepseek-ai/dsh-sdk-jsonrpc-server`

@@ -47,6 +47,7 @@
         "headless-agent/tests/fixtures/environment-run/driver.ts",
         "headless-agent/tests/fixtures/environment-run/register-environments.ts",
         "headless-agent/tests/fixtures/fleet-run/driver.ts",
+        "headless-agent/tests/fixtures/scoreboard/driver.ts",
         "headless-agent/tests/fixtures/budget-policy/seed-budgeted-goal.ts",
         "headless-agent/tests/fixtures/time-context-driver.ts",
         "headless-agent/tests/fixtures/time-context-mock-llm.ts",
@@ -175,6 +176,16 @@
       ]
     },
     "packages/improvement/fleet": {
+      "entry": [
+        "tests/**/*.spec.ts",
+        "tests/**/*.e2e.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
+    "packages/improvement/scorekeeper": {
       "entry": [
         "tests/**/*.spec.ts",
         "tests/**/*.e2e.ts"

@@ -37,8 +37,6 @@ interface LogScan {
   header?: EpochHeader
   agentPreset?: string
   environment?: EnvironmentRunStamp
-  goal?: GoalSnapshot
-  goalCompleted: boolean
   readonly positions: Map<number, StepPosition>
   readonly steps: TrajectoryStep[]
   readonly toolNames: string[]
@@ -59,7 +57,6 @@ function presetOf(event: SessionEvent): string | undefined {
 /** One ordered pass over every event, collecting what the projection needs. */
 function scanLog(events: readonly SessionEvent[]): LogScan {
   const scan: LogScan = {
-    goalCompleted: false,
     positions: new Map(),
     steps: [],
     toolNames: [],
@@ -93,13 +90,6 @@ function scanLog(events: readonly SessionEvent[]): LogScan {
       case 'tool/call':
         if (!scan.toolNames.includes(event.data.name)) scan.toolNames.push(event.data.name)
         break
-      case 'goal/change': {
-        const change = decodeGoalChange(event.data)
-        if (change === undefined || change.operation === 'clear') break
-        scan.goal = change.goal
-        scan.goalCompleted = change.operation === 'complete'
-        break
-      }
       case 'environment/run': {
         // The durable boundary validates the stamp; a malformed one fails the fold loudly.
         const stamp = decodeEnvironmentRun(event.data)
@@ -159,12 +149,38 @@ function projectMessage(event: SessionEvent, position: StepPosition | undefined)
   }
 }
 
-/** Decide the reward from the goal and the verification fold. */
-function decideReward(scan: LogScan, events: readonly SessionEvent[]): TrajectoryReward {
+/** The goal the reward measures, as the last non-clear mutation left it. */
+interface RewardGoal {
+  goal?: GoalSnapshot
+  completed: boolean
+}
+
+/** Fold the current goal and whether the log completed it. */
+function scanGoal(events: readonly SessionEvent[]): RewardGoal {
+  const scanned: RewardGoal = { completed: false }
+  for (const event of events) {
+    if (event.type !== 'goal/change') continue
+    const change = decodeGoalChange(event.data)
+    if (change === undefined || change.operation === 'clear') continue
+    scanned.goal = change.goal
+    scanned.completed = change.operation === 'complete'
+  }
+  return scanned
+}
+
+/**
+ * Decide one session's reward from its goal and verification events alone: the
+ * verifier decides whenever a standard exists, an uncertified completion is
+ * undecided, and a log without a goal is unmeasured.
+ * @param events - the session's contiguous event log.
+ * @returns the reward outcome with its basis, the measured goal, the covering certificate, and the counts behind them.
+ */
+export function foldTrajectoryReward(events: readonly SessionEvent[]): TrajectoryReward {
   const verification = foldVerification(events)
-  const goal = scan.goal === undefined
+  const scanned = scanGoal(events)
+  const goal = scanned.goal === undefined
     ? {}
-    : { goal: { id: scan.goal.id, objective: scan.goal.objective, phase: scan.goal.phase } }
+    : { goal: { id: scanned.goal.id, objective: scanned.goal.objective, phase: scanned.goal.phase } }
   const counts = {
     directives: verification.directivesIssued,
     relaxations: verification.standard?.relaxed.length ?? 0,
@@ -175,7 +191,7 @@ function decideReward(scan: LogScan, events: readonly SessionEvent[]): Trajector
       ? { outcome: 0, basis: 'certificate', ...goal, ...counts }
       : { outcome: 1, basis: 'certificate', ...goal, certificate: verification.certificate, ...counts }
   }
-  if (scan.goalCompleted) return { outcome: null, basis: 'uncertified-completion', ...goal, ...counts }
+  if (scanned.completed) return { outcome: null, basis: 'uncertified-completion', ...goal, ...counts }
   return { outcome: null, basis: 'none', ...goal, ...counts }
 }
 
@@ -206,7 +222,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
     const message = projectMessage(event, scan.positions.get(seq))
     if (message !== undefined) messages.push(message)
   }
-  const reward = decideReward(scan, events)
+  const reward = foldTrajectoryReward(events)
   const header = scan.header
   return {
     format: TRAJECTORY_FORMAT,

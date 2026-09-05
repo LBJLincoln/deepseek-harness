@@ -1148,6 +1148,32 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'scorekeeper',
+    summary: 'Scorekeeper (`ctx.scorekeeper`): session facts, the scoreboard, and the facts export.',
+    description: 'Scorekeeper (`ctx.scorekeeper`): session facts, the scoreboard, and the facts export.',
+    methods: [
+      {
+        signature: 'async facts(sessionId: SessionId): Promise<SessionFactsRecord>',
+        description: 'Fold one persisted session into its facts record.',
+        parameters: [{ name: 'sessionId', description: 'the persisted session to read.' }],
+        returns: 'the four fact groups with the stored header\'s identity.',
+        throws: ['when the session cannot be read, or its goal or verification stream is malformed.'],
+      },
+      {
+        signature: 'async leaderboard(filter: LeaderboardFilter = {}): Promise<ScoreboardBatch>',
+        description: 'Fold a scoreboard from persisted session logs, one row per model route, environment, isolation level, and held-out split. A session that cannot be read or folded is reported and the fold continues.',
+        parameters: [{ name: 'filter', description: 'the sessions to fold and the group and held-out conditions a stamped session must meet.' }],
+        returns: 'the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.',
+      },
+      {
+        signature: 'async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>',
+        description: 'Write one JSON line per session\'s facts record. A session that cannot be read or folded is reported and the export continues; the sink is closed exactly once when every session has been handled.',
+        parameters: [{ name: 'request', description: 'sessions to export and the destination sink.' }],
+        returns: 'counts of sessions, written lines, and skips with reasons.',
+      },
+    ],
+  },
+  {
     key: 'sessionPersistence',
     summary: 'Durable append-only session storage.',
     description: 'Durable append-only session storage. Implementations preserve contiguous, losslessly JSON-serializable events; append resolves only after durability, and load balances a complete interrupted tail without rewriting committed events.',
@@ -2893,6 +2919,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type Branded<B extends string> = string & {\n    readonly [BRAND]: B;\n};',
   },
   {
+    name: 'BudgetCapId',
+    declaration: 'export type BudgetCapId = \'maxInputTokens\' | \'maxOutputTokens\' | \'maxTotalTokens\' | \'maxWallMs\' | \'maxCostEur\';',
+  },
+  {
     name: 'CancelOptions',
     declaration: 'export interface CancelOptions {\n    keepInbox?: boolean | undefined;\n}',
   },
@@ -3289,12 +3319,24 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
   },
   {
+    name: 'EnvironmentStats',
+    declaration: 'export interface EnvironmentStats {\n    readonly groups: number;\n    readonly samples: number;\n    readonly passAtK: readonly PassAtK[];\n}',
+  },
+  {
     name: 'EnvironmentTask',
     declaration: 'export interface EnvironmentTask {\n    readonly prompt: string;\n    readonly fixture?: string;\n}',
   },
   {
     name: 'EpochHeader',
     declaration: 'export interface EpochHeader {\n    config: LlmCallConfig;\n    adapterDefaults?: LlmCallConfigAdapterDefaults;\n    system?: string;\n    tools?: ToolSchema[];\n}',
+  },
+  {
+    name: 'FactsExportReport',
+    declaration: 'export interface FactsExportReport {\n    readonly sessions: number;\n    readonly exported: number;\n    readonly skipped: readonly ScorekeeperSkip[];\n}',
+  },
+  {
+    name: 'FactsExportRequest',
+    declaration: 'export interface FactsExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n}',
   },
   {
     name: 'FileDiff',
@@ -3557,6 +3599,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface KvUnitDescriptor {\n    readonly name: string;\n    readonly version: number;\n    readonly tables: readonly string[];\n    readonly hasGlobal: boolean;\n}',
   },
   {
+    name: 'LeaderboardFilter',
+    declaration: 'export interface LeaderboardFilter {\n    readonly sessions?: readonly SessionId[];\n    readonly group?: string;\n    readonly heldOut?: boolean;\n}',
+  },
+  {
     name: 'LeaderboardRow',
     declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
@@ -3773,8 +3819,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface OneShotSubagentDescriptorData extends SubagentDescriptorBase {\n    readonly mode: \'one-shot\';\n    readonly label?: string;\n}',
   },
   {
+    name: 'PassAtK',
+    declaration: 'export interface PassAtK {\n    readonly k: number;\n    readonly value: number;\n    readonly groups: number;\n}',
+  },
+  {
     name: 'PermissionSelect',
     declaration: 'export interface PermissionSelect {\n    options: PresetOption[];\n    currentValue: string;\n}',
+  },
+  {
+    name: 'PersistedFactsIdentity',
+    declaration: 'export interface PersistedFactsIdentity extends SessionFactsIdentity {\n    readonly sessionId: SessionId;\n    readonly createdAt: number;\n}',
   },
   {
     name: 'PostToolDecision',
@@ -4013,6 +4067,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ScopeKey = object;',
   },
   {
+    name: 'ScoreboardBatch',
+    declaration: 'export interface ScoreboardBatch {\n    readonly rows: readonly ScoreboardRow[];\n    readonly sessions: number;\n    readonly excluded: number;\n    readonly unstamped: number;\n    readonly skipped: readonly ScorekeeperSkip[];\n    readonly computedAt: number;\n}',
+  },
+  {
+    name: 'ScoreboardRow',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly stats: EnvironmentStats;\n}',
+  },
+  {
+    name: 'ScorekeeperSkip',
+    declaration: 'export interface ScorekeeperSkip {\n    readonly sessionId: SessionId;\n    readonly reason: string;\n}',
+  },
+  {
     name: 'SearchFileMatches',
     declaration: 'export interface SearchFileMatches {\n    path: string;\n    matches: SearchLineMatch[];\n}',
   },
@@ -4103,6 +4169,34 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionEventWindow',
     declaration: 'export interface SessionEventWindow {\n    session: SessionHeader;\n    target: SessionEvent;\n    events: SessionEvent[];\n    startSeq: number;\n    endSeq: number;\n}',
+  },
+  {
+    name: 'SessionFacts',
+    declaration: 'export interface SessionFacts {\n    readonly identity: SessionFactsIdentity;\n    readonly outcome: SessionFactsOutcome;\n    readonly efficiency: SessionFactsEfficiency;\n    readonly tools: SessionFactsTools;\n}',
+  },
+  {
+    name: 'SessionFactsEfficiency',
+    declaration: 'export interface SessionFactsEfficiency {\n    readonly turns: number;\n    readonly steps: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly cacheReadTokens: number;\n    readonly cacheWriteTokens: number;\n    readonly reasoningTokens: number;\n    readonly wallMs: number;\n}',
+  },
+  {
+    name: 'SessionFactsEnvironment',
+    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly isolation: CertificateIsolation;\n}',
+  },
+  {
+    name: 'SessionFactsIdentity',
+    declaration: 'export interface SessionFactsIdentity {\n    readonly environment?: SessionFactsEnvironment;\n    readonly requestProvider?: string;\n    readonly requestModel?: string;\n}',
+  },
+  {
+    name: 'SessionFactsOutcome',
+    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
+  },
+  {
+    name: 'SessionFactsRecord',
+    declaration: 'export interface SessionFactsRecord extends SessionFacts {\n    readonly identity: PersistedFactsIdentity;\n}',
+  },
+  {
+    name: 'SessionFactsTools',
+    declaration: 'export interface SessionFactsTools {\n    readonly toolCalls: number;\n    readonly toolCallsByName: Readonly<Record<string, number>>;\n    readonly toolErrors: number;\n    readonly toolTimeouts: number;\n    readonly toolAborts: number;\n}',
   },
   {
     name: 'SessionForkSource',
@@ -4791,6 +4885,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TrajectoryExportSkip',
     declaration: 'export interface TrajectoryExportSkip {\n    readonly sessionId: SessionId;\n    readonly reason: string;\n}',
+  },
+  {
+    name: 'TrajectoryRewardBasis',
+    declaration: 'export type TrajectoryRewardBasis = \'certificate\' | \'uncertified-completion\' | \'none\';',
   },
   {
     name: 'TrajectorySink',

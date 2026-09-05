@@ -44,12 +44,12 @@ DeepSeek Harness 为其所服务的实验室承载四个目标：让任意 LLM �
 | Trainer Operator | D | `DatasetManifest`、硬件场景 | `TrainingRun` | 现有：jobs、schedule、subprocess；新增：trainer-operator 插件、LLM seam 上的关联 header、`rl-minimal` preset |
 | Evaluator | D | 候选模型、留出套件 | `EnvironmentStats`、`EvalReport`、`SafetyReport` | 现有：environment-runner、environments、agent-default-model；新增：`EvalReport` 中的 harness 变体钉选 |
 | Attributed human signer | HUMAN | 该阶段的证据（standard、verdict、证书、changelog、模型卡片） | `SignoffRecord`、`PromotionDecision` | 现有：approval seam、session persistence、.agents/notes 流程；新增：`signoff/recorded` 事件、`approval/decided` 上的 `decidedBy` |
-| Scorekeeper | D | trajectories、报告 | `ScoreboardBatch`、`Alert`、排行榜 | 现有：trajectories、session-projection；新增：`SessionFacts` 投影、排行榜存储、`CompositionManifest` |
+| Scorekeeper | D | trajectories、报告 | `ScoreboardBatch`、`Alert`、排行榜 | 现有：trajectories、session-projection、scorekeeper（`SessionFacts` 投影与由日志推导的记分板）；新增：`Alert` 阈值、`CompositionManifest` |
 | Monitor | D（监督，可拒绝） | `tools/pre-execute`、来自配置的影响等级 | `oversight/deny`、`oversight/flag` | 现有：`ctx.tools.guard()`（目前未使用）；新增：oversight monitor 插件 |
 | Fleet Orchestrator | D 脚本 + S 调度 | 计划、队列、预算 | `RunBatch` | 现有：workflow engine、subagent、schedule |
 | Archive sampler | D | `HarnessVariant` 存档、权重（质量、新颖度、子代数） | `ParentSample` | 现有：storage；新增：`dsh-archive` |
 | Experiment service | D | 已冻结的提案、派生出的 cell | `ExperimentPlan`、`ExperimentResult` | 现有：schedule、environment-runner；新增：experiment 插件（阶梯式、配对设计、bootstrap 置信区间、成本） |
-| Department scoreboard | D | 配对的存在/缺失 skill-cell 运行结果 | `ScoreboardBatch`（保留或淘汰） | 新增：scorekeeper、experiment 插件 |
+| Department scoreboard | D | 配对的存在/缺失 skill-cell 运行结果 | `ScoreboardBatch`（保留或淘汰） | 现有：scorekeeper；新增：experiment 插件 |
 
 ### W1 — Harness capability program
 
@@ -58,9 +58,9 @@ Goal 1 —— 让任意 LLM 都成为最强 coding agent 的 harness。一场以
 | Stage | Actor | Type | Status | Emits | Plugins | On failure |
 |---|---|---|---|---|---|---|
 | 1. Model matrix intake | Scorekeeper | D | partial | `CapabilityMatrix` | 现有：llm、agent-default-model、agent-presets、bundle patch layer；新增：`EnvironmentRunRequest` 上的模型与 preset 覆盖 | 没有已注册适配器的路由会被排除，并在矩阵中记名。 |
-| 2. Suite selection | Scorekeeper | D | partial | `SuitePlan` | 现有：environments；新增：`EnvironmentStats`（按 policy 版本计算的 pass@k）、`LlmCallConfig` 上的 seed 与 topP | 一个空的划分会大声失败；留出环境永远不会进入训练或 mutation cell。 |
+| 2. Suite selection | Scorekeeper | D | partial | `SuitePlan` | 现有：environments、scorekeeper（作为按已盖章批次计算的 pass@k 的 `EnvironmentStats`）；新增：按 policy 版本键控、`LlmCallConfig` 上的 seed 与 topP | 一个空的划分会大声失败；留出环境永远不会进入训练或 mutation cell。 |
 | 3. Fleet run | Fleet Orchestrator + environment runner | D | partial | `EnvironmentRunStamp`、`VerificationRun`、`EnvironmentRunReport` | 现有：environment-runner、fleet、budget-policy、workflow、subagent provider、sandbox / E2B；新增：按 header 哈希 × 环境 × 重复序号幂等的 cell | 无法启动的 cell 会是一行带错误码的记录，而不是缺失的一行。 |
-| 4. Facts projection | Scorekeeper | STORE | proposed | `ScoreboardBatch` | 现有：trajectories、session-projection；新增：scorekeeper 的 `SessionFacts` 投影加排行榜存储 | 没有源事件的指标不算作一个字段。 |
+| 4. Facts projection | Scorekeeper | STORE | partial | `ScoreboardBatch` | 现有：trajectories、session-projection、scorekeeper；新增：生产者尚不存在的那些字段分组 | 没有源事件的指标不算作一个字段。 |
 | 5. Diagnosis | Trajectory Analyst（跨模型） | DS | proposed | `SessionDiagnosis` | 现有：session-query、subagent `outputSchema`；新增：trajectory-analyst preset | 不存在的 evidence seq 会导致诊断被拒绝；environment-defect 标签只会打开一个争议，不会淘汰任何东西。 |
 | 6. Parent selection | Archive sampler | D | proposed | `ParentSample` | 现有：storage；新增：`dsh-archive`（`ctx.storage` 之上的 `HarnessVariant` 记录） | 空存档会以 master 作为第 0 代播种。 |
 | 7. Patch proposal | Harness Engineer（隔离） | S | proposed | `HarnessPatchProposal` | 现有：components、bundle patch layer；新增：`harness-lab` preset、按内容寻址的组件版本 | 触碰 evaluator 所属路径的提案会被硬性拒绝，绝不会变成一条 directive。 |
@@ -68,9 +68,9 @@ Goal 1 —— 让任意 LLM 都成为最强 coding agent 的 harness。一场以
 | 9. Staged evaluation | Experiment service | D | proposed | `ExperimentResult`、`HarnessVariant` | 现有：environment-runner；新增：experiment 插件（阶梯式、配对设计、置信区间、成本）、`dsh-archive` | 不确定的结果会把该变体搁置；默认从不晋升。 |
 | 10. Auditor and council | Review council（跨模型、无利害关系） | S | proposed | `ReviewVerdict` | 现有：subagent `outputSchema`；新增：oversight seam 评审委员会 | 阻断性发现会返回给第 7 阶段。 |
 | 11. Promotion | Attributed human signer（component owner） | HUMAN | partial | `PromotionDecision`、`SignoffRecord` | 现有：.agents/notes 流程、approval seam；新增：`signoff/recorded` 事件、`approval/decided` 上的 `decidedBy` | 被拒绝的会连同理由留在存档中。 |
-| 12. Leaderboards | Scorekeeper | STORE | proposed | `ScoreboardBatch` | 新增：scorekeeper | ——反哺 W4 的 facts 与 W3 的 calibration。 |
+| 12. Leaderboards | Scorekeeper | STORE | partial | `ScoreboardBatch` | 现有：scorekeeper；新增：experiment 插件中的跨运行比较 | ——反哺 W4 的 facts 与 W3 的 calibration。 |
 
-`@deepseek-ai/dsh-fleet` 的 `LeaderboardRow`（第 3 阶段，已实现）已经携带 `provider`、`model`、`environmentId`、`environmentKind`、`heldOut`、`isolation?`（当该行每个 cell 都在运行前就失败时缺席）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`、`inputTokens` 与 `outputTokens`，每个模型路由与环境各一行，因此 W1 的模型矩阵今天就已经能仅凭证书折叠出来；它是对单次 fleet 运行的折叠；跨运行比较、配对设计与置信区间仍然是第 9 阶段在会话日志之上的工作。
+`@deepseek-ai/dsh-fleet` 的 `LeaderboardRow`（第 3 阶段，已实现）已经携带 `provider`、`model`、`environmentId`、`environmentKind`、`heldOut`、`isolation?`（当该行每个 cell 都在运行前就失败时缺席）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`、`inputTokens` 与 `outputTokens`，每个模型路由与环境各一行，因此 W1 的模型矩阵今天就已经能仅凭证书折叠出来；它是对单次 fleet 运行的折叠，而 `@deepseek-ai/dsh-scorekeeper` 从已持久化日志中把同样的行折叠回来，使记分板不随进程消亡；跨运行比较、配对设计与置信区间仍然是第 9 阶段在会话日志之上的工作。
 
 Parent selection（第 6 阶段）按质量 × 新颖度 × 1/(1+子代数) 的比例，在按环境种类划分的岛屿内从存档中抽取一个变体，并以 master 作为第 0 代为空存档播种，因此被采样出来的 parent——绝不直接是 `master`——才是被隔离的 Harness Engineer 要去 mutate 的对象。
 
@@ -113,14 +113,14 @@ Goal 3 —— 一个约 1200 亿参数、用 RLVR 训练、在 fleet 任务上�
 | Stage | Actor | Type | Status | Emits | Plugins | On failure |
 |---|---|---|---|---|---|---|
 | 1. Environment factory | Environment Synthesizer + Data Curator | DS | proposed | `EnvironmentProposal`、`EnvironmentAdmission` | 现有：environments；新增：curator（准入、哈希）、`EnvironmentDefinition` 上的 `hiddenChecks` | 参考实现无法通过、或 pre-state 没有失败的任务不会被准入。 |
-| 2. Calibration | Evaluator | D | proposed | `EnvironmentStats` | 现有：environment-runner；新增：`EnvironmentStats` 折叠、runner 原生支持的 N 次重复 | 没有分组运行过的环境没有已测得的难度，也不会被采样。 |
+| 2. Calibration | Evaluator | D | partial | `EnvironmentStats` | 现有：environment-runner、scorekeeper（`EnvironmentStats` 折叠）；新增：按 policy 版本键控、runner 原生支持的 N 次重复 | 没有分组运行过的环境没有已测得的难度，也不会被采样。 |
 | 3. Export and curation | Data Curator | D | proposed | `ExportManifest`、`DatasetManifest` | 现有：trajectories、session-telemetry 脱敏规则；新增：curator 插件、随包发布的脱敏规则、consent 与许可事件 | consent 范围未知的样本会被丢弃，绝不假设。 |
 | 4. SFT cold start | Trainer Operator | D | proposed | `SplitManifest`、`TrainingRun` | 现有：jobs、schedule；新增：trainer-operator 插件、trajectory 上的 `role` 字段 | 数据哈希与 manifest 不一致的运行会被拒绝。 |
 | 5. Reinforcement learning | Trainer Operator | D（会话日志之外） | proposed | `TrainingRun` | 现有：subprocess；新增：trainer-operator 插件、LLM seam 上的关联 header、runner 中纯净 fixture 的奖励机制、`rl-minimal` preset | 奖励来源不是 `verification/run` 事件的运行会被拒绝。 |
 | 6. Held-out evaluation | Evaluator | D | proposed | `EvalReport` | 现有：environment-runner、agent-default-model；新增：`EvalReport` 中的 harness 变体钉选 | 在未钉选变体上做的评估不可比，会被拒绝。 |
 | 7. Safety and alignment | Evaluator + 无利害关系的评委 | DS | proposed | `SafetyReport` | 新增：oversight seam、作为环境的安全套件 | 一票 hold 的 verdict 会阻止晋升。 |
 | 8. Model lineage and release | Attributed human signer（accountable officer） | HUMAN | proposed | `ModelLineage`、`ModelRelease`、`SignoffRecord` | 现有：approval seam；新增：model registry 插件、`ModelLineage` 记录 | 被拒绝会记录是哪个套件失败了。 |
-| 9. Recalibration and feedback | Scorekeeper | STORE | proposed | `EnvironmentStats`、`ScoreboardBatch` | 现有：trajectories；新增：scorekeeper | ——反哺 W3 自身的 calibration 与 W4 的 facts。 |
+| 9. Recalibration and feedback | Scorekeeper | STORE | partial | `EnvironmentStats`、`ScoreboardBatch` | 现有：trajectories、scorekeeper；新增：按 policy 版本键控 | ——反哺 W3 自身的 calibration 与 W4 的 facts。 |
 
 数据的单位是同一个 policy 版本下、同一个环境的一组 rollout，由 runner 按需产出，而不是事后收割来的 fleet 会话；fleet 会话转而喂养一次简短的 SFT 冷启动（包括携带确定性奖励的 validator 与 diagnostician 角色会话）与 environment factory。
 
@@ -134,11 +134,11 @@ Goal 4 —— 同时反哺 harness 与模型的闭环。一条快速回路：age
 
 | Stage | Actor | Type | Status | Emits | Plugins | On failure |
 |---|---|---|---|---|---|---|
-| 1. Manifest and facts | Scorekeeper | STORE | proposed | `CompositionManifest`、`ScoreboardBatch` | 现有：trajectories、session-projection；新增：components-manifest 插件、skill 摘要、scorekeeper 投影 | skill 结果的摘要若不在 manifest 中会触发不变式失败。 |
-| 2. Scoreboards and alerts | Scorekeeper | D | proposed | `Alert` | 新增：scorekeeper、experiment 插件（统计）、预算策略插件 | 没有足够会话支撑的指标不会触发告警。 |
+| 1. Manifest and facts | Scorekeeper | STORE | partial | `CompositionManifest`、`ScoreboardBatch` | 现有：trajectories、session-projection、scorekeeper（`sessionFacts` 投影）；新增：components-manifest 插件、skill 摘要 | skill 结果的摘要若不在 manifest 中会触发不变式失败。 |
+| 2. Scoreboards and alerts | Scorekeeper | D | partial | `Alert` | 现有：scorekeeper、budget-policy；新增：experiment 插件（统计）、告警阈值 | 没有足够会话支撑的指标不会触发告警。 |
 | 3. Diagnosis | Trajectory Analyst（跨模型） | DS | proposed | `SessionDiagnosis` | 现有：session-query、subagent `outputSchema`；新增：trajectory-analyst preset | 诊断从不淘汰环境或设定预算；它只会打开一个争议或一份提案。 |
 | 4. Fast tier: session and department skills | Department agents | S | partial | `KnowledgeProposal` | 现有：分层的 `ctx.skills`、agent-presets 分层；新增：`dsh-skill-synthesized` provider、skill 上的租户范围 | 没有证据会话或范围的候选者会被 schema 拒绝。 |
-| 5. Keep or retire | Department scoreboard | D | proposed | `ScoreboardBatch` | 新增：scorekeeper、experiment 插件 | 没有配对运行的 skill 既不会被保留也不会被淘汰，停留在 tier 0。 |
+| 5. Keep or retire | Department scoreboard | D | proposed | `ScoreboardBatch` | 现有：scorekeeper；新增：experiment 插件、配对的存在/缺失 cell | 没有配对运行的 skill 既不会被保留也不会被淘汰，停留在 tier 0。 |
 | 6. Nomination and frozen experiment | Experiment service | D | proposed | `ExperimentPlan`、`ExperimentResult` | 现有：schedule、environment-runner；新增：experiment 插件 | 超出预算的计划会等待；超出上限的计划需要一位人类。 |
 | 7. Static gates | run-gates | GATE | partial | `GateReport` | 现有：scripts/run-gates | 发现的问题返回给第 4 阶段。 |
 | 8. Promotion | Attributed human signer（maintainer） | HUMAN | partial | `PromotionDecision`、`SignoffRecord` | 现有：.agents/notes 流程、approval seam；新增：`signoff/recorded` 事件 | 被拒绝的会连同理由留在 ledger 中。 |
@@ -224,6 +224,8 @@ Training and data（10 个字段，全部为 D）：`content_hash`、`dedupe_clu
 
 这八组共列举了 136 个原始字段与 44 个评审委员会新增字段，合计 180 个；每一个 D 字段在发布之前都必须能从一个具名会话事件或运行报告中折叠出来，见上文 P2。
 
+[`@deepseek-ai/dsh-scorekeeper`](../../../../packages/improvement/scorekeeper/README.md) 发布该记录时使用 camelCase 而非上文草拟的 snake_case，并且只携带今天已有会话事件提供的那些已列字段：身份与来源中的 `session_id`、`started_at`、`environment_id`、`environment_kind`、`held_out`、`group_id`、`rollout_index`、`environment_content_hash`、`isolation`、`model_provider` 与 `model_id`；结果中的 `reward_outcome`、`reward_basis`、`certified`、`certificate_revision`、`attempts`、`directives`、`checks_relaxed`、`goal_phase`、`goal_rounds_started` 与 `goal_rounds_cap`，另加一个已记录运行次数与最后一条 `budget/breach` 的上限；效率中的 `turns`、`steps`、`input_tokens`、`output_tokens`、`cache_read_tokens`、`cache_write_tokens`、`reasoning_tokens` 与 `wall_ms`；以及工具行为中的 `tool_calls`、`tool_calls_by_name`、`tool_errors`、`tool_timeouts` 与 `tool_aborts`——过程质量、评审打分、安全与监督、训练与数据在其生产者出现之前不发布任何内容。
+
 ## Alternatives considered
 
 **Best-only promotion。** 早期设计每一代只保留一个合并后的 head，把落败的变体直接折叠回虚无；现在每一个已评估但未晋升的变体都会以 `alive` 或 `dominated` 的状态保留在 `dsh-archive` ledger 中，并按质量 × 新颖度 × 1/(1+子代数) 的比例、在按环境种类划分的岛屿内被抽取为下一个 parent——这是 Darwin Gödel Machine 式的存档语义，其中低分祖先已被证明是通往最终最优变体的必经踏脚石。这被否决为唯一存储方式，因为纯粹的爬山式最优保留没有踏脚石，也没有透明的 lineage 可用来审查一个伪造的结果。
@@ -278,11 +280,11 @@ Training and data（10 个字段，全部为 D）：`content_hash`、`dedupe_clu
 
 ## Rollout
 
-1. **已落地** —— `environment/run` stamp、`verification/run` 事件，以及同时追加两者的 runner：标准的每一次执行运行（无论通过与否）都连同其执行者与 workspace tree 哈希被持久记录，证书需要其修订号的一次完全通过运行，轨迹携带尝试次数，`@deepseek-ai/dsh-fleet`（`ctx.fleet`）运行各 cell 并按路由与环境折叠出排行榜。这一项剩下的是基于运行事件的 `EnvironmentStats` 折叠（按策略版本的 pass@k），供 W1 第 2 阶段与 W3 第 2 阶段读取。
+1. **已落地** —— `environment/run` stamp、`verification/run` 事件，以及同时追加两者的 runner：标准的每一次执行运行（无论通过与否）都连同其执行者与 workspace tree 哈希被持久记录，证书需要其修订号的一次完全通过运行，轨迹携带尝试次数，`@deepseek-ai/dsh-fleet`（`ctx.fleet`）运行各 cell 并按路由与环境折叠出排行榜。供 W1 第 2 阶段与 W3 第 2 阶段读取的 `EnvironmentStats` 折叠就是记分员在已盖章批次上的 pass@k；按策略版本键控要等 stamp 携带策略版本。
 2. **Blocking** —— 作为文件系统与进程层面权威的读取屏障。一个 validator-root fs-policy 插件、单调的工具 guard、不含日志读取工具的实现者 preset，以及证书上的一条不变式；在此之前，每一份证书衡量的都只是实现者能看到的东西。
 3. **Blocking** —— 可归因的决策，以及被钉选的数据用途条款。`signoff/recorded`、审批上带参数摘要的 `decidedBy`、会话创建时的 `dataUse/terms`、随包发布的脱敏规则，以及一个记录规则命中次数的 curator；没有它们，任何客户方审计员都无法核实一个关口，任何文本记录也不得成为训练数据。
 4. **Major** —— 按内容寻址的身份：组件与 skill 摘要，以及 composition manifest 事件。Lineage、按版本的排行榜、动态包的隔离检验，以及 manifest 与 ledger 之间的一致性不变式，全都以 `id@digest` 为键。
-5. **Major** —— 作为会话投影的 scorekeeper，以及存档 ledger。`SessionFacts` 与 goal 及 verification 投影并列折叠；`HarnessVariant` 记录建立在 storage 之上，带 parent、operator、evaluations 与 status。
+5. **已落地** —— 作为会话投影的记分员（`@deepseek-ai/dsh-scorekeeper`）：与 goal 及 verification 并列的 `sessionFacts` 单元、从已持久化日志折叠并按路由、环境、隔离级别与留出划分分组的记分板、在已盖章批次上的 pass@k，以及事实的 JSONL 导出。剩下的是存档 ledger——`HarnessVariant` 记录建立在 storage 之上，带 parent、operator、evaluations 与 status——以及生产者尚不存在的那些字段分组。
 6. **已落地** —— 预算策略插件（`@deepseek-ai/dsh-budget-policy`）：来自配置的 token、墙钟时间与成本上限，在 `agent/pre-step` 上从会话日志折叠，一条 `budget/breach` 事件，以及任何 round driver 都不会恢复的持久 goal 阻塞；由于步骤从未开启，模型什么也看不到。剩下的是从 fleet 计划接入按 cell 的上限。
 7. **Major** —— experiment 插件：阶梯式评估、配对重复、bootstrap 区间、成本。Cell 由规则派生，计划被冻结并记录在案；这是花费决策唯一的落脚点。
 8. **Major** —— 作为插件的顶层 preset 结构化输出。把结构化输出运行时接到任意 preset 的 agent context 上；Intake、Program service 与 Trajectory Analyst 因此获得带日志化拒绝路径的强制 schema。

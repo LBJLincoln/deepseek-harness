@@ -165,6 +165,7 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/improvement/environments': { kind: 'none', reason: 'The registry holds composition-time task definitions and registers nothing model-facing; the environment runner owns every model-visible effect.' },
   'packages/improvement/fleet': { kind: 'none', reason: 'The fleet schedules environment runs; the environment runner owns every model-visible effect of each cell.' },
   'packages/improvement/trajectories': { kind: 'none', reason: 'Export reads persisted logs and writes files; it adds nothing to any model request.' },
+  'packages/improvement/scorekeeper': { kind: 'none', reason: 'The scorekeeper folds committed events into a projection value and reads persisted logs; it adds nothing to any model request.' },
   'packages/web/web': { kind: 'indirect', reason: 'The provider registry delegates model rendering to dsh-tool-web.' },
   'packages/web/web-fetch-http': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },
   'packages/web/web-search-exa': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },
