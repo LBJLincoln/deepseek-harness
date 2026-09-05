@@ -21,7 +21,12 @@ export interface AgentProviderComponentDetail {
 
 declare module '@deepseek-ai/dsh-components/types' {
   interface ComponentKindMap {
-    /** One subagent provider, reachable through the `subagent` tool with a fixed `provider` argument. */
+    /**
+     * One subagent provider registered with `ctx.subagents`. The callable
+     * route is the `subagent` tool instance configured for the provider; the
+     * subagent seam does not expose that binding, so the component carries
+     * no `invoke` pointer.
+     */
     'agent-provider': AgentProviderComponentDetail
   }
 }
@@ -43,10 +48,9 @@ function describeProvider(provider: string): ComponentDescriptor {
     id: agentProviderComponentId(provider),
     kind: 'agent-provider',
     name: provider,
-    description: `Delegate a task to the "${provider}" subagent provider through the subagent tool.`,
+    description: `Subagent provider "${provider}", reached through the subagent tool instance configured for it.`,
     owner: OWNER,
     provenance: 'curated',
-    invoke: { tool: 'subagent', arguments: { provider } },
     detail: { provider },
   }
 }

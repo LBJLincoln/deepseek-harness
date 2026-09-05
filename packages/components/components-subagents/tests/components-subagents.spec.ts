@@ -29,7 +29,7 @@ async function harness() {
 }
 
 describe('@deepseek-ai/dsh-components-subagents', () => {
-  it('mirrors every provider present at mount with its callable route', async () => {
+  it('mirrors every provider present at mount without a callable route', async () => {
     const { ctx } = await harness()
     expect(adapter.name).toBe('components-subagents')
     expect(adapter.inject).toEqual(['components', 'subagents'])
@@ -37,14 +37,16 @@ describe('@deepseek-ai/dsh-components-subagents', () => {
       'agent-provider:spawn-in-process',
       'agent-provider:codex',
     ])
-    expect(ctx.components.get(agentProviderComponentId('codex'))).toMatchObject({
+    const codex = ctx.components.get(agentProviderComponentId('codex'))
+    expect(codex).toMatchObject({
       kind: 'agent-provider',
       name: 'codex',
       provenance: 'curated',
       owner: '@deepseek-ai/dsh-components-subagents',
-      invoke: { tool: 'subagent', arguments: { provider: 'codex' } },
       detail: { provider: 'codex' },
     })
+    // The subagent tool is mounted per provider under a configurable name and takes no provider argument.
+    expect(codex?.invoke).toBeUndefined()
   })
 
   it('follows provider additions and removals through the seam events', async () => {

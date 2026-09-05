@@ -19,7 +19,7 @@ The adapter takes no configuration and requires both services.
 
 ## Contract
 
-At mount the adapter registers one component per name in `ctx.subagents.list()`; afterwards it registers on `subagent/provider-added` and disposes on `subagent/provider-removed`, ignoring a duplicate addition or an unknown removal. Each component has id `agent-provider:<provider>`, kind `agent-provider`, `provenance: 'curated'`, an `invoke` pointer to the `subagent` tool with the fixed `provider` argument, and `detail: { provider }`. Disposing the adapter fiber removes every component it registered. `agentProviderComponentId(provider)` builds the id for consumers.
+At mount the adapter registers one component per name in `ctx.subagents.list()`; afterwards it registers on `subagent/provider-added` and disposes on `subagent/provider-removed`, ignoring a duplicate addition or an unknown removal. Each component has id `agent-provider:<provider>`, kind `agent-provider`, `provenance: 'curated'`, no `invoke` pointer, and `detail: { provider }`. Disposing the adapter fiber removes every component it registered. `agentProviderComponentId(provider)` builds the id for consumers.
 
 ## Model Experience
 
@@ -31,5 +31,6 @@ None; the adapter neither adds to nor changes any model request.
 
 ## Known Limitations and Deferred Work
 
+- **No callable route** — the `subagent` tool is mounted per provider under a configurable `toolName` and takes no `provider` argument, and the subagent seam does not expose which tool instance is bound to a provider; the component carries no `invoke` pointer until the tools adapter mirrors tool-subagent instances with their provider binding.
 - **Names only** — the component detail carries the provider name; provider capabilities (`outputSchema`, `depthLimit`, `toolFilter`, `persona`) are not mirrored until a consumer needs them.
 - **Curated provenance for every provider** — providers are composed plugins today; a synthesized provider registered at runtime would need its producer to declare its own provenance and lineage.

@@ -119,7 +119,7 @@ describe('/components human command', () => {
       description: 'component alpha',
       owner: '@deepseek-ai/dsh-command-components-tests',
       provenance: 'curated',
-      invoke: { tool: 'subagent', arguments: { provider: 'alpha' } },
+      invoke: { tool: 'alpha_tool', arguments: { target: 'alpha' } },
       detail: { note: 'a' },
     })
     test.ctx.components.register({
@@ -147,7 +147,7 @@ describe('/components human command', () => {
       text: [
         'Components (3)',
         'test-kind (2):',
-        '- test-kind:alpha: component alpha · curated · via subagent',
+        '- test-kind:alpha: component alpha · curated · via alpha_tool',
         '- test-kind:beta: component beta · synthesized · from test-kind:alpha',
         'other-kind (1):',
         '- other-kind:gamma: component gamma · curated · 2 members',

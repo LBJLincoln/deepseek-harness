@@ -19,7 +19,7 @@
 
 ## 约定
 
-挂载时，适配器为 `ctx.subagents.list()` 中的每个名称注册一个组件；之后在 `subagent/provider-added` 时注册、在 `subagent/provider-removed` 时释放，忽略重复的添加或未知的移除。每个组件的 id 为 `agent-provider:<provider>`，类别为 `agent-provider`，`provenance: 'curated'`，其 `invoke` 指针指向带固定 `provider` 参数的 `subagent` 工具，`detail: { provider }`。释放适配器 fiber 会移除它注册的全部组件。`agentProviderComponentId(provider)` 为消费方构造该 id。
+挂载时，适配器为 `ctx.subagents.list()` 中的每个名称注册一个组件；之后在 `subagent/provider-added` 时注册、在 `subagent/provider-removed` 时释放，忽略重复的添加或未知的移除。每个组件的 id 为 `agent-provider:<provider>`，类别为 `agent-provider`，`provenance: 'curated'`，不带 `invoke` 指针，`detail: { provider }`。释放适配器 fiber 会移除它注册的全部组件。`agentProviderComponentId(provider)` 为消费方构造该 id。
 
 ## 模型体验
 
@@ -31,5 +31,6 @@
 
 ## 已知限制与暂缓事项
 
+- **没有可调用路由** — `subagent` 工具按提供方各自挂载在可配置的 `toolName` 下且不接受 `provider` 参数，而 subagent seam 不暴露哪个工具实例绑定到哪个提供方；在工具适配器连同提供方绑定一起镜像 tool-subagent 实例之前，组件不携带 `invoke` 指针。
 - **仅镜像名称** — 组件 detail 只携带提供方名称；提供方能力（`outputSchema`、`depthLimit`、`toolFilter`、`persona`）在有消费方需要之前不会被镜像。
 - **每个提供方都是人工筛选来源** — 如今提供方都是已组合的插件；运行时注册的合成提供方需要其生产方自行声明来源与谱系。

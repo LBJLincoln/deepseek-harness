@@ -20,7 +20,7 @@ Status: proposed
 
 **Service Definition（`dsh-components`，`ctx.components`）。** `ComponentDescriptor` 携带带品牌类型的 `ComponentId`、取自可合并扩展的 `ComponentKindMap` 的 `kind`（每个生产方包通过声明合并声明自己的类别，因此注册表本身不附带任何类别）、`name`、`description`、所属包、`provenance`（`curated` 或 `synthesized`）、可选的 `lineage` 父级 id、可选的 `members`（子组件 id，使组合本身成为组件）、可选的 `invoke` 指针（`{ tool, arguments }`：模型以固定参数调用以触达该组件的现有工具），以及类别专属的 `detail`。`register()` 返回其释放器并对重复 id 大声拒绝；`list(kind?)` 与 `get(id)` 负责读取。注册是组合期的效果，不是持久的会话事实。
 
-**生产方：每个 seam 一个适配器包。** 每个适配器把其 seam 的实时注册表镜像为组件，并通过该 seam 自己的事件保持同步。`dsh-components-subagents` 把 [`ctx.subagents`](../../../../packages/subagent/subagent/README.md) 中的每个提供方注册为 `agent-provider` 组件，其 `invoke` 指向带固定 `provider` 参数的 `subagent` 工具，并跟随 `subagent/provider-added` 与 `subagent/provider-removed`。后续适配器对工具、skill、工作流、MCP 服务器、LLM 提供方、上下文提供方与 preset 做同样的事。一个 preset 组合注册为 `composition` 组件，其 `members` 是它挂载的组件；这正是舰队所需的递归：部门、agent preset，然后是工具、skill 与上下文。
+**生产方：每个 seam 一个适配器包。** 每个适配器把其 seam 的实时注册表镜像为组件，并通过该 seam 自己的事件保持同步。`dsh-components-subagents` 把 [`ctx.subagents`](../../../../packages/subagent/subagent/README.md) 中的每个提供方注册为 `agent-provider` 组件，并跟随 `subagent/provider-added` 与 `subagent/provider-removed`。该组件不携带 `invoke` 指针：`subagent` 工具按提供方各自挂载在可配置的名称下且不接受 `provider` 参数，而 subagent seam 不暴露哪个工具实例绑定到哪个提供方；待工具适配器连同提供方绑定一起镜像 tool-subagent 实例后，路由才会出现。后续适配器对工具、skill、工作流、MCP 服务器、LLM 提供方、上下文提供方与 preset 做同样的事。一个 preset 组合注册为 `composition` 组件，其 `members` 是它挂载的组件；这正是舰队所需的递归：部门、agent preset，然后是工具、skill 与上下文。
 
 **消费方。** `/components`（`dsh-command-components`）面向人按类别渲染库存，附带来源与谱系。后续的 `component_invoke` 工具分派组件的 `invoke` 指针，使模型在原生工具之外通过一次调用触达任何类别，Code Mode 则把它收敛为一个绑定。验证、改进与监督 seam 以组件 id 作为证书、分数与审计的主体：证书记录哪些组件参与其中，因此分数按组件折叠，正如按 agent 折叠一样。
 
