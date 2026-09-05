@@ -389,6 +389,45 @@ export type Config = LocalConfig
 
 来源：[`packages/shell/bash-sandbox/src/index.ts:35`](../packages/shell/bash-sandbox/src/index.ts)
 
+<a id="deepseek-aidsh-budget-policy"></a>
+
+## `@deepseek-ai/dsh-budget-policy`
+
+需要：`agents`
+
+```ts config-catalog
+/**
+ * Per-session ceilings. Every cap is optional and uncapped when omitted, so an
+ * empty configuration is a valid policy that never stops a step. A cap is
+ * exceeded only when measured spend is strictly greater than its value, which
+ * makes `0` an immediate stop and keeps an exactly-on-budget session running.
+ */
+export interface Config {
+  /** Billed input tokens (uncached input plus cache reads and writes) allowed in one session. */
+  maxInputTokens?: number
+  /** Output tokens allowed in one session. */
+  maxOutputTokens?: number
+  /** Input plus output tokens allowed in one session. */
+  maxTotalTokens?: number
+  /** Milliseconds the session log may span between its first and last event. */
+  maxWallMs?: number
+  /** EUR the priced routes of one session may cost; requires a non-empty {@link pricing}. */
+  maxCostEur?: number
+  /** EUR-per-million-token rates keyed by `provider/model`; a route absent here is never cost-capped. */
+  pricing?: Record<string, BudgetRoutePricing>
+}
+
+/** EUR per one million tokens for one `provider/model` route. */
+export interface BudgetRoutePricing {
+  /** EUR per one million billed input tokens (uncached input plus cache reads and writes). */
+  readonly inputEurPerMillionTokens: number
+  /** EUR per one million output tokens. */
+  readonly outputEurPerMillionTokens: number
+}
+```
+
+来源：[`packages/guard/budget-policy/src/index.ts:57`](../packages/guard/budget-policy/src/index.ts)
+
 <a id="deepseek-aidsh-client-connection"></a>
 
 ## `@deepseek-ai/dsh-client-connection`

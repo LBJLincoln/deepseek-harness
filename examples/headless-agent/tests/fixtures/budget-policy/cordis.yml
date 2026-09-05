@@ -1,0 +1,55 @@
+# Test-only composition: one mock step spends more output tokens than the cap,
+# so the next step is stopped by the budget policy through the Loader.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+
+# Loaded so the durable block is proven to stop automatic continuation, not
+# merely recorded.
+- id: goal-round-driver
+  name: '@deepseek-ai/dsh-goal-round-driver'
+
+- id: seed-budgeted-goal
+  name: './seed-budgeted-goal.ts'
+
+# The cap is one token below what the first mock step reports, so the breach
+# lands at the second step of the first turn. The priced route is configured to
+# exercise the cost table; its cap is far out of reach.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxOutputTokens: 1
+    maxCostEur: 1000
+    pricing:
+      cli-mock/cli-mock:
+        inputEurPerMillionTokens: 1
+        outputEurPerMillionTokens: 2
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    agents:
+      - id: main
+        provider: cli-mock
+        model: cli-mock
+        cwd: !!js process.cwd()
+    persona: 'Test the durable session budget.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
