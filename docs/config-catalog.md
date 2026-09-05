@@ -611,6 +611,22 @@ Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
 Source: [`packages/improvement/environment-runner/src/index.ts:71`](../packages/improvement/environment-runner/src/index.ts)
 
+<a id="deepseek-aidsh-fleet"></a>
+
+## `@deepseek-ai/dsh-fleet`
+
+Requires: `environments` · `environmentRuns` · `agentDefaultModel`
+
+```ts config-catalog
+/** Deployment choices of the fleet, validated from `cordis.yml`. */
+export interface Config {
+  /** Cells run at the same time; each cell is its own session and workspace. */
+  maxConcurrent?: number
+}
+```
+
+Source: [`packages/improvement/fleet/src/index.ts:50`](../packages/improvement/fleet/src/index.ts)
+
 <a id="deepseek-aidsh-fs-local"></a>
 
 ## `@deepseek-ai/dsh-fs-local`

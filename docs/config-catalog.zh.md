@@ -613,6 +613,22 @@ export interface Config {
 
 来源：[`packages/improvement/environment-runner/src/index.ts:71`](../packages/improvement/environment-runner/src/index.ts)
 
+<a id="deepseek-aidsh-fleet"></a>
+
+## `@deepseek-ai/dsh-fleet`
+
+需要：`environments` · `environmentRuns` · `agentDefaultModel`
+
+```ts config-catalog
+/** Deployment choices of the fleet, validated from `cordis.yml`. */
+export interface Config {
+  /** Cells run at the same time; each cell is its own session and workspace. */
+  maxConcurrent?: number
+}
+```
+
+来源：[`packages/improvement/fleet/src/index.ts:50`](../packages/improvement/fleet/src/index.ts)
+
 <a id="deepseek-aidsh-fs-local"></a>
 
 ## `@deepseek-ai/dsh-fs-local`

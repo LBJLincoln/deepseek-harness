@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)与[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts) 与 [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)与[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts) 与 [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -46,6 +46,40 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
+}
+```
+
+## 排行榜行
+
+fleet 从一次 fleet 运行的报告中折叠出每个模型路由与环境一行。行绝不会跨隔离级别或跨留出划分求平均：`isolation` 与 `heldOut` 是消费者据以分区的列，全部 cell 在运行前失败的行不携带隔离声明。
+
+```ts type-equiv
+/**
+ * One leaderboard row: one model route on one environment. Rows are never
+ * averaged across isolation levels or across the held-out split; both are
+ * columns a consumer partitions by.
+ */
+interface LeaderboardRow {
+  readonly provider: string
+  readonly model: string
+  readonly environmentId: EnvironmentId
+  readonly environmentKind: string
+  readonly heldOut: boolean
+  /** Isolation the runs declared, absent when every cell of the row failed before a run. */
+  readonly isolation?: CertificateIsolation
+  /** Cells that produced a report. */
+  readonly runs: number
+  /** Cells that produced no report. */
+  readonly errors: number
+  /** Reported cells whose run certified. */
+  readonly certified: number
+  /** `certified / runs`, `0` without runs. */
+  readonly certificateRate: number
+  /** Mean attempts over reported cells, `0` without runs. */
+  readonly attemptsMean: number
+  /** Summed model usage over reported cells. */
+  readonly inputTokens: number
+  readonly outputTokens: number
 }
 ```
 
@@ -132,6 +166,26 @@ list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
 Source: [`packages/improvement/environments/src/index.ts:180`](../../packages/improvement/environments/src/index.ts)
+
+<a id="ctxfleet--fleetservice"></a>
+
+### `ctx.fleet` — `FleetService`
+
+Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard.
+
+```ts cordis-catalog
+/**
+ * Run every cell of a plan and fold the leaderboard. A cell whose run
+ * throws is kept as an error outcome; the fleet run itself rejects only for
+ * a plan it cannot start.
+ * @param plan - environments, model routes, repetitions, workspace root, group, and abort signal.
+ * @returns every cell's outcome in plan order and the leaderboard folded from the reports.
+ * @throws {@link FleetError} when the plan selects no environment or asks for no repetition.
+ */
+async run(plan: FleetPlan): Promise<FleetRunReport>
+```
+
+Source: [`packages/improvement/fleet/src/index.ts:155`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 

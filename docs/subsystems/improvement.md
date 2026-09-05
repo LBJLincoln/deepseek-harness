@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) and [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts) and [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), and [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), and [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts).
 
 ## Environment definition
 
@@ -46,6 +46,40 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
+}
+```
+
+## Leaderboard row
+
+The fleet folds one row per model route and environment from the reports of one fleet run. A row never averages across isolation levels or across the held-out split: `isolation` and `heldOut` are columns a consumer partitions by, and a row whose cells all failed before a run carries no isolation claim.
+
+```ts type-equiv
+/**
+ * One leaderboard row: one model route on one environment. Rows are never
+ * averaged across isolation levels or across the held-out split; both are
+ * columns a consumer partitions by.
+ */
+interface LeaderboardRow {
+  readonly provider: string
+  readonly model: string
+  readonly environmentId: EnvironmentId
+  readonly environmentKind: string
+  readonly heldOut: boolean
+  /** Isolation the runs declared, absent when every cell of the row failed before a run. */
+  readonly isolation?: CertificateIsolation
+  /** Cells that produced a report. */
+  readonly runs: number
+  /** Cells that produced no report. */
+  readonly errors: number
+  /** Reported cells whose run certified. */
+  readonly certified: number
+  /** `certified / runs`, `0` without runs. */
+  readonly certificateRate: number
+  /** Mean attempts over reported cells, `0` without runs. */
+  readonly attemptsMean: number
+  /** Summed model usage over reported cells. */
+  readonly inputTokens: number
+  readonly outputTokens: number
 }
 ```
 
@@ -132,6 +166,26 @@ list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
 Source: [`packages/improvement/environments/src/index.ts:180`](../../packages/improvement/environments/src/index.ts)
+
+<a id="ctxfleet--fleetservice"></a>
+
+### `ctx.fleet` — `FleetService`
+
+Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard.
+
+```ts cordis-catalog
+/**
+ * Run every cell of a plan and fold the leaderboard. A cell whose run
+ * throws is kept as an error outcome; the fleet run itself rejects only for
+ * a plan it cannot start.
+ * @param plan - environments, model routes, repetitions, workspace root, group, and abort signal.
+ * @returns every cell's outcome in plan order and the leaderboard folded from the reports.
+ * @throws {@link FleetError} when the plan selects no environment or asks for no repetition.
+ */
+async run(plan: FleetPlan): Promise<FleetRunReport>
+```
+
+Source: [`packages/improvement/fleet/src/index.ts:155`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 

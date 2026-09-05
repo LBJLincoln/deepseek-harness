@@ -685,6 +685,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'fleet',
+    summary: 'Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard.',
+    description: 'Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard.',
+    methods: [
+      {
+        signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
+        description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome; the fleet run itself rejects only for a plan it cannot start.',
+        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, workspace root, group, and abort signal.' }],
+        returns: 'every cell\'s outcome in plan order and the leaderboard folded from the reports.',
+        throws: ['{@link FleetError} when the plan selects no environment or asks for no repetition.'],
+      },
+    ],
+  },
+  {
     key: 'fs',
     summary: 'Abstract filesystem provider.',
     description: 'Abstract filesystem provider. Targets must preserve identity across aliases; reads expose regular UTF-8 text or typed errors, listings are stable and content-free, and mutations are atomic. Optional guards add stale protection without changing the unguarded provider contract.',
@@ -3299,6 +3313,30 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface FinishReasonMap {\n    \'stop\': {\n        kind: \'stop\';\n    };\n    \'tool-calls\': {\n        kind: \'tool-calls\';\n    };\n    \'max-tokens\': {\n        kind: \'max-tokens\';\n    };\n    \'aborted\': {\n        kind: \'aborted\';\n        failure: LlmFailure;\n    };\n    \'error\': {\n        kind: \'error\';\n        failure: LlmFailure;\n    };\n}',
   },
   {
+    name: 'FleetCell',
+    declaration: 'export interface FleetCell {\n    readonly environment: EnvironmentId;\n    readonly model: EnvironmentRunModel;\n    readonly repetition: number;\n}',
+  },
+  {
+    name: 'FleetCellError',
+    declaration: 'export interface FleetCellError {\n    readonly code?: string;\n    readonly message: string;\n}',
+  },
+  {
+    name: 'FleetCellOutcome',
+    declaration: 'export type FleetCellOutcome = {\n    readonly cell: FleetCell;\n    readonly report: EnvironmentRunReport;\n} | {\n    readonly cell: FleetCell;\n    readonly error: FleetCellError;\n};',
+  },
+  {
+    name: 'FleetEnvironmentSelection',
+    declaration: 'export type FleetEnvironmentSelection = {\n    readonly ids: readonly EnvironmentId[];\n} | {\n    readonly filter: EnvironmentFilter;\n};',
+  },
+  {
+    name: 'FleetPlan',
+    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'FleetRunReport',
+    declaration: 'export interface FleetRunReport {\n    readonly group: string;\n    readonly cells: readonly FleetCellOutcome[];\n    readonly leaderboard: readonly LeaderboardRow[];\n}',
+  },
+  {
     name: 'FsDirEntry',
     declaration: 'export interface FsDirEntry {\n    name: string;\n    type: \'file\' | \'directory\' | \'other\';\n    target: FsTarget;\n    version?: FsVersion;\n    size?: number;\n}',
   },
@@ -3517,6 +3555,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'KvUnitDescriptor',
     declaration: 'export interface KvUnitDescriptor {\n    readonly name: string;\n    readonly version: number;\n    readonly tables: readonly string[];\n    readonly hasGlobal: boolean;\n}',
+  },
+  {
+    name: 'LeaderboardRow',
+    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
   {
     name: 'LlmAdapter',

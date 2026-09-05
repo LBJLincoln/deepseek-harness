@@ -386,8 +386,16 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'environment-runner',
     title: 'Environment runner',
     mode: 'core',
-    consumers: ['headless-agent'],
+    consumers: ['fleet', 'headless-agent'],
     note: 'Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate.',
+  },
+  {
+    key: 'fleet',
+    pkg: 'fleet',
+    title: 'Fleet runs',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split.',
   },
   {
     key: 'trajectories',
