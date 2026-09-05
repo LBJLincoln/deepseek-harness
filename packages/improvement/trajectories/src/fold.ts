@@ -165,7 +165,11 @@ function decideReward(scan: LogScan, events: readonly SessionEvent[]): Trajector
   const goal = scan.goal === undefined
     ? {}
     : { goal: { id: scan.goal.id, objective: scan.goal.objective, phase: scan.goal.phase } }
-  const counts = { directives: verification.directivesIssued, relaxations: verification.standard?.relaxed.length ?? 0 }
+  const counts = {
+    directives: verification.directivesIssued,
+    relaxations: verification.standard?.relaxed.length ?? 0,
+    attempts: verification.runsRecorded,
+  }
   if (verification.standard !== undefined) {
     return verification.certificate === undefined
       ? { outcome: 0, basis: 'certificate', ...goal, ...counts }

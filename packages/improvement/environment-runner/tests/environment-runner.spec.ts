@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -19,6 +20,7 @@ import type {
   CertificateIsolation,
   CheckResult,
   DirectiveRequest,
+  RunEvidence,
   RunOutcome,
   StandardRef,
   StandardView,
@@ -150,7 +152,12 @@ class StubGoals extends Service {
 
 class StubStandards extends Service {
   static current: StubStandards
-  readonly runs: { ref: StandardRef; isolation: CertificateIsolation; results: readonly CheckResult[] }[] = []
+  readonly runs: {
+    ref: StandardRef
+    isolation: CertificateIsolation
+    results: readonly CheckResult[]
+    evidence: RunEvidence
+  }[] = []
   readonly directives: DirectiveRequest[] = []
   view: StandardView | undefined
   readMode: 'same' | 'otherGoal' | 'none' = 'same'
@@ -168,6 +175,7 @@ class StubStandards extends Service {
       createdAt: 1,
       updatedAt: 1,
       directivesIssued: 0,
+      runsRecorded: 0,
     }
     return this.view
   }
@@ -175,8 +183,14 @@ class StubStandards extends Service {
     if (this.readMode === 'none' || this.view === undefined) return undefined
     return this.readMode === 'otherGoal' ? { ...this.view, goalId: GoalId('goal-9') } : this.view
   }
-  recordRun(_agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[]): RunOutcome {
-    this.runs.push({ ref, isolation, results })
+  recordRun(
+    _agent: Agent,
+    ref: StandardRef,
+    isolation: CertificateIsolation,
+    results: readonly CheckResult[],
+    evidence: RunEvidence,
+  ): RunOutcome {
+    this.runs.push({ ref, isolation, results, evidence })
     const failures = results.filter(result => result.status === 'fail')
     if (failures.length > 0) return { certified: false, failures }
     return {
@@ -291,7 +305,11 @@ describe('EnvironmentRunner', () => {
     const report = await run()
 
     expect(report.certified).toBe(true)
-    expect(report.attempts).toEqual([{ attempt: 1, results: [{ checkId: 'marker', status: 'pass', evidence: 'exit 0\nstdout: present' }] }])
+    expect(report.attempts).toEqual([{
+      attempt: 1,
+      results: [{ checkId: 'marker', status: 'pass', evidence: 'exit 0\nstdout: present' }],
+      treeHash: expect.stringMatching(/^[0-9a-f]{64}$/) as unknown as string,
+    }])
     expect(report.certificate).toMatchObject({ isolation: 'process', goalId: 'goal-1', standard: { id: 'standard-1', revision: 1 } })
     expect(report.usage).toEqual({ inputTokens: 11, outputTokens: 3, cacheReadTokens: 2 })
     expect(report.sessionId).toBe('environment-test')
@@ -316,6 +334,8 @@ describe('EnvironmentRunner', () => {
     expect(StubGoals.current.completed).toEqual([{ id: 'goal-1', revision: 1 }])
     expect(StubStandards.current.view?.checks).toEqual([{ id: 'marker', outcome: 'MARKER exists', run: MARKER }])
     expect(StubStandards.current.runs).toHaveLength(1)
+    expect(StubStandards.current.runs[0]?.evidence)
+      .toEqual({ executor: 'runner', treeHash: report.attempts[0]?.treeHash })
     expect(StubStandards.current.directives).toEqual([])
     expect(StubShell.current.requests).toEqual([{ command: MARKER, workdir: workspace, timeoutMs: undefined, signal: undefined }])
     expect(StubSessions.current.flushed).toBe(1)
@@ -417,6 +437,29 @@ describe('EnvironmentRunner', () => {
     const bare = (await harness()).run
     StubShell.current.script(MARKER, shellResult())
     expect((await bare()).stamp.contentSha256).not.toBe(report.stamp.contentSha256)
+  })
+
+  it('restores the fixture over the implementer edits before each validation', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-fixture-'))
+    await writeFile(join(fixture, 'seed.txt'), 'seed')
+    let workspace = ''
+    const built = await harness({
+      config: { maxAttempts: 2 },
+      definition: environment({ task: { prompt: 'Extend the seed.', fixture } }),
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        writeFileSync(join(workspace, 'seed.txt'), `tampered on turn ${turn}`)
+      },
+    })
+    workspace = built.workspace
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    const report = await built.run()
+
+    expect(await readFile(join(workspace, 'seed.txt'), 'utf8')).toBe('seed')
+    expect(report.attempts.map(attempt => attempt.treeHash))
+      .toEqual([report.attempts[0]?.treeHash, report.attempts[0]?.treeHash])
+    expect(StubStandards.current.runs.map(run => run.evidence.treeHash))
+      .toEqual([report.attempts[0]?.treeHash, report.attempts[0]?.treeHash])
   })
 
   it('rejects an unknown environment and an unusable workspace or fixture before any agent exists', async () => {

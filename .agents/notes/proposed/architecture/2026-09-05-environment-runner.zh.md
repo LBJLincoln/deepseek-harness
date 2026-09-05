@@ -22,11 +22,11 @@ Status: proposed
 
 **在第一个 token 之前建立 goal 与标准。** 在 stamp 之后，运行器创建 goal（`objective` 即任务提示；轮次上限来自配置或 goal 服务默认值）并立即将其解除武装，这样即便组合了 goal-round driver 也不会自行继续该 goal：尝试由运行器拥有。随后它逐字用环境的检查编写标准。实现者不会通过运行器收到检查。本切片尚未完成读取屏障：组合了日志读取工具或与执行器共享文件系统的实现者 preset 仍能触及标准，因此本运行器的证书强度等于部署方的隔离声明，不多不少；作为文件系统权威的屏障是下一个切片。
 
-**运行器就是验证者。** 每次尝试到达整个 agent 空闲后，运行器通过 `ctx.shell` 执行当前标准的每个活动检查：先 `resolve({ command: check.run, workdir: workspace, timeoutMs })`，再 `run(spec)`。退出码为 `0` 且未超时、未中止即为 `pass`；其余皆为 `fail`。证据是退出事实加上 stdout 与 stderr 的有界尾部。`recordRun(agent, ref, isolation, results)` 提交一张证书或返回失败子集。已认证：运行器通过 `ctx.goals.complete` 完成 goal，验证守卫予以准许。未认证：运行器记录一条 directive（`rootCause` 给出失败检查的数量；`detail` 携带失败证据，绝不包含检查 id、结果陈述或命令），并在仍有尝试余额时，把 directive 放进 `<validation_failed>` 块中作为后续用户轮次排队。
+**运行器就是验证者。** 每次尝试到达整个 agent 空闲后，运行器通过 `ctx.shell` 执行当前标准的每个活动检查：先 `resolve({ command: check.run, workdir: workspace, timeoutMs })`，再 `run(spec)`。退出码为 `0` 且未超时、未中止即为 `pass`；其余皆为 `fail`。证据是退出事实加上 stdout 与 stderr 的有界尾部。每次验证之前，运行器会再次覆盖夹具，使实现者对验证者所有文件的改动绝不会到达检查，并对工作区求摘要。`recordRun(agent, ref, isolation, results, { executor: 'runner', treeHash })` 持久记录每一次运行，随后提交一张证书或返回失败子集。已认证：运行器通过 `ctx.goals.complete` 完成 goal，验证守卫予以准许。未认证：运行器记录一条 directive（`rootCause` 给出失败检查的数量；`detail` 携带失败证据，绝不包含检查 id、结果陈述或命令），并在仍有尝试余额时，把 directive 放进 `<validation_failed>` 块中作为后续用户轮次排队。
 
 **隔离是配置。** `isolation` 是必填且无默认值的 `Config` 字段：`none`、`process` 或 `host`，恰好取部署方能够为之辩护的值。实现者与验证者共享文件系统的本地组合是 `none`；检查与夹具位于另一账户或主机上的运行是 `host`。运行器把配置值写入每一张证书。
 
-**报告与记录。** `run()` 在刷写会话后返回环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果、运行是否认证、认证时的证书，以及累计的模型用量。持久记录是会话日志本身：stamp、`goal/change`、四个 `verification/*` 事件与消息。导出器把它折叠为一行奖励依据为 `certificate`、`environment` 字段即该 stamp 的 `dsh-trajectory/1`；运行器恰好写入一条自己的会话事件，而在 `dsh-verification` 获得 `verification/run` 事件之前，标准从未记录完全通过运行的那次运行不会为其失败的执行留下逐次记录。
+**报告与记录。** `run()` 在刷写会话后返回环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果与工作区摘要、运行是否认证、认证时的证书，以及累计的模型用量。持久记录是会话日志本身：stamp、`goal/change`、五个 `verification/*` 事件（含每次尝试一条 `verification/run`——无论通过与否的结果、该标准内的尝试序号、执行者，以及检查所读工作区的摘要）与消息。导出器把它折叠为一行奖励依据为 `certificate`、`attempts` 计数即这些运行、`environment` 字段即该 stamp 的 `dsh-trajectory/1`；运行器恰好写入一条自己的会话事件。
 
 **配置。** `isolation`（必填）；`maxAttempts`（正整数，默认 1：一次实现者轮次加一次验证即为单次评估，更多则是部署选择）；`maxGoalRounds`（可选，交给 goal 创建；缺省时使用 goal 服务默认值）；`checkTimeoutMs`（可选的每检查覆盖值，由执行器封顶）；`evidenceMaxChars`（正整数，默认 2000，是每条证据字符串与 directive detail 的上界；不得超过验证服务的 `maxTextChars`，否则 `recordRun` 会大声拒绝结果）。
 
@@ -56,7 +56,7 @@ Status: proposed
 ## Rollout
 
 1. 本笔记、`dsh-environments` 中的 `environment/run` stamp、该包、基于 headless 夹具的 Loader 启动 e2e，以及带留出扣留的会话轨迹导出。
-2. `dsh-verification` 中为每次执行的运行（无论通过与否）记录的 `verification/run` 事件，使尝试与不稳定性可从日志重放；作为文件系统权威的读取屏障（实现者执行器无法读取的验证者根目录、工具守卫、不含日志读取工具的实现者 preset）；运行器原生的每次运行重复次数以支持分组采样。
+2. 作为文件系统权威的读取屏障（实现者执行器无法读取的验证者根目录、工具守卫、不含日志读取工具的实现者 preset）；运行器原生的每次运行重复次数以支持分组采样。
 3. `/environments` 与 `/trajectories` 命令；待注册表发出注册事件后的 `environment` 组件适配器。
 4. 按环境的拒绝采样导出与按组件的奖励统计（轨迹导出笔记的第 3 阶段）。
 

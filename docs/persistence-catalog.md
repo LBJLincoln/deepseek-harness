@@ -960,7 +960,7 @@ Source: [`packages/core/session/src/types.ts:264`](../packages/core/session/src/
 'verification/certificate': CertificateChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:72`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:99`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationdirective--log-only"></a>
 
@@ -973,7 +973,7 @@ Source: [`packages/verification/verification/src/domain.ts:72`](../packages/veri
 'verification/directive': DirectiveChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:76`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:103`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrelaxation--log-only"></a>
 
@@ -986,7 +986,20 @@ Source: [`packages/verification/verification/src/domain.ts:76`](../packages/veri
 'verification/relaxation': RelaxationChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:68`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:91`](../packages/verification/verification/src/domain.ts)
+
+<a id="verificationrun--log-only"></a>
+
+#### `verification/run` — log-only
+
+```ts persistence-catalog
+/**
+ * One executed run of the current standard revision, passing or failing.
+ */
+'verification/run': VerificationRunChangeMeta
+```
+
+Source: [`packages/verification/verification/src/domain.ts:95`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationstandard--log-only"></a>
 
@@ -999,7 +1012,7 @@ Source: [`packages/verification/verification/src/domain.ts:68`](../packages/veri
 'verification/standard': StandardChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:64`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:87`](../packages/verification/verification/src/domain.ts)
 
 ### `web/*`
 

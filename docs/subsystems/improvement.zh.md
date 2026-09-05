@@ -101,6 +101,8 @@ interface TrajectoryReward {
   readonly directives: number
   /** Checks relaxed out of the standard during the session. */
   readonly relaxations: number
+  /** Runs of the standard recorded during the session, passing or failing. */
+  readonly attempts: number
 }
 ```
 
@@ -131,7 +133,7 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 ```
 
-Source: [`packages/improvement/environment-runner/src/index.ts:206`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:218`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 

@@ -527,9 +527,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the relaxed view.',
       },
       {
-        signature: 'recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], ): RunOutcome',
-        description: 'Record one complete run of the current standard. A fully passing run commits a durable certificate; any failure returns the failing subset without a durable record — the validator aggregates those into a issueDirective directive.',
-        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'isolation', description: 'isolation level the run executed under.' }, { name: 'results', description: 'exactly one result per active check, any order.' }],
+        signature: 'recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], evidence: RunEvidence, ): RunOutcome',
+        description: 'Record one complete run of the current standard. Every run appends a durable `verification/run` event carrying all of its results; a fully passing run then commits a certificate, while any failure returns the failing subset the validator aggregates into a issueDirective directive.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'isolation', description: 'isolation level the run executed under.' }, { name: 'results', description: 'exactly one result per active check, any order.' }, { name: 'evidence', description: 'executor of the checks and the workspace digest it covered.' }],
         returns: 'the certificate, or the failing results.',
       },
       {
@@ -3270,7 +3270,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunAttempt',
-    declaration: 'export interface EnvironmentRunAttempt {\n    readonly attempt: number;\n    readonly results: readonly CheckResult[];\n}',
+    declaration: 'export interface EnvironmentRunAttempt {\n    readonly attempt: number;\n    readonly results: readonly CheckResult[];\n    readonly treeHash: string;\n}',
   },
   {
     name: 'EnvironmentRunModel',
@@ -3953,6 +3953,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type RpcResult<T> = {\n    ok: true;\n    value: T;\n} | {\n    ok: false;\n    error: RpcError;\n};',
   },
   {
+    name: 'RunEvidence',
+    declaration: 'export interface RunEvidence {\n    readonly executor: RunExecutor;\n    readonly treeHash?: string;\n}',
+  },
+  {
+    name: 'RunExecutor',
+    declaration: 'export type RunExecutor = \'runner\' | \'agent-reported\';',
+  },
+  {
     name: 'RunnerFailureRule',
     declaration: 'export interface RunnerFailureRule {\n    allowedExitCodes?: readonly number[];\n    fatalSignatures: readonly string[];\n    informationalLines?: readonly string[];\n}',
   },
@@ -4398,7 +4406,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'StandardView',
-    declaration: 'export interface StandardView extends CompletionStandardSnapshot {\n    readonly createdAt: number;\n    readonly updatedAt: number;\n    readonly certificate?: VerificationCertificate;\n    readonly directivesIssued: number;\n}',
+    declaration: 'export interface StandardView extends CompletionStandardSnapshot {\n    readonly createdAt: number;\n    readonly updatedAt: number;\n    readonly certificate?: VerificationCertificate;\n    readonly directivesIssued: number;\n    readonly runsRecorded: number;\n}',
   },
   {
     name: 'StorageBackend',

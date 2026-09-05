@@ -38,9 +38,9 @@
 
 `ctx.environmentRuns.run({ environment, workspace, model?, repetition?, group?, signal? })` 从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）与 `group`、模型路由，以及配置的隔离级别。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
 
-每次尝试把提示词作为用户轮次发送，等待整个 agent 空闲，然后以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。`recordRun` 提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 directive（`rootCause` 给出失败检查的数量；`detail` 携带失败证据，绝不包含检查 id、结果陈述或命令），在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带该 directive。
+每次尝试把提示词作为用户轮次发送，等待整个 agent 空闲，再次把 `task.fixture` 覆盖到工作区，使实现者对验证者所有文件的改动绝不会到达检查，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 directive（`rootCause` 给出失败检查的数量；`detail` 携带失败证据，绝不包含检查 id、结果陈述或命令），在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带该 directive。
 
-报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果、`certified`、某次运行通过时的证书，以及对会话全部 assistant 消息求和的模型用量。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
+报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果与工作区摘要、`certified`、某次运行通过时的证书，以及对会话全部 assistant 消息求和的模型用量。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
 
 `EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出替换了 goal 的实现者或不再是当前的标准，此时会话已被刷写。`resolveConfig(config)` 是导出的默认值解析步骤。
 
@@ -75,7 +75,7 @@ Continue working on the task; the validator runs again when you stop.
 ## Known Limitations and Deferred Work
 
 - **读取屏障属于部署方**——组合了日志读取工具的实现者 preset，或与检查共享文件系统的执行器，仍能触及标准；本运行器的证书强度等于配置的 `isolation` 声明。实现者无法读取的验证者根目录是下一个切片。
-- **失败的运行没有逐次事件**——`recordRun` 只为完全通过的运行提交证书；在 `dsh-verification` 获得 `verification/run` 事件之前，尝试与失败的执行只存在于报告与 directive 中。
+- **只有 fixture 覆盖这一种还原**——每次验证都会还原验证者所有的 fixture 文件，但实现者在 fixture 之外新增的文件会留在工作区并到达检查。
 - **仅支持命令检查**——`run` 为程序性描述的检查会以非零退出失败，证据如实说明；评审者属于监督 seam。
 - **检查顺序执行，每次调用一个 repetition**——检查在工作区内依次运行；分组采样由调用方以设定的 `repetition` 与 `group` 重复调用 `run()`。
 - **夹具覆盖不清空工作区**——同名文件会被覆盖；运行器拒绝不是目录的工作区，但不要求它为空。

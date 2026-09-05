@@ -5,6 +5,7 @@ import {
   decodeCertificateChange,
   decodeDirectiveChange,
   decodeRelaxationChange,
+  decodeRunChange,
   decodeStandardChange,
   emptyVerificationFoldState,
   foldVerification,
@@ -57,6 +58,20 @@ function relaxation(rest: Raw = {}): Raw {
 
 function result(id: string, rest: Raw = {}): Raw {
   return { checkId: id, status: 'pass', evidence: `ok ${id}`, ...rest }
+}
+
+function run(rest: Raw = {}): Raw {
+  return {
+    kind: 'verification/run',
+    version: 1,
+    standard: { id: 'standard-1', revision: 1 },
+    attempt: 1,
+    isolation: 'process',
+    executor: 'runner',
+    results: [result('a'), result('b')],
+    recordedAt: 11,
+    ...rest,
+  }
 }
 
 function certificate(rest: Raw = {}, inner: Raw = {}): Raw {
@@ -112,6 +127,33 @@ describe('verification decoders', () => {
     expect(decodeCertificateChange({ kind: 'other' })).toBeUndefined()
     expect(decodeDirectiveChange('x')).toBeUndefined()
     expect(decodeDirectiveChange({ kind: 'other' })).toBeUndefined()
+    expect(decodeRunChange(false)).toBeUndefined()
+    expect(decodeRunChange({ kind: 'other' })).toBeUndefined()
+  })
+
+  it('round-trips a run with and without a tree hash', () => {
+    expect(decodeRunChange(run())).toEqual({
+      kind: 'verification/run',
+      version: 1,
+      standard: { id: 'standard-1', revision: 1 },
+      attempt: 1,
+      isolation: 'process',
+      executor: 'runner',
+      results: [
+        { checkId: 'a', status: 'pass', evidence: 'ok a' },
+        { checkId: 'b', status: 'pass', evidence: 'ok b' },
+      ],
+      recordedAt: 11,
+    })
+    expect(decodeRunChange(run({
+      executor: 'agent-reported',
+      results: [result('a'), result('b', { status: 'fail', evidence: 'red' })],
+      treeHash: '0f1e2d',
+    }))).toMatchObject({
+      executor: 'agent-reported',
+      treeHash: '0f1e2d',
+      results: [{ checkId: 'a', status: 'pass' }, { checkId: 'b', status: 'fail', evidence: 'red' }],
+    })
   })
 
   it.each<[string, () => unknown, string]>([
@@ -161,6 +203,22 @@ describe('verification decoders', () => {
     ['certificate ref keys', () => decodeCertificateChange(certificate({}, { standard: { id: 'standard-1' } })), 'certificate.standard must have exactly'],
     ['certificate ref id', () => decodeCertificateChange(certificate({}, { standard: { id: '', revision: 1 } })), 'certificate.standard.id must be a non-empty string'],
     ['certificate ref revision', () => decodeCertificateChange(certificate({}, { standard: { id: 'standard-1', revision: 0 } })), 'certificate.standard.revision must be a positive safe integer'],
+    ['run version', () => decodeRunChange(run({ version: 3 })), 'unsupported verification change version 3'],
+    ['run keys', () => decodeRunChange(run({ extra: 1 })), 'run must have exactly'],
+    ['run keys with a tree hash', () => decodeRunChange(run({ treeHash: 'ab', extra: 1 })), 'run must have exactly'],
+    ['run isolation type', () => decodeRunChange(run({ isolation: 7 })), 'run.isolation is invalid'],
+    ['run isolation value', () => decodeRunChange(run({ isolation: 'vm' })), 'run.isolation is invalid'],
+    ['run executor type', () => decodeRunChange(run({ executor: 7 })), 'run.executor is invalid'],
+    ['run executor value', () => decodeRunChange(run({ executor: 'human' })), 'run.executor is invalid'],
+    ['run results array', () => decodeRunChange(run({ results: 'x' })), 'run.results must be a non-empty array'],
+    ['run results empty', () => decodeRunChange(run({ results: [] })), 'run.results must be a non-empty array'],
+    ['run result status', () => decodeRunChange(run({ results: [result('a', { status: 'skip' })] })), 'run.results[0].status must be "pass" or "fail"'],
+    ['run result evidence', () => decodeRunChange(run({ results: [result('a', { evidence: ' ' })] })), 'run.results[0].evidence must be non-empty and normalized'],
+    ['run ref', () => decodeRunChange(run({ standard: { id: 'standard-1' } })), 'run.standard must have exactly'],
+    ['run attempt', () => decodeRunChange(run({ attempt: 0 })), 'run.attempt must be a positive safe integer'],
+    ['run recorded at', () => decodeRunChange(run({ recordedAt: -1 })), 'run.recordedAt must be a non-negative safe integer'],
+    ['run tree hash type', () => decodeRunChange(run({ treeHash: 7 })), 'run.treeHash must be a lowercase hex digest'],
+    ['run tree hash characters', () => decodeRunChange(run({ treeHash: 'BEEF' })), 'run.treeHash must be a lowercase hex digest'],
     ['directive keys', () => decodeDirectiveChange(directive({ extra: 1 })), 'directive must have exactly'],
     ['directive root cause', () => decodeDirectiveChange(directive({ rootCause: ' ' })), 'directive.rootCause must be non-empty and normalized'],
     ['directive detail', () => decodeDirectiveChange(directive({ detail: '' })), 'directive.detail must be non-empty and normalized'],
@@ -188,24 +246,54 @@ describe('verification fold transitions', () => {
       results: [result('a'), result('c')],
       recordedAt: 13,
     })
+    const finalRun = run({
+      standard: { id: 'standard-1', revision: 3 },
+      attempt: 2,
+      results: [result('a'), result('c')],
+      recordedAt: 13,
+    })
     const folded = foldVerification([
       event('verification/standard', author()),
       event('verification/directive', directive(), 1),
-      event('verification/relaxation', relaxed, 2),
-      event('verification/standard', extended, 3),
-      event('verification/certificate', finalCertificate, 4),
-      event('turn/start', { turn: 1 }, 5),
+      event('verification/run', run({ results: [result('a'), result('b', { status: 'fail' })] }), 2),
+      event('verification/relaxation', relaxed, 3),
+      event('verification/standard', extended, 4),
+      event('verification/run', finalRun, 5),
+      event('verification/certificate', finalCertificate, 6),
+      event('turn/start', { turn: 1 }, 7),
     ])
     expect(folded.standard?.revision).toBe(3)
     expect(folded.certificate?.standard).toEqual({ id: 'standard-1', revision: 3 })
     expect(folded.directivesIssued).toBe(1)
+    expect(folded.runsRecorded).toBe(2)
+    expect(folded.lastRun).toMatchObject({ attempt: 2, standard: { id: 'standard-1', revision: 3 } })
     expect(folded.createdAt).toBe(10)
     expect(folded.updatedAt).toBe(12)
     expect(folded.lastRef).toEqual({ id: 'standard-1', revision: 3 })
   })
 
   it('starts empty and ignores unrelated events', () => {
-    expect(foldVerification([event('turn/start', { turn: 1 })])).toEqual({ directivesIssued: 0 })
+    expect(foldVerification([event('turn/start', { turn: 1 })])).toEqual({ directivesIssued: 0, runsRecorded: 0 })
+  })
+
+  it('restarts attempt numbering for a standard authored after a superseded one', () => {
+    const second = author({
+      standard: snapshot({ id: 'standard-2', goalId: 'goal-2', checks: [check('a')] }),
+      createdAt: 20,
+      updatedAt: 20,
+    })
+    const folded = foldVerification([
+      event('verification/standard', author()),
+      event('verification/run', run(), 1),
+      event('verification/standard', second, 2),
+      event('verification/run', run({
+        standard: { id: 'standard-2', revision: 1 },
+        results: [result('a')],
+        recordedAt: 21,
+      }), 3),
+    ])
+    expect(folded.runsRecorded).toBe(2)
+    expect(folded.lastRun).toMatchObject({ attempt: 1, standard: { id: 'standard-2', revision: 1 } })
   })
 
   it('clears the certificate on extend and on relaxation', () => {
@@ -323,6 +411,32 @@ describe('verification fold transitions', () => {
       ...authored(),
       event('verification/certificate', certificate({}, { recordedAt: 9 }), 1),
     ], 'cannot precede the current standard update'],
+    ['run without a standard', [event('verification/run', run())], 'run requires a current standard'],
+    ['run for a stale revision', [
+      ...authored(),
+      event('verification/run', run({ standard: { id: 'standard-1', revision: 2 } }), 1),
+    ], 'run must cover the exact current standard revision'],
+    ['run for another id', [
+      ...authored(),
+      event('verification/run', run({ standard: { id: 'standard-2', revision: 1 } }), 1),
+    ], 'run must cover the exact current standard revision'],
+    ['run missing results', [
+      ...authored(),
+      event('verification/run', run({ results: [result('a')] }), 1),
+    ], 'run must carry one result per active check'],
+    ['run out of order', [
+      ...authored(),
+      event('verification/run', run({ results: [result('b'), result('a')] }), 1),
+    ], 'run result 0 must answer check "a"'],
+    ['run recorded before the standard', [
+      ...authored(),
+      event('verification/run', run({ recordedAt: 9 }), 1),
+    ], 'run cannot precede the current standard update'],
+    ['run repeating an attempt number', [
+      ...authored(),
+      event('verification/run', run(), 1),
+      event('verification/run', run(), 2),
+    ], 'run must number attempt 2 for standard "standard-1"'],
     ['directive without a standard', [event('verification/directive', directive())], 'directive requires a current standard'],
     ['directive for a stale revision', [
       ...authored(),

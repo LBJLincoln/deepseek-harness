@@ -2,9 +2,9 @@
  * Environment runner: the automated validator that runs one registered
  * environment as one fresh session. It stamps the session with the
  * environment it runs, authors the completion standard from the environment's
- * checks, drives the implementer turn by turn, executes the checks through the
- * shell executor after each turn, records the run, and completes the goal only
- * under a certificate. The
+ * checks, drives the implementer turn by turn, restores the fixture and
+ * executes the checks through the shell executor after each turn, records the
+ * run, and completes the goal only under a certificate. The
  * [environment-runner Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)
  * owns the design rationale.
  * @module @deepseek-ai/dsh-environment-runner
@@ -141,6 +141,18 @@ async function prepareWorkspace(workspace: string, fixture: string | undefined):
   }
   await cp(fixture, workspace, { recursive: true })
   return hashDirectory(fixture)
+}
+
+/**
+ * Overlay the fixture again so implementer edits to validator-owned files do
+ * not reach the checks, then digest the workspace the validation will read.
+ * @param workspace - the run's workspace directory.
+ * @param fixture - the task fixture, absent for a task without one.
+ * @returns the workspace digest as the validation begins.
+ */
+async function restoreFixture(workspace: string, fixture: string | undefined): Promise<string> {
+  if (fixture !== undefined) await cp(fixture, workspace, { recursive: true })
+  return hashDirectory(workspace)
 }
 
 /** Whether one executed check passed: a zero exit that neither timed out nor was aborted. */
@@ -293,10 +305,14 @@ export class EnvironmentRunner extends Service {
         agent.followup(createUserMessage({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } }))
         await agent.whenIdle()
         const standard = this.currentStandard(agent, goal.id)
+        const treeHash = await restoreFixture(request.workspace, definition.task.fixture)
         const results = await this.execute(standard.checks, request)
-        attempts.push({ attempt, results })
+        attempts.push({ attempt, results, treeHash })
         const ref = { id: standard.id, revision: standard.revision }
-        const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results)
+        const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
+          executor: 'runner',
+          treeHash,
+        })
         if (outcome.certified) {
           certificate = outcome.certificate
           const current = goals.get(agent)

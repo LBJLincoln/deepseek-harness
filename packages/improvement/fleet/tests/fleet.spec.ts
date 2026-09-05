@@ -108,6 +108,7 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
       status: shape.certified && index === count - 1 ? 'pass' as const : 'fail' as const,
       evidence: 'exit 0',
     }],
+    treeHash: HEX,
   }))
   return {
     environment: request.environment,

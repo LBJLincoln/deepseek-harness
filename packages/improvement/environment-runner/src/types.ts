@@ -32,6 +32,8 @@ export interface EnvironmentRunAttempt {
   readonly attempt: number
   /** One result per active check, in the standard's check order. */
   readonly results: readonly CheckResult[]
+  /** SHA-256 digest of the workspace as the validation began, after the fixture was restored over it. */
+  readonly treeHash: string
 }
 
 /** Outcome of one environment run, returned after the session is flushed. */

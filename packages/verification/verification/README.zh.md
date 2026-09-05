@@ -18,15 +18,15 @@
 
 ## 服务约定
 
-`ctx.completionStandards` 只接受注册表中该 id 对应的那个 live `Agent` 实例。`get()` 返回一份游离的 `StandardView`；变更操作使用 `StandardRef { id, revision }` 比较并交换栅栏，并拒绝过期引用。每个会话至多有一个当前标准；`author()` 为一个 goal 创建修订号为一的标准，并拒绝为同一 goal 再次创建，而针对不同 goal 的新标准会取代之前的标准。`extend()` 追加检查且从不改写既有检查；`relax()` 恰好移除一个检查，并记录非空的不可满足证据。`recordRun()` 要求每个活动检查恰好对应一条结果：完整通过的运行会按检查顺序提交一份持久证书，任何失败都只返回失败子集而不产生持久记录。`issueDirective()` 记录由消费方转达给实现者的根因聚合。`assertCertified()` 返回恰好覆盖当前修订的目标 goal 证书，否则抛出异常，因此它是编排者在调用 `ctx.goals.complete()` 之前执行的准入读取。当 goal 服务同时组合时，本服务还会把同一准入注册为 `ctx.goals` 上只可否决的 `completionGuard()`，使 `GoalService.complete()` 自身拒绝对被度量 goal 的未认证完成；未被度量的 goal 照常完成。
+`ctx.completionStandards` 只接受注册表中该 id 对应的那个 live `Agent` 实例。`get()` 返回一份游离的 `StandardView`；变更操作使用 `StandardRef { id, revision }` 比较并交换栅栏，并拒绝过期引用。每个会话至多有一个当前标准；`author()` 为一个 goal 创建修订号为一的标准，并拒绝为同一 goal 再次创建，而针对不同 goal 的新标准会取代之前的标准。`extend()` 追加检查且从不改写既有检查；`relax()` 恰好移除一个检查，并记录非空的不可满足证据。`recordRun()` 要求每个活动检查恰好对应一条结果，外加该次运行的 `RunEvidence`（`executor`，取 `runner` 或 `agent-reported`，以及该次运行所覆盖工作区目录树的可选 `treeHash`）：无论通过还是失败，每次运行都会追加一条 `verification/run` 事件，按检查顺序携带它的全部结果、尝试序号与这份证据，随后完整通过的运行还会提交一份持久证书，而任何失败都返回失败子集。尝试序号等于同一标准 id 在其各修订上已记录运行数加一，因此仅凭日志就能回放尝试次数与不稳定性。`issueDirective()` 记录由消费方转达给实现者的根因聚合。`assertCertified()` 返回恰好覆盖当前修订的目标 goal 证书，否则抛出异常，因此它是编排者在调用 `ctx.goals.complete()` 之前执行的准入读取。当 goal 服务同时组合时，本服务还会把同一准入注册为 `ctx.goals` 上只可否决的 `completionGuard()`，使 `GoalService.complete()` 自身拒绝对被度量 goal 的未认证完成；未被度量的 goal 照常完成。
 
-每次变更都会追加一条携带完整变更后状态的持久会话事件：`verification/standard`（author、extend）、`verification/relaxation`、`verification/certificate` 或 `verification/directive`。严格回放校验修订序列、仅追加的检查增长、放宽的结构、证书覆盖范围与时间戳连续性，且任何标准变更都会使先前证书失效。会话日志是唯一的持久权威；新的服务实例从日志重建其视图。
+每次变更都会追加一条携带完整变更后状态的持久会话事件：`verification/standard`（author、extend）、`verification/relaxation`、`verification/run`、`verification/certificate` 或 `verification/directive`。严格回放校验修订序列、仅追加的检查增长、放宽的结构、运行覆盖范围与尝试编号、证书覆盖范围与时间戳连续性，且任何标准变更都会使先前证书失效。会话日志是唯一的持久权威；新的服务实例从日志重建其视图。
 
-单独发布的 `./invariant` 配套文件对每个附加的会话维护一份独立折叠。它在畸形验证变更进入持久日志之前拒绝它们，并拒绝这样的 `goal/change` 完成事件：当前标准度量该 goal，却没有覆盖它的证书。
+单独发布的 `./invariant` 配套文件对每个附加的会话维护一份独立折叠。它在畸形验证变更进入持久日志之前拒绝它们，拒绝这样的 `goal/change` 完成事件：当前标准度量该 goal，却没有覆盖它的证书，也拒绝没有同一标准修订上完整通过的 `verification/run` 在先的 `verification/certificate`。
 
 ## 扩展点
 
-策略消费方调用服务动词，并从会话日志折叠这四种事件。当组合了投影注册表时，`verification` 会话投影向客户端提供同一状态：完整的当前标准及其证书与指令计数，撰写之前为 `null`。证书是一份可回放的记录，载明哪些检查在何种隔离级别（`none`、`process`、`host`）下凭何种证据通过，因此评估与训练数据流水线可以只凭日志为会话评分：每个 agent 获得的证书数、收到的指令数与记录的放宽数都能从事件推导，无需新增采集。消费方使用 `Agent` 接口与会话事件，而不导入 agent loop（智能体循环）。
+策略消费方调用服务动词，并从会话日志折叠这五种事件。当组合了投影注册表时，`verification` 会话投影向客户端提供同一状态：完整的当前标准及其证书，以及该会话的指令与运行计数，撰写之前为 `null`。证书是一份可回放的记录，载明哪些检查在何种隔离级别（`none`、`process`、`host`）下凭何种证据通过，因此评估与训练数据流水线可以只凭日志为会话评分：每个 agent 获得的证书数、尝试的运行数、收到的指令数与记录的放宽数都能从事件推导，无需新增采集。消费方使用 `Agent` 接口与会话事件，而不导入 agent loop（智能体循环）。
 
 ## 模型体验
 

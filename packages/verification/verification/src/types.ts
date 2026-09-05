@@ -87,6 +87,17 @@ export interface VerificationCertificate {
   readonly recordedAt: number
 }
 
+/** Executor of one recorded run's checks. */
+export type RunExecutor = 'runner' | 'agent-reported'
+
+/** How one recorded run was produced, beside its results. */
+export interface RunEvidence {
+  /** Executor of the checks: an automated validator, or the agent's own report. */
+  readonly executor: RunExecutor
+  /** Hex digest of the workspace tree the run covered, absent when the caller has none. */
+  readonly treeHash?: string
+}
+
 /** Root-cause failure aggregation a validator hands the orchestrator. */
 export interface DirectiveRequest {
   /** Failure cluster's root cause, stated for the implementer. */
@@ -110,6 +121,8 @@ export interface StandardView extends CompletionStandardSnapshot {
   readonly certificate?: VerificationCertificate
   /** Count of directives issued against this standard's goal so far. */
   readonly directivesIssued: number
+  /** Count of runs recorded across the session, passing or failing. */
+  readonly runsRecorded: number
 }
 
 /** Fields required to author a standard for one goal. */
@@ -123,7 +136,7 @@ export interface AuthorStandardRequest {
 /**
  * The `verification` projection value: the current standard exactly as the
  * latest verification events carried it, with its covering certificate and
- * the session's cumulative directive count.
+ * the session's cumulative directive and run counts.
  */
 export interface VerificationProjection {
   /** Current standard snapshot. */
@@ -132,6 +145,8 @@ export interface VerificationProjection {
   readonly certificate?: VerificationCertificate
   /** Count of directives issued across the session. */
   readonly directivesIssued: number
+  /** Count of runs recorded across the session, passing or failing. */
+  readonly runsRecorded: number
   /** Epoch milliseconds of the author mutation. */
   readonly createdAt: number
   /** Epoch milliseconds of the latest standard mutation. */
@@ -141,7 +156,7 @@ export interface VerificationProjection {
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionMap {
     /**
-     * The session's current completion standard (last-wins over the four
+     * The session's current completion standard (last-wins over the five
      * verification events), or `null` before the first authorship.
      */
     verification: VerificationProjection | null

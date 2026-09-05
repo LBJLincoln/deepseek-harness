@@ -7,8 +7,11 @@
  */
 
 import type {
+  CertificateIsolation,
   CheckId,
+  CheckResult,
   CompletionStandardSnapshot,
+  RunExecutor,
   StandardRef,
   VerificationCertificate,
 } from './types.ts'
@@ -36,6 +39,26 @@ export interface RelaxationChangeMeta {
   readonly standard: CompletionStandardSnapshot
   readonly createdAt: number
   readonly updatedAt: number
+}
+
+/** One complete executed run committed by `verification/run`, passing or failing. */
+export interface VerificationRunChangeMeta {
+  readonly kind: 'verification/run'
+  readonly version: 1
+  /** Exact standard revision the run covered. */
+  readonly standard: StandardRef
+  /** One plus the runs already recorded for the same standard id, across its revisions. */
+  readonly attempt: number
+  /** Isolation level the run executed under. */
+  readonly isolation: CertificateIsolation
+  /** Executor of the checks. */
+  readonly executor: RunExecutor
+  /** Every result of the run, passing or failing, in the standard's check order. */
+  readonly results: readonly CheckResult[]
+  /** Hex digest of the workspace tree the run covered, absent when the caller has none. */
+  readonly treeHash?: string
+  /** Epoch milliseconds of the run commit. */
+  readonly recordedAt: number
 }
 
 /** Fully passing run committed by `verification/certificate`. */
@@ -67,6 +90,10 @@ declare module '@deepseek-ai/dsh-session/types' {
      */
     'verification/relaxation': RelaxationChangeMeta
     /**
+     * One executed run of the current standard revision, passing or failing.
+     */
+    'verification/run': VerificationRunChangeMeta
+    /**
      * Fully passing run of the current standard revision.
      */
     'verification/certificate': CertificateChangeMeta
@@ -85,6 +112,10 @@ export interface FoldedVerification {
   readonly certificate?: VerificationCertificate
   /** Count of directives issued across the session. */
   readonly directivesIssued: number
+  /** Count of runs recorded across the session, passing or failing. */
+  readonly runsRecorded: number
+  /** Last run recorded in the session, absent before the first one. */
+  readonly lastRun?: VerificationRunChangeMeta
   /** Current standard creation time, absent without a current standard. */
   readonly createdAt?: number
   /** Current standard mutation time, absent without a current standard. */

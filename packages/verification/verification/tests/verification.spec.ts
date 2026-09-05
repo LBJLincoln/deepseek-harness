@@ -9,7 +9,7 @@ import CompletionStandardService, {
   CheckId,
   VerificationError,
 } from '@deepseek-ai/dsh-verification'
-import type { Config, StandardCheck, StandardRef } from '@deepseek-ai/dsh-verification'
+import type { Config, RunEvidence, StandardCheck, StandardRef } from '@deepseek-ai/dsh-verification'
 
 interface StubAgent {
   agent: Agent
@@ -59,6 +59,8 @@ function check(id: string, rest: Partial<Omit<StandardCheck, 'id'>> = {}): Stand
 function passes(ids: readonly string[]) {
   return ids.map(id => ({ checkId: CheckId(id), status: 'pass' as const, evidence: `ok ${id}` }))
 }
+
+const reported: RunEvidence = { executor: 'agent-reported' }
 
 afterEach(() => {
   vi.useRealTimers()
@@ -176,7 +178,7 @@ describe('CompletionStandardService lifecycle', () => {
 
   it('extends append-only, bumps the revision, and invalidates the certificate', async () => {
     const { ctx, agent, ref } = await authored()
-    const outcome = ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']))
+    const outcome = ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']), reported)
     expect(outcome.certified).toBe(true)
     expect(ctx.completionStandards.certified(agent)?.standard).toEqual(ref)
     const extended = ctx.completionStandards.extend(agent, ref, [check('lint-passes')])
@@ -231,7 +233,7 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
   it('validates the result set exactly', async () => {
     const { ctx, agent, ref } = await authored()
     const run = (results: Parameters<typeof ctx.completionStandards.recordRun>[3]) =>
-      ctx.completionStandards.recordRun(agent, ref, 'none', results)
+      ctx.completionStandards.recordRun(agent, ref, 'none', results, reported)
     expect(() => run([...passes(['build-passes']), ...passes(['build-passes'])]))
       .toThrow(/duplicate result/)
     expect(() => run([{ checkId: CheckId('build-passes'), status: 'pass', evidence: ' ' }]))
@@ -242,17 +244,51 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
       .toThrow(/unknown check\(s\) "other"/)
   })
 
-  it('returns the failing subset without a durable record', async () => {
+  it('records the failing run durably and returns the failing subset', async () => {
     const { ctx, agent, ref, session } = await authored()
     const outcome = ctx.completionStandards.recordRun(agent, ref, 'none', [
       { checkId: CheckId('tests-pass'), status: 'fail', evidence: '3 assertions failed' },
       ...passes(['build-passes']),
-    ])
+    ], reported)
     expect(outcome).toEqual({
       certified: false,
       failures: [{ checkId: 'tests-pass', status: 'fail', evidence: '3 assertions failed' }],
     })
-    expect(session.events.map(event => event.type)).toEqual(['verification/standard'])
+    expect(session.events.map(event => event.type)).toEqual(['verification/standard', 'verification/run'])
+    expect(session.events[1]?.data).toMatchObject({
+      kind: 'verification/run',
+      version: 1,
+      standard: ref,
+      attempt: 1,
+      isolation: 'none',
+      executor: 'agent-reported',
+      results: [
+        { checkId: 'build-passes', status: 'pass', evidence: 'ok build-passes' },
+        { checkId: 'tests-pass', status: 'fail', evidence: '3 assertions failed' },
+      ],
+    })
+    expect(session.events[1]?.data).not.toHaveProperty('treeHash')
+    expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(1)
+  })
+
+  it('numbers attempts per standard id across revisions and restarts them for a new standard', async () => {
+    const { ctx, agent, ref, session } = await authored()
+    const failing = [{ checkId: CheckId('tests-pass'), status: 'fail' as const, evidence: 'red' }, ...passes(['build-passes'])]
+    ctx.completionStandards.recordRun(agent, ref, 'none', failing, reported)
+    ctx.completionStandards.recordRun(agent, ref, 'none', failing, reported)
+    ctx.completionStandards.relax(agent, ref, CheckId('tests-pass'), 'unsatisfiable on wine')
+    ctx.completionStandards.recordRun(agent, { id: ref.id, revision: 2 }, 'none', passes(['build-passes']), reported)
+    const runs = session.events.filter(event => event.type === 'verification/run')
+    expect(runs.map(event => (event.data as { attempt: number }).attempt)).toEqual([1, 2, 3])
+    expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(3)
+
+    const next = ctx.completionStandards.author(agent, { goalId: GoalId('goal-two'), checks: [check('a')] })
+    ctx.completionStandards.recordRun(agent, { id: next.id, revision: 1 }, 'none', passes(['a']), reported)
+    const attempts = session.events
+      .filter(event => event.type === 'verification/run')
+      .map(event => (event.data as { attempt: number }).attempt)
+    expect(attempts).toEqual([1, 2, 3, 1])
+    expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(4)
   })
 
   it('commits a certificate in check order for a fully passing run', async () => {
@@ -263,14 +299,17 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
     const outcome = ctx.completionStandards.recordRun(agent, ref, 'host', [
       ...passes(['tests-pass']),
       ...passes(['build-passes']),
-    ])
+    ], { executor: 'runner', treeHash: 'beef01' })
     expect(outcome.certified).toBe(true)
     if (!outcome.certified) throw new Error('expected a certificate')
     expect(outcome.certificate.results.map(result => result.checkId)).toEqual(['build-passes', 'tests-pass'])
     expect(outcome.certificate.isolation).toBe('host')
     expect(outcome.certificate.recordedAt).toBe(1_700_000_000_000)
-    expect(session.events.map(event => event.type)).toEqual(['verification/standard', 'verification/certificate'])
+    expect(session.events.map(event => event.type))
+      .toEqual(['verification/standard', 'verification/run', 'verification/certificate'])
+    expect(session.events[1]?.data).toMatchObject({ executor: 'runner', treeHash: 'beef01', recordedAt: 1_700_000_000_000 })
     expect(ctx.completionStandards.get(agent)?.certificate).toEqual(outcome.certificate)
+    expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(1)
   })
 
   it('records directives and counts them on the view', async () => {
@@ -293,7 +332,7 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_STANDARD_NOT_FOUND' }))
     expect(() => ctx.completionStandards.assertCertified(agent, goal))
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
-    ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']))
+    ctx.completionStandards.recordRun(agent, ref, 'process', passes(['build-passes', 'tests-pass']), reported)
     expect(ctx.completionStandards.assertCertified(agent, goal).standard).toEqual(ref)
   })
 
@@ -313,7 +352,7 @@ describe('CompletionStandardService replay', () => {
     const first = await harness()
     const view = first.ctx.completionStandards.author(first.agent, { goalId: goal, checks: [check('a')] })
     const ref: StandardRef = { id: view.id, revision: view.revision }
-    first.ctx.completionStandards.recordRun(first.agent, ref, 'none', passes(['a']))
+    first.ctx.completionStandards.recordRun(first.agent, ref, 'none', passes(['a']), reported)
 
     const second = new Context()
     await second.plugin(AgentRegistry)
@@ -347,7 +386,7 @@ describe('CompletionStandardService certificate-gated goal completion', () => {
     expect(() => ctx.goals.complete(agent, { id: created.id, revision: created.revision }))
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
     expect(ctx.goals.get(agent)?.phase).toBe('active')
-    ctx.completionStandards.recordRun(agent, { id: view.id, revision: view.revision }, 'process', passes(['build-passes']))
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: view.revision }, 'process', passes(['build-passes']), reported)
     const completed = ctx.goals.complete(agent, { id: created.id, revision: created.revision })
     expect(completed.phase).toBe('complete')
   })
@@ -356,7 +395,7 @@ describe('CompletionStandardService certificate-gated goal completion', () => {
     const { ctx, agent } = await composed()
     const created = ctx.goals.create(agent, { objective: 'ship verified work' })
     const view = ctx.completionStandards.author(agent, { goalId: created.id, checks: [check('build-passes')] })
-    ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'process', passes(['build-passes']))
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'process', passes(['build-passes']), reported)
     ctx.completionStandards.extend(agent, { id: view.id, revision: 1 }, [check('tests-pass')])
     expect(() => ctx.goals.complete(agent, { id: created.id, revision: created.revision }))
       .toThrow(expect.objectContaining({ code: 'VERIFICATION_NOT_CERTIFIED' }))
