@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), and [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), and [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; and an experiment result is the paired comparison of two arms over the same cells. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), and [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), and [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts).
 
 ## Environment definition
 
@@ -122,6 +122,36 @@ interface SessionFacts {
 }
 ```
 
+## Experiment result
+
+An experiment freezes its plan by a content digest over the arms, the sorted environment ids, the repetition count, and the thresholds, then runs both arms through the fleet at the same repetition indexes under the stamp groups `experiment-<digest>-baseline` and `experiment-<digest>-candidate`. A repetition enters the statistics only when both arms reported it; [the package README](../../packages/improvement/experiments/README.md) owns the bootstrap and the verdict rule.
+
+```ts type-equiv
+/**
+ * Outcome of one experiment. The sessions grouped by `arms` carry the durable
+ * evidence; this record is the fold over them.
+ */
+interface ExperimentResult {
+  /** Content digest of the frozen plan; both arm groups carry it. */
+  readonly digest: string
+  /** The two arms and the stamp group each ran under. */
+  readonly arms: ExperimentArms
+  /** One entry per environment, in plan order. */
+  readonly cells: readonly ExperimentCell[]
+  /** Paired repetition indexes over every environment; the bootstrap's units. */
+  readonly seedsPaired: number
+  /** Certificate-rate delta over every paired repetition, `0` without pairs. */
+  readonly delta: number
+  /** Bootstrap interval of `delta`, absent without pairs; the verdict reads it. */
+  readonly interval?: ConfidenceInterval
+  /** Model usage of both arms together. */
+  readonly spend: ExperimentSpend
+  /** Thresholds the digest froze, restated so a stored result is readable alone. */
+  readonly thresholds: ExperimentThresholds
+  readonly verdict: ExperimentVerdict
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -182,6 +212,31 @@ list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
 Source: [`packages/improvement/environments/src/index.ts:180`](../../packages/improvement/environments/src/index.ts)
+
+<a id="ctxexperiments--experimentservice"></a>
+
+### `ctx.experiments` — `ExperimentService`
+
+Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two arms.
+
+```ts cordis-catalog
+/**
+ * Freeze a plan, run both arms through the fleet at the same repetition
+ * indexes, and fold the paired comparison. Every refusal happens before the
+ * first cell runs; a cell the fleet kept as an error leaves its repetition
+ * unpaired instead of failing the experiment.
+ * @param plan - environments, repetitions, the two arm routes, the workspace
+ *   root, and an optional frozen digest, abort signal, and result sink.
+ * @returns the digest, both arms with their stamp groups, one cell per
+ *   environment, the pooled delta with its interval, the spend, and the verdict.
+ * @throws {@link ExperimentError} for a plan that names no or a duplicate or
+ *   unregistered environment, asks for no repetition, declares a digest its
+ *   content does not freeze to, or projects more tokens than the budget.
+ */
+async run(plan: ExperimentPlan): Promise<ExperimentResult>
+```
+
+Source: [`packages/improvement/experiments/src/index.ts:102`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 

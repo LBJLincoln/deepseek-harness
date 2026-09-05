@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)与[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 与 [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)与[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 与 [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -122,6 +122,36 @@ interface SessionFacts {
 }
 ```
 
+## 实验结果
+
+一场实验以对 arm、排序后的环境 id、重复次数与阈值取内容摘要来冻结自己的计划，随后让两个 arm 都经 fleet 以相同的重复索引运行，处于 stamp group `experiment-<digest>-baseline` 与 `experiment-<digest>-candidate` 之下。只有当两个 arm 都报告了某次重复时，它才进入统计量；[包 README](../../packages/improvement/experiments/README.md) 拥有 bootstrap（自助重采样）与判定规则。
+
+```ts type-equiv
+/**
+ * Outcome of one experiment. The sessions grouped by `arms` carry the durable
+ * evidence; this record is the fold over them.
+ */
+interface ExperimentResult {
+  /** Content digest of the frozen plan; both arm groups carry it. */
+  readonly digest: string
+  /** The two arms and the stamp group each ran under. */
+  readonly arms: ExperimentArms
+  /** One entry per environment, in plan order. */
+  readonly cells: readonly ExperimentCell[]
+  /** Paired repetition indexes over every environment; the bootstrap's units. */
+  readonly seedsPaired: number
+  /** Certificate-rate delta over every paired repetition, `0` without pairs. */
+  readonly delta: number
+  /** Bootstrap interval of `delta`, absent without pairs; the verdict reads it. */
+  readonly interval?: ConfidenceInterval
+  /** Model usage of both arms together. */
+  readonly spend: ExperimentSpend
+  /** Thresholds the digest froze, restated so a stored result is readable alone. */
+  readonly thresholds: ExperimentThresholds
+  readonly verdict: ExperimentVerdict
+}
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -182,6 +212,31 @@ list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
 Source: [`packages/improvement/environments/src/index.ts:180`](../../packages/improvement/environments/src/index.ts)
+
+<a id="ctxexperiments--experimentservice"></a>
+
+### `ctx.experiments` — `ExperimentService`
+
+Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two arms.
+
+```ts cordis-catalog
+/**
+ * Freeze a plan, run both arms through the fleet at the same repetition
+ * indexes, and fold the paired comparison. Every refusal happens before the
+ * first cell runs; a cell the fleet kept as an error leaves its repetition
+ * unpaired instead of failing the experiment.
+ * @param plan - environments, repetitions, the two arm routes, the workspace
+ *   root, and an optional frozen digest, abort signal, and result sink.
+ * @returns the digest, both arms with their stamp groups, one cell per
+ *   environment, the pooled delta with its interval, the spend, and the verdict.
+ * @throws {@link ExperimentError} for a plan that names no or a duplicate or
+ *   unregistered environment, asks for no repetition, declares a digest its
+ *   content does not freeze to, or projects more tokens than the budget.
+ */
+async run(plan: ExperimentPlan): Promise<ExperimentResult>
+```
+
+Source: [`packages/improvement/experiments/src/index.ts:102`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 

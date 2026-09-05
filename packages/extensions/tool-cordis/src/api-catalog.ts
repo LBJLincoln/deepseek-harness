@@ -685,6 +685,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'experiments',
+    summary: 'Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two arms.',
+    description: 'Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two arms.',
+    methods: [
+      {
+        signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
+        description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
+        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arm routes, the workspace root, and an optional frozen digest, abort signal, and result sink.' }],
+        returns: 'the digest, both arms with their stamp groups, one cell per environment, the pooled delta with its interval, the spend, and the verdict.',
+        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
+      },
+    ],
+  },
+  {
     key: 'fleet',
     summary: 'Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard.',
     description: 'Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard.',
@@ -3059,6 +3073,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ComponentProvenance = \'curated\' | \'synthesized\';',
   },
   {
+    name: 'ConfidenceInterval',
+    declaration: 'export interface ConfidenceInterval {\n    readonly lower: number;\n    readonly upper: number;\n}',
+  },
+  {
     name: 'ConfinedArgv',
     declaration: 'export interface ConfinedArgv {\n    argv: string[];\n    enforcement: SandboxEnforcement;\n    denialSignatures: readonly string[];\n    runnerFailureRules: readonly RunnerFailureRule[];\n}',
   },
@@ -3329,6 +3347,38 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EpochHeader',
     declaration: 'export interface EpochHeader {\n    config: LlmCallConfig;\n    adapterDefaults?: LlmCallConfigAdapterDefaults;\n    system?: string;\n    tools?: ToolSchema[];\n}',
+  },
+  {
+    name: 'ExperimentArm',
+    declaration: 'export interface ExperimentArm {\n    readonly model: EnvironmentRunModel;\n    readonly group: string;\n}',
+  },
+  {
+    name: 'ExperimentArms',
+    declaration: 'export interface ExperimentArms {\n    readonly baseline: ExperimentArm;\n    readonly candidate: ExperimentArm;\n}',
+  },
+  {
+    name: 'ExperimentCell',
+    declaration: 'export interface ExperimentCell {\n    readonly environment: EnvironmentId;\n    readonly pairs: number;\n    readonly unpaired: number;\n    readonly baselineRate: number;\n    readonly candidateRate: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly attemptsDelta: number;\n    readonly inputTokenDelta: number;\n    readonly outputTokenDelta: number;\n}',
+  },
+  {
+    name: 'ExperimentPlan',
+    declaration: 'export interface ExperimentPlan {\n    readonly environments: readonly EnvironmentId[];\n    readonly repetitions: number;\n    readonly baseline: EnvironmentRunModel;\n    readonly candidate: EnvironmentRunModel;\n    readonly workspaceRoot: string;\n    readonly digest?: string;\n    readonly signal?: AbortSignal;\n    readonly sink?: TrajectorySink;\n}',
+  },
+  {
+    name: 'ExperimentResult',
+    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly seedsPaired: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly verdict: ExperimentVerdict;\n}',
+  },
+  {
+    name: 'ExperimentSpend',
+    declaration: 'export interface ExperimentSpend {\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
+  },
+  {
+    name: 'ExperimentThresholds',
+    declaration: 'export interface ExperimentThresholds {\n    readonly bootstrapResamples: number;\n    readonly confidenceLevel: number;\n    readonly minimumDelta: number;\n    readonly cellTokenCap: number;\n}',
+  },
+  {
+    name: 'ExperimentVerdict',
+    declaration: 'export type ExperimentVerdict = \'promote\' | \'reject\' | \'inconclusive\';',
   },
   {
     name: 'FactsExportReport',

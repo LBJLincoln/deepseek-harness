@@ -1,0 +1,82 @@
+# Agent Note: The experiment service
+
+Status: proposed
+
+English | [中文](2026-09-05-experiments.zh.md)
+
+## Problem
+
+`@deepseek-ai/dsh-fleet` runs a plan of environment × model × repetition cells and folds a leaderboard of that one run; `@deepseek-ai/dsh-scorekeeper` folds the same rows back out of the persisted logs. Neither answers the question every improvement loop turns on: is the candidate better than the baseline, and by enough to act on?
+
+Three things nothing owns today stand between those rows and that answer. Nothing freezes what will be measured before results are visible, so the same stage that proposes a change can still choose the cells that flatter it — the failure the [four-goal-workflows note](2026-09-05-four-goal-workflows.md) rejects as "self-selected evaluation cells". Nothing pairs cells, so a leaderboard comparison mixes the difference between arms with the difference between environments, and an eight-environment suite where the arms drew different tasks reports a delta that measures the draw. And nothing states an uncertainty, so two certificates out of ten reads as a twenty-point improvement rather than as noise a second batch would reverse.
+
+Cost is the fourth gap. Rollout item 7 of the four-goal note makes the experiment plugin "the only place spend decisions live", but a caller today can start a fan-out of any width and discover its size from the bill. W1 stage 9 (staged evaluation) and W4 stage 6 (nomination and frozen experiment) both name this service, and both are `proposed` because it does not exist.
+
+## Proposal
+
+Add `@deepseek-ai/dsh-experiments` (`ctx.experiments`) to the `improvement/` group: `run(plan)` freezes a plan, refuses it when it is unfrozen or over budget, runs both arms through `ctx.fleet` with paired repetition indexes, and folds an `ExperimentResult` with a verdict. The package calls no model, renders no prompt, and appends no session event; every semantic stage the four-goal note names around it — nomination, diagnosis, review — stays outside.
+
+**An arm is a model route today.** `EnvironmentRunRequest` carries an environment, a workspace, a model route, a repetition index, a group, and an abort signal, and nothing that names an agent preset. A route is therefore the only arm this package can express without a plan silently naming something the runner cannot honor. A named agent preset becomes the second arm dimension in the slice that adds a preset field to `EnvironmentRunRequest` and threads it through the runner — W1 stage 1's "model and preset overrides on `EnvironmentRunRequest`", rollout item 2 below — and the plan gains a second optional field per arm at that point, not before.
+
+**A plan is frozen by a content digest computed before any cell runs.** The digest is SHA-256 over canonical JSON of a format version, the two arm routes in role order, the environment ids sorted, the repetition count, and the four thresholds: bootstrap resamples, confidence level, minimum promotable delta, and per-cell token cap. Sorting the ids makes the digest independent of the order a caller listed them in, and duplicates are refused so the sort is unambiguous. The deployment's total token budget is deliberately outside the digest: it bounds what a deployment will pay for, not what the experiment measures, so raising it does not mint a different experiment. A caller that froze a plan earlier — a nomination stage that logged the digest before scheduling — passes that digest back on the plan, and a digest that does not equal the recomputed one is a refusal, so a plan edited after it was frozen cannot run under its old identity.
+
+**Every session of the run carries the digest and its arm in its stamp `group`.** The two fleet calls pass `experiment-<digest>-baseline` and `experiment-<digest>-candidate`, which the runner writes into each session's `environment/run` stamp before the first turn. That string is the only durable link between a result and the sessions it rests on: the scorekeeper's `group` filter selects one arm out of every persisted log, the trajectory export sees the same string, and a fold a week later can key on it without the process that produced the result. The result written through a sink is a convenience; the logs are the record.
+
+**Cells pair by environment and repetition index.** Both arms run the same environment ids at the same repetition count, so repetition `r` of environment `e` on the baseline arm pairs with repetition `r` of `e` on the candidate arm — the pairing `EnvironmentRunStamp.repetition` already exists for. Two fleet calls with the same repetition count pair exactly as one call with two model routes would, so a deployment that wants the arms interleaved in one call gets the same pairs. A repetition pairs only when both arms produced a report; a cell the fleet kept as `{ cell, error }` leaves its partner unpaired, and unpaired cells are counted per environment rather than averaged away.
+
+**The statistic is a paired certificate-rate delta with a percentile bootstrap interval.** Per environment the result states the baseline rate and the candidate rate over the paired repetitions, their delta (candidate minus baseline), the attempts-mean delta, and the input and output token deltas. The interval resamples that environment's paired repetitions with replacement; the overall interval draws within every environment in the same pass and takes the mean over every drawn unit, so an environment weighs by its paired count and an environment whose cells all failed contributes nothing instead of contributing a zero. Resample count and confidence level are `Config`, because how much compute a deployment spends narrowing an interval is a deployment choice.
+
+**The resampler is seeded from the plan digest, so a verdict replays.** A 32-bit FNV-1a hash of `<digest>:<environmentId>` seeds a mulberry32 generator per environment, and the interval is the percentile pair of the sorted resampled deltas. The same frozen plan over the same certificates therefore yields the same interval on any machine, in any process, in any order — a bootstrap drawing from `Math.random` would make every verdict irreproducible and every audit of a promotion impossible.
+
+**The verdict is one rule over the overall interval.** `promote` when the lower bound exceeds the configured minimum promotable delta, `reject` when the upper bound is below zero, `inconclusive` otherwise — including when nothing paired, which is the four-goal note's "inconclusive results park the variant; they never promote by default". `promote` is tested first, so a deployment that configures a negative minimum delta still gets the promoting branch rather than an order-dependent verdict.
+
+**Cost is bounded before the first cell.** The projected spend is environments × repetitions × two arms × the per-cell token cap, and a plan whose projection exceeds the configured token budget is refused with a stable code before any cell runs — the loud refusal `FleetError` already models for a plan the fleet cannot start. Both the cap and the budget are required configuration with no default: what a deployment is willing to spend is not something this package can supply on its behalf.
+
+## Alternatives considered
+
+**Compare two independent batches.** Running the arms over different environment draws, or over the same environments without matching repetition indexes, would let each arm use whatever cells were free. It is rejected because between-environment variance dominates: certificate rates differ far more across tasks than between two arms on one task, so an unpaired difference mostly measures which tasks each arm drew. Pairing removes that variance by construction, which is why `EnvironmentRunStamp` carries a repetition index at all.
+
+**A normal-approximation confidence interval.** A Wald interval on the difference of two proportions is one line of arithmetic and needs no resampling. It is rejected because a certificate rate over a handful of repetitions is a small-sample binomial mean whose normal approximation is worst exactly where these experiments live — near zero and near one, where the interval leaves the unit range — and because the paired differences are not independent across arms. A percentile bootstrap over the paired differences assumes nothing about the distribution and is what the four-goal note names.
+
+**Accept the digest from the caller.** Letting a plan declare its identity rather than having it recomputed would let a nomination stage own freezing entirely. It is rejected for the reason the four-goal note rejects self-selected evaluation cells: an identity a semantic stage can choose is not a freeze. The digest is always recomputed from plan content, and a declared digest is only ever compared against it.
+
+**Seed the resampler from the clock or `Math.random`.** An unseeded bootstrap is the textbook default and avoids explaining a hash-to-seed step. It is rejected because a promotion decision that a re-run cannot reproduce cannot be audited, and because the plan digest is already the one value that is frozen, public, and unique to the comparison — deriving the seed from it means the seed needs no separate record.
+
+**Report cost in EUR.** The four-goal note's `ExperimentResult` sketch carries `costEur`. It is rejected here because pricing lives in `@deepseek-ai/dsh-budget-policy`'s configuration rather than in any session event, so a EUR figure would be a second, unlogged source of truth; the result states the input and output tokens the reports carry, and a deployment that prices routes converts at its own boundary.
+
+**Fold the comparison inside `dsh-fleet`.** The fleet already runs cells and folds rows, so a `compare()` verb there would need no new package. It is rejected because the fleet's leaderboard is a fold of one run and its rows never cross runs, while an experiment spans two arms, freezes an identity, refuses a budget, and carries statistics that have no meaning for a single batch; keeping them separate also keeps the fleet free of a bootstrap and its determinism obligations.
+
+**Enforce the per-cell cap during the run.** The experiment could measure each cell's spend as it lands and abort the remainder on breach. It is rejected as this slice's job because `@deepseek-ai/dsh-budget-policy` already blocks a goal durably on a breach measured from the session log; the missing piece is wiring the per-cell cap into each cell's policy, which is rollout item 3, and refusing an over-budget plan before it starts is what nothing else can do.
+
+## Acceptance criteria
+
+- `ctx.experiments.run(plan)` computes the plan digest before any cell runs, and a plan that declares a digest not equal to the recomputed one is refused with `EXPERIMENT_PLAN_NOT_FROZEN` without a single fleet call.
+- A plan whose projected spend — environments × repetitions × two arms × the per-cell token cap — exceeds the configured token budget is refused with `EXPERIMENT_OVER_BUDGET` before any cell runs, and a plan with no environments, a non-positive or fractional repetition count, or a duplicate environment id is refused with `EXPERIMENT_INVALID_PLAN`.
+- Both arms run through `ctx.fleet` with the same environment ids and the same repetition count, under the groups `experiment-<digest>-baseline` and `experiment-<digest>-candidate`, and a Loader-booted example proves those groups reach the `environment/run` stamp of every persisted session.
+- Two runs of the same frozen plan over the same certificates produce byte-identical intervals, proven by a unit spec that folds the same reports twice and by a seed derived only from the digest and the environment id.
+- A repetition whose arm produced no report is counted as unpaired and enters no statistic; `seedsPaired` is the number of repetition indexes both arms reported, over every environment.
+- An identical-arm plan over the two training environments yields a delta of zero, an interval containing zero, and the verdict `inconclusive`, proven keylessly through a real `cordis.yml` under `examples/headless-agent/tests/fixtures/experiment/`.
+- The result is written through the trajectory exporter's `TrajectorySink` when the plan carries one, and the sink is closed exactly once.
+
+## Rollout
+
+1. This note, the package, `ctx.experiments.run(plan)` over two fleet calls, the frozen digest and its group scheme, the paired bootstrap and the verdict, the budget refusal, the JSONL sink, the unit spec, and the Loader-booted example.
+2. **Presets as the second arm dimension.** A preset field on `EnvironmentRunRequest` threaded through the runner and the fleet cell, then an optional preset per arm on the plan and in the digest — W1 stage 1's model and preset overrides.
+3. **Per-cell caps enforced during the run.** The plan's per-cell token cap wired into each cell's `@deepseek-ai/dsh-budget-policy` configuration, so a cell that overruns is blocked durably rather than only projected against.
+4. **The staged ladder.** W1 stage 9's three stages — the training-eligible suite at one repetition, the derived cells at k paired repetitions, then the held-out suite once per Pareto-front variant — as a sequence of frozen plans, each stage's continuation decided by the previous stage's verdict.
+5. **The archive.** `HarnessVariant` records in `dsh-archive` referencing the `ExperimentResult` digests that evaluated them, so a dominated variant keeps its evidence.
+6. **Cells derived by rule.** Cells from `SessionDiagnosis` evidence plus a stratified sample by a logged deterministic rule, replacing the caller-named environment list of this slice.
+
+## Risks
+
+**Two arms on the same route measure harness noise, not a model difference.** An identical-arm plan is a legitimate calibration run whose delta should sit at zero, and the Loader-booted example is exactly that; a deployment that reads its `inconclusive` verdict as evidence about two different arms is misreading a null run. The result always states both arm routes so the reading is checkable.
+
+**A percentile bootstrap under-covers at small repetition counts.** With three or four paired repetitions per environment the resampled distribution is coarse and the interval optimistic; the minimum promotable delta is the configured defence, and a deployment that runs few repetitions should raise it rather than trust a narrow interval.
+
+**Paired repetition indexes are not paired seeds.** The `environment/run` stamp carries no seed, so repetition `r` of one arm and repetition `r` of the other share an index and an environment but not a sampling draw. Pairing therefore removes environment variance and not run-to-run variance; the four-goal note's proposed `seed` extension to the stamp is what would close the rest.
+
+**The digest freezes the plan, not the world.** The harness commit, the environment content hashes, the provider's model version behind a route, and the workspace contents are all outside it, so two runs of one digest are comparable only under an unchanged harness and registry. `EnvironmentRunStamp.contentSha256` is what a consumer cross-checks the second of those against.
+
+**The arms run in sequence.** Baseline completes before candidate starts, so a provider-side drift between the two arms lands entirely on the candidate and reads as an effect. Interleaving both arms in one fleet call removes it and stays available to a caller, at the cost of a longer critical path per cell.
+
+**The budget is projected, not measured.** The refusal multiplies the per-cell cap by the cell count, so a deployment whose cells routinely finish under the cap reserves more than it spends, and one whose policy does not enforce the cap can still overrun it. Rollout item 3 is what turns the projection into an enforced ceiling.

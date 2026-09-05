@@ -48,8 +48,8 @@ DeepSeek Harness 为其所服务的实验室承载四个目标：让任意 LLM �
 | Monitor | D（监督，可拒绝） | `tools/pre-execute`、来自配置的影响等级 | `oversight/deny`、`oversight/flag` | 现有：`ctx.tools.guard()`（目前未使用）；新增：oversight monitor 插件 |
 | Fleet Orchestrator | D 脚本 + S 调度 | 计划、队列、预算 | `RunBatch` | 现有：workflow engine、subagent、schedule |
 | Archive sampler | D | `HarnessVariant` 存档、权重（质量、新颖度、子代数） | `ParentSample` | 现有：storage；新增：`dsh-archive` |
-| Experiment service | D | 已冻结的提案、派生出的 cell | `ExperimentPlan`、`ExperimentResult` | 现有：schedule、environment-runner；新增：experiment 插件（阶梯式、配对设计、bootstrap 置信区间、成本） |
-| Department scoreboard | D | 配对的存在/缺失 skill-cell 运行结果 | `ScoreboardBatch`（保留或淘汰） | 现有：scorekeeper；新增：experiment 插件 |
+| Experiment service | D | 已冻结的提案、派生出的 cell | `ExperimentPlan`、`ExperimentResult` | 现有：schedule、environment-runner、experiments（配对设计、bootstrap 置信区间、成本）；新增：阶梯式评估 |
+| Department scoreboard | D | 配对的存在/缺失 skill-cell 运行结果 | `ScoreboardBatch`（保留或淘汰） | 现有：scorekeeper、experiments；新增：preset 作为 arm 维度 |
 
 ### W1 — Harness capability program
 
@@ -65,12 +65,12 @@ Goal 1 —— 让任意 LLM 都成为最强 coding agent 的 harness。一场以
 | 6. Parent selection | Archive sampler | D | proposed | `ParentSample` | 现有：storage；新增：`dsh-archive`（`ctx.storage` 之上的 `HarnessVariant` 记录） | 空存档会以 master 作为第 0 代播种。 |
 | 7. Patch proposal | Harness Engineer（隔离） | S | proposed | `HarnessPatchProposal` | 现有：components、bundle patch layer；新增：`harness-lab` preset、按内容寻址的组件版本 | 触碰 evaluator 所属路径的提案会被硬性拒绝，绝不会变成一条 directive。 |
 | 8. Novelty and static gates | run-gates + archive | GATE | proposed | `NoveltyVerdict`、`GateReport` | 现有：scripts/run-gates；新增：novelty gate | 发现的问题会作为 directive 返回给第 7 阶段。 |
-| 9. Staged evaluation | Experiment service | D | proposed | `ExperimentResult`、`HarnessVariant` | 现有：environment-runner；新增：experiment 插件（阶梯式、配对设计、置信区间、成本）、`dsh-archive` | 不确定的结果会把该变体搁置；默认从不晋升。 |
+| 9. Staged evaluation | Experiment service | D | partial | `ExperimentResult`、`HarnessVariant` | 现有：environment-runner、fleet、experiments（被冻结的配对计划、bootstrap 区间、预计 token 预算）；新增：阶梯式评估、`dsh-archive` | 不确定的结果会把该变体搁置；默认从不晋升。 |
 | 10. Auditor and council | Review council（跨模型、无利害关系） | S | proposed | `ReviewVerdict` | 现有：subagent `outputSchema`；新增：oversight seam 评审委员会 | 阻断性发现会返回给第 7 阶段。 |
 | 11. Promotion | Attributed human signer（component owner） | HUMAN | partial | `PromotionDecision`、`SignoffRecord` | 现有：.agents/notes 流程、approval seam；新增：`signoff/recorded` 事件、`approval/decided` 上的 `decidedBy` | 被拒绝的会连同理由留在存档中。 |
-| 12. Leaderboards | Scorekeeper | STORE | partial | `ScoreboardBatch` | 现有：scorekeeper；新增：experiment 插件中的跨运行比较 | ——反哺 W4 的 facts 与 W3 的 calibration。 |
+| 12. Leaderboards | Scorekeeper | STORE | partial | `ScoreboardBatch` | 现有：scorekeeper、experiments（两个 arm 的跨运行比较） | ——反哺 W4 的 facts 与 W3 的 calibration。 |
 
-`@deepseek-ai/dsh-fleet` 的 `LeaderboardRow`（第 3 阶段，已实现）已经携带 `provider`、`model`、`environmentId`、`environmentKind`、`heldOut`、`isolation?`（当该行每个 cell 都在运行前就失败时缺席）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`、`inputTokens` 与 `outputTokens`，每个模型路由与环境各一行，因此 W1 的模型矩阵今天就已经能仅凭证书折叠出来；它是对单次 fleet 运行的折叠，而 `@deepseek-ai/dsh-scorekeeper` 从已持久化日志中把同样的行折叠回来，使记分板不随进程消亡；跨运行比较、配对设计与置信区间仍然是第 9 阶段在会话日志之上的工作。
+`@deepseek-ai/dsh-fleet` 的 `LeaderboardRow`（第 3 阶段，已实现）已经携带 `provider`、`model`、`environmentId`、`environmentKind`、`heldOut`、`isolation?`（当该行每个 cell 都在运行前就失败时缺席）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`、`inputTokens` 与 `outputTokens`，每个模型路由与环境各一行，因此 W1 的模型矩阵今天就已经能仅凭证书折叠出来；它是对单次 fleet 运行的折叠，而 `@deepseek-ai/dsh-scorekeeper` 从已持久化日志中把同样的行折叠回来，使记分板不随进程消亡；跨运行比较、配对设计与置信区间仍然是第 9 阶段在会话日志之上的工作，`@deepseek-ai/dsh-experiments` 现在就在那里从一份被冻结计划的两个 arm 中把它们折叠出来。
 
 Parent selection（第 6 阶段）按质量 × 新颖度 × 1/(1+子代数) 的比例，在按环境种类划分的岛屿内从存档中抽取一个变体，并以 master 作为第 0 代为空存档播种，因此被采样出来的 parent——绝不直接是 `master`——才是被隔离的 Harness Engineer 要去 mutate 的对象。
 
@@ -135,11 +135,11 @@ Goal 4 —— 同时反哺 harness 与模型的闭环。一条快速回路：age
 | Stage | Actor | Type | Status | Emits | Plugins | On failure |
 |---|---|---|---|---|---|---|
 | 1. Manifest and facts | Scorekeeper | STORE | partial | `CompositionManifest`、`ScoreboardBatch` | 现有：trajectories、session-projection、scorekeeper（`sessionFacts` 投影）；新增：components-manifest 插件、skill 摘要 | skill 结果的摘要若不在 manifest 中会触发不变式失败。 |
-| 2. Scoreboards and alerts | Scorekeeper | D | partial | `Alert` | 现有：scorekeeper、budget-policy；新增：experiment 插件（统计）、告警阈值 | 没有足够会话支撑的指标不会触发告警。 |
+| 2. Scoreboards and alerts | Scorekeeper | D | partial | `Alert` | 现有：scorekeeper、budget-policy、experiments（统计）；新增：告警阈值 | 没有足够会话支撑的指标不会触发告警。 |
 | 3. Diagnosis | Trajectory Analyst（跨模型） | DS | proposed | `SessionDiagnosis` | 现有：session-query、subagent `outputSchema`；新增：trajectory-analyst preset | 诊断从不淘汰环境或设定预算；它只会打开一个争议或一份提案。 |
 | 4. Fast tier: session and department skills | Department agents | S | partial | `KnowledgeProposal` | 现有：分层的 `ctx.skills`、agent-presets 分层；新增：`dsh-skill-synthesized` provider、skill 上的租户范围 | 没有证据会话或范围的候选者会被 schema 拒绝。 |
-| 5. Keep or retire | Department scoreboard | D | proposed | `ScoreboardBatch` | 现有：scorekeeper；新增：experiment 插件、配对的存在/缺失 cell | 没有配对运行的 skill 既不会被保留也不会被淘汰，停留在 tier 0。 |
-| 6. Nomination and frozen experiment | Experiment service | D | proposed | `ExperimentPlan`、`ExperimentResult` | 现有：schedule、environment-runner；新增：experiment 插件 | 超出预算的计划会等待；超出上限的计划需要一位人类。 |
+| 5. Keep or retire | Department scoreboard | D | proposed | `ScoreboardBatch` | 现有：scorekeeper、experiments；新增：preset 作为 arm 维度、配对的存在/缺失 cell | 没有配对运行的 skill 既不会被保留也不会被淘汰，停留在 tier 0。 |
+| 6. Nomination and frozen experiment | Experiment service | D | partial | `ExperimentPlan`、`ExperimentResult` | 现有：schedule、environment-runner、experiments（计划摘要、配对运行、预算拒绝）；新增：提名、由规则派生 cell | 超出预算的计划会等待；超出上限的计划需要一位人类。 |
 | 7. Static gates | run-gates | GATE | partial | `GateReport` | 现有：scripts/run-gates | 发现的问题返回给第 4 阶段。 |
 | 8. Promotion | Attributed human signer（maintainer） | HUMAN | partial | `PromotionDecision`、`SignoffRecord` | 现有：.agents/notes 流程、approval seam；新增：`signoff/recorded` 事件 | 被拒绝的会连同理由留在 ledger 中。 |
 | 9. Knowledge ledger | Archive sampler | STORE | proposed | `HarnessVariant` | 现有：storage、components；新增：`dsh-archive` | 没有对应 manifest 出现记录的 ledger 条目，永远不算作真正在使用过。 |
@@ -286,7 +286,7 @@ Training and data（10 个字段，全部为 D）：`content_hash`、`dedupe_clu
 4. **Major** —— 按内容寻址的身份：组件与 skill 摘要，以及 composition manifest 事件。Lineage、按版本的排行榜、动态包的隔离检验，以及 manifest 与 ledger 之间的一致性不变式，全都以 `id@digest` 为键。
 5. **已落地** —— 作为会话投影的记分员（`@deepseek-ai/dsh-scorekeeper`）：与 goal 及 verification 并列的 `sessionFacts` 单元、从已持久化日志折叠并按路由、环境、隔离级别与留出划分分组的记分板、在已盖章批次上的 pass@k，以及事实的 JSONL 导出。剩下的是存档 ledger——`HarnessVariant` 记录建立在 storage 之上，带 parent、operator、evaluations 与 status——以及生产者尚不存在的那些字段分组。
 6. **已落地** —— 预算策略插件（`@deepseek-ai/dsh-budget-policy`）：来自配置的 token、墙钟时间与成本上限，在 `agent/pre-step` 上从会话日志折叠，一条 `budget/breach` 事件，以及任何 round driver 都不会恢复的持久 goal 阻塞；由于步骤从未开启，模型什么也看不到。剩下的是从 fleet 计划接入按 cell 的上限。
-7. **Major** —— experiment 插件：阶梯式评估、配对重复、bootstrap 区间、成本。Cell 由规则派生，计划被冻结并记录在案；这是花费决策唯一的落脚点。
+7. **Landed** —— experiment 服务（`@deepseek-ai/dsh-experiments`）：在任何 cell 运行之前由内容摘要冻结的计划、以配对重复索引经 fleet 运行、处于 `experiment-<digest>-<arm>` stamp group 之下的两个 arm、由摘要播种的按环境与合并的 bootstrap 区间，以及被响亮拒绝的预计 token 预算。尚待完成的是阶梯式评估、由诊断证据按规则派生的 cell、preset 作为第二个 arm 维度，以及在运行期间强制而非事先预计的每 cell 上限。
 8. **Major** —— 作为插件的顶层 preset 结构化输出。把结构化输出运行时接到任意 preset 的 agent context 上；Intake、Program service 与 Trajectory Analyst 因此获得带日志化拒绝路径的强制 schema。
 9. **Major** —— trainer operator、model registry、model lineage、environment factory 与准入。让 W3 端到端可用，包括从 lineage 记录生成的 Article 53 文档。
 10. **Minor** —— tool guard 上可拒绝的 monitor。影响等级默认拒绝，为有界的一类询问，并记录 `oversight/deny`；这让部署与密钥成为人类关口。
