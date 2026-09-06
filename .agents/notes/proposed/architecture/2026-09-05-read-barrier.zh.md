@@ -62,6 +62,24 @@ agent-presets: preset "<id>" declares role "implementer" but composes "<tool>", 
 
 **进程级拒绝。** [沙箱 seam](../../implemented/feature/2026-07-06-sandbox.md) 只表达文件效果，这正是被约束的子进程仍能读取它够得到的任何东西的原因。`SandboxPolicy` 与 `SandboxExecutionPolicy` 新增 `deniedReadRoots: readonly string[]`；`ctx.sandboxPolicy.resolve()` 从 `ctx.readBarrier.resolve({ session })` 填充它，于是 fs 围栏与每个进程运行器仍然每次调用取用一份由拥有者解析的策略。`dsh-sandbox-local` 按后端实现它——为每个根目录加一层 `bwrap` `--tmpfs`、一个省去这些目录读权限的 Landlock ruleset、一条 Seatbelt `(deny file-read* (subpath …))` 子句，以及 Windows ACL 运行器的等价拒绝条目——并在所选后端无法表达该拒绝时报告 `SANDBOX_UNAVAILABLE`，于是失败的是声明而不是屏障。[`dsh-bash-sandbox`](../../../../packages/shell/bash-sandbox/README.md)、`dsh-pwsh-sandbox` 与 [`dsh-terminal-bash`](../../../../packages/terminal/terminal-bash/README.md) 无需改动即可继承它。[`dsh-tool-fs-search`](../../../../packages/fs/tool-fs-search/README.md) 今天通过 `ctx.subprocess` 以不受约束的方式启动 ripgrep；只要屏障生效，它就通过 `ctx.sandbox.confine()` 约束该次启动，此外屏障的工具守卫还会拒绝 `path` 参数直接指向被拒根目录的 `glob` 或 `grep`。
 
+##### 切片 5 记录的偏离
+
+Windows ACL 运行器没有新增拒绝条目。它的约束是 `WRITE_RESTRICTED` 令牌，其受限 SID 只在写访问时被查询；而另一条路——在目录上设置 deny ACE——会同时作用于拥有该目录的 validator（校验方）和受限子进程。该级改为采用本节已经规定的回退：非空的 `deniedReadRoots` 会拒绝包装并指明后端与目录，因此 Windows 部署能强制执行文件操作，却无法支撑依赖禁读的声明。
+
+各执行器并非「无需改动即可继承」该拒绝。能力不得主张其后端从不施加的强制执行，因此 `dsh-sandbox-policy` 新增了 `enforceReadBarrier`，每个消费沙箱的执行器都调用它：它同时等待 read barrier（读屏障）、策略与提供方，以 read barrier 根目录作为禁读目录探测该执行器真实会运行的那次包装，仅在探测成功时登记 `enforce(capability)`。探测被拒绝或部署默认为 `danger-full-access` 时，改为登记 `cannotEnforce(capability, reason)`——这是 read barrier 现在暴露的第三种登记方式，于是普查会携带被组合的能力为何不执行任何拒绝，被拒绝的证书也能指明后端而不只是能力。登记 `subprocess` 的是 `dsh-tool-fs-search`：它是组合中通过该 seam 打开模型所选路径的消费方，未组合它的组合会把 `subprocess` 记为 `unenforced`。
+
+对 `path` 参数指向被拒根目录的 `glob`／`grep` 守卫不属于本切片；受约束的启动属于本切片，并在执行器处拒绝同样的读取。
+
+read barrier 的 `Config` 新增了第四个字段 `isolationClaim`。下文的拒绝需要部署的声明，而拥有 `isolation` 的环境运行器触及不到 workflow 引擎或 subagent 提供方；另一条路是五处重复的配置字段。该字段不授予任何权限——证书可以声称什么仍由普查判定——因此它是部署声明，而非本节刻意排除在配置之外的安全不变量。
+
+**屏障无法约束的执行器。** 它们通过 `enforceByRefusal(capability)` 登记，这正是本 note 切片清单所允许的同类登记：在 `process` 或 `host` 声明下为 `denied-at-executor`，此时 `startRefusal` 拒绝每一次 implementer 启动；在 `none` 声明下为带该原因的 `unenforced`。
+
+##### 精确的启动拒绝
+
+```markdown
+"<capability>" opens paths this process cannot confine and does not start in an implementer session under the "<claim>" isolation claim
+```
+
 **一次运行的执行者。** `RunEvidence.executor` 已在 `verification/run` 事件上区分 `runner` 与 `agent-reported` 运行，而 `recordRun()` 对二者一视同仁地颁发证书。`VerificationCertificate` 新增 `executor`，从它所引的运行复制而来，于是只读证书的消费方也能分辨是哪一种；scorekeeper 的结果事实以 `certificateExecutor` 暴露它，这正是让排行榜据此分区的依据。`recordRun()` 对 `agent-reported` 运行拒绝任何高于 `none` 的隔离——实现者自己对其检查的交代，只在什么都不断言的那个级别上是可采信的证据——而 invariant 拒绝执行者与其所引运行不一致的证书，也拒绝在 `agent-reported` 运行之上声称 `process` 或 `host` 的证书。
 
 **屏障无法约束的执行器。** 有两个已组合的能力打开的路径无法在进程内围住。[`dsh-workflow-worker-thread`](../../../../packages/workflow/workflow-worker-thread/README.md) 写明它的 worker 不是安全沙箱，逃逸的脚本会以宿主进程的权限重新取得 Node 能力。进程外的 [subagent](../../../../packages/subagent/subagent/README.md) 提供方——`subagent-acp`、`subagent-claude-code`、`subagent-codex`、`subagent-dsh-sdk`——启动的是自带工具栈、不受 harness 策略约束的外部 agent。对 `implementer` 会话，二者在 `process` 或 `host` 声明下拒绝启动，在 `none` 声明下记录为 `unenforced`。进程内的 subagent driver 不需要例外：子 agent 通过 `composeFrom()` 加入父级的常驻组合，因此继承同一份清单、同一个作用域层与同一个角色。
@@ -121,7 +139,7 @@ agent-presets: preset "<id>" declares role "implementer" but composes "<tool>", 
 2. **已落地。** `dsh-fs` 中作为返回 `FsReadDenial` 的委派式 waterfall 的 `fs/read-intent`、`FS_READ_BARRIER_DENIED`、`dsh-tool-fs` 中的派发（`read` 与 `read_image`，位于 `resolveRegularReadTarget` 内 stat 之前）与 `dsh-tool-str-replace-editor` 中的派发（`view`，位于它自己的 stat 之前），以及拥有那条确切文案的 `@deepseek-ai/dsh-fs-read-barrier`。`read-barrier` fixture 在 Loader 引导的组合中于执行器处证明该拒绝，`read-barrier-denied` 快照钉住面向模型的文案与持久记录；两者都无需密钥，快照经 `dsh-llm-replay` 重放一份已提交的脚本。
 3. **已落地。** `ToolDefinition` 上的 `ToolAuthority`、`dsh-tool-session-query` 与 `dsh-tool-cordis` 中的声明、`preset.yml` 中的 `role` 及对 `user` 信任级 `validator` 的拒绝、`mountPreset` 审计、作为名册设定角色唯一途径的 `ReadBarrierService.declareComposition`，以及逐 agent 的工具守卫。`read-barrier/scope` 连同 `enforce()` 与 `enforcementCensus()` 也在此落地，因为清单正由本切片新增的权限声明构成，而那些执行登记需要一个归属；`dsh-fs-read-barrier` 是 `enforce()` 的第一个调用方。审计按 preset 作用域解析工具注册表，因此被限制规则从该作用域过滤掉的工具不参与审计——该作用域同样无法调用它，而守卫覆盖审计看不到的部分。
 4. **已落地。** 证书 invariant：`recordRun` 前置条件、伴生插件的规则、带 `agent-reported` 上限的 `VerificationCertificate.executor` 与 scorekeeper 的 `certificateExecutor` 事实、`read-barrier/attestation` 事件及其文件检验，以及 `CertificateIsolation` 的文档变更。`EnvironmentRunRequest.preset` 不在其中并已撤回：清单已经记录会话的角色，因此 `isolationProblem` 会拒绝未持有 `implementer` 的会话高于 `none` 的声明——该拒绝属于颁发证书的那次操作，而不属于运行请求上的第二个字段。`verification-domain` 的 `agent-reported` fixture 从 `process` 改为 `none`，这一直就是它的证据所支撑的级别。
-5. `SandboxPolicy` 与 `SandboxExecutionPolicy` 上的 `deniedReadRoots`、`dsh-sandbox-local` 各后端、`dsh-sandbox-policy` 从屏障的填充、`dsh-tool-fs-search` 中被约束的 ripgrep 启动，以及 workflow 引擎与进程外 subagent 提供方中的拒绝。这一切片才让 `process` 可被声明。
+5. **已落地。** `SandboxPolicy` 与 `SandboxExecutionPolicy` 上的 `deniedReadRoots`、`dsh-sandbox-local` 各后端、`dsh-sandbox-policy` 从屏障的填充、`dsh-tool-fs-search` 中被约束的 ripgrep 启动，以及 workflow 引擎与进程外 subagent 提供方中的拒绝。这一切片才让 `process` 可被声明。
 6. **已落地。** 篡改：`dsh-environments` 中的 `task.immutable` 及其注册校验、运行器对检查所有路径的基线与逐尝试摘要、`verification/run` 上的 `verdict` 及 `recordRun` 的拒绝与伴生插件的规则、`dsh-trajectories` 中的 `tamper` 奖励依据，以及驱动运行器跑完一个环境（其 fixture 供给的测试正被实现者改写）的 `read-barrier-tamper` fixture 与快照。省略 `verdict` 的运行载荷按其结果解读，因为只有篡改无法由结果推出，因此未陈述裁定的手写日志会按其结果所描述的那次运行重放。
 7. 盲评审者：随附的 `system` 信任级评审者 preset、无谱系的创建路径、`judge/session` 事件，以及拒绝带种子评审者的 invariant。评审 Consumer 本身属于[seam 笔记](2026-08-29-verification-improvement-oversight-seams.md)的监督 seam。
 

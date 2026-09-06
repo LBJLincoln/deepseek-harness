@@ -14,6 +14,7 @@
     denyRoots:
       - /srv/evaluation/fixtures
     hostAttestation: /srv/attestation/run.json
+    isolationClaim: process
 ```
 
 | 字段 | 含义 |
@@ -21,6 +22,7 @@
 | `root`（默认 `<harness home>/verification`） | 屏障拥有的目录，绝对路径或以 `~` 开头。加载时按 `0700` 创建；已存在且所有者以外可读的目录会在此被拒绝，展开 `~` 后仍非绝对路径的取值同样被拒绝。 |
 | `denyRoots`（默认 `[]`） | 与 `root` 一同被拒绝的其他目录，绝对路径或以 `~` 开头，用于没有插件通过 `protect()` 登记的目录。 |
 | `hostAttestation`（默认无） | 由外部账户写入的文件，绝对路径或以 `~` 开头。若没有屏障校验通过的文件，任何证书都不得声称 `host` 隔离。 |
+| `isolationClaim`（默认 `none`） | 本部署打算让其证书声称的隔离级别：`none`、`process` 或 `host`。它只决定 harness 无法在本进程内围住的能力对 implementer 会话的行为——在 `process` 或 `host` 下拒绝启动，在 `none` 下运行但不执行任何拒绝。它不授予任何权限；证书实际可以声称什么由 [`dsh-verification`](../verification/README.md) 依据下文的普查判定。 |
 
 某个角色的被拒集合刻意不是配置字段，某个角色可以持有哪些权限同样不是：两者都是安全不变量，而非部署选择。该服务要求 `fs`，因为包含关系通过该 seam 判定，而不是靠解析路径字符串。
 
@@ -30,7 +32,15 @@
 
 `ctx.readBarrier.protect(path)` 在登记存续期间再拒绝一个目录并返回其 disposer，因此拥有某个目录的插件把它作为 effect 贡献出来，而不是由部署在配置中重复一遍。同一路径的两次登记同时成立；最后一次被释放时该目录才离开被拒集合。
 
-`ctx.readBarrier.enforce(capability)` 记录某个开放路径的能力——`fs`、`shell`、`subprocess`、`terminal`、`subagent` 或 `workflow`——在开放路径的那次操作中拒绝屏障的目录，在登记存续期间有效，并返回其 disposer。被组合却没有登记的能力在普查中记为 `unenforced`，只要还存在这样一条记录，高于 `none` 的隔离声明就会被拒绝。
+`ctx.readBarrier.enforce(capability)` 记录某个开放路径的能力——`fs`、`shell`、`subprocess`、`terminal`、`subagent` 或 `workflow`——在开放路径的那次操作中拒绝屏障的目录，在登记存续期间有效，并返回其 disposer。被组合却没有登记的能力在普查中记为 `unenforced`，只要还存在这样一条记录，高于 `none` 的隔离声明就会被拒绝。每个消费沙箱的执行器都通过 [`enforceReadBarrier`](../../sandbox/sandbox-policy/README.md) 发起这次调用，因此没有能力会主张其后端从不施加的强制执行。
+
+`ctx.readBarrier.enforceByRefusal(capability)` 是它面向本进程无法围住的执行器的同类方法：worker 线程会取回宿主进程的权限，进程外 agent 自带工具栈，二者都无法在开放路径处拒绝读取。普查取值随 `isolationClaim` 变化——在 `process` 或 `host` 下为 `denied-at-executor`，此时 `startRefusal` 拒绝每一次 implementer 启动；在 `none` 下为带该原因的 `unenforced`，此时该能力照常运行且不执行任何拒绝。
+
+`ctx.readBarrier.cannotEnforce(capability, reason)` 记录被组合的能力在本宿主上无法执行拒绝，并附上该能力提供的原因——无法表达该拒绝的后端，或不施加限制地运行命令的部署模式。据此普查拒绝的证书会指明该原因，而不只是指出哪个能力。同一能力的 `enforce()` 登记优先于它。
+
+`ctx.readBarrier.startRefusal(capability, session)` 给出无法在本进程内围住的能力必须返回、以取代启动的确切拒绝文本，可以启动时返回 `undefined`。此类能力的每次启动都在此询问，因此拒绝是在本该开放路径的那次操作中作出的。文案由 `startRefusalMessage(capability, claim)` 拥有。
+
+`deniedReadRoots(policy)` 给出已解析策略实际对其持有者禁止的目录：对 `implementer` 是全部被拒目录，对其他任何角色都为空。由一处判定被拒集合约束哪些角色，因此填充自身拒绝的进程 runner 与进程内的 `denies()` 判定不会产生分歧。
 
 `ctx.readBarrier.declareComposition(agent, { presetId, role })` 记录 preset 名册为某个 agent 组合了什么。声明的角色高于预留，因为只有组合本身知道实际挂载了什么；未作声明的 preset 把判定交回预留。[`dsh-agent-presets`](../../preset/agent-presets/README.md) 是唯一的调用方：会话自身运行的任何东西都不能抬高自己的角色。
 
@@ -44,7 +54,7 @@
 
 ### 组合普查
 
-在会话的第一条 `request/header` 之前，屏障追加一条仅记录日志的 `read-barrier/scope`，携带 `{ version, role, presetId?, root, denied, census, enforcement }`。`census` 为该会话注册表视图解析出的每个工具各一条 `{ name, authority }`，使组合的权限成为持久事实而不仅存在于组合时刻；`enforcement` 为每个开放路径的能力各一条，取值 `denied-at-executor`、`unenforced` 或 `not-composed`，能力顺序固定。当配置了 `hostAttestation` 且校验通过——是一个由另一个操作系统账户拥有、且本账户不可写入的常规文件——屏障在其旁追加一条仅记录日志的 `read-barrier/attestation`，携带 `{ version, path, owner, sha256 }`。文件缺失或无法校验时不记录任何内容并给出一条警告；被拒绝的是它本可支撑的那个声明，而不是整次运行。
+在会话的第一条 `request/header` 之前，屏障追加一条仅记录日志的 `read-barrier/scope`，携带 `{ version, role, presetId?, root, denied, census, enforcement }`。`census` 为该会话注册表视图解析出的每个工具各一条 `{ name, authority }`，按工具名排序，因为注册表顺序取决于 Loader 的并发挂载，否则同一组合的两次运行会记录出不同的普查；它使组合的权限成为持久事实而不仅存在于组合时刻。`enforcement` 为每个开放路径的能力各一条，取值 `denied-at-executor`、`unenforced` 或 `not-composed`，能力顺序固定；`unenforced` 条目会带上其能力所记录的 `reason`（若有记录）。当配置了 `hostAttestation` 且校验通过——是一个由另一个操作系统账户拥有、且本账户不可写入的常规文件——屏障在其旁追加一条仅记录日志的 `read-barrier/attestation`，携带 `{ version, path, owner, sha256 }`。文件缺失或无法校验时不记录任何内容并给出一条警告；被拒绝的是它本可支撑的那个声明，而不是整次运行。
 
 屏障还在 `agent/created` 时于每个 agent 自己的 context 上登记一个 `ctx.tools.guard()`，拒绝任何其定义携带了该会话角色所禁权限的执行。守卫在所有 `tools/pre-execute` 监听器之后运行且是单调的，因此后续监听器无法把拒绝翻转回允许。`mountPreset` 审计覆盖 preset 的组合；守卫覆盖此后注册进 agent 自身层的工具。
 
@@ -65,6 +75,26 @@
 #### KV Cache effect
 
 仅追加，且前缀稳定：屏障不向系统提示词或工具 schema 添加任何内容，它自己的事件仅记录日志，因此既有的可复用请求前缀在每次拒绝后都保持有效。
+
+### 被拒启动
+
+#### What the model sees
+
+在部署声称 `process` 或 `host` 的 implementer 会话中，模型委派给进程外 subagent 提供方或启动 worker 线程 workflow 时，会通过该 seam 自身的类型化错误得到下面这段文案。事先不会有任何预告：工具仍列在表中，因为撤下它等于告诉该会话它被隔离于什么之外。
+
+##### Start refusal
+
+```markdown
+"<capability>" opens paths this process cannot confine and does not start in an implementer session under the "<claim>" isolation claim
+```
+
+#### Token effect
+
+以一条简短错误取代子任务结果。重试的模型会再次花费它；该能力从未启动，因此完全不花费子任务的 token。
+
+#### KV Cache effect
+
+前缀稳定。既不改变 schema 也不改变提示词段落，因此该拒绝只是一次普通的追加式工具结果。
 
 ### 被拒工具调用
 
@@ -88,7 +118,8 @@
 
 ## Known Limitations and Deferred Work
 
-- **`ctx.fs` 之外无人执行** —— `shell`、`subprocess`、`terminal` 以及进程外 subagent 与 workflow 执行器所开放的路径不受本服务约束，因此组合了 bash 工具的部署仍可读取屏障根目录。这些能力不登记 `enforce()`，因此持有其中之一的组合记为 `unenforced`，根本无法声称 `process` 隔离；失败的是那个声明，而不是屏障。
+- **进程 runner 拒绝的是整个目录，而非某次读取** —— `shell`、`subprocess` 与 `terminal` 通过沙箱后端自身的挂载、ruleset 或 profile 执行拒绝，因此受限进程看到的是一个空目录，而不会收到本包的文案。只有 `ctx.fs` 读取才携带屏障自己的拒绝文本。
+- **`isolationClaim` 是部署声明，不是授权** —— 提高它只会让进程外执行器拒绝启动，别无其他作用。提高该字段却未组合相应强制执行的部署，其证书仍会被拒绝，拒绝它的是普查而不是这个字段。
 - **普查是一张快照** —— 它列出会话起始时持有的工具。此后注册的工具由运行时守卫覆盖，并由把每条 `request/header` 与普查交叉核对的证书规则覆盖，而不是由普查本身覆盖。
 - **证明确认的是所有者，不是某次运行** —— 屏障校验的是另一个操作系统账户拥有一个不可写文件，并记录其摘要；它尚未把该摘要与 `environment/run` 印记携带的环境内容哈希作比对。
 - **实现者自身进程内的受信代码** —— 拥有 `Session` 或 `ctx.fs` 直接访问权的插件可以追加伪造的拒绝并读取任意路径。屏障约束的是被组合的执行器，而非进程。

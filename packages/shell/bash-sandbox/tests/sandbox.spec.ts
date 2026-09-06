@@ -5,11 +5,13 @@
  * the Unix denial signature used by the classifier without requiring a real sandbox runner.
  */
 
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
+import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
+import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
 import type { ShellRunResult, CollectedOutput } from '@deepseek-ai/dsh-shell'
 import { SANDBOX_UNAVAILABLE, SandboxProvider, SandboxUnavailableError } from '@deepseek-ai/dsh-sandbox'
 import type { ConfinedArgv, SandboxExecutionPolicy, SandboxMode, SandboxPolicy } from '@deepseek-ai/dsh-sandbox'
@@ -83,7 +85,7 @@ function runResult(exitCode: number | null, stderr: string): ShellRunResult {
 }
 
 function executionPolicy(mode: SandboxMode, workspaceRoot = resolve(process.cwd())): SandboxExecutionPolicy {
-  return { mode, workspaceRoot }
+  return { mode, workspaceRoot, deniedReadRoots: [] }
 }
 
 describe('the provider hand-off', () => {
@@ -94,7 +96,7 @@ describe('the provider hand-off', () => {
     expect(result.sandbox).toEqual({ mode: 'read-only', denied: false, enforcement: 'full' })
     expect(calls).toEqual([{
       argv: ['bash', '-c', 'echo \'a b\' "c\'d"'],
-      policy: { mode: 'read-only', workspaceRoot: resolve(process.cwd()) },
+      policy: { mode: 'read-only', workspaceRoot: resolve(process.cwd()), deniedReadRoots: [] },
     }])
   })
 
@@ -145,7 +147,7 @@ describe('the provider hand-off', () => {
     const { bash, calls } = await setup({ mode: 'workspace-write' })
     const result = await bash.run(bash.resolve({ command: 'true' }))
     expect(result.sandbox).toEqual({ mode: 'workspace-write', denied: false, enforcement: 'full' })
-    expect(calls[0]?.policy).toEqual({ mode: 'workspace-write', workspaceRoot: resolve(process.cwd()) })
+    expect(calls[0]?.policy).toEqual({ mode: 'workspace-write', workspaceRoot: resolve(process.cwd()), deniedReadRoots: [] })
   })
 
   it('an explicit workspaceRoot on the policy wins', async () => {
@@ -654,5 +656,39 @@ describe('background sandbox facts', () => {
     const task = bash.start(bash.resolve({ command: 'sleep 30' }))
     await ctx.fiber.dispose()
     expect(task.status).toBe('killed')
+  })
+})
+
+describe('what the executor registers with a composed read barrier', () => {
+  /** Mount a barrier over the fake provider and settle the executor's enforcement registration. */
+  async function withBarrier(behavior?: (argv: readonly string[], policy: SandboxPolicy) => ConfinedArgv) {
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'dsh-bash-sandbox-barrier-')))
+    const { ctx, calls } = await setup({}, behavior)
+    await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
+    await ctx.plugin(ReadBarrierService, { root })
+    await ctx.fiber.await()
+    const entry = ctx.readBarrier.enforcementCensus().find(item => item.capability === 'shell')
+    rmSync(root, { recursive: true, force: true })
+    return { entry, calls, root }
+  }
+
+  it('claims denied-at-executor after probing the wrap it would really run', async () => {
+    const { entry, calls, root } = await withBarrier()
+    // The probe wraps the executor's own argv under the barrier's root: the
+    // claim rests on the confinement a real call would get, not on a promise.
+    expect(calls).toContainEqual({
+      argv: ['bash', '-c', 'true'],
+      policy: { mode: 'read-only', workspaceRoot: resolve(process.cwd()), deniedReadRoots: [root] },
+    })
+    expect(entry).toEqual({ capability: 'shell', state: 'denied-at-executor' })
+  })
+
+  it('records the backend reason when the provider refuses to express the denial', async () => {
+    const { entry } = await withBarrier((_argv, policy) => {
+      if (policy.deniedReadRoots.length > 0) throw new SandboxUnavailableError('read-only', 'no read denial here')
+      return passthrough(_argv)
+    })
+    expect(entry?.state).toBe('unenforced')
+    expect(entry?.reason).toContain('no sandbox backend is usable on this host')
   })
 })

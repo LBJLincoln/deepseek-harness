@@ -12,6 +12,8 @@ The split has one primary purpose: a synchronous script loop cannot block the ha
 
 Workflow scripts are model-written and have the same trust premise as the model's existing bash access. `node:vm` inside a worker is an API-shaping mechanism, not a security boundary: an escaped script can recover Node capabilities with the host process's privileges.
 
+That is also why the engine can deny a composed [read barrier](../../verification/read-barrier/README.md) nothing in the operation that opens paths. It enforces by refusing to start instead: `start()` throws `READ_BARRIER_REFUSED` with the barrier's own text for an implementer session whose deployment claims `process` or `host` isolation, before it validates meta or parses the script, and the engine registers that refusal so the scope census reports `workflow` as `denied-at-executor`. Under a claim of `none` the worker runs and the census records `unenforced` with that reason.
+
 The worker still provides useful containment:
 
 - Script CPU work and synchronous spins stay off the host event loop.

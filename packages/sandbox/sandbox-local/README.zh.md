@@ -10,6 +10,12 @@
 
 策略逐调用传入；提供方只存储机制与缓存的 runner 结论。每次包装都会报告强制执行完整度，以及后端专用的拒绝签名和 runner 失败规则。Landlock 只有在退出码为 125，且仅排除完全匹配的部分强制执行通知后仍存在一行 `landlock-run:` 致命诊断时，才判定 runner 失败；携带该通知的子进程即使以 1、2 或 125 退出，也仍按子进程结果处理。Bubblewrap 和 Seatbelt 仍仅依据签名，因为两者的公开约定均未保留 launcher 失败状态。消费方会直接 spawn 返回的 argv，因此 runner 缺失或不可执行属于带外 spawn 失败，而成功启动的子进程以 126 或 127 退出时仍按普通结果处理。`runnerCommand` 会跳过探测，并要求为自定义 runner 自身的致命方言提供一个或多个非空、单行、不区分大小写的 `runnerFailureSignatures` 条目。由于其机制未知，它会同时携带两种 Linux 拒绝方言。`probeTimeoutMs` 限定功能探测的时长。[沙箱 Agent Note](../../../.agents/notes/implemented/feature/2026-07-06-sandbox.md) 负责说明选择与失败语义。
 
+## 各后端如何表达禁读根目录
+
+策略中的 `deniedReadRoots` 由施加限制的那一级用自己的方言表达。`bwrap` 在每个根目录上挂载空 tmpfs，且排在只读根绑定与任何工作区绑定之后，因此进程看到的是后挂载的那一层。Landlock ruleset 是 allow-list，既没有 deny 形式也无法移除规则，所以每个被授权的根都要「挖空」：launcher 收到的是该授权与被禁目录之间每一层的同级目录，而不是该授权本身；这也意味着 ruleset 构建之后在被挖空层级下新建的目录同样未获授权。Seatbelt profile 为每个根目录追加一条 `(deny file-read* (subpath …))` 形式并置于末尾，因为 SBPL 中最后匹配的形式胜出，而该禁读必须优先于写入 allow-list。
+
+Windows ACL 那一级根本无法表达禁读，因此非空的 `deniedReadRoots` 会以 `SandboxReadDenialUnavailableError` 拒绝包装，并指明后端与目录：它的 `WRITE_RESTRICTED` 令牌只在写访问时查询受限 SID，而目录上的 deny ACE 会同时作用于拥有该目录的 validator（校验方）和受限子进程。因此在 Windows 上，依赖该禁读的 `isolation` 声明会失败，而不是让禁读悄悄失效。
+
 Seatbelt profile 默认允许，但带 `(deny file-write*)` 和写入 allow-list，因此恰好约束相应模式承诺的文件操作：`read-only` 只授予 `/dev/null` 字面路径；`workspace-write` 另加工作区根目录、`/tmp` 和逐用户 darwin 临时目录（`os.tmpdir()`，即平台供 mkstemp 家族工具使用的真实临时区域）。每个根目录都经过规范化，因为 Seatbelt 匹配解析后的路径（`/tmp` 就是 `/private/tmp`）。Apple 将 `sandbox-exec` CLI（命令行界面）标为 deprecated，但所有 macOS 系统仍会提供它；若情况发生变化，功能探测会使执行被拒绝。
 
 Windows 档为每个工作区保留一个确定性写入 SID 和常驻 ACE，但为每个活跃的会话/工作区对分配一个随机私有临时目录，以及不同的 SID 和可撤销 ACE。因此，共享工作区的会话会共享预期的写权限，却不会继承彼此的临时目录权限。新的提供方总会选择新的临时路径和 SID，因此崩溃残留既无法阻止恢复的会话，也无法向其授权；runner 会为无 agent（智能体）的调用提供同样的逐调用隔离。如果工作区等于或包含平台临时根目录，调用会在任何 ACL 改动发生前失败，因为否则其可继承的工作区 ACE 会延伸到每个私有临时子目录。
@@ -37,4 +43,6 @@ Windows 档为每个工作区保留一个确定性写入 SID 和常驻 ACE，但
 - **Landlock 可能只实现部分强制执行**：较旧且受支持的内核 ABI 只能限制自身公开的访问类别，因此报告 `enforcement: 'partial'`，不会夸大为完整强制执行。
 - **Seatbelt 依赖已弃用的 `sandbox-exec`**：macOS 仍会提供它，但若 Apple 移除该私有策略引擎，该提供方无法替换或探测。
 - **runner 选择在提供方生命周期内缓存**：安装、移除或修复 runner 后，必须重载插件才能改变选择。
+- **Landlock 的挖空在包装时确定**：launcher 的授权列出的是构建 ruleset 时已存在的目录，因此之后直接在被挖空层级下新建的目录对该受限进程不可读。只有 `deniedReadRoots` 非空的策略才会进行挖空。
+- **Windows 上没有后端能禁读**：ACL 那一级会转而拒绝此类包装，因此 Windows 部署可以强制执行文件操作，但无法支撑依赖禁读的隔离级别声明。
 - **`runnerCommand` 是操作方断言**：配置的自定义 runner 会跳过功能探测，并假定它诚实实现与 bwrap 兼容的 profile；如果它本身是 Bash 脚本，其解释器启动发生在该脚本施加约束之前。

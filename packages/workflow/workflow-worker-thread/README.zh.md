@@ -12,6 +12,8 @@
 
 工作流脚本由模型编写，信任前提与模型已有的 bash 访问相同。worker 内的 `node:vm` 是塑造 API 的机制，不是安全边界：逃逸的脚本可以用宿主进程权限重新取得 Node 能力。
 
+正因如此，引擎无法在开放路径的那次操作中为已组合的 [read barrier（读屏障）](../../verification/read-barrier/README.md) 执行任何拒绝。它改为通过拒绝启动来执行：对部署声称 `process` 或 `host` 隔离的 implementer 会话，`start()` 会在校验 meta 或解析脚本之前抛出 `READ_BARRIER_REFUSED`，并携带 read barrier 自己的文案；引擎登记该拒绝，因此 scope 普查把 `workflow` 报告为 `denied-at-executor`。在 `none` 声明下 worker 照常运行，普查记为带该原因的 `unenforced`。
+
 worker 仍提供实用的隔离：
 
 - 脚本 CPU 工作和同步自旋不会占用宿主事件循环；

@@ -14,6 +14,8 @@ For command and file approvals, the unattended provider selects a non-approval d
 
 Local cancellation wins the result race and maps to `aborted`. A failed turn whose `codexErrorInfo` is `contextWindowExceeded` maps to `max-tokens`; every other remote interrupted or failed turn maps to `error`, and the provider produces no `refusal`. `dispose()` is idempotent: it requests a best-effort `turn/interrupt` with both current ids when they are known, closes the JSON-RPC wire, ends stdin, invokes the shared process-tree termination escalation, and waits for whole-tree exit. Result failure and independent teardown failure remain separate.
 
+Before anything is spawned, `start()` asks the composed [read barrier](../../verification/read-barrier/README.md) whether this out-of-process child may run at all. An implementer session under a deployment claiming `process` or `host` isolation is refused with `SubagentError` `READ_BARRIER_REFUSED`, because a foreign agent brings its own tool stack and no fence this process installs reaches its reads; under a claim of `none` nothing is refused. The provider registers that refusal with the barrier, so the scope census reports `subagent`.
+
 ## Capabilities and context
 
 The provider advertises no optional start-time capabilities and reports `inheritsParentContext: false`. Codex receives the standalone text task and the parent Session cwd, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. The ephemeral Codex thread id and turn id stay private to this run and are never persisted in the parent Session.

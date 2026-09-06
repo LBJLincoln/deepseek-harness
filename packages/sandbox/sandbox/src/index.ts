@@ -18,7 +18,7 @@ export {
   validateEscalationArgs,
 } from './escalation.ts'
 export type { EscalationApproval, EscalationApprover, EscalationOutcome, EscalationRequest } from './escalation.ts'
-export { canonicalPath, writableRoots } from './roots.ts'
+export { canonicalPath, normalizeDeniedReadRoots, writableRoots } from './roots.ts'
 
 /**
  * File-effect policy for confined processes. `read-only` permits only required
@@ -41,6 +41,15 @@ export interface SandboxExecutionPolicy {
   mode: SandboxMode
   /** Absolute root directory `workspace-write` may write under. */
   workspaceRoot: string
+  /**
+   * Absolute, canonical, duplicate-free directories this execution may not
+   * READ under, independent of {@link mode} — the read barrier's denied set as
+   * `ctx.sandboxPolicy` resolved it for the calling session, empty for a
+   * session the barrier denies nothing. A backend that cannot express a
+   * non-empty entry refuses the wrap with {@link SANDBOX_UNAVAILABLE} rather
+   * than running the command with the denial unenforced.
+   */
+  deniedReadRoots: readonly string[]
   /**
    * Opaque identity of the calling session (the branded `dsh-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives
@@ -140,6 +149,30 @@ export class SandboxUnavailableError extends HarnessError {
       SANDBOX_UNAVAILABLE,
     )
     this.name = 'SandboxUnavailableError'
+  }
+}
+
+/**
+ * Thrown when the selected backend confines file effects but cannot express a
+ * non-empty {@link SandboxExecutionPolicy.deniedReadRoots}. It carries
+ * {@link SANDBOX_UNAVAILABLE} like {@link SandboxUnavailableError}, because the
+ * outcome is the same for the caller — the command does not run — and names the
+ * backend and the first root it cannot deny, so an isolation claim fails
+ * instead of the barrier silently going unenforced.
+ */
+export class SandboxReadDenialUnavailableError extends HarnessError {
+  /**
+   * @param backend - the selected backend that cannot express the denial.
+   * @param root - the denied directory the backend cannot express.
+   * @param reason - why that backend's dialect cannot express it.
+   */
+  constructor(backend: string, root: string, reason: string) {
+    super(
+      `sandbox backend "${backend}" cannot deny reads under ${JSON.stringify(root)}: ${reason}; `
+      + 'refusing to run the command with the read barrier unenforced.',
+      SANDBOX_UNAVAILABLE,
+    )
+    this.name = 'SandboxReadDenialUnavailableError'
   }
 }
 

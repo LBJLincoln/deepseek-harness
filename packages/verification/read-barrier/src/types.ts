@@ -92,7 +92,24 @@ export interface ReadBarrierEnforcementEntry {
   readonly capability: ReadBarrierEnforcedCapability
   /** What that capability does about the barrier. */
   readonly state: ReadBarrierEnforcementState
+  /**
+   * Why a composed capability enforces nothing, absent whenever it does. The
+   * capability itself supplies it — the host's backend cannot express the
+   * denial, or the deployment claims an isolation that asks nothing of it — so
+   * a certificate refused over this census can say what was missing instead of
+   * only which capability was silent.
+   */
+  readonly reason?: string
 }
+
+/**
+ * Isolation a deployment intends its certificates to claim, which decides
+ * whether a capability that cannot be confined in-process refuses to run or
+ * merely records that it enforces nothing. It repeats `CertificateIsolation`'s
+ * members rather than importing them: `@deepseek-ai/dsh-verification` reads this
+ * package, so the dependency cannot run the other way.
+ */
+export type ReadBarrierIsolationClaim = 'none' | 'process' | 'host'
 
 /** One visible tool and the authorities its definition declares. */
 export interface ReadBarrierCensusEntry {
@@ -119,7 +136,11 @@ export interface ReadBarrierScope {
   readonly root: string
   /** Every denied directory at census time. */
   readonly denied: readonly string[]
-  /** One entry per tool visible to the agent, in registry order. */
+  /**
+   * One entry per tool visible to the agent, sorted by tool name. Registry
+   * order follows concurrent Loader mounts, which would make two runs of one
+   * composition record different censuses.
+   */
   readonly census: readonly ReadBarrierCensusEntry[]
   /** One entry per path-opening capability, in a fixed capability order. */
   readonly enforcement: readonly ReadBarrierEnforcementEntry[]

@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-The single owner of sandbox-policy resolution: the deployment's default [`SandboxMode`](../sandbox/README.md) and fallback root, plus each session's durable mode override and immutable workspace root. Every enforcing capability receives one resolved mode-and-root policy per call; before each request, the model receives the current policy without a separate capability inventory.
+The single owner of sandbox-policy resolution: the deployment's default [`SandboxMode`](../sandbox/README.md) and fallback root, each session's durable mode override and immutable workspace root, and the directories the read barrier denies that session. Every enforcing capability receives one resolved policy per call; before each request, the model receives the current policy without a separate capability inventory.
 
 ## Why a shared home
 
@@ -15,8 +15,9 @@ Filesystem tools, one-shot bash commands, and terminal sessions may enforce the 
 
 ## API
 
-- `ctx.sandboxPolicy.resolve({ session?, mode? })` — resolves one complete per-call policy. An explicit approved mode outranks the session's last `sandbox/mode` event, which outranks `defaultMode`; the session's immutable `cwd` is canonicalized with filesystem semantics before becoming `workspaceRoot`, otherwise the configured fallback applies. Canonicalization precedes lexical normalization so `symlink/..` agrees with process working-directory resolution.
+- `ctx.sandboxPolicy.resolve({ session?, mode? })` — resolves one complete per-call policy. An explicit approved mode outranks the session's last `sandbox/mode` event, which outranks `defaultMode`; the session's immutable `cwd` is canonicalized with filesystem semantics before becoming `workspaceRoot`, otherwise the configured fallback applies. Canonicalization precedes lexical normalization so `symlink/..` agrees with process working-directory resolution. `deniedReadRoots` comes from [`ctx.readBarrier`](../../verification/read-barrier/README.md) when one is composed, normalized absolute, canonical, and duplicate-free; it is empty for every other session and for every composition without a barrier.
 - `ctx.sandboxPolicy.defaultMode` / `ctx.sandboxPolicy.workspaceRoot` — the deployment default and fallback root used by `resolve()`.
+- `enforceReadBarrier(ctx, capability, wrap)` — what a sandbox-consuming executor calls so the barrier's scope census can report its capability as `denied-at-executor`. It waits for `readBarrier`, `sandboxPolicy`, and `sandbox` together, probes `wrap` with the barrier's own root as the denied directory, and registers the claim only when that probe succeeds; a refusing probe or an unconfining deployment mode records `unenforced` with the reason instead. A capability may not claim an enforcement its own backend never applies, so the probe runs the same wrap a real call would.
 - `sandbox:policy` — a request-time cache-safe context contribution derived directly from `resolve({ session })`. It states the mode's capability-neutral file-effect contract and the canonical session workspace under `workspace-write`; tool owners retain operation-specific denial and escalation guidance.
 - `effectiveSandboxMode(events)` — the pure fold of a session's `sandbox/mode` events (the last switch wins, or `undefined`), used inside `resolve()`.
 - `setSandboxMode(session, mode)` — THE write path for a per-session override: appends exactly one `sandbox/mode` event. The switch IS its event; nothing mutates the mode out of band.
@@ -65,5 +66,7 @@ The stable system prompt remains byte-identical across mode changes. A changed f
 ## Known Limitations and Deferred Work
 
 - **One primary workspace root per session** — policy resolves `SessionHeader.cwd`; extra writable roots are not part of `SandboxExecutionPolicy`.
+- **The denied read roots are absent from the model-visible context** — `sandbox:policy` states the file-effect mode only, because a session that must not read a directory must not be told the directory's path either. The refusal each executor returns is what the model sees.
+- **The enforcement probe reflects the deployment default mode** — `enforceReadBarrier` resolves an agentless policy once at mount, so a session that later escalates to `danger-full-access` keeps a claim taken under the narrower default. The certificate rule that consumes the census is what refuses such a run.
 - **File-effect modes only** — `SandboxMode` governs file effects; network and process policy are outside its vocabulary, so no knob here restricts them.
 - **Temporary areas are deliberately summarized** — enforcing backends grant different platform temporary areas, which are selected after policy resolution and therefore cannot be enumerated truthfully in the current context.

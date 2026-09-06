@@ -62,7 +62,10 @@ function censusProblem(events: readonly SessionEvent[], scope: ReadBarrierScope)
 
 /**
  * Why the record does not prove that no executor of this session opened a
- * denied path, or undefined when it does.
+ * denied path, or undefined when it does. Every composed path-opening capability
+ * must record `denied-at-executor`, which is the same condition as no
+ * `unenforced` entry: a capability the composition has is one or the other, and
+ * one it does not have is `not-composed`.
  * @param scope - the census recorded for the session, absent when none is.
  * @returns the reason, or undefined when process-level isolation is proved.
  */
@@ -73,7 +76,11 @@ function executorProblem(scope: ReadBarrierScope | undefined): string | undefine
   }
   for (const entry of scope.enforcement) {
     if (entry.state === 'unenforced') {
-      return `capability "${entry.capability}" is composed without read-barrier enforcement`
+      const stated = `capability "${entry.capability}" is composed without read-barrier enforcement`
+      // The capability records why whenever it knows — the host's backend
+      // cannot express the denial, or the claim asks nothing of it — so the
+      // refusal names what was missing rather than only which capability.
+      return entry.reason === undefined ? stated : `${stated}: ${entry.reason}`
     }
   }
   return undefined

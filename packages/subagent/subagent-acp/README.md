@@ -16,6 +16,8 @@ After publication, the provider sends the prompt and collects streamed `agent_me
 
 `dispose()` is idempotent. It removes the signal listener, requests ACP cancellation when possible, then runs this backend's own teardown ladder (`disposeAcpChild`) over the seam's verbs: close stdin and wait `disposeEofGraceMs` for cooperative quiescence, then invoke the handle's `terminate()` escalation (SIGTERM, the spawn grace, SIGKILL — Windows force-terminates directly) and await the subprocess owner's whole-tree exit proof. Every run uses a fresh process; process pooling is not implemented.
 
+Before anything is spawned, `start()` asks the composed [read barrier](../../verification/read-barrier/README.md) whether this out-of-process child may run at all. An implementer session under a deployment claiming `process` or `host` isolation is refused with `SubagentError` `READ_BARRIER_REFUSED`, because a foreign agent brings its own tool stack and no fence this process installs reaches its reads; under a claim of `none` nothing is refused. The provider registers that refusal with the barrier, so the scope census reports `subagent`.
+
 ## Capabilities and context
 
 ACP advertises no start-time capabilities because this process cannot enforce the remote child's depth, tool filter, persona, or structured-output runtime. It also reports `inheritsParentContext: false`: the remote session starts fresh, and the only parent-derived input is the workspace cwd described above — no conversation context crosses the process boundary.

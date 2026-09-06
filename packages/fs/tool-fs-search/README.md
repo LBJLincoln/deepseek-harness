@@ -50,6 +50,12 @@ Raw `rg` stdout and stderr are internal transport details. Each search requests 
 
 Search failures carry the package-owned `SearchError` (a `HarnessError` subclass), surfaced as `{ name, code }` on `isError` results: `SEARCH_INVALID_PATTERN` (ripgrep rejected the regex/glob), `SEARCH_FAILED` (a failed `rg` launch, inaccessible target, signal kill, malformed `--json` output), `SEARCH_RAW_OUTPUT_OVERFLOW` (raw output over `rawOutputMaxBytes`, or still lossy after the requested stdout capture budget), and `SEARCH_ABORTED` (cooperative tool timeout or caller cancellation). ripgrep exit semantics are tool-owned: exit 0 is success with results, exit 1 is a successful empty search (`No files found` / `No matches found`), and only other exits are failures. Model argument mistakes (blank pattern, a list-valued `include`) stay ordinary tool argument errors.
 
+## Confined when the read barrier denies something
+
+`ctx.sandboxPolicy` and `ctx.sandbox` are read opportunistically alongside `ctx.spillStore`. When the calling session's resolved policy carries denied read roots — which happens only under a composed [read barrier](../../verification/read-barrier/README.md), for the sessions it denies — the ripgrep spawn is wrapped through `ctx.sandbox` so a denied directory is never searched; every other session spawns exactly as documented above. A search writes nothing, so the wrap uses the widest CONFINING mode when the deployment runs `danger-full-access`: the read denial does not depend on the file-effect mode and confining removes nothing the search needs. A composition that denies roots without a sandbox provider fails the call with `SEARCH_FAILED` rather than searching them.
+
+At load the plugin probes that same wrap and registers `enforce('subprocess')` only when it succeeds, because these tools are the composed consumer that opens model-chosen paths through `ctx.subprocess`. A plugin spawning through the seam directly is trusted in-process code no census can see.
+
 ## Model Experience
 
 ### System prompt

@@ -5,6 +5,12 @@
  * classification facts. Missing or unusable confinement fails closed rather
  * than returning the original argv.
  *
+ * The policy's denied READ roots are expressed by the rung that confines: an
+ * empty tmpfs over each root under bwrap, a carved allow-list under Landlock,
+ * and a trailing deny clause under Seatbelt. The windows-acl rung cannot
+ * express one at all and refuses the wrap instead, so a certificate's isolation
+ * claim fails there rather than the barrier silently going unenforced.
+ *
  * The windows-acl rung additionally owns the write grants: the write SID is
  * the per-WORKSPACE identity derived from the canonical workspace path
  * (`workspaceWriteSid`), while every live session receives a RANDOM private
@@ -34,7 +40,7 @@ import {
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { assertNever } from '@deepseek-ai/dsh-llm'
-import { SandboxProvider, SandboxUnavailableError } from '@deepseek-ai/dsh-sandbox'
+import { SandboxProvider, SandboxReadDenialUnavailableError, SandboxUnavailableError } from '@deepseek-ai/dsh-sandbox'
 import type { ConfinedArgv, ConfinedSandboxMode, RunnerFailureRule, SandboxEnforcement, SandboxPolicy } from '@deepseek-ai/dsh-sandbox'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import { AclWriteGrant, assertTempRootOutsideWorkspace, tempWriteSid, workspaceWriteSid } from '@deepseek-ai/dsh-sandbox-windows-acl'
@@ -83,7 +89,7 @@ function defaultProbeBwrap(timeoutMs: number): boolean {
  * every macOS; if it ever disappears, this probe is what fails closed.
  */
 function defaultProbeSeatbelt(seatbeltExec: string, timeoutMs: number): boolean {
-  const probe = spawnSync(seatbeltExec, [...seatbeltProfileArgs({ mode: 'read-only', workspaceRoot: '/' }), '--', 'true'], {
+  const probe = spawnSync(seatbeltExec, [...seatbeltProfileArgs({ mode: 'read-only', workspaceRoot: '/', deniedReadRoots: [] }), '--', 'true'], {
     timeout: timeoutMs,
     stdio: 'ignore',
   })
@@ -216,6 +222,15 @@ const DENIAL_SIGNATURES = {
 const WINDOWS_ACL_RUNNER_FAILURE_EXIT = 127
 
 /**
+ * Why the windows-acl rung cannot express a denied READ root. Its confinement
+ * is a `WRITE_RESTRICTED` token: the restricting-SID list is consulted for write
+ * access only, so no SID the runner controls narrows what the child may read,
+ * and the alternative — a deny ACE on the directory itself — would apply to the
+ * validator that owns it just as much as to the confined child.
+ */
+const WINDOWS_ACL_NO_READ_DENIAL = 'its WRITE_RESTRICTED token restricts write access only, and a deny ACE on the directory would apply to the validator that owns it'
+
+/**
  * Runner-owned fatal diagnostics. Landlock has a versioned exit-125 plus
  * fatal-line launcher-failure contract. Bubblewrap's current fatal paths exit
  * 1 but its public contract does not reserve that status, while sandbox-exec
@@ -311,7 +326,8 @@ export class LocalSandboxProvider extends SandboxProvider {
    * @param policy - the file-effect policy this execution runs under.
    * @returns the wrapped argv plus the selected backend's enforcement completeness, denial
    *   signatures, and structured runner-failure rules; throws the fail-closed
-   *   `SANDBOX_UNAVAILABLE` error when the platform has no usable runner.
+   *   `SANDBOX_UNAVAILABLE` error when the platform has no usable runner, or
+   *   when the selected rung cannot express the policy's denied read roots.
    */
   confine(argv: readonly string[], policy: SandboxPolicy): ConfinedArgv {
     if (this.runnerCommand !== undefined) {
@@ -332,13 +348,22 @@ export class LocalSandboxProvider extends SandboxProvider {
     }
   }
 
-  /** The selected rung's runner invocation (program + profile arguments) for one policy. */
+  /**
+   * The selected rung's runner invocation (program + profile arguments) for one
+   * policy. A rung whose dialect cannot express the policy's denied read roots
+   * refuses here, so the isolation claim that asked for the denial fails instead
+   * of the command running with the barrier unenforced.
+   */
   private runnerArgv(runner: SelectedRunner['runner'], policy: SandboxPolicy): string[] {
     switch (runner) {
       case 'bwrap': return ['bwrap', ...bwrapProfileArgs(policy)]
       case 'landlock': return [this.landlockLauncher(), ...landlockProfileArgs(policy)]
       case 'seatbelt': return [this.seatbeltExec(), ...seatbeltProfileArgs(policy)]
-      case 'windows-acl': return this.windowsAclRunnerArgv(policy)
+      case 'windows-acl': {
+        const denied = policy.deniedReadRoots[0]
+        if (denied !== undefined) throw new SandboxReadDenialUnavailableError(runner, denied, WINDOWS_ACL_NO_READ_DENIAL)
+        return this.windowsAclRunnerArgv(policy)
+      }
       default: return assertNever(runner)
     }
   }

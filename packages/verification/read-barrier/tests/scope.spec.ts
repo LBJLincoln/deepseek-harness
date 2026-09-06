@@ -24,9 +24,11 @@ import ReadBarrierService, {
   attestationProblem,
   authorityDenialMessage,
   deniedAuthority,
+  deniedReadRoots,
   ENFORCED_CAPABILITY_SERVICES,
   READ_BARRIER_ATTESTATION_VERSION,
   READ_BARRIER_SCOPE_VERSION,
+  startRefusalMessage,
 } from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 
@@ -128,6 +130,11 @@ describe('the denied-authority rule', () => {
     expect(authorityDenialMessage('session_search', 'session-log'))
       .toBe('"session_search" carries the "session-log" authority and is not callable in an implementer session')
   })
+
+  it('names the capability and the claim in a start refusal', () => {
+    expect(startRefusalMessage('subagent', 'host'))
+      .toBe('"subagent" opens paths this process cannot confine and does not start in an implementer session under the "host" isolation claim')
+  })
 })
 
 describe('the per-agent execution guard', () => {
@@ -214,6 +221,76 @@ describe('the enforcement census', () => {
     expect(Object.keys(ENFORCED_CAPABILITY_SERVICES))
       .toEqual(['fs', 'shell', 'subprocess', 'terminal', 'subagent', 'workflow'])
   })
+
+  it('carries the reason a composed capability records for enforcing nothing', async () => {
+    const { ctx } = await harness({}, 'unenforceable')
+    const entryOf = (capability: string) =>
+      ctx.readBarrier.enforcementCensus().find(entry => entry.capability === capability)
+    const dispose = ctx.readBarrier.cannotEnforce('fs', 'no backend on this host denies reads')
+    expect(entryOf('fs')).toEqual({ capability: 'fs', state: 'unenforced', reason: 'no backend on this host denies reads' })
+    dispose()
+    expect(entryOf('fs')).toEqual({ capability: 'fs', state: 'unenforced' })
+  })
+
+  it('lets an enforcing registration outrank a reason recorded for the same capability', async () => {
+    const { ctx } = await harness({}, 'both')
+    ctx.readBarrier.cannotEnforce('fs', 'stale reason')
+    ctx.readBarrier.enforce('fs')
+    expect(ctx.readBarrier.enforcementCensus()[0]).toEqual({ capability: 'fs', state: 'denied-at-executor' })
+  })
+})
+
+describe('a capability that enforces by refusing to start', () => {
+  it.each(['process', 'host'] as const)('denies at the executor and refuses an implementer under a %s claim', async (isolationClaim) => {
+    const { ctx, agent } = await harness({ isolationClaim }, `refusing-${isolationClaim}`)
+    ctx.readBarrier.enforceByRefusal('workflow')
+    ctx.readBarrier.reserve(agent)
+    expect(ctx.readBarrier.enforcementCensus().find(entry => entry.capability === 'workflow'))
+      .toEqual({ capability: 'workflow', state: 'denied-at-executor' })
+    expect(ctx.readBarrier.startRefusal('workflow', agent.session)).toBe(
+      `"workflow" opens paths this process cannot confine and does not start in an implementer session under the "${isolationClaim}" isolation claim`,
+    )
+  })
+
+  it('records unenforced with its reason and starts under a claim of none', async () => {
+    const { ctx, agent } = await harness({}, 'refusing-none')
+    ctx.readBarrier.enforceByRefusal('subagent')
+    ctx.readBarrier.reserve(agent)
+    expect(ctx.readBarrier.enforcementCensus().find(entry => entry.capability === 'subagent')).toEqual({
+      capability: 'subagent',
+      state: 'unenforced',
+      reason: 'it runs outside this process and the deployment claims "none" isolation, which asserts nothing about what an executor opens',
+    })
+    expect(ctx.readBarrier.startRefusal('subagent', agent.session)).toBeUndefined()
+  })
+
+  it('starts for a session the barrier denies nothing, and for an agentless call', async () => {
+    const { ctx, agent } = await harness({ isolationClaim: 'process' }, 'refusing-open')
+    ctx.readBarrier.enforceByRefusal('workflow')
+    expect(ctx.readBarrier.startRefusal('workflow', agent.session)).toBeUndefined()
+    expect(ctx.readBarrier.startRefusal('workflow', undefined)).toBeUndefined()
+  })
+
+  it('stops claiming enforcement once the registration is disposed', async () => {
+    const { ctx } = await harness({ isolationClaim: 'process' }, 'refusing-disposed')
+    const dispose = ctx.readBarrier.enforceByRefusal('workflow')
+    expect(ctx.readBarrier.enforcementCensus().find(entry => entry.capability === 'workflow')?.state)
+      .toBe('denied-at-executor')
+    dispose()
+    expect(ctx.readBarrier.enforcementCensus().find(entry => entry.capability === 'workflow')?.state)
+      .toBe('not-composed')
+  })
+})
+
+describe('the denied set a policy binds', () => {
+  it('is every denied directory for an implementer and nothing for any other role', async () => {
+    const { ctx, agent } = await harness({}, 'denied-roots')
+    expect(deniedReadRoots(ctx.readBarrier.resolve({ session: agent.session }))).toEqual([])
+    ctx.readBarrier.reserve(agent)
+    expect(deniedReadRoots(ctx.readBarrier.resolve({ session: agent.session }))).toEqual([ctx.readBarrier.root])
+    ctx.readBarrier.declareComposition(agent, { presetId: 'judge', role: 'validator' })
+    expect(deniedReadRoots(ctx.readBarrier.resolve({ session: agent.session }))).toEqual([])
+  })
 })
 
 describe('the declared composition', () => {
@@ -255,9 +332,11 @@ describe('the scope census', () => {
       presetId: 'implementing',
       root: ctx.readBarrier.root,
       denied: [ctx.readBarrier.root],
+      // Sorted by tool name: registry order follows concurrent Loader mounts,
+      // so two runs of one composition would otherwise record different censuses.
       census: [
-        { name: 'read', authority: [] },
         { name: 'cordis_inspect_self', authority: ['runtime-introspection'] },
+        { name: 'read', authority: [] },
       ],
       enforcement: [
         { capability: 'fs', state: 'denied-at-executor' },
@@ -268,6 +347,17 @@ describe('the scope census', () => {
         { capability: 'workflow', state: 'not-composed' },
       ],
     })
+  })
+
+  it('sorts the census by tool name whatever order the registry answers in', async () => {
+    const { ctx, agent } = await harness({}, 'sorted')
+    for (const registered of ['workflow', 'ralph', 'send_message', 'interrupt_agent', 'bash']) {
+      ctx.tools.register(tool(registered))
+    }
+    await request(ctx, agent)
+    const scope = agent.session.events.find(event => event.type === 'read-barrier/scope')?.data
+    expect(scope?.census.map(entry => entry.name))
+      .toEqual(['bash', 'interrupt_agent', 'ralph', 'send_message', 'workflow'])
   })
 
   it('records an empty census and no preset when the composition has neither roster nor registry', async () => {

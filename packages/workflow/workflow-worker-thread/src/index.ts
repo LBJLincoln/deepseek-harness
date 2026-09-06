@@ -3,6 +3,11 @@
  * an escapable vm context on a fresh worker and bridges `agent()` calls to host
  * subagents. The thread prevents synchronous script work from blocking the host
  * and permits forced termination, but it is containment rather than a security boundary.
+ *
+ * Because an escaped script recovers this process's privileges, the engine can
+ * deny a read barrier nothing in the operation that opens paths: it enforces by
+ * refusing to start for an implementer session whose deployment claims `process`
+ * or `host` isolation, and records that it enforces nothing under `none`.
  * @module @deepseek-ai/dsh-workflow-worker-thread
  */
 
@@ -11,6 +16,7 @@ import { availableParallelism } from 'node:os'
 import * as vm from 'node:vm'
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import type {} from '@deepseek-ai/dsh-read-barrier'
 import WorkflowEngine, { WorkflowError, WorkflowRunId } from '@deepseek-ai/dsh-workflow'
 import type { WorkflowRun, WorkflowRunInfo, WorkflowStartRequest } from '@deepseek-ai/dsh-workflow'
 import { WorkerRun } from './host.ts'
@@ -128,11 +134,16 @@ class WorkerThreadWorkflowEngine extends WorkflowEngine {
     // schemastery (static Config) has already filled the defaulted fields;
     // the assertion records that resolution, not a hidden fallback.
     this.config = config as ResolvedConfig
+    // A worker recovers this process's privileges, so the only read denial
+    // available to it is not running. Loader siblings mount concurrently, so the
+    // registration waits for the barrier and unwinds with it.
+    ctx.inject(['readBarrier'], (scope: Context) => { scope.readBarrier.enforceByRefusal('workflow') })
   }
 
   /**
    * Validate and execute a workflow script in a fresh worker thread. Throws
-   * {@link WorkflowError} synchronously (`META_INVALID` for a malformed meta
+   * {@link WorkflowError} synchronously (`READ_BARRIER_REFUSED` when the read
+   * barrier refuses this session's worker, `META_INVALID` for a malformed meta
    * block, `SCRIPT_PARSE` for a body that does not compile) for a request
    * that cannot begin; once a run is returned, every failure resolves through
    * `result.stopReason` instead.
@@ -141,6 +152,8 @@ class WorkerThreadWorkflowEngine extends WorkflowEngine {
    * @returns the live run (its `result` resolves when the script settles).
    */
   start(request: WorkflowStartRequest): WorkflowRun {
+    const refusal = this.ctx.get('readBarrier')?.startRefusal('workflow', request.parent.session)
+    if (refusal !== undefined) throw new WorkflowError(refusal, 'READ_BARRIER_REFUSED')
     const meta = validateMeta(request.meta)
     assertBodyParses(request.script, meta.name)
     const subagentProvider = resolveSubagentProvider(this.ctx, this.config.provider, request.subagentProvider)

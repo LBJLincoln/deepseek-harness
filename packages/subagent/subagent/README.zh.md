@@ -56,6 +56,12 @@ subagent seam 允许一个 agent（智能体）通过具名提供方把工作委
 
 `inheritsParentContext` 只用于描述，不能强制执行。它仅说明子 agent 是否能看到父级已完成的对话历史（`fork` 可以；`spawn` 和各进程外一次性提供方不可以），不表示是否继承工具、服务或权限。
 
+## 进程外提供方与 read barrier
+
+进程外子 agent 会启动一个自带工具栈、不受 harness 策略约束的外部 agent，因此本进程安装的任何围栏都触及不到它的读取。每个此类提供方调用的正是 `enforceOutOfProcessRefusal(ctx)` 与 `assertOutOfProcessAllowed(ctx, parent)`：前者登记该提供方以拒绝启动的方式执行已组合的 [read barrier（读屏障）](../../verification/read-barrier/README.md)，后者在本该启动子 agent 的那次操作中拒绝该次启动，抛出携带 `READ_BARRIER_REFUSED` 与 read barrier 自身文案的 `SubagentError`。部署声称 `none` 隔离时不拒绝任何启动，普查记录该能力不执行任何拒绝。
+
+进程内驱动不做这两次调用。通过 `composeFrom()` 加入父级现有组合的子 agent 继承同一份普查、同一作用域层和同一角色，因此父级自身的执行器已经对它执行拒绝。
+
 ## 委派策略
 
 两条进程内委派路径都会通过共享的子 agent 辅助函数，在委派边界固定子 agent 的权限范围。`captureDelegatedPolicyOverrides(parent)` 会为父会话的显式沙箱覆盖项（`sandboxPolicy.overrideOf()`）创建快照，并在审批能力已组合时将子 agent 的审批策略固定为 `'never'`，无论父级自身采用何种策略。这样，被委派的子 agent 只能在继承的沙箱范围内行动，每次审批请求（例如 `sandbox_permissions` 升权）都会被确定性拒绝，而不会等待无人处理的提示（这两个服务都是可选的 `ctx.get` 消费方）。`appendDelegatedPolicyOverrides()` 则在未发布的设置阶段、在任何 fork 种子之后，把每个值作为一条 `source: 'delegation'` 的 `sandbox/mode` 或 `approval/policy` 事件写入子 agent 自己的日志。因此，新捕获的策略会覆盖种子中的陈旧状态，而子 agent 的生效策略始终可以仅凭其日志重建。沙箱的部署默认值绝不复制：未切换的父级不会记录 `sandbox/mode`，其子 agent 会动态跟随部署默认值。可继续启动会在第一次 await 前捕获策略，并且只为全新物化写入这些委派事件；冷恢复只会重放已持久化的委派事件，不会重新捕获父级策略，因此创建之后的父级切换绝不会追溯性地改变持久化子 agent。每个进程内子 agent 还会收到一条作用域内的运行时上下文声明（`subagent:delegation`），告知其权限范围已固定，需要更宽访问的任务应以上报限制收尾，而不是重试。参见[一次性](../../../.agents/notes/implemented/feature/2026-07-25-subagent-policy-inheritance.md)与[可继续](../../../.agents/notes/implemented/feature/2026-08-10-continuable-subagent-policy-inheritance.md)两篇委派策略 Agent Note。

@@ -102,13 +102,14 @@ export type WorkflowEventName =
 /**
  * Machine-routable fatal workflow failures: parse/meta/argument/schema errors,
  * resource caps, subagent infrastructure failures, unserializable boundary
- * values, and cancellation. An ordinary child failure resolves its item to
- * `null` and is not one of these fatal codes.
+ * values, a read barrier that refuses the run, and cancellation. An ordinary
+ * child failure resolves its item to `null` and is not one of these fatal codes.
  */
 export type WorkflowErrorCode =
   | 'SCRIPT_PARSE'
   | 'META_INVALID'
   | 'INVALID_ARGUMENT'
+  | 'READ_BARRIER_REFUSED'
   | 'UNSUPPORTED_OPTION'
   | 'UNSUPPORTED_SCHEMA'
   | 'AGENT_CAP'

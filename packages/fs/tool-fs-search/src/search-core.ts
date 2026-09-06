@@ -22,6 +22,8 @@
 import { isAbsolute, relative, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
+import type { SandboxExecutionPolicy } from '@deepseek-ai/dsh-sandbox'
+import type {} from '@deepseek-ai/dsh-sandbox-policy'
 import { ItemRetainer, TextRetainer } from '@deepseek-ai/dsh-output-retention'
 import type { RetainedItems } from '@deepseek-ai/dsh-output-retention'
 import type { SubprocessHandle, SubprocessOutcome, SubprocessOutputRead, SubprocessSpawnSpec } from '@deepseek-ai/dsh-subprocess'
@@ -153,6 +155,48 @@ function completeStdout(toolName: string, stdout: SubprocessOutputRead, rawOutpu
   )
 }
 
+/**
+ * The confining mode one search runs under. A search process writes nothing, so
+ * the barrier's read denial does not depend on the file-effect mode: a
+ * deployment running `danger-full-access` still gets the denial expressed, under
+ * the widest CONFINING mode, which removes nothing the search needs.
+ * @param policy - the resolved per-call sandbox policy.
+ * @returns the mode to confine the ripgrep spawn under.
+ */
+function searchConfinementMode(policy: SandboxExecutionPolicy): 'read-only' | 'workspace-write' {
+  return policy.mode === 'danger-full-access' ? 'workspace-write' : policy.mode
+}
+
+/**
+ * Wrap the ripgrep argv so a directory the read barrier denies the calling
+ * session is never searched. A session the barrier denies nothing resolves an
+ * empty denied set and spawns exactly as before, so a composition without a
+ * barrier keeps the plain unconfined spawn this package documents.
+ *
+ * A composition that denies roots without a `ctx.sandbox` provider fails the
+ * search rather than searching them: enforcement belongs to the operation that
+ * opens the paths, and there is no other place left to refuse.
+ *
+ * @param ctx - the plugin context; both sandbox services are optional here.
+ * @param exec - the tool-execution context supplying the calling session.
+ * @param toolName - `glob` or `grep`, used in the failure message.
+ * @param argv - the ripgrep argv to run.
+ * @returns the argv to spawn, wrapped only when the barrier denies something.
+ */
+function confineSearchArgv(ctx: Context, exec: ToolExecution, toolName: string, argv: string[]): string[] {
+  const session = exec.agent?.session
+  const policy = ctx.get('sandboxPolicy')?.resolve(session === undefined ? {} : { session })
+  if (policy === undefined || policy.deniedReadRoots.length === 0) return argv
+  const sandbox = ctx.get('sandbox')
+  if (sandbox === undefined) {
+    throw new SearchError(
+      `${toolName} cannot run: this session denies reads under ${policy.deniedReadRoots.length} directory(ies) and no ctx.sandbox provider is composed to confine the search`,
+      'SEARCH_FAILED',
+    )
+  }
+  return sandbox.confine(argv, { ...policy, mode: searchConfinementMode(policy) }).argv
+}
+
 let rgPathPromise: Promise<string> | undefined
 
 /**
@@ -222,10 +266,20 @@ export async function runRipgrep(
   }
   const cwd = exec.agent?.session.header.cwd
   const workdir = cwd ?? process.cwd()
+  let searchArgv: string[]
+  try {
+    searchArgv = [await resolveRgPath(), '--no-config', ...argv]
+  } catch (error: unknown) {
+    throw new SearchError(`${toolName} could not start its search command (ripgrep launch failed)`, 'SEARCH_FAILED', { cause: error })
+  }
+  // Outside the spawn's own classification: a refused confinement names the
+  // backend and the directory it cannot deny, which is not a ripgrep launch
+  // failure and must reach the caller as itself.
+  const confinedArgv = confineSearchArgv(ctx, exec, toolName, searchArgv)
   let handle: SubprocessHandle
   try {
     handle = ctx.subprocess.spawn({
-      argv: [await resolveRgPath(), '--no-config', ...argv],
+      argv: confinedArgv,
       cwd: workdir,
       stdio: {
         stdin: 'ignore',
@@ -238,9 +292,8 @@ export async function runRipgrep(
   } catch (error: unknown) {
     // Node's spawn() throws synchronously for a NUL in argv, and the local
     // impl can throw synchronously when the signal aborts between the check
-    // above and this call (or when the platform-package resolution rejects).
-    // The static narrowing that proves this re-check "always false" cannot
-    // see AbortSignal state changes.
+    // above and this call. The static narrowing that proves this re-check
+    // "always false" cannot see AbortSignal state changes.
     // oxlint-disable-next-line typescript/no-unnecessary-condition
     if (exec.signal.aborted) {
       throw new SearchError(`${toolName} was aborted before completion (tool timeout or caller cancellation)`, 'SEARCH_ABORTED')

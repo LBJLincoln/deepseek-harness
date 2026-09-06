@@ -14,6 +14,7 @@ The read barrier (`ctx.readBarrier`): the policy home for reads an implementer s
     denyRoots:
       - /srv/evaluation/fixtures
     hostAttestation: /srv/attestation/run.json
+    isolationClaim: process
 ```
 
 | Field | Meaning |
@@ -21,6 +22,7 @@ The read barrier (`ctx.readBarrier`): the policy home for reads an implementer s
 | `root` (default `<harness home>/verification`) | Absolute or `~`-prefixed directory the barrier owns. Created `0700` at load; an existing directory readable beyond its owner is rejected there, and so is a path that is not absolute after `~` expansion. |
 | `denyRoots` (default `[]`) | Further absolute or `~`-prefixed directories denied alongside `root`, for directories no plugin registers through `protect()`. |
 | `hostAttestation` (default none) | Absolute or `~`-prefixed file an external account writes. Without a file the barrier verified, no certificate may claim `host` isolation. |
+| `isolationClaim` (default `none`) | The isolation this deployment intends its certificates to claim: `none`, `process`, or `host`. It decides only what a capability the harness cannot fence in-process does for an implementer session — refuse to start under `process` or `host`, run unenforced under `none`. It grants nothing; what a certificate may actually claim is decided by [`dsh-verification`](../verification/README.md) over the census below. |
 
 The denied set for a role is deliberately not a field, and neither are the authorities a role may hold: both are security invariants, not deployment choices. The service requires `fs`, because containment is decided through that seam rather than by parsing path strings.
 
@@ -30,7 +32,15 @@ The denied set for a role is deliberately not a field, and neither are the autho
 
 `ctx.readBarrier.protect(path)` denies one more directory for as long as the registration lives and returns its disposer, so a plugin that owns a directory contributes it as an effect instead of a deployment repeating it in configuration. Two registrations of one path both hold; the directory leaves the denied set when the last is disposed.
 
-`ctx.readBarrier.enforce(capability)` records that one path-opening capability — `fs`, `shell`, `subprocess`, `terminal`, `subagent`, or `workflow` — denies the barrier's directories in the operation that opens paths, for as long as the registration lives, and returns its disposer. A composed capability without one is `unenforced` in the census, and an isolation claim above `none` is refused while any such entry stands.
+`ctx.readBarrier.enforce(capability)` records that one path-opening capability — `fs`, `shell`, `subprocess`, `terminal`, `subagent`, or `workflow` — denies the barrier's directories in the operation that opens paths, for as long as the registration lives, and returns its disposer. A composed capability without one is `unenforced` in the census, and an isolation claim above `none` is refused while any such entry stands. [`enforceReadBarrier`](../../sandbox/sandbox-policy/README.md) is how each sandbox-consuming executor makes this call, so no capability claims an enforcement its own backend never applies.
+
+`ctx.readBarrier.enforceByRefusal(capability)` is its sibling for the executors this process cannot fence: a worker thread recovers the host process's privileges and an out-of-process agent brings its own tool stack, so neither can deny a read where it opens paths. The census follows `isolationClaim` — `denied-at-executor` under `process` or `host`, where `startRefusal` refuses every implementer start, and `unenforced` with that reason under `none`, where the capability runs and denies nothing.
+
+`ctx.readBarrier.cannotEnforce(capability, reason)` records that a composed capability cannot enforce on this host, with the reason the capability supplies — the backend that cannot express the denial, or a deployment mode that runs commands unconfined. The certificate refused over such a census names the reason instead of only the capability. An `enforce()` registration for the same capability outranks it.
+
+`ctx.readBarrier.startRefusal(capability, session)` answers the exact refusal a capability that cannot be confined in-process must return instead of starting, or `undefined` when it may start. Every start of such a capability asks here, so the refusal is decided in the operation that would open the paths. `startRefusalMessage(capability, claim)` owns the text.
+
+`deniedReadRoots(policy)` answers the directories a resolved policy actually denies its holder: every denied directory for an `implementer`, none for any other role. One place decides which roles the denied set binds, so a process runner filling its own denial and the in-process `denies()` test cannot disagree.
 
 `ctx.readBarrier.declareComposition(agent, { presetId, role })` records what a preset roster composed for one agent. A declared role outranks a reservation, because only the composition knows what was actually mounted; a preset that declares none leaves the reservation to decide. [`dsh-agent-presets`](../../preset/agent-presets/README.md) is the only caller: nothing a session itself runs may raise its own role.
 
@@ -44,7 +54,7 @@ The denied set for a role is deliberately not a field, and neither are the autho
 
 ### The composition census
 
-Before a session's first `request/header`, the barrier appends one log-only `read-barrier/scope` carrying `{ version, role, presetId?, root, denied, census, enforcement }`. `census` is one `{ name, authority }` entry per tool the session's registry view resolves, which makes the composition's authority durable rather than composition-time-only; `enforcement` is one entry per path-opening capability, valued `denied-at-executor`, `unenforced`, or `not-composed`, in a fixed capability order. When a `hostAttestation` file is configured and verifies — a regular file owned by another operating-system account and unwritable by this one — the barrier appends one log-only `read-barrier/attestation` beside it, carrying `{ version, path, owner, sha256 }`. An absent or unverifiable file records nothing and logs a warning; the claim it would have supported is refused instead of the run failing.
+Before a session's first `request/header`, the barrier appends one log-only `read-barrier/scope` carrying `{ version, role, presetId?, root, denied, census, enforcement }`. `census` is one `{ name, authority }` entry per tool the session's registry view resolves, sorted by tool name because registry order follows concurrent Loader mounts and would otherwise make two runs of one composition record different censuses; it makes the composition's authority durable rather than composition-time-only. `enforcement` is one entry per path-opening capability, valued `denied-at-executor`, `unenforced`, or `not-composed`, in a fixed capability order; an `unenforced` entry carries the `reason` its capability recorded, when it recorded one. When a `hostAttestation` file is configured and verifies — a regular file owned by another operating-system account and unwritable by this one — the barrier appends one log-only `read-barrier/attestation` beside it, carrying `{ version, path, owner, sha256 }`. An absent or unverifiable file records nothing and logs a warning; the claim it would have supported is refused instead of the run failing.
 
 The barrier also registers one `ctx.tools.guard()` on each agent's own context at `agent/created`, denying any execution whose definition carries an authority that session's role forbids. Guards run after every `tools/pre-execute` listener and are monotonic, so no later listener can turn the denial back into permission. The `mountPreset` audit covers the preset's composition; the guard covers a tool registered into the agent's own layer afterwards.
 
@@ -65,6 +75,26 @@ Zero direct tokens. A refused read replaces the tool result the model would have
 #### KV Cache effect
 
 Append-only, and prefix-stable: the barrier adds nothing to the system prompt or to tool schemas, and its own events are log-only, so an existing reusable request prefix survives every refusal.
+
+### Refused starts
+
+#### What the model sees
+
+A model that delegates to an out-of-process subagent provider, or starts a worker-thread workflow, in an implementer session whose deployment claims `process` or `host` gets the text below through that seam's own typed error. Nothing announces the refusal in advance: the tool stays listed, because withdrawing it would tell the session what it is being kept away from.
+
+##### Start refusal
+
+```markdown
+"<capability>" opens paths this process cannot confine and does not start in an implementer session under the "<claim>" isolation claim
+```
+
+#### Token effect
+
+One short error in place of the child's result. A model that retries spends it again; the capability never starts, so no child tokens are spent at all.
+
+#### KV Cache effect
+
+Prefix-stable. No schema and no prompt section changes, so the refusal is an ordinary appended tool result.
 
 ### Refused tool calls
 
@@ -88,7 +118,8 @@ Prefix-stable. The guard changes no schema and no prompt section, so the denial 
 
 ## Known Limitations and Deferred Work
 
-- **Nothing enforces beyond `ctx.fs`** — `shell`, `subprocess`, `terminal`, and out-of-process subagent and workflow executors open paths this service does not fence, so a composed bash tool still reads the barrier root. Those capabilities register no `enforce()`, so a composition holding one records `unenforced` and cannot claim `process` isolation at all; the claim fails rather than the barrier.
+- **A process runner denies whole directories, not reads** — `shell`, `subprocess`, and `terminal` deny through the sandbox backend's own mount, ruleset, or profile, so a confined process sees the denied directory as empty rather than receiving this package's message. Only `ctx.fs` reads carry the barrier's own refusal text.
+- **`isolationClaim` is a deployment statement, not a grant** — raising it makes the out-of-process executors refuse and nothing else. A deployment that raises it without composing the enforcement still has its certificate refused, by the census rather than by this field.
 - **The census is a snapshot** — it lists the tools the session started with. A tool registered afterwards is covered by the runtime guard and by the certificate rule that cross-checks each `request/header` against the census, not by the census itself.
 - **The attestation proves an owner, not a run** — the barrier verifies that another operating-system account owns an unwritable file and records its digest; it does not yet compare that digest against the environment content hashes the `environment/run` stamp carries.
 - **Trusted code in the implementer's own process** — a plugin with direct `Session` or `ctx.fs` access appends counterfeit refusals and reads any path. The barrier confines the composed executors, not the process.

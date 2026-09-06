@@ -10,6 +10,7 @@
 
 - `danger-full-access`：命令经本地执行器原样运行；结果携带 `sandbox: { mode, denied: false }`。
 - 受限模式（`read-only`、`workspace-write`）：pwsh argv 由 `ctx.sandbox.confine()` 包装；runner 启动失败按 fail-closed 抛 `SANDBOX_UNAVAILABLE`（前台抛错、后台记 `runnerFailed` 事实），被拒绝的写按所选后端的 `denialSignatures` 分类为 `sandbox.denied`。
+- [read barrier（读屏障）](../../verification/read-barrier/README.md)：解析出的策略携带 read barrier 对调用会话禁读的目录，后端会为该命令表达这些目录。加载时执行器以 read barrier 的根目录探测它会运行的那次包装，仅在探测成功时登记 `enforce('shell')`，否则记录后端自己的原因。Windows ACL 那一级无法表达禁读根目录，因此 Windows 部署会记录该原因，无法支撑依赖禁读的隔离级别声明。
 
 ## 模型体验
 

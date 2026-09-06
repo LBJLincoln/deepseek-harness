@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
+import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
+import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
+import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
 import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
 import AgentRegistry, { Inbox, type Agent } from '@deepseek-ai/dsh-agent'
 import SandboxProvider from '@deepseek-ai/dsh-sandbox'
@@ -215,7 +220,7 @@ describe('BashTerminalBackend startup rollback', () => {
     expect(initialized).toHaveBeenCalledWith(undefined)
     expect((ctx.sandbox as RecordingSandbox).calls).toEqual([{
       argv: ['/bin/bash', '-i'],
-      policy: { mode: 'workspace-write', sessionId: 'agent', workspaceRoot: '/workspace' },
+      policy: { mode: 'workspace-write', sessionId: 'agent', workspaceRoot: '/workspace', deniedReadRoots: [] },
     }])
   })
 
@@ -247,7 +252,7 @@ describe('BashTerminalBackend startup rollback', () => {
     })
     expect((ctx.sandbox as RecordingSandbox).calls).toEqual([{
       argv: ['/bin/bash', '-i'],
-      policy: { mode: 'workspace-write', sessionId: 'agent', workspaceRoot: '/session-workspace' },
+      policy: { mode: 'workspace-write', sessionId: 'agent', workspaceRoot: '/session-workspace', deniedReadRoots: [] },
     }])
   })
 
@@ -359,6 +364,32 @@ describe('terminal-bash plugin shape', () => {
     expect(ctx.terminals.listBackends()).toEqual(['shell'])
     await fiber.dispose()
     expect(ctx.terminals.listBackends()).toEqual([])
+  })
+
+  it('claims denied-at-executor with a composed read barrier, after probing the wrap it would run', async () => {
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'dsh-terminal-barrier-')))
+    try {
+      const ctx = new Context()
+      await ctx.plugin(AgentRegistry)
+      await ctx.plugin(TerminalSessionService)
+      const sandbox = new RecordingSandbox(ctx)
+      await ctx.plugin(SandboxPolicyService, { mode: 'read-only', workspaceRoot: '/tmp' })
+      await ctx.plugin(StubSubprocessRuntime)
+      await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
+      await ctx.plugin(ReadBarrierService, { root })
+      await ctx.plugin(ptyLocal, config())
+      await ctx.fiber.await()
+
+      // The probe wraps the backend's own shell argv under the barrier's root.
+      expect(sandbox.calls).toContainEqual({
+        argv: ['/bin/bash'],
+        policy: { mode: 'read-only', workspaceRoot: '/tmp', deniedReadRoots: [root] },
+      })
+      expect(ctx.readBarrier.enforcementCensus().find(entry => entry.capability === 'terminal'))
+        .toEqual({ capability: 'terminal', state: 'denied-at-executor' })
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
   })
 
   it('ignores unrelated session events and mode changes without a live owner', async () => {

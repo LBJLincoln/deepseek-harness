@@ -11,7 +11,7 @@ import { TerminalBackendCleanupError } from '@deepseek-ai/dsh-terminal'
 import type { TerminalBackend, TerminalBackendSpawnSpec } from '@deepseek-ai/dsh-terminal'
 import type { SubprocessTerminalHandle, SubprocessTerminalSpawnSpec } from '@deepseek-ai/dsh-subprocess'
 import type { SandboxExecutionPolicy } from '@deepseek-ai/dsh-sandbox'
-import { effectiveSandboxMode } from '@deepseek-ai/dsh-sandbox-policy'
+import { effectiveSandboxMode, enforceReadBarrier } from '@deepseek-ai/dsh-sandbox-policy'
 import { type Config, type ResolvedConfig, validateConfig } from './config.ts'
 import { LocalPtySession } from './session.ts'
 import { CONTROLLED_PROMPT } from './sanitize.ts'
@@ -150,4 +150,9 @@ export class BashTerminalBackend implements TerminalBackend {
 export function apply(ctx: Context, config: Config): void {
   validateConfig(config)
   ctx.terminals.registerBackend(new BashTerminalBackend(ctx, config))
+  // What makes the scope census report `terminal` as `denied-at-executor`. The
+  // probe wraps through the same helper `spawn()` uses; the wrapped argv is
+  // never executed, because what a backend can express depends on the policy
+  // alone.
+  enforceReadBarrier(ctx, 'terminal', (policy) => { spawnArgv(ctx, config, policy) })
 }

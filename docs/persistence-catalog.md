@@ -580,7 +580,7 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 'read-barrier/attestation': ReadBarrierAttestation
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:67`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:71`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="read-barrierdenied--log-only"></a>
 
@@ -595,7 +595,7 @@ Source: [`packages/verification/read-barrier/src/index.ts:67`](../packages/verif
 'read-barrier/denied': ReadBarrierDenial
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:53`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:57`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="read-barrierscope--log-only"></a>
 
@@ -612,7 +612,7 @@ Source: [`packages/verification/read-barrier/src/index.ts:53`](../packages/verif
 'read-barrier/scope': ReadBarrierScope
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:61`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:65`](../packages/verification/read-barrier/src/index.ts)
 
 ### `request/*`
 
