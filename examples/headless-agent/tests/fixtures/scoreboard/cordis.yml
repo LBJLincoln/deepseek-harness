@@ -1,4 +1,4 @@
-# Test-only composition: a fleet run over the training-eligible environments of the environment-run fixture, then the scorekeeper folding the same cells back out of the persisted logs.
+# Test-only composition: a fleet run over the training-eligible environments of the environment-run fixture and one cased environment, then the scorekeeper folding the same cells back out of the persisted logs.
 - id: cli-mock-llm
   name: '../cli-mock-llm.ts'
 
@@ -25,6 +25,11 @@
 
 - id: register-environments
   name: '../environment-run/register-environments.ts'
+
+# A third training-eligible cell whose check is sampled case by case, so the
+# persisted logs of its runs carry a weighted pass rate beside the certificate.
+- id: register-cased-environment
+  name: './register-cased-environment.ts'
 
 # The runner creates its own agent per cell from this selection; the spine composes no agent of its own.
 - id: agent-default-model

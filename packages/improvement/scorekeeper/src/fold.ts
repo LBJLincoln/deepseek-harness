@@ -159,6 +159,7 @@ function foldOutcome(events: readonly SessionEvent[]): SessionFactsOutcome {
         certificateRevision: verification.certificate.standard.revision,
         certificateExecutor: verification.certificate.executor,
       },
+    ...verification.lastRun?.parity === undefined ? {} : { parity: verification.lastRun.parity },
     runsRecorded: verification.runsRecorded,
     attempts: verification.lastRun?.attempt ?? 0,
     directives: reward.directives,

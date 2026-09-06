@@ -36,6 +36,7 @@ function cell(id: string, options: {
   readonly environmentId?: string
   readonly isolation?: string
   readonly district?: string
+  readonly weightPassed?: number
   readonly pricing?: { readonly rates: BudgetRoutePricing; readonly digest: string }
 }): SessionFactsRecord {
   const overrides = {
@@ -50,6 +51,7 @@ function cell(id: string, options: {
     stamp: stamp(overrides),
     certified: options.certified,
     runs: options.runs,
+    ...options.weightPassed === undefined ? {} : { weightPassed: options.weightPassed },
     ...options.pricing === undefined ? {} : { pricing: options.pricing },
   }))
 }
@@ -161,6 +163,25 @@ describe('foldScoreboard', () => {
     ], {}, [1])
     expect(fold.rows[0]?.costEurPerCertified).toBeUndefined()
     expect(fold.rows[0]?.pricingDigests).toEqual([DIGEST])
+  })
+
+  it('means the weighted pass rate over the row sessions that carry one, beside the certificate rate', () => {
+    const fold = foldScoreboard([
+      cell('cased-0', { certified: false, runs: 1, weightPassed: 1 }),
+      cell('cased-1', { certified: false, runs: 1, weightPassed: 4 }),
+      // A caseless session of the same cell pays into the certificate rate and
+      // leaves the weighted mean to the sessions that measured cases.
+      cell('caseless', { certified: true, runs: 1 }),
+    ], {}, [1])
+    expect(fold.rows).toHaveLength(1)
+    expect(fold.rows[0]?.parity).toBeCloseTo((1 / 6 + 4 / 6) / 2, 12)
+    expect(fold.rows[0]).toMatchObject({ runs: 3, certified: 1 })
+    expect(fold.rows[0]?.certificateRate).toBeCloseTo(1 / 3, 12)
+  })
+
+  it('states no weighted pass rate for a row whose sessions measured no cases', () => {
+    const fold = foldScoreboard([cell('caseless', { certified: true, runs: 1 })], {}, [1])
+    expect(fold.rows[0]).not.toHaveProperty('parity')
   })
 
   it('excludes stamped sessions the group and held-out conditions reject, and rows no stamp names', () => {

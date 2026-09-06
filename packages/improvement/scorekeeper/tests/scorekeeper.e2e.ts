@@ -44,7 +44,7 @@ describe('the scorekeeper through a real cordis.yml and headless process', () =>
     expect(result.type).toBe('result')
 
     const { leaderboard, scoreboard } = result
-    expect(scoreboard).toMatchObject({ sessions: 4, excluded: 0, unstamped: 0, skipped: [] })
+    expect(scoreboard).toMatchObject({ sessions: 6, excluded: 0, unstamped: 0, skipped: [] })
     expect(scoreboard.rows).toHaveLength(leaderboard.length)
     // Rows appear in the order the store lists sessions, so cells are matched by identity.
     const byCell = new Map(scoreboard.rows.map(row => [`${row.provider}/${row.model} ${row.environmentId}`, row]))
@@ -65,6 +65,13 @@ describe('the scorekeeper through a real cordis.yml and headless process', () =>
     const unsatisfiable = byCell.get('cli-mock/cli-mock smoke:unsatisfiable')
     expect(unsatisfiable).toMatchObject({ runs: 2, certified: 0, certificateRate: 0, attemptsMean: 2 })
     expect(unsatisfiable?.stats.passAtK).toEqual([{ k: 1, value: 0, groups: 1 }, { k: 2, value: 0, groups: 1 }])
+    // Both repetitions of the cased cell passed three of six case weights, so
+    // the row states a parity beside a certificate rate of zero; the rows whose
+    // checks carry no cases state none at all.
+    const weighted = byCell.get('cli-mock/cli-mock smoke:weighted-echo')
+    expect(weighted).toMatchObject({ runs: 2, certified: 0, certificateRate: 0, parity: 0.5 })
+    expect(roundTrip).not.toHaveProperty('parity')
+    expect(unsatisfiable).not.toHaveProperty('parity')
 
     const { facts } = result
     expect(facts.identity.environment).toMatchObject({
@@ -102,11 +109,19 @@ describe('the scorekeeper through a real cordis.yml and headless process', () =>
       12,
     )
 
-    expect(result.exported).toMatchObject({ sessions: 4, exported: 4, skipped: [] })
-    expect(lines).toHaveLength(4)
+    expect(result.exported).toMatchObject({ sessions: 6, exported: 6, skipped: [] })
+    expect(lines).toHaveLength(6)
     const records = lines.map(line => JSON.parse(line) as SessionFactsRecord)
     expect(records.every(record => record.identity.environment?.group === 'scoreboard-e2e')).toBe(true)
     expect(records.filter(record => record.outcome.certified)).toHaveLength(2)
+
+    // The weighted pass rate the row means is the fact each cased session's own
+    // log carries, from the last `verification/run` the runner recorded for it.
+    const casedRecords = records.filter(record => record.identity.environment?.environmentId === 'smoke:weighted-echo')
+    expect(casedRecords).toHaveLength(2)
+    expect(casedRecords.map(record => record.outcome.parity))
+      .toEqual([{ weightPassed: 3, weightTotal: 6 }, { weightPassed: 3, weightTotal: 6 }])
+    expect(casedRecords.some(record => record.outcome.certified)).toBe(false)
 
     // The row's cost per certified session is the mean over exactly the
     // certified sessions of that cell, as the exported records state them.

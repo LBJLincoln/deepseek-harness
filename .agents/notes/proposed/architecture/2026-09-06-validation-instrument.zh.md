@@ -40,6 +40,14 @@ Status: proposed
 
 `describeFailures` 只对带用例的检查作聚类，对不带用例的检查保留其证据行不变，因此墙恰好在有用例的地方关上；环境通过给某个检查配上用例来为它关上这堵墙。
 
+### 切片 3 落地时记录的偏离
+
+`dsh-trajectory/1` 记录把 `parity` 放在自己的顶层、`reward` 的旁边，而不是放进奖励分组里 `outcome` 的旁边：`reward` 里的一切都是证书判定的结果，把一个加权通过率摆进那些字段中间，读起来就成了它绝不该成为的奖励的一部分。
+
+scorekeeper 的事实与导出字段都是最后记录的那次运行的 parity，该次运行没有度量用例时不存在，而不是该会话任何一次运行最后携带过的 parity。`certified` 与 `attempts` 描述的已经是最后一次运行，因此一个残留自某个带用例检查已被放宽掉的标准修订的通过率，会把两个标准的度量发布在同一行里。scorekeeper 的不变量配套文件从日志最后一条 `verification/run` 重算该事实，并拒绝陈述了别的值的记录。
+
+`ScoreboardRow.parity` 是各会话 `weightPassed / weightTotal` 的均值，而不是该行各权重的合并比值，因此被更多用例采样的会话，不会比该行所指单元格中的同侪权重更大。
+
 ## Alternatives considered
 
 **把用例放进 `verification/standard` 事件。** 否决：一个重建任务携带数百个用例，而日志是每次回放都要读取的记录；保留目录已经存放检查体，篡改摘要已经覆盖它，事件携带把两者绑定的摘要。
@@ -66,7 +74,7 @@ Status: proposed
 
 1. 已落地。检查上的用例：`cases` 引用、`CheckCase`、归一化器集合、`maxCases`、运行器中的四通道执行、`CheckResult.cases` 与 `verification/run.parity`、不变量规则、重新生成的目录。
 2. 已落地。关上的墙：带 `verification/directive` 上 `clusters` 的聚类指令、哨兵测试，以及基于 Loader 启动夹具的 `instrument-cases` 快照。
-3. 下游的 parity：scorekeeper 的事实与列、轨迹记录、Village 笔记中的发布规则。
+3. 已落地。下游的 parity：`SessionFactsOutcome.parity` 与 `ScoreboardRow.parity` 列、`dsh-trajectory/1` 记录上的 `parity`，以及 Village 笔记中的发布规则。
 4. 仪器：带 `task.reference` 的 `recreation` 种类、`standard-author` 权限、`standard_author` 工具、验证者 preset、采样 skill、`recreation-instrument` 夹具。
 5. 套件准入：重建环境通过四目标笔记的策展者准入，两个指标都在 stamp 上。
 

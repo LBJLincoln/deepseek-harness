@@ -1,8 +1,9 @@
 /**
  * Pure fold of session facts into scoreboard rows: one row per model route,
  * environment, isolation level, held-out split, and district, each carrying the
- * unbiased pass@k estimate over the repetition batches its sessions belong to
- * and the cost its sessions logged.
+ * unbiased pass@k estimate over the repetition batches its sessions belong to,
+ * the cost its sessions logged, and the mean weighted pass rate of the sessions
+ * that measured cases.
  *
  * @module @deepseek-ai/dsh-scorekeeper
  */
@@ -37,6 +38,10 @@ interface RowAccumulator {
   certifiedCostEur: number
   /** Certified sessions whose log states no cost; one is enough to withhold the row's mean. */
   uncostedCertified: number
+  /** Weighted pass rates summed over the sessions that carry one. */
+  parityRateSum: number
+  /** How many sessions of the row carry a parity; the divisor of that sum. */
+  paritySessions: number
   /** Pricing digests of every session of the row, in first-appearance order. */
   readonly digests: Set<string>
   readonly batches: Map<string, Batch>
@@ -121,6 +126,8 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     outputTokens: 0,
     certifiedCostEur: 0,
     uncostedCertified: 0,
+    parityRateSum: 0,
+    paritySessions: 0,
     digests: new Set<string>(),
     batches: new Map<string, Batch>(),
   }
@@ -136,6 +143,10 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     row.certified += 1
     if (efficiency.costEur === undefined) row.uncostedCertified += 1
     else row.certifiedCostEur += efficiency.costEur
+  }
+  if (outcome.parity !== undefined) {
+    row.parityRateSum += outcome.parity.weightPassed / outcome.parity.weightTotal
+    row.paritySessions += 1
   }
   row.inputTokens += efficiency.inputTokens
   row.outputTokens += efficiency.outputTokens
@@ -161,6 +172,7 @@ function finish(row: RowAccumulator, ks: readonly number[]): ScoreboardRow {
     errors: row.errors,
     certified: row.certified,
     certificateRate: row.runs === 0 ? 0 : row.certified / row.runs,
+    ...row.paritySessions === 0 ? {} : { parity: row.parityRateSum / row.paritySessions },
     attemptsMean: row.runs === 0 ? 0 : row.attemptSum / row.runs,
     inputTokens: row.inputTokens,
     outputTokens: row.outputTokens,

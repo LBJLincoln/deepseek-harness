@@ -45,6 +45,18 @@ describe('factsDisagreements', () => {
       .toEqual(['records certified false while the reward fold decided 1'])
   })
 
+  it('rejects a weighted pass rate the last recorded run contradicts, in either direction', () => {
+    const measured = cellLog({ stamp: stamp(), certified: false, runs: 2, weightPassed: 4 })
+    const cased = foldSessionFactsState(measured).facts
+    expect(factsDisagreements(cased, measured)).toEqual([])
+    const overstated = { ...cased, outcome: { ...cased.outcome, parity: { weightPassed: 6, weightTotal: 6 } } }
+    expect(factsDisagreements(overstated, measured))
+      .toEqual(['records parity 6/6 while the last recorded run carries 4/6'])
+    const { parity: _dropped, ...outcome } = cased.outcome
+    expect(factsDisagreements({ ...cased, outcome }, measured))
+      .toEqual(['records parity none while the last recorded run carries 4/6'])
+  })
+
   it('accepts a stamped session with no certificate and an unstamped one', () => {
     const measured = cellLog({ stamp: stamp(), certified: false, runs: 1 })
     expect(factsDisagreements(foldSessionFactsState(measured).facts, measured)).toEqual([])

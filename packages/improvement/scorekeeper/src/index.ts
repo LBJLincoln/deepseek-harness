@@ -82,6 +82,10 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     certified: zod.boolean(),
     certificateRevision: zod.number().int().positive().optional(),
     certificateExecutor: zod.union([zod.literal('runner'), zod.literal('agent-reported')]).optional(),
+    parity: zod.object({
+      weightPassed: zod.number().int().nonnegative(),
+      weightTotal: zod.number().int().positive(),
+    }).optional(),
     runsRecorded: zod.number().int().nonnegative(),
     attempts: zod.number().int().nonnegative(),
     directives: zod.number().int().nonnegative(),

@@ -51,6 +51,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 |---|---|
 | `reward`, `rewardBasis` | The trajectory reward fold over `goal/change` and the `verification/*` events |
 | `certified`, `certificateRevision`, `certificateExecutor` | The verification fold's certificate for the current standard revision, and the executor of the run it cites |
+| `parity` | The `parity` of the last `verification/run`, absent when that run measured no cases |
 | `runsRecorded` | `verification/run` events, passing or failing |
 | `attempts` | The `attempt` of the last `verification/run`; it restarts at one for each authored standard |
 | `directives` | `verification/directive` events |
@@ -84,6 +85,8 @@ The fold takes no pricing table: cost is the sum the `usage/priced` records them
 ## Scoreboard rows
 
 A row is one model route on one environment at one isolation level, one side of the held-out split, and one district; a row never averages across isolation, the split, or districts, so a publication that withholds a district drops whole rows instead of blending them. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
+
+`certificateRate` and `parity` are two columns and stay two. The certificate measure — `certified`, `certificateRate`, and the `stats` estimates built on it — says that every case of every active check passed. `parity` is the mean of `weightPassed / weightTotal` over the row's sessions that measured cases, absent for a row where none did, and every such session counts once however many cases sampled it. Nothing this package renders merges the two into one score or ranks across them: a row that reached most of a standard's case weight and a row that certified are different facts about the work, and a consumer that ranks reads one column or the other. The [ProgramBench distinction](../../../.agents/notes/proposed/architecture/2026-09-06-competitive-baselines.md) is the same one.
 
 `costEurPerCertified` is the mean `costEur` over the row's certified sessions, and `pricingDigests` the distinct digests across every session of the row, errored and uncertified ones included. The mean is absent for a row that certified nothing and absent when any certified session of the row states no cost, so a published cost per certified session never counts an unpriced session as a free one.
 

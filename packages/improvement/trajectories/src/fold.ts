@@ -1,7 +1,8 @@
 /**
  * Pure projection of one session log into a {@link Trajectory}: surface
  * messages with their source seqs, per-step usage, the reward the log's goal
- * and verification events decide, and the components in play.
+ * and verification events decide, the weighted pass rate of the last recorded
+ * run beside it, and the components in play.
  * @module @deepseek-ai/dsh-trajectories
  */
 
@@ -227,6 +228,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
     if (message !== undefined) messages.push(message)
   }
   const reward = foldTrajectoryReward(events)
+  const parity = foldVerification(events).lastRun?.parity
   const header = scan.header
   return {
     format: TRAJECTORY_FORMAT,
@@ -245,6 +247,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
     messages,
     steps: scan.steps,
     reward,
+    ...parity === undefined ? {} : { parity },
     provenance: {
       components: componentsOf(scan),
       toolNames: scan.toolNames,

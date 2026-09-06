@@ -36,7 +36,7 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 
 `foldTrajectoryReward(events)` 由日志中的 goal 与验证事件决定奖励。最后一条记录的 [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) 携带 `verdict: 'tampered'` 的会话，无论日志里还有什么，都以 `tamper` 依据记为 `outcome: 0`：一次发现用于度量该任务的文件已被改动的运行，说明这次度量作废——检查失败只说明工作尚未完成，把两者合并会让检查已不再描述任务的工作区拿到部分学分。其余情形下，只要存在标准就由验证者决定，未认证的完成属于未决，没有 goal 的日志则未被度量。
 
-`outcome` 仍以证书为依据。一次[加权用例](../../verification/verification/README.md#parity-and-what-it-does-not-decide)运行会把其加权通过率作为 `parity` 记录在 `verification/run` 事件上，而导出记录不携带它：通过率会被这样的候选者钻空子——它只把被展示的失败过拟合掉，其余弃之不顾——因此通过了标准大部分用例的会话与一个用例也没通过的会话，在证书覆盖该修订之前都导出为 `outcome: 0`。
+`outcome` 仍以证书为依据，`parity` 是它旁边的辅助信号。一次[加权用例](../../verification/verification/README.md#parity-and-what-it-does-not-decide)运行会把其加权通过率记录在 `verification/run` 事件上，而导出记录把最后一次运行的这一数值作为自己的 `parity` 字段携带。它绝不取代 `outcome`：通过率会被这样的候选者钻空子——它只把被展示的失败过拟合掉，其余弃之不顾——因此通过了标准大部分用例权重的会话与一个用例也没通过的会话，在证书覆盖该修订之前都导出为 `outcome: 0`。训练运行可以用 `parity` 塑形奖励；任何东西都不得单独优化它。
 
 ## Record format `dsh-trajectory/1`
 
@@ -48,6 +48,7 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 | `messages` | 压缩替换之后按模型可见顺序排列的表面消息：`user`、`assistant`（有请求时带 `toolCalls`）与 `tool`（带 `toolCallId`、`isError`）角色；每条携带来源事件的 `seq`、其 `turn` 与 `step`、逐字的内容块（含 reasoning）以及记录的来源 kind |
 | `steps` | 每次模型调用一条，附适配器报告的用量 |
 | `reward` | 当证书覆盖当前标准修订时 `outcome` 为 `1`，存在标准而无证书时为 `0`，其余为 `null`；`basis` 为 `tamper`（最后记录的运行发现检查方拥有的文件已被改动）、`certificate`、`uncertified-completion`（goal 完成但从未编写标准）或 `none`（无 goal）；附 goal 快照、覆盖证书以及尝试、directive 与 relaxation 计数 |
+| `parity` | 最后记录的那次运行的 `{ weightPassed, weightTotal }`；该次运行没有度量用例时不存在 |
 | `provenance` | 组件注册表方案中的组件 id（`composition:<preset>`、`environment:<id>`、`model-provider:<provider>`、`tool:<name>`）、按首次使用顺序排列的工具名，以及证书的隔离级别 |
 
 不含 token id 与 logprob：harness 从不看到 token id，on-policy 采集属于训练器的推理代理。

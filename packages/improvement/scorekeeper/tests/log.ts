@@ -25,6 +25,9 @@ export const MOCK_ROUTE: Route = { provider: 'cli-mock', model: 'cli-mock' }
 /** The single check every stub standard measures. */
 const CHECK = { id: CheckId('round-trip'), outcome: 'the round trip prints', run: 'printf X' }
 
+/** The weighted case set a cased stub check references; the bodies live outside the log. */
+const CASE_SET = { count: 3, weightTotal: 6, sha256: 'a'.repeat(64) }
+
 const HEX = 'c'.repeat(64)
 
 /** Append-only event builder over a contiguous seq counter. */
@@ -184,14 +187,21 @@ export function goalChange(operation: string, phase: GoalPhase, revision: number
 
 /**
  * The authored completion standard.
+ * @param cased - whether its check references the weighted case set.
  * @returns the durable standard change payload.
  */
-export function standard(): Raw {
+export function standard(cased = false): Raw {
   return {
     kind: 'verification/standard',
     version: 1,
     operation: 'author',
-    standard: { id: 'standard-1', revision: 1, goalId: 'goal-1', checks: [CHECK], relaxed: [] },
+    standard: {
+      id: 'standard-1',
+      revision: 1,
+      goalId: 'goal-1',
+      checks: [cased ? { ...CHECK, cases: CASE_SET } : CHECK],
+      relaxed: [],
+    },
     createdAt: 11,
     updatedAt: 11,
   }
@@ -202,9 +212,26 @@ export function standard(): Raw {
  * @param attempt - the one-based attempt number inside the standard.
  * @param status - the verdict of the single check.
  * @param isolation - the isolation the run executed under.
+ * @param weightPassed - passing case weight of a run measured case by case; absent for a caseless run.
  * @returns the durable run payload.
  */
-export function runRecord(attempt: number, status: 'pass' | 'fail', isolation: CertificateIsolation = 'none'): Raw {
+export function runRecord(
+  attempt: number,
+  status: 'pass' | 'fail',
+  isolation: CertificateIsolation = 'none',
+  weightPassed?: number,
+): Raw {
+  const cases = weightPassed === undefined ? {} : {
+    cases: {
+      passed: status === 'pass' ? CASE_SET.count : CASE_SET.count - 1,
+      total: CASE_SET.count,
+      weightPassed,
+      weightTotal: CASE_SET.weightTotal,
+      failed: status === 'pass'
+        ? []
+        : [{ id: 'weighs-the-rest', weight: CASE_SET.weightTotal - weightPassed, channels: ['stdout'], exitClass: 'zero' }],
+    },
+  }
   return {
     kind: 'verification/run',
     version: 1,
@@ -212,7 +239,8 @@ export function runRecord(attempt: number, status: 'pass' | 'fail', isolation: C
     attempt,
     isolation,
     executor: 'runner',
-    results: [{ checkId: CHECK.id, status, evidence: `${status} round-trip` }],
+    results: [{ checkId: CHECK.id, status, evidence: `${status} round-trip`, ...cases }],
+    ...weightPassed === undefined ? {} : { parity: { weightPassed, weightTotal: CASE_SET.weightTotal } },
     recordedAt: 20 + attempt,
   }
 }
@@ -256,13 +284,15 @@ export function directive(): Raw {
 /**
  * A whole session log for one cell.
  * @param options - the cell's stamp overrides, whether it certified, how many
- *   runs it recorded, its usage, and the rates that priced its one step.
+ *   runs it recorded, the passing case weight of each of those runs, its usage,
+ *   and the rates that priced its one step.
  * @returns the contiguous events of that session.
  */
 export function cellLog(options: {
   readonly stamp?: Raw
   readonly certified: boolean
   readonly runs: number
+  readonly weightPassed?: number
   readonly usage?: TokenUsage
   readonly pricing?: { readonly rates: BudgetRoutePricing; readonly digest: string }
 }): SessionEvent[] {
@@ -272,14 +302,15 @@ export function cellLog(options: {
   log.push('step/start', { turn: 1, step: 1 })
   log.push('request/header', { header: { config: { ...MOCK_ROUTE } }, reason: 'initial' })
   log.push('goal/change', goalChange('create', 'active', 1))
-  log.push('verification/standard', standard())
+  log.push('verification/standard', standard(options.weightPassed !== undefined))
   const usage = options.usage ?? { inputTokens: 12, outputTokens: 3 }
   log.assistant(usage)
   if (options.pricing !== undefined) {
     log.priced({ inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, ...options.pricing })
   }
   for (let attempt = 1; attempt <= options.runs; attempt += 1) {
-    log.push('verification/run', runRecord(attempt, options.certified && attempt === options.runs ? 'pass' : 'fail'))
+    const status = options.certified && attempt === options.runs ? 'pass' : 'fail'
+    log.push('verification/run', runRecord(attempt, status, 'none', options.weightPassed))
   }
   if (options.certified) {
     log.push('verification/certificate', certificate())
