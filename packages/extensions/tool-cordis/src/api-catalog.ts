@@ -4393,6 +4393,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ProgramId = Branded<\'ProgramId\'>;',
   },
   {
+    name: 'ProgramImplementer',
+    declaration: 'export type ProgramImplementer = {\n    readonly kind: \'route\';\n} | {\n    readonly kind: \'subagent\';\n    readonly provider: string;\n    readonly label?: string;\n};',
+  },
+  {
     name: 'ProgramIntegrationSpec',
     declaration: 'export interface ProgramIntegrationSpec {\n    readonly checks: readonly StandardCheck[];\n    readonly gates: readonly string[];\n}',
   },
@@ -4410,7 +4414,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ProgramSpec',
-    declaration: 'export interface ProgramSpec {\n    readonly objective: string;\n    readonly baseRevision: string;\n    readonly goals: readonly ProgramGoalSpec[];\n    readonly integration: ProgramIntegrationSpec;\n    readonly signoff?: ProgramSignoff;\n    readonly tokenCeiling?: number;\n}',
+    declaration: 'export interface ProgramSpec {\n    readonly objective: string;\n    readonly baseRevision: string;\n    readonly goals: readonly ProgramGoalSpec[];\n    readonly integration: ProgramIntegrationSpec;\n    readonly implementer?: ProgramImplementer;\n    readonly signoff?: ProgramSignoff;\n    readonly tokenCeiling?: number;\n}',
   },
   {
     name: 'ProjectionChangeListener',

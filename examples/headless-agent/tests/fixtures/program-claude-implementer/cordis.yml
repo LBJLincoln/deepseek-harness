@@ -1,0 +1,98 @@
+# Test-only composition: one program whose single department is delegated to a
+# real external coding agent through the subagent seam. The provider derives the
+# child's workspace from the department session, brings its own tool stack, and
+# runs on the host's own product installation and authentication; the program
+# keeps the worktree, the caps, the checks, the certificate, the integration,
+# the release, and both signatures.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor and for the external
+# agent's own process tree.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+# The roster's root is absolute: the smoke runs in an isolated temporary cwd, so
+# the presets beside this file are reachable only through the path the driver exports.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: implementing
+    roots:
+      - path: !!js process.env.DSH_TEST_PROGRAM_PRESETS
+        trust: system
+    includeUserRoot: false
+
+# The route every department session is created with. A delegated department
+# takes no turn, so nothing is ever asked of it; the external agent's own model
+# comes from that product's installation instead.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps bound the department session, not the external agent's own
+# spend, which this harness never sees.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Deliver one goal of a program on its own branch.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_TEST_SESSION_ROOT ?? './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The two signatures the program's `requireSignoff` reads are recorded on the
+# program session by the driver, through this service, before `start` opens it.
+- id: signoff
+  name: '@deepseek-ai/dsh-signoff'
+  config:
+    maxEvidence: 8
+    maxEvidenceRefChars: 512
+
+- id: subagent
+  name: '@deepseek-ai/dsh-subagent'
+
+# The provider name is fixed by the package. Its `env` stays empty: the child
+# runs on the host's own product settings and authentication, which this
+# composition neither supplies nor filters.
+- id: subagent-claude-code
+  name: '@deepseek-ai/dsh-subagent-claude-code'
+
+- id: program
+  name: '@deepseek-ai/dsh-program'
+  config:
+    workspaceRoot: !!js process.env.DSH_TEST_PROGRAM_REPO
+    requireSignoff: true
+    maxConcurrentGoals: 1
+    maxGoalRounds: 2
+    branchPrefix: program
+    evidenceMaxChars: 512

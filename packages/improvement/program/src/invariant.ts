@@ -1,7 +1,7 @@
 /**
  * Package-owned invariant: the program ledger is what a restarted process reads
- * to decide which department to start, so its four relations hold in every
- * program session. Every `program/goal`, `program/integration`,
+ * to decide which department to start, so its five relations hold in every
+ * session a program writes to. Every `program/goal`, `program/integration`,
  * `program/resume`, and `program/end` follows a `program/start` of the same
  * program in the same session — a record naming another program would attribute
  * a department, a merge, or a release to a session that never ran it. A goal's
@@ -10,7 +10,10 @@
  * integration, because the merge commit that makes a branch merged is the
  * integration's own; and `program/end { released }` follows the same certified
  * integration, because the certificate over the merged head is what a release
- * claims.
+ * claims. In a department session, every `program/delegation` follows that
+ * session's `program/member` for the same key and advances the attempt, which
+ * is what makes "a delegated attempt that ended is never run again" a property
+ * of the log rather than of a reconciliation.
  *
  * @module @deepseek-ai/dsh-program/invariant
  */
@@ -100,13 +103,37 @@ function checkGoalTransition(prior: readonly SessionEvent[], event: SessionEvent
 }
 
 /**
- * Report a ledger event that breaks one of the four relations, reading the
+ * Report a delegated attempt this department session cannot own: one for a key
+ * it is not the department for, or one that does not advance past the attempts
+ * it already recorded.
+ */
+function checkDelegation(prior: readonly SessionEvent[], event: SessionEvent<'program/delegation'>, fail: InvariantFailure): void {
+  const { goalKey, attempt } = event.data
+  const stamped = prior.some(candidate => candidate.type === 'program/member' && candidate.data.key === goalKey)
+  if (!stamped) {
+    fail(`session event ${event.seq} delegates goal "${goalKey}", which this session is not the department for`)
+    return
+  }
+  for (const candidate of prior) {
+    if (candidate.type === 'program/delegation' && candidate.data.attempt >= attempt) {
+      fail(`session event ${event.seq} records delegation attempt ${attempt} of goal "${goalKey}" after attempt ${candidate.data.attempt}, which this session already ran`)
+      return
+    }
+  }
+}
+
+/**
+ * Report a program event that breaks one of the five relations, reading the
  * events that precede it in the same session.
  * @param prior - the session's committed events, oldest first.
  * @param event - the candidate session event.
  * @param fail - the reporter for a broken relation.
  */
 export function checkLedgerEvent(prior: readonly SessionEvent[], event: SessionEvent, fail: InvariantFailure): void {
+  if (event.type === 'program/delegation') {
+    checkDelegation(prior, event, fail)
+    return
+  }
   if (event.type !== 'program/goal' && event.type !== 'program/integration'
     && event.type !== 'program/resume' && event.type !== 'program/end') return
   const opened = prior.some(candidate => candidate.type === 'program/start'

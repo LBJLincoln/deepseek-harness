@@ -690,6 +690,25 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 ### `program/*`
 
+<a id="programdelegation--log-only"></a>
+
+#### `program/delegation` — log-only
+
+```ts persistence-catalog
+/**
+ * One attempt of a delegated department ran as one child of an external
+ * coding agent and ended: the attempt it served, the provider and run it
+ * used, and what that run came to. Appended to the department's own session
+ * after the run settled and before its checks execute, so a restarting
+ * process continues after the attempts the log records instead of running
+ * one a second time. No model request of this session carries it, and
+ * nothing of the child's own history reaches this log.
+ */
+'program/delegation': ProgramDelegation
+```
+
+来源：[`packages/improvement/program/src/types.ts:307`](../packages/improvement/program/src/types.ts)
+
 <a id="programend--log-only"></a>
 
 #### `program/end` — log-only
@@ -704,7 +723,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'program/end': ProgramEnd
 ```
 
-来源：[`packages/improvement/program/src/types.ts:228`](../packages/improvement/program/src/types.ts)
+来源：[`packages/improvement/program/src/types.ts:290`](../packages/improvement/program/src/types.ts)
 
 <a id="programgoal--log-only"></a>
 
@@ -721,7 +740,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'program/goal': ProgramGoalRecord
 ```
 
-来源：[`packages/improvement/program/src/types.ts:207`](../packages/improvement/program/src/types.ts)
+来源：[`packages/improvement/program/src/types.ts:269`](../packages/improvement/program/src/types.ts)
 
 <a id="programintegration--log-only"></a>
 
@@ -737,7 +756,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'program/integration': ProgramIntegrationRecord
 ```
 
-来源：[`packages/improvement/program/src/types.ts:214`](../packages/improvement/program/src/types.ts)
+来源：[`packages/improvement/program/src/types.ts:276`](../packages/improvement/program/src/types.ts)
 
 <a id="programmember--log-only"></a>
 
@@ -753,7 +772,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'program/member': ProgramMember
 ```
 
-来源：[`packages/improvement/program/src/types.ts:235`](../packages/improvement/program/src/types.ts)
+来源：[`packages/improvement/program/src/types.ts:297`](../packages/improvement/program/src/types.ts)
 
 <a id="programresume--log-only"></a>
 
@@ -769,7 +788,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'program/resume': ProgramResume
 ```
 
-来源：[`packages/improvement/program/src/types.ts:221`](../packages/improvement/program/src/types.ts)
+来源：[`packages/improvement/program/src/types.ts:283`](../packages/improvement/program/src/types.ts)
 
 <a id="programstart--log-only"></a>
 
@@ -786,7 +805,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'program/start': ProgramStart
 ```
 
-来源：[`packages/improvement/program/src/types.ts:199`](../packages/improvement/program/src/types.ts)
+来源：[`packages/improvement/program/src/types.ts:261`](../packages/improvement/program/src/types.ts)
 
 ### `read-barrier/*`
 

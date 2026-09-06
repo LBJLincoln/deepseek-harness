@@ -402,6 +402,7 @@ async function seedProgram(
     specSha256: programSpecDigest(frozen),
     spec: frozen,
     baseRevision: frozen.baseRevision,
+    implementer: frozen.implementer,
   })
   if (options.pending !== false) {
     for (const entry of frozen.goals) {

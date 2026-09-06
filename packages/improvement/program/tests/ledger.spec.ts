@@ -16,18 +16,19 @@ import {
   programSpend,
   ProgramId,
 } from '@deepseek-ai/dsh-program'
-import type { ProgramSpec, ScannedSession } from '@deepseek-ai/dsh-program'
+import type { FrozenProgramSpec, ScannedSession } from '@deepseek-ai/dsh-program'
 import type { CheckId, StandardId } from '@deepseek-ai/dsh-verification/types'
 
 const PROGRAM = ProgramId('program-abc')
 
 /** A minimal frozen spec; the ledger fold never reads inside it. */
-const SPEC = {
+const SPEC: FrozenProgramSpec = {
   objective: 'ship',
   baseRevision: 'base',
   goals: [],
   integration: { checks: [], gates: [] },
-} as unknown as ProgramSpec
+  implementer: { kind: 'route' },
+}
 
 /** One stored session built from a bare event list. */
 function scanned(id: string, events: readonly Omit<SessionEvent, 'seq' | 'time'>[]): ScannedSession {
@@ -50,7 +51,7 @@ describe('foldProgramLedger', () => {
 
   it('keeps the latest record per goal key, the latest integration, and the closing record', () => {
     const ledger = foldProgramLedger(scanned('program-abc', [
-      { type: 'program/start', data: { programId: PROGRAM, specSha256: 'abc', spec: SPEC, baseRevision: 'base' } },
+      { type: 'program/start', data: { programId: PROGRAM, specSha256: 'abc', spec: SPEC, baseRevision: 'base', implementer: SPEC.implementer } },
       { type: 'program/goal', data: { programId: PROGRAM, key: 'api', status: 'pending' } },
       { type: 'program/goal', data: { programId: PROGRAM, key: 'docs', status: 'pending' } },
       { type: 'program/goal', data: { programId: PROGRAM, key: 'api', status: 'running' } },
@@ -68,7 +69,7 @@ describe('foldProgramLedger', () => {
 
   it('leaves the integration and the closing record absent while a program runs', () => {
     const ledger = foldProgramLedger(scanned('program-abc', [
-      { type: 'program/start', data: { programId: PROGRAM, specSha256: 'abc', spec: SPEC, baseRevision: 'base' } },
+      { type: 'program/start', data: { programId: PROGRAM, specSha256: 'abc', spec: SPEC, baseRevision: 'base', implementer: SPEC.implementer } },
     ]))
     expect(ledger?.integration).toBeUndefined()
     expect(ledger?.end).toBeUndefined()
@@ -76,8 +77,17 @@ describe('foldProgramLedger', () => {
 })
 
 describe('foldDepartmentLog', () => {
-  it('reports no certificate and no phase for a session that never took a goal', () => {
-    expect(foldDepartmentLog([])).toEqual({ certified: false })
+  it('reports no certificate, no phase, and no delegated attempt for a session that never took a goal', () => {
+    expect(foldDepartmentLog([])).toEqual({ certified: false, delegated: 0 })
+  })
+
+  it('reports the highest attempt the delegation records carry, whatever order they are in', () => {
+    const events = scanned('department', [
+      { type: 'program/member', data: { programId: PROGRAM, key: 'api' } },
+      { type: 'program/delegation', data: { goalKey: 'api', attempt: 2, provider: 'spawn', runId: 'child-2' as SessionId, stopReason: 'completed' } },
+      { type: 'program/delegation', data: { goalKey: 'api', attempt: 1, provider: 'spawn', runId: 'child-1' as SessionId, stopReason: 'error' } },
+    ]).events
+    expect(foldDepartmentLog(events).delegated).toBe(2)
   })
 
   it('reports the goal phase, its blocking code, and the certificate the log carries', () => {
@@ -130,7 +140,7 @@ describe('foldDepartmentLog', () => {
         },
       },
     ]).events
-    expect(foldDepartmentLog(events)).toEqual({ certified: true, phase: 'blocked', blockedCode: 'budget-exhausted' })
+    expect(foldDepartmentLog(events)).toEqual({ certified: true, delegated: 0, phase: 'blocked', blockedCode: 'budget-exhausted' })
   })
 })
 

@@ -1,6 +1,6 @@
 /**
  * Pure types of the program ledger: the frozen spec a program is identified by,
- * the six `program/*` events its sessions carry, and the reconciled state a
+ * the seven `program/*` events its sessions carry, and the reconciled state a
  * restarting process folds out of them, free of this package's host-side
  * imports.
  *
@@ -9,6 +9,7 @@
 
 import type { Branded } from '@deepseek-ai/dsh-brand'
 import type { SessionId } from '@deepseek-ai/dsh-session'
+import type { SubagentStopReason } from '@deepseek-ai/dsh-subagent'
 import type { CertificateIsolation, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 
 /** Identifies one program across every session and worktree it owns. */
@@ -72,6 +73,25 @@ export interface ProgramSignoff {
   readonly artefactSha256: string
 }
 
+/**
+ * How every department of one program is staffed.
+ *
+ * `route` is the harness agent the program drives itself through the LLM seam,
+ * one user turn per attempt. `subagent` delegates each attempt to one child run
+ * of a registered `ctx.subagents` provider, which writes into the department's
+ * worktree while the program keeps the checks, the certificate, the caps, and
+ * the ledger.
+ */
+export type ProgramImplementer =
+  | { readonly kind: 'route' }
+  | {
+    readonly kind: 'subagent'
+    /** Name the provider is registered under on `ctx.subagents`. */
+    readonly provider: string
+    /** Display label persisted with a session-backed child, passed through to the provider. */
+    readonly label?: string
+  }
+
 /** One client deliverable, frozen before its first department starts. */
 export interface ProgramSpec {
   /** What the whole program delivers, stated for a reader of the ledger. */
@@ -82,10 +102,26 @@ export interface ProgramSpec {
   readonly goals: readonly ProgramGoalSpec[]
   /** What the merged head is certified against. */
   readonly integration: ProgramIntegrationSpec
+  /**
+   * How every department of the program is staffed. A caller may omit it;
+   * `resolveProgramSpec` materializes `{ kind: 'route' }`, so a
+   * {@link FrozenProgramSpec} always states one and the digest always covers it.
+   */
+  readonly implementer?: ProgramImplementer
   /** The artefact the program's signatures attest; required by `requireSignoff`. */
   readonly signoff?: ProgramSignoff
   /** Input plus output tokens every session of the program may sum to. */
   readonly tokenCeiling?: number
+}
+
+/**
+ * One spec after `resolveProgramSpec` materialized every default it owns. This
+ * is the form the digest covers, the ledger stores, and the service drives, so
+ * a reconciliation reads the staffing the program ran under instead of
+ * re-deriving it.
+ */
+export interface FrozenProgramSpec extends ProgramSpec {
+  readonly implementer: ProgramImplementer
 }
 
 /**
@@ -119,9 +155,11 @@ export interface ProgramStart {
   /** Digest of {@link ProgramStart.spec}, the identity the program runs under. */
   readonly specSha256: string
   /** The frozen spec, verbatim. */
-  readonly spec: ProgramSpec
+  readonly spec: FrozenProgramSpec
   /** Git revision every worktree is created from; the spec's own value, copied for readers of this event alone. */
   readonly baseRevision: string
+  /** How every department is staffed; the spec's own value, copied for readers of this event alone. */
+  readonly implementer: ProgramImplementer
   /** The artefact the program's signatures attest, absent when the deployment does not require one. */
   readonly signoff?: ProgramSignoff
 }
@@ -187,6 +225,30 @@ export interface ProgramMember {
   readonly key: string
 }
 
+/** Payload of `program/delegation`. */
+export interface ProgramDelegation {
+  /** The goal this department delivers; the same key its `program/member` stamp carries. */
+  readonly goalKey: string
+  /** The 1-based attempt this run served, counted across every process that drove the department. */
+  readonly attempt: number
+  /** Name the provider was started under. */
+  readonly provider: string
+  /** The run's parent-scoped id, which for a child published in this process is that child's session id. */
+  readonly runId: SessionId
+  /** Why the child's run ended, as the subagent seam reports it. */
+  readonly stopReason: SubagentStopReason
+  /** The structured result the provider captured, absent unless it returned one. */
+  readonly structured?: unknown
+  /** What the run cost, absent unless the provider published a child in this process. */
+  readonly usage?: ProgramDelegationUsage
+}
+
+/** Tokens one delegated child's own session log accounts for. */
+export interface ProgramDelegationUsage {
+  /** Input plus output tokens, folded from the child's session by the budget policy's own rule. */
+  readonly totalTokens: number
+}
+
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
     /**
@@ -233,5 +295,15 @@ declare module '@deepseek-ai/dsh-session/types' {
      * a program's work without the ledger.
      */
     'program/member': ProgramMember
+    /**
+     * One attempt of a delegated department ran as one child of an external
+     * coding agent and ended: the attempt it served, the provider and run it
+     * used, and what that run came to. Appended to the department's own session
+     * after the run settled and before its checks execute, so a restarting
+     * process continues after the attempts the log records instead of running
+     * one a second time. No model request of this session carries it, and
+     * nothing of the child's own history reaches this log.
+     */
+    'program/delegation': ProgramDelegation
   }
 }

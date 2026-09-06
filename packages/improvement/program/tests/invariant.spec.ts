@@ -2,8 +2,10 @@
  * The package companion's owned relations: every ledger event follows the
  * `program/start` of the same program in the same session, a goal's status
  * moves only along the transitions the ledger admits, `merged` follows a
- * certified integration, and a released program has one. Seeded sessions
- * exercise the startup scan; live appends exercise the pre-publication check.
+ * certified integration, a released program has one, and a delegated attempt
+ * belongs to the department that stamped the session and advances past the
+ * attempts it already ran. Seeded sessions exercise the startup scan; live
+ * appends exercise the pre-publication check.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -12,23 +14,24 @@ import InvariantRegistry, { InvariantError } from '@deepseek-ai/dsh-invariants'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
 import { ProgramId } from '@deepseek-ai/dsh-program'
-import type { ProgramSpec } from '@deepseek-ai/dsh-program'
+import type { FrozenProgramSpec } from '@deepseek-ai/dsh-program'
 import * as ProgramInvariantCompanion from '@deepseek-ai/dsh-program/invariant'
 
 const PROGRAM = ProgramId('program-abc')
 
 /** A minimal frozen spec; the companion never reads inside it. */
-const SPEC = {
+const SPEC: FrozenProgramSpec = {
   objective: 'ship',
   baseRevision: 'base',
   goals: [],
   integration: { checks: [], gates: [] },
-} as unknown as ProgramSpec
+  implementer: { kind: 'route' },
+}
 
 /** The opening record every ledger relation is measured against. */
 const START: Omit<SessionEvent, 'seq' | 'time'> = {
   type: 'program/start',
-  data: { programId: PROGRAM, specSha256: 'abc', spec: SPEC, baseRevision: 'base' },
+  data: { programId: PROGRAM, specSha256: 'abc', spec: SPEC, baseRevision: 'base', implementer: SPEC.implementer },
 }
 
 /** Mount the store plus the companion, optionally over an already-seeded session. */
@@ -176,6 +179,60 @@ describe('merging and releasing follow a certified integration', () => {
     }).toThrow('releases program "program-abc" without a certified integration')
     expect(() => {
       session.append('program/end', { programId: PROGRAM, outcome: 'failed' })
+    }).not.toThrow()
+  })
+})
+
+describe('delegated attempts belong to their department and advance', () => {
+  /** One delegated attempt, as the department session records it. */
+  function attempt(goalKey: string, number: number): Record<string, unknown> {
+    return {
+      goalKey,
+      attempt: number,
+      provider: 'spawn',
+      runId: SessionId(`child-${String(number)}`),
+      stopReason: 'completed',
+    }
+  }
+
+  it('accepts a stored department whose attempts follow its stamp in order', async () => {
+    await expect(setup([
+      { type: 'program/member', data: { programId: PROGRAM, key: 'api' } },
+      { type: 'program/delegation', data: attempt('api', 1) },
+      { type: 'program/delegation', data: attempt('api', 2) },
+    ])).resolves.toBeDefined()
+  })
+
+  it('rejects an attempt in a session that is not that goal\'s department', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('program-unstamped'))
+    expect(() => {
+      session.append('program/delegation', attempt('api', 1) as never)
+    }).toThrow('delegates goal "api", which this session is not the department for')
+    session.append('program/member', { programId: PROGRAM, key: 'docs' })
+    expect(() => {
+      session.append('program/delegation', attempt('api', 1) as never)
+    }).toThrow(expect.objectContaining<Partial<InvariantError>>({
+      code: 'INVARIANT',
+      packageName: '@deepseek-ai/dsh-program',
+    }))
+    expect(session.seq).toBe(1)
+  })
+
+  it('rejects an attempt that repeats or precedes one the session already ran', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('program-repeat-attempt'))
+    session.append('program/member', { programId: PROGRAM, key: 'api' })
+    session.append('program/delegation', attempt('api', 1) as never)
+    session.append('program/delegation', attempt('api', 3) as never)
+    expect(() => {
+      session.append('program/delegation', attempt('api', 3) as never)
+    }).toThrow('records delegation attempt 3 of goal "api" after attempt 3, which this session already ran')
+    expect(() => {
+      session.append('program/delegation', attempt('api', 2) as never)
+    }).toThrow('records delegation attempt 2 of goal "api" after attempt 3, which this session already ran')
+    expect(() => {
+      session.append('program/delegation', attempt('api', 4) as never)
     }).not.toThrow()
   })
 })

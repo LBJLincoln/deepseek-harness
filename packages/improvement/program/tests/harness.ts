@@ -2,8 +2,8 @@
  * Shared unit harness for the program service: the real session store, agent
  * registry, goal domain, verification domain, and JSONL persistence backend
  * over a temporary root, with a scripted shell, a stubbed preset roster, a
- * stubbed default-model selection, and an agent factory whose turns are
- * whatever the test says they are.
+ * stubbed default-model selection, an optional stubbed subagent seam, and an
+ * agent factory whose turns are whatever the test says they are.
  */
 
 import { mkdtempSync, mkdirSync } from 'node:fs'
@@ -19,6 +19,12 @@ import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
 import SignoffService from '@deepseek-ai/dsh-signoff'
 import type { SignoffTransition } from '@deepseek-ai/dsh-signoff'
+import type {
+  SubagentCapabilities,
+  SubagentResult,
+  SubagentRun,
+  SubagentStartRequest,
+} from '@deepseek-ai/dsh-subagent'
 import CompletionStandardService from '@deepseek-ai/dsh-verification'
 import ProgramService, { programIdFor, programSpecDigest, resolveProgramSpec, type Config } from '@deepseek-ai/dsh-program'
 import type { ProgramSpec } from '@deepseek-ai/dsh-program'
@@ -79,6 +85,79 @@ export function stubAgent(session: Session, onFollowup: (agent: Agent) => void =
   return agent
 }
 
+/** Start-time capabilities of an in-process backend, which composes its child here and honors every one. */
+export const IN_PROCESS_CAPABILITIES: SubagentCapabilities = {
+  outputSchema: true,
+  depthLimit: true,
+  toolFilter: true,
+  persona: true,
+}
+
+/** Start-time capabilities of an out-of-process backend, which can honor none of them. */
+export const OUT_OF_PROCESS_CAPABILITIES: SubagentCapabilities = {
+  outputSchema: false,
+  depthLimit: false,
+  toolFilter: false,
+  persona: false,
+}
+
+/** One delegated child the stubbed seam serves. */
+export interface StubbedProvider {
+  /** Registry name the program addresses the provider by. */
+  readonly name: string
+  /** What the provider advertises, which is what the program's isolation rule reads. */
+  readonly capabilities: SubagentCapabilities
+  /**
+   * What one child run does to its parent's worktree and what it comes to. The
+   * default completes without touching anything.
+   */
+  readonly run?: (request: SubagentStartRequest, attempt: number) => SubagentResult | Promise<SubagentResult>
+  /**
+   * Input plus output tokens a locally published child's own session accounts
+   * for. Omitting it publishes no local child, which is what a run in another
+   * process returns and what leaves the program's record without usage.
+   */
+  readonly localTokens?: number
+}
+
+/** One delegated start the stubbed seam observed, reached through {@link ProgramHarness.starts}. */
+interface StubbedStart {
+  readonly provider: string
+  /** The prompt text the program delegated. */
+  readonly prompt: string
+  /** The delegating parent session's own workspace, which is what a provider derives the child cwd from. */
+  readonly parentCwd: string | undefined
+  readonly label: string | undefined
+  /** The cancellation the program handed the child. */
+  readonly signal: AbortSignal
+  /** Whether the run was disposed. */
+  disposed: boolean
+}
+
+/**
+ * One published local child whose own session accounts for the tokens its run
+ * spent, which is what the program folds a delegation's usage from.
+ * @param ctx - the harness context holding the session store.
+ * @param id - the child session's id.
+ * @param totalTokens - input plus output tokens the child's log accounts for.
+ * @returns the child agent the stubbed run publishes.
+ */
+function spentChild(ctx: Context, id: string, totalTokens: number): Agent {
+  const session = ctx.sessions.create(id as SessionId)
+  session.append('assistant/message', {
+    turn: 1,
+    step: 1,
+    message: {
+      id: `${id}-message`,
+      role: 'assistant',
+      content: [{ type: 'text', text: 'delivered' }],
+      source: { kind: 'assistant', provider: 'cli-mock', model: 'cli-mock' },
+    },
+    usage: { inputTokens: totalTokens, outputTokens: 0 },
+  } as never, { surfaceOp: 'append' })
+  return stubAgent(session)
+}
+
 /** One signature a case records on a program session before the program starts. */
 interface HarnessSignature {
   readonly transition: SignoffTransition
@@ -98,6 +177,8 @@ export interface ProgramHarness {
   readonly sessions: string
   /** Every command line the scripted shell served, in order. */
   readonly commands: CommandLog
+  /** Every delegated start the stubbed seam served, in order. */
+  readonly starts: StubbedStart[]
   /** What each agent's turn appends to its own session before the checks run. */
   turn: (agent: Agent) => void
   /**
@@ -133,6 +214,11 @@ export interface HarnessOptions {
    * drives the program through its own call instead.
    */
   loader?: { await: () => Promise<void> }
+  /**
+   * The providers a stubbed `ctx.subagents` registers. Omitting the option
+   * composes no seam at all, which is what a delegating program is refused for.
+   */
+  subagents?: readonly StubbedProvider[]
 }
 
 /**
@@ -149,6 +235,7 @@ export async function programHarness(
   const root = options.root ?? mkdtempSync(join(tmpdir(), 'program-root-'))
   const sessions = options.sessions ?? mkdtempSync(join(tmpdir(), 'program-sessions-'))
   const commands: CommandLog = []
+  const starts: StubbedStart[] = []
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   await ctx.plugin(AgentRegistry)
@@ -163,12 +250,49 @@ export async function programHarness(
     root,
     sessions,
     commands,
+    starts,
     turn: () => {},
     sign: () => Promise.resolve(),
     unload: () => Promise.resolve(),
     dispose: async () => { await ctx.fiber.dispose() },
   }
   if (options.loader !== undefined) ctx.provide('loader', options.loader as never)
+  if (options.subagents !== undefined) {
+    const providers = new Map(options.subagents.map(provider => [provider.name, provider]))
+    const attempts = new Map<string, number>()
+    ctx.provide('subagents', {
+      getProvider: (name: string) => {
+        const provider = providers.get(name)
+        return provider === undefined ? undefined : { name, capabilities: provider.capabilities }
+      },
+      start: async (name: string, request: SubagentStartRequest): Promise<SubagentRun> => {
+        const provider = providers.get(name) as StubbedProvider
+        const attempt = (attempts.get(name) ?? 0) + 1
+        attempts.set(name, attempt)
+        const observed: StubbedStart = {
+          provider: name,
+          prompt: request.prompt.map(block => (block.type === 'text' ? block.text : '')).join(''),
+          parentCwd: request.parent.session.header.cwd,
+          label: request.label,
+          signal: request.signal,
+          disposed: false,
+        }
+        starts.push(observed)
+        const result = await (provider.run ?? ((): SubagentResult => ({ output: [], stopReason: 'completed' })))(request, attempt)
+        // A local run publishes a child agent whose own session accounts for
+        // the tokens; a remote one has none, so the program records no usage.
+        const localAgent = provider.localTokens === undefined
+          ? undefined
+          : spentChild(ctx, `child-${name}-${String(attempt)}`, provider.localTokens)
+        return {
+          id: (localAgent?.id ?? `run-${name}-${String(attempt)}`) as SessionId,
+          localAgent,
+          result: Promise.resolve(result),
+          dispose: () => { observed.disposed = true; return Promise.resolve() },
+        }
+      },
+    } as never)
+  }
 
   ctx.provide('agentDefaultModel', {
     currentSelection: () => ({ provider: 'cli-mock', model: 'cli-mock' }),

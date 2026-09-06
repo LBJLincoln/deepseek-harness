@@ -688,6 +688,25 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 
 ### `program/*`
 
+<a id="programdelegation--log-only"></a>
+
+#### `program/delegation` — log-only
+
+```ts persistence-catalog
+/**
+ * One attempt of a delegated department ran as one child of an external
+ * coding agent and ended: the attempt it served, the provider and run it
+ * used, and what that run came to. Appended to the department's own session
+ * after the run settled and before its checks execute, so a restarting
+ * process continues after the attempts the log records instead of running
+ * one a second time. No model request of this session carries it, and
+ * nothing of the child's own history reaches this log.
+ */
+'program/delegation': ProgramDelegation
+```
+
+Source: [`packages/improvement/program/src/types.ts:307`](../packages/improvement/program/src/types.ts)
+
 <a id="programend--log-only"></a>
 
 #### `program/end` — log-only
@@ -702,7 +721,7 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 'program/end': ProgramEnd
 ```
 
-Source: [`packages/improvement/program/src/types.ts:228`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:290`](../packages/improvement/program/src/types.ts)
 
 <a id="programgoal--log-only"></a>
 
@@ -719,7 +738,7 @@ Source: [`packages/improvement/program/src/types.ts:228`](../packages/improvemen
 'program/goal': ProgramGoalRecord
 ```
 
-Source: [`packages/improvement/program/src/types.ts:207`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:269`](../packages/improvement/program/src/types.ts)
 
 <a id="programintegration--log-only"></a>
 
@@ -735,7 +754,7 @@ Source: [`packages/improvement/program/src/types.ts:207`](../packages/improvemen
 'program/integration': ProgramIntegrationRecord
 ```
 
-Source: [`packages/improvement/program/src/types.ts:214`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:276`](../packages/improvement/program/src/types.ts)
 
 <a id="programmember--log-only"></a>
 
@@ -751,7 +770,7 @@ Source: [`packages/improvement/program/src/types.ts:214`](../packages/improvemen
 'program/member': ProgramMember
 ```
 
-Source: [`packages/improvement/program/src/types.ts:235`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:297`](../packages/improvement/program/src/types.ts)
 
 <a id="programresume--log-only"></a>
 
@@ -767,7 +786,7 @@ Source: [`packages/improvement/program/src/types.ts:235`](../packages/improvemen
 'program/resume': ProgramResume
 ```
 
-Source: [`packages/improvement/program/src/types.ts:221`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:283`](../packages/improvement/program/src/types.ts)
 
 <a id="programstart--log-only"></a>
 
@@ -784,7 +803,7 @@ Source: [`packages/improvement/program/src/types.ts:221`](../packages/improvemen
 'program/start': ProgramStart
 ```
 
-Source: [`packages/improvement/program/src/types.ts:199`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:261`](../packages/improvement/program/src/types.ts)
 
 ### `read-barrier/*`
 

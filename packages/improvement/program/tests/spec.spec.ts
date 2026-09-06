@@ -157,6 +157,21 @@ describe('integrationChecks', () => {
   })
 })
 
+describe('the implementer a frozen spec states', () => {
+  it('materializes the route default and keeps a stated delegation verbatim', () => {
+    expect(resolveProgramSpec(spec()).implementer).toEqual({ kind: 'route' })
+    expect(resolveProgramSpec(spec([goal()], {
+      implementer: { kind: 'subagent', provider: 'claude-code', label: 'external' },
+    })).implementer).toEqual({ kind: 'subagent', provider: 'claude-code', label: 'external' })
+  })
+
+  it('refuses a delegation that names no provider', () => {
+    expect(() => resolveProgramSpec(spec([goal()], {
+      implementer: { kind: 'subagent' } as never,
+    }))).toThrow('provider')
+  })
+})
+
 describe('programSpecDigest', () => {
   it('is stable under goal reordering and under dependency reordering', () => {
     const forward = resolveProgramSpec(spec([
