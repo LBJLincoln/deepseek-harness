@@ -58,7 +58,7 @@ interface VerificationCertificate {
 }
 ```
 
-The five durable events (`verification/standard`, `verification/relaxation`, `verification/run`, `verification/certificate`, `verification/directive`) are catalogued in [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only); every executed run is recorded, and a certificate covers only a run whose results all passed. The `verification` session projection serves the current standard with its covering certificate.
+The five durable events (`verification/standard`, `verification/relaxation`, `verification/run`, `verification/certificate`, `verification/directive`) are catalogued in [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only); every executed run is recorded with the verdict its results and its caller's tamper report decide, and a certificate covers only a run whose verdict is `passed`. The `verification` session projection serves the current standard with its covering certificate.
 
 ## The read barrier
 
@@ -185,15 +185,15 @@ relax(agent: Agent, ref: StandardRef, checkId: CheckId, evidence: string): Stand
 
 /**
  * Record one complete run of the current standard. Every run appends a
- * durable `verification/run` event carrying all of its results; a fully
- * passing run then commits a certificate, while any failure returns the
- * failing subset the validator aggregates into a {@link issueDirective}
- * directive.
+ * durable `verification/run` event carrying all of its results and the
+ * verdict they and `evidence.tampered` decide; only a `passed` verdict
+ * commits a certificate, while any other returns the failing subset the
+ * validator aggregates into a {@link issueDirective} directive.
  * @param agent - owning live agent.
  * @param ref - expected current revision.
  * @param isolation - isolation level the run executed under.
  * @param results - exactly one result per active check, any order.
- * @param evidence - executor of the checks and the workspace digest it covered.
+ * @param evidence - executor of the checks, the workspace digest it covered, and whether the check-owned files were tampered with.
  * @returns the certificate, or the failing results.
  * @throws {@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN`
  *   when the session's durable record does not support the claimed isolation.
@@ -230,7 +230,7 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 
 Types: [Agent](core.md)
 
-Source: [`packages/verification/verification/src/index.ts:214`](../../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:215`](../../packages/verification/verification/src/index.ts)
 
 <a id="ctxreadbarrier--readbarrierservice"></a>
 

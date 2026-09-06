@@ -331,6 +331,30 @@ describe('CompletionStandardService runs, certificates, and directives', () => {
     expect(ctx.completionStandards.get(agent)?.runsRecorded).toBe(1)
   })
 
+  it('records a tampered run and refuses its certificate however the results came out', async () => {
+    const { ctx, agent, ref, session } = await authored()
+    const outcome = ctx.completionStandards.recordRun(agent, ref, 'none', passes(['build-passes', 'tests-pass']), {
+      executor: 'runner',
+      treeHash: 'beef02',
+      tampered: true,
+    })
+    expect(outcome).toEqual({ certified: false, failures: [] })
+    expect(session.events.map(event => event.type)).toEqual(['verification/standard', 'verification/run'])
+    expect(session.events[1]?.data).toMatchObject({ verdict: 'tampered', executor: 'runner', treeHash: 'beef02' })
+    expect(ctx.completionStandards.certified(agent)).toBeUndefined()
+  })
+
+  it('records the verdict its results decide when nothing was tampered with', async () => {
+    const { ctx, agent, ref, session } = await authored()
+    ctx.completionStandards.recordRun(agent, ref, 'none', [
+      { checkId: CheckId('tests-pass'), status: 'fail', evidence: 'red' },
+      ...passes(['build-passes']),
+    ], reported)
+    ctx.completionStandards.recordRun(agent, ref, 'none', passes(['build-passes', 'tests-pass']), { ...reported, tampered: false })
+    expect(session.events.filter(event => event.type === 'verification/run')
+      .map(event => (event.data as { verdict: string }).verdict)).toEqual(['failed', 'passed'])
+  })
+
   it('refuses an unproven isolation claim before anything is logged', async () => {
     const { ctx, agent, ref, session } = await authored()
     const before = session.seq

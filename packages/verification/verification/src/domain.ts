@@ -12,6 +12,7 @@ import type {
   CheckResult,
   CompletionStandardSnapshot,
   RunExecutor,
+  RunVerdict,
   StandardRef,
   VerificationCertificate,
 } from './types.ts'
@@ -53,6 +54,12 @@ export interface VerificationRunChangeMeta {
   readonly isolation: CertificateIsolation
   /** Executor of the checks. */
   readonly executor: RunExecutor
+  /**
+   * What the run means. A payload that omits it is read as its results decide
+   * — `passed` when every result passed, `failed` otherwise — because only
+   * `tampered` cannot be derived from them; `recordRun` always writes it.
+   */
+  readonly verdict: RunVerdict
   /** Every result of the run, passing or failing, in the standard's check order. */
   readonly results: readonly CheckResult[]
   /** Hex digest of the workspace tree the run covered, absent when the caller has none. */

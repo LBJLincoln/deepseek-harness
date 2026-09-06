@@ -41,6 +41,7 @@ import type {
   DirectiveRequest,
   RunEvidence,
   RunOutcome,
+  RunVerdict,
   StandardCheck,
   StandardRef,
   StandardView,
@@ -368,15 +369,15 @@ export class CompletionStandardService extends Service {
 
   /**
    * Record one complete run of the current standard. Every run appends a
-   * durable `verification/run` event carrying all of its results; a fully
-   * passing run then commits a certificate, while any failure returns the
-   * failing subset the validator aggregates into a {@link issueDirective}
-   * directive.
+   * durable `verification/run` event carrying all of its results and the
+   * verdict they and `evidence.tampered` decide; only a `passed` verdict
+   * commits a certificate, while any other returns the failing subset the
+   * validator aggregates into a {@link issueDirective} directive.
    * @param agent - owning live agent.
    * @param ref - expected current revision.
    * @param isolation - isolation level the run executed under.
    * @param results - exactly one result per active check, any order.
-   * @param evidence - executor of the checks and the workspace digest it covered.
+   * @param evidence - executor of the checks, the workspace digest it covered, and whether the check-owned files were tampered with.
    * @returns the certificate, or the failing results.
    * @throws {@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN`
    *   when the session's durable record does not support the claimed isolation.
@@ -427,6 +428,10 @@ export class CompletionStandardService extends Service {
       )
     }
     const standard: StandardRef = { id: current.id, revision: current.revision }
+    const failures = ordered.filter(result => result.status === 'fail')
+    const verdict: RunVerdict = evidence.tampered === true
+      ? 'tampered'
+      : failures.length > 0 ? 'failed' : 'passed'
     const run: VerificationRunChangeMeta = {
       kind: 'verification/run',
       version: VERIFICATION_CHANGE_VERSION,
@@ -434,13 +439,15 @@ export class CompletionStandardService extends Service {
       attempt: nextRunAttempt(cache.state, current.id),
       isolation,
       executor: evidence.executor,
+      verdict,
       results: ordered,
       ...evidence.treeHash === undefined ? {} : { treeHash: evidence.treeHash },
       recordedAt: this.nextMutationTime(cache),
     }
     this.commit(agent, cache, 'verification/run', run)
-    const failures = ordered.filter(result => result.status === 'fail')
-    if (failures.length > 0) return { certified: false, failures }
+    // A tampered run measured a workspace the validator no longer owns, so its
+    // results certify nothing however they came out.
+    if (verdict !== 'passed') return { certified: false, failures }
     const certificate: VerificationCertificate = {
       standard,
       goalId: current.goalId,

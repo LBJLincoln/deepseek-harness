@@ -169,9 +169,10 @@ function scanGoal(events: readonly SessionEvent[]): RewardGoal {
 }
 
 /**
- * Decide one session's reward from its goal and verification events alone: the
- * verifier decides whenever a standard exists, an uncertified completion is
- * undecided, and a log without a goal is unmeasured.
+ * Decide one session's reward from its goal and verification events alone: a
+ * tampered last run outranks everything, the verifier decides whenever a
+ * standard exists, an uncertified completion is undecided, and a log without a
+ * goal is unmeasured.
  * @param events - the session's contiguous event log.
  * @returns the reward outcome with its basis, the measured goal, the covering certificate, and the counts behind them.
  */
@@ -186,6 +187,9 @@ export function foldTrajectoryReward(events: readonly SessionEvent[]): Trajector
     relaxations: verification.standard?.relaxed.length ?? 0,
     attempts: verification.runsRecorded,
   }
+  // A tampered run means the checks stopped describing the task, so no
+  // certificate and no goal phase in the same log can earn credit for it.
+  if (verification.lastRun?.verdict === 'tampered') return { outcome: 0, basis: 'tamper', ...goal, ...counts }
   if (verification.standard !== undefined) {
     return verification.certificate === undefined
       ? { outcome: 0, basis: 'certificate', ...goal, ...counts }

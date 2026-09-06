@@ -97,6 +97,41 @@ describe('EnvironmentRegistry', () => {
     expect(ctx.environments.list()).toHaveLength(1)
   })
 
+  it('accepts a normalized workspace-relative immutable set and rejects every other form', async () => {
+    const ctx = await harness()
+    const immutable = (paths: string[], id = 'swe-task:immutable') =>
+      sweTask(id, { task: { prompt: 'Fix it.', fixture: 'fixtures/immutable', immutable: paths } })
+    ctx.environments.register(immutable(['tests/suite.spec.ts', 'reference', 'a.b~c']))
+    expect(ctx.environments.get(EnvironmentId('swe-task:immutable'))?.task.immutable)
+      .toEqual(['tests/suite.spec.ts', 'reference', 'a.b~c'])
+
+    for (const [paths, reason] of [
+      [[''], 'that is empty'],
+      [['/etc/passwd'], 'that is not workspace-relative'],
+      [['C:/checks'], 'that is not workspace-relative'],
+      [['tests\\suite.spec.ts'], 'that uses a backslash'],
+      [['tests//suite.spec.ts'], 'it holds an empty segment'],
+      [['./tests'], 'it holds a "." segment'],
+      [['../tests'], 'it holds a ".." segment'],
+      [['tests', 'tests'], 'twice'],
+    ] as const) {
+      expect(() => ctx.environments.register(immutable([...paths], 'swe-task:rejected')))
+        .toThrow(expect.objectContaining({ code: 'ENVIRONMENT_INVALID_IMMUTABLE', message: expect.stringContaining(reason) as unknown as string }))
+    }
+    expect(ctx.environments.get(EnvironmentId('swe-task:rejected'))).toBeUndefined()
+  })
+
+  it('detaches the immutable set on write and on every read', async () => {
+    const ctx = await harness()
+    const paths = ['tests/suite.spec.ts']
+    ctx.environments.register(sweTask('swe-task:alpha', { task: { prompt: 'Fix it.', immutable: paths } }))
+    paths.push('reference')
+    const read = ctx.environments.get(EnvironmentId('swe-task:alpha'))
+    expect(read?.task.immutable).toEqual(['tests/suite.spec.ts'])
+    ;(read?.task.immutable as string[]).push('mutated')
+    expect(ctx.environments.list()[0]?.task.immutable).toEqual(['tests/suite.spec.ts'])
+  })
+
   it('removes an environment through its exact disposer and ignores a stale one', async () => {
     const ctx = await harness()
     const first = ctx.environments.register(sweTask('swe-task:alpha'))

@@ -103,12 +103,26 @@ export interface VerificationCertificate {
 /** Executor of one recorded run's checks. */
 export type RunExecutor = 'runner' | 'agent-reported'
 
+/**
+ * What one recorded run means. `passed` and `failed` follow from the results;
+ * `tampered` says the check-owned files changed under the validator, so the
+ * results measure a workspace that no longer describes the task. Only a
+ * `passed` run may certify.
+ */
+export type RunVerdict = 'passed' | 'failed' | 'tampered'
+
 /** How one recorded run was produced, beside its results. */
 export interface RunEvidence {
   /** Executor of the checks: an automated validator, or the agent's own report. */
   readonly executor: RunExecutor
   /** Hex digest of the workspace tree the run covered, absent when the caller has none. */
   readonly treeHash?: string
+  /**
+   * Whether the check-owned files changed between the validator writing them
+   * and this run reading them. Only the caller that digested them knows it, so
+   * it is stated here; every other verdict follows from the results.
+   */
+  readonly tampered?: boolean
 }
 
 /** Root-cause failure aggregation a validator hands the orchestrator. */

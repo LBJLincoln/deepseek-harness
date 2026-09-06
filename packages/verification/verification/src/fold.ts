@@ -10,6 +10,7 @@ import type {
   CompletionStandardSnapshot,
   RelaxedCheck,
   RunExecutor,
+  RunVerdict,
   StandardCheck,
   StandardRef,
   VerificationCertificate,
@@ -27,6 +28,7 @@ import type {
 const OPERATIONS: ReadonlySet<StandardOperation> = new Set(['author', 'extend'])
 const ISOLATIONS: ReadonlySet<CertificateIsolation> = new Set(['none', 'process', 'host'])
 const EXECUTORS: ReadonlySet<RunExecutor> = new Set(['runner', 'agent-reported'])
+const VERDICTS: ReadonlySet<RunVerdict> = new Set(['passed', 'failed', 'tampered'])
 const CERTIFIED_STATUSES: ReadonlySet<CheckStatus> = new Set(['pass'])
 const RUN_STATUSES: ReadonlySet<CheckStatus> = new Set(['pass', 'fail'])
 const RUN_KEYS = ['attempt', 'executor', 'isolation', 'kind', 'recordedAt', 'results', 'standard', 'version']
@@ -228,6 +230,19 @@ function decodeRunResult(value: unknown, subject: string): CheckResult {
   return decodeResult(value, subject, RUN_STATUSES, '"pass" or "fail"')
 }
 
+/**
+ * The verdict one run payload carries, or the one its results decide. Absence
+ * is not a gap: every verdict but `tampered` follows from the results, and a
+ * payload that states nothing states no tamper.
+ */
+function decodeVerdict(value: unknown, results: readonly CheckResult[]): RunVerdict {
+  if (value === undefined) return results.every(result => result.status === 'pass') ? 'passed' : 'failed'
+  if (typeof value !== 'string' || !VERDICTS.has(value as RunVerdict)) {
+    throw new Error('verification change run.verdict is invalid')
+  }
+  return value as RunVerdict
+}
+
 /** Shared timestamp validation for standard-shaped changes. */
 function decodeTimestamps(value: Record<string, unknown>): { createdAt: number; updatedAt: number } {
   const createdAt = nonNegativeInteger(value['createdAt'], 'createdAt')
@@ -303,7 +318,11 @@ export function decodeRunChange(value: unknown): VerificationRunChangeMeta | und
   if (!isRecord(value) || value['kind'] !== 'verification/run') return undefined
   requireVersion(value)
   const treeHash = value['treeHash']
-  requireKeys(value, treeHash === undefined ? RUN_KEYS : [...RUN_KEYS, 'treeHash'], 'run')
+  const optional = [
+    ...treeHash === undefined ? [] : ['treeHash'],
+    ...value['verdict'] === undefined ? [] : ['verdict'],
+  ]
+  requireKeys(value, [...RUN_KEYS, ...optional], 'run')
   if (typeof value['isolation'] !== 'string' || !ISOLATIONS.has(value['isolation'] as CertificateIsolation)) {
     throw new Error('verification change run.isolation is invalid')
   }
@@ -313,6 +332,7 @@ export function decodeRunChange(value: unknown): VerificationRunChangeMeta | und
   if (!Array.isArray(value['results']) || value['results'].length === 0) {
     throw new Error('verification change run.results must be a non-empty array')
   }
+  const results = value['results'].map((result, index) => decodeRunResult(result, `run.results[${index}]`))
   return {
     kind: 'verification/run',
     version: VERIFICATION_CHANGE_VERSION,
@@ -320,7 +340,8 @@ export function decodeRunChange(value: unknown): VerificationRunChangeMeta | und
     attempt: positiveInteger(value['attempt'], 'run.attempt'),
     isolation: value['isolation'] as CertificateIsolation,
     executor: value['executor'] as RunExecutor,
-    results: value['results'].map((result, index) => decodeRunResult(result, `run.results[${index}]`)),
+    verdict: decodeVerdict(value['verdict'], results),
+    results,
     ...treeHash === undefined ? {} : { treeHash: hexDigest(treeHash, 'run.treeHash') },
     recordedAt: nonNegativeInteger(value['recordedAt'], 'run.recordedAt'),
   }
@@ -518,6 +539,13 @@ function applyRunChange(state: VerificationFoldState, change: VerificationRunCha
     throw new Error('verification run must cover the exact current standard revision')
   }
   requireResultsCover(current, change.results, 'run')
+  const allPassed = change.results.every(result => result.status === 'pass')
+  if (change.verdict === 'passed' && !allPassed) {
+    throw new Error('verification run cannot record verdict "passed" with a failing result')
+  }
+  if (change.verdict === 'failed' && allPassed) {
+    throw new Error('verification run cannot record verdict "failed" with every result passing')
+  }
   /* v8 ignore next -- a current standard established by this fold always has an updatedAt */
   if (state.updatedAt === undefined) throw new Error('current standard fold lacks updatedAt')
   if (change.recordedAt < state.updatedAt) {

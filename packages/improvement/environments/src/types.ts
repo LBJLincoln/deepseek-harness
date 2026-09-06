@@ -33,6 +33,14 @@ export interface EnvironmentTask {
   readonly prompt: string
   /** Workspace fixture the runner mounts before the task starts, absent for a task that needs no files. */
   readonly fixture?: string
+  /**
+   * Workspace-relative paths the fixture supplies and the implementer must not
+   * author — the tests, the reference outputs, and any overlaid check script.
+   * Each is a `/`-separated relative path without `.` or `..` segments, naming
+   * a file or a directory tree; the runner digests them beside the validator's
+   * own directory and records a run that changed them as tampered.
+   */
+  readonly immutable?: readonly string[]
 }
 
 /** One task with its verifiers, as the registry stores it. */

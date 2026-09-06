@@ -528,8 +528,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, results: readonly CheckResult[], evidence: RunEvidence, ): RunOutcome',
-        description: 'Record one complete run of the current standard. Every run appends a durable `verification/run` event carrying all of its results; a fully passing run then commits a certificate, while any failure returns the failing subset the validator aggregates into a issueDirective directive.',
-        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'isolation', description: 'isolation level the run executed under.' }, { name: 'results', description: 'exactly one result per active check, any order.' }, { name: 'evidence', description: 'executor of the checks and the workspace digest it covered.' }],
+        description: 'Record one complete run of the current standard. Every run appends a durable `verification/run` event carrying all of its results and the verdict they and `evidence.tampered` decide; only a `passed` verdict commits a certificate, while any other returns the failing subset the validator aggregates into a issueDirective directive.',
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'isolation', description: 'isolation level the run executed under.' }, { name: 'results', description: 'exactly one result per active check, any order.' }, { name: 'evidence', description: 'executor of the checks, the workspace digest it covered, and whether the check-owned files were tampered with.' }],
         returns: 'the certificate, or the failing results.',
         throws: ['{@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN` when the session\'s durable record does not support the claimed isolation.'],
       },
@@ -669,7 +669,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Register one environment. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the entry.',
         parameters: [{ name: 'definition', description: 'complete environment definition.' }],
         returns: 'the exact disposer that removes this registration and no later one under the same id.',
-        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, or two checks share an id.'],
+        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, two checks share an id, or an immutable path is not a normalized workspace-relative path.'],
       },
       {
         signature: 'get(id: EnvironmentIdType): EnvironmentDefinition | undefined',
@@ -3434,7 +3434,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentTask',
-    declaration: 'export interface EnvironmentTask {\n    readonly prompt: string;\n    readonly fixture?: string;\n}',
+    declaration: 'export interface EnvironmentTask {\n    readonly prompt: string;\n    readonly fixture?: string;\n    readonly immutable?: readonly string[];\n}',
   },
   {
     name: 'EpochHeader',
@@ -4198,7 +4198,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RunEvidence',
-    declaration: 'export interface RunEvidence {\n    readonly executor: RunExecutor;\n    readonly treeHash?: string;\n}',
+    declaration: 'export interface RunEvidence {\n    readonly executor: RunExecutor;\n    readonly treeHash?: string;\n    readonly tampered?: boolean;\n}',
   },
   {
     name: 'RunExecutor',
@@ -5086,7 +5086,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TrajectoryRewardBasis',
-    declaration: 'export type TrajectoryRewardBasis = \'certificate\' | \'uncertified-completion\' | \'none\';',
+    declaration: 'export type TrajectoryRewardBasis = \'tamper\' | \'certificate\' | \'uncertified-completion\' | \'none\';',
   },
   {
     name: 'TrajectorySink',

@@ -229,6 +229,23 @@ describe('foldTrajectory', () => {
     expect(trajectory.steps).toEqual([{ turn: 1, step: 1 }])
   })
 
+  it('scores a session whose last run was tampered as zero on the tamper basis', () => {
+    const log = certifiedLog()
+    log.push('verification/run', { ...runRecord(3, 'fail'), verdict: 'tampered', recordedAt: 40 })
+    const trajectory = foldTrajectory(header, log.events)
+    // The certificate and the completed goal are both in this log; the tamper
+    // verdict outranks them.
+    expect(trajectory.reward).toEqual({
+      outcome: 0,
+      basis: 'tamper',
+      goal: { id: 'goal-1', objective: 'Prove the export', phase: 'complete' },
+      directives: 1,
+      relaxations: 0,
+      attempts: 3,
+    })
+    expect(trajectory.reward).not.toHaveProperty('certificate')
+  })
+
   it('marks an unmeasured completion and a goal-less log as undecided', () => {
     const completed = new Log()
     completed.push('goal/change', goalChange('create', 'active', 1))

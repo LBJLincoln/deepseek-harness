@@ -39,6 +39,8 @@ export const ENVIRONMENT_RUN_VERSION = 1
 
 const ISOLATIONS = new Set(['none', 'process', 'host'])
 const HEX_64 = /^[0-9a-f]{64}$/
+/** A Windows drive prefix, which no workspace-relative path may carry. */
+const DRIVE_LETTER = /^[A-Za-z]:/
 
 /** SHA-256 hex digest of one UTF-8 string. */
 function sha256(text: string): string {
@@ -136,6 +138,7 @@ export type EnvironmentErrorCode =
   | 'ENVIRONMENT_DUPLICATE_ID'
   | 'ENVIRONMENT_NO_CHECKS'
   | 'ENVIRONMENT_DUPLICATE_CHECK'
+  | 'ENVIRONMENT_INVALID_IMMUTABLE'
 
 /** Error returned by the environment registry boundary. */
 export class EnvironmentError extends HarnessError {
@@ -159,9 +162,42 @@ export function EnvironmentId(id: string): EnvironmentIdType {
   return id as EnvironmentIdType
 }
 
-/** Copy a definition so callers never share the registry's stored check list. */
+/** Copy a definition so callers never share the registry's stored check list or immutable set. */
 function detach(definition: EnvironmentDefinition): EnvironmentDefinition {
-  return { ...definition, checks: definition.checks.map(check => ({ ...check })) }
+  const immutable = definition.task.immutable
+  return {
+    ...definition,
+    task: { ...definition.task, ...immutable === undefined ? {} : { immutable: [...immutable] } },
+    checks: definition.checks.map(check => ({ ...check })),
+  }
+}
+
+/**
+ * Reject a declared immutable path the runner could not digest as one workspace
+ * file or tree: an absolute path, a Windows-style path, a `.` or `..` segment,
+ * an empty segment, or a repeat. The check-owned set is a security invariant of
+ * the run, so a path the registry cannot resolve fails registration rather than
+ * the run that would have measured it.
+ */
+function assertImmutable(definition: EnvironmentDefinition): void {
+  const reject = (path: string, reason: string): never => {
+    throw new EnvironmentError(
+      `environment "${definition.id}" declares immutable path "${path}" ${reason}`,
+      'ENVIRONMENT_INVALID_IMMUTABLE',
+    )
+  }
+  const seen = new Set<string>()
+  for (const path of definition.task.immutable ?? []) {
+    if (path === '') reject(path, 'that is empty')
+    if (path.startsWith('/') || DRIVE_LETTER.test(path)) reject(path, 'that is not workspace-relative')
+    if (path.includes('\\')) reject(path, 'that uses a backslash; workspace-relative paths separate segments with "/"')
+    for (const segment of path.split('/')) {
+      if (segment === '') reject(path, 'that is not normalized: it holds an empty segment')
+      if (segment === '.' || segment === '..') reject(path, `that is not normalized: it holds a "${segment}" segment`)
+    }
+    if (seen.has(path)) reject(path, 'twice')
+    seen.add(path)
+  }
 }
 
 /** Reject a definition whose verifiers cannot author a completion standard. */
@@ -192,13 +228,15 @@ export class EnvironmentRegistry extends Service {
    * @param definition - complete environment definition.
    * @returns the exact disposer that removes this registration and no later one under the same id.
    * @throws {@link EnvironmentError} when the id is already registered, the
-   *   definition declares no checks, or two checks share an id.
+   *   definition declares no checks, two checks share an id, or an immutable
+   *   path is not a normalized workspace-relative path.
    */
   register(definition: EnvironmentDefinition): () => void {
     if (this.environments.has(definition.id)) {
       throw new EnvironmentError(`environment "${definition.id}" is already registered`, 'ENVIRONMENT_DUPLICATE_ID')
     }
     assertChecks(definition)
+    assertImmutable(definition)
     const stored = detach(definition)
     this.environments.set(stored.id, stored)
     return () => {

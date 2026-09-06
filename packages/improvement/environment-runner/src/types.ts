@@ -28,13 +28,21 @@ export interface EnvironmentRunRequest {
   readonly signal?: AbortSignal
 }
 
-/** One attempt: the implementer's turn followed by one run of the current standard. */
+/**
+ * One attempt: the implementer's turn followed by one run of the current
+ * standard. The attempt's verdict is durable rather than reported: it is the
+ * `verdict` of the `verification/run` this attempt recorded.
+ */
 export interface EnvironmentRunAttempt {
   /** One-based attempt number. */
   readonly attempt: number
-  /** One result per active check, in the standard's check order. */
+  /** One result per active check, in the standard's check order; a tampered attempt executed none of them. */
   readonly results: readonly CheckResult[]
-  /** SHA-256 digest of the workspace as the validation began, after the fixture was restored over it. */
+  /**
+   * SHA-256 digest of the workspace as the validation began, after the fixture
+   * was restored over it; a tampered attempt digests the workspace it refused
+   * to measure, without restoring anything.
+   */
   readonly treeHash: string
 }
 

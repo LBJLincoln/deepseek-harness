@@ -34,6 +34,8 @@ The sink is closed exactly once, after the last write or after a failure. The re
 
 `foldTrajectory(meta, events)` is the pure projection behind the service and is exported for tests and offline tools. It is deterministic for the same inputs.
 
+`foldTrajectoryReward(events)` decides the reward from the log's goal and verification events. A session whose last recorded [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) carries `verdict: 'tampered'` scores `outcome: 0` on the `tamper` basis whatever else the log holds, because a run that found the files it measures the task with changed says the measurement is void — a failed check means the work is incomplete, so folding the two would let a workspace whose checks no longer describe the task earn partial credit. Otherwise the verifier decides whenever a standard exists, an uncertified completion is undecided, and a log without a goal is unmeasured.
+
 ## Record format `dsh-trajectory/1`
 
 | Field | Content |
@@ -43,7 +45,7 @@ The sink is closed exactly once, after the last write or after a failure. The re
 | `config`, `system`, `tools` | Call configuration, rendered system prompt, and tool schemas of the last `request/header` |
 | `messages` | Surface messages in model-visible order after compaction replacements: `user`, `assistant` (with `toolCalls` when requested), and `tool` (with `toolCallId`, `isError`) roles; each carries the `seq` of its source event, its `turn` and `step`, its content blocks verbatim (reasoning included), and the recorded source kind |
 | `steps` | One entry per model call with the adapter-reported usage |
-| `reward` | `outcome` `1` when a certificate covers the current standard revision, `0` when a standard exists without one, `null` otherwise; `basis` `certificate`, `uncertified-completion` (goal completed, no standard ever authored), or `none` (no goal); the goal snapshot, the covering certificate, and the attempt, directive, and relaxation counts |
+| `reward` | `outcome` `1` when a certificate covers the current standard revision, `0` when a standard exists without one, `null` otherwise; `basis` `tamper` (the last recorded run found the check-owned files changed), `certificate`, `uncertified-completion` (goal completed, no standard ever authored), or `none` (no goal); the goal snapshot, the covering certificate, and the attempt, directive, and relaxation counts |
 | `provenance` | Component ids in the component registry's scheme (`composition:<preset>`, `environment:<id>`, `model-provider:<provider>`, `tool:<name>`), tool names in first-use order, and the certificate's isolation level |
 
 Token ids and logprobs are absent: the harness never sees token ids, and on-policy capture belongs to a trainer's inference proxy.

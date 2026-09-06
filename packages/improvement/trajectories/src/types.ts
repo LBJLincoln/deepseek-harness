@@ -73,11 +73,13 @@ export interface TrajectoryStep {
 }
 
 /**
- * How the reward was decided: `certificate` when a completion standard existed
- * for the goal (the verifier decided), `uncertified-completion` when the goal
- * completed with no standard ever authored, `none` when the log holds no goal.
+ * How the reward was decided: `tamper` when the last recorded run found the
+ * check-owned files changed, which voids the measurement whatever else the log
+ * says; `certificate` when a completion standard existed for the goal (the
+ * verifier decided); `uncertified-completion` when the goal completed with no
+ * standard ever authored; `none` when the log holds no goal.
  */
-export type TrajectoryRewardBasis = 'certificate' | 'uncertified-completion' | 'none'
+export type TrajectoryRewardBasis = 'tamper' | 'certificate' | 'uncertified-completion' | 'none'
 
 /** The goal the reward measures, as the log last recorded it. */
 export interface TrajectoryGoal {

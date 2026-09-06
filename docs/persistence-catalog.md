@@ -1049,7 +1049,7 @@ Source: [`packages/core/session/src/types.ts:264`](../packages/core/session/src/
 'verification/certificate': CertificateChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:99`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:106`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationdirective--log-only"></a>
 
@@ -1062,7 +1062,7 @@ Source: [`packages/verification/verification/src/domain.ts:99`](../packages/veri
 'verification/directive': DirectiveChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:103`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:110`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrelaxation--log-only"></a>
 
@@ -1075,7 +1075,7 @@ Source: [`packages/verification/verification/src/domain.ts:103`](../packages/ver
 'verification/relaxation': RelaxationChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:91`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:98`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrun--log-only"></a>
 
@@ -1088,7 +1088,7 @@ Source: [`packages/verification/verification/src/domain.ts:91`](../packages/veri
 'verification/run': VerificationRunChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:95`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:102`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationstandard--log-only"></a>
 
@@ -1101,7 +1101,7 @@ Source: [`packages/verification/verification/src/domain.ts:95`](../packages/veri
 'verification/standard': StandardChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:87`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:94`](../packages/verification/verification/src/domain.ts)
 
 ### `web/*`
 

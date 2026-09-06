@@ -18,11 +18,15 @@
 
 ## 服务约定
 
-`ctx.completionStandards` 只接受注册表中该 id 对应的那个 live `Agent` 实例。`get()` 返回一份游离的 `StandardView`；变更操作使用 `StandardRef { id, revision }` 比较并交换栅栏，并拒绝过期引用。每个会话至多有一个当前标准；`author()` 为一个 goal 创建修订号为一的标准，并拒绝为同一 goal 再次创建，而针对不同 goal 的新标准会取代之前的标准。`extend()` 追加检查且从不改写既有检查；`relax()` 恰好移除一个检查，并记录非空的不可满足证据。`recordRun()` 要求每个活动检查恰好对应一条结果，外加该次运行的 `RunEvidence`（`executor`，取 `runner` 或 `agent-reported`，以及该次运行所覆盖工作区目录树的可选 `treeHash`）：无论通过还是失败，每次运行都会追加一条 `verification/run` 事件，按检查顺序携带它的全部结果、尝试序号与这份证据，随后完整通过的运行还会提交一份持久证书，而任何失败都返回失败子集。在追加任何内容之前，`recordRun()` 会以 `VERIFICATION_ISOLATION_UNPROVEN` 拒绝会话自身持久记录无法支撑的隔离声明——运行事件同样携带该声明，因此未被证明的级别根本不会进入日志。尝试序号等于同一标准 id 在其各修订上已记录运行数加一，因此仅凭日志就能回放尝试次数与不稳定性。`issueDirective()` 记录由消费方转达给实现者的根因聚合。`assertCertified()` 返回恰好覆盖当前修订的目标 goal 证书，否则抛出异常，因此它是编排者在调用 `ctx.goals.complete()` 之前执行的准入读取。当 goal 服务同时组合时，本服务还会把同一准入注册为 `ctx.goals` 上只可否决的 `completionGuard()`，使 `GoalService.complete()` 自身拒绝对被度量 goal 的未认证完成；未被度量的 goal 照常完成。
+`ctx.completionStandards` 只接受注册表中该 id 对应的那个 live `Agent` 实例。`get()` 返回一份游离的 `StandardView`；变更操作使用 `StandardRef { id, revision }` 比较并交换栅栏，并拒绝过期引用。每个会话至多有一个当前标准；`author()` 为一个 goal 创建修订号为一的标准，并拒绝为同一 goal 再次创建，而针对不同 goal 的新标准会取代之前的标准。`extend()` 追加检查且从不改写既有检查；`relax()` 恰好移除一个检查，并记录非空的不可满足证据。`recordRun()` 要求每个活动检查恰好对应一条结果，外加该次运行的 `RunEvidence`（`executor`，取 `runner` 或 `agent-reported`；该次运行所覆盖工作区目录树的可选 `treeHash`；以及只有其调用方才可能知道的可选 `tampered` 标记）：每次运行都会追加一条 `verification/run` 事件，按检查顺序携带它的全部结果、尝试序号、这份证据与该次运行的 `verdict`，只有 `passed` 裁定才会提交一份持久证书，其余每种裁定都返回失败子集。在追加任何内容之前，`recordRun()` 会以 `VERIFICATION_ISOLATION_UNPROVEN` 拒绝会话自身持久记录无法支撑的隔离声明——运行事件同样携带该声明，因此未被证明的级别根本不会进入日志。尝试序号等于同一标准 id 在其各修订上已记录运行数加一，因此仅凭日志就能回放尝试次数与不稳定性。`issueDirective()` 记录由消费方转达给实现者的根因聚合。`assertCertified()` 返回恰好覆盖当前修订的目标 goal 证书，否则抛出异常，因此它是编排者在调用 `ctx.goals.complete()` 之前执行的准入读取。当 goal 服务同时组合时，本服务还会把同一准入注册为 `ctx.goals` 上只可否决的 `completionGuard()`，使 `GoalService.complete()` 自身拒绝对被度量 goal 的未认证完成；未被度量的 goal 照常完成。
 
-每次变更都会追加一条携带完整变更后状态的持久会话事件：`verification/standard`（author、extend）、`verification/relaxation`、`verification/run`、`verification/certificate` 或 `verification/directive`。严格回放校验修订序列、仅追加的检查增长、放宽的结构、运行覆盖范围与尝试编号、证书覆盖范围与时间戳连续性，且任何标准变更都会使先前证书失效。会话日志是唯一的持久权威；新的服务实例从日志重建其视图。
+每次变更都会追加一条携带完整变更后状态的持久会话事件：`verification/standard`（author、extend）、`verification/relaxation`、`verification/run`、`verification/certificate` 或 `verification/directive`。严格回放校验修订序列、仅追加的检查增长、放宽的结构、运行覆盖范围与尝试编号、裁定与结果的一致、证书覆盖范围与时间戳连续性，且任何标准变更都会使先前证书失效。会话日志是唯一的持久权威；新的服务实例从日志重建其视图。
 
-单独发布的 `./invariant` 配套文件对每个附加的会话维护一份独立折叠。它在畸形验证变更进入持久日志之前拒绝它们，拒绝这样的 `goal/change` 完成事件：当前标准度量该 goal，却没有覆盖它的证书；拒绝没有同一标准修订上完整通过的 `verification/run` 在先的 `verification/certificate`；拒绝 `executor` 与其所引运行不一致的证书；并施加与 `recordRun()` 在线上施加的完全相同的隔离规则——因此伪造的证书会在安装了该配套文件的任何地方回放失败。
+### 一次运行的裁定说明了什么
+
+一次运行的 `verdict` 说明这次运行意味着什么：每条结果都通过为 `passed`，有一条未通过为 `failed`，调用方报告用于度量该任务的那些文件在它手下发生了变化时为 `tampered`——[环境运行器](../../improvement/environment-runner/README.md#tamper-on-check-owned-paths)对它们求摘要并传入 `tampered: true`。只有 `passed` 才认证，因此被篡改的运行无论结果如何都不认证任何东西，回放也会拒绝带失败结果的 `passed` 裁定与全部通过的 `failed` 裁定。省略了 `verdict` 的已记录载荷按其结果解读，因为只有篡改无法由结果推出。
+
+单独发布的 `./invariant` 配套文件对每个附加的会话维护一份独立折叠。它在畸形验证变更进入持久日志之前拒绝它们，拒绝这样的 `goal/change` 完成事件：当前标准度量该 goal，却没有覆盖它的证书；拒绝没有同一标准修订上完整通过的 `verification/run` 在先的 `verification/certificate`；拒绝架设在裁定不是 `passed` 的运行之上的证书；拒绝 `executor` 与其所引运行不一致的证书；并施加与 `recordRun()` 在线上施加的完全相同的隔离规则——因此伪造的证书会在安装了该配套文件的任何地方回放失败。
 
 ### 一个隔离声明需要什么
 
