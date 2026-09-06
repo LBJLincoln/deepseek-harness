@@ -62,6 +62,7 @@ export const KNOWN_SESSION_EVENT_TYPES: ReadonlySet<string> = new Set([
   'tool/result',
   'turn/end',
   'turn/start',
+  'usage/priced',
   'user/message',
   'verification/certificate',
   'verification/directive',

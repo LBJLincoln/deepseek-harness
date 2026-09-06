@@ -252,7 +252,7 @@ Source: [`packages/core/session/src/types.ts:273`](../packages/core/session/src/
 'budget/breach': BudgetBreach
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:64`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:99`](../packages/guard/budget-policy/src/types.ts)
 
 ### `command/*`
 
@@ -963,6 +963,27 @@ Source: [`packages/core/session/src/types.ts:252`](../packages/core/session/src/
 ```
 
 Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/types.ts)
+
+### `usage/*`
+
+<a id="usagepriced--log-only"></a>
+
+#### `usage/priced` — log-only
+
+```ts persistence-catalog
+/**
+ * One `assistant/message` of a priced route — a `provider/model` the
+ * configured pricing table names — priced at the rates that table held:
+ * `costEur = (inputTokens * inputEurPerMillionTokens + outputTokens *
+ * outputEurPerMillionTokens) / 1_000_000`, with `pricingDigest` naming the
+ * table version those rates came from. A route the table does not name gets
+ * no event, so cost per session replays from the log for exactly the steps
+ * the deployment had priced when they ran.
+ */
+'usage/priced': UsagePriced
+```
+
+Source: [`packages/guard/budget-policy/src/types.ts:109`](../packages/guard/budget-policy/src/types.ts)
 
 ### `user/*`
 

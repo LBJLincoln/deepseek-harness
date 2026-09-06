@@ -1,11 +1,15 @@
 /**
- * Pure budget vocabulary: the enforced cap names, the durable breach payload
- * and its `SessionEventMap` declaration, the deployment pricing entry, and the
- * spend record the log fold produces. Kept free of cordis, agent, and service
- * imports so the fold, the plugin, and the invariant companion share one home.
+ * Pure budget vocabulary: the enforced cap names, the durable breach and
+ * pricing payloads with their `SessionEventMap` declarations, the deployment
+ * pricing entry, and the spend record the log fold produces. Kept free of
+ * cordis, agent, and service imports so the fold, the plugin, and the
+ * invariant companion share one home.
  *
  * @module @deepseek-ai/dsh-budget-policy
  */
+
+import type { TokenUsage } from '@deepseek-ai/dsh-llm'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 
 /** One enforced cap name; also the `Config` key that sets it. */
 export type BudgetCapId =
@@ -52,6 +56,37 @@ export interface BudgetBreach {
   readonly limit: number
 }
 
+/**
+ * One `assistant/message` event whose provider accounting is present. The
+ * pricing helpers select and return this narrowed form, so a caller holding one
+ * reads `usage` without repeating the presence check.
+ */
+export type AccountedMessage = SessionEvent<'assistant/message'> & { data: { usage: TokenUsage } }
+
+/** The durable price of one step, in the rates the configured table held. */
+export interface UsagePriced {
+  /** The turn that owned the priced step. */
+  readonly turn: number
+  /** The priced step within {@link turn}. */
+  readonly step: number
+  /** Provider of the route that served the step. */
+  readonly provider: string
+  /** Model of the route that served the step. */
+  readonly model: string
+  /** Billed input tokens: uncached input plus cache reads and writes. */
+  readonly inputTokens: number
+  /** Output tokens as the provider reported them. */
+  readonly outputTokens: number
+  /** EUR per one million billed input tokens applied to this step. */
+  readonly inputEurPerMillionTokens: number
+  /** EUR per one million output tokens applied to this step. */
+  readonly outputEurPerMillionTokens: number
+  /** EUR this step cost at the recorded rates. */
+  readonly costEur: number
+  /** Digest of the whole pricing table these rates came from. */
+  readonly pricingDigest: string
+}
+
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
     /**
@@ -62,5 +97,15 @@ declare module '@deepseek-ai/dsh-session/types' {
      * explanation for a turn that ends without a model call.
      */
     'budget/breach': BudgetBreach
+    /**
+     * One `assistant/message` of a priced route — a `provider/model` the
+     * configured pricing table names — priced at the rates that table held:
+     * `costEur = (inputTokens * inputEurPerMillionTokens + outputTokens *
+     * outputEurPerMillionTokens) / 1_000_000`, with `pricingDigest` naming the
+     * table version those rates came from. A route the table does not name gets
+     * no event, so cost per session replays from the log for exactly the steps
+     * the deployment had priced when they ran.
+     */
+    'usage/priced': UsagePriced
   }
 }

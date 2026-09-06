@@ -22,7 +22,7 @@ Daliesk Village 是一组既有插件按班次运行的组合，绝不是持有�
 - **篡改裁决落地之前不公开证书率。** 今天一张证书证明的是有一次完全通过的 `verification/run` 在它之前；它不证明实现者没有触碰检查所属路径（读取屏障切片 6），在切片 5 之前也不证明能用 shell 的实现者读不到标准。在切片 6 落地之前，每个公开行都带有 `tamper: not instrumented`，证书率既不进入归档的 quality 项也不作为训练奖励；Workshop 的行留在人工评审之后。
 - **区是盖章字段。** `environment/run` 新增 `district`；导出器与观测台默认扣留 Workshop 会话，正如扣留留出会话一样，任何会话的原始摘录只有在数据管理员的 `SignoffRecord` 与导出的脱敏配置之后才能到达公众。
 - **节奏跟随区。** 每周冻结的 `SuitePlan` 为 Proving Ground 与 Commons 各层定节奏；Workshop 的目标依程序账本与计划关键路径开启与关闭，绝不依日历。
-- **成本要么是日志事实，要么不发布。** 预算策略用自己的价格表为用量定价；一条携带价格表摘要的 `usage/priced` 事件使每个已认证会话的成本成为可重放的 scorekeeper 字段；在它存在之前，任何成本数字都不离开实验室。
+- **成本要么是日志事实，要么不发布。** 预算策略把每个被计价的步骤记录为一条 `usage/priced` 事件，携带为其计价的价格与价格表摘要，因此每次会话的成本可重放；在 scorekeeper 把这些事件折叠为每个已认证会话的成本之前，任何成本数字都不离开实验室。
 
 ### 落在 seam 上的机制
 
@@ -96,7 +96,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 ## Rollout
 
-1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；以及其 `workspaceRetention`。仍需要：证书上的 executor（读取屏障切片 4，进行中）、`usage/priced` 事件与组合门禁；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
+1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；以及预算策略携带价格表摘要的 `usage/priced` 事件。仍需要：证书上的 executor（读取屏障切片 4，进行中）、scorekeeper 将 `usage/priced` 折叠为每次会话的成本，以及组合门禁；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
 3. **无人值守的班次。** 需要四目标 note 的 rollout 第 11 项（幂等 cell、程序账本）与计划级支出聚合器；主机级监督进程退为后备。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。

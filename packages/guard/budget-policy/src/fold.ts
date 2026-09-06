@@ -1,21 +1,26 @@
 /**
- * Pure session-log fold behind every budget decision. The policy plugin and the
- * invariant companion both read spend through it, so a recorded breach is
- * recomputable from the same events by anyone holding the log.
+ * Pure session-log folds behind every budget decision: the spend a cap is
+ * measured against, and the steps whose price the log does not yet state. The
+ * policy plugin and the invariant companion both read through them, so a
+ * recorded breach or price is recomputable from the same events by anyone
+ * holding the log.
  *
  * @module @deepseek-ai/dsh-budget-policy
  */
 
 import { assertNever } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
-import type { BudgetCapId, BudgetRoutePricing, BudgetSpend } from './types.ts'
+import { billedInputTokens, costEurFor, routeKey } from './pricing.ts'
+import type { AccountedMessage, BudgetCapId, BudgetRoutePricing, BudgetSpend } from './types.ts'
 
-/** Tokens per pricing unit; the table is quoted per one million tokens. */
-const PRICING_UNIT_TOKENS = 1_000_000
+/** The key one step is identified by within its own session log. */
+function stepKey(turn: number, step: number): string {
+  return `${turn}/${step}`
+}
 
-/** The pricing-table key one provider route is configured under. */
-function routeKey(provider: string, model: string): string {
-  return `${provider}/${model}`
+/** Whether one event is an assistant message the provider reported accounting for. */
+function isAccounted(event: SessionEvent): event is AccountedMessage {
+  return event.type === 'assistant/message' && event.data.usage !== undefined
 }
 
 /**
@@ -40,17 +45,14 @@ export function foldBudgetSpend(
   let outputTokens = 0
   let costEur = 0
   for (const event of events) {
-    if (event.type !== 'assistant/message') continue
-    const usage = event.data.usage
-    if (usage === undefined) continue
-    const input = usage.inputTokens + (usage.cacheReadTokens ?? 0) + (usage.cacheWriteTokens ?? 0)
+    if (!isAccounted(event)) continue
+    const input = billedInputTokens(event.data.usage)
     inputTokens += input
-    outputTokens += usage.outputTokens
+    outputTokens += event.data.usage.outputTokens
     const { provider, model } = event.data.message.source
     const rates = pricing[routeKey(provider, model)]
     if (rates === undefined) continue
-    costEur += (input * rates.inputEurPerMillionTokens + usage.outputTokens * rates.outputEurPerMillionTokens)
-      / PRICING_UNIT_TOKENS
+    costEur += costEurFor(input, event.data.usage.outputTokens, rates)
   }
   const first = events[0]
   const last = events[events.length - 1]
@@ -61,6 +63,40 @@ export function foldBudgetSpend(
     wallMs: first === undefined || last === undefined ? 0 : last.time - first.time,
     costEur,
   }
+}
+
+/**
+ * Select the priced-route steps the log does not yet state a price for.
+ *
+ * The selection is a function of the log alone, so a resumed session prices
+ * exactly the steps its predecessor left unpriced and never prices one twice: a
+ * step is skipped once any `usage/priced` in the log carries its turn and step.
+ * A message without provider accounting, and a message on a `provider/model`
+ * the table does not name, are both skipped — an unpriced route has no rate to
+ * record.
+ *
+ * @param events - the session events to read, oldest first.
+ * @param pricing - EUR-per-million rates keyed by `provider/model`.
+ * @returns the messages awaiting a durable price, in log order.
+ */
+export function unpricedUsage(
+  events: readonly SessionEvent[],
+  pricing: Readonly<Record<string, BudgetRoutePricing>>,
+): readonly AccountedMessage[] {
+  const priced = new Set<string>()
+  for (const event of events) {
+    if (event.type !== 'usage/priced') continue
+    priced.add(stepKey(event.data.turn, event.data.step))
+  }
+  const pending: AccountedMessage[] = []
+  for (const event of events) {
+    if (!isAccounted(event)) continue
+    const { provider, model } = event.data.message.source
+    if (pricing[routeKey(provider, model)] === undefined) continue
+    if (priced.has(stepKey(event.data.turn, event.data.step))) continue
+    pending.push(event)
+  }
+  return pending
 }
 
 /**
