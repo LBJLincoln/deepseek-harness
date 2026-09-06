@@ -12,7 +12,6 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
-import type { ObservatoryDocument } from '@deepseek-ai/dsh-observatory/types'
 
 const binScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/village-live/driver.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/village-live/cordis.yml', import.meta.url))
@@ -25,7 +24,7 @@ interface Status {
   type: string
   phase: string
   ledgers: { sessionId: string; cells: number; ended: boolean; outcome?: unknown }[]
-  rows: ObservatoryDocument['rows']
+  rows: { environmentId: string; implementer: string }[]
 }
 
 describe.skipIf(process.env.DSH_E2E_CLAUDE_CODE !== '1')('the live Proving Ground with the real product as implementer', () => {
