@@ -1718,6 +1718,9 @@ export class ToolRuntime extends Service {
       agent: exec.agent,
       toolName: exec.name,
       callId: exec.callId,
+      // The decided arguments travel to the seam so the audit pair records
+      // their digest: a grant then names the exact call it granted.
+      arguments: exec.arguments,
       ...ask.reason !== undefined ? { reason: ask.reason } : {},
       signal: exec.signal,
     })

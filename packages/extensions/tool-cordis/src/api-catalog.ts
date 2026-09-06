@@ -609,6 +609,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'dataUse',
+    summary: 'Data use (`ctx.dataUse`): the contract terms every session log states about itself.',
+    description: 'Data use (`ctx.dataUse`): the contract terms every session log states about itself.',
+    methods: [
+      {
+        signature: 'pin(agent: Agent, terms: DataUseTerms): DataUseTerms',
+        description: 'Pin narrower terms to one session and return the record as it was appended.',
+        parameters: [{ name: 'agent', description: 'the agent whose session the terms hold.' }, { name: 'terms', description: 'the terms to record; their purposes may not exceed the session\'s.' }],
+        returns: 'the terms exactly as they were appended.',
+        throws: ['{@link DataUseError} when a field is unusable, or when the pin would admit a purpose the session\'s standing terms do not.'],
+      },
+    ],
+  },
+  {
     key: 'directoryPicker',
     summary: 'Abstract directory-picking service.',
     description: 'Abstract directory-picking service. Subclass, implement `capability()`, and load the subclass as a plugin — it registers as `ctx.directoryPicker` (one implementation per context; loading a second throws, cordis\' standard duplicate-service behavior). The capability object must be stable for the service lifetime: consumers may capture it across calls.',
@@ -1130,7 +1144,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Start one program, or resume the program its spec already identifies.\n\nThe spec is frozen into a digest before anything runs, so starting the same spec twice addresses one program: the second call reconciles the existing ledger instead of forking a second one.',
         parameters: [{ name: 'spec', description: 'the deliverable to run.' }],
         returns: 'the ledger this pass left behind.',
-        throws: ['{@link ProgramError} when the spec, its presets, or the required signoff record cannot support a program.'],
+        throws: ['{@link ProgramError} when the spec, its presets, or the spec-freeze signature the program session must carry cannot support a program.'],
       },
       {
         signature: 'async resume(): Promise<ProgramReport[]>',
@@ -1785,6 +1799,26 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Stop the loop: disarm every cadence timer, cancel the fleet run in flight through its signal, and wait for the slots that are settling. The interrupted cells end as the runner ends them and their sessions become the orphans the next process records.',
         parameters: [],
         returns: 'a promise settling once no slot is in flight.',
+      },
+    ],
+  },
+  {
+    key: 'signoffs',
+    summary: 'Signoffs (`ctx.signoffs`): attributed human decisions recorded in the session log.',
+    description: 'Signoffs (`ctx.signoffs`): attributed human decisions recorded in the session log.',
+    methods: [
+      {
+        signature: 'record(agent: Agent, input: SignoffRecord): SignoffRecord',
+        description: 'Record one signature on the agent\'s session and return the detached record. The record is validated before anything is appended, so a session log never carries a signature this service refused.',
+        parameters: [{ name: 'agent', description: 'the agent whose session carries the transition being signed.' }, { name: 'input', description: 'the transition, principal, artefact digest, and evidence the caller states; every field is validated before anything is appended.' }],
+        returns: 'the record exactly as it was appended.',
+        throws: ['{@link SignoffError} when a field cannot become a durable signature, or when the same session already signed this transition on another artefact.'],
+      },
+      {
+        signature: 'latest(agent: Agent, transition: SignoffTransition): SignoffRecord | undefined',
+        description: 'The newest signature of one transition on the agent\'s own session.',
+        parameters: [{ name: 'agent', description: 'the agent whose session log is folded.' }, { name: 'transition', description: 'the transition whose newest signature is wanted.' }],
+        returns: 'the last matching record, or `undefined` without one.',
       },
     ],
   },
@@ -2595,10 +2629,10 @@ export const EVENT_API: readonly EventApiEntry[] = [
   {
     name: 'approval/request',
     mode: 'waterfall',
-    signature: '\'approval/request\'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalOutcome>): Promise<ApprovalOutcome>',
+    signature: '\'approval/request\'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalAnswer>): Promise<ApprovalAnswer>',
     summary: 'Ask composed answerers for one decision.',
-    description: 'Ask composed answerers for one decision. Return an outcome to claim the request or call `next()`; failure yields the fail-closed default. Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.',
-    parameters: [{ name: 'req', description: 'the pending decision (agent, tool identity, reason, signal).' }],
+    description: 'Ask composed answerers for one decision. Return an outcome — bare, or as `{ outcome, decidedBy }` when the answerer knows which person or rule decided — to claim the request, or call `next()`; failure yields the fail-closed default. Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.',
+    parameters: [{ name: 'req', description: 'the pending decision (agent, tool identity, arguments, reason, signal).' }],
   },
   {
     name: 'commands/change',
@@ -2997,6 +3031,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type AgentStatus = \'idle\' | \'running\';',
   },
   {
+    name: 'ApprovalAnswer',
+    declaration: 'export type ApprovalAnswer = ApprovalOutcome | {\n    readonly outcome: ApprovalOutcome;\n    readonly decidedBy: ApprovalPrincipal;\n};',
+  },
+  {
     name: 'ApprovalOutcome',
     declaration: 'export type ApprovalOutcome = \'allowed-once\' | \'rejected\' | \'cancelled\' | \'unavailable\';',
   },
@@ -3005,8 +3043,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ApprovalPolicy = \'ask\' | \'never\';',
   },
   {
+    name: 'ApprovalPrincipal',
+    declaration: 'export interface ApprovalPrincipal {\n    readonly kind: \'human\' | \'policy\';\n    readonly id: string;\n}',
+  },
+  {
     name: 'ApprovalRequest',
-    declaration: 'export interface ApprovalRequest {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: CallId;\n    readonly reason?: string;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface ApprovalRequest {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: CallId;\n    readonly arguments?: unknown;\n    readonly reason?: string;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'ApprovalService',
@@ -3395,6 +3437,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'CredentialRef',
     declaration: 'export type CredentialRef = Branded<\'CredentialRef\'>;',
+  },
+  {
+    name: 'DataUsePurpose',
+    declaration: 'export type DataUsePurpose = \'delivery\' | \'training\' | \'evaluation\';',
+  },
+  {
+    name: 'DataUseTerms',
+    declaration: 'export interface DataUseTerms {\n    readonly clientId: string;\n    readonly agreementId: string;\n    readonly purposes: readonly DataUsePurpose[];\n    readonly residency: string;\n    readonly retentionDays: number;\n    readonly redactionProfile: string;\n}',
   },
   {
     name: 'DiffCallView',
@@ -4198,7 +4248,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ProgramSignoff',
-    declaration: 'export interface ProgramSignoff {\n    readonly principal: string;\n    readonly artefactSha256: string;\n}',
+    declaration: 'export interface ProgramSignoff {\n    readonly artefactSha256: string;\n}',
   },
   {
     name: 'ProgramSpec',
@@ -4799,6 +4849,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ShellSandboxInfo',
     declaration: 'export interface ShellSandboxInfo {\n    mode: SandboxMode;\n    denied: boolean;\n    enforcement?: SandboxEnforcement;\n    runnerFailed?: boolean;\n}',
+  },
+  {
+    name: 'SignoffEvidence',
+    declaration: 'export interface SignoffEvidence {\n    readonly kind: string;\n    readonly ref: string;\n}',
+  },
+  {
+    name: 'SignoffPrincipal',
+    declaration: 'export interface SignoffPrincipal {\n    readonly kind: \'human\';\n    readonly id: string;\n    readonly displayName?: string;\n}',
+  },
+  {
+    name: 'SignoffRecord',
+    declaration: 'export interface SignoffRecord {\n    readonly transition: SignoffTransition;\n    readonly principal: SignoffPrincipal;\n    readonly artefactSha256: string;\n    readonly evidence: readonly SignoffEvidence[];\n}',
+  },
+  {
+    name: 'SignoffTransition',
+    declaration: 'export type SignoffTransition = \'spec-freeze\' | \'relaxation\' | \'review-acceptance\' | \'release\' | \'training-data-release\';',
   },
   {
     name: 'SkillCandidate',

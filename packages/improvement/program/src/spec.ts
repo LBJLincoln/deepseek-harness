@@ -7,8 +7,9 @@
  * Identity is content: the digest covers everything that decides what the
  * program runs, with goals sorted by key and each goal's dependencies sorted, so
  * the same deliverable frozen twice is one program while any changed check,
- * budget, or dependency is a different one. The signoff attests the spec rather
- * than describing it and is deliberately outside the digest.
+ * budget, or dependency is a different one. The attested artefact names what the
+ * program's signatures cover rather than what it runs, and is deliberately
+ * outside the digest.
  *
  * @module @deepseek-ai/dsh-program/spec
  */
@@ -98,9 +99,8 @@ export const ProgramSpecSchema: z<ProgramSpec> = z.object({
     gates: z.array(z.string()).required(),
   }).required(),
   // Prevent Schemastery from materializing an omitted signoff as `{}`, whose
-  // missing fields would reject every program a deployment does not gate on one.
+  // missing field would reject every program a deployment does not gate on one.
   signoff: z.object({
-    principal: z.string().required(),
     artefactSha256: z.string().required(),
   }).default(undefined as unknown as ProgramSignoff),
   tokenCeiling: z.natural().min(1),
@@ -247,7 +247,8 @@ function canonicalCheck(check: StandardCheck): unknown {
  * Goals are sorted by key and each goal's dependencies are sorted, so the order
  * a caller listed them in never changes the identity; check and gate order is
  * kept, because it is the order a validator runs them in. `signoff` is excluded:
- * it attests the spec instead of stating what the program runs.
+ * it names the artefact the program's signatures attest instead of stating what
+ * the program runs.
  * @param spec - the validated spec.
  * @returns the lowercase SHA-256 hex of its canonical form.
  */

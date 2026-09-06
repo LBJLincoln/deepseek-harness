@@ -72,6 +72,14 @@
 - id: checkpoint-policy
   name: '@deepseek-ai/dsh-session-checkpoint-policy'
 
+# The two signatures the program's `requireSignoff` reads are recorded on the
+# program session by the driver, through this service, before `start` opens it.
+- id: signoff
+  name: '@deepseek-ai/dsh-signoff'
+  config:
+    maxEvidence: 8
+    maxEvidenceRefChars: 512
+
 - id: program
   name: '@deepseek-ai/dsh-program'
   config:

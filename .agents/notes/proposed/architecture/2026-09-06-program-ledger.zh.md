@@ -14,7 +14,7 @@ Status: proposed
 
 ### 规格及其身份
 
-`ProgramSpec` 是 `{ objective, baseRevision, goals, integration, signoff? }`。每个目标是 `{ key, objective, preset, isolation, budget, dependsOn, checks }`：`key` 是程序内唯一的小写短横线身份，`preset` 是所声明角色为 `implementer` 的已交付 preset 的 id，`isolation` 是一个 `CertificateIsolation`，`budget` 是预算策略的按会话上限（`maxTotalTokens`、`maxWallMs`、`maxCostEur`），`dependsOn` 是构成有向无环图的目标 key 列表，`checks` 是在任何部门启动之前为该目标编译好的 `StandardCheck` 列表。`integration` 是 `{ checks, gates }`：对合并后的 head 运行的标准，以及必须与之一同通过的 shell 门禁（仓库自己的 lint、test 与 doc-sync 命令）。`signoff` 是 `{ principal, artefactSha256 }`，在治理推进项中的 `signoff/recorded` 事件出现之前充当四目标笔记阶段 3 的规格冻结记录；`Config.requireSignoff` 决定没有它的程序能否启动部门，客户区的组合把它设为真。`programSpecDigest(spec)` 是对目标按 key 排序后的规范化规格的 SHA-256 十六进制摘要；程序 id 是 `program-<digest>`，因此同一份冻结规格启动两次是同一个程序，对一个会话已存在的程序再次 `start` 是恢复它而不是分叉它。
+`ProgramSpec` 是 `{ objective, baseRevision, goals, integration, signoff? }`。每个目标是 `{ key, objective, preset, isolation, budget, dependsOn, checks }`：`key` 是程序内唯一的小写短横线身份，`preset` 是所声明角色为 `implementer` 的已交付 preset 的 id，`isolation` 是一个 `CertificateIsolation`，`budget` 是预算策略的按会话上限（`maxTotalTokens`、`maxWallMs`、`maxCostEur`），`dependsOn` 是构成有向无环图的目标 key 列表，`checks` 是在任何部门启动之前为该目标编译好的 `StandardCheck` 列表。`integration` 是 `{ checks, gates }`：对合并后的 head 运行的标准，以及必须与之一同通过的 shell 门禁（仓库自己的 lint、test 与 doc-sync 命令）。`signoff` 是 `{ artefactSha256 }`，即程序的签名所背书的产物；`Config.requireSignoff` 决定在部门启动之前程序会话是否必须携带一条针对该产物的 `signoff/recorded`，客户区的组合把它设为真。`programSpecDigest(spec)` 是对目标按 key 排序后的规范化规格的 SHA-256 十六进制摘要；程序 id 是 `program-<digest>`，因此同一份冻结规格启动两次是同一个程序，对一个会话已存在的程序再次 `start` 是恢复它而不是分叉它。
 
 ### 账本
 
@@ -26,7 +26,7 @@ Status: proposed
 
 ### 集成与发布
 
-当每个目标都 `certified` 时，程序从基础修订版创建集成工作树，按依赖顺序以合并提交合并各部门分支，并在该工作树上以 `integration.checks` 为标准启动集成会话，其目标是让合并后的 head 通过标准与 `gates`；一次首轮尝试即通过检查的干净合并不需要任何模型轮次，而有冲突的合并正是集成部门的目标所为。其证书被记录为 `program/integration { status: certified, mergedRevision }`，每个部门目标转为 `merged`。`program/end { outcome: released, mergedRevision }` 只跟随该证书，以及——一旦存在——治理推进项中的发布 `signoff/recorded`；在此之前 `requireSignoff` 以与启动时相同的调用方提供记录来把关。
+当每个目标都 `certified` 时，程序从基础修订版创建集成工作树，按依赖顺序以合并提交合并各部门分支，并在该工作树上以 `integration.checks` 为标准启动集成会话，其目标是让合并后的 head 通过标准与 `gates`；一次首轮尝试即通过检查的干净合并不需要任何模型轮次，而有冲突的合并正是集成部门的目标所为。其证书被记录为 `program/integration { status: certified, mergedRevision }`，每个部门目标转为 `merged`。`program/end { outcome: released, mergedRevision }` 只跟随该证书，以及程序会话上的发布 `signoff/recorded`——`requireSignoff` 在收尾处读取它，正如程序打开时读取规格冻结那样。
 
 ### 恢复
 
@@ -43,7 +43,7 @@ Status: proposed
 - **两项本 note 未列出的组合事实。** `agentDefaultModel` 是必需的注入，因为部门会话需要一条模型路由；`Config.evidenceMaxChars` 限定所记录的证据长度，因为验证域会拒绝超过它自己 `maxTextChars` 的文本。
 - **`workspaceRoot` 就是那个仓库。** 本 note 只指明了生成 worktree 的目录，却没有指明持有 `baseRevision` 的仓库；落地的字段是程序交付进入的 git 仓库，`<workspaceRoot>/<programId>/<key>` 位于其下。
 - **整合是一个 key，其门禁是检查。** 整合 worktree 与会话使用 `@integration`，任何小写短横线目标 key 都无法占用它；`integration.gates` 的每一项都会成为整合标准中的一条 `gate-<n>` 检查，因此证书覆盖门禁，而占用此类 id 的整合检查会在规格校验时被拒。整合会话挂载花名册的默认预设，并声明 `none` 隔离级别。
-- **摘要排除 `signoff`。** 它是对规格的背书，而不是对程序运行内容的陈述，因此同一组目标由两位负责人签署仍是同一个程序。
+- **摘要排除 `signoff`。** 它指名的是签名所背书的产物，而不是程序运行的内容，因此同一组目标在两个产物上被签署仍是同一个程序。
 - **台账先声明再报告。** `program/start` 之后为每个目标写一条 `pending` 记录，核对时也会为台账从未记录过的目标补上声明，因此某个 key 的第一条记录总是 `pending`，伴随件据此校验其后的每一次状态迁移。当整合 worktree 根本无法创建时，`program/integration` 可以直接以 `failed` 进入。
 - **部门会话 id 由推导得出**，形如 `<programId>-<key>`，这让"任何 key 都不会有第二个会话"成为身份的性质，而不是某次查找的结果。
 - **屏障预留不落盘任何东西。** 运行目录被预留，以便屏障把该部门记为实现方，但检查脚本并不写入其中，因此声明高于 `none` 的隔离级别的目标会被验证域拒绝，除非该会话自身的普查能证明该声明。
@@ -76,7 +76,7 @@ Status: proposed
 2. 已落地。预算策略中的 `budget/caps`：事件、收紧折叠、伴随件规则，以及由程序写入它。
 3. 已落地。集成：按依赖顺序的合并、集成会话、`program/integration`、发布。第 4 项中的 `verify-village-composition` 规则随它一并落地，因为没有带上限预算策略的程序组合，正是上限与各部门配额所依赖的前提。
 4. 下游：scorekeeper 从 `program/member` 得到的 `program` 事实组、班次驱动器能把程序作为时段排程。
-5. 治理：`signoff/recorded` 在启动与发布处取代调用方提供的记录；验证仪器的 `standard_author` 从冻结的规格编写程序的检查。
+5. 已落地。治理：两处 `requireSignoff` 把关都从程序会话读取 `signoff/recorded`——打开时读 `spec-freeze`，以 released 结束之前读 `release`——针对 `spec.signoff` 所指名的产物，由调用方通过 `ctx.signoffs` 记录（[可归属决定笔记](2026-09-06-attributable-decisions.md)）。仍需：验证仪器的 `standard_author` 从冻结的规格编写程序的检查。
 6. 之后，日志式工作流引擎承载该循环；账本事件不变。
 
 ## Risks
@@ -85,4 +85,4 @@ Status: proposed
 - **恢复时的轮次上限。** 被恢复的部门保留其已接纳的轮次，因此频繁重启的程序会更早耗尽上限；账本把这以带原因的 `failed` 呈现出来。
 - **并行花费。** 部门并发地花费；目标预算限定每一个，程序上限限定总和，在每次启动时从日志折叠。
 - **长程序与日志大小。** 程序自身的日志保持很小（每次转换一个事件）；部门日志才是工作所在，scorekeeper 像读取任何会话一样读取它们。
-- **事件存在之前的签核。** 在 `signoff/recorded` 落地之前，调用方提供的记录是一个断言而非可归属的负责人；`requireSignoff` 是客户区所设置的，而治理推进项才是让它成为证明的东西。
+- **签名只被记录，未被认证。** 把关读取的是部署方身份提供方给出的主体；没有任何东西验证该 id 指名的就是签署者本人，因此 `requireSignoff` 证明的是存在一条针对正确产物的记录，而不是它出自某个特定的人。

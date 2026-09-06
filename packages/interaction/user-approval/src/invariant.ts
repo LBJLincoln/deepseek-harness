@@ -1,10 +1,18 @@
-/** Package-owned approval audit-stream invariants. @module @deepseek-ai/dsh-user-approval/invariant */
+/**
+ * Package-owned approval audit-stream invariants: the turn-enclosed ask/decide
+ * pairing, the closed outcome and policy vocabularies, and the two attribution
+ * relations — a decision states the same `argumentsSha256` its own question
+ * recorded, so no reader of a decision alone can be told about other arguments
+ * than the ones decided, and a `decidedBy` names a known kind and a non-empty
+ * principal.
+ * @module @deepseek-ai/dsh-user-approval/invariant
+ */
 
 import type { Context } from '@deepseek-ai/cordis'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { ApprovalRequestId } from './index.ts'
-import { APPROVAL_POLICIES } from './index.ts'
+import { APPROVAL_POLICIES, APPROVAL_PRINCIPAL_KINDS } from './index.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-user-approval'
 const APPROVAL_OUTCOMES = ['allowed-once', 'rejected', 'cancelled', 'unavailable'] as const
@@ -15,12 +23,13 @@ export const name = 'user-approval-invariant'
 export const inject = ['invariants']
 
 type ApprovalTransition =
-  | { kind: 'asked'; id: ApprovalRequestId }
+  | { kind: 'asked'; id: ApprovalRequestId; argumentsSha256: string | undefined }
   | { kind: 'decided'; id: ApprovalRequestId }
 
 interface ApprovalTrace {
   openTurn: number | null
-  pending: Set<ApprovalRequestId>
+  /** Open question ids to the argument digest their ask recorded, if any. */
+  pending: Map<ApprovalRequestId, string | undefined>
 }
 
 /** Validate one approval event against committed unmatched questions. */
@@ -33,13 +42,26 @@ function validateApprovalEvent(
     if (trace.openTurn === null) fail('approval/asked appended outside any open turn')
     if (event.data.toolName.length === 0) fail('approval/asked toolName must be non-empty')
     if (trace.pending.has(event.data.id)) fail(`approval/asked repeated open id ${JSON.stringify(event.data.id)}`)
-    return { kind: 'asked', id: event.data.id }
+    return { kind: 'asked', id: event.data.id, argumentsSha256: event.data.argumentsSha256 }
   }
   if (event.type === 'approval/decided') {
     if (trace.openTurn === null) fail('approval/decided appended outside any open turn')
     if (!trace.pending.has(event.data.id)) fail(`approval/decided has no matching approval/asked for id ${JSON.stringify(event.data.id)}`)
     if (!APPROVAL_OUTCOMES.includes(event.data.outcome)) {
       fail(`approval/decided carries unknown outcome ${JSON.stringify(event.data.outcome)}`)
+    }
+    // The decision states what it decided on, so a reader trusting the
+    // decision alone learns the same arguments the question was put about.
+    const asked = trace.pending.get(event.data.id)
+    if (event.data.argumentsSha256 !== asked) {
+      fail(`approval/decided carries argumentsSha256 ${JSON.stringify(event.data.argumentsSha256)}, which its approval/asked recorded as ${JSON.stringify(asked)}`)
+    }
+    const { decidedBy } = event.data
+    if (decidedBy !== undefined) {
+      if (!APPROVAL_PRINCIPAL_KINDS.includes(decidedBy.kind)) {
+        fail(`approval/decided carries decidedBy kind ${JSON.stringify(decidedBy.kind)}`)
+      }
+      if (decidedBy.id.length === 0) fail('approval/decided carries an empty decidedBy id, so it names nobody')
     }
     return { kind: 'decided', id: event.data.id }
   }
@@ -50,8 +72,8 @@ function validateApprovalEvent(
 }
 
 /** Apply one accepted approval-pair transition. */
-function applyApprovalTransition(pending: Set<ApprovalRequestId>, transition: ApprovalTransition): void {
-  if (transition.kind === 'asked') pending.add(transition.id)
+function applyApprovalTransition(pending: Map<ApprovalRequestId, string | undefined>, transition: ApprovalTransition): void {
+  if (transition.kind === 'asked') pending.set(transition.id, transition.argumentsSha256)
   else pending.delete(transition.id)
 }
 
@@ -62,7 +84,7 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
   const traces = new WeakMap<Session, ApprovalTrace>()
   const staged = new WeakMap<SessionEvent, { session: Session; transition: ApprovalTransition }>()
   const seed = (session: Session): ApprovalTrace => {
-    const trace: ApprovalTrace = { openTurn: null, pending: new Set() }
+    const trace: ApprovalTrace = { openTurn: null, pending: new Map() }
     traces.set(session, trace)
     for (const event of session.events) {
       if (event.type === 'turn/start') trace.openTurn = event.data.turn

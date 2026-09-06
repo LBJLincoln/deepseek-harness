@@ -14,11 +14,14 @@ import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentFactory } from '@deepseek-ai/dsh-agent'
 import type { AgentPreset } from '@deepseek-ai/dsh-agent-presets'
 import GoalService from '@deepseek-ai/dsh-goal'
-import SessionStore, { Session } from '@deepseek-ai/dsh-session'
+import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
 import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
+import SignoffService from '@deepseek-ai/dsh-signoff'
+import type { SignoffTransition } from '@deepseek-ai/dsh-signoff'
 import CompletionStandardService from '@deepseek-ai/dsh-verification'
-import ProgramService, { type Config } from '@deepseek-ai/dsh-program'
+import ProgramService, { programIdFor, programSpecDigest, resolveProgramSpec, type Config } from '@deepseek-ai/dsh-program'
+import type { ProgramSpec } from '@deepseek-ai/dsh-program'
 
 /** One scripted command outcome; every field the service reads is stated. */
 export interface ScriptedRun {
@@ -76,6 +79,12 @@ export function stubAgent(session: Session, onFollowup: (agent: Agent) => void =
   return agent
 }
 
+/** One signature a case records on a program session before the program starts. */
+interface HarnessSignature {
+  readonly transition: SignoffTransition
+  readonly artefactSha256: string
+}
+
 /** The presets a harness roster supplies, keyed by id. */
 type PresetRoster = readonly AgentPreset[]
 
@@ -91,6 +100,13 @@ export interface ProgramHarness {
   readonly commands: CommandLog
   /** What each agent's turn appends to its own session before the checks run. */
   turn: (agent: Agent) => void
+  /**
+   * Record signatures on the program session one spec addresses, the way a
+   * caller signs a spec freeze and a release before calling `start`. The
+   * session is left persisted and out of the live store, exactly as the
+   * service's own scan expects to find it.
+   */
+  sign: (spec: ProgramSpec, signatures: readonly HarnessSignature[]) => Promise<void>
   /** Unload the program service alone, the way a stopping process does. */
   unload: () => Promise<void>
   dispose: () => Promise<void>
@@ -139,6 +155,7 @@ export async function programHarness(
   await ctx.plugin(GoalService)
   await ctx.plugin(CompletionStandardService)
   await ctx.plugin(JsonlSessionPersistence, { root: sessions, compression: 'none' })
+  await ctx.plugin(SignoffService, { maxEvidence: 8, maxEvidenceRefChars: 256 })
 
   const harness: ProgramHarness = {
     ctx,
@@ -147,6 +164,7 @@ export async function programHarness(
     sessions,
     commands,
     turn: () => {},
+    sign: () => Promise.resolve(),
     unload: () => Promise.resolve(),
     dispose: async () => { await ctx.fiber.dispose() },
   }
@@ -216,5 +234,23 @@ export async function programHarness(
   })
   ;(harness as { programs: ProgramService }).programs = ctx.programs
   ;(harness as { unload: () => Promise<void> }).unload = async () => { await fiber.dispose() }
+  ;(harness as { sign: ProgramHarness['sign'] }).sign = async (spec, signatures) => {
+    const session = ctx.sessions.prepare(SessionId(programIdFor(programSpecDigest(resolveProgramSpec(spec)))))
+    const leave = ctx.sessions.enter(session)
+    try {
+      ctx.sessions.announce(session)
+      for (const signature of signatures) {
+        ctx.signoffs.record(stubAgent(session), {
+          transition: signature.transition,
+          principal: { kind: 'human', id: 'release-manager', displayName: 'Release Manager' },
+          artefactSha256: signature.artefactSha256,
+          evidence: [{ kind: 'spec', ref: 'the frozen spec' }],
+        })
+      }
+      await ctx.sessions.flush(session)
+    } finally {
+      leave()
+    }
+  }
   return harness
 }

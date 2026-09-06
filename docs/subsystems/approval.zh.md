@@ -50,7 +50,7 @@ type ApprovalPolicy = 'ask' | 'never'
 
 ## 审批请求
 
-`ApprovalRequest` 以足够精确的方式标识 agent 和工具操作，以便路由和审计该问题。它有意省略工具参数：应答者通过 `callId` 将提示附加到已流式输出的工具调用上，而非渲染另一份可能漂移的副本。
+`ApprovalRequest` 以足够精确的方式标识 agent 和工具操作，以便路由和审计该问题。它携带被决定的参数，以便 seam 把它们摘要进审计事件对，而日志只保留该摘要：应答者通过 `callId` 将提示附加到已流式输出的工具调用上，而非渲染另一份可能漂移的副本。
 
 ```ts type-equiv
 /**
@@ -71,6 +71,13 @@ interface ApprovalRequest {
    * attach the prompt to the tool call it already streamed.
    */
   readonly callId?: CallId
+  /**
+   * The losslessly JSON-serializable arguments being decided, when the asker
+   * has them. The seam digests them into the audit pair so a decision states
+   * what it decided on; an asker whose subject is not a set of tool arguments
+   * — a sandbox escalation states its subject in `reason` — omits them.
+   */
+  readonly arguments?: unknown
   /** The asker's human-readable explanation of WHY it is asking. */
   readonly reason?: string
   /**
@@ -81,9 +88,45 @@ interface ApprovalRequest {
 }
 ```
 
+<a id="attribution"></a>
+
+## 归属
+
+`ApprovalPrincipal` 指名是谁达成了某个结果。seam 记录应答方陈述的内容而不做任何认证，因此该 id 的可归属性不超过提供它的那一方；理由由[可归属决定的 Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md)负责。
+
+```ts type-equiv
+/**
+ * Who decided one approval: a person the deployment's identity provider names,
+ * or a rule that reached the outcome without asking anyone. The seam records
+ * the principal an answerer states and never authenticates it, so `id` is only
+ * as attributable as whatever supplied it.
+ */
+interface ApprovalPrincipal {
+  /** `'human'` for a person's decision, `'policy'` for a rule's. */
+  readonly kind: 'human' | 'policy'
+  /** Non-empty identity of the person or the rule that decided. */
+  readonly id: string
+}
+```
+
+知道主体的应答方返回 `ApprovalAnswer` 的具名分支，而不是裸结果；所有既有应答方仍只返回结果本身，而封闭词汇表之外的值会被规范化为不带主体的 `unavailable`。
+
+```ts type-equiv
+/**
+ * One answerer's reply: the bare outcome, or the outcome together with the
+ * person or rule that reached it. Answerers that cannot name a principal keep
+ * returning the bare outcome.
+ */
+type ApprovalAnswer =
+  | ApprovalOutcome
+  | { readonly outcome: ApprovalOutcome; readonly decidedBy: ApprovalPrincipal }
+```
+
 ## 分发与审计
 
-`ctx.approval.request(req)` 要求发起请求的会话处于一个尚未结束的轮次内。它追加 `approval/asked`，获取一个结果，追加对应的 `approval/decided`，然后以该结果完成。`never` 策略在服务内部、waterfall 分发之前强制执行，因此即使后来以 `prepend` 注册的应答者也无法绕过它。应答者在负责处理该请求时返回结果，否则调用 `next()` 委托；第一个应答占据唯一的决策槽位。
+`ctx.approval.request(req)` 要求发起请求的会话处于一个尚未结束的轮次内。它追加 `approval/asked`，获取一个结果，追加对应的 `approval/decided`，然后以该结果完成。`never` 策略在服务内部、waterfall 分发之前强制执行，因此即使后来以 `prepend` 注册的应答者也无法绕过它——它也是服务自己做出的唯一一个决定，记录为 `decidedBy: { kind: 'policy', id: 'approval-policy:never' }`。应答者在负责处理该请求时返回结果，否则调用 `next()` 委托；第一个应答占据唯一的决策槽位。
+
+当发起方提供了参数时，两条审计事件都携带 `argumentsSha256`：这一个摘要由 `approvalArgumentsDigest` 在任何应答方运行之前算出，并在决定上重复一次，于是只读决定的人也能知道被授权的是什么。[不变量伴随插件](invariants.md)会拒绝摘要与其自身问题不一致的决定，以及 kind 未知或 id 为空的 `decidedBy`。
 
 审计事件仅写入日志，不进入模型 transcript（文本记录）。模型可见的行为是调用方派生的工具结果与当前运行时上下文快照。服务 dispose（资源释放）时会移除其上下文贡献；应答者监听器独立地通过 effect 绑定到其所属插件。
 
@@ -141,7 +184,7 @@ overrideOf(session: Session): ApprovalPolicy | undefined
 
 Types: [Agent](core.md) · [Session](session.md)
 
-Source: [`packages/interaction/user-approval/src/index.ts:192`](../../packages/interaction/user-approval/src/index.ts)
+Source: [`packages/interaction/user-approval/src/index.ts:274`](../../packages/interaction/user-approval/src/index.ts)
 
 <a id="approval-events"></a>
 
@@ -151,20 +194,22 @@ Source: [`packages/interaction/user-approval/src/index.ts:192`](../../packages/i
 
 #### `approval/request` — waterfall
 
-Ask composed answerers for one decision. Return an outcome to claim the request or call `next()`; failure yields the fail-closed default. Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
+Ask composed answerers for one decision. Return an outcome — bare, or as `{ outcome, decidedBy }` when the answerer knows which person or rule decided — to claim the request, or call `next()`; failure yields the fail-closed default. Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
 
 ```ts cordis-catalog
 /**
- * Ask composed answerers for one decision. Return an outcome to claim the
- * request or call `next()`; failure yields the fail-closed default.
+ * Ask composed answerers for one decision. Return an outcome — bare, or as
+ * `{ outcome, decidedBy }` when the answerer knows which person or rule
+ * decided — to claim the request, or call `next()`; failure yields the
+ * fail-closed default.
  * Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
- * @param req - the pending decision (agent, tool identity, reason, signal).
+ * @param req - the pending decision (agent, tool identity, arguments, reason, signal).
  * @mode waterfall
  */
-'approval/request'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalOutcome>): Promise<ApprovalOutcome>
+'approval/request'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalAnswer>): Promise<ApprovalAnswer>
 ```
 
 Types: [Scoped](scope.md)
 
-Source: [`packages/interaction/user-approval/src/index.ts:30`](../../packages/interaction/user-approval/src/index.ts)
+Source: [`packages/interaction/user-approval/src/index.ts:32`](../../packages/interaction/user-approval/src/index.ts)
 <!-- END GENERATED cordis-surface -->

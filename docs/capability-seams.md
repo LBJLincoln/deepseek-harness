@@ -109,6 +109,11 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
+  pkg_signoff["signoff"]
+  svc_signoffs["ctx.signoffs<br/>Attributed human signatures"]
+  pkg_program["program"]
+  pkg_data_use["data-use"]
+  svc_dataUse["ctx.dataUse<br/>Pinned data-use terms"]
   pkg_verification["verification"]
   svc_completionStandards["ctx.completionStandards<br/>Executable completion standards"]
   pkg_command_verification["command-verification"]
@@ -134,7 +139,6 @@ flowchart LR
   pkg_experiments["experiments"]
   pkg_shifts["shifts"]
   svc_shifts["ctx.shifts<br/>Durable shift driver"]
-  pkg_program["program"]
   svc_programs["ctx.programs<br/>Program ledger"]
   svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
@@ -247,6 +251,7 @@ flowchart LR
   pkg_cordis_host_runner --> svc_dynamicCordisRunner
   pkg_credentials --> svc_credentials
   pkg_credentials_local --> svc_credentials
+  pkg_data_use --> svc_dataUse
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
   pkg_directory_picker_native --> svc_directoryPicker
@@ -299,6 +304,7 @@ flowchart LR
   pkg_shell --> svc_shell
   pkg_shell_env --> svc_shellEnv
   pkg_shifts --> svc_shifts
+  pkg_signoff --> svc_signoffs
   pkg_skill --> svc_skills
   pkg_skill_badge --> svc_skills
   pkg_skill_filesystem --> svc_skills
@@ -426,6 +432,7 @@ flowchart LR
   svc_shellEnv --> pkg_tool_bash
   svc_shellEnv --> pkg_tool_pwsh
   svc_shifts --> pkg_headless_agent
+  svc_signoffs --> pkg_program
   svc_skills --> pkg_tool_skill
   svc_spillStore --> pkg_spill_policy
   svc_storage --> pkg_storage_domain
@@ -508,6 +515,8 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | Layers the default ModelSelection through settings so direct and Host-backed Agent entry points share one state owner. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | The one concrete loop plugin; extension packages depend on dsh-agent events and services, not on this package. |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
+| `ctx.signoffs` | `core` | [`signoff`](../packages/governance/signoff) | - | [`program`](../packages/improvement/program) | - | Records one signoff/recorded per signed transition and folds the newest one back out of the log; the program ledger reads the fold rather than injecting the service. |
+| `ctx.dataUse` | `core` | [`data-use`](../packages/governance/data-use) | - | - | - | Pins the contract terms a session transcript is held under at session start and refuses a later pin that widens its purposes. |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | Owns one executable standard per goal, records certificates from fully passing runs, and denies uncertified goal completion inside the goal operation. |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | Owns the validator-owned directory tree, mints one run reservation per implementer session, and decides which directories that session may not read. |
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-tools`](../packages/components/components-tools), [`components-prompt`](../packages/components/components-prompt), [`components-presets`](../packages/components/components-presets), [`components-subagents`](../packages/components/components-subagents), [`components-manifest`](../packages/components/components-manifest), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it and the manifest writer records what one agent had in play. |

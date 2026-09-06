@@ -27,3 +27,16 @@ export function ApprovalRequestId(id: string): ApprovalRequestId {
  * request, or unavailable answerer. Callers fail closed on `unavailable`.
  */
 export type ApprovalOutcome = 'allowed-once' | 'rejected' | 'cancelled' | 'unavailable'
+
+/**
+ * Who decided one approval: a person the deployment's identity provider names,
+ * or a rule that reached the outcome without asking anyone. The seam records
+ * the principal an answerer states and never authenticates it, so `id` is only
+ * as attributable as whatever supplied it.
+ */
+export interface ApprovalPrincipal {
+  /** `'human'` for a person's decision, `'policy'` for a rule's. */
+  readonly kind: 'human' | 'policy'
+  /** Non-empty identity of the person or the rule that decided. */
+  readonly id: string
+}

@@ -27,7 +27,9 @@ import type {} from '@deepseek-ai/dsh-goal'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import type { Session } from '@deepseek-ai/dsh-session'
+import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+import { latestSignoff } from '@deepseek-ai/dsh-signoff'
+import type { SignoffTransition } from '@deepseek-ai/dsh-signoff'
 // Type-only: resolves ctx.sessionPersistence.
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type { ShellRunResult } from '@deepseek-ai/dsh-shell'
@@ -257,16 +259,13 @@ export class ProgramService extends Service {
    * ledger instead of forking a second one.
    * @param spec - the deliverable to run.
    * @returns the ledger this pass left behind.
-   * @throws {@link ProgramError} when the spec, its presets, or the required
-   *   signoff record cannot support a program.
+   * @throws {@link ProgramError} when the spec, its presets, or the spec-freeze
+   *   signature the program session must carry cannot support a program.
    */
   async start(spec: ProgramSpec): Promise<ProgramReport> {
     const frozen = resolveProgramSpec(spec)
     if (!PROGRAM_REVISION.test(frozen.baseRevision)) {
       throw new ProgramError(`baseRevision "${frozen.baseRevision}" is not a revision the composed shell can carry unquoted`, 'PROGRAM_INVALID_SPEC')
-    }
-    if (this.config.requireSignoff && frozen.signoff === undefined) {
-      throw new ProgramError('this deployment requires a signoff record before a program may start', 'PROGRAM_SIGNOFF_REQUIRED')
     }
     await this.requirePresets(frozen)
     const programId = programIdFor(programSpecDigest(frozen))
@@ -367,7 +366,7 @@ export class ProgramService extends Service {
     return reports
   }
 
-  /** Start a program that has no session yet, or reconcile the one it already has. */
+  /** Start a program that has no ledger yet, or reconcile the one it already has. */
   private async open(programId: ProgramId, spec: ProgramSpec): Promise<ProgramReport> {
     const scan = await this.scan()
     const existing = scan.ledgers.find(ledger => ledger.start.programId === programId)
@@ -375,20 +374,76 @@ export class ProgramService extends Service {
       if (existing.end !== undefined) return this.finishedReport(existing)
       return await this.pickUp(existing, scan.sessions)
     }
-    const session = this.ctx.sessions.prepare(SessionId(programId), { meta: { cwd: this.config.workspaceRoot } })
-    return await this.publish(session, async () => {
-      session.append('program/start', {
-        programId,
-        specSha256: programSpecDigest(spec),
-        spec,
-        baseRevision: spec.baseRevision,
-        ...spec.signoff === undefined ? {} : { signoff: spec.signoff },
-      })
-      const run = this.newRun(programId, spec, session)
-      for (const state of run.states.values()) this.record(run, state)
-      await this.ctx.sessions.flush(session)
-      return await this.drive(run)
+    const sessionId = SessionId(programId)
+    const carried = scan.sessions.get(sessionId)
+    this.requireSignoffRecord(spec, carried?.events ?? [], 'spec-freeze', 'start')
+    if (carried === undefined) {
+      const session = this.ctx.sessions.prepare(sessionId, { meta: { cwd: this.config.workspaceRoot } })
+      return await this.publish(session, () => this.begin(session, programId, spec))
+    }
+    // The program id is derived from the spec digest, so a caller signing the
+    // spec freeze addresses this session before the program exists. Its log is
+    // continued rather than replaced, or the signature it holds would be lost.
+    const preparation = await this.ctx.sessionPersistence.prepare(sessionId)
+    try {
+      return await this.publish(preparation.session, () => this.begin(preparation.session, programId, spec))
+    } finally {
+      preparation[Symbol.dispose]()
+    }
+  }
+
+  /** Declare the program and every goal of its spec, then run it. */
+  private async begin(session: Session, programId: ProgramId, spec: ProgramSpec): Promise<ProgramReport> {
+    session.append('program/start', {
+      programId,
+      specSha256: programSpecDigest(spec),
+      spec,
+      baseRevision: spec.baseRevision,
+      ...spec.signoff === undefined ? {} : { signoff: spec.signoff },
     })
+    const run = this.newRun(programId, spec, session)
+    for (const state of run.states.values()) this.record(run, state)
+    await this.ctx.sessions.flush(session)
+    return await this.drive(run)
+  }
+
+  /**
+   * Reject a transition this deployment gates on a signature the program
+   * session does not carry, or carries over another artefact than the spec
+   * names. The signature is a `signoff/recorded` a caller appended through
+   * `ctx.signoffs`; this service reads it and never writes one.
+   * @param spec - the frozen spec, whose `signoff` names the attested artefact.
+   * @param events - the program session's events, oldest first.
+   * @param transition - the signature the transition needs.
+   * @param transitioning - the refused transition, for the message.
+   */
+  private requireSignoffRecord(
+    spec: ProgramSpec,
+    events: readonly SessionEvent[],
+    transition: SignoffTransition,
+    transitioning: string,
+  ): void {
+    if (!this.config.requireSignoff) return
+    const artefact = spec.signoff?.artefactSha256
+    if (artefact === undefined) {
+      throw new ProgramError(
+        `this deployment requires a signoff record before a program may ${transitioning}, and the spec names no artefact for one to attest`,
+        'PROGRAM_SIGNOFF_REQUIRED',
+      )
+    }
+    const record = latestSignoff(events, transition)
+    if (record === undefined) {
+      throw new ProgramError(
+        `this deployment requires a "${transition}" signoff/recorded on the program session before a program may ${transitioning}`,
+        'PROGRAM_SIGNOFF_REQUIRED',
+      )
+    }
+    if (record.artefactSha256 !== artefact) {
+      throw new ProgramError(
+        `the "${transition}" signoff/recorded attests artefact ${record.artefactSha256}, which is not the spec's ${artefact}`,
+        'PROGRAM_SIGNOFF_REQUIRED',
+      )
+    }
   }
 
   /** Reconcile one existing program from its departments and carry it on. */
@@ -573,9 +628,7 @@ export class ProgramService extends Service {
 
   /** Record the release of a program whose integration certified its merged head. */
   private async release(run: ProgramRun): Promise<ProgramReport> {
-    if (this.config.requireSignoff && run.spec.signoff === undefined) {
-      throw new ProgramError('this deployment requires a signoff record before a program may release', 'PROGRAM_SIGNOFF_REQUIRED')
-    }
+    this.requireSignoffRecord(run.spec, run.session.events, 'release', 'release')
     const mergedRevision = run.integration?.mergedRevision
     run.outcome = 'released'
     run.session.append('program/end', {

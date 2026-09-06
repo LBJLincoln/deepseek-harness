@@ -21,7 +21,7 @@
 | 字段 | 含义 |
 |---|---|
 | `workspaceRoot`（必填） | 程序交付进入的 git 仓库。每个 worktree 都在它下面按 `<workspaceRoot>/<programId>/<key>` 生成，因此部署应把它指向一份检出，程序的分支即从其中的 `baseRevision` 起步。它必须是所组合 shell 无需引号即可承载的绝对路径，插件在加载时检查这一点。 |
-| `requireSignoff`（必填） | 没有 `signoff` 记录的程序是否可以启动部门或发布。客户区会设置它；两处拒绝都携带 `PROGRAM_SIGNOFF_REQUIRED`。 |
+| `requireSignoff`（必填） | 程序会话是否必须在部门启动之前与程序发布之前携带 `signoff/recorded`。客户区会设置它；两处拒绝都携带 `PROGRAM_SIGNOFF_REQUIRED`。 |
 | `maxConcurrentGoals`（必填） | 同一程序中同时运行的部门数。依赖会进一步收紧它：只有当某目标依赖的每个目标都已认证，该目标才会启动。 |
 | `maxGoalRounds`（必填） | 创建每个部门目标与整合目标时所用的轮次上限，也是本服务在把某部门记为 `failed` 之前所驱动的验证尝试次数。 |
 | `branchPrefix`（必填） | 每个 worktree 的分支命名空间：`<branchPrefix>/<programId>/<key>`。为小写短横线格式的 git ref 段。 |
@@ -33,7 +33,11 @@
 
 `ctx.programs.start(spec)` 校验并冻结规格、解析其预设，然后驱动该规格所标识的程序：会话尚不存在的程序被开启，会话已存在的程序被核对而不是分叉，账本已带有收尾记录的程序则原样报告。`ctx.programs.resume()` 会核对持久化根目录中每一个账本没有收尾记录的程序并把它继续下去；插件在 Loader 树稳定后运行一次，操作者或驱动器也可以再次调用。两个入口都走同一条队列，因此任何程序都不会被两趟处理同时驱动。
 
-`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制：目标描述、基线版本、token 上限、按 key 排序的目标（每个目标的依赖也已排序），以及整合的检查与门禁（按撰写顺序）。`signoff` 被排除在外——它是对规格的背书，而不是对程序运行内容的陈述，因此同一组目标由两位负责人签署仍是同一个程序。`program-<digest>` 既是程序 id，也是程序会话的 id，还是每个部门会话 id（`<programId>-<key>`）的前缀，正是这一点让"每个 key 只有一个会话"成为身份的性质，而不是某次查找的结果。
+`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制：目标描述、基线版本、token 上限、按 key 排序的目标（每个目标的依赖也已排序），以及整合的检查与门禁（按撰写顺序）。`signoff` 被排除在外——它指名的是程序签名所背书的产物，而不是程序运行的内容，因此同一组目标在两个产物上被签署仍是同一个程序。`program-<digest>` 既是程序 id，也是程序会话的 id，还是每个部门会话 id（`<programId>-<key>`）的前缀，正是这一点让"每个 key 只有一个会话"成为身份的性质，而不是某次查找的结果。
+
+### 两个签名
+
+在 `requireSignoff: true` 下，打开程序时从程序会话读取 `signoff/recorded { transition: 'spec-freeze' }`，发布时在 `program/end { outcome: released }` 之前读取 `signoff/recorded { transition: 'release' }`；两者都必须背书 `spec.signoff.artefactSha256` 所指名的摘要，而本服务从不写入任何一条。调用方通过 `ctx.signoffs`（[`@deepseek-ai/dsh-signoff`](../../governance/signoff/README.md)）把它们记录到 `programIdFor(programSpecDigest(resolveProgramSpec(spec)))` 所寻址的会话上——由于程序 id 就是规格摘要，这个会话在程序存在之前就可以推导出来。`start` 会延续那份日志而不是替换它，于是签名与账本留在同一个会话中。缺少发布签名的程序会在收尾处拒绝并保持打开：下一次遍历会从各部门重建它，并在签名被记录后发布。
 
 `resolveProgramSpec(spec)` 会在任何东西开始运行之前拒绝一份规格：key 不是小写短横线格式或被声明两次、依赖自身、依赖未知的 key 或重复声明同一依赖、依赖成环、预算字段不是有限非负数、目标没有任何检查、检查 id 重复、整合既没有检查也没有门禁，以及整合检查占用了门禁所拥有的 `gate-<n>` id。
 
@@ -43,7 +47,7 @@
 
 | 事件 | 何时写入 | 载荷 |
 |---|---|---|
-| `program/start` | 在任何部门存在之前 | `programId`、`specSha256`、冻结的 `spec`、`baseRevision`，以及提供了签署记录时的 `signoff` |
+| `program/start` | 在任何部门存在之前 | `programId`、`specSha256`、冻结的 `spec`、`baseRevision`，以及规格指名了产物时的 `signoff`——被背书的产物摘要 |
 | `program/goal` | 每次状态变化一次，在其所记录事实持久之后 | `programId`、`key`、`status`，以及该状态所携带的 `sessionId`、`workspace`、`revision` 或 `reason` |
 | `program/integration` | 合并 worktree 就绪时，以及它认证或失败时 | `programId`、`status`（`running`、`certified`、`failed`）、`mergedRevision`、`sessionId`、`reason` |
 | `program/resume` | 后续进程接手该程序时 | `programId` 以及对规格中每个目标核对后的各状态计数 |
@@ -83,7 +87,8 @@
 ## 已知限制与待办
 
 - **记分员尚未折叠程序** —— `program/member` 标记正是为它而写，但目前还没有任何事实分组读取它，因此程序的开销与认证率仍需从账本和成员会话中人工读取。
-- **签署是断言而非证明** —— `requireSignoff` 依据的是调用方提供的记录，没有可归属的主体。等治理线的 `signoff/recorded` 事件出现后，它才会成为证明。
+- **签名只被记录，未被认证** —— `requireSignoff` 依据的是一条 `signoff/recorded`，其主体由部署方的身份提供方给出；无论是本包还是 `@deepseek-ai/dsh-signoff`，都不验证该 id 指名的就是签署者本人。
+- **发布签名只在收尾处读取** —— 规格冻结已签署但发布未签署的程序，会在拒绝之前跑完每个部门及其整合，因此被拒绝的那次遍历要付出整个程序的工作量；没有任何东西更早索取发布签名。
 - **每个进程一次只跑一个程序** —— 每趟处理都走同一条队列，因此并发启动的两个程序会被依次驱动。程序内部的并发由 `maxConcurrentGoals` 限定。
 - **被阻塞的部门需要操作者** —— 账本记录阻塞代码后就停下；没有任何机制会重新武装被阻塞的目标，因此带有这种部门的程序会以 `failed` 结束，直到有人通过目标域恢复该目标并再次启动该程序。
 - **部门声明隔离级别却不落盘自己的检查** —— 运行目录被预留，以便屏障把该会话记为实现方，但检查脚本并不落盘到那里，因此声明高于 `none` 的隔离级别的目标会被验证域拒绝，除非该会话自身的普查能证明该声明。

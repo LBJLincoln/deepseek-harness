@@ -7,7 +7,16 @@ import type { Scope } from '@deepseek-ai/dsh-scope'
 import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ApprovalService, { ApprovalOutcome, ApprovalRequest, effectiveApprovalPolicy, setApprovalPolicy } from '@deepseek-ai/dsh-user-approval'
+import ApprovalService, {
+  APPROVAL_POLICY_NEVER_PRINCIPAL,
+  APPROVAL_PRINCIPAL_KINDS,
+  ApprovalAnswer,
+  approvalArgumentsDigest,
+  ApprovalOutcome,
+  ApprovalRequest,
+  effectiveApprovalPolicy,
+  setApprovalPolicy,
+} from '@deepseek-ai/dsh-user-approval'
 
 /**
  * A minimal Agent stand-in — the service only reaches `agent.session.append`
@@ -510,5 +519,134 @@ describe('approval policy (the approval/policy fold)', () => {
     expect(await contextFor()).toBeDefined()
     await fiber.dispose()
     expect(await contextFor()).toBeUndefined()
+  })
+})
+
+describe('what a decision states it decided on', () => {
+  it('digests the asked arguments once and repeats the digest on the decision', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+    ctx.on('approval/request', () => Promise.resolve<ApprovalOutcome>('allowed-once'))
+
+    await expect(ctx.approval.request(requestOf(agent, { arguments: { command: 'ls', cwd: '/tmp' } })))
+      .resolves.toBe('allowed-once')
+
+    const digest = approvalArgumentsDigest({ command: 'ls', cwd: '/tmp' })
+    expect(digest).toMatch(/^[0-9a-f]{64}$/)
+    expect(appended[0]?.data['argumentsSha256']).toBe(digest)
+    expect(appended[1]?.data['argumentsSha256']).toBe(digest)
+  })
+
+  it('digests equal arguments identically whatever order their keys arrived in', () => {
+    expect(approvalArgumentsDigest({ a: 1, b: [{ y: 2, x: 3 }] }))
+      .toBe(approvalArgumentsDigest({ b: [{ x: 3, y: 2 }], a: 1 }))
+    expect(approvalArgumentsDigest({ a: 1 })).not.toBe(approvalArgumentsDigest({ a: 2 }))
+    expect(approvalArgumentsDigest(null)).toMatch(/^[0-9a-f]{64}$/)
+  })
+
+  it('records no digest when the asker supplies no arguments', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+
+    await ctx.approval.request(requestOf(agent))
+
+    expect(Object.hasOwn(appended[0]?.data ?? {}, 'argumentsSha256')).toBe(false)
+    expect(Object.hasOwn(appended[1]?.data ?? {}, 'argumentsSha256')).toBe(false)
+  })
+})
+
+describe('who decided', () => {
+  it('attributes the deterministic never policy to itself', async () => {
+    const ctx = new Context()
+    await ctx.plugin(ApprovalService, { policy: 'never' })
+    const { agent, appended } = fakeAgent()
+
+    await expect(ctx.approval.request(requestOf(agent))).resolves.toBe('rejected')
+
+    expect(appended.at(-1)?.data['decidedBy']).toEqual({ kind: 'policy', id: 'approval-policy:never' })
+    expect(APPROVAL_POLICY_NEVER_PRINCIPAL).toEqual({ kind: 'policy', id: 'approval-policy:never' })
+    expect([...APPROVAL_PRINCIPAL_KINDS]).toEqual(['human', 'policy'])
+  })
+
+  it('records the principal an attributing answerer states', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+    ctx.on('approval/request', () => Promise.resolve<ApprovalAnswer>({
+      outcome: 'allowed-once',
+      decidedBy: { kind: 'human', id: 'operator-7' },
+    }))
+
+    await expect(ctx.approval.request(requestOf(agent))).resolves.toBe('allowed-once')
+
+    expect(appended.at(-1)?.data).toMatchObject({
+      outcome: 'allowed-once',
+      decidedBy: { kind: 'human', id: 'operator-7' },
+    })
+  })
+
+  it('records no principal for a bare answer, a withdrawal, or an unavailable chain', async () => {
+    const ctx = await mounted()
+    const bare = fakeAgent()
+    ctx.on('approval/request', () => Promise.resolve<ApprovalOutcome>('rejected'))
+    await expect(ctx.approval.request(requestOf(bare.agent))).resolves.toBe('rejected')
+    expect(Object.hasOwn(bare.appended.at(-1)?.data ?? {}, 'decidedBy')).toBe(false)
+
+    const withdrawn = fakeAgent()
+    const controller = new AbortController()
+    controller.abort()
+    await expect(ctx.approval.request(requestOf(withdrawn.agent, { signal: controller.signal })))
+      .resolves.toBe('cancelled')
+    expect(Object.hasOwn(withdrawn.appended.at(-1)?.data ?? {}, 'decidedBy')).toBe(false)
+
+    const empty = await mounted()
+    const unanswered = fakeAgent()
+    await expect(empty.approval.request(requestOf(unanswered.agent))).resolves.toBe('unavailable')
+    expect(Object.hasOwn(unanswered.appended.at(-1)?.data ?? {}, 'decidedBy')).toBe(false)
+  })
+
+  it('drops an attributed answer whose outcome is outside the vocabulary', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+    ctx.on('approval/request', () => Promise.resolve({
+      outcome: 'yolo',
+      decidedBy: { kind: 'human', id: 'operator-7' },
+    } as unknown as ApprovalAnswer))
+
+    await expect(ctx.approval.request(requestOf(agent))).resolves.toBe('unavailable')
+
+    expect(appended.at(-1)?.data).toEqual(expect.objectContaining({ outcome: 'unavailable' }))
+    expect(Object.hasOwn(appended.at(-1)?.data ?? {}, 'decidedBy')).toBe(false)
+  })
+
+  it('records an attributed-shaped answer that names no principal as a bare outcome', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+    ctx.on('approval/request', () => Promise.resolve({ outcome: 'rejected' } as unknown as ApprovalAnswer))
+
+    await expect(ctx.approval.request(requestOf(agent))).resolves.toBe('rejected')
+
+    expect(Object.hasOwn(appended.at(-1)?.data ?? {}, 'decidedBy')).toBe(false)
+  })
+
+  it('fails closed on an answer that is neither an outcome nor an attributed one', async () => {
+    const ctx = await mounted()
+    const { agent } = fakeAgent()
+    ctx.on('approval/request', () => Promise.resolve(null as unknown as ApprovalAnswer))
+
+    await expect(ctx.approval.request(requestOf(agent))).resolves.toBe('unavailable')
+  })
+
+  it('keeps a late attributed answer out of a withdrawn request', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+    const controller = new AbortController()
+    let settle!: (answer: ApprovalAnswer) => void
+    ctx.on('approval/request', () => new Promise<ApprovalAnswer>((resolve) => { settle = resolve }))
+
+    const pending = ctx.approval.request(requestOf(agent, { signal: controller.signal }))
+    controller.abort()
+    await expect(pending).resolves.toBe('cancelled')
+    settle({ outcome: 'allowed-once', decidedBy: { kind: 'human', id: 'too-late' } })
+    expect(appended.at(-1)?.data).toEqual(expect.objectContaining({ outcome: 'cancelled' }))
   })
 })
