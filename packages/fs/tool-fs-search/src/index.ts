@@ -18,6 +18,15 @@
  * `subprocess` — deliberately NOT `fs`, and `ctx.spillStore` is read
  * opportunistically with `ctx.get()` because formatted-result spill is optional.
  *
+ * ## Confined when the read barrier denies something
+ *
+ * `ctx.sandboxPolicy` and `ctx.sandbox` are read opportunistically too. A
+ * session whose resolved policy carries denied read roots has its search spawn
+ * wrapped through `ctx.sandbox`, so a directory the barrier denies is never
+ * searched; every other session spawns exactly as before. A composition that
+ * denies roots without a sandbox provider fails the search instead of searching
+ * them.
+ *
  * Returned paths are displayed relative to the resolved workdir and are
  * follow-up-readable only in co-located deployments where the workdir and the
  * filesystem `read` root are the same workspace — a documented v1 deployment
@@ -28,6 +37,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import { enforceReadBarrier } from '@deepseek-ai/dsh-sandbox-policy'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { GLOB_MAX_RESULTS, applyGlobTool } from './glob.ts'
 import { GREP_MAX_LINE_BYTES, GREP_MAX_MATCHES, applyGrepTool } from './grep.ts'
@@ -157,4 +167,10 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     stderrMaxBytes: resolved.stderrMaxBytes,
     timeoutMs: resolved.timeoutMs,
   })
+  // What makes the scope census report `subprocess` as `denied-at-executor`:
+  // these tools are the composed consumer that opens model-chosen paths through
+  // `ctx.subprocess`, and the probe wraps through the same provider a search
+  // does. A plugin spawning through the seam directly is trusted in-process code
+  // the census cannot see, exactly as the read-barrier note records.
+  enforceReadBarrier(ctx, 'subprocess', (policy, scope) => { scope.sandbox.confine(['rg'], policy) })
 }

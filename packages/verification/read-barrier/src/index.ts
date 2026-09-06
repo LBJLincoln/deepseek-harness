@@ -6,7 +6,10 @@
  * and check scripts into, collects the directories other plugins register,
  * resolves one policy per session, decides containment through the filesystem
  * seam, and appends the durable refusal record. Enforcement itself belongs to
- * each path-opening capability: this service decides, the executors deny. The
+ * each path-opening capability: this service decides, the executors deny. A
+ * capability that opens paths in this process registers what it enforces; one
+ * that opens them outside it — a worker thread, an out-of-process agent —
+ * registers that it enforces by refusing to start. The
  * [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md)
  * owns the design rationale.
  * @module @deepseek-ai/dsh-read-barrier
@@ -30,6 +33,7 @@ import type {
   ReadBarrierDenial,
   ReadBarrierEnforcedCapability,
   ReadBarrierEnforcementEntry,
+  ReadBarrierIsolationClaim,
   ReadBarrierPolicy,
   ReadBarrierRole,
   ReadBarrierScope,
@@ -131,6 +135,43 @@ export function authorityDenialMessage(tool: string, authority: ToolAuthority): 
   return `"${tool}" carries the "${authority}" authority and is not callable in an implementer session`
 }
 
+/**
+ * The complete account of one capability the barrier refused to start. A worker
+ * thread or an out-of-process agent runs outside every fence this process can
+ * install, so the only denial available to it is not running at all.
+ * @param capability - the path-opening capability that must not start.
+ * @param claim - the isolation the deployment intends its certificates to claim.
+ * @returns the exact start-refusal reason.
+ */
+export function startRefusalMessage(
+  capability: ReadBarrierEnforcedCapability,
+  claim: ReadBarrierIsolationClaim,
+): string {
+  return `"${capability}" opens paths this process cannot confine and does not start in an implementer session under the "${claim}" isolation claim`
+}
+
+/**
+ * Why a capability that enforces by refusing to start records no enforcement,
+ * used as the census reason under a claim that asks nothing of it.
+ * @param claim - the deployment's isolation claim.
+ * @returns the reason recorded on the `unenforced` census entry.
+ */
+function unclaimedRefusalReason(claim: ReadBarrierIsolationClaim): string {
+  return `it runs outside this process and the deployment claims "${claim}" isolation, which asserts nothing about what an executor opens`
+}
+
+/**
+ * The directories a resolved policy actually denies its holder: every denied
+ * directory for an `implementer`, none for any other role. One place decides
+ * which roles the denied set binds, so a process runner filling its own denial
+ * and the in-process {@link ReadBarrierService.denies} test cannot disagree.
+ * @param policy - the policy {@link ReadBarrierService.resolve} returned.
+ * @returns the denied directories in force for that policy's role.
+ */
+export function deniedReadRoots(policy: ReadBarrierPolicy): readonly string[] {
+  return policy.role === 'implementer' ? policy.denied : []
+}
+
 /** The attestation file's decision inputs, read once per verification. */
 export interface AttestationFile {
   /** Numeric owner reported by `stat`. */
@@ -186,6 +227,17 @@ export interface Config {
    * without that record no certificate may claim `host` isolation.
    */
   hostAttestation?: string
+  /**
+   * Isolation this deployment intends its certificates to claim (default:
+   * `none`). It decides only what a capability the harness cannot fence
+   * in-process — a workflow worker, an out-of-process subagent — does for an
+   * implementer session: refuse to start under `process` or `host`, run
+   * unenforced under `none`. It grants nothing: what a certificate may actually
+   * claim is decided by `@deepseek-ai/dsh-verification` over the census this
+   * barrier appends, so a deployment that raises this field without composing
+   * the enforcement still gets its claim refused.
+   */
+  isolationClaim?: ReadBarrierIsolationClaim
 }
 
 /** Inputs that select the barrier policy for one capability call. */
@@ -246,10 +298,14 @@ export class ReadBarrierService extends Service {
     root: z.string(),
     denyRoots: z.array(z.string()).default([]),
     hostAttestation: z.string(),
+    isolationClaim: z.union(['none', 'process', 'host'] as const).default('none'),
   })
 
   /** The absolute directory the barrier owns; always the first denied directory. */
   readonly root: string
+
+  /** The isolation this deployment intends to claim, as {@link Config.isolationClaim} set it. */
+  readonly isolationClaim: ReadBarrierIsolationClaim
 
   /** Absolute directories denied alongside {@link root} by deployment config. */
   private readonly configuredDenyRoots: readonly string[]
@@ -269,6 +325,16 @@ export class ReadBarrierService extends Service {
   /** Capabilities that registered enforcement, keyed per registration so two registrations both hold. */
   private readonly enforcing = new Map<object, ReadBarrierEnforcedCapability>()
 
+  /**
+   * Capabilities that enforce by refusing to start, keyed per registration. A
+   * membership here decides the census entry from {@link isolationClaim} rather
+   * than from an enforcing listener, because there is no listener to hold.
+   */
+  private readonly refusing = new Map<object, ReadBarrierEnforcedCapability>()
+
+  /** Why one composed capability enforces nothing, keyed per registration. */
+  private readonly unenforceable = new Map<object, { capability: ReadBarrierEnforcedCapability; reason: string }>()
+
   /** Sessions whose scope census is already durable, so the census is appended exactly once. */
   private readonly censused = new Set<SessionId>()
 
@@ -282,6 +348,8 @@ export class ReadBarrierService extends Service {
     this.hostAttestation = config.hostAttestation === undefined
       ? undefined
       : absoluteDirectory(config.hostAttestation, 'hostAttestation')
+    // schemastery (static Config) already filled `isolationClaim`; the cast records that runtime fact.
+    this.isolationClaim = config.isolationClaim as ReadBarrierIsolationClaim
     createOwnerOnlyRoot(this.root)
     ctx.on('agent/created', ({ agent }) => { this.installGuard(agent) })
     // The census is taken here rather than at creation because a validator
@@ -359,6 +427,60 @@ export class ReadBarrierService extends Service {
   }
 
   /**
+   * Record that one capability enforces the barrier by REFUSING TO START, for
+   * as long as the registration lives. It is the sibling of {@link enforce} for
+   * the executors this process cannot fence: a worker thread recovers the host
+   * process's privileges and an out-of-process agent brings its own tool stack,
+   * so neither can deny a read in the operation that opens paths. The census
+   * follows {@link isolationClaim}: `denied-at-executor` under `process` or
+   * `host` (where {@link startRefusal} refuses every implementer start) and
+   * `unenforced` under `none` (where it starts and denies nothing).
+   * @param capability - the path-opening capability that enforces by refusing.
+   * @returns the registration's disposer.
+   */
+  enforceByRefusal(capability: ReadBarrierEnforcedCapability): () => void {
+    const registration = {}
+    // oxlint-disable-next-line typescript/no-misused-promises -- synchronous cleanup; direct return preserves disposer identity
+    return this.ctx.effect(() => {
+      this.refusing.set(registration, capability)
+      return () => { this.refusing.delete(registration) }
+    }, `read-barrier refusal ${capability}`)
+  }
+
+  /**
+   * Record that one composed capability CANNOT enforce the barrier on this
+   * host, with the reason, for as long as the registration lives. A capability
+   * whose confinement backend cannot express a read denial registers here
+   * instead of {@link enforce}, so the census carries why the certificate that
+   * cites it will be refused rather than only which capability was silent.
+   * @param capability - the path-opening capability that enforces nothing.
+   * @param reason - why it cannot, named from the capability's own vocabulary.
+   * @returns the registration's disposer.
+   */
+  cannotEnforce(capability: ReadBarrierEnforcedCapability, reason: string): () => void {
+    const registration = {}
+    // oxlint-disable-next-line typescript/no-misused-promises -- synchronous cleanup; direct return preserves disposer identity
+    return this.ctx.effect(() => {
+      this.unenforceable.set(registration, { capability, reason })
+      return () => { this.unenforceable.delete(registration) }
+    }, `read-barrier unenforceable ${capability}`)
+  }
+
+  /**
+   * Why one capability that cannot be confined in-process must not start for a
+   * session, or `undefined` when it may. Every start of such a capability asks
+   * here, so the refusal is decided in the operation that would open the paths.
+   * @param capability - the capability about to start.
+   * @param session - the session it would start for; absent for an agentless call.
+   * @returns the exact refusal from {@link startRefusalMessage}, or undefined.
+   */
+  startRefusal(capability: ReadBarrierEnforcedCapability, session: Session | undefined): string | undefined {
+    if (this.isolationClaim === 'none') return undefined
+    if (this.roleOf(session) !== 'implementer') return undefined
+    return startRefusalMessage(capability, this.isolationClaim)
+  }
+
+  /**
    * Record what a preset roster composed for one agent. A declared role
    * outranks a reservation, because only the composition knows what was
    * actually mounted; a preset that declares none leaves the reservation to
@@ -397,28 +519,50 @@ export class ReadBarrierService extends Service {
 
   /**
    * One entry per path-opening capability: `denied-at-executor` when the
-   * capability registered enforcement, `unenforced` when it is composed without
-   * one, and `not-composed` when this composition does not have it.
+   * capability registered enforcement — through {@link enforce}, or through
+   * {@link enforceByRefusal} under a `process` or `host` claim — `unenforced`
+   * when it is composed without one, and `not-composed` when this composition
+   * does not have it. An `unenforced` entry carries the reason whenever a
+   * registration supplied one.
    * @returns the enforcement census in the fixed capability order.
    */
   enforcementCensus(): ReadBarrierEnforcementEntry[] {
     const enforced = new Set(this.enforcing.values())
-    return Object.entries(ENFORCED_CAPABILITY_SERVICES).map(([capability, service]) => ({
-      capability: capability as ReadBarrierEnforcedCapability,
-      state: enforced.has(capability as ReadBarrierEnforcedCapability)
-        ? 'denied-at-executor'
-        : this.ctx.get(service) === undefined ? 'not-composed' : 'unenforced',
-    }))
+    const refusing = new Set(this.refusing.values())
+    const reasons = new Map([...this.unenforceable.values()].map(entry => [entry.capability, entry.reason]))
+    return Object.entries(ENFORCED_CAPABILITY_SERVICES).map(([name, service]) => {
+      const capability = name as ReadBarrierEnforcedCapability
+      if (enforced.has(capability)) return { capability, state: 'denied-at-executor' as const }
+      if (refusing.has(capability)) {
+        return this.isolationClaim === 'none'
+          ? { capability, state: 'unenforced' as const, reason: unclaimedRefusalReason(this.isolationClaim) }
+          : { capability, state: 'denied-at-executor' as const }
+      }
+      // A recorded reason proves the capability is composed: only the
+      // capability itself registers one, so it outranks the service lookup.
+      const reason = reasons.get(capability)
+      if (reason !== undefined) return { capability, state: 'unenforced' as const, reason }
+      if (this.ctx.get(service) === undefined) return { capability, state: 'not-composed' as const }
+      return { capability, state: 'unenforced' as const }
+    })
   }
 
-  /** One census entry per tool the agent's registry view resolves, with the authorities each declares. */
+  /**
+   * One census entry per tool the agent's registry view resolves, with the
+   * authorities each declares, sorted by tool name: the registry answers in
+   * mount order, which follows concurrent Loader mounts and would make two runs
+   * of one composition record different censuses.
+   */
   private toolCensus(agent: Agent): ReadBarrierCensusEntry[] {
     const tools = agent.ctx.get('tools')
     if (tools === undefined) return []
-    return tools.schemas(agent).map(schema => ({
-      name: schema.name,
-      authority: [...tools.get(schema.name, agent)?.authority ?? []],
-    }))
+    return tools.schemas(agent)
+      .map(schema => ({
+        name: schema.name,
+        authority: [...tools.get(schema.name, agent)?.authority ?? []],
+      }))
+      // Two entries never share a name: the registry keys tools by it.
+      .sort((left, right) => (left.name < right.name ? -1 : 1))
   }
 
   /**
@@ -513,8 +657,7 @@ export class ReadBarrierService extends Service {
    * @returns true when the read must be refused.
    */
   async denies(policy: ReadBarrierPolicy, target: FsTarget): Promise<boolean> {
-    if (policy.role !== 'implementer') return false
-    for (const denied of policy.denied) {
+    for (const denied of deniedReadRoots(policy)) {
       let directory: FsTarget
       try {
         directory = await this.ctx.fs.resolve(denied)

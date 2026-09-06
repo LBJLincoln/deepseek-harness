@@ -22,11 +22,13 @@ import { resolve as resolvePath } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-agent'
-import { canonicalPath, type SandboxExecutionPolicy, type SandboxMode } from '@deepseek-ai/dsh-sandbox'
+import { canonicalPath, normalizeDeniedReadRoots, type SandboxExecutionPolicy, type SandboxMode } from '@deepseek-ai/dsh-sandbox'
+import { deniedReadRoots } from '@deepseek-ai/dsh-read-barrier'
 import type { Session } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { effectiveSandboxMode } from './session-mode.ts'
 
+export { enforceReadBarrier } from './read-barrier.ts'
 export { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from './session-mode.ts'
 
 /** Resolve filesystem identity before lexical normalization can erase symlink-sensitive components. */
@@ -137,8 +139,24 @@ export class SandboxPolicyService extends Service {
     return {
       mode: request.mode ?? (session === undefined ? undefined : this.overrideOf(session)) ?? this.defaultMode,
       workspaceRoot: resolveWorkspaceRoot(session?.header.cwd ?? this.workspaceRoot),
+      deniedReadRoots: this.deniedReadRoots(session),
       ...session === undefined ? {} : { sessionId: session.id },
     }
+  }
+
+  /**
+   * The read barrier's denied directories for one session, normalized as the
+   * policy field promises them. A composition without a barrier denies nothing,
+   * which is what its `isolation: none` claim already says.
+   * @param session - the calling session; absent for an agentless call.
+   * @returns the canonical denied directories, empty without a barrier.
+   */
+  private deniedReadRoots(session: Session | undefined): readonly string[] {
+    // Optional service: a deployment composes the barrier only for runs whose
+    // certificates must name what an executor could not reach.
+    const barrier = this.ctx.get('readBarrier')
+    if (barrier === undefined) return []
+    return normalizeDeniedReadRoots(deniedReadRoots(barrier.resolve(session === undefined ? {} : { session })))
   }
 
   /**

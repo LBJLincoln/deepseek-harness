@@ -33,6 +33,7 @@
 `WorkflowError` 携带一个代码和 `fatal` 标志。致命错误总会逸出 `parallel()` 和 `pipeline()`，而不会变成普通的逐项 `null`：
 
 - `SCRIPT_PARSE` / `META_INVALID`：工作流无法启动；
+- `READ_BARRIER_REFUSED`：已组合的 read barrier（读屏障）根本不允许该会话使用 workflow worker；
 - `INVALID_ARGUMENT` / `UNSUPPORTED_OPTION` / `UNSUPPORTED_SCHEMA`：钩子调用违反引擎契约；
 - `AGENT_CAP` / `ITEM_CAP`：超过已配置的安全上限；
 - `AGENT_START`：提供方的异步启动调用被拒绝；

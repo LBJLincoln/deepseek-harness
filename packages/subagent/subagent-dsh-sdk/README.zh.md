@@ -14,6 +14,8 @@ SDK 提供方会在全新的子进程中把每个 subagent 作为完整的 DeepS
 
 `dispose()`（资源释放）是幂等的：先在本地把结果确定为 `aborted`（协议层面没有提示词取消机制），再关闭运行时，即先发出一次有界的协议 `shutdown` 请求，随后通过共享的 stdin-EOF → SIGTERM → SIGKILL 阶梯使进程实际退出。
 
+在 spawn 任何进程之前，`start()` 会询问已组合的 [read barrier（读屏障）](../../verification/read-barrier/README.md)：这个进程外子 agent 是否允许运行。对部署声称 `process` 或 `host` 隔离的 implementer 会话，会以 `SubagentError` 的 `READ_BARRIER_REFUSED` 拒绝，因为外部 agent 自带工具栈，本进程安装的任何围栏都触及不到它的读取；在 `none` 声明下不拒绝任何启动。提供方会向 read barrier 登记该拒绝，因此 scope 普查会报告 `subagent`。
+
 ## 停止原因映射
 
 SDK 客户端返回自有子活动，而不是提示词结果。提供方读取该活动内最后一个已持久化的 `turn/end`，并将其映射为 seam 词汇：`completed` → `completed`，`max-tokens` → `max-tokens`，`aborted` → `aborted`；其余情况，包括 `error`、`interrupted`、`disposed`、未来变体或不含轮次的活动，均映射为 `error`，因此非正常停止绝不会报告为成功。发布后的传输层失败会通过 `onError` 诊断接收器（连接到 `ctx.logger.warn`）压平为 `stopReason: 'error'`；seam 约定禁止 `result` 被拒绝。

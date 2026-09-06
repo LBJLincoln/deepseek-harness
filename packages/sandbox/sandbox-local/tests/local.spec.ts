@@ -19,10 +19,10 @@ import {
   LocalSandboxProvider,
 } from '@deepseek-ai/dsh-sandbox-local'
 import type { Config } from '@deepseek-ai/dsh-sandbox-local'
-import { bwrapProfileArgs, landlockProfileArgs, seatbeltProfileArgs } from '../src/profiles.ts'
+import { bwrapProfileArgs, carveGrant, landlockProfileArgs, seatbeltProfileArgs } from '../src/profiles.ts'
 
-const RO: SandboxPolicy = { mode: 'read-only', workspaceRoot: '/ws' }
-const WW: SandboxPolicy = { mode: 'workspace-write', workspaceRoot: '/ws' }
+const RO: SandboxPolicy = { mode: 'read-only', workspaceRoot: '/ws', deniedReadRoots: [] }
+const WW: SandboxPolicy = { mode: 'workspace-write', workspaceRoot: '/ws', deniedReadRoots: [] }
 
 async function setup(config: Config = {}, internals: LocalSandboxProvider['internals'] = {}) {
   const ctx = new Context()
@@ -99,10 +99,99 @@ describe('profile dialects', () => {
   })
 
   it('seatbelt workspace-write dedups a workspace root that already IS the temp dir', () => {
-    const profile = seatbeltProfileArgs({ mode: 'workspace-write', workspaceRoot: tmpdir() })[1] as string
+    const profile = seatbeltProfileArgs({ mode: 'workspace-write', workspaceRoot: tmpdir(), deniedReadRoots: [] })[1] as string
     const grant = `(subpath "${realpathSync(tmpdir())}")`
     expect(profile).toContain(grant)
     expect(profile.split(grant)).toHaveLength(2)
+  })
+})
+
+describe('the denied read roots each dialect expresses', () => {
+  /** One denied root inside the workspace, so the denial has to outrank the write grant too. */
+  const DENIED: SandboxPolicy = { mode: 'workspace-write', workspaceRoot: '/ws', deniedReadRoots: ['/ws/verification', '/srv/standards'] }
+
+  it('bwrap mounts an empty tmpfs over each denied root, after the binds it must outrank', () => {
+    expect(bwrapProfileArgs(DENIED)).toEqual([
+      '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--die-with-parent',
+      '--tmpfs', '/tmp', '--bind', '/ws', '/ws',
+      '--tmpfs', '/ws/verification', '--tmpfs', '/srv/standards',
+    ])
+  })
+
+  it('seatbelt denies file-read* under each root, in forms that follow every allow', () => {
+    const profile = seatbeltProfileArgs(DENIED)[1] as string
+    expect(profile.endsWith('(deny file-read* (subpath "/ws/verification")) (deny file-read* (subpath "/srv/standards"))')).toBe(true)
+    expect(profile.indexOf('(allow file-write*')).toBeLessThan(profile.indexOf('(deny file-read*'))
+  })
+
+  it('landlock grants the siblings of each denied root instead of the roots that contain it', () => {
+    const tree: Record<string, string[]> = {
+      '/': ['bin', 'srv', 'ws'],
+      '/srv': ['standards', 'other'],
+      '/ws': ['src', 'verification'],
+    }
+    const grants = landlockProfileArgs(DENIED, path => tree[path] ?? [])
+    // `--ro /` is gone: a read-only grant on the tree root would re-admit both
+    // denied directories, because a Landlock ruleset can only ADD access.
+    expect(grants).toEqual([
+      '--ro', '/bin', '--ro', '/srv/other', '--ro', '/ws/src',
+      '--rw', '/dev/null', '--rw', '/tmp', '--rw', '/ws/src',
+    ])
+  })
+
+  it('landlock leaves a grant whole when no denied root lies beneath it', () => {
+    expect(carveGrant('/dev/null', ['/srv/standards'], () => ['unreached'])).toEqual(['/dev/null'])
+  })
+
+  it('landlock grants nothing under a root that IS a denied root', () => {
+    expect(carveGrant('/ws', ['/ws'], () => ['src'])).toEqual([])
+  })
+
+  it('walks the real tree for the carve-out and grants nothing beneath a level it cannot list', () => {
+    // The default listing is what the launcher's ruleset is built from. The
+    // denied root sits under a regular FILE, so that level cannot be listed and
+    // contributes no siblings — the carve-out denies rather than over-grants.
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), 'dsh-carve-')))
+    writeFileSync(join(dir, 'blocker'), 'not a directory\n')
+    writeFileSync(join(dir, 'sibling'), 'granted\n')
+    const grants = landlockProfileArgs({
+      mode: 'read-only',
+      workspaceRoot: '/ws',
+      deniedReadRoots: [join(dir, 'blocker', 'runs')],
+    })
+    expect(grants).toContain(join(dir, 'sibling'))
+    expect(grants.some(grant => grant.startsWith(join(dir, 'blocker')))).toBe(false)
+    expect(grants).not.toContain('/')
+  })
+
+  it('windows-acl refuses the wrap, naming the backend and the root it cannot deny', async () => {
+    const { sandbox } = await setup({}, {
+      platform: 'win32',
+      windowsAclRunnerArgs: ['node', 'runner.js'],
+      windowsAclRunnerEntry: absentRunnerEntry(),
+    })
+    expect(() => sandbox.confine(['true'], { ...RO, deniedReadRoots: ['/srv/standards'] })).toThrow(
+      'sandbox backend "windows-acl" cannot deny reads under "/srv/standards": '
+      + 'its WRITE_RESTRICTED token restricts write access only, and a deny ACE on the directory would apply to the validator that owns it; '
+      + 'refusing to run the command with the read barrier unenforced.',
+    )
+    // The same policy without a denial still wraps: the refusal is about the
+    // denied set, not about the rung.
+    expect(sandbox.confine(['true'], RO).argv[0]).toBe('node')
+  })
+
+  it('reports the windows-acl refusal under the fail-closed SANDBOX_UNAVAILABLE code', async () => {
+    const { sandbox } = await setup({}, {
+      platform: 'win32',
+      windowsAclRunnerArgs: ['node', 'runner.js'],
+      windowsAclRunnerEntry: absentRunnerEntry(),
+    })
+    try {
+      sandbox.confine(['true'], { ...RO, deniedReadRoots: ['/srv/standards'] })
+      expect.unreachable('the wrap must refuse')
+    } catch (error) {
+      expect((error as { code?: string }).code).toBe(SANDBOX_UNAVAILABLE)
+    }
   })
 })
 

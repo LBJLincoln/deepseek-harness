@@ -16,6 +16,8 @@ ACP（Agent Client Protocol）提供方会在全新的子进程中运行每个 s
 
 `dispose()` 是幂等的。它会移除信号监听器，在可行时请求 ACP 取消，然后使用该 seam 定义的操作运行本后端自有的拆卸阶梯（`disposeAcpChild`）：先关闭 stdin 并等待 `disposeEofGraceMs` 让子进程协作式完全停稳，再触发句柄的 `terminate()` 升级（SIGTERM、spawn 宽限期、SIGKILL——Windows 直接强制终止），并等待子进程责任方给出整棵进程树的退出证明。每次运行都使用全新进程；尚未实现进程池。
 
+在 spawn 任何进程之前，`start()` 会询问已组合的 [read barrier（读屏障）](../../verification/read-barrier/README.md)：这个进程外子 agent 是否允许运行。对部署声称 `process` 或 `host` 隔离的 implementer 会话，会以 `SubagentError` 的 `READ_BARRIER_REFUSED` 拒绝，因为外部 agent 自带工具栈，本进程安装的任何围栏都触及不到它的读取；在 `none` 声明下不拒绝任何启动。提供方会向 read barrier 登记该拒绝，因此 scope 普查会报告 `subagent`。
+
 ## 能力与上下文
 
 ACP 不声明任何启动时能力，因为当前进程无法强制执行远程子 agent 的深度、工具过滤、persona 或结构化输出运行时。它也报告 `inheritsParentContext: false`：远程会话从全新状态开始，唯一源自父级的输入是上述工作区 cwd；对话上下文不会跨越进程边界。

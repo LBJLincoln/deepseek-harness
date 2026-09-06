@@ -33,6 +33,7 @@ Same-process event payloads are borrowed immutable values. Every listener is ind
 `WorkflowError` carries a code and a `fatal` flag. Fatal errors always escape `parallel()` and `pipeline()` instead of becoming an ordinary per-item `null`:
 
 - `SCRIPT_PARSE` / `META_INVALID` — the workflow cannot start.
+- `READ_BARRIER_REFUSED` — a composed read barrier does not allow this session a workflow worker at all.
 - `INVALID_ARGUMENT` / `UNSUPPORTED_OPTION` / `UNSUPPORTED_SCHEMA` — a hook call violates the engine contract.
 - `AGENT_CAP` / `ITEM_CAP` — configured safety limits were exceeded.
 - `AGENT_START` — the provider's async start rejected.

@@ -1,18 +1,38 @@
 /**
  * Tests for the sandbox-policy home: the deployment default (mode +
- * workspaceRoot) the service exposes, and the per-session `sandbox/mode`
- * override kit (fold + write path) every enforcing capability reads.
+ * workspaceRoot) the service exposes, the read barrier's denied directories the
+ * resolved policy carries, the enforcement each sandbox-consuming executor
+ * registers, and the per-session `sandbox/mode` override kit (fold + write path)
+ * every enforcing capability reads.
  */
 
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
+import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
+import { SandboxProvider } from '@deepseek-ai/dsh-sandbox'
+import type { ConfinedArgv, SandboxPolicy } from '@deepseek-ai/dsh-sandbox'
 import { Session, SessionId } from '@deepseek-ai/dsh-session'
-import SandboxPolicyService, { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@deepseek-ai/dsh-sandbox-policy'
+import SandboxPolicyService, { SANDBOX_MODES, effectiveSandboxMode, enforceReadBarrier, setSandboxMode } from '@deepseek-ai/dsh-sandbox-policy'
 import SystemPrompt, { renderContextSnapshot, renderPrompt } from '@deepseek-ai/dsh-system-prompt'
+
+const barrierRoots: string[] = []
+
+/** A fresh owner-only directory for one barrier under test, removed after it. */
+function barrierRoot(prefix: string): string {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), prefix)))
+  barrierRoots.push(root)
+  return root
+}
+
+afterEach(() => {
+  for (const root of barrierRoots) rmSync(root, { recursive: true, force: true })
+  barrierRoots.length = 0
+})
 
 async function mounted(config: { mode?: 'read-only' | 'workspace-write' | 'danger-full-access'; workspaceRoot?: string } = {}) {
   const ctx = new Context()
@@ -31,7 +51,7 @@ function session(id: string, cwd?: string): Session {
 }
 
 function agentFor(activeSession: Session): Agent {
-  return { session: activeSession } as unknown as Agent
+  return { id: activeSession.id, session: activeSession } as unknown as Agent
 }
 
 async function policyContext(ctx: Context, activeSession: Session): Promise<string | undefined> {
@@ -57,6 +77,7 @@ describe('SandboxPolicyService', () => {
     expect(ctx.sandboxPolicy.resolve()).toEqual({
       mode: 'workspace-write',
       workspaceRoot: resolve('/fallback'),
+      deniedReadRoots: [],
     })
   })
 
@@ -69,11 +90,13 @@ describe('SandboxPolicyService', () => {
     expect(ctx.sandboxPolicy.resolve({ session: first })).toEqual({
       mode: 'workspace-write',
       workspaceRoot: resolve('/projects/first'),
+      deniedReadRoots: [],
       sessionId: 'sess-first',
     })
     expect(ctx.sandboxPolicy.resolve({ session: second })).toEqual({
       mode: 'read-only',
       workspaceRoot: resolve('/projects/second'),
+      deniedReadRoots: [],
       sessionId: 'sess-second',
     })
     expect(ctx.sandboxPolicy.overrideOf(first)).toBeUndefined()
@@ -81,6 +104,7 @@ describe('SandboxPolicyService', () => {
     expect(ctx.sandboxPolicy.resolve()).toEqual({
       mode: 'workspace-write',
       workspaceRoot: resolve('/fallback'),
+      deniedReadRoots: [],
     })
   })
 
@@ -100,6 +124,7 @@ describe('SandboxPolicyService', () => {
       expect(ctx.sandboxPolicy.resolve({ session: session('sess-symlink-parent', cwd) })).toEqual({
         mode: 'workspace-write',
         workspaceRoot: realpathSync.native(physical),
+        deniedReadRoots: [],
         sessionId: 'sess-symlink-parent',
       })
     } finally {
@@ -114,6 +139,7 @@ describe('SandboxPolicyService', () => {
     expect(ctx.sandboxPolicy.resolve({ session: active, mode: 'danger-full-access' })).toEqual({
       mode: 'danger-full-access',
       workspaceRoot: resolve('/projects/approved'),
+      deniedReadRoots: [],
       sessionId: 'sess-approved',
     })
   })
@@ -226,5 +252,132 @@ describe('the sandbox/mode session kit', () => {
     const modeEvents = session.events.filter(e => e.type === 'sandbox/mode')
     expect(modeEvents).toHaveLength(1)
     expect(modeEvents[0]?.data).toEqual({ mode: 'danger-full-access' })
+  })
+})
+
+describe('the read barrier the policy carries', () => {
+  /** Mount the policy service over a real barrier whose root is a fresh temp directory. */
+  async function withBarrier() {
+    const root = barrierRoot('dsh-policy-barrier-')
+    const ctx = new Context()
+    await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
+    await ctx.plugin(ReadBarrierService, { root })
+    await ctx.plugin(SandboxPolicyService, { mode: 'workspace-write', workspaceRoot: '/fallback' })
+    return { ctx, root }
+  }
+
+  it('denies nothing while the session holds no implementer role', async () => {
+    const { ctx } = await withBarrier()
+    const active = session('sess-open', '/projects/open')
+    expect(ctx.sandboxPolicy.resolve({ session: active }).deniedReadRoots).toEqual([])
+    expect(ctx.sandboxPolicy.resolve().deniedReadRoots).toEqual([])
+  })
+
+  it('carries the barrier root once the session holds a reservation', async () => {
+    const { ctx, root } = await withBarrier()
+    const active = session('sess-implementer', '/projects/implementer')
+    ctx.readBarrier.reserve(agentFor(active))
+    expect(ctx.sandboxPolicy.resolve({ session: active }).deniedReadRoots).toEqual([root])
+  })
+
+  it('normalizes a registered directory absolute, canonical, and without duplicates', async () => {
+    const { ctx, root } = await withBarrier()
+    const extra = barrierRoot('dsh-policy-protected-')
+    ctx.readBarrier.protect(extra)
+    ctx.readBarrier.protect(`${extra}${sep}.`)
+    const active = session('sess-normalized', '/projects/normalized')
+    ctx.readBarrier.reserve(agentFor(active))
+    expect(ctx.sandboxPolicy.resolve({ session: active }).deniedReadRoots).toEqual([root, extra])
+  })
+})
+
+describe('enforceReadBarrier', () => {
+  /** A provider that wraps nothing itself; the probe's own callback decides the verdict. */
+  class InertSandbox extends SandboxProvider {
+    confine(argv: readonly string[]): ConfinedArgv {
+      return { argv: [...argv], enforcement: 'full', denialSignatures: [], runnerFailureRules: [] }
+    }
+  }
+
+  /** Mount a barrier plus the policy service, then register one capability through the helper. */
+  async function registered(
+    wrap: (policy: SandboxPolicy) => void,
+    options: { mode?: 'read-only' | 'danger-full-access'; withSandbox?: boolean } = {},
+  ) {
+    const root = barrierRoot('dsh-policy-enforce-')
+    const ctx = new Context()
+    await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
+    await ctx.plugin(ReadBarrierService, { root })
+    await ctx.plugin(SandboxPolicyService, { mode: options.mode ?? 'read-only', workspaceRoot: '/fallback' })
+    if (options.withSandbox !== false) await ctx.plugin(InertSandbox)
+    // `fs` rather than `shell`: the harness composes a filesystem, so an
+    // unregistered capability reads as `unenforced` rather than `not-composed`.
+    await ctx.plugin((inner: Context) => { enforceReadBarrier(inner, 'fs', wrap) })
+    // The registration is an injected child fiber; settle it before reading the census.
+    await ctx.fiber.await()
+    return { ctx, root }
+  }
+
+  const entryOf = (ctx: Context) => ctx.readBarrier.enforcementCensus().find(entry => entry.capability === 'fs')
+
+  it('claims denied-at-executor when the probe wrap succeeds, carrying the barrier root', async () => {
+    const wraps: SandboxPolicy[] = []
+    const { ctx, root } = await registered((policy) => { wraps.push(policy) })
+    expect(wraps.map(policy => policy.deniedReadRoots)).toEqual([[root]])
+    expect(wraps[0]?.mode).toBe('read-only')
+    expect(entryOf(ctx)).toEqual({ capability: 'fs', state: 'denied-at-executor' })
+  })
+
+  it('records the backend reason when the probe wrap refuses', async () => {
+    const { ctx } = await registered(() => { throw new Error('sandbox backend "windows-acl" cannot deny reads under "/srv"') })
+    expect(entryOf(ctx)).toEqual({
+      capability: 'fs',
+      state: 'unenforced',
+      reason: 'sandbox backend "windows-acl" cannot deny reads under "/srv"',
+    })
+  })
+
+  it('stringifies a non-Error refusal rather than losing the reason', async () => {
+    // A thrown non-Error is exactly what this arm records.
+    const { ctx } = await registered(() => { throw 'backend exploded' })
+    expect(entryOf(ctx)?.reason).toBe('backend exploded')
+  })
+
+  it('records that an unconfining deployment mode enforces nothing, without probing', async () => {
+    let probed = false
+    const { ctx } = await registered(() => { probed = true }, { mode: 'danger-full-access' })
+    expect(probed).toBe(false)
+    expect(entryOf(ctx)).toEqual({
+      capability: 'fs',
+      state: 'unenforced',
+      reason: 'the deployment sandbox mode is danger-full-access, which runs commands unconfined',
+    })
+  })
+
+  it('probes nothing and claims nothing while no sandbox provider is composed', async () => {
+    let probed = false
+    const { ctx } = await registered(() => { probed = true }, { withSandbox: false })
+    expect(probed).toBe(false)
+    expect(entryOf(ctx)).toEqual({ capability: 'fs', state: 'unenforced' })
+  })
+
+  it('probes once the provider arrives after this executor, and unwinds with it', async () => {
+    let probed = false
+    const { ctx } = await registered(() => { probed = true }, { withSandbox: false })
+    const sandboxFiber = await ctx.plugin(InertSandbox)
+    expect(probed).toBe(true)
+    expect(entryOf(ctx)).toEqual({ capability: 'fs', state: 'denied-at-executor' })
+    await sandboxFiber.dispose()
+    expect(entryOf(ctx)).toEqual({ capability: 'fs', state: 'unenforced' })
+  })
+
+  it('registers nothing at all when no barrier is composed', async () => {
+    let probed = false
+    const ctx = new Context()
+    await ctx.plugin(SandboxPolicyService, { workspaceRoot: '/fallback' })
+    await ctx.plugin(InertSandbox)
+    await ctx.plugin((inner: Context) => { enforceReadBarrier(inner, 'shell', () => { probed = true }) })
+    expect(ctx.get('readBarrier')).toBeUndefined()
+    expect(probed).toBe(false)
   })
 })

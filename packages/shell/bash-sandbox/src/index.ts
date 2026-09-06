@@ -20,7 +20,7 @@ import type {
   SandboxMode,
   SandboxPolicy,
 } from '@deepseek-ai/dsh-sandbox'
-import type {} from '@deepseek-ai/dsh-sandbox-policy'
+import { enforceReadBarrier } from '@deepseek-ai/dsh-sandbox-policy'
 import { LocalBashExecutor } from '@deepseek-ai/dsh-bash-local'
 import type { Config as LocalConfig } from '@deepseek-ai/dsh-bash-local'
 import { classifyDenial, classifyRunnerFailure, isRunnerSpawnFailure, matchesSignature } from './helpers.ts'
@@ -69,6 +69,11 @@ export class SandboxBashExecutor extends LocalBashExecutor {
     // The default mode is the capability fact used for schema advertisement;
     // actual tool executions carry their resolved per-call policy.
     this.mode = ctx.sandboxPolicy.defaultMode
+    // What makes the scope census report `shell` as `denied-at-executor`. The
+    // probe wraps through the same provider and policy `run()` uses; the
+    // wrapped command is never executed, because what a backend can express
+    // depends on the policy alone.
+    enforceReadBarrier(ctx, 'shell', (policy) => { this.confine('true', policy) })
   }
 
   /** The configured default mode — the capability fact the tool layer reads. */

@@ -14,6 +14,8 @@ The returned run id is minted in the parent namespace; the child runtime's sessi
 
 `dispose()` is idempotent: it settles the result locally as `aborted` (there is no wire-level prompt cancel), then closes the runtime — a bounded protocol `shutdown` request followed by the shared stdin-EOF → SIGTERM → SIGKILL ladder to actual exit.
 
+Before anything is spawned, `start()` asks the composed [read barrier](../../verification/read-barrier/README.md) whether this out-of-process child may run at all. An implementer session under a deployment claiming `process` or `host` isolation is refused with `SubagentError` `READ_BARRIER_REFUSED`, because a foreign agent brings its own tool stack and no fence this process installs reaches its reads; under a claim of `none` nothing is refused. The provider registers that refusal with the barrier, so the scope census reports `subagent`.
+
 ## Stop-reason mapping
 
 The SDK client returns an owned child activity rather than a prompt result. The provider reads the last durable `turn/end` inside that activity and maps it into the seam vocabulary: `completed` → `completed`, `max-tokens` → `max-tokens`, `aborted` → `aborted`; everything else — `error`, `interrupted`, `disposed`, a future variant, or an activity with no turn — maps to `error`, so an unclean stop is never reported as success. Transport-level failures after publication flatten to `stopReason: 'error'` through the `onError` diagnostic sink (wired to `ctx.logger.warn`); the seam contract forbids `result` rejecting.

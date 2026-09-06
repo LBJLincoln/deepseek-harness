@@ -13,7 +13,14 @@
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { SubagentCapabilities, SubagentProvider, SubagentStartRequest } from '@deepseek-ai/dsh-subagent'
-import { assertPositiveFinite, NO_START_CAPABILITIES, resolveChildCwd, validateConfiguredCwd } from '@deepseek-ai/dsh-subagent'
+import {
+  assertOutOfProcessAllowed,
+  assertPositiveFinite,
+  enforceOutOfProcessRefusal,
+  NO_START_CAPABILITIES,
+  resolveChildCwd,
+  validateConfiguredCwd,
+} from '@deepseek-ai/dsh-subagent'
 import {
   DEFAULT_DISPOSE_EOF_GRACE_MS,
   DEFAULT_DISPOSE_GRACE_MS,
@@ -98,6 +105,7 @@ class SdkSubagentProvider implements SubagentProvider {
   constructor(readonly name: string, private readonly ctx: Context, private readonly config: ResolvedConfig) {}
 
   start(request: SubagentStartRequest) {
+    assertOutOfProcessAllowed(this.ctx, request.parent)
     const spec: SdkRunSpec = {
       command: this.config.command,
       args: this.config.args,
@@ -135,4 +143,5 @@ export function apply(ctx: Context, config: Config): void {
     ? resolved
     : { ...resolved, cwd: configuredCwd }
   ctx.subagents.registerProvider(new SdkSubagentProvider(validated.providerName, ctx, validated))
+  enforceOutOfProcessRefusal(ctx)
 }

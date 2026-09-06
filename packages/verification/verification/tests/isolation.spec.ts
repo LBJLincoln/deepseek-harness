@@ -127,6 +127,51 @@ describe('isolationProblem at "process"', () => {
       .toBe('capability "shell" is composed without read-barrier enforcement')
   })
 
+  it('names the reason a capability recorded for enforcing nothing', () => {
+    const events = [scopeEvent({
+      enforcement: [
+        { capability: 'fs', state: 'denied-at-executor' },
+        { capability: 'shell', state: 'unenforced', reason: 'sandbox backend "windows-acl" cannot deny reads under "/srv/verification"' },
+      ],
+    })]
+    expect(isolationProblem(events, 'process', 'runner')).toBe(
+      'capability "shell" is composed without read-barrier enforcement: '
+      + 'sandbox backend "windows-acl" cannot deny reads under "/srv/verification"',
+    )
+  })
+
+  it('refuses an executor that runs outside this process under a claim that asks nothing of it', () => {
+    const events = [scopeEvent({
+      enforcement: [
+        { capability: 'fs', state: 'denied-at-executor' },
+        { capability: 'shell', state: 'denied-at-executor' },
+        { capability: 'workflow', state: 'unenforced', reason: 'it runs outside this process' },
+      ],
+    })]
+    expect(isolationProblem(events, 'process', 'runner'))
+      .toBe('capability "workflow" is composed without read-barrier enforcement: it runs outside this process')
+  })
+
+  it('accepts a census whose out-of-process executors refuse to start', () => {
+    const events = [scopeEvent({
+      enforcement: [
+        { capability: 'fs', state: 'denied-at-executor' },
+        { capability: 'shell', state: 'denied-at-executor' },
+        { capability: 'subprocess', state: 'denied-at-executor' },
+        { capability: 'terminal', state: 'denied-at-executor' },
+        { capability: 'subagent', state: 'denied-at-executor' },
+        { capability: 'workflow', state: 'denied-at-executor' },
+      ],
+    })]
+    expect(isolationProblem(events, 'process', 'runner')).toBeUndefined()
+  })
+
+  it('refuses a census whose composition carries a denied authority even with every capability denying', () => {
+    const events = [scopeEvent({ census: [{ name: 'cordis_run', authority: ['plugin-mount'] }] })]
+    expect(isolationProblem(events, 'process', 'runner'))
+      .toBe('the session composed "cordis_run", which carries the "plugin-mount" authority')
+  })
+
   it('refuses an agent-reported run before it reads the census at all', () => {
     expect(isolationProblem([scopeEvent()], 'process', 'agent-reported'))
       .toBe('the run was agent-reported, so no validator executed its checks')

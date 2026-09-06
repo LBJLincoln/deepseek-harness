@@ -1131,6 +1131,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
+        signature: 'readonly isolationClaim: ReadBarrierIsolationClaim',
+        description: 'The isolation this deployment intends to claim, as Config.isolationClaim set it.',
+        parameters: [],
+      },
+      {
         signature: 'reserve(agent: Agent): string',
         description: 'Mint the run directory for one agent\'s session and record that session as the implementer. The validator writes its standard snapshot, one script per check, and any held-out fixture there, so the command line the implementer can observe in a process listing names a file whose content it cannot read. Reserving the same session twice returns the same directory.\n\nSynchronous so the role is in force the moment the caller returns: an awaited reservation would leave a window in which the session\'s own reads are still unrestricted.',
         parameters: [{ name: 'agent', description: 'the implementer agent whose session the run belongs to.' }],
@@ -1149,6 +1154,24 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the registration\'s disposer.',
       },
       {
+        signature: 'enforceByRefusal(capability: ReadBarrierEnforcedCapability): () => void',
+        description: 'Record that one capability enforces the barrier by REFUSING TO START, for as long as the registration lives. It is the sibling of enforce for the executors this process cannot fence: a worker thread recovers the host process\'s privileges and an out-of-process agent brings its own tool stack, so neither can deny a read in the operation that opens paths. The census follows isolationClaim: `denied-at-executor` under `process` or `host` (where startRefusal refuses every implementer start) and `unenforced` under `none` (where it starts and denies nothing).',
+        parameters: [{ name: 'capability', description: 'the path-opening capability that enforces by refusing.' }],
+        returns: 'the registration\'s disposer.',
+      },
+      {
+        signature: 'cannotEnforce(capability: ReadBarrierEnforcedCapability, reason: string): () => void',
+        description: 'Record that one composed capability CANNOT enforce the barrier on this host, with the reason, for as long as the registration lives. A capability whose confinement backend cannot express a read denial registers here instead of enforce, so the census carries why the certificate that cites it will be refused rather than only which capability was silent.',
+        parameters: [{ name: 'capability', description: 'the path-opening capability that enforces nothing.' }, { name: 'reason', description: 'why it cannot, named from the capability\'s own vocabulary.' }],
+        returns: 'the registration\'s disposer.',
+      },
+      {
+        signature: 'startRefusal(capability: ReadBarrierEnforcedCapability, session: Session | undefined): string | undefined',
+        description: 'Why one capability that cannot be confined in-process must not start for a session, or `undefined` when it may. Every start of such a capability asks here, so the refusal is decided in the operation that would open the paths.',
+        parameters: [{ name: 'capability', description: 'the capability about to start.' }, { name: 'session', description: 'the session it would start for; absent for an agentless call.' }],
+        returns: 'the exact refusal from {@link startRefusalMessage}, or undefined.',
+      },
+      {
         signature: 'declareComposition(agent: Agent, composition: ReadBarrierComposition): void',
         description: 'Record what a preset roster composed for one agent. A declared role outranks a reservation, because only the composition knows what was actually mounted; a preset that declares none leaves the reservation to decide. The roster is the only caller: nothing a session itself runs may raise its own role.',
         parameters: [{ name: 'agent', description: 'the agent whose composition was resolved.' }, { name: 'composition', description: 'the preset id and the role it declared, if any.' }],
@@ -1161,7 +1184,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'enforcementCensus(): ReadBarrierEnforcementEntry[]',
-        description: 'One entry per path-opening capability: `denied-at-executor` when the capability registered enforcement, `unenforced` when it is composed without one, and `not-composed` when this composition does not have it.',
+        description: 'One entry per path-opening capability: `denied-at-executor` when the capability registered enforcement — through enforce, or through enforceByRefusal under a `process` or `host` claim — `unenforced` when it is composed without one, and `not-composed` when this composition does not have it. An `unenforced` entry carries the reason whenever a registration supplied one.',
         parameters: [],
         returns: 'the enforcement census in the fixed capability order.',
       },
@@ -4123,11 +4146,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ReadBarrierEnforcementEntry',
-    declaration: 'export interface ReadBarrierEnforcementEntry {\n    readonly capability: ReadBarrierEnforcedCapability;\n    readonly state: ReadBarrierEnforcementState;\n}',
+    declaration: 'export interface ReadBarrierEnforcementEntry {\n    readonly capability: ReadBarrierEnforcedCapability;\n    readonly state: ReadBarrierEnforcementState;\n    readonly reason?: string;\n}',
   },
   {
     name: 'ReadBarrierEnforcementState',
     declaration: 'export type ReadBarrierEnforcementState = \'denied-at-executor\' | \'unenforced\' | \'not-composed\';',
+  },
+  {
+    name: 'ReadBarrierIsolationClaim',
+    declaration: 'export type ReadBarrierIsolationClaim = \'none\' | \'process\' | \'host\';',
   },
   {
     name: 'ReadBarrierPolicy',
@@ -4259,7 +4286,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SandboxExecutionPolicy',
-    declaration: 'export interface SandboxExecutionPolicy {\n    mode: SandboxMode;\n    workspaceRoot: string;\n    sessionId?: SessionId;\n}',
+    declaration: 'export interface SandboxExecutionPolicy {\n    mode: SandboxMode;\n    workspaceRoot: string;\n    deniedReadRoots: readonly string[];\n    sessionId?: SessionId;\n}',
   },
   {
     name: 'SandboxMode',

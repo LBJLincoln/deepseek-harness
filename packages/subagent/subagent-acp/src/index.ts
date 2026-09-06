@@ -17,6 +17,7 @@ import type {
   SubagentProvider,
   SubagentStartRequest,
 } from '@deepseek-ai/dsh-subagent'
+import { assertOutOfProcessAllowed, enforceOutOfProcessRefusal } from '@deepseek-ai/dsh-subagent'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { type AcpRunSpec, DEFAULT_DISPOSE_EOF_GRACE_MS, DEFAULT_DISPOSE_GRACE_MS, type PermissionPolicy, startAcpRun } from './run.ts'
 
@@ -151,6 +152,7 @@ class AcpProvider implements SubagentProvider {
   constructor(readonly name: string, private readonly ctx: Context, private readonly config: ResolvedConfig) {}
 
   start(request: ResolvedSubagentStartRequest) {
+    assertOutOfProcessAllowed(this.ctx, request.parent)
     const spec: AcpRunSpec = {
       command: this.config.command,
       args: this.config.args,
@@ -186,4 +188,5 @@ export function apply(ctx: Context, config: Config): void {
     ? resolved
     : { ...resolved, cwd: assertUsableCwd('config cwd', resolve(resolved.cwd)) }
   ctx.subagents.registerProvider(new AcpProvider(validated.providerName, ctx, validated))
+  enforceOutOfProcessRefusal(ctx)
 }

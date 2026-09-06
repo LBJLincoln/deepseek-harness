@@ -12,6 +12,8 @@ The SDK receives the exact concatenated text task. The provider iterates the com
 
 Local cancellation wins the result race and maps to `aborted`. `dispose()` is idempotent: it aborts the run, asks the SDK query to close, invokes the shared process-tree termination escalation, and waits for whole-tree exit. SDK graceful close expresses protocol intent; the subprocess handle remains the authority for process quiescence. Result failure and independent teardown failure remain separate.
 
+Before anything is spawned, `start()` asks the composed [read barrier](../../verification/read-barrier/README.md) whether this out-of-process child may run at all. An implementer session under a deployment claiming `process` or `host` isolation is refused with `SubagentError` `READ_BARRIER_REFUSED`, because a foreign agent brings its own tool stack and no fence this process installs reaches its reads; under a claim of `none` nothing is refused. The provider registers that refusal with the barrier, so the scope census reports `subagent`.
+
 ## Native settings and interaction
 
 The provider deliberately omits the SDK `settingSources` option. The official SDK therefore reads the host's normal user, project, and local Claude settings relative to the parent Session cwd, including native account state and product configuration. The provider neither copies nor filters those files and does not create or modify login state.

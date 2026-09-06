@@ -10,7 +10,9 @@ import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import {
+  assertOutOfProcessAllowed,
   assertPositiveFinite,
+  enforceOutOfProcessRefusal,
   NO_START_CAPABILITIES,
   resolveChildCwd,
   type ResolvedSubagentStartRequest,
@@ -55,6 +57,7 @@ class CodexProvider implements SubagentProvider {
   ) {}
 
   start(request: ResolvedSubagentStartRequest) {
+    assertOutOfProcessAllowed(this.ctx, request.parent)
     const parentCwd = request.parent.session.header.cwd
     if (parentCwd === undefined) {
       throw new Error(
@@ -98,4 +101,5 @@ export function apply(ctx: Context, config: Config): void {
     )
   }
   ctx.subagents.registerProvider(new CodexProvider(ctx, resolved))
+  enforceOutOfProcessRefusal(ctx)
 }

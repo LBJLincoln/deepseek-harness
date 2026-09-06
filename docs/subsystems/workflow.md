@@ -151,7 +151,7 @@ Workflow Service Definition contract. Invalid requests throw before publication;
 abstract start(request: WorkflowStartRequest): WorkflowRun
 ```
 
-Source: [`packages/workflow/workflow/src/index.ts:157`](../../packages/workflow/workflow/src/index.ts)
+Source: [`packages/workflow/workflow/src/index.ts:158`](../../packages/workflow/workflow/src/index.ts)
 
 <a id="workflow-events"></a>
 

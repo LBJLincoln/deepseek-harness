@@ -10,11 +10,16 @@
  * ephemeral `/tmp` mount, launcher-owned flags) — the honest per-runner
  * differences recorded in the sandbox RFC — with parity pinned by test.
  *
+ * The read barrier's denied directories are normalized the same way and for the
+ * same reason, but they are not derived from the mode: they are carried on the
+ * policy and denied under every mode.
+ *
  * @module dsh-sandbox/roots
  */
 
 import { realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { resolve } from 'node:path'
 import type { SandboxExecutionPolicy } from './index.ts'
 
 /**
@@ -52,4 +57,17 @@ export function canonicalPath(path: string): string {
 export function writableRoots(policy: SandboxExecutionPolicy): string[] {
   if (policy.mode !== 'workspace-write') return []
   return [...new Set([policy.workspaceRoot, '/tmp', tmpdir()].map(canonicalPath))]
+}
+
+/**
+ * Normalize the directories a confined execution may not READ under, as
+ * {@link SandboxExecutionPolicy.deniedReadRoots} promises them: absolute,
+ * canonical, and duplicate-free. Canonical for the same reason the writable
+ * roots are — every backend dialect matches resolved paths, so a denial spelled
+ * through a symlinked ancestor would fence a path nothing ever opens.
+ * @param roots - denied directories as the read barrier resolved them.
+ * @returns the canonical absolute roots, in first-seen order, without duplicates.
+ */
+export function normalizeDeniedReadRoots(roots: readonly string[]): string[] {
+  return [...new Set(roots.map(root => canonicalPath(resolve(root))))]
 }

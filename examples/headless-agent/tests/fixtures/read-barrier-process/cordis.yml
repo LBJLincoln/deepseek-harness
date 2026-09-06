@@ -1,0 +1,97 @@
+# Test-only composition: the smallest one that can CLAIM `isolation: process`.
+# Every path-opening capability it composes denies the barrier's directories at
+# the operation that opens them — the fs event gate, the sandbox-confined shell,
+# and the sandbox-confined search spawn — so the census carries no `unenforced`
+# entry. Composing a terminal, a subagent provider, or a workflow engine here
+# would each add one and make the claim unprovable.
+- id: process-mock-llm
+  name: './process-mock-llm.ts'
+
+# Managed child-process groups for the confined bash executor and the search spawn.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+# workspace-write: the implementer creates MARKER in its workspace. The denied
+# read roots ride the same per-call policy and are denied under every mode.
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.cwd()
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-sandbox'
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+# The root defaults to <harness home>/verification, which the smoke isolates per run.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+  config:
+    isolationClaim: process
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environment
+  name: './register-environment.ts'
+
+# The runner creates its own agent per run from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: process-mock
+    model: process-mock
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: process
+    maxAttempts: 1
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run the registered environment as a validated session.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

@@ -40,7 +40,7 @@ type SandboxEnforcement = 'full' | 'partial'
 
 ## Per-call policy
 
-The complete execution policy is resolved and carried per capability call. It includes `danger-full-access` so a consumer can resolve policy once before deciding whether to bypass confinement. Normal tool calls derive `workspaceRoot` from the calling session's immutable cwd; deployment configuration is the agentless fallback. The root is canonicalized with filesystem semantics before lexical normalization, so a cwd containing `symlink/..` identifies the directory where a spawned process actually runs.
+The complete execution policy is resolved and carried per capability call. It includes `danger-full-access` so a consumer can resolve policy once before deciding whether to bypass confinement. Normal tool calls derive `workspaceRoot` from the calling session's immutable cwd; deployment configuration is the agentless fallback. The root is canonicalized with filesystem semantics before lexical normalization, so a cwd containing `symlink/..` identifies the directory where a spawned process actually runs. `deniedReadRoots` is the policy's second, mode-independent half: the read barrier's denied directories for that session, normalized the same way, and empty for every session the barrier denies nothing.
 
 ```ts type-equiv
 /**
@@ -53,6 +53,15 @@ interface SandboxExecutionPolicy {
   mode: SandboxMode
   /** Absolute root directory `workspace-write` may write under. */
   workspaceRoot: string
+  /**
+   * Absolute, canonical, duplicate-free directories this execution may not
+   * READ under, independent of {@link mode} — the read barrier's denied set as
+   * `ctx.sandboxPolicy` resolved it for the calling session, empty for a
+   * session the barrier denies nothing. A backend that cannot express a
+   * non-empty entry refuses the wrap with {@link SANDBOX_UNAVAILABLE} rather
+   * than running the command with the denial unenforced.
+   */
+  deniedReadRoots: readonly string[]
   /**
    * Opaque identity of the calling session (the branded `dsh-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives
@@ -184,7 +193,7 @@ Abstract process-sandbox service. confine must return enforcing argv or fail clo
 abstract confine(argv: readonly string[], policy: SandboxPolicy): ConfinedArgv
 ```
 
-Source: [`packages/sandbox/sandbox/src/index.ts:158`](../../packages/sandbox/sandbox/src/index.ts)
+Source: [`packages/sandbox/sandbox/src/index.ts:191`](../../packages/sandbox/sandbox/src/index.ts)
 
 <a id="ctxsandboxpolicy--sandboxpolicyservice"></a>
 
@@ -214,5 +223,5 @@ overrideOf(session: Session): SandboxMode | undefined
 
 Types: [Session](session.md)
 
-Source: [`packages/sandbox/sandbox-policy/src/index.ts:91`](../../packages/sandbox/sandbox-policy/src/index.ts)
+Source: [`packages/sandbox/sandbox-policy/src/index.ts:93`](../../packages/sandbox/sandbox-policy/src/index.ts)
 <!-- END GENERATED cordis-surface -->

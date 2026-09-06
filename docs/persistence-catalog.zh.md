@@ -605,7 +605,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'read-barrier/attestation': ReadBarrierAttestation
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:67`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:71`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="read-barrierdenied--log-only"></a>
 
@@ -620,7 +620,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'read-barrier/denied': ReadBarrierDenial
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:53`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:57`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="read-barrierscope--log-only"></a>
 
@@ -637,7 +637,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'read-barrier/scope': ReadBarrierScope
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:61`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:65`](../packages/verification/read-barrier/src/index.ts)
 
 ### `request/*`
 

@@ -274,6 +274,42 @@ protect(path: string): () => void
 enforce(capability: ReadBarrierEnforcedCapability): () => void
 
 /**
+ * Record that one capability enforces the barrier by REFUSING TO START, for
+ * as long as the registration lives. It is the sibling of {@link enforce} for
+ * the executors this process cannot fence: a worker thread recovers the host
+ * process's privileges and an out-of-process agent brings its own tool stack,
+ * so neither can deny a read in the operation that opens paths. The census
+ * follows {@link isolationClaim}: `denied-at-executor` under `process` or
+ * `host` (where {@link startRefusal} refuses every implementer start) and
+ * `unenforced` under `none` (where it starts and denies nothing).
+ * @param capability - the path-opening capability that enforces by refusing.
+ * @returns the registration's disposer.
+ */
+enforceByRefusal(capability: ReadBarrierEnforcedCapability): () => void
+
+/**
+ * Record that one composed capability CANNOT enforce the barrier on this
+ * host, with the reason, for as long as the registration lives. A capability
+ * whose confinement backend cannot express a read denial registers here
+ * instead of {@link enforce}, so the census carries why the certificate that
+ * cites it will be refused rather than only which capability was silent.
+ * @param capability - the path-opening capability that enforces nothing.
+ * @param reason - why it cannot, named from the capability's own vocabulary.
+ * @returns the registration's disposer.
+ */
+cannotEnforce(capability: ReadBarrierEnforcedCapability, reason: string): () => void
+
+/**
+ * Why one capability that cannot be confined in-process must not start for a
+ * session, or `undefined` when it may. Every start of such a capability asks
+ * here, so the refusal is decided in the operation that would open the paths.
+ * @param capability - the capability about to start.
+ * @param session - the session it would start for; absent for an agentless call.
+ * @returns the exact refusal from {@link startRefusalMessage}, or undefined.
+ */
+startRefusal(capability: ReadBarrierEnforcedCapability, session: Session | undefined): string | undefined
+
+/**
  * Record what a preset roster composed for one agent. A declared role
  * outranks a reservation, because only the composition knows what was
  * actually mounted; a preset that declares none leaves the reservation to
@@ -296,8 +332,11 @@ resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy
 
 /**
  * One entry per path-opening capability: `denied-at-executor` when the
- * capability registered enforcement, `unenforced` when it is composed without
- * one, and `not-composed` when this composition does not have it.
+ * capability registered enforcement — through {@link enforce}, or through
+ * {@link enforceByRefusal} under a `process` or `host` claim — `unenforced`
+ * when it is composed without one, and `not-composed` when this composition
+ * does not have it. An `unenforced` entry carries the reason whenever a
+ * registration supplied one.
  * @returns the enforcement census in the fixed capability order.
  */
 enforcementCensus(): ReadBarrierEnforcementEntry[]
@@ -327,5 +366,5 @@ recordDenial( session: Session, policy: ReadBarrierPolicy, capability: ReadBarri
 
 Types: [Agent](core.md) · [FsTarget](filesystem.md) · [Session](session.md)
 
-Source: [`packages/verification/read-barrier/src/index.ts:239`](../../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:291`](../../packages/verification/read-barrier/src/index.ts)
 <!-- END GENERATED cordis-surface -->

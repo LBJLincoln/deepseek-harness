@@ -1583,10 +1583,30 @@ export interface Config {
    * without that record no certificate may claim `host` isolation.
    */
   hostAttestation?: string
+  /**
+   * Isolation this deployment intends its certificates to claim (default:
+   * `none`). It decides only what a capability the harness cannot fence
+   * in-process — a workflow worker, an out-of-process subagent — does for an
+   * implementer session: refuse to start under `process` or `host`, run
+   * unenforced under `none`. It grants nothing: what a certificate may actually
+   * claim is decided by `@deepseek-ai/dsh-verification` over the census this
+   * barrier appends, so a deployment that raises this field without composing
+   * the enforcement still gets its claim refused.
+   */
+  isolationClaim?: ReadBarrierIsolationClaim
 }
+
+/**
+ * Isolation a deployment intends its certificates to claim, which decides
+ * whether a capability that cannot be confined in-process refuses to run or
+ * merely records that it enforces nothing. It repeats `CertificateIsolation`'s
+ * members rather than importing them: `@deepseek-ai/dsh-verification` reads this
+ * package, so the dependency cannot run the other way.
+ */
+export type ReadBarrierIsolationClaim = 'none' | 'process' | 'host'
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:170`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:211`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="deepseek-aidsh-repeat-tool-reminder"></a>
 
@@ -1652,7 +1672,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/sandbox/sandbox-local/src/index.ts:44`](../packages/sandbox/sandbox-local/src/index.ts)
+来源：[`packages/sandbox/sandbox-local/src/index.ts:50`](../packages/sandbox/sandbox-local/src/index.ts)
 
 <a id="deepseek-aidsh-sandbox-policy"></a>
 
@@ -1679,7 +1699,7 @@ export interface Config {
 
 依赖：[`SandboxMode`](subsystems/sandbox.md)
 
-来源：[`packages/sandbox/sandbox-policy/src/index.ts:67`](../packages/sandbox/sandbox-policy/src/index.ts)
+来源：[`packages/sandbox/sandbox-policy/src/index.ts:69`](../packages/sandbox/sandbox-policy/src/index.ts)
 
 <a id="deepseek-aidsh-scorekeeper"></a>
 
@@ -2313,7 +2333,7 @@ export interface Config {
 export type PermissionPolicy = 'allow' | 'reject'
 ```
 
-来源：[`packages/subagent/subagent-acp/src/index.ts:27`](../packages/subagent/subagent-acp/src/index.ts)
+来源：[`packages/subagent/subagent-acp/src/index.ts:28`](../packages/subagent/subagent-acp/src/index.ts)
 
 <a id="deepseek-aidsh-subagent-claude-code"></a>
 
@@ -2334,7 +2354,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/subagent/subagent-claude-code/src/index.ts:32`](../packages/subagent/subagent-claude-code/src/index.ts)
+来源：[`packages/subagent/subagent-claude-code/src/index.ts:34`](../packages/subagent/subagent-claude-code/src/index.ts)
 
 <a id="deepseek-aidsh-subagent-codex"></a>
 
@@ -2355,7 +2375,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/subagent/subagent-codex/src/index.ts:30`](../packages/subagent/subagent-codex/src/index.ts)
+来源：[`packages/subagent/subagent-codex/src/index.ts:32`](../packages/subagent/subagent-codex/src/index.ts)
 
 <a id="deepseek-aidsh-subagent-dsh-sdk"></a>
 
@@ -2408,7 +2428,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/subagent/subagent-dsh-sdk/src/index.ts:29`](../packages/subagent/subagent-dsh-sdk/src/index.ts)
+来源：[`packages/subagent/subagent-dsh-sdk/src/index.ts:36`](../packages/subagent/subagent-dsh-sdk/src/index.ts)
 
 <a id="deepseek-aidsh-subagent-fork-in-process"></a>
 
@@ -2668,7 +2688,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/fs/tool-fs-search/src/index.ts:73`](../packages/fs/tool-fs-search/src/index.ts)
+来源：[`packages/fs/tool-fs-search/src/index.ts:83`](../packages/fs/tool-fs-search/src/index.ts)
 
 <a id="deepseek-aidsh-tool-goal"></a>
 
@@ -3298,7 +3318,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/workflow/workflow-worker-thread/src/index.ts:32`](../packages/workflow/workflow-worker-thread/src/index.ts)
+来源：[`packages/workflow/workflow-worker-thread/src/index.ts:38`](../packages/workflow/workflow-worker-thread/src/index.ts)
 
 ## 无配置的可加载插件
 

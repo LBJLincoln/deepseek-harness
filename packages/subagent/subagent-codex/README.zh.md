@@ -14,6 +14,8 @@
 
 本地取消会在结果竞态中胜出并映射为 `aborted`。失败轮次的 `codexErrorInfo` 若为 `contextWindowExceeded`，则映射为 `max-tokens`；其他任何远端中断或失败轮次都映射为 `error`，且该提供方不会产生 `refusal`。`dispose()`（资源释放）具有幂等性：如果当前的两个标识符均已知，它会尽力请求 `turn/interrupt`，关闭 JSON-RPC 通信链路，结束标准输入，调用共享的进程树逐级终止机制，并等待整棵进程树退出。结果失败与独立的清理失败仍彼此分离。
 
+在 spawn 任何进程之前，`start()` 会询问已组合的 [read barrier（读屏障）](../../verification/read-barrier/README.md)：这个进程外子 agent 是否允许运行。对部署声称 `process` 或 `host` 隔离的 implementer 会话，会以 `SubagentError` 的 `READ_BARRIER_REFUSED` 拒绝，因为外部 agent 自带工具栈，本进程安装的任何围栏都触及不到它的读取；在 `none` 声明下不拒绝任何启动。提供方会向 read barrier 登记该拒绝，因此 scope 普查会报告 `subagent`。
+
 ## 能力与上下文
 
 本提供方不声明任何可选的启动时能力，并报告 `inheritsParentContext: false`。Codex 会接收独立文本任务和父会话 cwd，但不会接收父会话的对话、角色设定、工具筛选器、深度策略或结构化输出约定。临时 Codex 线程 ID 与轮次 ID 仅在此次运行内部可见，绝不会持久化到父会话。

@@ -50,6 +50,12 @@ await ctx.plugin(LocalSpillStore)                           // @deepseek-ai/dsh-
 
 搜索失败会携带由本包定义的 `SearchError`（`HarnessError` 子类），并以 `{ name, code }` 的形式呈现在 `isError` 结果上：`SEARCH_INVALID_PATTERN`（ripgrep 拒绝正则/glob）、`SEARCH_FAILED`（`rg` 启动失败、目标不可访问、信号终止、`--json` 输出格式错误）、`SEARCH_RAW_OUTPUT_OVERFLOW`（原始输出超过 `rawOutputMaxBytes`，或在请求 stdout 捕获预算后仍 lossy）和 `SEARCH_ABORTED`（协作式工具超时或调用方取消）。ripgrep 的退出语义由工具负责处理：退出 0 表示成功且有结果，退出 1 表示成功的空搜索（`No files found` / `No matches found`），只有其他退出值表示失败。模型参数错误（空白 pattern、列表值 `include`）仍是普通工具参数错误。
 
+## read barrier 禁读时施加限制
+
+`ctx.sandboxPolicy` 与 `ctx.sandbox` 和 `ctx.spillStore` 一样以机会性方式读取。当调用会话解析出的策略携带禁读根目录时——只有在组合了 [read barrier（读屏障）](../../verification/read-barrier/README.md) 且该会话被其禁读时才会发生——ripgrep 的 spawn 会经 `ctx.sandbox` 包装，使被禁目录绝不会被搜索；其他所有会话的 spawn 与上文所述完全相同。搜索不写入任何内容，因此在部署运行 `danger-full-access` 时，该包装使用最宽的受限模式：禁读与文件操作模式无关，施加限制不会移除搜索所需的任何能力。若组合中存在禁读目录却没有沙箱提供方，调用会以 `SEARCH_FAILED` 失败，而不是去搜索它们。
+
+加载时插件会探测同一次包装，仅在成功时登记 `enforce('subprocess')`，因为这两个工具是组合中通过 `ctx.subprocess` 打开模型所选路径的消费方。直接通过该 seam spawn 的插件属于任何普查都看不到的进程内受信代码。
+
 ## 模型体验
 
 ### 系统提示词
