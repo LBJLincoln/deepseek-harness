@@ -16,11 +16,13 @@ Status: proposed
 
 在 `improvement/` 分组中加入 `@deepseek-ai/dsh-scorekeeper`（`ctx.scorekeeper`）：把会话日志变成行的那个折叠，别无其他。
 
-**四个分组，每个字段都来自具名事件。** `SessionFacts` 发布身份与来源、结果、效率与工具行为。只有当今天已有会话事件承载时字段才存在：`environment/run` stamp 提供单元格身份，`request/header` 提供请求的路由，`goal/change` 与五个 `verification/*` 事件提供结果，`budget/breach` 提供停止会话的上限，`turn/start`、`step/start` 与 `assistant/message` 的用量提供效率，`tool/call` 与 `tool/result` 提供工具行为。note 的 schema 中其余四个分组在其生产者出现之前不发布任何内容，包 README 在 Known Limitations 中指名它们，使这种缺席成为被记录的缺口而非无声的缺口。字段名在 TypeScript 中以及每一处导出中都使用 camelCase，与 note 中 snake_case 的草稿不同。
+**四个分组，每个字段都来自具名事件。** `SessionFacts` 发布身份与来源、结果、效率与工具行为。只有当今天已有会话事件承载时字段才存在：`environment/run` stamp 提供单元格身份（含其 `district`），`request/header` 提供请求的路由，`goal/change` 与五个 `verification/*` 事件提供结果，`budget/breach` 提供停止会话的上限，`turn/start`、`step/start`、`assistant/message` 的用量与预算策略的 `usage/priced` 记录提供效率，`tool/call` 与 `tool/result` 提供工具行为。note 的 schema 中其余四个分组在其生产者出现之前不发布任何内容，包 README 在 Known Limitations 中指名它们，使这种缺席成为被记录的缺口而非无声的缺口。字段名在 TypeScript 中以及每一处导出中都使用 camelCase，与 note 中 snake_case 的草稿不同。
+
+**成本只读取，绝不重新定价。** 效率分组陈述日志中 `usage/priced` 事件的 `pricedSteps`、`costEur` 与互不相同的 `pricingDigests`。折叠不接受任何定价表，因此部署对某条路由重新定价，无法改变一次已经跑完的会话花了多少，而读者可以从摘要看出是哪张表为它定的价。只有当每一条报告了用量的 `assistant/message` 都在同一 turn 与 step 上有价格时，`costEur` 才出现：触及未定价路由的会话根本不陈述成本，而不是只陈述其已定价步骤那份更低的成本——在一份只部分定价的路由名册下，只有这种读法才能让 Village 那条「成本要么是日志事实，要么不发布」的规则站得住。
 
 **一个折叠，两副面孔。** `applySessionFacts` 是增量转移，`foldSessionFacts(meta, events)` 是整日志入口；`sessionFacts` 投影单元在 `ctx.inject` 下把前者注册到 `ctx.sessionProjections`，服务则在已持久化日志上运行后者。二者因此产生相同的值，活动载体与离线记分板不可能发生漂移。结果分组由已经拥有这些事件流的折叠决定——`foldTrajectoryReward`（为此从轨迹折叠中抽取）、`foldVerification` 与 `foldGoal`——因此记分板行报告的奖励与轨迹行报告的奖励一致，是构造使然而非评审使然。累加器保留 goal、验证与预算事件，并在其中任一到达时重新折叠；投影单元包裹严格折叠，使被拒绝的变更保持所服务的值不变，而不是撕裂读取侧。
 
-**记分板只分组，从不求平均。** 一行是一个模型路由在一个环境、一个隔离级别、留出划分一侧上的结果，正是 fleet 排行榜已经遵守的划分。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而非缺失的行——这回答了 note 中的幸存者偏差风险。没有 `environment/run` stamp 的会话不指名任何单元格，单独计数。
+**记分板只分组，从不求平均。** 一行是一个模型路由在一个环境、一个隔离级别、留出划分一侧、一个区上的结果——即 fleet 排行榜已经遵守的划分，再加上发布据以扣留的已盖章的区，因此扣留是整行丢弃，而不是把两个区混成一个数字。`costEurPerCertified` 遵循与 `costEur` 相同的完整性规则：它是该行取得证书的会话上的均值；没有任何会话取得证书的行没有它，该行只要有一个取得证书的会话不陈述成本，它也没有。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而非缺失的行——这回答了 note 中的幸存者偏差风险。没有 `environment/run` stamp 的会话不指名任何单元格，单独计数。
 
 **`EnvironmentStats` 就是在运行器已经盖章的批次上求 pass@k。** 每个会话的 stamp 携带 `group` 与 `repetition`；共享同一 group 的会话构成一个批次，含 `n` 个样本、其中 `c` 个取得证书，该批次的 pass@k 是无偏的 `1 - C(n - c, k) / C(n, k)`，以乘积形式求值以免阶乘溢出。一行的估计值是在会话数不少于 `k` 的批次上求均值；小于 `k` 的批次不贡献，没有任何批次达到的 `k` 不出现在该行中。`k` 列表属于 `Config`，因为一个部署能负担多少次重复是部署的选择。
 
@@ -44,6 +46,7 @@ Status: proposed
 - 每个发布的字段都在包 README 中对照其折叠所依据的会话事件列表说明，且没有任何字段折叠自别处。
 - `ctx.scorekeeper.leaderboard()` 在一次 fleet 运行的日志上，对每个单元格的 `runs`、`certified`、`certificateRate` 与 `attemptsMean` 都与该次 fleet 运行自身的内存排行榜一致，由 Loader 启动的示例（`examples/headless-agent/tests/fixtures/scoreboard`）证明。
 - 已认证会话的 `ctx.scorekeeper.facts()` 携带 basis 为 `certificate` 的奖励 `1`、已记录的运行次数，以及非零的 token 与工具计数；`exportFacts` 为每个会话写一行并把 sink 恰好关闭一次。
+- 带两个摘要的日志保留两个摘要且成本照样求和；跑过未定价路由的会话不陈述 `costEur`；取得证书却没有成本的会话使其所在行没有 `costEurPerCertified`；同一单元格的两个区绝不共用一行；在不同的部署定价下两次折叠同一份日志给出相同的成本。
 - 没有记录任何 `verification/run` 的已盖章会话是其所在行的 `errors` 一列，没有 stamp 的会话计入 `unstamped` 而非被丢弃。
 - 包不变量以 `verification/run` 事件的原始计数重算 `runsRecorded`、以奖励折叠的判定重算 `certified`、以 `environment/run` stamp 声明的隔离级别重算证书的隔离级别，并由一个无密钥测试证明最后一条关系会拒绝在另一隔离级别下取得的证书。
 
@@ -52,11 +55,13 @@ Status: proposed
 1. 本 note、该包、`sessionFacts` 投影单元、带 pass@k 的记分板、JSONL 导出，以及在 fleet-run 栈之上由 Loader 启动的示例。
 2. 一旦预算策略读取 fleet 计划中的按单元格预算，就把它们呈现为事实：被突破的上限已经是字段，配置的限额还不是。
 3. 生产者稍后到达的那些分组——带 `signoff/recorded` 与组合清单的过程质量、带监视器判定的安全与监督、带策展方同意与脱敏记录的训练与数据——各自随其生产者加入，绝不先于它。
-4. 跨运行比较：配对设计、自助法置信区间与每张证书的成本属于[四目标工作流 note](2026-09-05-four-goal-workflows.md) 指名的实验插件，它读取这些行而非取代它们。
+4. 跨运行比较：配对设计与自助法置信区间属于[四目标工作流 note](2026-09-05-four-goal-workflows.md) 指名的实验插件，它读取这些行而非取代它们。每个已认证会话的成本则是这里的一个行字段，因为它折叠自单个单元格自己的日志，不需要第二条 arm 才有意义。
 
 ## Risks
 
 在每个 goal 或验证事件上重新折叠已保留的这些事件，其代价与它们的数量成平方关系。一个会话每次尝试只记录少量此类事件，因此实际代价有界；记录了数千次验证变更的会话会为此付出代价，一旦出现这种情况，状态为纯 JSON 的增量严格折叠就是修法。
+
+判断是否每个已计入用量的步骤都已定价，需要在每个用量或定价事件上重扫已保留的步骤键，因此成本字段与会话的步骤数成平方关系，与结果重折叠对验证变更成平方关系是同一个原因。步骤键是短字符串，而会话的步骤数受其轮次数约束，因此常数很小；一旦某个会话记录的步骤多到能感觉出来，修法就是在累加器中放一个成员集合——纯 JSON 状态对此的限制，只在投影约定尚未接纳它之前成立。
 
 `sessionFacts` 的值在每个已提交事件上都会变化，因为 `wallMs` 跨越整个日志，所以订阅的载体是每事件收到一次通知，而不是每次有意义的变化收到一次。从投影中去掉 `wallMs` 可以恢复安静路径，但代价是失去 note 指名的一个字段；这里接受这种抖动，并改为记录在 README 中。
 

@@ -1,5 +1,6 @@
 /** Stub session logs the scorekeeper specs fold: an append-only builder plus the durable payloads it writes. */
 
+import type { BudgetRoutePricing } from '@deepseek-ai/dsh-budget-policy'
 import { GoalId } from '@deepseek-ai/dsh-goal'
 import type { GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import { CallId, createAssistantMessage, createToolResultMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -11,6 +12,15 @@ import type { CertificateIsolation, RunExecutor } from '@deepseek-ai/dsh-verific
 
 /** One durable payload as the log carries it, before the fold's decoders narrow it. */
 export type Raw = Record<string, unknown>
+
+/** One provider route, as an assistant message's provenance and a price record both name it. */
+export interface Route {
+  readonly provider: string
+  readonly model: string
+}
+
+/** The route every stub session runs on unless a case names another. */
+export const MOCK_ROUTE: Route = { provider: 'cli-mock', model: 'cli-mock' }
 
 /** The single check every stub standard measures. */
 const CHECK = { id: CheckId('round-trip'), outcome: 'the round trip prints', run: 'printf X' }
@@ -38,16 +48,45 @@ export class Log {
   /**
    * Push one assistant message.
    * @param usage - provider accounting of the step, absent when the adapter reported none.
+   * @param step - the step within turn one the message answers.
+   * @param route - the provider route that served it.
    * @returns the pushed event.
    */
-  assistant(usage?: TokenUsage): SessionEvent {
+  assistant(usage?: TokenUsage, step = 1, route: Route = MOCK_ROUTE): SessionEvent {
     const message = createAssistantMessage({
       content: [{ type: 'text', text: 'ok' }],
-      source: { provider: 'cli-mock', model: 'cli-mock' },
+      source: { ...route },
     })
-    return this.push('assistant/message', { turn: 1, step: 1, message, ...usage === undefined ? {} : { usage } }, {
+    return this.push('assistant/message', { turn: 1, step, message, ...usage === undefined ? {} : { usage } }, {
       surfaceOp: 'append',
       sourceEventSeqs: [],
+    })
+  }
+
+  /**
+   * Push the durable price the budget policy records for one served step.
+   * @param options - the priced step, its billed tokens, the rates applied, the digest of the table they came from, and the route served.
+   * @returns the pushed event.
+   */
+  priced(options: {
+    readonly step?: number
+    readonly inputTokens: number
+    readonly outputTokens: number
+    readonly rates: BudgetRoutePricing
+    readonly digest: string
+    readonly route?: Route
+  }): SessionEvent {
+    const { inputTokens, outputTokens, rates } = options
+    return this.push('usage/priced', {
+      turn: 1,
+      step: options.step ?? 1,
+      ...options.route ?? MOCK_ROUTE,
+      inputTokens,
+      outputTokens,
+      ...rates,
+      // The one expression the budget policy prices with; the invariant it owns recomputes it.
+      costEur: (inputTokens * rates.inputEurPerMillionTokens + outputTokens * rates.outputEurPerMillionTokens) / 1_000_000,
+      pricingDigest: options.digest,
     })
   }
 
@@ -117,7 +156,7 @@ export function stamp(overrides: Raw = {}): Raw {
     checksSha256: HEX,
     contentSha256: HEX,
     repetition: 0,
-    model: { provider: 'cli-mock', model: 'cli-mock' },
+    model: { ...MOCK_ROUTE },
     isolation: 'none',
     ...overrides,
   }
@@ -216,7 +255,8 @@ export function directive(): Raw {
 
 /**
  * A whole session log for one cell.
- * @param options - the cell's stamp overrides, whether it certified, and how many runs it recorded.
+ * @param options - the cell's stamp overrides, whether it certified, how many
+ *   runs it recorded, its usage, and the rates that priced its one step.
  * @returns the contiguous events of that session.
  */
 export function cellLog(options: {
@@ -224,15 +264,20 @@ export function cellLog(options: {
   readonly certified: boolean
   readonly runs: number
   readonly usage?: TokenUsage
+  readonly pricing?: { readonly rates: BudgetRoutePricing; readonly digest: string }
 }): SessionEvent[] {
   const log = new Log()
   if (options.stamp !== undefined) log.push('environment/run', options.stamp)
   log.push('turn/start', { turn: 1 })
   log.push('step/start', { turn: 1, step: 1 })
-  log.push('request/header', { header: { config: { provider: 'cli-mock', model: 'cli-mock' } }, reason: 'initial' })
+  log.push('request/header', { header: { config: { ...MOCK_ROUTE } }, reason: 'initial' })
   log.push('goal/change', goalChange('create', 'active', 1))
   log.push('verification/standard', standard())
-  log.assistant(options.usage ?? { inputTokens: 12, outputTokens: 3 })
+  const usage = options.usage ?? { inputTokens: 12, outputTokens: 3 }
+  log.assistant(usage)
+  if (options.pricing !== undefined) {
+    log.priced({ inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, ...options.pricing })
+  }
   for (let attempt = 1; attempt <= options.runs; attempt += 1) {
     log.push('verification/run', runRecord(attempt, options.certified && attempt === options.runs ? 'pass' : 'fail'))
   }

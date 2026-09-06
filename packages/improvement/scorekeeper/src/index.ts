@@ -2,9 +2,9 @@
  * Scorekeeper: the session log as the dataset. A `sessionFacts` projection
  * unit serves one live session's facts, and `ctx.scorekeeper` folds the same
  * facts out of persisted logs — one record per session, a scoreboard grouped
- * by model route, environment, isolation, and held-out split, and a JSONL
- * export. The service reads through the session persistence seam and writes no
- * session event. The
+ * by model route, environment, isolation, held-out split, and district, and a
+ * JSONL export. The service reads through the session persistence seam and
+ * writes no session event. The
  * [scorekeeper Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)
  * owns the design rationale.
  * @module @deepseek-ai/dsh-scorekeeper
@@ -39,7 +39,7 @@ export {
   foldSessionFacts,
   foldSessionFactsState,
 } from './fold.ts'
-export type { SessionFactsState } from './fold.ts'
+export type { SessionFactsPricing, SessionFactsState } from './fold.ts'
 export { foldScoreboard, unbiasedPassAtK } from './scoreboard.ts'
 export type { ScoreboardFold } from './scoreboard.ts'
 
@@ -56,6 +56,7 @@ const environmentSchema = zod.object({
   heldOut: zod.boolean(),
   repetition: zod.number().int().nonnegative(),
   group: zod.string().min(1).optional(),
+  district: zod.string().min(1).optional(),
   contentSha256: zod.string().min(1),
   provider: zod.string().min(1),
   model: zod.string().min(1),
@@ -104,6 +105,9 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     cacheWriteTokens: zod.number().int().nonnegative(),
     reasoningTokens: zod.number().int().nonnegative(),
     wallMs: zod.number().int().nonnegative(),
+    pricedSteps: zod.number().int().nonnegative(),
+    costEur: zod.number().nonnegative().optional(),
+    pricingDigests: zod.array(zod.string().min(1)),
   }),
   tools: zod.object({
     toolCalls: zod.number().int().nonnegative(),
@@ -184,7 +188,7 @@ export class ScorekeeperService extends Service {
         init: emptySessionFactsState,
         apply: applySessionFactsProjection,
         view: state => state.facts,
-        stateVersion: 1,
+        stateVersion: 2,
       })
     })
   }
@@ -202,8 +206,8 @@ export class ScorekeeperService extends Service {
 
   /**
    * Fold a scoreboard from persisted session logs, one row per model route,
-   * environment, isolation level, and held-out split. A session that cannot be
-   * read or folded is reported and the fold continues.
+   * environment, isolation level, held-out split, and district. A session that
+   * cannot be read or folded is reported and the fold continues.
    * @param filter - the sessions to fold and the group and held-out conditions a stamped session must meet.
    * @returns the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.
    */

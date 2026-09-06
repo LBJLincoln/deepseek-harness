@@ -28,6 +28,8 @@ export interface SessionFactsEnvironment {
   readonly repetition: number
   /** Batch identity the stamp carried, absent for a single run. */
   readonly group?: string
+  /** District the run belonged to, absent for a run outside every district. */
+  readonly district?: string
   /** SHA-256 hex over the prompt, fixture, and check digests; the decontamination key. */
   readonly contentSha256: string
   /** Provider route the run declared. */
@@ -90,7 +92,12 @@ export interface SessionFactsOutcome {
   readonly budgetBreachCap?: BudgetCapId
 }
 
-/** What the session cost, from its turn, step, and usage events. */
+/**
+ * What the session cost, from its turn, step, usage, and pricing events. Cost
+ * is read from the `usage/priced` records alone, never recomputed from a
+ * deployment's current pricing table, so a table edited after the fact cannot
+ * change what a folded session cost.
+ */
 export interface SessionFactsEfficiency {
   /** `turn/start` events. */
   readonly turns: number
@@ -108,6 +115,22 @@ export interface SessionFactsEfficiency {
   readonly reasoningTokens: number
   /** Milliseconds between the first and the last event time; `0` for a log of fewer than two events. */
   readonly wallMs: number
+  /** `usage/priced` events: the steps whose price the log states. */
+  readonly pricedSteps: number
+  /**
+   * EUR summed over the `costEur` of those events, absent when any
+   * `assistant/message` that reported usage has no `usage/priced` for its turn
+   * and step: a session that ran an unpriced route states no cost rather than
+   * the lower cost of its priced steps alone. `0` for a session whose log
+   * carries no usage-bearing message.
+   */
+  readonly costEur?: number
+  /**
+   * Distinct `pricingDigest` values of those events, in first-seen order. Two
+   * or more mean the log was priced under more than one table version, so
+   * {@link costEur} is a sum across pricing tables.
+   */
+  readonly pricingDigests: readonly string[]
 }
 
 /** How the session used tools, from its `tool/call` and `tool/result` events. */
@@ -172,8 +195,9 @@ export interface EnvironmentStats {
 
 /**
  * One scoreboard row: one model route on one environment at one isolation
- * level and one side of the held-out split. Rows never average across
- * isolation or the split; both are columns a consumer partitions by.
+ * level, one side of the held-out split, and one district. Rows never average
+ * across isolation, the split, or districts; all three are columns a consumer
+ * partitions by, and a publication that withholds a district drops whole rows.
  */
 export interface ScoreboardRow {
   readonly provider: string
@@ -182,6 +206,8 @@ export interface ScoreboardRow {
   readonly environmentKind: string
   readonly heldOut: boolean
   readonly isolation: CertificateIsolation
+  /** District every session of the row was stamped with, absent for a row outside every district. */
+  readonly district?: string
   /** Sessions that recorded at least one `verification/run`. */
   readonly runs: number
   /** Sessions that ended without recording one. */
@@ -196,6 +222,14 @@ export interface ScoreboardRow {
   readonly inputTokens: number
   /** Output tokens summed over the same sessions. */
   readonly outputTokens: number
+  /**
+   * Mean `costEur` over the row's certified sessions, absent when the row
+   * certified nothing and absent when any certified session of the row states
+   * no cost, so a published figure never averages an unpriced session as free.
+   */
+  readonly costEurPerCertified?: number
+  /** Distinct `pricingDigest` values across every session of the row, in first-appearance order. */
+  readonly pricingDigests: readonly string[]
   /** Pass@k over the row's repetition batches. */
   readonly stats: EnvironmentStats
 }
@@ -209,7 +243,7 @@ export interface ScorekeeperSkip {
 
 /** Scoreboard rows folded from a batch of persisted session logs. */
 export interface ScoreboardBatch {
-  /** One row per model route, environment, isolation level, and held-out split, in first-appearance order. */
+  /** One row per model route, environment, isolation level, held-out split, and district, in first-appearance order. */
   readonly rows: readonly ScoreboardRow[]
   /** Sessions the request named or the store listed. */
   readonly sessions: number

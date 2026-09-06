@@ -6,6 +6,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import { pricingTableDigest } from '@deepseek-ai/dsh-budget-policy'
+import type { BudgetRoutePricing } from '@deepseek-ai/dsh-budget-policy'
 import { TOOL_TIMEOUT } from '@deepseek-ai/dsh-tool-call-timeout-policy'
 import { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@deepseek-ai/dsh-tools'
 import {
@@ -14,7 +16,24 @@ import {
   foldSessionFacts,
   foldSessionFactsState,
 } from '@deepseek-ai/dsh-scorekeeper'
-import { cellLog, certificate, directive, goalChange, header, Log, runRecord, standard, stamp } from './log.ts'
+import { cellLog, certificate, directive, goalChange, header, Log, MOCK_ROUTE, runRecord, standard, stamp } from './log.ts'
+import type { Route } from './log.ts'
+
+/** The rates one deployment priced the mock route at, and the ten-times-higher rates that replaced them. */
+const OLD_RATES: BudgetRoutePricing = { inputEurPerMillionTokens: 1, outputEurPerMillionTokens: 2 }
+const NEW_RATES: BudgetRoutePricing = { inputEurPerMillionTokens: 10, outputEurPerMillionTokens: 20 }
+
+const ROUTE_KEY = `${MOCK_ROUTE.provider}/${MOCK_ROUTE.model}`
+const OLD_DIGEST = pricingTableDigest({ [ROUTE_KEY]: OLD_RATES })
+const NEW_DIGEST = pricingTableDigest({ [ROUTE_KEY]: NEW_RATES })
+
+/** A route no pricing table names, so no `usage/priced` can ever state its price. */
+const UNPRICED_ROUTE: Route = { provider: 'cli-mock', model: 'cli-mock-unpriced' }
+
+/** What one twelve-in three-out step costs at the given rates. */
+function costOf(rates: BudgetRoutePricing): number {
+  return (12 * rates.inputEurPerMillionTokens + 3 * rates.outputEurPerMillionTokens) / 1_000_000
+}
 
 describe('foldSessionFacts', () => {
   it('folds the empty log into zeroed groups carrying only the stored header identity', () => {
@@ -39,13 +58,20 @@ describe('foldSessionFacts', () => {
         cacheWriteTokens: 0,
         reasoningTokens: 0,
         wallMs: 0,
+        pricedSteps: 0,
+        costEur: 0,
+        pricingDigests: [],
       },
       tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0 },
     })
   })
 
   it('carries the run stamp, the certificate, and the turn and token counts of a certified cell', () => {
-    const events = cellLog({ stamp: stamp({ group: 'batch-1', repetition: 2 }), certified: true, runs: 1 })
+    const events = cellLog({
+      stamp: stamp({ group: 'batch-1', repetition: 2, district: 'proving-ground' }),
+      certified: true,
+      runs: 1,
+    })
     const facts = foldSessionFacts(header('certified'), events)
     expect(facts.identity).toEqual({
       sessionId: 'certified',
@@ -56,6 +82,7 @@ describe('foldSessionFacts', () => {
         heldOut: false,
         repetition: 2,
         group: 'batch-1',
+        district: 'proving-ground',
         contentSha256: 'c'.repeat(64),
         provider: 'cli-mock',
         model: 'cli-mock',
@@ -104,6 +131,7 @@ describe('foldSessionFacts', () => {
     expect(facts.outcome.certificateRevision).toBeUndefined()
     expect(facts.outcome.certificateExecutor).toBeUndefined()
     expect(facts.identity.environment?.group).toBeUndefined()
+    expect(facts.identity.environment?.district).toBeUndefined()
     expect(facts.identity.requestProvider).toBeUndefined()
   })
 
@@ -166,6 +194,43 @@ describe('foldSessionFacts', () => {
     const log = new Log()
     log.push('verification/certificate', certificate())
     expect(() => foldSessionFactsState(log.events)).toThrow('verification certificate requires a current standard')
+  })
+
+  it('leaves a session whose route the deployment does not price without a cost at all', () => {
+    const log = new Log()
+    log.assistant({ inputTokens: 5, outputTokens: 2 })
+    log.priced({ inputTokens: 5, outputTokens: 2, rates: OLD_RATES, digest: OLD_DIGEST })
+    log.assistant({ inputTokens: 40, outputTokens: 10 }, 2, UNPRICED_ROUTE)
+    const efficiency = foldSessionFacts(header('mixed-routes'), log.events).efficiency
+    expect(efficiency.costEur).toBeUndefined()
+    expect(efficiency).toMatchObject({ pricedSteps: 1, pricingDigests: [OLD_DIGEST], inputTokens: 45 })
+  })
+
+  it('sums a cost across two pricing tables and keeps both digests in first-seen order', () => {
+    const log = new Log()
+    log.assistant({ inputTokens: 12, outputTokens: 3 })
+    log.priced({ inputTokens: 12, outputTokens: 3, rates: OLD_RATES, digest: OLD_DIGEST })
+    log.assistant({ inputTokens: 12, outputTokens: 3 }, 2)
+    log.priced({ step: 2, inputTokens: 12, outputTokens: 3, rates: NEW_RATES, digest: NEW_DIGEST })
+    // A resumed session priced its second step after the deployment re-rated the route.
+    log.assistant({ inputTokens: 12, outputTokens: 3 }, 3)
+    log.priced({ step: 3, inputTokens: 12, outputTokens: 3, rates: NEW_RATES, digest: NEW_DIGEST })
+    const efficiency = foldSessionFacts(header('re-rated'), log.events).efficiency
+    expect(efficiency.pricingDigests).toEqual([OLD_DIGEST, NEW_DIGEST])
+    expect(efficiency.pricedSteps).toBe(3)
+    expect(efficiency.costEur).toBeCloseTo(costOf(OLD_RATES) + 2 * costOf(NEW_RATES), 15)
+  })
+
+  it('states the cost the log recorded however the deployment is rated when it is folded', () => {
+    const events = cellLog({ certified: true, runs: 1, pricing: { rates: OLD_RATES, digest: OLD_DIGEST } })
+    // The fold takes no pricing table, so re-rating the route between the two
+    // folds cannot move a recorded cost even though the new rates are tenfold.
+    const before = foldSessionFacts(header('rated'), events).efficiency
+    const after = foldSessionFacts(header('rated'), events).efficiency
+    expect(after).toEqual(before)
+    expect(after.costEur).toBeCloseTo(costOf(OLD_RATES), 15)
+    expect(costOf(NEW_RATES)).not.toBeCloseTo(costOf(OLD_RATES), 15)
+    expect(after.pricingDigests).toEqual([OLD_DIGEST])
   })
 
   it('leaves every other event to the log clock alone', () => {

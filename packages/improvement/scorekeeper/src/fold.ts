@@ -3,8 +3,13 @@
  * from a named session event: the identity group from `environment/run` and
  * `request/header`, the outcome group from `goal/change`, the five
  * `verification/*` events and `budget/breach`, the efficiency group from
- * `turn/start`, `step/start`, and the usage of `assistant/message`, and the
- * tool group from `tool/call` and `tool/result`.
+ * `turn/start`, `step/start`, the usage of `assistant/message` and the
+ * `usage/priced` records, and the tool group from `tool/call` and
+ * `tool/result`.
+ *
+ * The fold takes no pricing table: cost is the sum the `usage/priced` events
+ * themselves state, so a deployment that re-rates its routes cannot change what
+ * an already-folded session cost.
  *
  * The outcome group is decided by the folds that already own those streams —
  * `foldTrajectoryReward`, `foldVerification`, and `foldGoal` — so the events
@@ -31,6 +36,26 @@ import type {
   SessionFactsTools,
 } from './types.ts'
 
+/**
+ * What the log's usage and pricing events state so far. A step's price is
+ * appended after the message it prices, so whether the log prices every
+ * accounted step is decided over the whole log rather than at the message.
+ * Plain JSON, like the rest of the accumulator.
+ */
+export interface SessionFactsPricing {
+  /** Turn-and-step keys of the `assistant/message` events that reported usage. */
+  readonly usageStepKeys: readonly string[]
+  /** Turn-and-step keys the `usage/priced` events priced, one entry per event. */
+  readonly pricedStepKeys: readonly string[]
+  /** EUR summed over the `costEur` of those events. */
+  readonly costEur: number
+  /** Distinct `pricingDigest` values of those events, in first-seen order. */
+  readonly digests: readonly string[]
+}
+
+/** The pricing state of a log that carries neither usage nor a price. */
+const EMPTY_PRICING: SessionFactsPricing = { usageStepKeys: [], pricedStepKeys: [], costEur: 0, digests: [] }
+
 /** The outcome group of a log that recorded no goal and no standard. */
 const EMPTY_OUTCOME: SessionFactsOutcome = {
   reward: null,
@@ -56,6 +81,9 @@ const EMPTY_FACTS: SessionFacts = {
     cacheWriteTokens: 0,
     reasoningTokens: 0,
     wallMs: 0,
+    pricedSteps: 0,
+    costEur: 0,
+    pricingDigests: [],
   },
   tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0 },
 }
@@ -69,6 +97,8 @@ export interface SessionFactsState {
   readonly facts: SessionFacts
   /** The goal, verification, and budget events the outcome group refolds from. */
   readonly outcomeEvents: readonly SessionEvent[]
+  /** What the usage and pricing events state; the efficiency group's cost fields derive from it. */
+  readonly pricing: SessionFactsPricing
   /** Time of the first folded event, absent for the empty log. */
   readonly firstTime?: number
 }
@@ -78,7 +108,7 @@ export interface SessionFactsState {
  * @returns state whose facts are those of the empty log.
  */
 export function emptySessionFactsState(): SessionFactsState {
-  return { facts: EMPTY_FACTS, outcomeEvents: [] }
+  return { facts: EMPTY_FACTS, outcomeEvents: [], pricing: EMPTY_PRICING }
 }
 
 /** Whether the outcome group folds from this event. */
@@ -154,6 +184,40 @@ function withTools(state: SessionFactsState, tools: Partial<SessionFactsTools>):
   return { ...state, facts: { ...state.facts, tools: { ...state.facts.tools, ...tools } } }
 }
 
+/** The key one step is identified by within its own session log. */
+function stepKey(turn: number, step: number): string {
+  return `${turn}/${step}`
+}
+
+/**
+ * Replace the pricing state and rebuild the three efficiency fields it decides.
+ * `costEur` is rebuilt rather than merged, so a usage-bearing step that arrives
+ * with no price removes a cost an earlier prefix of the log could still state.
+ */
+function withPricing(state: SessionFactsState, pricing: SessionFactsPricing): SessionFactsState {
+  const { costEur: _replaced, ...totals } = state.facts.efficiency
+  const priced = new Set(pricing.pricedStepKeys)
+  const efficiency: SessionFactsEfficiency = {
+    ...totals,
+    pricedSteps: pricing.pricedStepKeys.length,
+    ...pricing.usageStepKeys.every(key => priced.has(key)) ? { costEur: pricing.costEur } : {},
+    pricingDigests: pricing.digests,
+  }
+  return { ...state, pricing, facts: { ...state.facts, efficiency } }
+}
+
+/** Add one durable step price to the pricing state. */
+function withPrice(state: SessionFactsState, event: SessionEvent<'usage/priced'>): SessionFactsState {
+  const { turn, step, costEur, pricingDigest } = event.data
+  const pricing = state.pricing
+  return withPricing(state, {
+    usageStepKeys: pricing.usageStepKeys,
+    pricedStepKeys: [...pricing.pricedStepKeys, stepKey(turn, step)],
+    costEur: pricing.costEur + costEur,
+    digests: pricing.digests.includes(pricingDigest) ? pricing.digests : [...pricing.digests, pricingDigest],
+  })
+}
+
 /** Extend the log's time span with one event, so `wallMs` spans first to last. */
 function withEventTime(state: SessionFactsState, event: SessionEvent): SessionFactsState {
   const firstTime = state.firstTime ?? event.time
@@ -173,6 +237,7 @@ function withStamp(state: SessionFactsState, event: SessionEvent<'environment/ru
       heldOut: stamp.heldOut,
       repetition: stamp.repetition,
       ...stamp.group === undefined ? {} : { group: stamp.group },
+      ...stamp.district === undefined ? {} : { district: stamp.district },
       contentSha256: stamp.contentSha256,
       provider: stamp.model.provider,
       model: stamp.model.model,
@@ -182,7 +247,8 @@ function withStamp(state: SessionFactsState, event: SessionEvent<'environment/ru
 }
 
 /**
- * Add one assistant message's provider accounting. Only `assistant/message`
+ * Add one assistant message's provider accounting, and record its step as one
+ * the log must price before it can state a cost. Only `assistant/message`
  * carries a step's final usage, so the earlier `assistant/chunk` sample for the
  * same step is deliberately ignored rather than counted twice.
  */
@@ -190,12 +256,16 @@ function withUsage(state: SessionFactsState, event: SessionEvent<'assistant/mess
   const usage = event.data.usage
   if (usage === undefined) return state
   const totals = state.facts.efficiency
-  return withEfficiency(state, {
+  const counted = withEfficiency(state, {
     inputTokens: totals.inputTokens + usage.inputTokens,
     outputTokens: totals.outputTokens + usage.outputTokens,
     cacheReadTokens: totals.cacheReadTokens + (usage.cacheReadTokens ?? 0),
     cacheWriteTokens: totals.cacheWriteTokens + (usage.cacheWriteTokens ?? 0),
     reasoningTokens: totals.reasoningTokens + (usage.reasoningTokens ?? 0),
+  })
+  return withPricing(counted, {
+    ...state.pricing,
+    usageStepKeys: [...state.pricing.usageStepKeys, stepKey(event.data.turn, event.data.step)],
   })
 }
 
@@ -233,6 +303,8 @@ export function applySessionFacts(state: SessionFactsState, event: SessionEvent)
       return withEfficiency(timed, { steps: timed.facts.efficiency.steps + 1 })
     case 'assistant/message':
       return withUsage(timed, event)
+    case 'usage/priced':
+      return withPrice(timed, event)
     case 'environment/run':
       return withStamp(timed, event)
     case 'request/header':

@@ -112,7 +112,7 @@ Messages are projected from the session surface after compaction replacements, e
 
 ## Session facts
 
-The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). A scoreboard row is these records grouped by model route, environment, isolation level, and held-out split.
+The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one.
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -279,8 +279,8 @@ async facts(sessionId: SessionId): Promise<SessionFactsRecord>
 
 /**
  * Fold a scoreboard from persisted session logs, one row per model route,
- * environment, isolation level, and held-out split. A session that cannot be
- * read or folded is reported and the fold continues.
+ * environment, isolation level, held-out split, and district. A session that
+ * cannot be read or folded is reported and the fold continues.
  * @param filter - the sessions to fold and the group and held-out conditions a stamped session must meet.
  * @returns the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.
  */
@@ -298,7 +298,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:166`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:170`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 
