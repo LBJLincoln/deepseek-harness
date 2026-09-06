@@ -64,6 +64,16 @@ export interface ShiftPlan {
   readonly models: readonly EnvironmentRunModel[]
   /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
   readonly repetitions: number
+  /**
+   * Checkpoint or policy the district's routes serve, written into every
+   * cell's run stamp verbatim; absent for routes the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Base sampling seed of the district; each cell samples with
+   * `seed + repetition`. Absent leaves the cells' sampling to the composition.
+   */
+  readonly seed?: number
   /** Positive integer bound on the input plus output tokens the shift's reported cells may sum to. */
   readonly tokenCeiling?: number
 }
@@ -158,6 +168,14 @@ export interface ShiftPlanConfig {
   models: EnvironmentRunModel[]
   /** Positive number of repetitions per environment and route. */
   repetitions: number
+  /**
+   * Checkpoint or policy the district's routes serve; every cell's run stamp
+   * carries it and the shift digest freezes it, so a district that changes
+   * policy version opens a new shift identity instead of resuming the old one.
+   */
+  policyVersion?: string
+  /** Base sampling seed of the district; each cell samples with `seed + repetition`. */
+  seed?: number
   /** Positive integer token ceiling of one shift; absent runs each shift uncapped. */
   tokenCeiling?: number
 }

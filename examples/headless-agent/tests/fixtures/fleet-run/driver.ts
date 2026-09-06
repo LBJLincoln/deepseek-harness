@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
  * Test driver: boot the fleet-run composition, run the training-eligible
- * environments twice each on the default route, export every persisted
- * session to `./trajectories.jsonl`, and print the fleet report with its
- * Markdown leaderboard for the e2e's assertions.
+ * environments twice each on the default route under a named policy version
+ * and a base seed, export every persisted session to `./trajectories.jsonl`,
+ * and print the fleet report with its Markdown leaderboard for the e2e's
+ * assertions.
  */
 
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
@@ -27,6 +28,8 @@ try {
     repetitions: 2,
     workspaceRoot: process.cwd(),
     group: 'fleet-e2e',
+    policyVersion: 'policy-2026-09',
+    seed: 100,
   })
   const exported = await trajectories.export({ sink: jsonlFileSink('./trajectories.jsonl') })
   process.stdout.write(`${JSON.stringify({ type: 'result', report, markdown: leaderboardMarkdown(report), exported })}\n`)

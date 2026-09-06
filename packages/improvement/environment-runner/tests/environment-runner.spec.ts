@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
+import { agentEvents } from '@deepseek-ai/dsh-agent'
 import type { Agent, CreateAgentOptions } from '@deepseek-ai/dsh-agent'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments'
@@ -358,6 +359,8 @@ describe('EnvironmentRunner', () => {
     expect(stamp).not.toHaveProperty('fixtureSha256')
     expect(stamp).not.toHaveProperty('group')
     expect(stamp).not.toHaveProperty('district')
+    expect(stamp).not.toHaveProperty('policyVersion')
+    expect(stamp).not.toHaveProperty('seed')
     const agent = StubAgents.current.agent
     expect(agent.session.events[0]).toMatchObject({ type: 'environment/run', data: stamp })
     expect(agent.turns).toEqual(['Create a file named MARKER in the workspace.'])
@@ -501,6 +504,46 @@ describe('EnvironmentRunner', () => {
     expect(report).not.toHaveProperty('usage')
     expect(report.stamp.model).toEqual({ provider: 'other', model: 'candidate-7' })
     expect(StubAgents.current.created[0]?.agentOptions).toEqual({ provider: 'other', model: 'candidate-7' })
+  })
+
+  it('stamps the policy version and the seed, and samples every request of the cell with them', async () => {
+    const { ctx, run } = await harness({ config: { topP: 0.9 } })
+    StubShell.current.script(MARKER, shellResult())
+    const report = await run({ policyVersion: 'policy-2026-09', seed: 12 })
+    expect(report.stamp).toMatchObject({ policyVersion: 'policy-2026-09', seed: 12 })
+
+    const proposed = { provider: 'mock', model: 'mock-default' }
+    await expect(agentEvents(ctx, asAgent(StubAgents.current.agent)).waterfall(
+      'agent/request',
+      { turn: 1, step: 0, signal: new AbortController().signal },
+      () => Promise.resolve(proposed),
+    )).resolves.toEqual({ ...proposed, seed: 12, topP: 0.9 })
+  })
+
+  it('pins each scalar on its own, and refuses a seed no provider could be asked for', async () => {
+    const proposed = { provider: 'mock', model: 'mock-default' }
+    const sampled = (ctx: Context) => agentEvents(ctx, asAgent(StubAgents.current.agent)).waterfall(
+      'agent/request',
+      { turn: 1, step: 0, signal: new AbortController().signal },
+      () => Promise.resolve(proposed),
+    )
+
+    const configured = await harness({ config: { topP: 0.1 } })
+    StubShell.current.script(MARKER, shellResult())
+    expect(await configured.run()).toMatchObject({ certified: true })
+    expect(StubAgents.current.agent.session.events[0]?.data).not.toHaveProperty('seed')
+    await expect(sampled(configured.ctx)).resolves.toEqual({ ...proposed, topP: 0.1 })
+
+    const seeded = await harness()
+    StubShell.current.script(MARKER, shellResult())
+    expect(await seeded.run({ seed: 7 })).toMatchObject({ certified: true })
+    await expect(sampled(seeded.ctx)).resolves.toEqual({ ...proposed, seed: 7 })
+
+    const refusing = await harness()
+    await expect(refusing.run({ seed: -1 })).rejects.toThrow(
+      expect.objectContaining({ code: 'ENVIRONMENT_RUN_INVALID_SEED', message: 'seed must be a non-negative integer, got -1' }),
+    )
+    expect(StubAgents.current.created).toHaveLength(0)
   })
 
   it('overlays and hashes the fixture before the run', async () => {
@@ -663,10 +706,10 @@ describe('EnvironmentRunner', () => {
 
   it('resolves defaults once, at the boundary', () => {
     expect(resolveConfig({ isolation: 'host' })).toEqual({
-      isolation: 'host', maxAttempts: 1, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20,
+      isolation: 'host', maxAttempts: 1, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20, topP: undefined,
     })
-    expect(resolveConfig({ isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3 })).toEqual({
-      isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3,
+    expect(resolveConfig({ isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3, topP: 0.95 })).toEqual({
+      isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3, topP: 0.95,
     })
   })
 

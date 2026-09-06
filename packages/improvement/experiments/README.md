@@ -39,9 +39,11 @@ The service requires `environments` and `fleet`. `resolveConfig(config)` is the 
 
 ## Service contract
 
-`ctx.experiments.run(plan)` takes `environments` (registered ids, each named once), a positive integer `repetitions`, the `baseline` and `candidate` model routes, an existing absolute `workspaceRoot`, and optionally a `digest` the caller froze earlier, a `signal`, and a `sink`.
+`ctx.experiments.run(plan)` takes `environments` (registered ids, each named once), a positive integer `repetitions`, the `baseline` and `candidate` model routes, an existing absolute `workspaceRoot`, and optionally a `policyVersion` both arms' routes serve, a base `seed`, a `digest` the caller froze earlier, a `signal`, and a `sink`.
 
-It rejects with `ExperimentError` before running any cell: `EXPERIMENT_INVALID_PLAN` for a non-positive or fractional `repetitions`, an empty environment list, an id named twice, or an id the registry does not hold; `EXPERIMENT_PLAN_NOT_FROZEN` when a declared `digest` differs from the recomputed one; `EXPERIMENT_OVER_BUDGET` when `environments × repetitions × 2 × cellTokenCap` exceeds `tokenBudget`.
+It rejects with `ExperimentError` before running any cell: `EXPERIMENT_INVALID_PLAN` for a non-positive or fractional `repetitions`, a `seed` that is not a safe non-negative integer, an empty environment list, an id named twice, or an id the registry does not hold; `EXPERIMENT_PLAN_NOT_FROZEN` when a declared `digest` differs from the recomputed one; `EXPERIMENT_OVER_BUDGET` when `environments × repetitions × 2 × cellTokenCap` exceeds `tokenBudget`.
+
+Both arms are forwarded the same `policyVersion` and the same base `seed`, and each arm's cell samples with `seed + repetition`, so the paired repetitions of the two arms differ only in the model route — the [fleet README](../fleet/README.md#policy-version-and-the-base-seed) owns the arithmetic and the [runner README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) what a replay reproduces.
 
 Both arms then run as two `ctx.fleet.run` calls over the same ids at the same repetition count, baseline first. A cell the fleet kept as an error leaves its repetition unpaired rather than failing the experiment. The result is written to `sink` as one JSON line and the sink is closed exactly once; the sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
 
@@ -49,7 +51,7 @@ Both arms then run as two `ctx.fleet.run` calls over the same ids at the same re
 
 ## Freezing and the group scheme
 
-`planDigest(plan, thresholds)` is the SHA-256 hex digest over a format version, the two arm routes in role order, the environment ids **sorted**, the repetition count, and the four thresholds. Sorting makes the digest independent of the order a caller listed the ids in; the workspace root, the abort signal, and the sink are not digested because they change nothing the comparison measures.
+`planDigest(plan, thresholds)` is the SHA-256 hex digest over a format version, the two arm routes in role order, the environment ids **sorted**, the repetition count, the `policyVersion` and base `seed`, and the four thresholds. Sorting makes the digest independent of the order a caller listed the ids in; the workspace root, the abort signal, and the sink are not digested because they change nothing the comparison measures. The policy version and the seed are digested because both arms' sessions are found in the logs by the groups the digest mints, so two comparisons that differ in either must not collide on one group.
 
 Each arm runs under the stamp `group` `experiment-<digest>-baseline` or `experiment-<digest>-candidate`, which the environment runner writes into the `environment/run` event of every session of that arm before its first turn. That group is the durable link from a result back to its sessions: `ctx.scorekeeper.leaderboard({ group })` selects one arm out of every persisted log, and the trajectory export carries the same string. The `experiment-` prefix is this package's reserved namespace, and the package invariant rejects a stamp that claims it without a 64-hex digest and a known arm role.
 

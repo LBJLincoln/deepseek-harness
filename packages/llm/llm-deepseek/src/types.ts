@@ -21,6 +21,13 @@ export interface WireRequest {
   reasoning_effort?: 'high' | 'max'
   tools?: WireTool[]
   temperature?: number
+  /** Nucleus-sampling mass (OpenAI `top_p`). Mapped from `GenerateOptions.topP`. */
+  top_p?: number
+  /**
+   * Sampling seed (OpenAI `seed`). Mapped from `GenerateOptions.seed`; the
+   * endpoint makes no reproducibility promise across model versions.
+   */
+  seed?: number
   max_tokens?: number
   /**
    * Stop sequences (OpenAI `stop`): generation halts as soon as the model

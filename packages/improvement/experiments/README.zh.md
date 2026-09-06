@@ -39,9 +39,11 @@
 
 ## Service contract
 
-`ctx.experiments.run(plan)` 接受 `environments`（已注册的 id，每个只指名一次）、正整数 `repetitions`、`baseline` 与 `candidate` 两条模型路由、一个已存在的绝对路径 `workspaceRoot`，以及可选的调用方更早冻结的 `digest`、一个 `signal` 与一个 `sink`。
+`ctx.experiments.run(plan)` 接受 `environments`（已注册的 id，每个只指名一次）、正整数 `repetitions`、`baseline` 与 `candidate` 两条模型路由、一个已存在的绝对路径 `workspaceRoot`，以及可选的、两条 arm 路由共同服务的 `policyVersion`、基准 `seed`、调用方更早冻结的 `digest`、一个 `signal` 与一个 `sink`。
 
-它在运行任何 cell 之前以 `ExperimentError` 拒绝：`repetitions` 非正或非整数、环境列表为空、某个 id 被指名两次，或注册表不持有某个 id，均为 `EXPERIMENT_INVALID_PLAN`；声明的 `digest` 与重算结果不同为 `EXPERIMENT_PLAN_NOT_FROZEN`；`environments × repetitions × 2 × cellTokenCap` 超出 `tokenBudget` 为 `EXPERIMENT_OVER_BUDGET`。
+它在运行任何 cell 之前以 `ExperimentError` 拒绝：`repetitions` 非正或非整数、`seed` 不是安全的非负整数、环境列表为空、某个 id 被指名两次，或注册表不持有某个 id，均为 `EXPERIMENT_INVALID_PLAN`；声明的 `digest` 与重算结果不同为 `EXPERIMENT_PLAN_NOT_FROZEN`；`environments × repetitions × 2 × cellTokenCap` 超出 `tokenBudget` 为 `EXPERIMENT_OVER_BUDGET`。
+
+两条 arm 都被转发同一个 `policyVersion` 与同一个基准 `seed`，每条 arm 的 cell 以 `seed + repetition` 采样，因此两条 arm 的配对重复只在模型路由上不同——[fleet README](../fleet/README.md#policy-version-and-the-base-seed) 拥有这套算术，[运行器 README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) 拥有 replay 能复现什么。
 
 随后两个 arm 作为两次 `ctx.fleet.run` 调用在相同的 id 上以相同的重复次数运行，baseline 在先。被 fleet 保留为错误的 cell 会让它那次重复落单，而不是让整场实验失败。结果会作为一行 JSON 写入 `sink`，且该 sink 恰好被关闭一次；这个 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务于两种导出。
 
@@ -49,7 +51,7 @@
 
 ## Freezing and the group scheme
 
-`planDigest(plan, thresholds)` 是对一个格式版本、按角色顺序排列的两条 arm 路由、**排序后的**环境 id、重复次数与四个阈值取 SHA-256 得到的十六进制摘要。排序使摘要与调用方列出 id 的顺序无关；工作区根目录、中止信号与 sink 不进入摘要，因为它们不改变这场比较度量的任何东西。
+`planDigest(plan, thresholds)` 是对一个格式版本、按角色顺序排列的两条 arm 路由、**排序后的**环境 id、重复次数、`policyVersion` 与基准 `seed`，以及四个阈值取 SHA-256 得到的十六进制摘要。排序使摘要与调用方列出 id 的顺序无关；工作区根目录、中止信号与 sink 不进入摘要，因为它们不改变这场比较度量的任何东西。策略版本与种子进入摘要，是因为两条 arm 的会话正是靠该摘要铸出的 group 在日志里被找到的，所以两次在这两者上不同的比较绝不能撞进同一个 group。
 
 每个 arm 在 stamp `group` `experiment-<digest>-baseline` 或 `experiment-<digest>-candidate` 之下运行，环境运行器会在每个会话的第一个轮次之前把它写进该会话的 `environment/run` 事件。那个 group 是结果回溯到其会话的持久链接：`ctx.scorekeeper.leaderboard({ group })` 能从每一份已持久化日志中挑出一个 arm，轨迹导出携带同一个字符串。`experiment-` 前缀是这个包保留的命名空间，包不变量会拒绝声称占用它、却没有 64 位十六进制摘要与已知 arm 角色的 stamp。
 

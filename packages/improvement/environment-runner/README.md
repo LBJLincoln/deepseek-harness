@@ -23,6 +23,7 @@ Environment runner: one registered environment as one fresh, validated session. 
     checkTimeoutMs: 120000
     evidenceMaxChars: 2000
     maxFailedCases: 20
+    topP: 0.95
 ```
 
 | Field | Meaning |
@@ -33,16 +34,25 @@ Environment runner: one registered environment as one fresh, validated session. 
 | `checkTimeoutMs` (optional) | Timeout override for each check command and each case, capped by the executor; absent applies the executor default. |
 | `evidenceMaxChars` (default `2000`) | Bound of each evidence string and of the directive detail. It must not exceed the verification service's `maxTextChars`, or `recordRun` rejects the result loudly. |
 | `maxFailedCases` (default `20`) | Failed cases one check result names. The rest are still counted and weighed in the tally; only their per-case entries are dropped, which is what keeps a run of hundreds of cases out of the log. |
+| `topP` (optional) | Nucleus-sampling mass between 0 and 1 every request of every run asks for. It is a deployment choice rather than a per-run one: a suite compares cells only while every cell samples the same way. Absent leaves the composition's own sampling in place. |
 
 The service requires `environments`, `agents`, `agentDefaultModel`, `goals`, `completionStandards`, `shell`, and `sessions`. It also uses [`ctx.readBarrier`](../../verification/read-barrier/README.md) when the composition provides it; without it the run reserves nothing and the checks execute their instructions inline, which is what an `isolation: none` claim already says.
 
 ## Service contract
 
-`ctx.environmentRuns.run({ environment, workspace, model?, repetition?, group?, district?, signal? })` reads the definition from the registry, overlays `task.fixture` (an existing absolute directory) onto `workspace` and hashes its files, and creates a fresh agent with `meta.cwd = workspace`, the requested `model` route or the composition's default selection, and the model-selection setup the headless bundle uses. Before anything else enters the log it appends the `environment/run` stamp: environment id and kind, `heldOut`, the content hashes of prompt, fixture, and checks, `repetition` (default `0`), `group`, and `district`, the model route, and the configured isolation. It then creates the goal from the task prompt, disarms it so a composed goal-round driver never continues it, and authors the standard from the environment's checks verbatim.
+`ctx.environmentRuns.run({ environment, workspace, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` reads the definition from the registry, overlays `task.fixture` (an existing absolute directory) onto `workspace` and hashes its files, and creates a fresh agent with `meta.cwd = workspace`, the requested `model` route or the composition's default selection, and the model-selection setup the headless bundle uses. Before anything else enters the log it appends the `environment/run` stamp: environment id and kind, `heldOut`, the content hashes of prompt, fixture, and checks, `repetition` (default `0`), `group`, and `district`, the `policyVersion` and `seed` the run asked for, the model route, and the configured isolation. It then creates the goal from the task prompt, disarms it so a composed goal-round driver never continues it, and authors the standard from the environment's checks verbatim.
 
 With a barrier composed, the run reserves `<barrier root>/runs/<sessionId>/` before the stamp, copies a held-out environment's fixture to `fixture/` there, and rewrites each attempt's check command to source a script the reservation holds. The reservation is stocked before the implementer's first turn and again at each attempt with `standard.json` and one `checks/<checkId>/` directory per active check, holding its `run` script and, for a check that carries cases, the `cases.jsonl` those cases live in — so the implementer sees a command line naming a file whose content the barrier denies it. A check id that is not a single path segment, and a reservation path the check command line cannot carry unquoted, both fail the run with `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`.
 
 Each attempt sends the prompt as a user turn, waits for whole-agent idle, [digests the check-owned set](#tamper-on-check-owned-paths), overlays `task.fixture` onto the workspace again so implementer edits to validator-owned files never reach the checks, digests the workspace files, and executes every active check of the current standard through `ctx.shell` with `workdir: workspace`. A check without cases runs once: exit code `0` without timeout or abort is `pass`, anything else `fail`; evidence is the exit fact followed by the bounded tails of stdout and stderr. A check with cases runs [once per case](#weighted-cases-and-the-reservation). `recordRun` records the run under `{ executor: 'runner', treeHash }` — one durable `verification/run` event per attempt, passing or failing, carrying `parity` when any check had cases — and commits a certificate or returns the failing subset. Certified: the goal is completed, which the verification guard admits. Not certified: one [directive](#the-clustered-directive) is recorded, and while attempts remain the next turn carries it in a `<validation_failed>` block.
+
+## Sampling and what a replay reproduces
+
+The request's `seed` and the deployment's `topP` are pinned on the agent's model selection, so every request the cell makes carries the same sampling and each is reconstructable from the session's `request/header` events. `seed` must be a safe non-negative integer; anything else fails the run with `ENVIRONMENT_RUN_INVALID_SEED` before an agent exists. The stamp carries `seed` because it is what distinguishes two cells of one plan; `topP` is constant across the deployment and stays in the request header alone.
+
+A seed records what the run **asked for**, never what the provider did. An adapter whose wire has no `seed` field drops it, a provider that accepts one may still ignore it, and no provider promises identical tokens across model or infrastructure versions. What a replay reproduces is the session log — the prompt, the tools, the header, and the transcript — not a fresh sample from the model.
+
+`policyVersion` is free-form text naming the checkpoint or policy the route served; the runner writes it into the stamp verbatim and never resolves it, so a fold keying measured difficulty by policy version compares the strings its logs carry.
 
 ## Weighted cases and the reservation
 
@@ -58,7 +68,7 @@ A cluster line names no case id, no expected digest, and no byte of captured out
 
 The report carries the environment id, the session id, the stamp exactly as appended, one entry per attempt with its check results and workspace digest, `certified`, the certificate when one run passed, and the model usage summed over the session's assistant messages. The session is flushed and the agent handle disposed on every path, including a thrown error.
 
-`EnvironmentRunError` codes: `ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`, `ENVIRONMENT_RUN_INVALID_WORKSPACE`, and `ENVIRONMENT_RUN_INVALID_FIXTURE` reject before any agent exists; `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`, `ENVIRONMENT_RUN_GOAL_REPLACED`, and `ENVIRONMENT_RUN_STANDARD_LOST` name a check the reservation cannot carry, an implementer that replaced the goal, or a standard that is no longer current, after the session was flushed. `resolveConfig(config)` is the exported defaulting step.
+`EnvironmentRunError` codes: `ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`, `ENVIRONMENT_RUN_INVALID_SEED`, `ENVIRONMENT_RUN_INVALID_WORKSPACE`, and `ENVIRONMENT_RUN_INVALID_FIXTURE` reject before any agent exists; `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`, `ENVIRONMENT_RUN_GOAL_REPLACED`, and `ENVIRONMENT_RUN_STANDARD_LOST` name a check the reservation cannot carry, an implementer that replaced the goal, or a standard that is no longer current, after the session was flushed. `resolveConfig(config)` is the exported defaulting step.
 
 Call `run()` only over a settled composition: the runner creates agents through the registry factory the agent loop registers. The durable record is the session log; the trajectory exporter folds it into a `dsh-trajectory/1` line whose `environment` field is the stamp and withholds held-out sessions by it.
 

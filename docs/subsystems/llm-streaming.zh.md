@@ -483,6 +483,18 @@ interface GenerateOptions {
   /** Tool schemas (adapters map to the provider's `tools` field). */
   tools?: ToolSchema[]
   temperature?: number
+  /**
+   * Nucleus-sampling mass between 0 and 1 (adapters map to the provider's
+   * `top_p` field). An adapter whose wire has no equivalent drops it.
+   */
+  topP?: number
+  /**
+   * Sampling seed, a safe non-negative integer (adapters map to the provider's
+   * `seed` field). An adapter whose wire has no equivalent drops it, and a
+   * provider that accepts one promises nothing across model or infrastructure
+   * versions.
+   */
+  seed?: number
   maxTokens?: number
   /**
    * Stop sequences: generation halts as soon as the model produces any one of
@@ -614,6 +626,20 @@ interface LlmCallConfig {
   model: string
   reasoningEffort?: ReasoningEffortId
   temperature?: number
+  /**
+   * Nucleus-sampling mass between 0 and 1. Adapters whose wire carries no
+   * equivalent field drop it, so a value here never guarantees that the
+   * provider applied it.
+   */
+  topP?: number
+  /**
+   * Sampling seed, a safe non-negative integer. A provider that honours it
+   * samples reproducibly for one identical request; providers are free to
+   * ignore it, and none of them promise reproducibility across model or
+   * infrastructure versions, so the logged value states what was asked for
+   * rather than what a replay will reproduce.
+   */
+  seed?: number
   maxTokens?: number
   stop?: string[]
 }

@@ -17,7 +17,7 @@ import type { ShiftPlan } from './types.ts'
 export const SHIFT_ID_PREFIX = 'shift-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const SHIFT_PLAN_VERSION = 1
+const SHIFT_PLAN_VERSION = 2
 
 const SHIFT_ID_PATTERN = new RegExp(`^${SHIFT_ID_PREFIX}([0-9a-f]{64})-(0|[1-9][0-9]*)$`)
 
@@ -25,9 +25,10 @@ const SHIFT_ID_PATTERN = new RegExp(`^${SHIFT_ID_PREFIX}([0-9a-f]{64})-(0|[1-9][
  * Content digest of the fields that decide what a shift runs: the district,
  * the environment ids sorted by code unit so a registry listing order cannot
  * change the identity, the model routes in listing order because the fleet
- * enumerates cells in it, the repetition count, and the token ceiling. The
- * workspace root, the cadence, and the spend window are deployment choices and
- * stay out: they decide what a deployment pays for, not what the shift runs.
+ * enumerates cells in it, the repetition count, the policy version and base
+ * seed the cells sample under, and the token ceiling. The workspace root, the
+ * cadence, and the spend window are deployment choices and stay out: they
+ * decide what a deployment pays for, not what the shift runs.
  * @param plan - the frozen plan to digest.
  * @returns the SHA-256 hex digest; identical inputs give identical digests.
  */
@@ -38,6 +39,8 @@ export function shiftDigest(plan: ShiftPlan): string {
     environments: [...plan.environments].sort(),
     models: plan.models.map(model => [model.provider, model.model]),
     repetitions: plan.repetitions,
+    policyVersion: plan.policyVersion ?? null,
+    seed: plan.seed ?? null,
     tokenCeiling: plan.tokenCeiling ?? null,
   })
   return createHash('sha256').update(content).digest('hex')

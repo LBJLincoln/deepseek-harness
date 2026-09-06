@@ -11,8 +11,8 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
-// Type-only: resolves ctx.environments.
-import type {} from '@deepseek-ai/dsh-environments'
+// Also resolves ctx.environments for the registry lookups below.
+import { isSeed } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
 // Type-only: resolves ctx.fleet.
 import type {} from '@deepseek-ai/dsh-fleet'
@@ -123,12 +123,14 @@ export class ExperimentService extends Service {
    * first cell runs; a cell the fleet kept as an error leaves its repetition
    * unpaired instead of failing the experiment.
    * @param plan - environments, repetitions, the two arm routes, the workspace
-   *   root, and an optional frozen digest, abort signal, and result sink.
+   *   root, and an optional policy version, base seed, frozen digest, abort
+   *   signal, and result sink.
    * @returns the digest, both arms with their stamp groups, one cell per
    *   environment, the pooled delta with its interval, the spend, and the verdict.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
-   *   unregistered environment, asks for no repetition, declares a digest its
-   *   content does not freeze to, or projects more tokens than the budget.
+   *   unregistered environment, asks for no repetition, sets a seed that is not
+   *   a safe non-negative integer, declares a digest its content does not
+   *   freeze to, or projects more tokens than the budget.
    */
   async run(plan: ExperimentPlan): Promise<ExperimentResult> {
     const digest = this.freeze(plan)
@@ -155,6 +157,9 @@ export class ExperimentService extends Service {
   private freeze(plan: ExperimentPlan): string {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
       throw new ExperimentError(`repetitions must be a positive integer, got ${String(plan.repetitions)}`, 'EXPERIMENT_INVALID_PLAN')
+    }
+    if (plan.seed !== undefined && !isSeed(plan.seed)) {
+      throw new ExperimentError(`seed must be a non-negative integer, got ${String(plan.seed)}`, 'EXPERIMENT_INVALID_PLAN')
     }
     if (plan.environments.length === 0) throw new ExperimentError('the plan names no environment', 'EXPERIMENT_INVALID_PLAN')
     const named = new Set<EnvironmentId>()
@@ -184,6 +189,8 @@ export class ExperimentService extends Service {
       repetitions: plan.repetitions,
       workspaceRoot: plan.workspaceRoot,
       group: arm.group,
+      ...plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion },
+      ...plan.seed === undefined ? {} : { seed: plan.seed },
       ...plan.signal === undefined ? {} : { signal: plan.signal },
     })
   }

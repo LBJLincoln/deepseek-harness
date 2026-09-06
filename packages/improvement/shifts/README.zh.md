@@ -26,6 +26,8 @@
             - provider: <provider>
               model: <model>
           repetitions: 4
+          policyVersion: policy-2026-09
+          seed: 100
           tokenCeiling: 4000000
         cadence:
           intervalMs: 21600000
@@ -41,6 +43,8 @@
 | `districts[].plan.environments` | 按给定顺序的 `{ ids: [...] }`，或在时槽冻结时对注册表解析的 `{ filter: { kind, heldOut } }`。 |
 | `districts[].plan.models` | 至少一条模型路由。驱动器要枚举自己的 cell 才能算出待运行集合并为计划取摘要，因此路由在此点名，而不是取自组合当前所选的某个默认值。 |
 | `districts[].plan.repetitions` | 每个环境与路由的正整数重复次数；重复序号从 `0` 起。 |
+| `districts[].plan.policyVersion`（可选） | 该区的路由所服务的检查点或策略。每个 cell 的运行 stamp 都原样携带它。 |
+| `districts[].plan.seed`（可选） | 该区的基准采样种子；每个 cell 以 `seed + repetition` 采样，见 [fleet README](../fleet/README.md#policy-version-and-the-base-seed)。 |
 | `districts[].plan.tokenCeiling`（可选） | 一个班次的正整数输入加输出 token 上限。被恢复的班次以该上限减去它自己的会话已经花掉的部分来运行。 |
 | `districts[].cadence.intervalMs`（必填） | 该区相邻两个时槽之间的正毫秒数。 |
 | `districts[].spendWindow`（可选） | `windowMs` 与 `maxTokens`：跨时槽的尾部窗口。缺省时该区运行节拍开启的每一个时槽。 |
@@ -52,7 +56,7 @@
 
 `ctx.shifts.start()` 先恢复每个被中断的班次，再开启每个区已到期的时槽并为其武装节拍定时器。该循环每个进程只跑一次：插件在 Loader 树稳定之后启动它，第二次调用会汇入同一次运行，因此驱动器可以等待第一个时槽而不与插件抢跑。`ctx.shifts.stop()` 解除每个定时器、通过信号取消在途的 fleet 运行，并等待正在结算的时槽；插件释放资源时会调用它。
 
-`shiftDigest(plan)` 是对区、在对注册表解析过滤器之后按码元排序的环境 id、按列出顺序排列的模型路由、重复次数与 token 上限所取的 SHA-256 十六进制值。工作区根目录、节拍与花费窗口是部署选择，不在其中：它们决定一次部署付出什么，而不是班次运行什么。`shiftId(digest, scheduledAt)` 为 `shift-<digest>-<scheduledAt>`，其中时槽时间以 epoch 毫秒计——因此算出同一个时槽的两个进程会算出同一个身份，无需计数任何东西。该 id 既是班次会话的 id，也是每个 cell 运行 stamp 上的 `group`，一个班次的会话正是这样被持久地归组。
+`shiftDigest(plan)` 是对区、在对注册表解析过滤器之后按码元排序的环境 id、按列出顺序排列的模型路由、重复次数、这些 cell 采样所用的策略版本与基准种子，以及 token 上限所取的 SHA-256 十六进制值。因此改动策略版本或种子的区会开出一个新的班次身份，而不是续上旧的，这是正确的：它的 cell 测的是另一回事。工作区根目录、节拍与花费窗口是部署选择，不在其中：它们决定一次部署付出什么，而不是班次运行什么。`shiftId(digest, scheduledAt)` 为 `shift-<digest>-<scheduledAt>`，其中时槽时间以 epoch 毫秒计——因此算出同一个时槽的两个进程会算出同一个身份，无需计数任何东西。该 id 既是班次会话的 id，也是每个 cell 运行 stamp 上的 `group`，一个班次的会话正是这样被持久地归组。
 
 ## 台账
 

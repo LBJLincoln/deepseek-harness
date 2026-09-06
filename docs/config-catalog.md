@@ -645,12 +645,42 @@ export interface Config {
   evidenceMaxChars?: number
   /** Maximum failed cases one check result lists; the rest are counted and not named. */
   maxFailedCases?: number
+  /**
+   * Nucleus-sampling mass between 0 and 1 every request of every run asks for.
+   * It is a deployment choice rather than a per-run one: a suite compares runs
+   * only while every cell samples the same way. Absent leaves the
+   * composition's own sampling in place.
+   */
+  topP?: number
 }
 ```
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:80`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:81`](../packages/improvement/environment-runner/src/index.ts)
+
+<a id="deepseek-aidsh-environments"></a>
+
+## `@deepseek-ai/dsh-environments`
+
+```ts config-catalog
+/** Deployment choices of the registry, validated from `cordis.yml`. */
+export interface Config {
+  /** Near-duplicate admission; absent registers whatever a producer declares. */
+  nearDuplicate?: NearDuplicateConfig
+}
+
+/** Near-duplicate admission across the held-out split. */
+export interface NearDuplicateConfig {
+  /**
+   * Jaccard similarity of word 5-gram shingles, between 0 and 1, at which a
+   * registration is refused against the opposite side of the held-out split.
+   */
+  threshold: number
+}
+```
+
+Source: [`packages/improvement/environments/src/index.ts:187`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -2187,6 +2217,14 @@ export interface ShiftPlanConfig {
   models: EnvironmentRunModel[]
   /** Positive number of repetitions per environment and route. */
   repetitions: number
+  /**
+   * Checkpoint or policy the district's routes serve; every cell's run stamp
+   * carries it and the shift digest freezes it, so a district that changes
+   * policy version opens a new shift identity instead of resuming the old one.
+   */
+  policyVersion?: string
+  /** Base sampling seed of the district; each cell samples with `seed + repetition`. */
+  seed?: number
   /** Positive integer token ceiling of one shift; absent runs each shift uncapped. */
   tokenCeiling?: number
 }
@@ -3478,7 +3516,6 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-components-subagents` — requires `components` · `subagents` ([`packages/components/components-subagents/src/index.ts`](../packages/components/components-subagents/src/index.ts))
 - `@deepseek-ai/dsh-components-tools` — requires `components` · `tools` ([`packages/components/components-tools/src/index.ts`](../packages/components/components-tools/src/index.ts))
 - `@deepseek-ai/dsh-cordis-client-runner` ([`packages/extensions/cordis-client-runner/src/index.ts`](../packages/extensions/cordis-client-runner/src/index.ts))
-- `@deepseek-ai/dsh-environments` ([`packages/improvement/environments/src/index.ts`](../packages/improvement/environments/src/index.ts))
 - `@deepseek-ai/dsh-fs-e2b` — requires `e2b` ([`packages/e2b/fs-e2b/src/index.ts`](../packages/e2b/fs-e2b/src/index.ts))
 - `@deepseek-ai/dsh-fs-observation-policy` ([`packages/fs/fs-observation-policy/src/index.ts`](../packages/fs/fs-observation-policy/src/index.ts))
 - `@deepseek-ai/dsh-fs-read-barrier` — requires `readBarrier` ([`packages/fs/fs-read-barrier/src/index.ts`](../packages/fs/fs-read-barrier/src/index.ts))

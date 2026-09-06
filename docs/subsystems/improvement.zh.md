@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中；而一次观测台快照则是对全部持久化会话的公开折叠，被扣留的区与留出划分被挡在它的行之外并被计数。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)、[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)与[观测台](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 、[`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 与 [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；而一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)与[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 与 [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -52,12 +52,34 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly group?: string
   /** District the run belongs to; exports withhold the districts a deployment configures by it, absent for a run outside every district. */
   readonly district?: string
+  /**
+   * Checkpoint or policy the implementer route served, as the deployment names
+   * it. Free-form: the harness never resolves it, and a fold that keys measured
+   * difficulty by policy version compares the strings it finds. Absent for a
+   * route the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Sampling seed every request of the run asked for, absent for a run that
+   * pinned none. It states what was asked for, not what a replay reproduces:
+   * providers may ignore a seed and none of them promise identical tokens
+   * across model or infrastructure versions.
+   */
+  readonly seed?: number
   /** Model route the implementer ran on. */
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
 }
 ```
+
+### 策略版本、种子，以及 replay 能复现什么
+
+`policyVersion` 是自由文本，点名某条路由所服务的检查点或策略；harness 把它原样写进 stamp，从不解析它，因此按策略版本给测得难度建键的 fold，比较的是它的日志所携带的字符串。fleet 计划、实验计划和班次的区各自点名一个，该计划的每个 cell 都以它盖戳。
+
+计划上的 `seed` 是**基准**：每个 cell 请求 `seed + repetition`，因此同一个重复序号在该计划的每条路由和每个环境上都意味着同一个种子——这正是让配对实验比较同类的原因。运行器把该 cell 的种子与部署的 `topP` 钉在 agent 的模型选择上，于是这个 cell 的每一次请求都以相同方式采样，且每次请求都可从该会话的 `request/header` 事件重建。stamp 只携带 `seed`，因为 `topP` 在整个部署中恒定，而 header 已经记录了它。
+
+种子记录的是一次运行**请求了什么**，绝不是提供方做了什么。线路上没有 `seed` 字段的适配器会丢弃它，接受它的提供方仍可以忽略它，而且没有任何一家承诺跨模型或基础设施版本产出相同的 token。会话日志复现的是它自己的 transcript——提示词、工具、header 和已记录的轮次——而不是一次新的模型采样。
 
 ## 排行榜行
 
@@ -122,7 +144,7 @@ interface TrajectoryReward {
 
 ## 会话事实
 
-记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。与它们并列的还有发布所读取的两个事实：`tamper` 是最后一次运行的裁决，会话一次运行也没有记录时为 `not-instrumented`；identity 分组的 `compositionSha256` 是日志中最后一条 `composition/manifest` 的摘要。只有当一行的每个会话都陈述同一个摘要时该行才陈述它，同时该行统计自己的 `tampered` 会话，并列出自己证书的去重 executor。
+记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -164,77 +186,6 @@ interface ExperimentResult {
 }
 ```
 
-## 观测台快照
-
-观测台经记分员在全部持久化会话上折叠记分板，把配置的区与留出划分挡在公开行之外，并对丢弃的内容计数。扣留是一次行操作，因为它本来就是一次会话操作：记分板的键携带 `district` 与 `heldOut`，因此被扣留行中的每个会话都被扣留，任何被扣留的会话都不可能进入公开行。没有任何会话事件携带 `ExperimentResult`，因此没有收到结果的折叠不发布排名；[包 README](../../packages/improvement/observatory/README.md) 拥有发布规则与渲染出的列集。
-
-```ts type-equiv
-/** One fold over every persisted session, before rendering decides what it shows. */
-interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
-  readonly rows: readonly ScoreboardRow[]
-  /** What withholding removed from those rows. */
-  readonly withheld: ObservatoryWithheld
-  /** Experiment results whose two arm routes both appear in {@link rows}; empty publishes no ranking. */
-  readonly experiments: readonly ExperimentResult[]
-  /** Session headers the fold read. */
-  readonly sessions: number
-  /** Folded sessions whose log carries no `environment/run` stamp, so no row can name their cell. */
-  readonly unstamped: number
-  /** Sessions that could not be read or folded. */
-  readonly skipped: readonly ScorekeeperSkip[]
-  /** Epoch milliseconds at which the fold ran. */
-  readonly foldedAt: number
-  /** Newest `createdAt` among the session headers the fold read, absent when the store held none. */
-  readonly newestSessionAt?: number
-  /** Batch refresh interval the page names, milliseconds. */
-  readonly refreshIntervalMs: number
-}
-```
-
-## 发布出的行
-
-`render(snapshot, now)` 施加逐行的发布规则，返回一个自包含的 HTML 页面以及同一份文档的 JSON。超过配置的陈旧阈值后，两者都以陈旧提示取代全部数字：JSON 陈述 `stale: true`，且没有行、没有排名。
-
-```ts type-equiv
-/**
- * One published row: the honest column set, with the publication rules already
- * applied. `resolved` and `parity` are two fields and stay two — neither is
- * ever computed from the other, and no field merges them.
- */
-interface ObservatoryPublishedRow {
-  readonly provider: string
-  readonly model: string
-  readonly environmentId: EnvironmentId
-  readonly environmentKind: string
-  /** District the row's sessions were stamped with, absent for a row outside every district. */
-  readonly district?: string
-  readonly heldOut: boolean
-  readonly isolation: CertificateIsolation
-  /** Executors of the row's certificates; empty for a row that certified nothing. */
-  readonly certificateExecutors: readonly RunExecutor[]
-  /** Composition digest every session of the row states, absent when the page shows `pending`. */
-  readonly compositionSha256?: string
-  readonly tamper: ObservatoryTamper
-  /** Sessions of the row whose last recorded run carried the `tampered` verdict. */
-  readonly tampered: number
-  /** Sessions that recorded at least one run. */
-  readonly runs: number
-  /** Sessions that ended without recording one. */
-  readonly errors: number
-  /** Sessions holding a certificate. */
-  readonly certified: number
-  /** `certified / runs`: the certificate rate under its own name, `0` without runs. */
-  readonly resolved: number
-  /** Mean weighted pass rate over the row's sessions that measured cases, absent when none did. */
-  readonly parity?: number
-  /** Mean cost of the row's certified sessions, absent unless {@link pricingDigest} names the one table that priced them. */
-  readonly costEurPerCertified?: number
-  /** The single pricing digest that priced the row, absent when the row carries none or more than one. */
-  readonly pricingDigest?: string
-}
-```
-
 ## cell 公告
 
 每当一个 cell 的结果被记录、且其工作区保留策略执行完毕之后，fleet 就在只供观察的 `fleet/cell` 事件上公告它。载荷携带的是持久坐标而非内存中的报告，因此观察方无需持有 fleet 的报告即可写下自己的逐 cell 记录；[包 README](../../packages/improvement/fleet/README.md) 说明了发出顺序。
@@ -260,7 +211,7 @@ interface FleetCellEvent {
 
 ## 班次台账
 
-一个班次是 fleet 针对某个区（district）的计划所做的一次持久运行。它的身份在任何 cell 运行之前就被冻结——`shift-<digest>-<scheduledAt>`，摘要取自区、排序后的环境 id、按列出顺序排列的路由、重复次数与 token 上限——该 id 就是每个 cell 运行 stamp 上的 `group`。班次自己的会话日志承载台账：`shift/start`、每个已结算 cell 一条 `shift/cell`、后续进程接手时的 `shift/resume`、时槽被拒绝时的 `shift/skipped`，以及 `shift/end`；[持久化目录](../persistence-catalog.md)记录每个载荷的声明，[包 README](../../packages/improvement/shifts/README.md) 拥有节拍与恢复规则。
+一个班次是 fleet 针对某个区（district）的计划所做的一次持久运行。它的身份在任何 cell 运行之前就被冻结——`shift-<digest>-<scheduledAt>`，摘要取自区、排序后的环境 id、按列出顺序排列的路由、重复次数、策略版本与基准种子，以及 token 上限——该 id 就是每个 cell 运行 stamp 上的 `group`。班次自己的会话日志承载台账：`shift/start`、每个已结算 cell 一条 `shift/cell`、后续进程接手时的 `shift/resume`、时槽被拒绝时的 `shift/skipped`，以及 `shift/end`；[持久化目录](../persistence-catalog.md)记录每个载荷的声明，[包 README](../../packages/improvement/shifts/README.md) 拥有节拍与恢复规则。
 
 ```ts type-equiv
 /**
@@ -278,6 +229,16 @@ interface ShiftPlan {
   readonly models: readonly EnvironmentRunModel[]
   /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
   readonly repetitions: number
+  /**
+   * Checkpoint or policy the district's routes serve, written into every
+   * cell's run stamp verbatim; absent for routes the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Base sampling seed of the district; each cell samples with
+   * `seed + repetition`. Absent leaves the cells' sampling to the composition.
+   */
+  readonly seed?: number
   /** Positive integer bound on the input plus output tokens the shift's reported cells may sum to. */
   readonly tokenCeiling?: number
 }
@@ -380,15 +341,17 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 ```ts cordis-catalog
 /**
  * Run one environment as one fresh session and validate it.
- * @param request - environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.
+ * @param request - environment id, absolute workspace directory, optional
+ *   model route, repetition, group, district, policy version, sampling seed, and abort signal.
  * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
- * @throws {@link EnvironmentRunError} for an unknown environment, an unusable
- *   workspace or fixture, an implementer that replaced the goal, or a lost standard.
+ * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
+ *   is not a safe non-negative integer, an unusable workspace or fixture, an
+ *   implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 ```
 
-Source: [`packages/improvement/environment-runner/src/index.ts:527`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:546`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -403,10 +366,21 @@ Environment registry (`ctx.environments`): tasks with verifiers, held at composi
  * @param definition - complete environment definition.
  * @returns the exact disposer that removes this registration and no later one under the same id.
  * @throws {@link EnvironmentError} when the id is already registered, the
- *   definition declares no checks, two checks share an id, or an immutable
- *   path is not a normalized workspace-relative path.
+ *   definition declares no checks, two checks share an id, an immutable
+ *   path is not a normalized workspace-relative path, or a configured
+ *   near-duplicate threshold refuses the prompt against the opposite split.
  */
 register(definition: EnvironmentDefinition): () => void
+
+/**
+ * The registered held-out environment whose task prompt is closest to one
+ * candidate prompt, so a curator can score a proposal before paying for a
+ * run. It reads the same normalization and similarity the admission rule
+ * applies, and answers whether or not a threshold is configured.
+ * @param prompt - candidate task statement.
+ * @returns the nearest held-out environment and its similarity, or `undefined` when none is registered.
+ */
+nearestHeldOut(prompt: string): NearestEnvironment | undefined
 
 /**
  * Read one environment.
@@ -423,7 +397,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:241`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:321`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -438,12 +412,14 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  * first cell runs; a cell the fleet kept as an error leaves its repetition
  * unpaired instead of failing the experiment.
  * @param plan - environments, repetitions, the two arm routes, the workspace
- *   root, and an optional frozen digest, abort signal, and result sink.
+ *   root, and an optional policy version, base seed, frozen digest, abort
+ *   signal, and result sink.
  * @returns the digest, both arms with their stamp groups, one cell per
  *   environment, the pooled delta with its interval, the spend, and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
- *   unregistered environment, asks for no repetition, declares a digest its
- *   content does not freeze to, or projects more tokens than the budget.
+ *   unregistered environment, asks for no repetition, sets a seed that is not
+ *   a safe non-negative integer, declares a digest its content does not
+ *   freeze to, or projects more tokens than the budget.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
@@ -463,11 +439,13 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
  * @param plan - environments, model routes, repetitions, an optional exact
- *   cell selection, workspace root, group, district, token ceiling, and abort signal.
+ *   cell selection, workspace root, group, district, policy version, base
+ *   seed, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
- *   no repetition, names no or an unenumerated cell, or sets a token ceiling
- *   that is not a positive integer.
+ *   no repetition, names no or an unenumerated cell, sets a token ceiling
+ *   that is not a positive integer, or sets a seed that is not a safe
+ *   non-negative integer.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
