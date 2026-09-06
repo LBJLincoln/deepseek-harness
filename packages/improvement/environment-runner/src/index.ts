@@ -321,12 +321,12 @@ async function copyReference(task: EnvironmentTask, runDirectory: string): Promi
  * environment's content hashes cover it, and it is removed here so no overlay
  * ever leaves it where the implementer works.
  * @param workspace - the run's workspace directory.
- * @param task - the task, supplying the fixture and any reference.
+ * @param fixture - the task's fixture directory.
+ * @param reference - the task's fixture-relative reference directory, if any.
  */
-async function overlayFixture(workspace: string, task: EnvironmentTask): Promise<void> {
-  if (task.fixture === undefined) return
-  await cp(task.fixture, workspace, { recursive: true })
-  if (task.reference !== undefined) await rm(join(workspace, task.reference), { recursive: true, force: true })
+async function overlayFixture(workspace: string, fixture: string, reference: string | undefined): Promise<void> {
+  await cp(fixture, workspace, { recursive: true })
+  if (reference !== undefined) await rm(join(workspace, reference), { recursive: true, force: true })
 }
 
 /** Whether a path exists at all, whatever its kind. */
@@ -366,7 +366,7 @@ async function prepareWorkspace(workspace: string, task: EnvironmentTask): Promi
       throw new EnvironmentRunError(`fixture "${fixture}" does not supply the immutable path "${path}"`, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
     }
   }
-  await overlayFixture(workspace, task)
+  await overlayFixture(workspace, fixture, task.reference)
   return hashWorkspaceTree(fixture)
 }
 

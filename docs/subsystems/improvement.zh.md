@@ -500,7 +500,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:750`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:781`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -662,7 +662,7 @@ async start(spec: ProgramSpec): Promise<ProgramReport>
 async resume(): Promise<ProgramReport[]>
 ```
 
-Source: [`packages/improvement/program/src/index.ts:272`](../../packages/improvement/program/src/index.ts)
+Source: [`packages/improvement/program/src/index.ts:262`](../../packages/improvement/program/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 

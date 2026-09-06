@@ -28,7 +28,13 @@ REPO=/path/to/deepseek-harness
 TSX_TSCONFIG_PATH=$REPO/tsconfig.json node --import $REPO/node_modules/tsx/dist/esm/index.mjs $REPO/examples/headless-agent/tests/fixtures/village-claude-implementer/driver.ts $REPO/examples/headless-agent/tests/fixtures/village-claude-implementer/cordis.yml > stdout.jsonl
 ```
 
-Copy the exports, the session logs, and the last stdout line (as `result.json`) into a new run directory, write its `manifest.json`, and add a row below.
+Then record it, which copies the exports, every session log, and the driver's result into a new run directory, writes its `manifest.json` with the repository head, the composition, the implementers read from the run stamps, and every file's digest, and refuses to overwrite a recorded run; add a row below afterwards:
+
+```sh
+node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06-claude-code-run-2 --composition examples/headless-agent/tests/fixtures/village-live/cordis.yml
+```
+
+A live district (`examples/headless-agent/tests/fixtures/village-live/`) is recorded the same way from the directory its driver runs in, one slot per run directory: the shift ledger session lands beside the cell sessions and `result.json` holds the driver's status.
 
 ## What a row proves
 
@@ -40,5 +46,10 @@ A delegated cell's certificate proves that the runner authored the standard befo
 | --- | --- | --- | --- | --- | --- | --- |
 | [2026-09-06-claude-code-run-1](2026-09-06-claude-code-run-1/manifest.json) | `0f67c1759` | `claude-code` | `smoke:round-trip` | yes | 1 | 351 s for both cells |
 | [2026-09-06-claude-code-run-1](2026-09-06-claude-code-run-1/manifest.json) | `0f67c1759` | `claude-code` | `smoke:unsatisfiable` | no | 2 | 351 s for both cells |
+| [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:slugify` | yes | 1 | 54 s for the slot |
+| [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:parse-duration` | yes | 1 | 54 s for the slot |
+| [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:paginate-fix` | yes | 1 | 54 s for the slot |
+
+The second run is the live district's first slot after two defects the district itself exposed were fixed: a test check this Node rejected, and a runner that overlaid the whole fixture before validation and so discarded every edit to a fixture-supplied source file. Three program tasks, each with an immutable test suite, were implemented by the product in one attempt each and certified by the runner on the trees it left; the held-out task never entered the plan.
 
 The first run is the first time an agent other than the harness itself was measured by the Proving Ground: two smoke environments at `isolation: none`, one child run per attempt recorded as `environment/delegation`, every delegation ending `completed`, facts exported for both sessions, both trajectories exported through the curator with one rewarded, and the observatory publishing both rows under the `claude-code` implementer with `runner` as the certificate executor of the certified one.
