@@ -22,7 +22,7 @@
 |---|---|---|
 | `name` | string（必填） | 可用 skill 列表中精确的 kebab-case skill 名称。 |
 
-执行使用调用 agent 的 `session.header.cwd`，使结果随工作区变化的提供方能够解析出胜出的 skill。成功调用返回规范形式的 `{ name, provider, resourceBase?, content }`，其中不包含目录排名和提供方内部机制；其 Native 渲染器会生成一个文本结果，其中包含 `<skill_content name="...">`、`<skill_resources>` 和 `<skill_instructions>`。
+执行使用调用 agent 的 `session.header.cwd`，使结果随工作区变化的提供方能够解析出胜出的 skill。成功调用返回规范形式的 `{ name, provider, digest, resourceBase?, content }`，其中不包含目录排名和提供方内部机制；其 Native 渲染器会生成一个文本结果，其中包含 `<skill_content name="...">`、`<skill_resources>` 和 `<skill_instructions>`。`digest` 是对已加载定义取的 `skillDigest()`，指明本次调用让哪一代进入在用状态；它不出现在渲染块中，因此面向模型的文本不变，而 [`dsh-components-skills`](../../components/components-skills/README.md) 从已结算的 `tools/result` 读取它。用户显式的 `/name` 注入把同一摘要打在其 `skill-invocation` 消息来源上，持久日志正是在那里记录它。
 
 资源指引只会根据 `resourceBase` 解析指令显式引用的路径或 URL；脚本、参考资料和资源文件按需加载，结果不会列举 skill 目录。本地提供方可以提供目录，而远程或嵌入式提供方可以提供 URL 或不透明加载指引。
 
@@ -166,4 +166,5 @@ Load referenced resources only as needed.
 - **资源是指引，而非附件**：工具报告基础目录/URL/不透明提示，但既不列举也不为模型获取引用文件。
 - **加载是一次性文本**：远程提供方缓慢或 skill 正文很大时，不提供部分内容、流式输出或缓存内容句柄。
 - **目录替换采用全量列表**：一个名称或描述发生变化，就会追加当前所有可见摘要；这样能显式停用陈旧名称，但 token 成本与目录大小成正比。
-- **正文不做版本化**：仅修改正文不会改变目录 digest，也不会通知模型；后续工具调用会读取提供方的当前内容，而先前工具结果仍是历史事实。
+- **正文在目录里不做版本化**：仅修改正文不会改变目录 digest，也不会通知模型；后续工具调用会读取提供方的当前内容，而先前工具结果仍是历史事实。每个结果上的 `digest` 寻址的是该次调用加载的那一代，因此必须区分两份正文的消费方应读它而非目录。
+- **结果摘要仅存在于执行期**：工具注册表不把规范值写入持久事件，因此 `tool/result` 记录的是渲染块而非地址。已加载代的持久记录是组件适配器促成的 `composition/manifest`，用户显式路径上则是 `skill-invocation` 来源。

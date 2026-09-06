@@ -1,0 +1,40 @@
+# Test-only composition: the packages adapter beside the manifest writer over
+# the self-referential Cordis tools, so one persisted log carries both the
+# curated rows this configuration composes and the package the session wrote
+# and mounted for itself.
+- id: quarantine-mock-llm
+  name: './mock-llm.ts'
+
+- id: components
+  name: '@deepseek-ai/dsh-components'
+
+- id: components-packages
+  name: '@deepseek-ai/dsh-components-packages'
+
+- id: components-manifest
+  name: '@deepseek-ai/dsh-components-manifest'
+
+- id: cordis-host-runner
+  name: '@deepseek-ai/dsh-cordis-host-runner'
+
+- id: tool-cordis
+  name: '@deepseek-ai/dsh-tool-cordis'
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Write the package you need, then mount it.'
+    workspaceContext: false
+    toolBash: false
+    toolJobs: false
+    skills:
+      enabled: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

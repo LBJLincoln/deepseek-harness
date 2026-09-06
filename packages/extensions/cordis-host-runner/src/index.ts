@@ -9,7 +9,7 @@ import type { Fiber } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { JsonValue } from '@deepseek-ai/dsh-session/types'
+import type { JsonValue, SessionId } from '@deepseek-ai/dsh-session/types'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { isPlugin, normalizeHandler } from './guard.ts'
 import { CordisInspectRegistryService } from './inspect-registry.ts'
@@ -81,6 +81,23 @@ declare module '@deepseek-ai/cordis' {
   interface Context {
     /** Process-local dynamic Plugin registry and lifecycle service. */
     dynamicCordisRunner: DynamicCordisRunnerService
+  }
+
+  interface Events {
+    /**
+     * The dynamic Packages one Session owns changed: a Package was defined, an
+     * activation went live or was withdrawn, or a Plugin and its Packages were
+     * removed. An UNFILTERED invalidation carrying no diff, deliberately not
+     * scope-filtered dispatch and never forwarded to a browser: `agent` is a
+     * live Host handle, and a consumer reads the current inventory through it
+     * with `listPlugins` and `inspectPackage`. One lifecycle change may notify
+     * more than once — removing a running Plugin withdraws its activation and
+     * then deletes it — so a consumer reconciles rather than counting.
+     * @param agent - the Session that owns the changed Plugin, live at emit time.
+     * @param pluginId - the stable Plugin identity whose state changed.
+     * @mode emit
+     */
+    'cordis/dynamic-changed'(agent: Agent, pluginId: CordisDynamicPluginId): void
   }
 }
 
@@ -191,6 +208,7 @@ export class DynamicCordisRunnerService extends TypertRemoteService {
       ...request.code.client === undefined ? {} : { clientCode: request.code.client },
     }
     plugin.packages.set(packageId, definition)
+    this.announceChanged(plugin.sessionId, plugin.pluginId)
     return {
       pluginId: plugin.pluginId,
       packageId,
@@ -214,6 +232,7 @@ export class DynamicCordisRunnerService extends TypertRemoteService {
     this.cancelPending(pluginId, `dynamic plugin "${pluginId}" was removed before approval`)
     if (plugin.run !== undefined) await this.retract(plugin)
     this.registry.delete(pluginId)
+    this.announceChanged(plugin.sessionId, pluginId)
     return { ok: true, wasRunning }
   }
 
@@ -860,6 +879,7 @@ export class DynamicCordisRunnerService extends TypertRemoteService {
       pluginRunId: run.pluginRunId,
       name: definition.name,
     })
+    this.announceChanged(plugin.sessionId, plugin.pluginId)
     attempt.host = {
       status: run.fiber === undefined ? 'absent' : missingFor(this.ctx, run).length === 0 ? 'running' : 'waiting',
       waitingFor: missingFor(this.ctx, run),
@@ -1147,6 +1167,17 @@ export class DynamicCordisRunnerService extends TypertRemoteService {
     this.injectUserContext(agent, text)
   }
 
+  /**
+   * Notify consumers that one Session's dynamic Packages changed. The event
+   * carries the live Agent, so a Session whose agent is already gone notifies
+   * nobody: its inventory left with the scope that held it.
+   */
+  private announceChanged(sessionId: SessionId, pluginId: CordisDynamicPluginId): void {
+    const agent = this.rootCtx.get('agents')?.get(sessionId)
+    if (agent === undefined) return
+    this.ctx.emit('cordis/dynamic-changed', agent, pluginId)
+  }
+
   private injectUserContext(agent: Agent, text: string): void {
     const agents = this.rootCtx.get('agents')
     if (agents?.get(agent.id) !== agent) return
@@ -1227,6 +1258,7 @@ export class DynamicCordisRunnerService extends TypertRemoteService {
       packageId: run.packageId,
       pluginRunId: run.pluginRunId,
     })
+    this.announceChanged(plugin.sessionId, plugin.pluginId)
   }
 
   private owned(agent: Agent, pluginId: CordisDynamicPluginId): DynamicCordisPlugin | undefined {

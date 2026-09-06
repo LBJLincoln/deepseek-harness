@@ -140,6 +140,10 @@ const GENERIC_SKIPS: readonly GenericSkip[] = [
   { file: 'docs/event-producer-consumer.zh.md', upstream: ['cordis'] },
   { file: 'docs/subsystems/extensions.md', upstream: ['cordis'] },
   { file: 'docs/subsystems/extensions.zh.md', upstream: ['cordis'] },
+  // The components page names `cordis/dynamic-changed` of that same family as
+  // the notification one composition-time adapter follows.
+  { file: 'docs/subsystems/components.md', upstream: ['cordis'] },
+  { file: 'docs/subsystems/components.zh.md', upstream: ['cordis'] },
   // `EVENT_SCOPE_PAGE['cordis']` maps the same event family's scope prefix to
   // its owning subsystems page, not a package specifier.
   { file: 'scripts/gen-cordis-catalog.ts', upstream: ['cordis'] },

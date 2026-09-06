@@ -11,9 +11,12 @@
  */
 
 import { Context, Service } from '@deepseek-ai/cordis'
+import { componentDigest } from '@deepseek-ai/dsh-components'
+import type { ComponentCanonical, ComponentDigest } from '@deepseek-ai/dsh-components/types'
 import { assertNever } from '@deepseek-ai/dsh-llm'
 import { NamedEntries, ScopedLayers, scopeChainOf, scopeOf } from '@deepseek-ai/dsh-scope'
 import type { ScopeKey, ScopeLayer } from '@deepseek-ai/dsh-scope'
+import { snapshotJsonValue } from '@deepseek-ai/dsh-session'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 
@@ -138,6 +141,36 @@ export function isUserInvocable(skill: Pick<SkillSummary, 'invocation'>): boolea
 }
 
 /**
+ * Content address of one loaded skill generation: the digest of
+ * `[name, description, whenToUse ?? null, invocation.modelInvocable,
+ * invocation.userInvocable, metadata ?? null, content]`. The knowledge and the
+ * routing metadata a consumer decides on are inside it, so one byte changed in
+ * a body or a description moves the address; the discovery `source`, the owning
+ * `provider`, the absolute `path`, and the `resourceBase` directory stay
+ * outside it, so two hosts that discovered the same skill under different roots
+ * and the same body re-registered through a different provider address
+ * identically.
+ *
+ * A `metadata` value that does not survive the lossless-JSON boundary
+ * contributes `null`, exactly as an absent one does: frontmatter is
+ * provider-parsed and a value no JSON encoding preserves must not silently
+ * change the address.
+ * @param skill - the loaded definition, as `ctx.skills.get()` returns it.
+ * @returns the digest over the `skill` component kind and that canonical value.
+ */
+export function skillDigest(skill: SkillDefinition): ComponentDigest {
+  return componentDigest('skill', [
+    skill.name,
+    skill.description,
+    skill.whenToUse ?? null,
+    skill.invocation.modelInvocable,
+    skill.invocation.userInvocable,
+    snapshotJsonValue(skill.metadata as ComponentCanonical | undefined) ?? null,
+    skill.content,
+  ])
+}
+
+/**
  * Durable source for the context message a user-explicit skill invocation
  * injects: the user's own words ride a plain user message, and the rendered
  * skill body follows as injected `instructions`-form context carrying this
@@ -148,6 +181,8 @@ export interface SkillInvocationSource {
   readonly kind: 'skill-invocation'
   /** Invoked skill name, validated user-invocable at the injecting boundary. */
   readonly name: string
+  /** Content address of the generation this injection loaded, from {@link skillDigest}. */
+  readonly digest: ComponentDigest
   /** Injected skill bodies are instructions for the model to follow. */
   readonly form: 'instructions'
 }

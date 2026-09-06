@@ -17,6 +17,7 @@ import {
   isSkillName,
   isUserInvocable,
   renderSkillContent,
+  skillDigest,
   type SkillInvocationSource,
   type SkillSummary,
 } from '@deepseek-ai/dsh-skill'
@@ -91,6 +92,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         properties: {
           name: { type: 'string', required: true },
           provider: { type: 'string', required: true },
+          digest: { type: 'string', required: true },
           resourceBase: {
             oneOf: [
               {
@@ -145,9 +147,13 @@ export function apply(ctx: Context, config: Config = {}): void {
       if (!isModelInvocable(skill)) {
         throw new Error(`skill "${args.name}" is not available for model invocation`)
       }
+      // The digest addresses the generation this call loaded. It is absent from
+      // `renderSkillContent`, so the model-facing text is unchanged, and the
+      // component adapter reads it from the settled `tools/result` value.
       return {
         name: skill.name,
         provider: skill.provider,
+        digest: skillDigest(skill),
         ...skill.resourceBase !== undefined ? {
           resourceBase: { ...skill.resourceBase },
         } : {},
@@ -193,7 +199,12 @@ export function apply(ctx: Context, config: Config = {}): void {
       // on the loaded definition — the single lookup that produces what is
       // actually injected.
       if (skill === undefined || !isUserInvocable(skill)) continue
-      const source: SkillInvocationSource = { kind: 'skill-invocation', name, form: 'instructions' }
+      const source: SkillInvocationSource = {
+        kind: 'skill-invocation',
+        name,
+        digest: skillDigest(skill),
+        form: 'instructions',
+      }
       injections.push(createUserMessage({
         content: [{ type: 'text', text: renderSkillContent(skill) }],
         source,
