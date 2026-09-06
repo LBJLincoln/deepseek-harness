@@ -1,0 +1,252 @@
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts:49:  for (const session of ctx.sessions.list()) {
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-50-    for (const event of session.events) validateEvent(event, fail)
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-51-  }
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-52-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-53-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-54-    const event = (args as [Session, SessionEvent])[1]
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-55-    validateEvent(event, fail)
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-56-  }, { global: true })
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-57-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-58-/* jscpd:ignore-end */
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-59-
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-60-/**
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-61- * Register the todo invariant companion.
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-62- * @param ctx - Cordis context carrying the invariant service.
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-63- * @returns the installed registration's disposer after setup succeeds.
+/home/user/deepseek-harness/packages/todo/tool-todo/src/invariant.ts-64- */
+--
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts:174:  for (const session of ctx.sessions.list()) validateSession(session, fail)
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-175-  ctx.on('session/created', (session) => { validateSession(session, fail) }, { global: true })
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-176-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-177-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-178-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-179-    if (event.type !== 'user/message'
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-180-      || event.data.source.kind !== 'plugin'
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-181-      || event.data.source.plugin !== SOURCE_NAME) return
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-182-    validateReading(session.events, event, fail)
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-183-  }, { global: true })
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-184-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-185-/* jscpd:ignore-end */
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-186-
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-187-/**
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-188- * Register the time-context invariant companion.
+/home/user/deepseek-harness/packages/context/time-context/src/invariant.ts-189- * @param ctx - Cordis context carrying the invariant service.
+--
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts:23:  for (const session of ctx.sessions.list()) {
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-24-    for (const event of session.events) validateEvent(ctx, event, fail)
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-25-  }
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-26-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-27-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-28-    const event = (args as [Session, SessionEvent])[1]
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-29-    validateEvent(ctx, event, fail)
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-30-  }, { global: true })
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-31-}, { inject: ['permissionPresets', 'sessions'] })
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-32-
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-33-/**
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-34- * Register the permission invariant companion.
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-35- * @param ctx - Cordis context carrying the invariant service.
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-36- * @returns the installed registration's disposer after setup succeeds.
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-37- */
+/home/user/deepseek-harness/packages/interaction/permission-presets/src/invariant.ts-38-export const apply = (ctx: Context): Promise<() => void> =>
+--
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts:158:  for (const session of ctx.sessions.list()) validateSession(session, fail)
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-159-  ctx.on('session/created', (session) => { validateSession(session, fail) }, { global: true })
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-160-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-161-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-162-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-163-    if (event.type === 'llm/retry') validateRetry(session.events, event, fail)
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-164-    else if (event.type === 'llm/retry-started') validateStarted(session.events, event, fail)
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-165-  }, { global: true })
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-166-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-167-
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-168-/**
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-169- * Register the LLM retry invariant companion.
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-170- * @param ctx - Cordis context carrying the invariant service.
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-171- * @returns the installed registration's disposer after setup succeeds.
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-172- */
+/home/user/deepseek-harness/packages/llm/llm-retry/src/invariant.ts-173-export const apply = (ctx: Context): Promise<() => void> =>
+--
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts:48:  for (const session of ctx.sessions.list()) {
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-49-    for (const event of session.events) validateEvent(session, event)
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-50-  }
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-51-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-52-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-53-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-54-    validateEvent(session, event)
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-55-  }, { global: true })
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-56-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-57-/* jscpd:ignore-end */
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-58-
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-59-/**
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-60- * Register this package's invariant companion.
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-61- * @param ctx - Cordis context carrying the invariant service.
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-62- * @returns the installed registration's disposer after setup succeeds.
+/home/user/deepseek-harness/packages/interaction/commands/src/invariant.ts-63- */
+--
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts:77:  for (const session of ctx.sessions.list()) seed(session)
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-78-  ctx.on('session/created', (session) => { seed(session) }, { global: true })
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-79-  ctx.on('session/event', (session, event) => {
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-80-    const trace = traceFor(session)
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-81-    if (event.type === 'turn/start') {
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-82-      trace.openTurn = event.data.turn
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-83-      return
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-84-    }
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-85-    if (event.type === 'turn/end') {
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-86-      trace.openTurn = null
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-87-      return
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-88-    }
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-89-    if (event.type !== 'approval/asked' && event.type !== 'approval/decided') return
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-90-    const candidate = staged.get(event)
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-91-    /* v8 ignore next -- internal/dispatch stages every package-owned pair event */
+/home/user/deepseek-harness/packages/interaction/user-approval/src/invariant.ts-92-    if (candidate === undefined || candidate.session !== session) return fail('approval audit event published without pre-commit validation')
+--
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts:76:  for (const session of ctx.sessions.list()) seed(session)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-77-  ctx.on('session/created', (session) => { seed(session) }, { global: true })
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-78-  ctx.on('session/event', (session, event) => {
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-79-    validateDispatch(session, event)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-80-    commitDispatch(session, event)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-81-    if (event.type === 'turn/start') openTurns.set(session, event.data.turn)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-82-    else if (event.type === 'turn/end') openTurns.set(session, null)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-83-  }, { global: true })
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-84-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-85-    if (eventName === 'session/event') {
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-86-      const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-87-      validateDispatch(session, event)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-88-      if ((event.type === 'tool/code-dispatch-start' || event.type === 'tool/code-dispatch')
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-89-        && openTurnFor(session) === null) {
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-90-        fail(`${event.type} appended outside any open turn`)
+/home/user/deepseek-harness/packages/core/tools/src/invariant.ts-91-      }
+--
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts:33:  for (const session of ctx.sessions.list()) seed(session)
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-34-  ctx.on('session/created', (session) => { seed(session) }, { global: true })
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-35-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-36-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-37-    const [, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-38-    validateEvent(event, fail)
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-39-  }, { global: true })
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-40-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-41-
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-42-/**
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-43- * Register the plan-mode invariant companion.
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-44- * @param ctx - Cordis context carrying the invariant service.
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-45- * @returns the installed registration's disposer after setup succeeds.
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-46- */
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-47-export const apply = (ctx: Context): Promise<() => void> =>
+/home/user/deepseek-harness/packages/plan/plan-mode/src/invariant.ts-48-  Promise.resolve(ctx.invariants.register(PACKAGE_NAME, install))
+--
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts:87:  for (const session of ctx.sessions.list()) seed(session)
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-88-  ctx.on('session/created', (session) => { seed(session) }, { global: true })
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-89-  ctx.on('session/event', (session, event) => {
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-90-    const trace = traceFor(session)
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-91-    if (event.type === 'turn/start') {
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-92-      trace.openTurn = event.data.turn
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-93-      return
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-94-    }
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-95-    if (event.type === 'turn/end') {
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-96-      trace.openTurn = null
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-97-      return
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-98-    }
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-99-    if (event.type !== 'hook/invoked' && event.type !== 'hook/result') return
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-100-    const candidate = staged.get(event)
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-101-    /* v8 ignore next -- internal/dispatch stages every hook invocation/result event */
+/home/user/deepseek-harness/packages/hooks/hook-protocol/src/invariant.ts-102-    if (candidate === undefined || candidate.session !== session) return fail('hook event published without pre-commit validation')
+--
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts:219:  for (const session of ctx.sessions.list()) seedSession(session)
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-220-
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-221-  ctx.on('session/created', (session) => { seedSession(session) }, { global: true })
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-222-
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-223-  ctx.on('session/event', (session, event) => {
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-224-    const staged = stagedTransitions.get(event)
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-225-    /* v8 ignore next 2 -- internal/dispatch stages the exact callback arguments */
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-226-    if (staged === undefined || staged.session !== session) {
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-227-      return fail('session/event reached publication without matching pre-commit validation')
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-228-    }
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-229-    stagedTransitions.delete(event)
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-230-    applyTransition(staged.trace, staged.transition)
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-231-  }, { global: true })
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-232-
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-233-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/core/session/src/invariant.ts-234-    if (eventName !== 'session/event') return
+--
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts:98:  for (const session of ctx.sessions.list()) {
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-99-    const prior: SessionEvent[] = []
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-100-    for (const event of session.events) {
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-101-      validateEvent(prior, event, fail)
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-102-      prior.push(event)
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-103-    }
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-104-  }
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-105-  /* jscpd:ignore-start -- package companions share dispatch and registration plumbing */
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-106-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-107-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-108-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-109-    validateEvent(session.events, event, fail)
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-110-  }, { global: true })
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-111-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-112-
+/home/user/deepseek-harness/packages/guard/budget-policy/src/invariant.ts-113-/**
+--
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts:273:  for (const session of ctx.sessions.list()) seed(session)
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-274-  ctx.on('session/created', (session) => { seed(session) }, { global: true })
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-275-  ctx.on('session/event', (session, event) => {
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-276-    const trace = traceFor(session)
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-277-    validateTurnBoundary(trace, event, fail)
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-278-    if (applyTurnBoundary(trace, event)) return
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-279-    if (event.type !== 'session/end-seed'
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-280-      && event.type !== 'compaction/start'
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-281-      && event.type !== 'compaction/summary'
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-282-      && event.type !== 'compaction/end') return
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-283-    const candidate = staged.get(event)
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-284-    /* v8 ignore next -- internal/dispatch stages every compaction event */
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-285-    if (candidate === undefined || candidate.session !== session) return fail('compaction event published without pre-commit validation')
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-286-    staged.delete(event)
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-287-    trace.compaction = applyCompactionTransition(candidate.transition)
+/home/user/deepseek-harness/packages/compaction/compaction/src/invariant.ts-288-  }, { global: true })
+--
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts:62:  for (const session of ctx.sessions.list()) {
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-63-    const prior: SessionEvent[] = []
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-64-    for (const event of session.events) {
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-65-      validateEvent(prior, event, fail)
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-66-      prior.push(event)
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-67-    }
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-68-  }
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-69-  /* jscpd:ignore-start -- package companions share dispatch and registration plumbing */
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-70-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-71-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-72-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-73-    validateEvent(session.events, event, fail)
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-74-  }, { global: true })
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-75-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-76-
+/home/user/deepseek-harness/packages/goal/goal-round-driver/src/invariant.ts-77-/**
+--
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts:53:  for (const session of ctx.sessions.list()) seed(session)
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-54-  ctx.on('session/created', (session) => { seed(session) }, { global: true })
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-55-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-56-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-57-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-58-    const state = cloneState(stateFor(session))
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-59-    applyChecked(state, event, fail)
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-60-    staged.set(event, { session, state })
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-61-  }, { global: true })
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-62-  ctx.on('session/event', (session, event) => {
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-63-    const candidate = staged.get(event)
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-64-    /* v8 ignore next 2 -- internal/dispatch stages the exact callback arguments */
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-65-    if (candidate === undefined || candidate.session !== session) {
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-66-      return fail('session/event reached publication without matching goal-fold validation')
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-67-    }
+/home/user/deepseek-harness/packages/goal/goal/src/invariant.ts-68-    staged.delete(event)
+--
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts:132:  for (const session of ctx.sessions.list()) {
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-133-    for (const event of session.events) validateEvent(session, event, fail)
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-134-  }
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-135-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-136-    if (eventName !== 'session/event') return
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-137-    const [session, event] = args as [Session, SessionEvent]
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-138-    validateEvent(session, event, fail)
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-139-  }, { global: true })
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-140-}, { inject: ['sessions'] })
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-141-/* jscpd:ignore-end */
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-142-
+/home/user/deepseek-harness/packages/verification/read-barrier/src/invariant.ts-143-/**
+
+[Showing results with pagination = limit: 250]

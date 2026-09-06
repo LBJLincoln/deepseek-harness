@@ -1,0 +1,463 @@
+########## packages/improvement/README.md
+# improvement/ — from certified sessions to training and evaluation records
+
+English | [中文](README.zh.md)
+
+The improvement seam turns what the harness already records into what a trainer and an evaluator consume. Environments declare tasks with executable checks in the completion-standard vocabulary; the runner runs one environment as one fresh session, stamps it, executes the checks as the validator, and completes the goal only under a certificate; the fleet runs a plan of environment × model × repetition cells through the runner and folds a leaderboard; trajectories fold persisted sessions into chat-format records whose reward a certificate decided and withhold held-out environments by the stamp; the scorekeeper folds the same logs into session facts and a scoreboard, so every number is recomputable from the log alone; an experiment freezes a plan, runs two arms over paired cells, and reports the delta with a confidence interval and a verdict.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`environments/`](environments/README.md) | Environment registry: tasks with verifiers, held out or training-eligible; the `environment/run` stamp vocabulary | `ctx.environments` |
+| [`environment-runner/`](environment-runner/README.md) | Environment runner: one environment as one validated session, the runner as validator | `ctx.environmentRuns` |
+| [`fleet/`](fleet/README.md) | Fleet runs: a plan of environment × model × repetition cells, every outcome kept, a leaderboard per route and environment | `ctx.fleet` |
+| [`trajectories/`](trajectories/README.md) | Trajectory export: sessions as `dsh-trajectory/1` JSONL with rewards, provenance, and the environment stamp | `ctx.trajectories` |
+| [`scorekeeper/`](scorekeeper/README.md) | Session facts: the `sessionFacts` projection unit, a log-derived scoreboard with pass@k per environment, and a JSONL facts export | `ctx.scorekeeper` |
+| [`experiments/`](experiments/README.md) | Experiments: a frozen paired comparison of two arms over fleet cells, with bootstrap intervals and a promote/reject/inconclusive verdict | `ctx.experiments` |
+
+########## packages/improvement/environments/README.md
+# @deepseek-ai/dsh-environments
+
+English | [中文](README.zh.md)
+
+Environment registry: the composition-time inventory of tasks with executable verifiers. Each environment declares a task statement and fixture, its checks in the verification seam's completion-standard vocabulary, whether it is held out for evaluation, its owner, and its provenance. The registry executes nothing; the [trajectory-export Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) owns the design rationale.
+
+## Config
+
+```yaml
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+```
+
+The service takes no configuration; producers and consumers compose beside it.
+
+## Service contract
+
+`ctx.environments.register(definition)` stores one `EnvironmentDefinition` and returns the exact disposer that removes that registration and no later one under the same id. It throws `EnvironmentError` with code `ENVIRONMENT_DUPLICATE_ID` for a registered id, `ENVIRONMENT_NO_CHECKS` for an empty check list, and `ENVIRONMENT_DUPLICATE_CHECK` when two checks share an id. Registrations are effects: a producer keeps the disposer under its own fiber so disposal removes the environment. `get(id)` and `list(filter?)` return detached copies in registration order; `filter` selects by `kind` and by `heldOut`, and a caller cannot mutate stored check lists through the returned values.
+
+A definition carries a branded `EnvironmentId`, a `kind` from the merge-extensible `EnvironmentKindMap` (each producer declares its kind and detail type by declaration merging on `@deepseek-ai/dsh-environments/types`; this package declares none), `name`, `description`, the `task` (`prompt` plus an optional workspace `fixture`), the `checks` a validator authors the task's completion standard from, the `heldOut` flag, the owning package, `provenance` (`curated` or `synthesized`), an optional `lineage` parent id, and kind-specific `detail`.
+
+## Run stamp
+
+The `environment/run` session event is the durable link from a session to the environment it ran. The runner appends one `EnvironmentRunStamp` before the run's first turn: the environment id and kind, the `heldOut` flag, the content hashes, the zero-based `repetition` and optional `group` of the run inside its batch, the optional `district` the run belongs to, the model route, and the isolation the deployment declared. `environmentContentHashes(environment, fixtureSha256?)` computes the prompt, check-inventory, and combined `contentSha256` digests deterministically; the combined digest is the decontamination key a curator compares against held-out environments. `decodeEnvironmentRun(value)` validates a durable payload at the log boundary: unrelated values return `undefined`, a malformed stamp throws, so a fold never reads a partial stamp.
+
+## Extension points
+
+Producers register environments from curated suites or from synthesis; consumers are the environment runner that mounts a task as a session and writes the run stamp, the trajectory exporter that reads the stamp to attribute sessions and withhold held-out ones and the districts a deployment withholds, and the component registry adapter that lists environments as components.
+
+## Model Experience
+
+None, as the registry holds composition-time task definitions and registers nothing model-facing; the runner that mounts an environment owns every model-visible effect.
+
+#### KV Cache effect
+
+None; the registry neither adds to nor changes any model request.
+
+## Known Limitations and Deferred Work
+
+- **Executes nothing** — the environment runner (`@deepseek-ai/dsh-environment-runner`) mounts an environment as a session, authors the standard from `checks`, executes them, and writes the run stamp; this package only holds the vocabulary.
+- **Fixture is a path the runner resolves** — `task.fixture` names an absolute directory the runner overlays and hashes; the registry does not verify that it exists.
+- **No registration events** — adapters and observers cannot yet follow registrations; the stamp records what ran, not what was registered.
+- **Kinds arrive with producers** — a program with no producer composed sees `EnvironmentKind` as `string` and an empty inventory.
+
+########## packages/improvement/environment-runner/README.md
+# @deepseek-ai/dsh-environment-runner
+
+English | [中文](README.zh.md)
+
+Environment runner: one registered environment as one fresh, validated session. The runner stamps the session with the environment it runs, creates the goal, authors the completion standard from the environment's checks, drives the implementer turn by turn, executes the checks through the shell executor after each turn, records the run, and completes the goal only under a certificate. The [environment-runner Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md) owns the design rationale.
+
+## Config
+
+```yaml
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: deepseek-official
+    model: deepseek-v4-flash
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    maxGoalRounds: 8
+    checkTimeoutMs: 120000
+    evidenceMaxChars: 2000
+```
+
+| Field | Meaning |
+|---|---|
+| `isolation` (required) | `none`, `process`, or `host`: the isolation the deployment can defend for its check runs. A local composition that shares the filesystem between implementer and validator is `none`; a run whose checks and fixtures live on another account or host is `host`. Written into every certificate and stamp; nothing in-process can verify it. |
+| `maxAttempts` (default `1`) | Implementer turns before the run is reported uncertified; each turn is followed by one validation. |
+| `maxGoalRounds` (optional) | Round cap handed to goal creation; absent applies the goal service default. |
+| `checkTimeoutMs` (optional) | Timeout override for each check command, capped by the executor; absent applies the executor default. |
+| `evidenceMaxChars` (default `2000`) | Bound of each evidence string and of the directive detail. It must not exceed the verification service's `maxTextChars`, or `recordRun` rejects the result loudly. |
+
+The service requires `environments`, `agents`, `agentDefaultModel`, `goals`, `completionStandards`, `shell`, and `sessions`. It also uses [`ctx.readBarrier`](../../verification/read-barrier/README.md) when the composition provides it; without it the run reserves nothing and the checks execute their instructions inline, which is what an `isolation: none` claim already says.
+
+## Service contract
+
+`ctx.environmentRuns.run({ environment, workspace, model?, repetition?, group?, district?, signal? })` reads the definition from the registry, overlays `task.fixture` (an existing absolute directory) onto `workspace` and hashes its files, and creates a fresh agent with `meta.cwd = workspace`, the requested `model` route or the composition's default selection, and the model-selection setup the headless bundle uses. Before anything else enters the log it appends the `environment/run` stamp: environment id and kind, `heldOut`, the content hashes of prompt, fixture, and checks, `repetition` (default `0`), `group`, and `district`, the model route, and the configured isolation. It then creates the goal from the task prompt, disarms it so a composed goal-round driver never continues it, and authors the standard from the environment's checks verbatim.
+
+With a barrier composed, the run reserves `<barrier root>/runs/<sessionId>/` before the stamp, copies a held-out environment's fixture to `fixture/` there, and rewrites each attempt's check command to source a script the reservation holds. Each attempt writes `standard.json` and one `checks/<checkId>` script per active check into the reservation, so the implementer sees a command line naming a file whose content the barrier denies it. A check id that is not a single path segment, and a reservation path the check command line cannot carry unquoted, both fail the run with `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`.
+
+Each attempt sends the prompt as a user turn, waits for whole-agent idle, overlays `task.fixture` onto the workspace again so implementer edits to validator-owned files never reach the checks, digests the workspace files, and executes every active check of the current standard through `ctx.shell` with `workdir: workspace`: exit code `0` without timeout or abort is `pass`, anything else `fail`; evidence is the exit fact followed by the bounded tails of stdout and stderr. `recordRun` records the run under `{ executor: 'runner', treeHash }` — one durable `verification/run` event per attempt, passing or failing — and commits a certificate or returns the failing subset. Certified: the goal is completed, which the verification guard admits. Not certified: one directive is recorded (`rootCause` names the count of failing checks; `detail` carries the failing evidence and never a check id, outcome, or command), and while attempts remain the next turn carries the directive in a `<validation_failed>` block.
+
+The report carries the environment id, the session id, the stamp exactly as appended, one entry per attempt with its check results and workspace digest, `certified`, the certificate when one run passed, and the model usage summed over the session's assistant messages. The session is flushed and the agent handle disposed on every path, including a thrown error.
+
+`EnvironmentRunError` codes: `ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`, `ENVIRONMENT_RUN_INVALID_WORKSPACE`, and `ENVIRONMENT_RUN_INVALID_FIXTURE` reject before any agent exists; `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`, `ENVIRONMENT_RUN_GOAL_REPLACED`, and `ENVIRONMENT_RUN_STANDARD_LOST` name a check the reservation cannot carry, an implementer that replaced the goal, or a standard that is no longer current, after the session was flushed. `resolveConfig(config)` is the exported defaulting step.
+
+Call `run()` only over a settled composition: the runner creates agents through the registry factory the agent loop registers. The durable record is the session log; the trajectory exporter folds it into a `dsh-trajectory/1` line whose `environment` field is the stamp and withholds held-out sessions by it.
+
+## Model Experience
+
+### Task prompt and validation follow-up
+
+#### What the model sees
+
+The environment's `task.prompt` arrives as the first user message of a fresh session with the composition's ordinary system prompt and tools; the checks never appear. After a failed validation, while attempts remain, the next user message is the block below, where `<rootCause>` reads `N of the standard's checks failed` and `<detail>` lists one numbered evidence line per failing check (exit fact, stdout and stderr tails), bounded by `evidenceMaxChars`.
+
+##### Validation follow-up
+
+```markdown
+<validation_failed>
+<rootCause>
+<detail>
+Continue working on the task; the validator runs again when you stop.
+</validation_failed>
+```
+
+#### Token effect
+
+One user message per attempt: the prompt, then one follow-up block per failed validation whose size is bounded by `evidenceMaxChars`. Nothing is added to the system prompt or to tool schemas.
+
+#### KV Cache effect
+
+Append-only: each follow-up extends the same session after its reusable prefix, so the conversation prefix stays cacheable across attempts.
+
+## Known Limitations and Deferred Work
+
+- **The barrier covers filesystem reads only** — an implementer preset that composes a log-reading tool, or a bash check-running executor, still reaches the standard through a seam the barrier does not fence; a certificate from this runner is as strong as the configured `isolation` claim, which nothing here verifies.
+- **A reserved check runs by being sourced** — the command line is `. <script>`, which a POSIX shell executor runs exactly as it would the inline instruction; a composed PowerShell executor cannot source an extensionless file, so such a deployment runs without a barrier.
+- **The fixture overlay is the only restoration** — each validation restores validator-owned fixture files, but files the implementer added outside the fixture stay in the workspace and reach the checks.
+- **Command checks only** — a check whose `run` is a procedure fails as a non-zero exit with the evidence saying so; judges belong to the oversight seam.
+- **Sequential checks, one repetition per call** — checks run one after another in the workspace, and group sampling repeats `run()` with `repetition` and `group` set by the caller.
+- **Fixture overlay does not clear the workspace** — same-named files are overwritten; the runner refuses a workspace that is not a directory but does not require it to be empty.
+
+########## packages/improvement/fleet/README.md
+# @deepseek-ai/dsh-fleet
+
+English | [中文](README.zh.md)
+
+Fleet runs: the deterministic spine of the harness capability program. A plan names environments, model routes, and a repetition count; the fleet runs every environment × model × repetition cell through the environment runner in its own fresh workspace, keeps every cell's report or failure in plan order, and folds a leaderboard with one row per model route and environment. Rows are never averaged across isolation levels or across the held-out split; both stay columns a consumer partitions by. The [four-goal-workflows Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) owns the design rationale.
+
+## Config
+
+```yaml
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: deepseek-official
+    model: deepseek-v4-flash
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 4
+    routeBreaker:
+      consecutiveErrors: 3
+    workspaceRetention: remove-certified
+```
+
+| Field | Meaning |
+|---|---|
+| `maxConcurrent` (default `1`) | Cells in flight at the same time; each cell is its own session and workspace directory, so the bound is a budget on agents and check processes, not on correctness. |
+| `routeBreaker.consecutiveErrors` (optional) | Consecutive error cells on one model route inside one plan before the fleet stops scheduling that route. Absent keeps scheduling a route however often it fails, so a provider outage spends the whole plan on it. |
+| `workspaceRetention` (required) | `keep`, `remove-certified`, or `remove-all`: what happens to each cell's `cell-*` directory once its outcome is recorded. The session log, not the checkout, is the record, so a long-running deployment states how much of the checkout it keeps for inspection. |
+
+The service requires `environments`, `environmentRuns`, and `agentDefaultModel`. `resolveConfig(config)` is the exported defaulting step.
+
+## Service contract
+
+`ctx.fleet.run(plan)` takes `environments` (`{ ids }` in the given order, or `{ filter }` resolved against the registry in registration order), `models` (an empty list runs the composition's default route from `agentDefaultModel`), a positive integer `repetitions`, an existing absolute `workspaceRoot`, an optional `group`, an optional `district`, an optional positive integer `tokenCeiling`, and an optional `signal`. It rejects with `FleetError` before running any cell: `FLEET_INVALID_PLAN` for a non-positive or fractional `repetitions` or `tokenCeiling` or an id the registry does not hold, `FLEET_EMPTY_PLAN` when the selection matches nothing.
+
+Cells are enumerated environment-major, then model, then repetition from `0`, and run through `ctx.environmentRuns.run` with at most `maxConcurrent` in flight. Each cell gets a fresh `cell-*` directory under `workspaceRoot` and carries the plan's `group` (or a minted `fleet-<uuid>`), its repetition index, and the plan's `district` into the run stamp, so every session of the batch is grouped durably in its own log. A cell whose run throws is kept as `{ cell, error }` with the harness error code when the error had one; the fleet run itself never fails because of one cell.
+
+Two conditions refuse a cell before it starts, so every plan keeps a row for every cell and the runs and errors columns stay honest. Once one model route has produced `routeBreaker.consecutiveErrors` error outcomes in a row, its remaining cells are recorded as `FLEET_ROUTE_BREAKER_OPEN` errors naming the route and the count; a reported cell resets that route's count, and the breaker is per plan. Once the reports in hand sum past `tokenCeiling` input plus output tokens, every cell that has not started is recorded as a `FLEET_TOKEN_CEILING_REACHED` error, while the cells already in flight complete. A refused cell mints no workspace and folds into neither the breaker nor the spend.
+
+The report carries the `group`, every cell outcome in plan order, the `spend` (`inputTokens` and `outputTokens` of the whole run), and the `leaderboard`: per model route and environment, the environment kind and `heldOut` flag, the `isolation` the runs declared (absent when every cell of the row failed before a run), `runs`, `errors`, `certified`, `certificateRate`, `attemptsMean`, and the summed `inputTokens` and `outputTokens`. `leaderboardMarkdown(report)` renders the same rows as one Markdown table for people; the report stays the record and the session logs stay the authority.
+
+Workspace retention runs once a cell's outcome is in hand: `remove-certified` removes the `cell-*` directory of a cell whose run certified, `remove-all` removes it whether the cell reported or failed, and `keep` removes nothing.
+
+## Model Experience
+
+None, as the fleet only schedules environment runs; the environment runner owns every model-visible effect of each cell, and nothing the fleet holds enters a model request.
+
+#### KV Cache effect
+
+None; the fleet neither adds to nor changes any model request.
+
+## Known Limitations and Deferred Work
+
+- **The leaderboard is a fold of one fleet run** — cross-run comparison, paired designs across variants, and confidence intervals read the `environment/run` stamps and certificates from the session logs; this package folds only the reports it just produced.
+- **Sampling is by repetition count** — group sampling with early stop, per-cell budgets, and retry policies are the caller's until a policy plugin exists.
+- **The ceiling and the breaker are per plan** — both start fresh on every `run()` call, so a shift that spans several plans folds its own spend and its own route health across them.
+- **A cell error carries only code and message** — the thrown error's stack and cause stay in the process, and a cell that failed before its run leaves no session; a cell that ran has every attempt as a `verification/run` event in its own session log, which is where a cross-run fold reads run evidence from.
+
+########## packages/improvement/scorekeeper/README.md
+# @deepseek-ai/dsh-scorekeeper
+
+English | [中文](README.zh.md)
+
+The session log as the dataset. A `sessionFacts` projection unit folds one live session into four fact groups, and `ctx.scorekeeper` folds the same groups out of persisted logs: one record per session, a scoreboard grouped by model route, environment, isolation level, and held-out split, and a JSONL export. The service reads through the session persistence seam and writes no session event. The [scorekeeper Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) owns the design rationale.
+
+## Config
+
+```yaml
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+- id: scorekeeper
+  name: '@deepseek-ai/dsh-scorekeeper'
+  config:
+    passAtK: [1, 8]
+```
+
+| Key | Default | Meaning |
+|---|---|---|
+| `passAtK` | `[1]` | Repetition draws the scoreboard estimates pass@k for. Sorted and de-duplicated; a `k` no batch of the row reached is absent from that row. |
+
+The service requires a session persistence backend. It registers the `sessionFacts` projection unit only when a projection registry (`@deepseek-ai/dsh-session-projection`) is composed.
+
+## Service contract
+
+`ctx.scorekeeper.facts(sessionId)` reads one persisted session through `ctx.sessionPersistence.inspect()` and returns its `SessionFactsRecord`; a session that cannot be read, or whose goal or verification stream is malformed, rejects.
+
+`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` folds each named session (or every persisted session when `sessions` is absent) and groups the stamped ones into rows. A session that cannot be read or folded is added to `skipped` with its reason and the fold continues; a session whose log carries no `environment/run` stamp is counted as `unstamped` because no row can name its cell; a stamped session the `group` or `heldOut` condition rejects is counted as `excluded`.
+
+`ctx.scorekeeper.exportFacts({ sessions?, sink })` writes `JSON.stringify(record) + '\n'` per session to `sink.write()` and closes the sink exactly once, after the last write or after a failure. The sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
+
+`foldSessionFacts(meta, events)` is the pure projection behind all three and is exported for tests and offline tools, together with the incremental `applySessionFacts` the projection unit drives, the `foldScoreboard` row fold, and `unbiasedPassAtK`.
+
+## Fact groups and their source events
+
+Every field folds from a named session event; nothing is inferred. Field names are camelCase in TypeScript and in every export.
+
+### Identity and provenance
+
+| Field | Source |
+|---|---|
+| `sessionId`, `createdAt` | The stored session header (`facts()` and `exportFacts()` only; a projection value is already addressed by its session) |
+| `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.contentSha256`, `.provider`, `.model`, `.isolation` | The `environment/run` stamp, absent for a session no runner stamped |
+| `requestProvider`, `requestModel` | `config.provider` and `config.model` of the last `request/header` |
+
+### Outcome
+
+| Field | Source |
+|---|---|
+| `reward`, `rewardBasis` | The trajectory reward fold over `goal/change` and the `verification/*` events |
+| `certified`, `certificateRevision`, `certificateExecutor` | The verification fold's certificate for the current standard revision, and the executor of the run it cites |
+| `runsRecorded` | `verification/run` events, passing or failing |
+| `attempts` | The `attempt` of the last `verification/run`; it restarts at one for each authored standard |
+| `directives` | `verification/directive` events |
+| `relaxations` | Relaxed checks of the current standard (`verification/relaxation`) |
+| `goalPhase`, `goalRoundsCap` | The current `goal/change` snapshot |
+| `goalRoundsStarted` | Admitted continuation rounds, from the goal fold over `goal/change` and goal-sourced `user/message` |
+| `budgetBreachCap` | The `cap` of the last `budget/breach` |
+
+### Efficiency
+
+| Field | Source |
+|---|---|
+| `turns`, `steps` | `turn/start` and `step/start` events |
+| `inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`, `reasoningTokens` | `usage` of every `assistant/message`; the earlier `assistant/chunk` sample for the same step is deliberately not counted twice |
+| `wallMs` | The first and last event times of the log |
+
+### Tool behavior
+
+| Field | Source |
+|---|---|
+| `toolCalls`, `toolCallsByName` | `tool/call` events |
+| `toolErrors` | `tool/result` events whose model-facing block reported an error |
+| `toolTimeouts` | Those whose `error.code` is `TOOL_TIMEOUT` (`@deepseek-ai/dsh-tool-call-timeout-policy`) |
+| `toolAborts` | Those whose `error.code` is `ABORTED` or `ABORTED_BEFORE_DISPATCH` (`@deepseek-ai/dsh-tools`) |
+
+## Scoreboard rows
+
+A row is one model route on one environment at one isolation level and one side of the held-out split; a row never averages across isolation or the split. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
+
+`stats` estimates difficulty from the repetition batches the row's sessions belong to: for each batch of `n` sessions of which `c` certified, pass@k is the unbiased `1 - C(n - c, k) / C(n, k)`, and the row's value is the mean over the batches holding at least `k` sessions. A session whose stamp carries no `group` joins no batch.
+
+## Model Experience
+
+None, as the scorekeeper folds committed events into a projection value and reads persisted logs; it adds nothing to any model request.
+
+#### KV Cache effect
+
+None; the service neither adds to nor changes any model request.
+
+## Known Limitations and Deferred Work
+
+- **The projection value changes on every event** — `wallMs` spans the log, so no committed event leaves the `sessionFacts` state reference untouched and a subscribed carrier is notified once per event.
+- **Field groups without a source event** — process quality, judge scores, safety and oversight, and training and data are named by the [four-goal-workflows note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) but ship no field here: `signoff/recorded`, the composition manifest, the oversight monitor, the judge council, and the curator's consent and redaction events do not exist yet.
+- **Shell exit codes are not observable** — a bash result's exit code travels inside the tool's own model-facing output rather than a session-event field, so `shellNonzeroExits` is not a field; a tool-owned result event would be needed first.
+- **Cost is not a field** — pricing lives in `@deepseek-ai/dsh-budget-policy`'s configuration rather than in the log, so a facts record states tokens and names a breached cap but never a EUR amount.
+- **One standard per session** — the outcome group reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.
+- **Rows are not comparable across fleet runs** — a scoreboard folds whatever the filter selects; paired designs, confidence intervals, and cross-run comparison belong to the experiment plugin the four-goal note names.
+
+########## packages/improvement/trajectories/README.md
+# @deepseek-ai/dsh-trajectories
+
+English | [中文](README.zh.md)
+
+Trajectory export: persisted sessions folded into `dsh-trajectory/1` records, one JSON line each, with the chat-format message list a trainer's template consumes, the reward a certificate decided, and the components that were in play. Export reads through the session persistence seam and writes no session event. The [trajectory-export Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) owns the design rationale.
+
+## Config
+
+```yaml
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'
+  config:
+    withheldDistricts:
+      - workshop
+```
+
+| Field | Meaning |
+|---|---|
+| `withheldDistricts` (default `[]`) | Districts an export that names none withholds, counted as `withheld`. The package ships no district name: a deployment states which of its districts may not leave by default, the way a client-facing district does. |
+
+The service requires a session persistence backend. `resolveConfig(config)` is the exported defaulting step.
+
+## Service contract
+
+`ctx.trajectories.export({ sessions?, sink, rewardedOnly?, includeHeldOut?, districts? })` folds each named session (or every persisted session when `sessions` is absent) through `ctx.sessionPersistence.inspect()` and writes `JSON.stringify(trajectory) + '\n'` to `sink.write()`; a session that cannot be read or folded is added to `skipped` with its reason and the export continues.
+
+Three filters run in order over each readable session. A session whose `environment/run` stamp marks a held-out environment is withheld and counted as `heldOut` unless `includeHeldOut: true`, so evaluation tasks never become training data by default. Then the district decides: with `districts` named, only a session whose stamp carries one of them is written, which is how an export reaches a district the deployment otherwise withholds; with no `districts` named, a session whose stamp carries a configured `withheldDistricts` entry is withheld. Either way the withheld sessions are counted as `withheld`. Last, `rewardedOnly: true` withholds trajectories whose reward outcome is not `1` and counts them as `filtered`.
+
+The sink is closed exactly once, after the last write or after a failure. The report carries `sessions`, `exported`, `rewarded`, `filtered`, `heldOut`, `withheld`, and `skipped`. `jsonlFileSink(path)` is the shipped file sink; it truncates the file on first use.
+
+`foldTrajectory(meta, events)` is the pure projection behind the service and is exported for tests and offline tools. It is deterministic for the same inputs.
+
+## Record format `dsh-trajectory/1`
+
+| Field | Content |
+|---|---|
+| `id`, `source` | Session id; creation time, working directory, parent session, and the agent preset the log last selected |
+| `environment` | The `environment/run` stamp the runner appended: environment id and kind, held-out flag, content hashes of prompt, fixture, and checks, repetition, group, and district, model route, declared isolation; absent for a session no runner stamped |
+| `config`, `system`, `tools` | Call configuration, rendered system prompt, and tool schemas of the last `request/header` |
+| `messages` | Surface messages in model-visible order after compaction replacements: `user`, `assistant` (with `toolCalls` when requested), and `tool` (with `toolCallId`, `isError`) roles; each carries the `seq` of its source event, its `turn` and `step`, its content blocks verbatim (reasoning included), and the recorded source kind |
+| `steps` | One entry per model call with the adapter-reported usage |
+| `reward` | `outcome` `1` when a certificate covers the current standard revision, `0` when a standard exists without one, `null` otherwise; `basis` `certificate`, `uncertified-completion` (goal completed, no standard ever authored), or `none` (no goal); the goal snapshot, the covering certificate, and the attempt, directive, and relaxation counts |
+| `provenance` | Component ids in the component registry's scheme (`composition:<preset>`, `environment:<id>`, `model-provider:<provider>`, `tool:<name>`), tool names in first-use order, and the certificate's isolation level |
+
+Token ids and logprobs are absent: the harness never sees token ids, and on-policy capture belongs to a trainer's inference proxy.
+
+## Model Experience
+
+None, as export reads persisted logs and writes files; it adds nothing to any model request.
+
+#### KV Cache effect
+
+None; the service neither adds to nor changes any model request.
+
+## Known Limitations and Deferred Work
+
+- **Off-policy text** — a trainer re-tokenizes exported text through its chat template, which suits supervised and rejection-sampled training; strict on-policy reinforcement learning needs an inference proxy in front of the harness.
+- **No redaction** — tool results may carry credentials or private data; the sink is where a deployment applies a filter, and the telemetry redaction rules are the precedent.
+- **District withholding reads the stamp** — a session no runner stamped, or one stamped before its district was configured, carries no district and no configured withholding reaches it; an export that names districts writes only stamped sessions.
+- **One standard per session** — the reward reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.
+- **No rejection-sampling export** — lines carry the environment stamp, so a consumer can group by environment, repetition, and group, but the exporter does not yet select the best of N per environment or emit per-environment statistics.
+- **Truncation scores as failure** — a session that stopped on a token limit, an abort, or a provider error under a measured goal exports with outcome `0`; the turn-end reason is not yet a field of the record, so a trainer cannot mask it.
+
+########## packages/improvement/experiments/README.md
+# @deepseek-ai/dsh-experiments
+
+English | [中文](README.zh.md)
+
+A frozen, paired, budgeted comparison of two arms. A plan names the environments, the repetition count, and the two model routes; a content digest freezes it before any cell runs; both arms run through `ctx.fleet` at the same repetition indexes under stamp groups derived from that digest; and the paired certificate-rate delta comes back with a bootstrap confidence interval and a `promote` / `reject` / `inconclusive` verdict. Nothing here calls a model. The [experiments Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-experiments.md) owns the design rationale.
+
+## Config
+
+```yaml
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 4
+- id: experiments
+  name: '@deepseek-ai/dsh-experiments'
+  config:
+    bootstrapResamples: 2000
+    confidenceLevel: 0.95
+    minimumDelta: 0.05
+    cellTokenCap: 200000
+    tokenBudget: 20000000
+```
+
+| Key | Default | Meaning |
+|---|---|---|
+| `bootstrapResamples` | `1000` | Resamples drawn per interval. Below convergence the interval still moves with the digest; raising it narrows that movement at linear cost. |
+| `confidenceLevel` | `0.95` | Coverage of every reported interval. |
+| `minimumDelta` | `0` | Certificate-rate delta the overall interval's lower bound must exceed to promote. |
+| `cellTokenCap` | none | Tokens one cell may spend. Required: it is what the plan's projection multiplies. |
+| `tokenBudget` | none | Tokens one plan's projection may reach. Required: a plan projecting more is refused before it starts. |
+
+The service requires `environments` and `fleet`. `resolveConfig(config)` is the exported defaulting step; it returns the four `thresholds` the plan digest freezes beside the `tokenBudget`, which stays outside the digest because it bounds what a deployment pays for rather than what the comparison measures.
+
+## Service contract
+
+`ctx.experiments.run(plan)` takes `environments` (registered ids, each named once), a positive integer `repetitions`, the `baseline` and `candidate` model routes, an existing absolute `workspaceRoot`, and optionally a `digest` the caller froze earlier, a `signal`, and a `sink`.
+
+It rejects with `ExperimentError` before running any cell: `EXPERIMENT_INVALID_PLAN` for a non-positive or fractional `repetitions`, an empty environment list, an id named twice, or an id the registry does not hold; `EXPERIMENT_PLAN_NOT_FROZEN` when a declared `digest` differs from the recomputed one; `EXPERIMENT_OVER_BUDGET` when `environments × repetitions × 2 × cellTokenCap` exceeds `tokenBudget`.
+
+Both arms then run as two `ctx.fleet.run` calls over the same ids at the same repetition count, baseline first. A cell the fleet kept as an error leaves its repetition unpaired rather than failing the experiment. The result is written to `sink` as one JSON line and the sink is closed exactly once; the sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
+
+`foldExperiment(request)` is the pure fold behind the run and is exported for tests and offline tools, together with `planDigest`, `experimentGroup`, `parseExperimentGroup`, `projectedTokens`, `EXPERIMENT_ARM_ROLES`, `EXPERIMENT_GROUP_PREFIX`, and the `bootstrapIntervals` pass.
+
+## Freezing and the group scheme
+
+`planDigest(plan, thresholds)` is the SHA-256 hex digest over a format version, the two arm routes in role order, the environment ids **sorted**, the repetition count, and the four thresholds. Sorting makes the digest independent of the order a caller listed the ids in; the workspace root, the abort signal, and the sink are not digested because they change nothing the comparison measures.
+
+Each arm runs under the stamp `group` `experiment-<digest>-baseline` or `experiment-<digest>-candidate`, which the environment runner writes into the `environment/run` event of every session of that arm before its first turn. That group is the durable link from a result back to its sessions: `ctx.scorekeeper.leaderboard({ group })` selects one arm out of every persisted log, and the trajectory export carries the same string. The `experiment-` prefix is this package's reserved namespace, and the package invariant rejects a stamp that claims it without a 64-hex digest and a known arm role.
+
+## Statistics and verdict
+
+A repetition pairs when both arms reported it. Per environment the result states `pairs`, `unpaired`, the `baselineRate` and `candidateRate` over the paired repetitions, their `delta`, the mean `attemptsDelta`, and the summed `inputTokenDelta` and `outputTokenDelta`; the overall `delta` is the mean over every paired repetition of every environment.
+
+Each interval is a percentile bootstrap over the paired deltas: a resample draws, within every environment, as many paired deltas as that environment holds, with replacement, and the overall statistic of a resample is the mean over every drawn delta, so an environment weighs by its paired count and an environment with no pair contributes nothing rather than a zero. Every draw comes from a mulberry32 generator seeded with the 32-bit FNV-1a hash of `<digest>:<environmentId>`, so the same frozen plan over the same certificates replays to the same interval in any process; a fold with no pair at all reports no interval.
+
+The verdict reads the overall interval: `promote` when its lower bound exceeds `minimumDelta`, `reject` when its upper bound is below zero, `inconclusive` otherwise — including when nothing paired. `promote` is tested first, so a negative `minimumDelta` still promotes rather than producing an order-dependent answer.
+
+## Model Experience
+
+None, as an experiment schedules fleet runs and folds their reports; the environment runner owns every model-visible effect of each cell.
+
+#### KV Cache effect
+
+None; the service neither adds to nor changes any model request.
+
+## Known Limitations and Deferred Work
+
+- **An arm is a model route** — `EnvironmentRunRequest` carries no agent preset, so a preset cannot be an arm until the runner and the fleet cell carry one; the plan gains an optional preset per arm with that field, never before.
+- **The arms run in sequence** — baseline completes before candidate starts, so a provider-side drift between them lands entirely on the candidate. Interleaving both routes in one fleet call yields the same pairs and stays available to a caller.
+- **Paired repetition indexes are not paired seeds** — the `environment/run` stamp carries no seed, so pairing removes environment variance but not run-to-run variance.
+- **The budget is projected, not enforced** — the refusal multiplies `cellTokenCap` by the cell count; capping what a cell actually spends is `@deepseek-ai/dsh-budget-policy`'s job, and wiring the per-cell cap into each cell's policy is not done here.
+- **The digest freezes the plan, not the world** — the harness commit, the environment content hashes, and the provider's model version behind a route are outside it, so two runs of one digest are comparable only under an unchanged harness and registry.
+- **No ladder and no archive** — one plan runs one stage; the staged evaluation ladder, the variant archive, and cells derived from diagnosis evidence are named by the [four-goal-workflows note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) and live outside this package.
+

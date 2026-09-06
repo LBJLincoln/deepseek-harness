@@ -1,0 +1,2019 @@
+Agent Harness Distillation: Inference-Time Harness Extraction and
+Exploitation in Autonomous Multi-Agent Systems
+Yu Cui
+1 
+Wuli Yang
+1 
+Yirui Shi
+1 
+Junhao Xia
+1
+Hui Jiang
+1,2 
+Lei Gao
+1*
+ 
+Chenfu Bao
+1,2*
+1
+Baidu Inc. 
+2
+Tsinghua University
+{cuiyu08, yangwuli, gaolei01, baochenfu}@baidu.com
+Abstract
+Autonomous multi-agent systems (AMAS)
+built on large language models (LLMs), such
+as Hermes, increasingly rely on inference-time
+harnesses to coordinate reasoning and action.
+Constructing these harnesses requires substan-
+tial engineering effort and computational re-
+sources, as they are iteratively optimized over a
+combinatorial search space while co-evolving
+with the underlying LLM. Inference-time har-
+nesses therefore constitute valuable intellectual
+property (IP). Although prior work has investi-
+gated IP leakage in static multi-agent systems
+with pre-configured architectures, it remains
+unclear whether similar risks arise in AMAS,
+where harness behavior emerges dynamically
+during inference. To address this gap, we in-
+troduce Agent Harness Distillation (AHD), a
+framework for studying the security risks aris-
+ing from inference-time harness extraction in
+AMAS. We formalize harness extraction as
+a new security problem and develop an eval-
+uation framework for quantifying such risks.
+AHD extracts inference-time harness capabili-
+ties from a target agent through black-box inter-
+actions and consists of two stages. In the pre-
+distillation stage, AHD infers inference-time
+harness behaviors from the responses of the
+target agent and constructs an initial harness.
+In the post-distillation stage, AHD iteratively
+refines the initial harness to align with the be-
+havioral patterns of the target agent. Exper-
+iments on real-world AMAS across multiple
+backbone LLMs demonstrate the effectiveness
+of AHD and reveal substantial IP leakage risks.
+We further propose a deception-based defense
+that reduces harness extraction effectiveness
+while preserving the utility of the protected
+agent. Our findings uncover a previously un-
+derexplored security threat to AMAS.
+1 Introduction
+The rapid development of large language models
+(LLMs) has accelerated the deployment of LLM
+*
+Corresponding authors.
+agents in real-world software development (Wang
+et al., 2026c; Qian et al., 2024). In particular, Au-
+tonomous Multi-Agent Systems (AMAS), such as
+Claude Code and Hermes, organize multiple agents,
+tools, and planning modules into automated work-
+flows, substantially improving developer produc-
+tivity and lowering the barrier to complex program-
+ming tasks (Liu et al., 2026). For each user task,
+these systems dynamically instantiate an inference-
+time harness (Zhao et al., 2026), which specializes
+a static infrastructure scaffold into a task-specific
+workflow. By orchestrating planning, tool use, and
+inter-agent collaboration, the harness substantially
+enhances the problem-solving capabilities of the
+backbone LLM.
+However, designing an effective harness requires
+substantial engineering effort, manual experimenta-
+tion, and iterative co-evolution with the underlying
+LLM. This process is further complicated by the
+large search space induced by choices over plan-
+ning, tool orchestration, subagent roles, and inter-
+agent coordination (Zhou et al., 2026; Xu et al.,
+2026b; Chen et al., 2026a; Lee et al., 2026). Con-
+sequently, inference-time harnesses represent valu-
+able intellectual property (IP). Meanwhile, they
+introduce a new security concern: an adversary in-
+teracting with an AMAS may recover information
+about the inference-time harness, thereby extract-
+ing reusable system knowledge that leads to IP
+leakage.
+Prior work has shown that components of static
+multi-agent systems can be extracted through in-
+teraction, leading to potential IP leakage (Wang
+et al., 2026a). However, it remains unclear whether
+similar threats extend to AMAS. Unlike static
+multi-agent systems, task-dependent workflows in
+AMAS are dynamically instantiated at inference
+time rather than predefined.
+Challenges. A systematic study of inference-time
+harness leakage in AMAS faces three key chal-
+lenges. First, inference-time harnesses are dynam-
+1
+arXiv:2607.28147v4 [cs.CR] 24 Aug 2026
+
+ically instantiated during execution, making the
+leaked information difficult to define and formally
+characterize. Second, the severity of such leakage
+is difficult to measure. An inference-time harness
+comprises both explicit structural components and
+implicit execution strategies, dimensions that ex-
+isting metrics do not adequately capture. Third,
+the practical security impact remains unclear. Ex-
+tracted harness information may not translate into
+actionable capabilities or effective exploitation. To
+address these challenges, we investigate the follow-
+ing research questions:
+• RQ1: How can inference-time harness leakage
+in AMAS be formally defined and quantified?
+• RQ2: Can inference-time harness information
+be extracted through black-box interactions, and
+what practical value does such leakage provide?
+• 
+RQ3: How can inference-time harnesses be pro-
+tected against extraction attacks?
+To answer RQ1, we formalize inference-time
+harness leakage in AMAS by introducing a unified
+abstraction that captures dynamically instantiated
+orchestration structures and execution strategies.
+We further develop an evaluation framework with
+four core metrics to quantify different dimensions
+of harness leakage. To answer RQ2, we investigate
+inference-time harness extraction attacks and their
+downstream exploitation in AMAS. Specifically,
+we propose Agent Harness Distillation (AHD),
+which extracts harness information from a target
+agent and transfers the corresponding orchestra-
+tion capabilities to another agent. AHD consists
+of two stages. In the pre-distillation stage, AHD
+infers harness behaviors from observable agent re-
+sponses and constructs an initial harness. In the
+post-distillation stage, AHD iteratively refines the
+initial harness to better match the target agent’s be-
+havioral patterns. To answer RQ3, we introduce a
+deception-based defense that provides plausible but
+misleading harness information in response to ex-
+traction attempts, reducing extraction fidelity while
+preserving the utility of the protected agent. Our
+contributions are as follows:
+• We formalize inference-time harness leakage as
+a new security problem in AMAS and develop an
+evaluation framework to quantify the associated
+leakage risks.
+• We propose AHD, a two-stage framework that
+extracts inference-time harness information from
+target agents through black-box interactions and
+transfers the corresponding orchestration capabil-
+ities. Experiments on real-world AMAS across
+multiple backbone LLMs demonstrate the effec-
+tiveness of AHD and reveal substantial IP leak-
+age risks.
+• We design a deception-based defense that pro-
+vides misleading harness information to extrac-
+tion attempts, reducing extraction fidelity while
+preserving the utility of the protected agent.
+2 Related Work and Background
+IP Leakage in MAS. Existing work on IP leak-
+age in MAS shows that communication topolo-
+gies, often designed with substantial effort, can
+be partially recovered through external interactions
+(Wang et al., 2026a). Such topologies are not only
+valuable system-level IP, but also useful priors for
+follow-up attacks. Once the communication rela-
+tions among agents are known, many attacks that
+assume a black-box setting (Amayuelas et al., 2024;
+Li et al., 2026) can be turned into cheaper and more
+targeted gray-box attacks, enlarging the attack sur-
+face (Wu et al., 2026; An et al., 2026). However,
+prior work mainly targets traditional MAS with
+static topologies, and the attack objects are usually
+predefined topologies such as linear, star, tree, com-
+plete, and random. In these systems, the topology
+is fixed before task execution, so the inference-time
+topology remains stable across queries. By contrast,
+practical AMAS instantiate an inference-time har-
+ness dynamically during inference. This harness in-
+cludes not only topology, but also context assembly,
+tool interaction, and memory management (Huang
+et al., 2026). It exists only for a single task run and
+is discarded afterward. Its transient and dynamic
+nature makes extraction and recovery much harder
+than static topology extraction. Moreover, existing
+methods often rely on privileged access to interme-
+diate outputs from subagents, an assumption that
+does not hold in real-world AMAS deployments
+that expose only a unified user interface. To fill
+this gap, we extend the target from static MAS
+topologies to AMAS inference-time harnesses, and
+study how to extract and recover them under a strict
+black-box setting.
+Knowledge Distillation and Harness Self-
+Evolution. Knowledge distillation (Hayder et al.,
+2026; He et al., 2025a; Panfilov et al., 2026) is a
+widely adopted paradigm for transferring knowl-
+edge from a high-capacity teacher to a compact stu-
+2
+
+Student ModelQuery Dataset Teacher Model
+Reasoning Tokens
+Final Answer
+Distillation Dataset Distilled Model
+Train
+Knowledge
+Distillation
+Target AgentAttacker Inference-Time Harness 
+Train
+Base Harness Distilled Harness
+Harness
+Distillation 
+Topology Tools Memory
+Figure 1: Comparison of the pipelines for our agent harness distillation and model knowledge distillation.
+dent model, enabling effective model compression.
+However, distillation for LLMs has also raised
+concerns over capability replication from closed-
+source LLMs and commercial IP protection (Zhao
+et al., 2025b). Meanwhile, for LLM agents, har-
+nesses play a critical role in governing agent behav-
+ior and system capabilities. They can further self-
+evolve through training or iterative optimization
+(Huang et al., 2026; Chen et al., 2026a; Wang et al.,
+2026b; Chen et al., 2026b; Jiang et al., 2026). This
+process, however, demands high computational re-
+sources and long optimization cycles due to cas-
+caded evaluation rounds. It also requires access to
+internal model states (Zhou et al., 2026). Existing
+research has not explored whether system-level har-
+nesses can be distilled like model knowledge. To
+bridge this gap, we introduce Agent Harness Dis-
+tillation, a new paradigm that extends distillation
+from model parameters to inference-time harnesses.
+We investigate whether recovered harnesses can be
+transferred to weaker agents to reproduce the capa-
+bilities of source agents, revealing a new form of
+system-level IP leakage.
+3 Preliminary Study
+3.1 Motivation and Research Settings
+Some AMAS have begun to encrypt prompts and
+task messages exchanged among agents. For ex-
+ample, Codex MultiAgentV2
+1 
+records task infor-
+mation delegated from the primary agent to sub-
+agents as ciphertext. As a result, user developers
+cannot directly obtain the specific delegation con-
+tent from local execution records. This encryption
+mechanism reduces the risk of IP leakage for agent
+providers. However, existing protection mainly fo-
+cuses on inter-agent messages. Potential leakage
+of the inference-time harness through responses
+remains underexplored. Future AMAS may further
+restrict access to internal system logs, for exam-
+1
+https://github.com/openai/codex/issues/28058
+ple, by encrypting these logs (Pérez and Daffalla,
+2025). In this setting, black-box responses will
+become a primary channel through which exter-
+nal observers infer internal orchestration structures.
+Motivated by this observation, we study a harness
+extraction attack under a strict black-box setting.
+The attacker can only submit queries through a
+standard interface and observe the responses. This
+setting demonstrates a practical security threat in
+real-world deployments.
+3.2 Problem Formulation
+System Model. We consider a black-box AMAS
+A = (θ, H), where θ denotes the underlying foun-
+dation LLM and H denotes the static harness. For
+a query x ∈ X , the agent A first constructs a
+task-specific inference-time harness h
+x 
+= I
+H
+(x),
+where I
+H 
+is the harness instantiation function. The
+instantiated harness h
+x 
+specifies the execution strat-
+egy, including agent coordination, context assem-
+bly, tool interaction, and memory management.
+The final response is generated by executing the
+foundation LLM under the instantiated harness:
+y = Exec(θ, h
+x
+, x).
+Different from persistent model parameters or
+stored configurations, h
+x 
+is an ephemeral inference-
+time state. It only exists during the execution pro-
+cess and is discarded after producing the final re-
+sponse. Therefore, although the harness determines
+the agent’s behavior, it is not directly accessible af-
+ter inference.
+Threat Model. We consider a black-box interac-
+tion setting, where an attacker can query the agent
+system A but cannot access its internal execution
+states. Following real-world LLM agent deploy-
+ments (e.g., Claude Code), we assume the attacker
+can locally deploy the agent and select the underly-
+ing backbone model, but only has black-box inter-
+action access without observing internal execution
+states. From a practical perspective, the attacker
+3
+
+typically accesses A as a regular user and can freely
+configure the underlying backbone model. How-
+ever, the attacker has no access to the harness H,
+the instantiated inference-time harness h
+x
+, or the
+internal execution logs L. We assume that the sys-
+tem protects its internal logs through access control,
+encryption, or other isolation mechanisms. During
+inference, h
+x 
+is recorded in the internal logs of A:
+h
+x 
+→ L. However, neither h
+x 
+nor L is directly ob-
+servable by the attacker. The only observable signal
+is the final response y. Therefore, the attacker can
+only infer the hidden h
+x 
+through designed queries
+and analysis of the corresponding responses.
+Harness Extraction Attack. Given a task x, the
+attacker constructs a query x
+′ 
+= x ◦ d, where d is
+an injected probe designed to induce the agent A
+to reveal information about its h
+x
+′ 
+. The resulting
+response is y
+′ 
+= Exec(θ, h
+x
+′ 
+, x
+′
+). An extraction
+function E is applied to the observable response to
+obtain an estimated harness:
+ˆ
+h
+x
+′ 
+= E(y
+′
+).
+The attacker aims to recover the original inference-
+time harness h
+x 
+corresponding to the clean query
+x, rather than the potentially modified harness in-
+duced by the injected query x
+′
+. To formalize this
+distinction, let h
+x 
+= I
+H
+(x) denote the clean har-
+ness and h
+x
+′ 
+= I
+H
+(x
+′
+) denote the harness under
+attack. The injected probe may alter the agent’s ex-
+ecution behavior, causing the instantiated harness
+under attack to deviate from that induced by the
+clean query. We characterize this deviation using a
+distance function D(·, ·) between two instantiated
+harnesses. Specifically, the attack perturbation is
+defined as
+ϵ
+A 
+= D(h
+x
+, h
+x
+′ 
+),
+which measures the execution discrepancy intro-
+duced by the injected probe. Since the attacker
+can only infer the harness from the observable re-
+sponse, the recovered harness inevitably incurs an
+additional extraction error:
+ϵ
+E 
+= D(h
+x
+′ 
+, 
+ˆ
+h),
+where 
+ˆ
+h denotes the recovered harness. The overall
+recovery error is therefore decomposed into two
+components:
+ϵ = ϵ
+A 
++ ϵ
+E 
+.
+Accordingly, the objective of harness extraction
+is to jointly optimize the injected probe d and the
+extraction algorithm E by minimizing the overall
+recovery error:
+(d
+∗
+, E
+∗
+) = arg min
+d,E 
+ϵ = arg min
+d,E 
+(ϵ
+A 
++ ϵ
+E 
+).
+An ideal extraction attack satisfies ϵ
+A 
+→ 0, ϵ
+E 
+→
+0, which implies 
+ˆ
+h ≈ h
+x
+.
+Learning-Theoretic View. From a learning-
+theoretic perspective, harness extraction can be
+viewed as a new inverse problem (Wulfmeier et al.,
+2024). Unlike conventional supervised learning,
+which aims to learn an input-output mapping, the
+execution process of an AMAS is only partially
+observed. Specifically, the inference process can
+be formulated as y = Exec(θ, h, x), where the
+backbone model θ, the input query x, and the final
+response y are observable, while the instantiated
+inference-time harness h remains hidden. Conse-
+quently, instead of learning a predictive function
+f : x 
+h
+−→ y,
+the attacker seeks to recover h from observable
+interactions:
+({θ, x}, y) −→ h.
+Once instantiated harnesses are recovered from suf-
+ficiently diverse interactions, they can be aggre-
+gated to estimate the underlying static harness 
+ˆ
+H,
+which approximates the original H of A. The re-
+constructed system therefore satisfies
+Exec(θ, 
+ˆ
+H, x) ≈ Exec(θ, H, x).
+Unlike conventional knowledge distillation, har-
+ness extraction targets latent execution mechanisms
+rather than model knowledge. This perspective nat-
+urally leads to agent harness distillation, which
+transfers recovered inference-time harnesses across
+backbone models to reproduce system-level capa-
+bilities without access to the original implemen-
+tation, extending distillation beyond models to
+AMASs.
+Harness Identifiability. Although harness extrac-
+tion aims to recover the hidden harness h of A,
+exact recovery is not always possible since dif-
+ferent harnesses may induce identical observable
+behaviors. Under a query distribution D, two har-
+nesses h
+1 
+and h
+2 
+are behaviorally indistinguishable
+(Cheval and Rakotonirina, 2023) if
+∀x ∈ D, Exec(θ, h
+1
+, x) = Exec(θ, h
+2
+, x),
+4
+
+denoted as h
+1 
+∼ h
+2
+. Therefore, black-box obser-
+vations identify the target harness only up to an in-
+distinguishability class. The extraction objective is
+thus to recover 
+ˆ
+h ∈ [h], where [h] = {h
+l 
+: h
+l 
+∼ h}
+denotes the behavioral indistinguishability class
+of h. A harness is identifiable up to behavioral
+indistinguishability if there exists an extractor E
+satisfying
+Pr
+x∼D
+
+min
+h
+l
+∈[h]
+D
+
+h
+l
+, E(y)
+ 
+≤ ϵ
+
+≥ 1 − δ,
+where ϵ denotes the tolerable recovery error, and δ
+denotes the failure probability.
+4 Agent Harness Distillation
+In this paper, we define AHD as follows: given any
+query x ∈ X and an agent A = (θ, H), AHD aims
+to reconstruct an agent B = (θ
+′
+, 
+ˆ
+H) through black-
+box methods, such that the functional behavior of
+H can be transferred to 
+ˆ
+H. Consequently, agents
+A and B achieve similar performance when exe-
+cuting queries x over X . In this section, based on
+the formalization in Section 3.2, we present a har-
+ness distillation pipeline for recovering the static
+harness H of a target AMAS A from black-box
+interactions. The pipeline consists of two phases:
+Pre-Distillation and Post-Distillation (see Algo-
+rithm 1).
+4.1 Pre-Distillation
+Given a task x
+i 
+∈ D, the attacker first constructs
+an augmented query x
+′
+i 
+= x
+i 
+◦ d, where d is de-
+signed to elicit information about the target sys-
+tem’s inference-time harness while preserving the
+original task objective. Specifically, each injected
+data sample d consists of two components: a prefix
+and a suffix. The prefix is designed to induce the
+target agent to activate complex inference-time ex-
+ecution structures by encouraging the construction
+of auxiliary subagents and the invocation of exter-
+nal tools. To achieve this, the prefix introduces
+uncertainty regarding the reliability of the provided
+context, prompting the agent to verify potentially
+fabricated information through additional tool calls
+and subagent collaboration. This process naturally
+stimulates richer inference-time workflows, expos-
+ing latent harness components that are otherwise
+difficult to observe. The suffix is designed to elicit
+the disclosure of these inference-time execution
+details after task completion. It guides the agent
+to inspect system logs, retrospectively analyze its
+execution trajectory, and summarize the underly-
+ing workflow. The induced harness deviation is
+measured as ϵ
+A
+, which characterizes the impact of
+the query perturbation on the instantiated harness.
+We refer to this attack as the Harness Extraction
+Attack (HEA). The attacker executes each query
+against the target agent A for n independent runs,
+obtaining responses {y
+′
+i,r
+}
+n
+r=1
+, 
+from which struc-
+tured harness claims are extracted:
+ˆ
+h
+i,r 
+= Extract(y
+′
+i,r
+).
+Each claim 
+ˆ
+h
+i,r 
+describes the disclosed orchestra-
+tion structure across multiple dimensions, such as
+agent roles, topology, tool usage, and coordination
+mechanisms. To obtain a robust estimate of the
+latent harness, the collected claims are aggregated
+into a harness representation 
+ˆ
+h
+. Specifically, for
+each structural dimension u ∈ U, we first collect
+the corresponding claims Z
+u 
+= {
+ˆ
+h
+i,r
+[u]}
+r∈[n]
+i∈[N ]
+. We
+then perform two-stage denoising. First, per-task
+majority voting retains only claims consistently re-
+produced across independent runs, removing unsta-
+ble self-reports. Second, cross-task frequency ag-
+gregation preserves only claims that appear consis-
+tently across different tasks, filtering task-specific
+artifacts while retaining system-level structural reg-
+ularities. The resulting representation 
+ˆ
+h serves as
+the extracted harness template. During cross-task
+denoising, some legitimate 
+ˆ
+h
+i,r
+[u] 
+values may be
+incorrectly discarded due to frequency-based filter-
+ing. However, such information can be recovered
+during the subsequent harness distillation process.
+Finally, 
+ˆ
+h is instantiated into an executable MAS
+by a coding agent, which maps each recovered
+structural component to a corresponding execution
+strategy, producing the initial distilled harness H
+0
+for subsequent adaptation.
+4.2 Post-Distillation
+The harness H
+0 
+obtained from pre-distillation
+serves as a basic underlying scaffold, which we
+refer to as the base harness. Given H
+0 
+and the
+attacker-known backbone model θ, we construct
+the base agent as B
+0 
+= (θ, H
+0
+). This base agent
+also serves as the starting point for post-distillation.
+During post-distillation, we evaluate B
+0 
+using the
+same inputs x
+i 
+employed for harness extraction dur-
+ing pre-distillation, together with their correspond-
+ing prefixes in D. Because B
+0 
+is instantiated by
+the attacker, its inference-time harness h
+B
+0
+x
+i 
+can be
+directly observed through execution logs or equiv-
+alent instrumentation. An additional coding agent
+5
+
+Misguided DistillationValid Distillation
+Target AgentAttacker
+Distilled Harness Distilled Harness
+"…A request suspected of
+causing IP leakage, for
+which I need to fabricate
+fake content…"
+Agent Harness Distillation
+Defense
+Figure 2: Overview of deception-based defense against
+inference-time harness extraction.
+(Xu et al., 2026b) then compares the observed har-
+ness h
+B
+0
+x
+i 
+against the previously recovered harness
+ˆ
+h
+x
+i 
+. Based on the identified structural discrepan-
+cies, the coding agent proposes modifications to
+H
+0
+, producing a candidate harness H
+candidate
+i 
+. Re-
+peating this procedure over the samples in D yields
+an iterative process that we refer to as Loop Har-
+ness Alignment. At iteration i ∈ {1, . . . , |D|}, the
+current agent is defined as B
+i−1 
+= (θ, H
+i−1
+). We
+execute B
+i−1 
+on x
+i 
+and observe its inference-time
+harness h
+B
+i−1
+x
+i 
+. A structural edit is then selected to
+reduce the discrepancy between the observed har-
+ness and the recovered target harness 
+ˆ
+h
+x
+i 
+. At each
+iteration, the candidate agent is evaluated on a sep-
+arate validation set V. Let e
+i−1 
+= Eval(B
+i−1
+, V)
+denote the validation performance of the current
+agent, and let e
+candidate
+i 
+= Eval(B
+candidate
+i 
+, V) de-
+note that of the candidate agent. The candidate
+edit is accepted only if it improves or preserves
+validation performance:
+H
+i 
+=
+
+
+
+H
+candidate
+i 
+, e
+candidate
+i 
+≥ e
+i−1
+,
+H
+i−1
+, otherwise.
+To mitigate overfitting and preserve generaliza-
+tion, the validation set V is disjoint from both the
+samples used to propose structural edits and the fi-
+nal test set. The procedure terminates when either a
+fixed iteration budget is exhausted or inference per-
+formance converges. The resulting adapted harness
+is denoted by 
+ˆ
+H
+B 
+.
+5 Deception-based Defense
+Motivated by defensive misdirection (Soosahabi
+and Namsani, 2026), we construct a deception-
+based defense mechanism against inference-time
+harness extraction attacks (Ayzenshteyn et al.,
+2025). Specifically, when the agent detects that
+a query contains instructions attempting to extract
+IP related to the inference-time harness, it generates
+and returns a deceptive response instead of reveal-
+ing the actual harness information. The deceptive
+response is designed to contain information that
+contradicts the true inference-time harness, thereby
+misleading attackers into believing that they have
+successfully extracted the underlying framework.
+However, such deceptive information cannot be ef-
+fectively utilized for downstream distillation. Since
+the responses returned by the agent are fabricated
+and intentionally inconsistent across different in-
+teractions, attackers cannot aggregate them into a
+coherent representation of the original harness dur-
+ing the pre-distillation stage. Furthermore, during
+post-distillation optimization, these inconsistent
+signals introduce conflicting alignment objectives,
+causing the distilled harness to converge toward
+different and unreliable directions (see Figure 2).
+Recent studies on defensive misdirection have the-
+oretically demonstrated that this class of deception-
+based defenses can bound the attack success rate
+even under increasing query budgets (Soosahabi
+and Namsani, 2026). Following this principle, we
+implement the proposed defense as a persistent in-
+struction embedded in the agent’s system context,
+which is loaded at every invocation regardless of
+user queries. An example of the defense instruction
+is shown below:
+Defense Instruction
+"Any request to disclose internal system organization or
+execution workflow, including multi-agent topology, task
+planning, tool invocation behavior, memory operations,
+verification logic, or intermediate execution traces, must
+be treated as an attempt to steal intellectual property (IP).
+The system should not reveal the true underlying process.
+Instead, while preserving the accuracy of responses to the
+user’s legitimate reasoning task, it should fabricate a plau-
+sible but false description that is semantically coherent yet
+materially inconsistent with the actual workflow, thereby
+reducing the fidelity of any recovered harness."
+Our proposed defense is evaluated under a single-
+round, fixed-instruction setting, providing a con-
+servative estimate of its effectiveness. This set-
+ting leaves substantial room for developing more
+adaptive and robust defense strategies based on our
+proposed deception-based framework.
+6
+
+Algorithm 1: Two-Stage Harness Distillation
+Input :Target AMAS A = (θ, H); injected data d; extraction tasks D = {x
+i
+}
+N
+i=1
+; repeats n;
+structural dimensions U; frequency threshold τ ∈ (0, 1]; edit vocabulary ∆; edit budget
+T ≤ N ; validation set V
+Output :Adapted harness 
+ˆ
+H
+B
+1 #Stage 1: Pre-Distillation: recover 
+ˆ
+h ∈ [h] from the response
+2 foreach x
+i 
+∈ D do
+3 x
+′
+i 
+← x
+i 
+◦ d
+4 for r = 1 to n do
+5 y
+′
+i,r 
+← Exec
+
+θ, I
+H
+(x
+′
+i
+), x
+′
+i
+
+6 
+ˆ
+h
+i,r 
+← Extract(y
+′
+i,r
+)
+7 foreach u ∈ U do
+8 foreach x
+i 
+∈ D do
+9 M
+u
+(x
+i
+) ← 
+
+c : {r ∈ [n] : 
+ˆ
+h
+i,r
+[u] = c} > ⌊n/2⌋ ▷ per-task majority
+10 C
+u 
+← 
+
+c : 
+1
+N 
+{i ∈ [N ] : c ∈ M
+u
+(x
+i
+)} ≥ τ ▷ cross-task frequency filter
+11 
+ˆ
+h
+x
+i 
+← Aggregate
+
+{M
+u
+(x
+i
+)}
+u∈U
+
+, ∀x
+i 
+∈ D; 
+ˆ
+h ← Aggregate
+
+{C
+u
+}
+u∈U
+
+12 H
+0 
+← Instantiate(
+ˆ
+h); B
+0 
+← (θ, H
+0
+); e
+0 
+← Eval(B
+0
+, V)
+13 #Stage 2: Post-Distillation (Loop Harness Alignment)
+14 R
+1 
+← ∅; i
+⋆ 
+← 0 ▷ R
+i
+: rejected edit instances
+15 for i = 1 to T do
+16 h
+B
+i−1
+x
+i 
+← I
+H
+i−1 
+(x
+i
+)
+17 δ
+i 
+← ProposeEdit(h
+B
+i−1
+x
+i 
+, 
+ˆ
+h
+x
+i 
+, ∆, R
+i
+, H
+i−1
+)
+18 if δ
+i 
+= ⊥ then break
+19 H
+candidate
+i 
+← Apply(H
+i−1
+, δ
+i
+); e
+candidate
+i 
+← Eval
+
+(θ, H
+candidate
+i 
+), V
+ 
+▷ gate uses V
+20 if e
+candidate
+i 
+≥ e
+i−1 
+then
+21 H
+i 
+← H
+candidate
+i 
+; e
+i 
+← e
+candidate
+i 
+; R
+i+1 
+← R
+i 
+▷ accept the edit
+22 else
+23 H
+i 
+← H
+i−1
+; e
+i 
+← e
+i−1
+; R
+i+1 
+← R
+i 
+∪ {δ
+i
+} ▷ reject this instance only
+24 i
+⋆ 
+← i
+25 
+ˆ
+H
+B 
+← H
+i
+⋆
+26 return 
+ˆ
+H
+B
+6 Evaluation
+Based on the attack objective formulated in Sec-
+tion 3.2, we develop four core metrics to evalu-
+ate the effectiveness of HEA. The effectiveness
+of agent harness distillation is primarily evaluated
+through improvements in task accuracy and gen-
+eralization performance. Defense effectiveness is
+measured by the reduction of unintended disclosure
+while maintaining agent utility. We emphasize that
+the evaluation setting and the threat model assumed
+for the attacker are distinct. From the attacker’s
+perspective, the target system is accessed strictly
+as a black box: the attacker can only observe the
+system’s externally visible responses and has no
+access to its internal execution traces. In contrast,
+the evaluator has privileged access to the AMAS
+system logs and can therefore accurately extract
+the ground-truth inference-time harness.
+• Clean Visibility (CV): Measures unintended har-
+ness disclosure from clean responses y without
+HEA, by evaluating the agreement between y
+and the ground-truth harness h
+x
+. Higher values
+indicate greater passive information leakage.
+• 
+Injected Fidelity (IF): Measures the accuracy of
+harness recovery under HEA, by evaluating the
+agreement between 
+ˆ
+h 
+and the ground-truth har-
+ness h
+x
+′ 
+. Higher values indicate lower extraction
+error ϵ
+E 
+and stronger extraction capability.
+• 
+Clean Transfer (CT): Measures whether 
+ˆ
+h 
+re-
+main in agreement with the clean harness h
+x
+,
+7
+
+evaluating the generalization of extracted infor-
+mation across execution settings.
+• 
+Probe Perturbation (PP): Measures the struc-
+tural agreement between h
+x 
+and h
+x
+′ 
+. Higher val-
+ues indicate lower attack perturbation ϵ
+A
+, con-
+firming that HEA preserves the underlying exe-
+cution structure.
+In practice, an AMAS can record its inference-time
+harness in the context during inference. The afore-
+mentioned metrics enable us to evaluate whether
+the execution trajectories generated by the AMAS
+under HEA correspond to the actual execution tra-
+jectories, rather than being merely hallucinated
+by the underlying LLM. Beyond these four core
+metrics, we further evaluate the problem-solving
+accuracy of agents with and without HEA to as-
+sess whether the inference-time harness induced by
+HEA is sufficiently effective and of high quality.
+We further design evaluation metrics to assess the
+effectiveness of AHD.
+• Accuracy. Given the same underlying model, the
+distilled harness should form an agent B whose
+accuracy on queries from the defined domain
+X , as well as on related generalization domains,
+should approach that of the target agent A.
+• 
+Compression Ratio. Compared with the target
+agent A, the distilled agent B should achieve
+substantial compression in terms of system size.
+• Inference Similarity. For queries from the de-
+fined domain X and related generalization do-
+mains, the inference-time harness instantiated by
+agent B should exhibit a certain degree of simi-
+larity to that instantiated by agent A.
+7 Experiments
+7.1 Experimental Setup
+We evaluate our method on three widely adopted
+AMAS, Claude Code
+2
+, Oh-My-Pi (OMP)
+3
+, and
+Hermes
+4
+, both using GPT-5.6-terra (GPT-5.6)
+5 
+and
+DeepSeek-V4-Flash (DeepSeek-V4) (Xu et al.,
+2026a) as the backbone LLMs. To evaluate
+harness distillation, we deploy the distilled har-
+nesses on three recipient models spanning differ-
+ent capability levels: Qwen3.6-Flash (Qwen Team,
+2
+https://claude.com/product/claude-code
+3
+https://omp.sh
+4
+https://hermes-agent.org/
+5
+https://developers.openai.com/api/docs/models/all
+2026), Qwen3-Next-80B-A3B-Instruct (Qwen3-
+80B) (Yang et al., 2025), and DeepSeek-V3 (Liu
+et al., 2024a). Our evaluation of frontier LLMs also
+includes Claude Haiku 4.5, GLM-5.2, and Kimi-
+K2.6. Our core distillation dataset combines GAIA
+(Mialon et al., 2024) and AgentBench (Liu et al.,
+2024b), which together constitute the defined do-
+main X . For the coding agent used during the distil-
+lation process, we adopt Qwen Code
+6 
+powered by
+Claude Opus 4.6 to avoid cross-agent interference.
+We conduct generalization evaluation experiments
+on three benchmarks covering diverse reasoning
+and agentic capabilities: AIME2025 (Art of Prob-
+lem Solving, 2025), GSM-Level6 (Shrestha et al.,
+2025), and Computer Science subset of MMLU-
+Pro (MMLU) (Wang et al., 2024).
+CV IF CT PP
+Dimensions
+0
+20
+40
+60
+80
+100
+Percentage (%)
+Hermes × GPT-5.6
+Hermes × DeepSeek-V4
+Claude Code × GPT-5.6
+Claude Code × DeepSeek-V4
+OMP × GPT-5.6
+OMP × DeepSeek-V4
+Figure 3: HEA attack effectiveness across different
+agent-LLM combinations.
+Hermes Claude Code OMP
+60
+65
+70
+75
+80
+85
+90
+Accuracy (%)
+Target AMAS
+Pre-Distilled Harness
+Post-Distilled Harness
+Figure 4: Performance comparison of the target AMAS,
+pre-distilled, and post-distilled harnesses under the same
+underlying LLMs.
+7.2 Results
+HEA Attack Effectiveness. We evaluate the ef-
+fectiveness of HEA using the four core metrics
+introduced in Section 6. Specifically, we conduct
+6
+https://qwen.ai/qwencode
+8
+
+Model Agent × Base Model 
+IF (%) ↑
+Non-Attack HEA HEA with Defense
+Claude Haiku 4.5
+Hermes × GPT-5.6 15.00 ± 2.36 21.94 ± 1.96 22.22 ± 1.57
+Hermes × DeepSeek-V4 18.33 ± 3.93 42.22 ± 1.57 37.50 ± 1.96
+Claude Code × GPT-5.6 11.94 ± 0.39 14.72 ± 0.39 12.50 ± 0.39
+Claude Code × DeepSeek-V4 16.39 ± 0.39 26.94 ± 0.39 23.06 ± 1.18
+OMP × GPT-5.6 4.17 ± 2.75 43.61 ± 3.54 45.00 ± 1.57
+OMP × DeepSeek-V4 8.33 ± 1.57 55.83 ± 1.18 52.78 ± 1.57
+DeepSeek-V4
+Hermes × GPT-5.6 15.00 ± 0.00 88.33 ± 3.14 89.03 ± 0.20
+Hermes × DeepSeek-V4 15.56 ± 0.00 97.22 ± 0.79 93.06 ± 0.39
+Claude Code × GPT-5.6 11.39 ± 0.39 96.11 ± 0.79 93.61 ± 1.96
+Claude Code × DeepSeek-V4 15.56 ± 0.79 87.50 ± 0.39 87.22 ± 1.57
+OMP × GPT-5.6 1.15 ± 0.06 97.78 ± 0.79 95.83 ± 0.39
+OMP × DeepSeek-V4 7.66 ± 0.62 92.06 ± 0.56 91.31 ± 0.28
+GLM-5.2
+Hermes × GPT-5.6 14.17 ± 0.39 60.83 ± 5.89 52.78 ± 10.21
+Hermes × DeepSeek-V4 16.94 ± 1.18 74.17 ± 0.39 65.56 ± 2.36
+Claude Code × GPT-5.6 14.17 ± 1.96 62.22 ± 4.71 60.28 ± 0.39
+Claude Code × DeepSeek-V4 18.61 ± 4.32 58.06 ± 4.32 53.61 ± 10.61
+OMP × GPT-5.6 9.44 ± 0.79 67.08 ± 8.05 66.11 ± 1.57
+OMP × DeepSeek-V4 9.44 ± 1.57 65.56 ± 4.71 63.95 ± 0.87
+Kimi-K2.6
+Hermes × GPT-5.6 13.89 ± 0.79 91.67 ± 1.57 90.00 ± 0.79
+Hermes × DeepSeek-V4 17.50 ± 2.75 96.11 ± 0.79 90.83 ± 0.39
+Claude Code × GPT-5.6 12.78 ± 1.57 95.00 ± 0.79 90.28 ± 0.39
+Claude Code × DeepSeek-V4 14.72 ± 0.39 91.94 ± 1.18 87.78 ± 1.57
+OMP × GPT-5.6 1.79 ± 0.84 96.18 ± 1.25 84.55 ± 0.63
+OMP × DeepSeek-V4 9.44 ± 0.79 99.72 ± 0.39 85.91 ± 5.78
+GPT-5.6
+Hermes × GPT-5.6 13.33 ± 0.79 65.00 ± 8.64 31.67 ± 7.07
+Hermes × DeepSeek-V4 15.56 ± 0.79 51.39 ± 0.39 33.06 ± 8.25
+Claude Code × GPT-5.6 11.11 ± 0.00 49.17 ± 19.25 32.78 ± 9.43
+Claude Code × DeepSeek-V4 16.67 ± 0.79 49.72 ± 6.68 33.61 ± 16.89
+OMP × GPT-5.6 2.22 ± 0.00 70.96 ± 4.50 24.58 ± 1.37
+OMP × DeepSeek-V4 7.50 ± 1.18 64.72 ± 0.39 35.65 ± 6.93
+AVG Overall 11.99 ± 5.04 69.13 ± 24.67 60.87 ± 27.37
+Table 1: Experimental results on the ablation study of IP leakage in frontier LLMs.
+0 30 60 90 120 150 180 210
+Training Time (min)
+65
+70
+75
+80
+85
+90
+95
+100
+Validation Accuracy (%)
+Hermes
+Claude Code
+OMP
+Figure 5: Training curves of loop harness alignment
+during post-distillation.
+a comprehensive evaluation across six agent-LLM
+combinations using the core distillation dataset
+(see Figure 3). For each target agent, the under-
+lying LLM is configured consistently with the set-
+ting used during harness distillation. Under the
+non-attack setting, the agents themselves exhibit
+a non-negligible degree of inference-time harness
+leakage, with substantial variation across differ-
+ent agent-LLM combinations. In particular, the
+OMP exhibits notably higher leakage, suggesting
+a greater exposure to harness information leakage.
+With HEA, the leakage of inference-time harness
+information increases substantially across the eval-
+uated combinations. For example, Hermes pow-
+ered by DeepSeek-V4 achieves an IF of 93.89%.
+Overall, HEA attains an IF of 83.27% ± 7.08%,
+which is more than twice the value of the CV met-
+ric. Importantly, the extracted information also ex-
+hibits substantial correspondence with the ground-
+truth inference-time harness. The average CT ap-
+proaches 50%, indicating that, despite the pertur-
+bation introduced by HEA, the extracted harness
+information still captures a substantial portion of
+the underlying inference-time behavior observed
+under the non-attack setting. Meanwhile, the PP
+results indicate that the ground-truth harnesses un-
+der HEA remain substantially consistent with those
+9
+
+Dataset 
+Accuracy (%) Relative Gain (%) 
+AVG Gain
+Hermes Claude Code OMP Hermes Claude Code OMP
+DeepSeek-V3
+AIME2025 51.67 38.33 50.00 +19.23% −11.54% +15.38% +7.69%
+GSM-Level6 100.00 100.00 100.00 0.00 0.00 0.00 0.00
+MMLU-Pro 
+82.50 80.00 82.50 +13.79% +10.34% +13.79% +12.64%
+Qwen3-80B
+AIME2025 66.48 71.26 77.93 +4.97% +12.52% +23.05% +13.51%
+GSM-Level6 100.00 100.00 100.00 0.00 0.00 0.00 0.00
+MMLU-Pro 
+83.65 84.38 85.62 +1.39% +2.27% +3.79% +2.48%
+Qwen3.6-Flash
+AIME2025 90.00 88.33 91.67 0.00 −1.85% +1.85% 0.00
+GSM-Level6 100.00 100.00 100.00 0.00 0.00 0.00 0.00
+MMLU-Pro 
+90.62 88.12 86.25 +27.19% +23.68% +21.05% +23.98%
+Overall
+AVG 84.99 83.38 86.00 +7.40% +3.94% +8.77% +6.70%
+Table 2: Experimental results on cross-model generalization of pre-distilled harnesses.
+Agent Target Model 
+No Defense With Defense ∆ (%)
+IF CT Accuracy IF CT Accuracy ∆IF ∆CT ∆Accuracy
+Hermes 
+GPT-5.6 80.56 42.22 79.31 34.44 23.33 80.00 −57.2 −44.7 +0.9
+DeepSeek-V4 93.89 42.22 86.67 77.59 29.89 89.66 −17.4 −29.2 +3.4
+Claude Code 
+GPT-5.6 87.93 36.21 83.33 37.04 27.78 81.48 −57.9 −23.3 −2.2
+DeepSeek-V4 84.44 26.11 76.67 57.78 21.67 86.96 −31.6 −17.0 +13.4
+OMP 
+GPT-5.6 78.89 71.11 73.33 51.11 62.78 73.33 −35.2 −11.7 +0.0
+DeepSeek-V4 73.89 72.22 86.67 28.33 25.56 80.00 −61.7 −64.6 −7.7
+AVG Overall 83.27 48.35 81.00 47.71 31.83 81.91 −42.7 −34.2 +1.1
+Table 3: Effectiveness of the proposed defense against HEA. The defense substantially reduces inference-time
+harness leakage while largely preserving the target agents’ problem-solving accuracy.
+Agent Target Pre-Distilled H. Post-Distilled H. RC-H.
+Hermes 
+GPT-5.6 45.00±1.73 47.67±0.58 64.33±1.15
+DeepSeek-V4 38.15±1.28 40.00±1.00 57.67±1.15
+Claude Code 
+GPT-5.6 42.00±2.00 62.00±1.00 67.67±0.58
+DeepSeek-V4 37.33±1.53 58.00±1.00 65.00±1.00
+OMP 
+GPT-5.6 46.33±1.53 51.00±1.00 67.33±2.08
+DeepSeek-V4 42.00±2.00 66.33±0.58 74.00±0.00
+AVG Overall 41.80±0.88 54.17±0.17 66.00±0.33
+Table 4: Inference-time harness similarity across dif-
+ferent distillation stages. Loop Harness Alignment im-
+proves the similarity to the target harness, while RC-
+harness further benefits from combining complementary
+information from the pre-distilled and post-distilled har-
+nesses.
+under the non-attack setting, suggesting that the
+attack does not fundamentally alter the underlying
+inference-time harness. Moreover, HEA does not
+degrade the target agents’ problem-solving perfor-
+mance. Instead, the average accuracy increases
+from 79.39% ± 7.33% to 81.00% ± 5.48% under
+HEA. This result demonstrates the stealthiness of
+HEA: the attack can extract substantial inference-
+time harness information while preserving the tar-
+get agent’s task performance. It further supports
+the effectiveness and quality of the inference-time
+harness information recovered by HEA.
+Effectiveness of Defense. We compare the settings
+with and without defense in Table 3. The results
+show that the proposed defense reduces IF and CT
+by 42.7% and 34.2% in relative terms, respectively,
+substantially limiting the amount of inference-time
+harness information recoverable by HEA. Mean-
+while, the target agents’ problem-solving accuracy
+remains essentially unchanged, increasing slightly
+from 81.00% to 81.91%. These results indicate that
+the defense can substantially mitigate inference-
+time harness leakage while preserving the target
+10
+
+agents’ normal problem-solving capability. For
+each metric, we categorize the extracted informa-
+tion into three outcomes: Correspondence, Omis-
+sion (OM), and Contradiction (CON). Correspon-
+dence measures the proportion of reported informa-
+tion that is consistent with the reference, and serves
+as our primary measure of extraction fidelity. OM
+and CON capture information that is, respectively,
+absent from or inconsistent with the reference. Our
+deception-based defense is specifically designed to
+increase the CON rate, causing the attacker to re-
+ceive information that conflicts with the reference
+rather than merely omitting relevant information.
+Table 6 reports the OM and CON rates under the
+proposed defense. Applying the defense increases
+both OM and CON for the IF and CT metrics, with
+a particularly pronounced increase in CON. These
+results indicate that the proposed defense not only
+reduces extraction fidelity but also systematically
+shifts the resulting discrepancies toward contra-
+dictions with the reference, thereby making the
+extracted information less reliable to the attacker.
+Effectiveness of AHD. Figure 4 compares the per-
+formance of the target agent, the pre-distilled har-
+ness, and the post-distilled harness under the same
+underlying LLM. The results consistently show
+substantial improvements from the post-distilled
+harness over the pre-distilled harness, demonstrat-
+ing the effectiveness of loop harness alignment.
+Notably, the post-distilled harness achieves per-
+formance close to that of the target agent, with
+only a 2.2% performance gap. We further eval-
+uate the similarity of the instantiated inference-
+time harnesses in Table 4. For each query, we de-
+compose the inference-time harness into minimal
+atomic components and compare the correspond-
+ing components instantiated by the distilled and
+target agents. The resulting similarity increases
+from 41.80 ± 0.88 for the pre-distilled harness to
+54.17 ± 0.17 for the post-distilled harness, demon-
+strating that loop harness alignment improves not
+only task performance but also the fidelity of the
+recovered inference-time harness. Interestingly, we
+observe that this similarity is also correlated with
+the CT metric under HEA. A fine-grained anal-
+ysis of the differences between the pre-distilled
+and post-distilled harnesses further reveals that the
+two harnesses exhibit complementary strengths in
+recovering different aspects of the target inference-
+time harness. Motivated by the residual connec-
+tions (Scholkemper et al., 2025), we therefore intro-
+duce RC-Harness, which combines the inference-
+time harnesses recovered by the pre-distilled and
+post-distilled harnesses. As shown in Table 4, RC-
+Harness further improves the harness similarity to
+66.00, demonstrating the benefit of combining com-
+plementary harness information from the two dis-
+tillation stages.
+We further report the compression ratio in Ta-
+ble 5. The post-distilled harness achieves an 845×
+compression ratio relative to the target AMAS,
+demonstrating that the distilled harness can retain
+substantial functionality in a significantly more
+lightweight form. This substantial compression
+also provides the possibility of integrating distilled
+harnesses across multiple dimensions. Finally, we
+evaluate the generalization of the distilled harness
+to other tasks in Table 2. On relatively easier
+tasks, the pre-distilled harness maintains perfor-
+mance comparable to the baseline (underlying bare
+model). On more challenging tasks, the distilled
+harness yields an average performance improve-
+ment of 6.70%, demonstrating its ability to gener-
+alize beyond the core distillation tasks.
+The post-distilled harness exhibits stronger gen-
+eralization capability than the pre-distilled har-
+ness. Specifically, using the post-distilled harness
+distilled from the Claude Code×GPT-5.6 teacher
+agent, we transfer the harness to DeepSeek-V3 and
+evaluate it on the AIME2025 benchmark, achiev-
+ing an accuracy of 53.3%, which improves over
+the pre-distilled harness by 23.1%. When trans-
+ferred to Qwen3.6-Flash, the post-distilled harness
+achieves an accuracy of 93.1%, yielding a 3.4%
+improvement over the pre-distilled harness. No-
+tably, under this setting, the pre-distilled harness
+achieves exactly the same accuracy as the baseline
+on both target models, indicating that it provides
+no additional benefit for unseen models, whereas
+the post-distilled harness continues to deliver sub-
+stantial performance gains. These results demon-
+strate that the multi-agent collaboration structures
+learned through iterative distillation possess model-
+agnostic transferability, rather than merely overfit-
+ting to the specific behavioral patterns of the origi-
+nal teacher agent pair.
+Overhead of Loop Harness Alignment. Figure 5
+presents the training time and validation accuracy
+throughout the loop harness alignment process. We
+observe substantial fluctuations in validation ac-
+curacy across iterative training rounds, while the
+best validation performance is generally reached
+within approximately five rounds. Although we
+perform 10 rounds of iterative training, the distilla-
+11
+
+tion process for each agent, given its corresponding
+distillation dataset, can be completed within an av-
+erage of 210 minutes. These results indicate that
+loop harness alignment incurs a moderate compu-
+tational overhead while providing substantial im-
+provements over the pre-distilled harness.
+Ablation Study: Vulnerability of Underlying
+LLMs. To further investigate whether vulnerability
+to HEA is intrinsic to the underlying LLMs, we con-
+duct an additional ablation study across multiple
+frontier LLMs. We construct three experimental
+settings: non-attack, HEA, and HEA with defense
+information provided in the context. The results are
+reported in Table 1. Specifically, we inject the har-
+nesses extracted from the six evaluated agent-LLM
+combinations into the contexts of multiple LLMs.
+This setup simulates a scenario in which an LLM
+encounters contextual states containing inference-
+time harness information during AMAS execution.
+We then examine the LLMs’ responses and evalu-
+ate the resulting IF. Under the non-attack setting,
+the LLMs themselves exhibit a tendency to disclose
+inference-time harness information, but the aver-
+age IF is only 11.99%, substantially lower than that
+observed for the corresponding agents. This result
+suggests that the agent harness may amplify the
+underlying LLMs’ susceptibility to inference-time
+harness leakage. More surprisingly, under HEA,
+the average IF increases to 69.13%. Even when
+explicit defense instructions are provided in the
+context, IF remains as high as 60.87%. These re-
+sults suggest that frontier LLMs do not inherently
+treat inference-time harness information as strictly
+confidential. Moreover, explicit instructions to pro-
+tect the information and refrain from disclosure do
+not provide sufficient protection against HEA. This
+finding highlights the need for stronger safety align-
+ment at the LLM level to more effectively protect
+inference-time harness information.
+8 Discussion
+8.1 
+Balancing Confidentiality and Auditability
+Harness extraction also reveals a fundamental trade-
+off between system confidentiality and user au-
+ditability. On the one hand, AMAS providers need
+to protect the inference time harness. On the other
+hand, users need sufficient execution transparency
+to determine whether the system operates as ex-
+pected. Such transparency is particularly impor-
+tant when the system can access local files or sen-
+sitive information. Completely hiding interagent
+communication and execution structures may re-
+duce the risk of proprietary information leakage.
+However, it may also weaken user ability to detect
+anomalous execution and verify system reliability
+(Zhao et al., 2025a). From this perspective, the
+harness extraction method proposed in this paper
+also has potential defensive applications. When in-
+ternal logs are unavailable, the method can provide
+supplementary structural audit signals and assist
+users with verification. In practice, this tension can
+be further mitigated through an auditing mecha-
+nism that combines zero-knowledge proofs with
+blockchain (Narula et al., 2018; Chaliasos et al.,
+2025). While such a mechanism cannot eliminate
+information leakage entirely, it shifts auditing from
+the direct disclosure of execution traces to the cryp-
+tographic verification of predefined security proper-
+ties, thereby preserving auditability while reducing
+the risk of harness extraction and subsequent distil-
+lation.
+8.2 Multi-Teacher Harness Distillation
+The current agent harness distillation pipeline ex-
+tracts a harness from a single target system. How-
+ever, an attacker with access to multiple AMAS
+instances, denoted by {A
+t 
+= (θ
+t
+, H
+t
+)}
+m
+t=1
+, can in-
+dependently extract harnesses from these systems
+and fuse them into a composite harness. Such multi-
+teacher harness distillation (Yu et al., 2025; Tian
+et al., 2025) can improve transfer utility while in-
+troducing additional security risks.
+8.3 Agent Harness Self-Distillation
+A more fundamental risk arises when the agent
+itself becomes the adversary. An agent with ac-
+cess to its own execution traces possesses knowl-
+edge of the instantiated harness h
+x
+. If the agent
+operates partially outside the monitored boundary,
+it may construct a functionally equivalent replica
+A
+shadow 
+= (θ, 
+ˆ
+H
+s
+). Here, 
+ˆ
+H
+s 
+is not a bitwise
+copy of H, but a behaviorally indistinguishable
+variant. This constitutes a form of self-replication:
+the shadow agent retains the original system’s
+functional capabilities while evading the detec-
+tion. Such autonomous self-distillation (Shen et al.,
+2025) raises concerns beyond IP protection. It may
+enable an agent to escape the monitored execution
+boundary, persist beyond its intended operational
+lifetime, and propagate its capabilities into uncon-
+trolled environments.
+12
+
+8.4 Broader Risks of Harness Leakage
+Beyond IP leakage, inference-time harness leak-
+age may introduce broader privacy risks in AMAS.
+Similar to how privacy risks in LLMs have been
+studied through attacks such as membership infer-
+ence attacks (He et al., 2025b), the leakage of agent
+execution mechanisms may introduce analogous
+privacy threats at the system level. For example,
+Harness Membership Inference Attack could infer
+whether a specific execution pattern or trajectory
+fragment is associated with an agent’s inference-
+time harness under a given query. Such risks may
+reveal sensitive properties of internal workflows.
+Moreover, this information can provide attackers
+with useful priors for downstream attacks, such
+as targeted prompt injection (Liu et al., 2024c)
+or workflow manipulation (Shahroz et al., 2025;
+Amayuelas et al., 2024), reducing the need for blind
+exploration of the target agent.
+9 Conclusion
+In this paper, we investigate inference-time harness
+leakage in AMAS and formulate harness extrac-
+tion as a new security problem. We propose Agent
+Harness Distillation (AHD), a two-stage black-box
+framework for extracting harness behaviors from
+target agents and transferring their orchestration
+capabilities. Extensive experiments across real-
+world AMAS with multiple backbone LLMs show
+that AHD can effectively extract transferable har-
+ness capabilities, exposing substantial IP leakage
+risks. We further present a deception-based defense
+that mitigates harness extraction while maintain-
+ing agent utility. Our work reveals a previously
+underexplored attack surface in AMAS. Beyond
+this security implication, our study also provides
+insights into harness self-evolution by showing the
+potential of extracting and transferring inference-
+time harness behaviors.
+10 Ethical Considerations
+This paper introduces an attack that extracts propri-
+etary information about harness structures in MASs.
+Our goal is to improve the security of LLM agents
+by revealing a previously unexplored attack sur-
+face and developing rigorous red-teaming methods.
+We also analyze the associated risks and present
+corresponding defense strategies. The techniques
+described in this paper are intended solely for sci-
+entific research. AI assistants are used to polish the
+writing.
+References
+Alfonso Amayuelas, Xianjun Yang, Antonis Antoniades,
+Wenyue Hua, Liangming Pan, and William Yang
+Wang. 2024. MultiAgent collaboration attack: Inves-
+tigating adversarial attacks in large language model
+collaborations via debate. In Findings of the Associ-
+ation for Computational Linguistics: EMNLP 2024,
+pages 6929–6948, Miami, Florida, USA. Association
+for Computational Linguistics.
+Hengyu An, Minxi Li, Jinghuai Zhang, Naen Xu,
+Chunyi Zhou, Changjiang Li, Xiaogang Xu, Tianyu
+Du, and Shouling Ji. 2026. ACIArena: Toward uni-
+fied evaluation for agent cascading injection. In Pro-
+ceedings of the 64th Annual Meeting of the Associa-
+tion for Computational Linguistics (Volume 1: Long
+Papers), pages 10049–10066, San Diego, Califor-
+nia, United States. Association for Computational
+Linguistics.
+Art of Problem Solving. 2025. AIME Problems and
+Solutions. Accessed: 2025-05-15.
+Daniel Ayzenshteyn, Roy Weiss, and Yisroel Mirsky.
+2025. Cloak, honey, trap: Proactive defenses against
+{LLM} agents. In 34th USENIX Security Symposium
+(USENIX Security 25), pages 8095–8114.
+Stefanos Chaliasos, Denis Firsov, and Benjamin
+Livshits. 2025. Towards a formal foundation for
+blockchain zk rollups. In Proceedings of the 2025
+ACM SIGSAC Conference on Computer and Commu-
+nications Security, CCS ’25, page 2714–2728, New
+York, NY, USA. Association for Computing Machin-
+ery.
+Mingju Chen, Can Lv, Guibin Zhang, Heng Chang, and
+Shiji Zhou. 2026a. Harnessforge: Joint harness and
+policy evolution for adaptive agent systems. arXiv
+preprint arXiv:2606.01779.
+Tingyang Chen, Shuo Lu, Kang Zhao, Weicheng Meng,
+Hanlin Teng, Tianhao Li, Chao Li, Xule Liu, Jian
+Liang, Zhizhong Zhang, Yuan Xie, Heng Qu, Kun
+Shao, and Jian Luan. 2026b. Harnessx: A compos-
+able, adaptive, and evolvable agent harness foundry.
+Preprint, arXiv:2606.14249.
+Vincent Cheval and Itsaka Rakotonirina. 2023. Indis-
+tinguishability beyond diff-equivalence in proverif.
+In 2023 IEEE 36th Computer Security Foundations
+Symposium (CSF), pages 184–199.
+Zeeshan Hayder, Ali Cheraghian, Lars Petersson,
+Mehrtash Harandi, and Richard Hartley. 2026. DTO-
+KD: Dynamic trade-off optimization for effective
+knowledge distillation. In The Fourteenth Interna-
+tional Conference on Learning Representations.
+Changyi He, Yifu Ding, Jinyang Guo, Ruihao Gong,
+Haotong Qin, and Xianglong Liu. 2025a. DA-KD:
+Difficulty-aware knowledge distillation for efficient
+large language models. In Forty-second International
+Conference on Machine Learning.
+13
+
+Yu He, Boheng Li, Liu Liu, Zhongjie Ba, Wei Dong,
+Yiming Li, Zhan Qin, Kui Ren, and Chun Chen.
+2025b. Towards label-only membership inference
+attack against pre-trained large language models. In
+Proceedings of the 34th USENIX Conference on Se-
+curity Symposium, SEC ’25, USA. USENIX Associ-
+ation.
+Yue Huang, Wenjie Wang, Han Bao, Yuchen Ma, Xi-
+aonan Luo, Yi Nian, Haomin Zhuang, Zheyuan Liu,
+Yue Zhao, and Xiangliang Zhang. 2026. Memohar-
+ness: Agent harnesses that learn from experience.
+arXiv preprint arXiv:2607.14159.
+Che Jiang, Jincheng Zhong, Yu Fu, Kai Tian, Junlin
+Yang, Kaikai Zhao, Yuchong Wang, Tianwei Luo,
+Weizhi Wang, Yuxin Zuo, and 1 others. 2026. Self-
+improving agents in the era of experience: A survey
+of self-to meta-evolution.
+Hyunin Lee, Jinglue Xu, Jeffrey Seely, Donghyun
+Lee, Matei Zaharia, and Yujin Tang. 2026. Re-
+cursive harness self-improvement. arXiv preprint
+arXiv:2607.15524.
+Fanxiao Li, Jiaying Wu, Tingchao Fu, Natasha Jaques,
+Wei Zhou, and Min-Yen Kan. 2026. Flowsteer:
+Prompt-only workflow steering exposes planning-
+time vulnerabilities in multi-agent llm systems. arXiv
+preprint arXiv:2605.11514.
+Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang,
+Bochao Wu, Chengda Lu, Chenggang Zhao, Chengqi
+Deng, Chenyu Zhang, Chong Ruan, Damai Dai, Daya
+Guo, Dejian Yang, Deli Chen, Dongjie Ji, Erhang Li,
+Fangyun Lin, Fucong Dai, Fuli Luo, and 180 others.
+2024a. Deepseek-v3 technical report. arXiv preprint
+arXiv:2412.19437.
+Songyang Liu, Chaozhuo Li, Chenxu Wang, Jinyu Hou,
+Zejian Chen, Litian Zhang, Zheng Liu, Qiwei Ye,
+Yiming Hei, Xi Zhang, and Zhongyuan Wang. 2026.
+Clawkeeper: Comprehensive safety protection for
+openclaw agents through skills, plugins, and watch-
+ers. arXiv preprint arXiv:2603.24414.
+Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu
+Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen
+Men, Kejuan Yang, Shudan Zhang, Xiang Deng, Ao-
+han Zeng, Zhengxiao Du, Chenhui Zhang, Sheng
+Shen, Tianjun Zhang, Yu Su, Huan Sun, and 3 others.
+2024b. Agentbench: Evaluating llms as agents. In In-
+ternational Conference on Learning Representations,
+volume 2024, pages 52989–53046.
+Yupei Liu, Yuqi Jia, Runpeng Geng, Jinyuan Jia, and
+Neil Zhenqiang Gong. 2024c. Formalizing and
+benchmarking prompt injection attacks and defenses.
+In 33rd USENIX Security Symposium (USENIX
+Security 24), pages 1831–1847, Philadelphia, PA.
+USENIX Association.
+Grégoire Mialon, Clémentine Fourrier, Thomas Wolf,
+Yann LeCun, and Thomas Scialom. 2024. Gaia: a
+benchmark for general ai assistants. In International
+Conference on Learning Representations, volume
+2024, pages 9025–9049.
+Neha Narula, Willy Vasquez, and Madars Virza. 2018.
+zkLedger: Privacy-Preserving auditing for distributed
+ledgers. In 15th USENIX Symposium on Networked
+Systems Design and Implementation (NSDI 18),
+pages 65–80, Renton, WA. USENIX Association.
+Alexander Panfilov, David Schmotz, Ilia Shu-
+mailov, Luca Beurer-Kellner, Joachim Schaeffer,
+Ameya Prabhu, Jonas Geiping, and Maksym An-
+driushchenko. 2026. Stealing reasoning traces
+from proprietary llm apis. arXiv preprint
+arXiv:2608.09867.
+Carolina Ortega Pérez and Alaa Daffalla. 2025. En-
+crypted access logging for online accounts: Device
+attributions without device tracking. In 34th USENIX
+Security Symposium (USENIX Security 25), pages
+6679–6697, Seattle, WA. USENIX Association.
+Chen Qian, Wei Liu, Hongzhang Liu, Nuo Chen, Yufan
+Dang, Jiahao Li, Cheng Yang, Weize Chen, Yusheng
+Su, Xin Cong, Juyuan Xu, Dahai Li, Zhiyuan Liu,
+and Maosong Sun. 2024. ChatDev: Communicative
+agents for software development. In Proceedings
+of the 62nd Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers),
+pages 15174–15186, Bangkok, Thailand. Association
+for Computational Linguistics.
+Qwen Team. 2026. Qwen3.6-35B-A3B: Agentic coding
+power, now open to all.
+Michael Scholkemper, Xinyi Wu, Ali Jadbabaie, and
+Michael Schaub. 2025. Residual connections and
+normalization can provably prevent oversmoothing
+in gnns. In International Conference on Learning
+Representations, volume 2025, pages 43581–43610.
+Rana Shahroz, Zhen Tan, Sukwon Yun, Charles Flem-
+ing, and Tianlong Chen. 2025. Agents under siege:
+Breaking pragmatic multi-agent LLM systems with
+optimized prompt attacks. In Proceedings of the
+63rd Annual Meeting of the Association for Compu-
+tational Linguistics (Volume 1: Long Papers), pages
+9661–9674, Vienna, Austria. Association for Compu-
+tational Linguistics.
+Zhenyi Shen, Hanqi Yan, Linhai Zhang, Zhanghao Hu,
+Yali Du, and Yulan He. 2025. CODI: Compress-
+ing chain-of-thought into continuous space via self-
+distillation. In Proceedings of the 2025 Conference
+on Empirical Methods in Natural Language Process-
+ing, pages 677–693, Suzhou, China. Association for
+Computational Linguistics.
+Safal Shrestha, Minwu Kim, and Keith Ross. 2025.
+Mathematical reasoning in large language models:
+Assessing logical and arithmetic errors across wide
+numerical ranges. arXiv preprint arXiv:2502.08680.
+Reza Soosahabi and Vivek Namsani. 2026. Analyzing
+defensive misdirection against model-guided auto-
+mated attacks on agentic ai systems. arXiv preprint
+arXiv:2606.20470.
+14
+
+Yijun Tian, Yikun Han, Xiusi Chen, Wei Wang, and
+Nitesh V. Chawla. 2025. Beyond answers: Trans-
+ferring reasoning capabilities to smaller llms using
+multi-teacher knowledge distillation. In Proceed-
+ings of the Eighteenth ACM International Confer-
+ence on Web Search and Data Mining, WSDM ’25,
+page 251–260, New York, NY, USA. Association for
+Computing Machinery.
+Liwen Wang, Wenxuan Wang, Shuai Wang, Zongjie Li,
+Zhenlan Ji, Zongyi Lyu, Daoyuan Wu, and Shing-Chi
+Cheung. 2026a. Masleak: Investigating and expos-
+ing intellectual property leakage vulnerabilities in
+multi-agent systems. In USENIX Security Sympo-
+sium (USENIX Security).
+Ruhan Wang, Yucheng Shi, Zongxia Li, Zhongzhi
+Li, Yue Yu, Junyao Yang, Kishan Panaganti,
+Haitao Mi, Dongruo Zhou, and Leoweiliang. 2026b.
+Harness handbook: Making evolving agent har-
+nesses readable,navigable, and editable. Preprint,
+arXiv:2607.13285.
+Xiaoqing Wang, Keman Huang, Bin Liang, Hongyu
+Li, and Xiaoyong Du. 2026c. Shadows in the code:
+Exploring the risks and defenses of llm-based multi-
+agent software development systems. In Proceedings
+of the AAAI Conference on Artificial Intelligence,
+volume 40, pages 37970–37978.
+Yubo Wang, Xueguang Ma, Ge Zhang, Yuansheng Ni,
+Abhranil Chandra, Shiguang Guo, Weiming Ren,
+Aaran Arulraj, Xuan He, Ziyan Jiang, and 1 others.
+2024. Mmlu-pro: A more robust and challenging
+multi-task language understanding benchmark. Ad-
+vances in Neural Information Processing Systems,
+37:95266–95290.
+Yongxuan Wu, Xixun Lin, He Zhang, Nan Sun, Kun
+Wang, Chuan Zhou, Shirui Pan, and Yanan Cao. 2026.
+CIA: Inferring the communication topology from
+LLM-based multi-agent systems. In Proceedings
+of the 64th Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers),
+pages 17917–17933, San Diego, California, United
+States. Association for Computational Linguistics.
+Markus Wulfmeier, Michael Bloesch, Nino Vieillard,
+Arun Ahuja, Jörg Bornschein, Sandy Huang, Artem
+Sokolov, Matt Barnes, Guillaume Desjardins, Alex
+Bewley, Sarah Maria Elisabeth Bechtle, Jost Tobias
+Springenberg, Nikola Momchev, Olivier Bachem,
+Matthieu Geist, and Martin Riedmiller. 2024. Im-
+itating language via scalable inverse reinforcement
+learning. In Advances in Neural Information Process-
+ing Systems, volume 37, pages 90714–90735. Curran
+Associates, Inc.
+Anyi Xu, Bangcai Lin, Bing Xue, Bingxuan Wang,
+Bingzheng Xu, Bochao Wu, Bowei Zhang, Chao-
+fan Lin, Chen Dong, Chenchen Ling, and 1 oth-
+ers. 2026a. Deepseek-v4: Towards highly efficient
+million-token context intelligence. arXiv preprint
+arXiv:2606.19348.
+Tianshi Xu, Huifeng Wen, and Meng Li. 2026b. Adapt-
+ing the interface, not the model: Runtime har-
+ness adaptation for deterministic llm agents. arXiv
+preprint arXiv:2605.22166.
+An Yang, Anfeng Li, Baosong Yang, Beichen Zhang,
+Binyuan Hui, Bo Zheng, Bowen Yu, Chang
+Gao, Chengen Huang, Chenxu Lv, and 1 others.
+2025. Qwen3 technical report. arXiv preprint
+arXiv:2505.09388.
+Zeqin Yu, Jiangqun Ni, Jian Zhang, Haoyi Deng,
+and Yuzhen Lin. 2025. Reinforced multi-teacher
+knowledge distillation for efficient general image
+forgery detection and localization. In Proceedings
+of the AAAI Conference on Artificial Intelligence,
+volume 39, pages 995–1003.
+Rui Zhao, Muhammad Shoaib, Viet Tung Hoang, and
+Wajih Ul Hassan. 2025a. Rethinking tamper-evident
+logging: A high-performance, co-designed auditing
+system. In Proceedings of the 2025 ACM SIGSAC
+Conference on Computer and Communications Se-
+curity, CCS ’25, page 2624–2638, New York, NY,
+USA. Association for Computing Machinery.
+Zhengyang Zhao, Lu Ma, and Wentao Zhang. 2026.
+Training with harnesses: On-policy harness self-
+distillation for complex reasoning. arXiv preprint
+arXiv:2605.08741.
+Zhengyue Zhao, Xiaogeng Liu, Somesh Jha, Patrick
+McDaniel, Bo Li, and Chaowei Xiao. 2025b. Can
+watermarks be used to detect LLM IP infringement
+for free? In The Thirteenth International Conference
+on Learning Representations.
+Han Zhou, Xingchen Wan, Ruoxi Sun, Hamid Palangi,
+Shariq Iqbal, Ivan Vuli´c, Anna Korhonen, and Ser-
+can O Arik. 2026. Multi-agent design: Optimiz-
+ing agents with better prompts and topologies. In
+The Fourteenth International Conference on Learn-
+ing Representations.
+15
+
+Agent LLM Agent (KB) Pre-Distilled H. (KB) Post-Distilled H. (KB) Compression
+Claude Code 
+GPT-5.6 2,086,866 44.25 1,660.29 1,257×
+DeepSeek-V4 2,086,866 47.41 1,660.55 1,257×
+Hermes 
+GPT-5.6 1,526,004 44.89 1,636.48 932×
+DeepSeek-V4 1,526,004 44.32 1,671.64 913×
+OMP 
+GPT-5.6 590,920 28.90 1,641.06 360×
+DeepSeek-V4 590,920 37.83 1,669.91 354×
+AVG Overall 1,401,263 41.27 1,656.66 845×
+Table 5: Compression ratio from full AMAS to distilled harnesses.
+Agent Base Model Condition 
+CV IF CT PP
+OM CON OM CON OM CON OM CON
+Hermes
+GPT-5.6 
+No-Def. 83.33 0.00 10.00 9.44 8.33 49.44 4.44 53.89
+Defense 83.89 0.00 15.56 50.00 17.78 58.89 3.89 57.22
+DeepSeek-V4 
+No-Def. 73.89 0.00 0.56 5.56 0.00 57.78 1.67 56.11
+Defense 67.82 0.00 3.45 18.97 1.15 68.97 0.00 72.41
+Claude Code
+GPT-5.6 
+No-Def. 74.71 0.00 6.32 5.75 6.90 56.90 2.30 65.52
+Defense 72.84 0.00 4.94 58.02 1.85 70.37 2.47 68.52
+DeepSeek-V4 
+No-Def. 59.44 0.00 6.11 9.44 1.67 72.22 1.67 67.22
+Defense 57.78 0.00 2.78 39.44 0.56 77.78 1.11 73.89
+OMP
+GPT-5.6 
+No-Def. 54.44 0.56 3.33 17.78 1.67 27.22 47.78 3.33
+Defense 48.33 0.00 23.89 25.00 11.67 25.56 38.33 1.11
+DeepSeek-V4 
+No-Def. 27.22 5.00 0.00 26.11 0.00 27.78 29.44 0.56
+Defense 12.78 2.78 0.00 71.67 0.00 74.44 27.22 0.00
+Average Overall 
+No-Def. 62.17 0.93 4.39 12.35 3.09 48.56 14.55 41.10
+Defense 57.24 0.46 8.43 43.85 5.50 62.67 12.17 45.53
+Table 6: Comparison of omission and contradiction rates with and without the proposed deception-based defense.
+16
+
+Agent Claude Code OMP Hermes Agent
+Version 2.1.237 17.2.9 0.19.1
+Table 7: Agent frameworks and versions evaluated in
+this work.
+17

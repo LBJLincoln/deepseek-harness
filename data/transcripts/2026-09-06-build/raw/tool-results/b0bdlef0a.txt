@@ -1,0 +1,962 @@
+code-mode.e2e.ts
+coding-task.e2e.ts
+compaction.e2e.ts
+fixtures
+full-loop.e2e.ts
+harness.ts
+headless.snapshot.ts
+keyless-smoke.e2e.ts
+real-model.e2e.ts
+resume.e2e.ts
+semantic-checkpoint-snapshots
+semantic-checkpoint.snapshot.ts
+session-format-guard.snapshot.ts
+snapshots
+subagent-diagnostic-snapshots
+subagent-diagnostic.snapshot.ts
+subagent-inheritance-snapshots
+subagent-inheritance.snapshot.ts
+todo-write.e2e.ts
+workspace-context-resume-snapshots
+workspace-context-resume.snapshot.ts
+     1	import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+     2	import { createServer } from 'node:http'
+     3	import type { IncomingMessage, ServerResponse } from 'node:http'
+     4	import { delimiter, dirname, join } from 'node:path'
+     5	import { fileURLToPath } from 'node:url'
+     6	import {
+     7	  normalizeSessionLog,
+     8	  normalizeStdout,
+     9	  refreshFixtureReplacements,
+    10	  scrubRequestHeaders,
+    11	  stabilizeRefreshLog,
+    12	  tokenizeSessionFixtureCwd,
+    13	  type HarvestedLog,
+    14	  type NormalizeContext,
+    15	} from '@deepseek-ai/dsh-acp-snapshot'
+    16	import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
+    17	import {
+    18	  decompressZstdFrame,
+    19	  scanZstdFrames,
+    20	} from '@deepseek-ai/dsh-session-persistence-jsonl/src/zstd.ts'
+    21	import { describe, expect, it } from 'vitest'
+    22	
+    23	const snapshotsDir = join(dirname(fileURLToPath(import.meta.url)), 'snapshots')
+    24	const advancedScenarioDir = join(snapshotsDir, 'advanced-toolchain')
+    25	const advancedSessionFixture = join(advancedScenarioDir, 'session.jsonl')
+    26	const advancedStreamExpected = join(advancedScenarioDir, 'stream-json.expected.jsonl')
+    27	const advancedConfigPath = fileURLToPath(new URL('../advanced.cordis.snapshot.yml', import.meta.url))
+    28	const ptyScenarioDir = join(snapshotsDir, 'pty-tools')
+    29	const ptySessionFixture = join(ptyScenarioDir, 'session.jsonl')
+    30	const ptyStreamExpected = join(ptyScenarioDir, 'stream-json.expected.jsonl')
+    31	const ptyConfigPath = fileURLToPath(new URL('../pty.cordis.snapshot.yml', import.meta.url))
+    32	const goalScenarioDir = join(snapshotsDir, 'goal-tools')
+    33	const goalConfigPath = fileURLToPath(new URL('../goal.cordis.snapshot.yml', import.meta.url))
+    34	const retryScenarioDir = join(snapshotsDir, 'provider-retry')
+    35	const retryConfigPath = fileURLToPath(new URL('../retry.cordis.snapshot.yml', import.meta.url))
+    36	const compactionScenarioDir = join(snapshotsDir, 'compaction-recovery')
+    37	const compactionSessionFixture = join(compactionScenarioDir, 'session.jsonl')
+    38	const compactionStreamExpected = join(compactionScenarioDir, 'stream-json.expected.jsonl')
+    39	const compactionConfigPath = fileURLToPath(new URL('../compaction.cordis.snapshot.yml', import.meta.url))
+    40	const credentialsScenarioDir = join(snapshotsDir, 'missing-credential')
+    41	const credentialsConfigPath = fileURLToPath(new URL('../credentials.cordis.snapshot.yml', import.meta.url))
+    42	// Same keyless composition as the missing-credential scenario: the endpoint is
+    43	// never dialed either way, because a supplied-but-unusable key fails credential
+    44	// resolution exactly where an absent one does.
+    45	const invalidCredentialScenarioDir = join(snapshotsDir, 'invalid-credential')
+    46	const readBarrierScenarioDir = join(snapshotsDir, 'read-barrier-denied')
+    47	const readBarrierConfigPath = fileURLToPath(new URL('../read-barrier.cordis.snapshot.yml', import.meta.url))
+    48	const ralphScenarioDir = join(snapshotsDir, 'ralph-loop')
+    49	const ralphConfigPath = fileURLToPath(new URL('../ralph.cordis.snapshot.yml', import.meta.url))
+    50	const settlementScenarioDir = join(snapshotsDir, 'subagent-settlement')
+    51	const settlementConfigPath = fileURLToPath(new URL('../subagent-settlement.cordis.snapshot.yml', import.meta.url))
+    52	const startupFailureConfigPath = fileURLToPath(new URL('./fixtures/startup-activation-error/cordis.yml', import.meta.url))
+    53	const startupFailureExpected = join(snapshotsDir, 'startup-activation-error', 'stderr.expected.txt')
+    54	const binScript = fileURLToPath(new URL('./fixtures/headless-driver.ts', import.meta.url))
+    55	const dshBinScript = fileURLToPath(new URL('../../../apps/cli/src/bin.ts', import.meta.url))
+    56	const tsconfigPath = fileURLToPath(new URL('../../../tsconfig.json', import.meta.url))
+    57	const reasoningConfigPath = fileURLToPath(new URL('./fixtures/cli.cordis.yml', import.meta.url))
+    58	const deepseekDefaultsConfigPath = fileURLToPath(new URL('./fixtures/deepseek-defaults.cordis.yml', import.meta.url))
+    59	const headlessOverlayPath = fileURLToPath(new URL('./fixtures/headless-profile.cordis.yml', import.meta.url))
+    60	const headlessSessionExpected = join(snapshotsDir, 'headless-profile', 'session.expected.jsonl')
+    61	const headlessFailureExpected = join(snapshotsDir, 'headless-profile', 'stderr.expected.txt')
+    62	const cliMockLlmPluginPath = fileURLToPath(new URL('./fixtures/cli-mock-llm.ts', import.meta.url))
+    63	const refreshing = process.env.DSH_SNAPSHOT === 'refresh'
+    64	
+    65	interface JsonObject {
+    66	  [key: string]: unknown
+    67	}
+    68	
+    69	interface PersistedLog {
+    70	  readonly content: string
+    71	  readonly header: JsonObject
+    72	}
+    73	
+    74	interface DeepSeekDefaultsServer {
+    75	  readonly url: string
+    76	  readonly requests: JsonObject[]
+    77	  close(): Promise<void>
+    78	}
+    79	
+    80	/** Serve one deterministic DeepSeek-compatible response while retaining its request body. */
+    81	async function deepseekDefaultsServer(): Promise<DeepSeekDefaultsServer> {
+    82	  const requests: JsonObject[] = []
+    83	  const server = createServer((request: IncomingMessage, response: ServerResponse) => {
+    84	    let body = ''
+    85	    request.setEncoding('utf8')
+    86	    request.on('data', (chunk: string) => { body += chunk })
+    87	    request.on('end', () => {
+    88	      requests.push(JSON.parse(body) as JsonObject)
+    89	      response.writeHead(200, { 'content-type': 'text/event-stream' })
+    90	      let keepAlives = 3
+    91	      const write = (): void => {
+    92	        if (keepAlives-- > 0) {
+    93	          response.write(': keep-alive\n\n')
+    94	          setTimeout(write, 60)
+    95	          return
+    96	        }
+    97	        response.end([
+    98	          'data: {"choices":[{"delta":{"content":"DEFAULTS_OK"}}]}',
+    99	          'data: {"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":1}}',
+   100	          'data: [DONE]',
+   101	          '',
+   102	        ].join('\n\n'))
+   103	      }
+   104	      setTimeout(write, 60)
+   105	    })
+   106	  })
+   107	  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+   108	  const address = server.address()
+   109	  if (address === null || typeof address === 'string') throw new Error('DeepSeek defaults snapshot server has no port')
+   110	  return {
+   111	    url: `http://127.0.0.1:${address.port}`,
+   112	    requests,
+   113	    close: () => new Promise(resolve => server.close(() => { resolve() })),
+   114	  }
+   115	}
+   116	
+   117	function parseJsonl(content: string): JsonObject[] {
+   118	  return content.split('\n')
+   119	    .filter(line => line.trim().length > 0)
+   120	    .map(line => JSON.parse(line) as JsonObject)
+   121	}
+   122	
+   123	function contextFromLogs(contents: readonly string[]): NormalizeContext {
+   124	  const headers = contents.map(content => parseJsonl(content)[0])
+   125	  return {
+   126	    sessionIds: headers.flatMap(header => typeof header?.id === 'string' ? [header.id] : []),
+   127	    cwd: typeof headers[0]?.cwd === 'string' ? headers[0].cwd : '\0no-cwd\0',
+   128	  }
+   129	}
+   130	
+   131	function normalizeHeadlessStream(rawStdout: string, cwd: string): string {
+   132	  const records = parseJsonl(rawStdout)
+   133	  if (records.length === 0) throw new Error('headless snapshot emitted no stream-json records')
+   134	  const final = records.at(-1)
+   135	  if (final?.type !== 'result') throw new Error('headless snapshot did not end with a result record')
+   136	  if (records.slice(0, -1).some(record => record.type !== 'session_event')) {
+   137	    throw new Error('headless snapshot emitted a non-event record before its result')
+   138	  }
+   139	
+   140	  const sessionIds = [...new Set(records.flatMap(record => typeof record.sessionId === 'string' ? [record.sessionId] : []))]
+   141	  if (sessionIds.length !== 1) throw new Error(`headless snapshot streamed ${sessionIds.length} main session ids`)
+   142	  const context: NormalizeContext = { sessionIds, cwd }
+   143	  const events = records.slice(0, -1).map((record) => {
+   144	    if (record.event === null || typeof record.event !== 'object' || Array.isArray(record.event)) {
+   145	      throw new Error('headless snapshot emitted an invalid session event')
+   146	    }
+   147	    return record.event as JsonObject
+   148	  })
+   149	  const normalizedEvents = parseJsonl(scrubRequestHeaders(normalizeSessionLog(
+   150	    `${events.map(event => JSON.stringify(event)).join('\n')}\n`,
+   151	    context,
+   152	  )))
+   153	  const normalizedRecords = records.map((record, index) => index < normalizedEvents.length
+   154	    ? { ...record, event: normalizedEvents[index] }
+   155	    : record)
+   156	  return normalizeStdout(`${normalizedRecords.map(record => JSON.stringify(record)).join('\n')}\n`, context)
+   157	}
+   158	
+   159	/** Zero durable goal timestamps inside both metadata records and rendered XML JSON. */
+   160	function normalizeGoalTimestamps(value: unknown): unknown {
+   161	  if (typeof value === 'string') {
+   162	    return value.replace(/("(?:createdAt|updatedAt|clearedAt)":)\d+/g, '$10')
+   163	  }
+   164	  if (Array.isArray(value)) return value.map(normalizeGoalTimestamps)
+   165	  if (value !== null && typeof value === 'object') {
+   166	    return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+   167	      key,
+   168	      ['createdAt', 'updatedAt', 'clearedAt'].includes(key) && typeof item === 'number'
+   169	        ? 0
+   170	        : normalizeGoalTimestamps(item),
+   171	    ]))
+   172	  }
+   173	  return value
+   174	}
+   175	
+   176	/** Normalize the stream's durable goal timestamps after the shared scrubbers. */
+   177	function normalizeGoalStream(rawStdout: string, cwd: string): string {
+   178	  return parseJsonl(normalizeHeadlessStream(rawStdout, cwd))
+   179	    .map(record => JSON.stringify(normalizeGoalTimestamps(record)))
+   180	    .join('\n') + '\n'
+   181	}
+   182	
+   183	async function scenarioPrompt(dir: string, label: string): Promise<string> {
+   184	  const input = JSON.parse(await readFile(join(dir, 'input.json'), 'utf8')) as {
+   185	    steps?: { op?: unknown; text?: unknown }[]
+   186	  }
+   187	  const prompt = input.steps?.find(step => step.op === 'prompt')?.text
+   188	  if (typeof prompt !== 'string') throw new Error(`${label} input has no prompt step`)
+   189	  return prompt
+   190	}
+   191	
+   192	async function readPersistedLog(file: string): Promise<string> {
+   193	  const content = await readFile(file)
+   194	  if (!file.endsWith('.zstd')) return content.toString('utf8')
+   195	  const scan = scanZstdFrames(content)
+   196	  if (scan.tornStart !== undefined) throw new Error(`persisted snapshot log has a torn Zstandard frame: ${file}`)
+   197	  const decoded: Buffer[] = []
+   198	  for (const frame of scan.frames) {
+   199	    decoded.push(await decompressZstdFrame(content.subarray(frame.start, frame.end)))
+   200	  }
+   201	  return Buffer.concat(decoded).toString('utf8')
+   202	}
+   203	
+   204	async function persistedLogs(cwd: string, root: string = join(cwd, '.sessions')): Promise<PersistedLog[]> {
+   205	  const files = (await readdir(root, { recursive: true }))
+   206	    .filter(file => file.endsWith('.jsonl') || file.endsWith('.jsonl.zstd'))
+   207	  return Promise.all(files.map(async (file) => {
+   208	    const content = await readPersistedLog(join(root, file))
+   209	    return { content, header: parseJsonl(content)[0] ?? {} }
+   210	  }))
+   211	}
+   212	
+   213	/** Install the keyless product-CLI adapter into the temporary headless profile. */
+   214	async function prepareCliMockFixture(cwd: string): Promise<void> {
+   215	  const fixtureDir = join(cwd, '.dsh', 'profiles', 'headless', 'snapshot-fixtures')
+   216	  await mkdir(fixtureDir, { recursive: true })
+   217	  await Promise.all([
+   218	    copyFile(cliMockLlmPluginPath, join(fixtureDir, 'cli-mock-llm.ts')),
+   219	    writeFile(join(fixtureDir, 'package.json'), '{"type":"module"}\n'),
+   220	  ])
+   221	}
+   222	
+   223	describe('headless stream-json snapshots', () => {
+   224	  it('runs one task through the product headless profile command', async () => {
+   225	    const task = 'Prove the product headless profile path with one real tool round trip.'
+   226	    const result = await runLoaderSmoke({
+   227	      label: 'product headless profile snapshot',
+   228	      tempDirPrefix: 'headless-snapshot-profile-',
+   229	      binScript: dshBinScript,
+   230	      configPath: headlessOverlayPath,
+   231	      binArgs: ['--profile', 'headless', '--patch', headlessOverlayPath, task],
+   232	      tsconfigPath,
+   233	      env: {
+   234	        DSH_PERMISSION_MODE: 'danger-full-access',
+   235	        DSH_TELEMETRY_DISABLED: '1',
+   236	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   237	      },
+   238	      prepare: prepareCliMockFixture,
+   239	      inspect: async (cwd) => {
+   240	        const logs = await persistedLogs(cwd, join(cwd, '.dsh', 'sessions'))
+   241	        expect(logs).toHaveLength(1)
+   242	        const actual = logs[0]
+   243	        if (actual === undefined) throw new Error('the headless profile did not persist its session')
+   244	        const context = contextFromLogs([actual.content])
+   245	        const session = scrubRequestHeaders(normalizeSessionLog(actual.content, context))
+   246	        if (refreshing) await writeFile(headlessSessionExpected, session)
+   247	        expect(session).toBe(await readFile(headlessSessionExpected, 'utf8'))
+   248	        expect(session).toContain(task)
+   249	        expect(session).toContain('CLI tool round trip complete: CLI_TOOL_ROUND_TRIP')
+   250	      },
+   251	    })
+   252	
+   253	    expect(result.stdout).toBe('CLI tool round trip complete: CLI_TOOL_ROUND_TRIP\n')
+   254	    expect(result.stderr).toBe('')
+   255	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   256	
+   257	  it('prints a terminal model failure through the product headless profile command', async () => {
+   258	    const result = await runLoaderSmoke({
+   259	      label: 'product headless profile model failure snapshot',
+   260	      tempDirPrefix: 'headless-snapshot-profile-failure-',
+   261	      binScript: dshBinScript,
+   262	      configPath: headlessOverlayPath,
+   263	      binArgs: ['--profile', 'headless', '--patch', headlessOverlayPath, 'Trigger the keyless model failure.'],
+   264	      tsconfigPath,
+   265	      expectedExitCode: 1,
+   266	      env: {
+   267	        DSH_CLI_MOCK_FAILURE: '1',
+   268	        DSH_TELEMETRY_DISABLED: '1',
+   269	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   270	      },
+   271	      prepare: prepareCliMockFixture,
+   272	    })
+   273	
+   274	    expect(result.stdout).toBe('\n')
+   275	    await expect(result.stderr).toMatchFileSnapshot(headlessFailureExpected)
+   276	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   277	
+   278	  it('prints the original Loader activation error through the assembled one-shot app', async () => {
+   279	    const result = await runLoaderSmoke({
+   280	      label: 'headless startup activation error snapshot',
+   281	      tempDirPrefix: 'headless-snapshot-startup-error-',
+   282	      binScript,
+   283	      libBinScript: binScript,
+   284	      configPath: startupFailureConfigPath,
+   285	      binArgs: [startupFailureConfigPath, 'unreachable task'],
+   286	      tsconfigPath,
+   287	      expectedExitCode: 1,
+   288	    })
+   289	    expect(result.stdout).toBe('')
+   290	    await expect(result.stderr).toMatchFileSnapshot(startupFailureExpected)
+   291	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   292	
+   293	  it('retries a transient provider failure through the one-shot app', async () => {
+   294	    const prompt = await scenarioPrompt(retryScenarioDir, 'provider-retry')
+   295	    const streamExpected = join(retryScenarioDir, 'stream-json.expected.jsonl')
+   296	    let runCwd = ''
+   297	    const result = await runLoaderSmoke({
+   298	      label: 'provider retry headless stream-json snapshot',
+   299	      tempDirPrefix: 'headless-snapshot-provider-retry-',
+   300	      binScript,
+   301	      libBinScript: binScript,
+   302	      configPath: retryConfigPath,
+   303	      binArgs: [retryConfigPath, prompt],
+   304	      tsconfigPath,
+   305	      env: {
+   306	        DSH_SNAPSHOT: 'replay',
+   307	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   308	      },
+   309	      prepare: (cwd) => { runCwd = cwd },
+   310	      inspect: async (cwd) => {
+   311	        const logs = await persistedLogs(cwd)
+   312	        expect(logs).toHaveLength(1)
+   313	        const records = parseJsonl(logs[0]?.content ?? '')
+   314	        const retries = records.filter(record => record.type === 'llm/retry')
+   315	        expect(retries).toHaveLength(1)
+   316	        expect(retries[0]?.data).toMatchObject({
+   317	          provider: 'deepseek-official',
+   318	          mode: 'normal',
+   319	          policyKey: '["normal",1,["RATE_LIMIT"],1,1,0]',
+   320	          retry: 1,
+   321	          maxRetries: 1,
+   322	          delayMs: 1,
+   323	          failure: { message: 'snapshot transient failure', code: 'RATE_LIMIT', status: 429 },
+   324	        })
+   325	      },
+   326	    })
+   327	
+   328	    expect(result.stderr).toBe('')
+   329	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   330	    if (refreshing) await writeFile(streamExpected, normalized)
+   331	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   332	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   333	
+   334	  it('recovers from context overflow through an assembled compaction', async () => {
+   335	    const prompt = await scenarioPrompt(compactionScenarioDir, 'compaction-recovery')
+   336	    let expectedSession = await readFile(compactionSessionFixture, 'utf8')
+   337	    let runCwd = ''
+   338	    const result = await runLoaderSmoke({
+   339	      label: 'compaction recovery headless stream-json snapshot',
+   340	      tempDirPrefix: 'headless-snapshot-compaction-recovery-',
+   341	      binScript,
+   342	      libBinScript: binScript,
+   343	      configPath: compactionConfigPath,
+   344	      binArgs: [compactionConfigPath, prompt],
+   345	      tsconfigPath,
+   346	      env: {
+   347	        DSH_SNAPSHOT: 'replay',
+   348	        DSH_SNAPSHOT_FILE: compactionSessionFixture,
+   349	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   350	      },
+   351	      prepare: (cwd) => { runCwd = cwd },
+   352	      inspect: async (cwd) => {
+   353	        const logs = await persistedLogs(cwd)
+   354	        expect(logs).toHaveLength(1)
+   355	        const actual = logs[0]
+   356	        if (actual === undefined) throw new Error('compaction snapshot did not persist its session')
+   357	        const records = parseJsonl(actual.content)
+   358	        const types = records.map(record => record.type)
+   359	        expect(types.filter(type => type === 'compaction/start')).toHaveLength(1)
+   360	        expect(types.filter(type => type === 'compaction/summary')).toHaveLength(1)
+   361	        expect(types.filter(type => type === 'compaction/end')).toHaveLength(1)
+   362	        const start = types.indexOf('compaction/start')
+   363	        const summary = types.indexOf('compaction/summary')
+   364	        const replacement = records.findIndex((record) => {
+   365	          if (record.type !== 'user/message') return false
+   366	          const surfaceOp = record.surfaceOp as JsonObject | undefined
+   367	          return surfaceOp?.op === 'replace'
+   368	        })
+   369	        const end = types.indexOf('compaction/end')
+   370	        expect(start).toBeLessThan(summary)
+   371	        expect(summary).toBeLessThan(replacement)
+   372	        expect(replacement).toBeLessThan(end)
+   373	        const summaryRecord = records[summary]
+   374	        const summaryData = summaryRecord?.data as JsonObject | undefined
+   375	        expect(summaryData?.shadowedSeqs).toEqual(expect.arrayContaining([expect.any(Number)]))
+   376	        const final = [...records].reverse().find(record => record.type === 'assistant/message')
+   377	        expect(JSON.stringify(final)).toContain('COMPACTION RECOVERED')
+   378	
+   379	        const actualContext = contextFromLogs([actual.content])
+   380	        if (refreshing) {
+   381	          const harvested: HarvestedLog = {
+   382	            id: String(actual.header.id),
+   383	            createdAt: Number(actual.header.createdAt),
+   384	            content: actual.content,
+   385	          }
+   386	          const replacements = refreshFixtureReplacements([harvested], [expectedSession])
+   387	          expectedSession = tokenizeSessionFixtureCwd(
+   388	            stabilizeRefreshLog(actual.content, expectedSession, replacements, actualContext),
+   389	          )
+   390	          await writeFile(compactionSessionFixture, expectedSession)
+   391	        }
+   392	        const expectedContext = contextFromLogs([expectedSession])
+   393	        expect(scrubRequestHeaders(normalizeSessionLog(actual.content, actualContext)))
+   394	          .toBe(scrubRequestHeaders(normalizeSessionLog(expectedSession, expectedContext)))
+   395	      },
+   396	    })
+   397	
+   398	    expect(result.stderr).toBe('')
+   399	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   400	    if (refreshing) await writeFile(compactionStreamExpected, normalized)
+   401	    expect(normalized).toBe(await readFile(compactionStreamExpected, 'utf8'))
+   402	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   403	
+   404	  it('logs actionable missing-credential guidance through the one-shot app', async () => {
+   405	    const streamExpected = join(credentialsScenarioDir, 'stream-json.expected.jsonl')
+   406	    let runCwd = ''
+   407	    const result = await runLoaderSmoke({
+   408	      label: 'missing-credential headless stream-json snapshot',
+   409	      tempDirPrefix: 'headless-snapshot-missing-credential-',
+   410	      binScript,
+   411	      libBinScript: binScript,
+   412	      configPath: credentialsConfigPath,
+   413	      binArgs: [credentialsConfigPath, 'say pong'],
+   414	      tsconfigPath,
+   415	      env: {
+   416	        // First-run posture: no key in the environment, none under ./.dsh.
+   417	        DEEPSEEK_API_KEY: '',
+   418	        DEEPSEEK_BASE_URL: '',
+   419	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   420	      },
+   421	      prepare: (cwd) => { runCwd = cwd },
+   422	    })
+   423	
+   424	    // The failure reaches the caller through the stream, not stderr; the
+   425	    // recorded transcript below pins the guidance text itself, which names
+   426	    // both places a credential can come from and nothing else.
+   427	    expect(result.stderr).toBe('')
+   428	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   429	    if (refreshing) await writeFile(streamExpected, normalized)
+   430	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   431	    // The durable failure leads with the credential store — the path that
+   432	    // keeps the secret out of configuration files — then names the launching
+   433	    // environment, and stops there: configuration carries the reference, so
+   434	    // there is no literal-key escape hatch left to offer.
+   435	    expect(normalized).toContain(
+   436	      'store DEEPSEEK_API_KEY through the credentials service (the web Models page writes it),',
+   437	    )
+   438	    expect(normalized).toContain('or export DEEPSEEK_API_KEY in the launching environment')
+   439	    expect(normalized).not.toContain('as a last resort')
+   440	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   441	
+   442	  it('logs actionable invalid-credential guidance through the one-shot app', async () => {
+   443	    const streamExpected = join(invalidCredentialScenarioDir, 'stream-json.expected.jsonl')
+   444	    let runCwd = ''
+   445	    const result = await runLoaderSmoke({
+   446	      label: 'invalid-credential headless stream-json snapshot',
+   447	      tempDirPrefix: 'headless-snapshot-invalid-credential-',
+   448	      binScript,
+   449	      libBinScript: binScript,
+   450	      configPath: credentialsConfigPath,
+   451	      binArgs: [credentialsConfigPath, 'say pong'],
+   452	      tsconfigPath,
+   453	      env: {
+   454	        // A key that exists but no HTTP header can carry — the paste the
+   455	        // credential guard exists for: without it, `fetch` refuses to build
+   456	        // the header and the turn ends on a retried ByteString TypeError.
+   457	        DEEPSEEK_API_KEY: 'sk-\u{1F600}pasted-from-a-chat-window',
+   458	        DEEPSEEK_BASE_URL: '',
+   459	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   460	      },
+   461	      prepare: (cwd) => { runCwd = cwd },
+   462	    })
+   463	
+   464	    expect(result.stderr).toBe('')
+   465	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   466	    if (refreshing) await writeFile(streamExpected, normalized)
+   467	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   468	    // The durable failure names the reference to correct and the writer that
+   469	    // usually owns it, and stays true in a composition that mounts no Models
+   470	    // page at all.
+   471	    expect(normalized).toContain('the API key resolved from DEEPSEEK_API_KEY contains characters')
+   472	    expect(normalized).toContain('the web Models page writes it')
+   473	    // Neither the key nor its transport-level symptom (the ByteString error)
+   474	    // may reach the user: the code point of one character is still the key.
+   475	    expect(normalized).not.toContain('pasted-from-a-chat-window')
+   476	    expect(normalized).not.toContain('ByteString')
+   477	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   478	
+   479	  it('logs the model default and a dynamic next-step reasoning effort', async () => {
+   480	    const result = await runLoaderSmoke({
+   481	      label: 'reasoning effort headless stream-json snapshot',
+   482	      tempDirPrefix: 'headless-snapshot-reasoning-effort-',
+   483	      binScript,
+   484	      libBinScript: binScript,
+   485	      configPath: reasoningConfigPath,
+   486	      binArgs: [reasoningConfigPath, 'prove dynamic reasoning effort'],
+   487	      tsconfigPath,
+   488	    })
+   489	
+   490	    expect(result.stderr).toBe('')
+   491	    const headers = parseJsonl(result.stdout)
+   492	      .map(record => record.event)
+   493	      .filter((event): event is JsonObject => (
+   494	        event !== null
+   495	        && typeof event === 'object'
+   496	        && !Array.isArray(event)
+   497	        && 'type' in event
+   498	        && event.type === 'request/header'
+   499	      ))
+   500	      .map((event) => {
+   501	        const data = event.data as JsonObject
+   502	        return (data.header as JsonObject).config
+   503	      })
+   504	    expect(headers).toMatchInlineSnapshot(`
+   505	      [
+   506	        {
+   507	          "model": "cli-mock",
+   508	          "provider": "cli-mock",
+   509	          "reasoningEffort": "high",
+   510	        },
+   511	        {
+   512	          "model": "cli-mock",
+   513	          "provider": "cli-mock",
+   514	          "reasoningEffort": "off",
+   515	        },
+   516	      ]
+   517	    `)
+   518	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   519	
+   520	  it('keeps provider comments alive and sends DeepSeek defaults through the one-shot app', async () => {
+   521	    const server = await deepseekDefaultsServer()
+   522	    try {
+   523	      const result = await runLoaderSmoke({
+   524	        label: 'DeepSeek adapter defaults headless stream-json snapshot',
+   525	        tempDirPrefix: 'headless-snapshot-deepseek-defaults-',
+   526	        binScript,
+   527	        libBinScript: binScript,
+   528	        configPath: deepseekDefaultsConfigPath,
+   529	        binArgs: [
+   530	          deepseekDefaultsConfigPath,
+   531	          'return the deterministic response',
+   532	        ],
+   533	        tsconfigPath,
+   534	        env: {
+   535	          // Configuration carries only the reference; the key rides the
+   536	          // launching environment, which is the whole credential plane here.
+   537	          DEEPSEEK_API_KEY: 'snapshot-key',
+   538	          DSH_SNAPSHOT_BASE_URL: server.url,
+   539	          NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   540	        },
+   541	      })
+   542	
+   543	      expect(result.stderr).toBe('')
+   544	      expect(server.requests).toHaveLength(1)
+   545	      expect(server.requests[0]?.max_tokens).toBe(256_000)
+   546	      const header = (parseJsonl(result.stdout)
+   547	        .map(record => record.event)
+   548	        .find((event): event is JsonObject => (
+   549	          event !== null
+   550	          && typeof event === 'object'
+   551	          && !Array.isArray(event)
+   552	          && 'type' in event
+   553	          && event.type === 'request/header'
+   554	        ))?.data as JsonObject | undefined)?.header as JsonObject | undefined
+   555	      expect(header?.config).toMatchInlineSnapshot(`
+   556	        {
+   557	          "maxTokens": 256000,
+   558	          "model": "deepseek-v4-flash",
+   559	          "provider": "deepseek-official",
+   560	          "reasoningEffort": "off",
+   561	        }
+   562	      `)
+   563	      expect(header?.adapterDefaults).toEqual({
+   564	        maxTokens: true,
+   565	        reasoningEffort: true,
+   566	      })
+   567	    } finally {
+   568	      await server.close()
+   569	    }
+   570	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   571	
+   572	  it('replays the advanced toolchain through the one-shot app', async () => {
+   573	    const prompt = await scenarioPrompt(advancedScenarioDir, 'advanced-toolchain')
+   574	    const fixtureFiles = [
+   575	      advancedSessionFixture,
+   576	      join(advancedScenarioDir, 'session.1.jsonl'),
+   577	      join(advancedScenarioDir, 'session.2.jsonl'),
+   578	    ]
+   579	    let expectedSessions = await Promise.all(fixtureFiles.map(file => readFile(file, 'utf8')))
+   580	    let runCwd = ''
+   581	    const result = await runLoaderSmoke({
+   582	      label: 'advanced headless stream-json snapshot',
+   583	      tempDirPrefix: 'headless-snapshot-advanced-',
+   584	      binScript,
+   585	      libBinScript: binScript,
+   586	      configPath: advancedConfigPath,
+   587	      binArgs: [advancedConfigPath, prompt],
+   588	      tsconfigPath,
+   589	      env: {
+   590	        DSH_SNAPSHOT: 'replay',
+   591	        DSH_SNAPSHOT_FILE: advancedSessionFixture,
+   592	        DSH_SNAPSHOT_CHILD_FILES: [
+   593	          join(advancedScenarioDir, 'session.1.jsonl'),
+   594	          join(advancedScenarioDir, 'session.2.jsonl'),
+   595	        ].join(delimiter),
+   596	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   597	      },
+   598	      prepare: (cwd) => { runCwd = cwd },
+   599	      inspect: async (cwd) => {
+   600	        const logs = await persistedLogs(cwd)
+   601	        expect(logs).toHaveLength(3)
+   602	        const parents = logs.filter(log => typeof log.header.parentSession !== 'string')
+   603	        expect(parents).toHaveLength(1)
+   604	        const parent = parents[0]
+   605	        if (parent === undefined) throw new Error('headless snapshot did not persist its main session')
+   606	        const children = logs.filter(log => typeof log.header.parentSession === 'string')
+   607	          .sort((left, right) => Number(left.header.createdAt) - Number(right.header.createdAt))
+   608	        const actualSessions = [parent, ...children]
+   609	        const actualContext = contextFromLogs(actualSessions.map(log => log.content))
+   610	        if (refreshing) {
+   611	          const harvested = actualSessions.map((log): HarvestedLog => ({
+   612	            id: String(log.header.id),
+   613	            createdAt: Number(log.header.createdAt),
+   614	            ...typeof log.header.parentSession === 'string'
+   615	              ? { parentSession: log.header.parentSession }
+   616	              : {},
+   617	            content: log.content,
+   618	          }))
+   619	          const replacements = refreshFixtureReplacements(harvested, expectedSessions)
+   620	          expectedSessions = await Promise.all(actualSessions.map(async (actual, index) => {
+   621	            const existing = expectedSessions[index]
+   622	            const file = fixtureFiles[index]
+   623	            if (existing === undefined || file === undefined) {
+   624	              throw new Error(`headless snapshot has no fixture for persisted log ${index}`)
+   625	            }
+   626	            const stable = tokenizeSessionFixtureCwd(
+   627	              stabilizeRefreshLog(actual.content, existing, replacements, actualContext),
+   628	            )
+   629	            await writeFile(file, stable)
+   630	            return stable
+   631	          }))
+   632	        }
+   633	        const expectedContext = contextFromLogs(expectedSessions)
+   634	        for (const [index, actual] of actualSessions.entries()) {
+   635	          const expected = expectedSessions[index]
+   636	          if (expected === undefined) throw new Error(`headless snapshot has no fixture for persisted log ${index}`)
+   637	          expect(scrubRequestHeaders(normalizeSessionLog(actual.content, actualContext)))
+   638	            .toBe(scrubRequestHeaders(normalizeSessionLog(expected, expectedContext)))
+   639	        }
+   640	      },
+   641	    })
+   642	
+   643	    expect(result.stderr).toBe('')
+   644	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   645	    if (refreshing) await writeFile(advancedStreamExpected, normalized)
+   646	    expect(normalized).toBe(await readFile(advancedStreamExpected, 'utf8'))
+   647	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   648	
+   649	  it('replays persisted goal tools through the one-shot app', async () => {
+   650	    const prompt = await scenarioPrompt(goalScenarioDir, 'goal-tools')
+   651	    const streamExpected = join(goalScenarioDir, 'stream-json.expected.jsonl')
+   652	    let runCwd = ''
+   653	    const result = await runLoaderSmoke({
+   654	      label: 'goal tools headless stream-json snapshot',
+   655	      tempDirPrefix: 'headless-snapshot-goal-tools-',
+   656	      binScript,
+   657	      libBinScript: binScript,
+   658	      configPath: goalConfigPath,
+   659	      binArgs: [goalConfigPath, prompt],
+   660	      tsconfigPath,
+   661	      env: {
+   662	        DSH_SNAPSHOT: 'replay',
+   663	        DSH_SNAPSHOT_FILE: join(goalScenarioDir, 'session.jsonl'),
+   664	        DSH_SNAPSHOT_OVERRIDE: join(goalScenarioDir, 'replay.override.json'),
+   665	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   666	      },
+   667	      prepare: (cwd) => { runCwd = cwd },
+   668	      inspect: async (cwd) => {
+   669	        const logs = await persistedLogs(cwd)
+   670	        expect(logs).toHaveLength(1)
+   671	        const records = parseJsonl(logs[0]?.content ?? '')
+   672	        const calls = records.filter(record => record.type === 'tool/call')
+   673	          .map(record => (record.data as JsonObject | undefined)?.name)
+   674	        expect(calls).toEqual(['update_goal', 'create_goal', 'get_goal'])
+   675	        const probeResult = records.find((record) => {
+   676	          if (record.type !== 'tool/result') return false
+   677	          const data = record.data as JsonObject | undefined
+   678	          const message = data?.message as JsonObject | undefined
+   679	          const source = message?.source as JsonObject | undefined
+   680	          return source?.callId === 'call_goal_probe'
+   681	        })
+   682	        const probeData = probeResult?.data as JsonObject | undefined
+   683	        const probeMessage = probeData?.message as JsonObject | undefined
+   684	        const probeContent = probeMessage?.content as JsonObject[] | undefined
+   685	        expect(probeContent?.[0]?.isError).toBe(true)
+   686	        expect((probeData?.error as JsonObject | undefined)?.code).toBe('GOAL_NOT_FOUND')
+   687	        const goalChanges = records.filter(record => record.type === 'goal/change')
+   688	        expect(goalChanges).toHaveLength(1)
+   689	        const data = goalChanges[0]?.data as JsonObject | undefined
+   690	        const goal = data?.goal as JsonObject | undefined
+   691	        expect(data?.operation).toBe('create')
+   692	        expect(goal).toMatchObject({
+   693	          objective: 'Finish the headless goal-tool snapshot proof',
+   694	          phase: 'active',
+   695	          maxGoalRounds: 7,
+   696	        })
+   697	      },
+   698	    })
+   699	
+   700	    expect(result.stderr).toBe('')
+   701	    const normalized = normalizeGoalStream(result.stdout, runCwd)
+   702	    if (refreshing) await writeFile(streamExpected, normalized)
+   703	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   704	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   705	
+   706	  it('pins the read-barrier denial the model sees for a validator-owned path', async () => {
+   707	    const prompt = await scenarioPrompt(readBarrierScenarioDir, 'read-barrier-denied')
+   708	    const streamExpected = join(readBarrierScenarioDir, 'stream-json.expected.jsonl')
+   709	    let runCwd = ''
+   710	    const result = await runLoaderSmoke({
+   711	      label: 'read-barrier denial headless stream-json snapshot',
+   712	      tempDirPrefix: 'headless-snapshot-read-barrier-',
+   713	      binScript,
+   714	      libBinScript: binScript,
+   715	      configPath: readBarrierConfigPath,
+   716	      binArgs: [readBarrierConfigPath, prompt],
+   717	      tsconfigPath,
+   718	      env: {
+   719	        DSH_SNAPSHOT: 'replay',
+   720	        DSH_SNAPSHOT_FILE: join(readBarrierScenarioDir, 'session.jsonl'),
+   721	        DSH_SNAPSHOT_OVERRIDE: join(readBarrierScenarioDir, 'replay.override.json'),
+   722	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   723	      },
+   724	      prepare: (cwd) => { runCwd = cwd },
+   725	      inspect: async (cwd) => {
+   726	        const logs = await persistedLogs(cwd)
+   727	        expect(logs).toHaveLength(1)
+   728	        const records = parseJsonl(logs[0]?.content ?? '')
+   729	        const denials = records.filter(record => record.type === 'read-barrier/denied')
+   730	        expect(denials).toHaveLength(1)
+   731	        expect(denials[0]?.data).toMatchObject({ version: 1, role: 'implementer', capability: 'fs' })
+   732	      },
+   733	    })
+   734	
+   735	    expect(result.stderr).toBe('')
+   736	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   737	    if (refreshing) await writeFile(streamExpected, normalized)
+   738	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   739	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   740	
+   741	  it('replays two fresh Ralph rounds through the one-shot app', async () => {
+   742	    const prompt = await scenarioPrompt(ralphScenarioDir, 'ralph-loop')
+   743	    const streamExpected = join(ralphScenarioDir, 'stream-json.expected.jsonl')
+   744	    let runCwd = ''
+   745	    const result = await runLoaderSmoke({
+   746	      label: 'Ralph loop headless stream-json snapshot',
+   747	      tempDirPrefix: 'headless-snapshot-ralph-loop-',
+   748	      binScript,
+   749	      libBinScript: binScript,
+   750	      configPath: ralphConfigPath,
+   751	      binArgs: [ralphConfigPath, prompt],
+   752	      tsconfigPath,
+   753	      env: {
+   754	        DSH_SNAPSHOT: 'replay',
+   755	        DSH_SNAPSHOT_FILE: join(ralphScenarioDir, 'session.jsonl'),
+   756	        DSH_SNAPSHOT_OVERRIDE: join(ralphScenarioDir, 'replay.override.json'),
+   757	        DSH_SNAPSHOT_CHILD_FILES: [
+   758	          join(ralphScenarioDir, 'session.1.jsonl'),
+   759	          join(ralphScenarioDir, 'session.2.jsonl'),
+   760	        ].join(delimiter),
+   761	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   762	      },
+   763	      prepare: (cwd) => { runCwd = cwd },
+   764	      inspect: async (cwd) => {
+   765	        const logs = await persistedLogs(cwd)
+   766	        expect(logs).toHaveLength(3)
+   767	        const parent = logs.find(log => typeof log.header.parentSession !== 'string')
+   768	        if (parent === undefined) throw new Error('Ralph snapshot did not persist its parent session')
+   769	        const parentId = parent.header.id
+   770	        expect(typeof parentId).toBe('string')
+   771	        const children = logs.filter(log => typeof log.header.parentSession === 'string')
+   772	          .sort((left, right) => Number(left.header.createdAt) - Number(right.header.createdAt))
+   773	        expect(children).toHaveLength(2)
+   774	        expect(children.map(child => child.header.parentSession)).toEqual([parentId, parentId])
+   775	        expect(children.map(child => child.header.cwd)).toEqual([parent.header.cwd, parent.header.cwd])
+   776	        expect(parent.header.delegationDepth).toBe(0)
+   777	        expect(children.map(child => child.header.delegationDepth)).toEqual([1, 1])
+   778	        expect(children.map(child => child.header.seedLength)).toEqual([undefined, undefined])
+   779	        expect(new Set(children.map(child => child.header.id)).size).toBe(2)
+   780	
+   781	        const parentRecords = parseJsonl(parent.content)
+   782	        const parentCalls = parentRecords.filter(record => record.type === 'tool/call')
+   783	        expect(parentCalls.map(record => (record.data as JsonObject | undefined)?.name)).toEqual(['ralph'])
+   784	        const parentResult = parentRecords.find(record => record.type === 'tool/result')
+   785	        const parentResultData = parentResult?.data as JsonObject | undefined
+   786	        const parentMessage = parentResultData?.message as JsonObject | undefined
+   787	        const parentContent = parentMessage?.content as JsonObject[] | undefined
+   788	        expect(parentContent?.[0]?.isError).toBe(false)
+   789	        expect(JSON.stringify(parentContent?.[0]?.content)).toContain('reported completion after 2 rounds')
+   790	
+   791	        const childRecords = children.map(child => parseJsonl(child.content))
+   792	        const childPrompts = childRecords.map((records) => {
+   793	          const message = records.find(record => record.type === 'user/message')
+   794	          return JSON.stringify((message?.data as JsonObject | undefined)?.content)
+   795	        })
+   796	        expect(childPrompts[0]).toContain('Ralph round: 1 of 2.')
+   797	        expect(childPrompts[0]).toContain('(none — this is the first round)')
+   798	        expect(childPrompts[0]).not.toContain('ROUND_ONE_HANDOFF')
+   799	        expect(childPrompts[1]).toContain('Ralph round: 2 of 2.')
+   800	        expect(childPrompts[1]).toContain('ROUND_ONE_HANDOFF')
+   801	        for (const childPrompt of childPrompts) {
+   802	          expect(childPrompt).toContain('Prove two fresh Ralph rounds through the shipped headless app.')
+   803	          expect(childPrompt).not.toContain('Run a two-round fresh-agent Ralph loop')
+   804	        }
+   805	        for (const records of childRecords) {
+   806	          const calls = records.filter(record => record.type === 'tool/call')
+   807	          expect(calls.map(record => (record.data as JsonObject | undefined)?.name))
+   808	            .toEqual(['structured_output'])
+   809	        }
+   810	      },
+   811	    })
+   812	
+   813	    expect(result.stderr).toBe('')
+   814	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   815	    if (refreshing) await writeFile(streamExpected, normalized)
+   816	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   817	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   818	
+   819	  it('delivers a continuable child result without parent polling', async () => {
+   820	    const parentReplay = join(settlementScenarioDir, 'parent.replay.jsonl')
+   821	    const parentOverride = join(settlementScenarioDir, 'parent.override.json')
+   822	    const childReplay = join(settlementScenarioDir, 'child.replay.jsonl')
+   823	    const childExpected = join(settlementScenarioDir, 'child.expected.jsonl')
+   824	    const streamExpected = join(settlementScenarioDir, 'stream-json.expected.jsonl')
+   825	    const task = 'Start one continuable background subagent and answer from its completion notice. Do not call list_agents, send_message, job_output, or job_list.'
+   826	    let runCwd = ''
+   827	    const result = await runLoaderSmoke({
+   828	      label: 'continuable settlement headless stream-json snapshot',
+   829	      tempDirPrefix: 'headless-snapshot-subagent-settlement-',
+   830	      binScript,
+   831	      libBinScript: binScript,
+   832	      configPath: settlementConfigPath,
+   833	      binArgs: [settlementConfigPath, task],
+   834	      tsconfigPath,
+   835	      env: {
+   836	        // The override fully supplies the parent script; the child fixture
+   837	        // remains separate so replay binds it to the fresh child Session.
+   838	        DSH_SNAPSHOT_FILE: parentReplay,
+   839	        DSH_SNAPSHOT_OVERRIDE: parentOverride,
+   840	        DSH_SNAPSHOT_CHILD_FILES: childReplay,
+   841	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   842	      },
+   843	      prepare: (cwd) => { runCwd = cwd },
+   844	      inspect: async (cwd) => {
+   845	        const logs = await persistedLogs(cwd)
+   846	        expect(logs).toHaveLength(2)
+   847	        const parent = logs.find(log => typeof log.header.parentSession !== 'string')
+   848	        const child = logs.find(log => typeof log.header.parentSession === 'string')
+   849	        if (parent === undefined || child === undefined) throw new Error('missing persisted parent or child log')
+   850	
+   851	        const parentRecords = parseJsonl(parent.content)
+   852	        const calls = parentRecords.filter(record => record.type === 'tool/call')
+   853	        expect(calls.map(record => (record.data as JsonObject | undefined)?.name)).toEqual(['subagent'])
+   854	        const callArguments = (calls[0]?.data as JsonObject | undefined)?.arguments
+   855	        if (typeof callArguments !== 'string') throw new Error('subagent call did not persist its arguments')
+   856	        expect(JSON.parse(callArguments)).not.toHaveProperty('run_in_background')
+   857	
+   858	        const notices = parentRecords.flatMap((record) => {
+   859	          if (record.type !== 'agent/inbox/spliced') return []
+   860	          const inserted = (record.data as JsonObject | undefined)?.inserted
+   861	          if (!Array.isArray(inserted)) return []
+   862	          return (inserted as JsonObject[]).filter((message) => {
+   863	            const source = message.source as JsonObject | undefined
+   864	            return source?.kind === 'subagent-settled'
+   865	          })
+   866	        })
+   867	        expect(notices).toHaveLength(1)
+   868	        expect(JSON.stringify(notices[0])).toContain('CHILD_RESULT')
+   869	
+   870	        const context = contextFromLogs([parent.content, child.content])
+   871	        const normalizedChild = scrubRequestHeaders(normalizeSessionLog(child.content, context))
+   872	        if (refreshing) await writeFile(childExpected, normalizedChild)
+   873	        expect(normalizedChild).toBe(await readFile(childExpected, 'utf8'))
+   874	        expect(normalizedChild).toContain('CHILD_RESULT')
+   875	        expect(normalizedChild).not.toContain('"name":"report"')
+   876	      },
+   877	    })
+   878	
+   879	    expect(result.stderr).toBe('')
+   880	    const records = parseJsonl(result.stdout)
+   881	    expect(records.at(-1)).toMatchObject({
+   882	      type: 'result',
+   883	      output: 'PARENT_RECEIVED_CHILD_RESULT',
+   884	    })
+   885	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   886	    if (refreshing) await writeFile(streamExpected, normalized)
+   887	    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+   888	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   889	
+   890	  it('replays persistent PTY tools through the one-shot app', async () => {
+   891	    const input = JSON.parse(await readFile(join(ptyScenarioDir, 'input.json'), 'utf8')) as {
+   892	      steps?: { op?: unknown; text?: unknown }[]
+   893	    }
+   894	    const prompt = input.steps?.find(step => step.op === 'prompt')?.text
+   895	    if (typeof prompt !== 'string') throw new Error('pty-tools input has no prompt step')
+   896	    let expectedSession = await readFile(ptySessionFixture, 'utf8')
+   897	    let runCwd = ''
+   898	    const result = await runLoaderSmoke({
+   899	      label: 'headless persistent PTY snapshot',
+   900	      tempDirPrefix: 'headless-snapshot-pty-',
+   901	      binScript,
+   902	      libBinScript: binScript,
+   903	      configPath: ptyConfigPath,
+   904	      binArgs: [ptyConfigPath, prompt],
+   905	      tsconfigPath,
+   906	      env: {
+   907	        DSH_SNAPSHOT: 'replay',
+   908	        DSH_SNAPSHOT_FILE: ptySessionFixture,
+   909	        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+   910	      },
+   911	      prepare: (cwd) => { runCwd = cwd },
+   912	      inspect: async (cwd) => {
+   913	        const logs = await persistedLogs(cwd)
+   914	        expect(logs).toHaveLength(1)
+   915	        const actual = logs[0]
+   916	        if (actual === undefined) throw new Error('headless PTY snapshot did not persist its session')
+   917	        const actualContext = contextFromLogs([actual.content])
+   918	        if (refreshing) {
+   919	          const harvested: HarvestedLog = {
+   920	            id: String(actual.header.id),
+   921	            createdAt: Number(actual.header.createdAt),
+   922	            content: actual.content,
+   923	          }
+   924	          const replacements = refreshFixtureReplacements([harvested], [expectedSession])
+   925	          expectedSession = tokenizeSessionFixtureCwd(
+   926	            stabilizeRefreshLog(actual.content, expectedSession, replacements, actualContext),
+   927	          )
+   928	          await writeFile(ptySessionFixture, expectedSession)
+   929	        }
+   930	        const expectedContext = contextFromLogs([expectedSession])
+   931	        expect(scrubRequestHeaders(normalizeSessionLog(actual.content, actualContext)))
+   932	          .toBe(scrubRequestHeaders(normalizeSessionLog(expectedSession, expectedContext)))
+   933	      },
+   934	    })
+   935	
+   936	    expect(result.stderr).toBe('')
+   937	    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+   938	    if (refreshing) await writeFile(ptyStreamExpected, normalized)
+   939	    expect(normalized).toBe(await readFile(ptyStreamExpected, 'utf8'))
+   940	  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+   941	})

@@ -7,6 +7,12 @@
 * text=auto eol=lf
 
 *.pdf binary
+*.gz binary
+
+# Raw session transcripts are kept byte-for-byte as collected: the manifest
+# digests are computed over the source bytes, so no EOL normalization and no
+# whitespace policing applies to them.
+data/transcripts/*/raw/** -text -whitespace
 
 # Pairing records are generated from the three confirmed owner-blob pairs.
 # The worktree-local installer registers the fail-closed driver command.

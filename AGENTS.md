@@ -4,7 +4,7 @@ DeepSeek Harness is a plugin-based agent harness on vendored Cordis: **everythin
 
 ## Pre-release stance: foundation over blast radius
 
-**Remove this section at the first tagged release.** With no external consumers, prefer the correct foundation over compatibility shims: rename or repackage freely and update every reference together. Backends reject old on-disk formats. SQLite uses monotonic `SCHEMA_VERSION`; `dsh-session` keeps `SESSION_FORMAT_VERSION` at `0` with no compatibility promise.
+**Remove this section at the first tagged release.** With no external consumers, prefer the correct foundation over compatibility shims: rename or repackage freely and update every reference together. Backends reject old on-disk formats. SQLite uses monotonic `SCHEMA_VERSION`; `dsh-session` keeps `SESSION_FORMAT_VERSION` at `0` without a compatibility promise.
 
 ## Repository layout
 
@@ -52,6 +52,7 @@ examples/    Runnable cordis.yml leaves over packages/examples bundles (see exam
 docs/        architecture, generated catalogs, postmortems, cookbook (see docs/AGENTS.md)
 scripts/     repo gates and generators
 website/     VitePress projection of selected bilingual docs/ sources
+data/        this repository's own build transcripts (see data/transcripts/README.md)
 ```
 
 Package groups: [packages/README.md](packages/README.md).
@@ -60,7 +61,7 @@ Package groups: [packages/README.md](packages/README.md).
 
 ```sh
 pnpm install            # pnpm workspaces, node ^22.19 || >=24
-pnpm run clean           # remove build outputs and safe residue from deleted packages
+pnpm run clean           # remove build outputs and residue of deleted packages
 pnpm run test           # vitest unit tests
 pnpm run test:coverage  # CI coverage gate: per-file 100% on packages/*/*/src
 pnpm run test:e2e       # real-API tests; self-skip without DEEPSEEK_API_KEY
@@ -71,7 +72,7 @@ pnpm run lint
 pnpm run duplication    # cross-file TypeScript clone detection
 pnpm run build          # tsc emits lib/types, tsdown bundles runtime
 pnpm run hygiene        # knip + publint + workspace constraints + NodeNext consumer check
-pnpm run check:windows-wine  # ONLY when diagnosing a known Windows failure (needs wine); CI owns this signal
+pnpm run check:windows-wine  # ONLY when diagnosing a known Windows failure (needs wine); CI owns it
 pnpm run doc-sync       # all documentation gates; leaf list in scripts/run-gates.ts
 pnpm run website:build  # VitePress build (doubles as dead-link check)
 pnpm dsh --profile headless "task"  # run one task from source (needs DEEPSEEK_API_KEY)
@@ -81,14 +82,14 @@ pnpm run demo:acp       # ACP automation server (needs DEEPSEEK_API_KEY)
 
 ### Host sandbox failures
 
-When required `gh`, `pnpm`, build, test, or generator commands fail because the agent sandbox blocks credentials, network, IPC, file watching, or nested `sandbox-exec`, retry unchanged with the narrowest host escalation before diagnosing authentication or project failure. Require sandbox evidence; never bypass genuine test failures or the product sandbox under test.
+When `gh`, `pnpm`, build, test, or generator commands fail because the agent sandbox blocks credentials, network, IPC, file watching, or nested `sandbox-exec`, retry unchanged with the narrowest host escalation before diagnosing authentication or project failure. Require sandbox evidence; never bypass genuine test failures or the product sandbox under test.
 
 ### Run relevant checks locally
 
-Run checks before pushes via [dsh-pre-push-checks](.agents/skills/dsh-pre-push-checks/SKILL.md); report only commands run. After `gh stack sync`, validate immediately; do not merge before checks pass.
+Run checks before pushes via [dsh-pre-push-checks](.agents/skills/dsh-pre-push-checks/SKILL.md); report only commands run. After `gh stack sync`, validate immediately; merge only after checks pass.
 
-- Match evidence to the surface: focused tests for behavior, snapshots for model or user output, `doc-sync` for docs, build/hygiene and built smokes for published paths, and real-API e2e for provider behavior.
-- Never default to the full suite or repeat a passing check for commit or push. CI owns exhaustive coverage and the platform matrix; rehearse all locally only by explicit request, for CI diagnosis, or for an irreducibly repository-wide change.
+- Match evidence to the surface: focused tests for behavior, snapshots for model or user output, `doc-sync` for docs, build/hygiene and built smokes for published paths, real-API e2e for providers.
+- Never default to the full suite or repeat a passing check for commit or push. CI owns exhaustive coverage and the platform matrix; rehearse all locally only by explicit request, for CI diagnosis, or an irreducibly repository-wide change.
 - `test:coverage`, not `test`, is the CI coverage gate ([why](docs/testing.md)).
 
 ## Secrets / .env
@@ -142,8 +143,8 @@ Docs accompany every code change: update affected README and JSDoc contracts tog
 
 ## Editing these instructions
 
-`CLAUDE.md` symlinks `AGENTS.md` at root, `packages/`, and `examples/`; edit the real file. Keep each rule self-contained while linking high-level docs. Condense when clarity survives; raise a `verify-doc-budgets` ceiling when the required content genuinely needs more space.
+`CLAUDE.md` symlinks `AGENTS.md` at root, `packages/`, and `examples/`; edit the real file. Keep each rule self-contained while linking high-level docs. Condense when clarity survives; raise a `verify-doc-budgets` ceiling when required content genuinely needs the space.
 
 ## Vendoring policy
 
-`vendor/` packages are pinned source copies (manifest with upstream SHAs in [vendor/README.md](vendor/README.md)). Update via the sync procedure there; re-apply or retire the logged local modifications; rerun `pnpm run test && pnpm run build`.
+`vendor/` packages are pinned source copies (manifest with upstream SHAs in [vendor/README.md](vendor/README.md)). Update via the sync procedure there; re-apply or retire logged local modifications; rerun `pnpm run test && pnpm run build`.
