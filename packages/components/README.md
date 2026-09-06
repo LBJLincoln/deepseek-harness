@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-One registry for what a composition contains and how a model reaches each part: plugins and plugin-provided members carry a stable id, a kind, provenance, lineage, membership, and a callable route. Producers are adapters that mirror one seam's live registry; consumers read the inventory for humans, models, and the seams that score components.
+One registry for what a composition contains and how a model reaches each part: plugins and plugin-provided members carry a stable id, a content address, a kind, provenance, lineage, membership, and a callable route, filed in the global layer or an agent's own. Producers are adapters that mirror one seam's live registry and own their kind's canonical value; consumers read the inventory for humans, models, and the seams that score components.
 
 | Package | Role | ctx key |
 |---|---|---|

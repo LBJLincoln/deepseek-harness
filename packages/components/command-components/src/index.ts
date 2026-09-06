@@ -36,12 +36,16 @@ function renderInventory(components: readonly ComponentDescriptor[]): CommandRes
   return { kind: 'success', text: lines.join('\n') }
 }
 
-/** Execute the read-only inventory view through the registry that owns it. */
+/**
+ * Execute the read-only inventory view through the registry that owns it. The
+ * invoking agent is the viewing scope, so the inventory is what that agent
+ * sees: the global layer plus every layer on its scope chain.
+ */
 function executeComponentsCommand(ctx: Context, invocation: CommandInvocation): CommandResult {
   if (invocation.rawInput.trim().length !== 0) {
     return { kind: 'error', text: `The components command takes no arguments. ${USAGE}` }
   }
-  const components = ctx.components.list()
+  const components = ctx.components.list({ scope: invocation.agent })
   return components.length === 0
     ? { kind: 'success', text: `No components are registered in this composition.\n${USAGE}` }
     : renderInventory(components)

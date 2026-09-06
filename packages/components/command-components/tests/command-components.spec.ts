@@ -4,8 +4,9 @@ import Loader from '@deepseek-ai/cordis-plugin-loader'
 import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentStatus } from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
-import ComponentRegistry, { ComponentId } from '@deepseek-ai/dsh-components'
+import ComponentRegistry, { ComponentId, componentDigest } from '@deepseek-ai/dsh-components'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
+import { createScope } from '@deepseek-ai/dsh-scope'
 import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
 import * as commandComponents from '@deepseek-ai/dsh-command-components'
 import * as invariantCompanion from '@deepseek-ai/dsh-command-components/invariant'
@@ -115,6 +116,8 @@ describe('/components human command', () => {
     test.ctx.components.register({
       id: ComponentId('test-kind:alpha'),
       kind: 'test-kind',
+      digest: componentDigest('test-kind', ['alpha']),
+      digestBasis: 'content',
       name: 'alpha',
       description: 'component alpha',
       owner: '@deepseek-ai/dsh-command-components-tests',
@@ -125,6 +128,8 @@ describe('/components human command', () => {
     test.ctx.components.register({
       id: ComponentId('other-kind:gamma'),
       kind: 'other-kind',
+      digest: componentDigest('other-kind', [2]),
+      digestBasis: 'registration',
       name: 'gamma',
       description: 'component gamma',
       owner: '@deepseek-ai/dsh-command-components-tests',
@@ -135,6 +140,8 @@ describe('/components human command', () => {
     test.ctx.components.register({
       id: ComponentId('test-kind:beta'),
       kind: 'test-kind',
+      digest: componentDigest('test-kind', ['beta']),
+      digestBasis: 'content',
       name: 'beta',
       description: 'component beta',
       owner: '@deepseek-ai/dsh-command-components-tests',
@@ -153,5 +160,33 @@ describe('/components human command', () => {
         '- other-kind:gamma: component gamma · curated · 2 members',
       ].join('\n'),
     })
+  })
+
+  it('renders what the invoking agent sees, including its own scope layer', async () => {
+    const test = await harness()
+    const scope = createScope(test.ctx, test.agent)
+    const scoped = scope.ctx.get('components')
+    if (scoped === undefined) throw new Error('components service missing')
+    scoped.register({
+      id: ComponentId('test-kind:agent-owned'),
+      kind: 'test-kind',
+      digest: componentDigest('test-kind', ['agent-owned']),
+      digestBasis: 'content',
+      name: 'agent-owned',
+      description: 'component mounted for this agent alone',
+      owner: '@deepseek-ai/dsh-command-components-tests',
+      provenance: 'curated',
+      detail: { note: 'scoped' },
+    })
+    await expect(run(test)).resolves.toEqual({
+      kind: 'success',
+      text: [
+        'Components (1)',
+        'test-kind (1):',
+        '- test-kind:agent-owned: component mounted for this agent alone · curated',
+      ].join('\n'),
+    })
+    expect(test.ctx.components.list()).toEqual([])
+    await scope.dispose()
   })
 })

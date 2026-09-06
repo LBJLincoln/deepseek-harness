@@ -379,7 +379,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Component registry',
     mode: 'core',
     consumers: ['components-subagents', 'command-components'],
-    note: 'Composition-time inventory of every addressable unit with kind, provenance, lineage, membership, and callable route; adapters mirror live seams into it.',
+    note: 'Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it.',
   },
   {
     key: 'environments',

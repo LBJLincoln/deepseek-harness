@@ -14,11 +14,13 @@ harness 中的每一个身份指向的都是一个位置，而不是位置里的
 
 ## Proposal
 
-**一个摘要函数，一种地址形式。** [`dsh-components`](../../../../packages/components/components/README.md) 新增 `ComponentDigest`（来自 `dsh-brand` 的 `Branded<'ComponentDigest'>`）与两个纯函数：`componentDigest(kind, canonical)` 返回 `` `${kind}\n${JSON.stringify(canonical)}` `` 的小写 SHA-256 十六进制值，`componentAddress(id, digest)` 返回 `` `${id}@${digest}` ``。kind 被包含在被哈希的字节内，因此两个规范值恰好相同的 kind 绝不会共享同一个地址。摘要在任何被存储或被比较的位置都是完整的 64 个十六进制字符，与 [`dsh-environments`](../../../../packages/improvement/environments/README.md) 中的 `environmentContentHashes` 一致；为卡片或表格截短它是一种呈现选择，永远不会进入日志或 ledger。`ComponentDescriptor` 新增必填的 `digest: ComponentDigest` 与必填的 `digestBasis: 'content' | 'registration'`。
+**一个摘要函数，一种地址形式。** [`dsh-components`](../../../../packages/components/components/README.md) 新增 `ComponentDigest`（来自 `dsh-brand` 的 `Branded<'ComponentDigest'>`）与两个纯函数：`componentDigest(kind, canonical)` 返回 `` `${kind}\n${JSON.stringify(canonical)}` `` 的小写 SHA-256 十六进制值，`componentAddress(id, digest)` 返回 `` `${id}@${digest}` ``。kind 被包含在被哈希的字节内，因此两个规范值恰好相同的 kind 绝不会共享同一个地址。摘要在任何被存储或被比较的位置都是完整的 64 个十六进制字符，与 [`dsh-environments`](../../../../packages/improvement/environments/README.md) 中的 `environmentContentHashes` 一致；为卡片或表格截短它是一种呈现选择，永远不会进入日志或 ledger。`ComponentDescriptor` 新增必填的 `digest: ComponentDigest` 与必填的 `digestBasis: 'content' | 'registration'`。落地后的实现把 `canonical` 定型为 `ComponentCanonical`——一个 JSON 值——因此生产者无法把 `JSON.stringify` 会丢弃的值交给哈希；`componentAddress` 返回普通字符串：地址是被铸造与被比较的，从不跨越需要品牌类型守卫的边界。
 
-**每个生产者拥有自己的规范值。** 注册表不发布任何按 kind 的规范化逻辑，理由与它不发布任何 kind 相同：每个生产者通过声明合并声明自己的 `ComponentKindMap` 成员，并导出把它规范化的纯函数，于是后来新增的 kind 无需改动注册表或清单写入方。下面的表格固定了本 note 引入的每个 kind 的规范值。
+**每个生产者拥有自己的规范值。** 注册表不发布任何按 kind 的规范化逻辑，理由与它不发布任何 kind 相同：每个生产者通过声明合并声明自己的 `ComponentKindMap` 成员，并导出把它规范化的纯函数，于是后来新增的 kind 无需改动注册表或清单写入方。下面的表格固定了本 note 引入的每个 kind 的规范值。落地后导出的函数是该 kind 的摘要而非其裸规范值——`agentProviderDigest(provider)`，以及 skill 行已经点名的 `skillDigest(definition)`——因此需要重算地址的消费者调用生产者，而不是照着表格重建规范值。
 
-**注册表变为分层。** 今天的 `ComponentRegistry` 是一个扁平 `Map`，因此无法回答"这个 agent 看到了什么"。它改用 `dsh-scope` 的 `ScopedLayers`，与 [`ctx.tools`](../../../../packages/core/tools/README.md) 和 [`ctx.skills`](../../../../packages/skill/skill/README.md) 今天的做法完全一致：`register()` 归档到调用上下文的作用域中，`list({ kind, scope })` 把全局层与查看作用域的链合并，最近的层的条目赢得同名 id。经由某个作用域读回的描述符携带 `layer: 'global' | 'agent'`——胜出的注册位于全局层时为 `global`，位于该 agent 作用域链的某一层时为 `agent`。更深的链仍读作 `agent`，因为子 agent 在自己的会话里写自己的清单。
+**注册表变为分层。** `ComponentRegistry` 曾是一个扁平 `Map`，因此无法回答"这个 agent 看到了什么"。它改用 `dsh-scope` 的 `ScopedLayers`，与 [`ctx.tools`](../../../../packages/core/tools/README.md) 和 [`ctx.skills`](../../../../packages/skill/skill/README.md) 今天的做法完全一致：`register()` 归档到调用上下文的作用域中，`list({ kind, scope })` 把全局层与查看作用域的链合并，最近的层的条目赢得同名 id。经由某个作用域读回的描述符携带 `layer: 'global' | 'agent'`——胜出的注册位于全局层时为 `global`，位于该 agent 作用域链的某一层时为 `agent`。更深的链仍读作 `agent`，因为子 agent 在自己的会话里写自己的清单。id 按层唯一，因此同一层内的重复 id 仍抛出 `COMPONENT_DUPLICATE_ID`，而不同层中的同一 id 构成遮蔽。
+
+派生出的 `layer` 承载在 `ComponentView` 上——一个扩展 `ComponentDescriptor` 的独立读取类型——而不是描述符上的可选字段：生产者注册描述符，无法自行断言所在层，而读取方总能拿到一个。`get(id, { scope })` 接受与 `list({ kind, scope })` 相同的查看作用域，即 `dsh-skill` 已经用于其两个读取的 `SkillViewOptions` 形态。注册表不发布任何变更通知——理由见下面被否决的 `components/change` 备选——因此 `ScopedLayers` 的变更回调是一个有说明的空操作。
 
 **清单写入方只读一个注册表。** 位于 `packages/components/components-manifest/` 的 `@deepseek-ai/dsh-components-manifest` 注入 `agents` 与 `components`，仅此而已。在 `agent/pre-step` 上它先调用 `next()`，为调用中的 agent 重算 `ctx.components.list({ scope: agent })`，把得到的 `compositionSha256` 与该会话日志中最后一条 `composition/manifest` 事件比较，仅在两者不同时通过 `agent.session.append()` 追加一条新事件——正是 [`dsh-budget-policy`](../../../../packages/guard/budget-policy/README.md) 已经在步骤开启前用于折叠与追加的形状。选择重算而非增量跟踪，正是让它在 HMR 释放、创建后才挂载的 preset 以及作用域遮蔽这三种顺序下都保持正确的原因：写入方不持有任何这三者可能失效的订阅状态。
 
@@ -97,7 +99,7 @@ ledger 的 `./invariant` 伴生插件拥有清单对 ledger 的关系，这是[�
 
 ## Rollout
 
-1. `dsh-components`：`ComponentDigest` 品牌类型、`componentDigest()` 与 `componentAddress()`、`ComponentDescriptor` 上必填的 `digest` 与 `digestBasis`，以及带 `list({ kind, scope })` 与派生 `layer` 的 `ScopedLayers` 分层。更新 `dsh-components-subagents` 与 `dsh-command-components`、[`docs/subsystems/components.md`](../../../../docs/subsystems/components.md) 以及三个包 README。
+1. **已落地。** `dsh-components`：`ComponentDigest` 品牌类型、`componentDigest()` 与 `componentAddress()`、`ComponentDescriptor` 上必填的 `digest` 与 `digestBasis`，以及带 `list({ kind, scope })` 与派生 `layer` 的 `ScopedLayers` 分层。更新 `dsh-components-subagents`（`agent-provider` 的规范值 `[provider]`，基准为 `registration`）与 `dsh-command-components`（发起调用的 agent 成为查看作用域；其渲染行仍不给出摘要或层，因为没有任何可运行示例组合了 `/components`，而渲染变更欠一份无密钥快照）、[`docs/subsystems/components.md`](../../../../docs/subsystems/components.md) 以及三个包 README。
 2. 组合期适配器及其规范值：`packages/components/` 下的 `dsh-components-tools`、`dsh-components-prompt` 与 `dsh-components-presets`，各自跟随它所属 seam 已有的变更事件。
 3. `dsh-components-manifest`：`composition/manifest` 声明、带 `compositionSha256` 去重的 `agent/pre-step` 写入方、重新生成的 `known-event-types.ts` 与持久化目录，以及 `composition-manifest` fixture。
 4. skill 代际：`dsh-skill` 中的 `skillDigest()`、`skill` 工具规范值与 `SkillInvocationSource` 上的 `digest` 字段、`dsh-components-skills`，以及变异 fixture。

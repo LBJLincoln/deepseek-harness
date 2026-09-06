@@ -5,8 +5,12 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { ComponentId } from '@deepseek-ai/dsh-components'
-import type { ComponentDescriptor, ComponentId as ComponentIdType } from '@deepseek-ai/dsh-components/types'
+import { ComponentId, componentDigest } from '@deepseek-ai/dsh-components'
+import type {
+  ComponentDescriptor,
+  ComponentDigest,
+  ComponentId as ComponentIdType,
+} from '@deepseek-ai/dsh-components/types'
 // Type-only: resolves ctx.subagents and the subagent lifecycle events.
 import type {} from '@deepseek-ai/dsh-subagent'
 
@@ -42,11 +46,26 @@ export function agentProviderComponentId(provider: string): ComponentIdType {
   return ComponentId(`agent-provider:${provider}`)
 }
 
+/**
+ * Content address of one `agent-provider` component. The canonical value is
+ * `[provider]`, so the digest addresses the registration and not the agent
+ * the provider starts: the subagent seam exposes a provider name and its
+ * lifecycle edges, never the composition behind them, which is why this kind's
+ * `digestBasis` is `registration`.
+ * @param provider - provider name as registered with `ctx.subagents`.
+ * @returns the digest over this kind and that canonical value.
+ */
+export function agentProviderDigest(provider: string): ComponentDigest {
+  return componentDigest('agent-provider', [provider])
+}
+
 /** Describe one provider as a component. */
 function describeProvider(provider: string): ComponentDescriptor {
   return {
     id: agentProviderComponentId(provider),
     kind: 'agent-provider',
+    digest: agentProviderDigest(provider),
+    digestBasis: 'registration',
     name: provider,
     description: `Subagent provider "${provider}", reached through the subagent tool instance configured for it.`,
     owner: OWNER,
