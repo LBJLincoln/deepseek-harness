@@ -55,6 +55,7 @@ One table row per scoreboard row, in this order:
 | Column | What it states |
 |---|---|
 | Route | `provider/model` of the row's stamp. |
+| Implementer | Who did the work: `route` for the session's own model route, or the subagent provider name of a delegated cell. Rows never average across it. |
 | Environment | The environment id the row's sessions ran. |
 | District | The district every session of the row was stamped with, `none` for a row outside every district. |
 | Isolation | The isolation the runs declared; rows never average across it. |

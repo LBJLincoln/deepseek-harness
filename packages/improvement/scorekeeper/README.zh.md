@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-把会话日志当作数据集。`sessionFacts` 投影单元把一个活动会话折叠为四组事实，`ctx.scorekeeper` 从已持久化日志折叠出同样的分组：每会话一条记录、一张按模型路由、环境、隔离级别、留出划分与区（district）分组的记分板，以及一份 JSONL 导出。服务经会话持久化 seam 读取，不写任何会话事件。[记分员 Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) 承载设计理由。
+把会话日志当作数据集。`sessionFacts` 投影单元把一个活动会话折叠为四组事实，`ctx.scorekeeper` 从已持久化日志折叠出同样的分组：每会话一条记录、一张按模型路由、环境、隔离级别、实现者、留出划分与区（district）分组的记分板，以及一份 JSONL 导出。服务经会话持久化 seam 读取，不写任何会话事件。[记分员 Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) 承载设计理由。
 
 ## Config
 
@@ -27,7 +27,7 @@
 
 `ctx.scorekeeper.facts(sessionId)` 通过 `ctx.sessionPersistence.inspect()` 读取一个已持久化会话并返回其 `SessionFactsRecord`；无法读取的会话，或 goal 与验证事件流有缺陷的会话，会被拒绝。
 
-`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` 折叠每个指定会话（`sessions` 缺省时为全部已持久化会话），并把已盖章的会话按模型路由、环境、隔离级别、留出划分与区归入各行。无法读取或折叠的会话连同原因加入 `skipped`，折叠继续；日志中没有 `environment/run` stamp 的会话计入 `unstamped`，因为没有任何行能指名它的单元格；被 `group` 或 `heldOut` 条件拒绝的已盖章会话计入 `excluded`。
+`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` 折叠每个指定会话（`sessions` 缺省时为全部已持久化会话），并把已盖章的会话按模型路由、环境、隔离级别、实现者、留出划分与区归入各行。无法读取或折叠的会话连同原因加入 `skipped`，折叠继续；日志中没有 `environment/run` stamp 的会话计入 `unstamped`，因为没有任何行能指名它的单元格；被 `group` 或 `heldOut` 条件拒绝的已盖章会话计入 `excluded`。
 
 `ctx.scorekeeper.exportFacts({ sessions?, sink })` 为每个会话把 `JSON.stringify(record) + '\n'` 写入 `sink.write()`，并在最后一次写入之后或失败之后恰好关闭 sink 一次。该 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务两种导出。
 
@@ -42,7 +42,7 @@
 | 字段 | 来源 |
 |---|---|
 | `sessionId`、`createdAt` | 已存储的会话头（仅 `facts()` 与 `exportFacts()`；投影值本身已由其会话定址） |
-| `environment.environmentId`、`.environmentKind`、`.heldOut`、`.repetition`、`.group`、`.district`、`.contentSha256`、`.provider`、`.model`、`.isolation` | `environment/run` stamp；未被运行器盖章的会话没有该字段 |
+| `environment.environmentId`、`.environmentKind`、`.heldOut`、`.repetition`、`.group`、`.district`、`.contentSha256`、`.provider`、`.model`、`.isolation`、`.implementer` | `environment/run` stamp；未被运行器盖章的会话没有该字段；不点名 `implementer` 的 stamp 折叠为 `route`，即由该运行自身模型路由实现 |
 | `requestProvider`、`requestModel` | 最后一条 `request/header` 的 `config.provider` 与 `config.model` |
 | `compositionSha256` | 最后一条 `composition/manifest`（`@deepseek-ai/dsh-components-manifest`）的 `compositionSha256`；日志中没有该事件的会话没有该字段 |
 
@@ -86,7 +86,7 @@
 
 ## Scoreboard rows
 
-一行是一个模型路由在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨隔离级别、该划分或跨区求平均，因此按区扣留的发布是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而不是缺失的行。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；token 求和覆盖该行的每个会话，含出错的会话。
+一行是一个模型路由与一个实现者在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨实现者、隔离级别、该划分或跨区求平均，因此同一环境上的外部 coding agent 与 harness 自身路由保持为两行，按区扣留的发布也是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而不是缺失的行。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；token 求和覆盖该行的每个会话，含出错的会话。
 
 另有三列陈述发布在这些比率之外所需要的东西。`tampered` 统计最后一次记录运行带 `tampered` 裁决的会话；一行的 `errors` 恰好就是它的未插桩会话，因为没有记录运行的会话没有裁决可读。`compositionSha256` 是该行每个会话都陈述的摘要，某个会话没有陈述或两者不一致时缺席，因此只覆盖一行中一部分的摘要绝不归因整行。`certificateExecutors` 按首次出现顺序保存该行已认证会话的去重 executor：没有认证任何东西的行为空，有两个或更多则表示该行的证书彼此不一致，任何单一 executor 都不得与其比率并列发布。
 

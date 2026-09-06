@@ -88,6 +88,8 @@ describe('foldSessionFacts', () => {
         provider: 'cli-mock',
         model: 'cli-mock',
         isolation: 'none',
+        // A stamp naming no implementer is a run its own model route implemented.
+        implementer: 'route',
       },
       requestProvider: 'cli-mock',
       requestModel: 'cli-mock',

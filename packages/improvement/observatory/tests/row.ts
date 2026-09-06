@@ -14,6 +14,7 @@ export interface RowOverrides {
   readonly heldOut?: boolean
   readonly district?: string
   readonly isolation?: CertificateIsolation
+  readonly implementer?: string
   readonly runs?: number
   readonly errors?: number
   readonly tampered?: number
@@ -46,6 +47,7 @@ export function row(overrides: RowOverrides = {}): ScoreboardRow {
     environmentKind: 'smoke',
     heldOut: false,
     isolation: 'none',
+    implementer: 'route',
     runs: 2,
     errors: 0,
     tampered: 0,

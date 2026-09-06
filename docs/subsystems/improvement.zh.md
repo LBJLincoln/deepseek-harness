@@ -80,8 +80,19 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
+  /**
+   * Who did the work: `route` for the session's own model route, or the
+   * subagent provider name for a run delegated to an out-of-band coding agent.
+   * A scoreboard row is keyed by it, so two implementers on one environment
+   * stay two rows. Absent in a payload that states none, which is the route.
+   */
+  readonly implementer?: string
 }
 ```
+
+### 一次运行的实现者
+
+`implementer` 点名每次尝试的工作由谁完成：会话自身模型路由逐轮驱动时为 `route`，或者是每次尝试作为一次子运行被委派到的那个 `ctx.subagents` provider 的名字。被委派的运行的创建、盖章、标准编写、校验、认证与指令都完全一致——变的只是工作区抵达下一个状态的方式，运行器仍然亲自执行每一项检查。cell 会话把每次子运行记为一条 `environment/delegation` 事件，且不携带属于自己的 assistant 轮次，因此由它导出的轨迹不含任何 step。fleet 计划与班次的区各为自己的每个 cell 点名一个实现者，记分板则据它给行建键：同一环境上的外部 coding agent 与 harness 自身路由是两行，绝不是一个平均值。[运行器 README](../../packages/improvement/environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
 
 ### 策略版本、种子，以及 replay 能复现什么
 
@@ -93,7 +104,7 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
 
 ## 排行榜行
 
-fleet 从一次 fleet 运行的报告中折叠出每个模型路由与环境一行。行绝不会跨隔离级别或跨留出划分求平均：`isolation` 与 `heldOut` 是消费者据以分区的列，全部 cell 在运行前失败的行不携带隔离声明。
+fleet 从一次 fleet 运行的报告中折叠出每个模型路由与环境一行。行绝不会跨隔离级别或跨留出划分求平均：`isolation` 与 `heldOut` 是消费者据以分区的列，全部 cell 在运行前失败的行既不携带隔离声明也不携带实现者。一个计划只跑一个实现者，因此 fleet 的行不可能混合两者；跨计划折叠的记分板则改为按实现者给行建键。
 
 ```ts type-equiv
 /**
@@ -109,6 +120,11 @@ interface LeaderboardRow {
   readonly heldOut: boolean
   /** Isolation the runs declared, absent when every cell of the row failed before a run. */
   readonly isolation?: CertificateIsolation
+  /**
+   * Implementer the runs were stamped with — `route` or the subagent provider
+   * name — absent when every cell of the row failed before a run.
+   */
+  readonly implementer?: string
   /** Cells that produced a report. */
   readonly runs: number
   /** Cells that produced no report. */
@@ -154,7 +170,7 @@ interface TrajectoryReward {
 
 ## 会话事实
 
-记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。与它们并列的还有发布所读取的两个事实：`tamper` 是最后一次运行的裁决，会话一次运行也没有记录时为 `not-instrumented`；identity 分组的 `compositionSha256` 是日志中最后一条 `composition/manifest` 的摘要。只有当一行的每个会话都陈述同一个摘要时该行才陈述它，同时该行统计自己的 `tampered` 会话，并列出自己证书的去重 executor。
+记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、实现者、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。与它们并列的还有发布所读取的两个事实：`tamper` 是最后一次运行的裁决，会话一次运行也没有记录时为 `not-instrumented`；identity 分组的 `compositionSha256` 是日志中最后一条 `composition/manifest` 的摘要。只有当一行的每个会话都陈述同一个摘要时该行才陈述它，同时该行统计自己的 `tampered` 会话，并列出自己证书的去重 executor。
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -243,6 +259,8 @@ interface ObservatoryPublishedRow {
   readonly district?: string
   readonly heldOut: boolean
   readonly isolation: CertificateIsolation
+  /** Who did the work of the row's sessions: `route`, or the subagent provider name of a delegated cell. */
+  readonly implementer: string
   /** Executors of the row's certificates; empty for a row that certified nothing. */
   readonly certificateExecutors: readonly RunExecutor[]
   /** Composition digest every session of the row states, absent when the page shows `pending`. */
@@ -308,6 +326,8 @@ interface ShiftPlan {
   readonly environments: readonly EnvironmentId[]
   /** Model routes in listing order, at least one; the fleet enumerates cells in it. */
   readonly models: readonly EnvironmentRunModel[]
+  /** Who implements every cell of the shift; absent runs each cell's own model route. */
+  readonly implementer?: EnvironmentRunImplementer
   /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
   readonly repetitions: number
   /**
@@ -423,11 +443,13 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 /**
  * Run one environment as one fresh session and validate it.
  * @param request - environment id, absolute workspace directory, optional
- *   model route, repetition, group, district, policy version, sampling seed, and abort signal.
+ *   implementer, model route, repetition, group, district, policy version,
+ *   sampling seed, and abort signal.
  * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
  * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
- *   is not a safe non-negative integer, an unusable workspace or fixture, an
- *   implementer that replaced the goal, or a lost standard.
+ *   is not a safe non-negative integer, an implementer provider the
+ *   composition does not hold or cannot confine, an unusable workspace or
+ *   fixture, an implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -449,7 +471,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:703`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:749`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -497,7 +519,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:372`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:382`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -538,9 +560,9 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, repetitions, an optional exact
- *   cell selection, workspace root, group, district, policy version, base
- *   seed, token ceiling, and abort signal.
+ * @param plan - environments, model routes, an optional implementer,
+ *   repetitions, an optional exact cell selection, workspace root, group,
+ *   district, policy version, base seed, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
  *   no repetition, names no or an unenumerated cell, sets a token ceiling
@@ -550,7 +572,7 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:301`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 
@@ -678,7 +700,7 @@ async start(): Promise<void>
 async stop(): Promise<void>
 ```
 
-Source: [`packages/improvement/shifts/src/index.ts:124`](../../packages/improvement/shifts/src/index.ts)
+Source: [`packages/improvement/shifts/src/index.ts:125`](../../packages/improvement/shifts/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 

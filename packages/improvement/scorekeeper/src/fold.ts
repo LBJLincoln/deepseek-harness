@@ -18,7 +18,7 @@
  * @module @deepseek-ai/dsh-scorekeeper
  */
 
-import { decodeEnvironmentRun } from '@deepseek-ai/dsh-environments'
+import { decodeEnvironmentRun, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import { foldGoal } from '@deepseek-ai/dsh-goal'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 // Type-only: the `budget/breach` SessionEventMap merge this fold reads.
@@ -247,6 +247,9 @@ function withStamp(state: SessionFactsState, event: SessionEvent<'environment/ru
       provider: stamp.model.provider,
       model: stamp.model.model,
       isolation: stamp.isolation,
+      // A stamp that names no implementer was written for a run its own model
+      // route implemented, which is what the reserved name states.
+      implementer: stamp.implementer ?? ROUTE_IMPLEMENTER,
     },
   })
 }

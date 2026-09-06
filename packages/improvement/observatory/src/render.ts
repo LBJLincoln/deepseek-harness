@@ -29,6 +29,7 @@ export const STALE_SENTENCE
 /** Column headings, in the order the honest column set is published. */
 const COLUMNS: readonly string[] = [
   'Route',
+  'Implementer',
   'Environment',
   'District',
   'Isolation',
@@ -105,10 +106,11 @@ function costCell(row: ObservatoryPublishedRow): string {
   return `€${row.costEurPerCertified.toFixed(6)} · ${row.pricingDigest}`
 }
 
-/** The eleven cells of one published row, in column order. */
+/** The twelve cells of one published row, in column order. */
 function cells(row: ObservatoryPublishedRow): readonly string[] {
   return [
     `${row.provider}/${row.model}`,
+    row.implementer,
     row.environmentId,
     row.district ?? 'none',
     row.isolation,
@@ -196,7 +198,7 @@ p{margin:.5rem 0}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 th,td{padding:.45rem .6rem;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:var(--head);font-weight:600}
-td:nth-child(6){font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:normal;overflow-wrap:anywhere}
+td:nth-child(7){font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:normal;overflow-wrap:anywhere}
 tbody tr:last-child td{border-bottom:none}
 .stale{border:1px solid var(--warn);background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:1rem}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}

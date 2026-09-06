@@ -80,8 +80,19 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
+  /**
+   * Who did the work: `route` for the session's own model route, or the
+   * subagent provider name for a run delegated to an out-of-band coding agent.
+   * A scoreboard row is keyed by it, so two implementers on one environment
+   * stay two rows. Absent in a payload that states none, which is the route.
+   */
+  readonly implementer?: string
 }
 ```
+
+### The implementer of a run
+
+`implementer` names who did the work of every attempt: `route` for the session's own model route, driven turn by turn, or the name of a `ctx.subagents` provider each attempt was delegated to as one child run. A delegated run is created, stamped, standardized, validated, certified, and directed identically — only the way the workspace reaches its next state changes, and the runner still executes every check itself. The cell session records each child run as an `environment/delegation` event and carries no assistant turn of its own, so the trajectory exported from it holds no step. A fleet plan and a shift district each name one implementer for every cell, and the scoreboard keys a row by it: an external coding agent and the harness's own route on one environment are two rows, never one average. The [runner README](../../packages/improvement/environment-runner/README.md#the-two-implementers) owns what a delegated certificate proves and which providers an isolation claim above `none` refuses.
 
 ### Policy version, seeds, and what a replay reproduces
 
@@ -93,7 +104,7 @@ A seed records what a run **asked for**, never what the provider did. An adapter
 
 ## Leaderboard row
 
-The fleet folds one row per model route and environment from the reports of one fleet run. A row never averages across isolation levels or across the held-out split: `isolation` and `heldOut` are columns a consumer partitions by, and a row whose cells all failed before a run carries no isolation claim.
+The fleet folds one row per model route and environment from the reports of one fleet run. A row never averages across isolation levels or across the held-out split: `isolation` and `heldOut` are columns a consumer partitions by, and a row whose cells all failed before a run carries neither an isolation claim nor an implementer. One plan runs one implementer, so a fleet row cannot mix two; the scoreboard, which folds across plans, keys its rows by the implementer instead.
 
 ```ts type-equiv
 /**
@@ -109,6 +120,11 @@ interface LeaderboardRow {
   readonly heldOut: boolean
   /** Isolation the runs declared, absent when every cell of the row failed before a run. */
   readonly isolation?: CertificateIsolation
+  /**
+   * Implementer the runs were stamped with — `route` or the subagent provider
+   * name — absent when every cell of the row failed before a run.
+   */
+  readonly implementer?: string
   /** Cells that produced a report. */
   readonly runs: number
   /** Cells that produced no report. */
@@ -154,7 +170,7 @@ Messages are projected from the session surface after compaction replacements, e
 
 ## Session facts
 
-The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one. The outcome group carries the last run's `parity` beside `certified`, and a row means it over the sessions that measured cases: the certificate and the weighted pass rate are separate columns, never merged into one score and never ranked across. Two facts a publication reads sit beside them: `tamper` is the last run's verdict, `not-instrumented` for a session that recorded none, and the identity group's `compositionSha256` is the digest of the last `composition/manifest` in the log; a row states the digest only when every session of it states the same one, counts its `tampered` sessions, and lists the distinct executors of its certificates.
+The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, implementer, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one. The outcome group carries the last run's `parity` beside `certified`, and a row means it over the sessions that measured cases: the certificate and the weighted pass rate are separate columns, never merged into one score and never ranked across. Two facts a publication reads sit beside them: `tamper` is the last run's verdict, `not-instrumented` for a session that recorded none, and the identity group's `compositionSha256` is the digest of the last `composition/manifest` in the log; a row states the digest only when every session of it states the same one, counts its `tampered` sessions, and lists the distinct executors of its certificates.
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -243,6 +259,8 @@ interface ObservatoryPublishedRow {
   readonly district?: string
   readonly heldOut: boolean
   readonly isolation: CertificateIsolation
+  /** Who did the work of the row's sessions: `route`, or the subagent provider name of a delegated cell. */
+  readonly implementer: string
   /** Executors of the row's certificates; empty for a row that certified nothing. */
   readonly certificateExecutors: readonly RunExecutor[]
   /** Composition digest every session of the row states, absent when the page shows `pending`. */
@@ -308,6 +326,8 @@ interface ShiftPlan {
   readonly environments: readonly EnvironmentId[]
   /** Model routes in listing order, at least one; the fleet enumerates cells in it. */
   readonly models: readonly EnvironmentRunModel[]
+  /** Who implements every cell of the shift; absent runs each cell's own model route. */
+  readonly implementer?: EnvironmentRunImplementer
   /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
   readonly repetitions: number
   /**
@@ -423,11 +443,13 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 /**
  * Run one environment as one fresh session and validate it.
  * @param request - environment id, absolute workspace directory, optional
- *   model route, repetition, group, district, policy version, sampling seed, and abort signal.
+ *   implementer, model route, repetition, group, district, policy version,
+ *   sampling seed, and abort signal.
  * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
  * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
- *   is not a safe non-negative integer, an unusable workspace or fixture, an
- *   implementer that replaced the goal, or a lost standard.
+ *   is not a safe non-negative integer, an implementer provider the
+ *   composition does not hold or cannot confine, an unusable workspace or
+ *   fixture, an implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -449,7 +471,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:703`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:749`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -497,7 +519,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:372`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:382`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -538,9 +560,9 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, repetitions, an optional exact
- *   cell selection, workspace root, group, district, policy version, base
- *   seed, token ceiling, and abort signal.
+ * @param plan - environments, model routes, an optional implementer,
+ *   repetitions, an optional exact cell selection, workspace root, group,
+ *   district, policy version, base seed, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
  *   no repetition, names no or an unenumerated cell, sets a token ceiling
@@ -550,7 +572,7 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:301`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 
@@ -678,7 +700,7 @@ async start(): Promise<void>
 async stop(): Promise<void>
 ```
 
-Source: [`packages/improvement/shifts/src/index.ts:124`](../../packages/improvement/shifts/src/index.ts)
+Source: [`packages/improvement/shifts/src/index.ts:125`](../../packages/improvement/shifts/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 

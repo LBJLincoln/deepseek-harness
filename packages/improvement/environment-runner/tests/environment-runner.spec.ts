@@ -16,6 +16,8 @@ import type { UserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
+import { NO_START_CAPABILITIES } from '@deepseek-ai/dsh-subagent'
+import type { SubagentProvider, SubagentResult, SubagentRun, SubagentStartRequest } from '@deepseek-ai/dsh-subagent'
 import { caseChannelDigest, CheckCaseId, checkCasesRef, CheckId, hashWorkspaceTree, StandardId } from '@deepseek-ai/dsh-verification'
 import type {
   AuthoredCheck,
@@ -30,7 +32,13 @@ import type {
   StandardRef,
   StandardView,
 } from '@deepseek-ai/dsh-verification'
-import EnvironmentRunner, { caseExpectation, EnvironmentRunError, resolveConfig } from '@deepseek-ai/dsh-environment-runner'
+import EnvironmentRunner, {
+  caseExpectation,
+  EnvironmentRunError,
+  implementerName,
+  resolveConfig,
+  resolveImplementer,
+} from '@deepseek-ai/dsh-environment-runner'
 import type { Config, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner'
 import * as invariantCompanion from '@deepseek-ai/dsh-environment-runner/invariant'
 
@@ -282,6 +290,62 @@ class StubReadBarrier extends Service {
   }
 }
 
+/** A provider advertising every start-time capability, which is what an in-process driver does. */
+const IN_PROCESS_CAPABILITIES: SubagentProvider['capabilities'] = {
+  outputSchema: true,
+  depthLimit: true,
+  toolFilter: true,
+  persona: true,
+}
+
+/** What one scripted child run resolves with and leaves behind. */
+interface ScriptedChild {
+  readonly result?: SubagentResult
+  /** Assistant usage of an in-process child's own session; absent publishes a remote run. */
+  readonly childUsage?: { inputTokens: number; outputTokens: number }
+  /** What the child did to the workspace before it settled. */
+  readonly work?: (workspace: string) => void
+}
+
+/** The subagent seam as the runner reads it: a provider registry and one published run per start. */
+class StubSubagents extends Service {
+  static current: StubSubagents
+  readonly providers = new Map<string, SubagentProvider>()
+  readonly started: { name: string; request: SubagentStartRequest }[] = []
+  disposed = 0
+  workspace = ''
+  /** One entry per start, in start order; a start past the end settles as a bare completion. */
+  children: ScriptedChild[] = []
+  constructor(ctx: Context) {
+    super(ctx, 'subagents')
+    StubSubagents.current = this
+  }
+
+  register(name: string, capabilities: SubagentProvider['capabilities']): void {
+    this.providers.set(name, { name, capabilities, inheritsParentContext: false, start: () => Promise.reject(new Error('unused')) })
+  }
+
+  getProvider(name: string): SubagentProvider | undefined {
+    return this.providers.get(name)
+  }
+
+  start(name: string, request: SubagentStartRequest): Promise<SubagentRun> {
+    this.started.push({ name, request })
+    const scripted = this.children[this.started.length - 1] ?? {}
+    scripted.work?.(this.workspace)
+    const child = new FakeAgent(`child-${this.started.length}`, () => {})
+    if (scripted.childUsage !== undefined) {
+      child.session.append('assistant/message', { turn: 1, step: 1, usage: scripted.childUsage, message: { content: [] } })
+    }
+    return Promise.resolve({
+      id: SessionId(`child-${this.started.length}`),
+      localAgent: scripted.childUsage === undefined ? undefined : asAgent(child),
+      result: Promise.resolve(scripted.result ?? { output: [], stopReason: 'completed' }),
+      dispose: async () => { this.disposed += 1 },
+    })
+  }
+}
+
 const MARKER = 'test -f MARKER'
 
 function environment(rest: Partial<EnvironmentDefinition> = {}): EnvironmentDefinition {
@@ -306,6 +370,8 @@ interface Scenario {
   onTurn?: (turn: number, session: FakeSession) => void
   /** Mount the read barrier so the run reserves a directory; its prefix names the barrier root. */
   barrierPrefix?: string
+  /** Mount the subagent seam and register these providers under their names. */
+  providers?: Readonly<Record<string, SubagentProvider['capabilities']>>
 }
 
 interface Harness {
@@ -326,11 +392,16 @@ async function harness(scenario: Scenario = {}): Promise<Harness> {
     barrierRoot = await mkdtemp(join(tmpdir(), scenario.barrierPrefix))
     StubReadBarrier.current.root = barrierRoot
   }
+  if (scenario.providers !== undefined) {
+    await ctx.plugin(StubSubagents)
+    for (const [name, capabilities] of Object.entries(scenario.providers)) StubSubagents.current.register(name, capabilities)
+  }
   await ctx.plugin(EnvironmentRunner, { isolation: 'process', ...scenario.config })
   const definition = scenario.definition ?? environment()
   StubEnvironments.current.definitions.set(definition.id, definition)
   StubAgents.current.agent = new FakeAgent('environment-test', scenario.onTurn ?? assistantTurns)
   const workspace = await mkdtemp(join(tmpdir(), 'environment-runner-'))
+  if (scenario.providers !== undefined) StubSubagents.current.workspace = workspace
   const run = (extra: object = {}) => ctx.environmentRuns.run({ environment: definition.id, workspace, ...extra })
   return { ctx, workspace, barrierRoot, run }
 }
@@ -766,6 +837,15 @@ describe('EnvironmentRunner', () => {
     }
   })
 
+  it('resolves the implementer default and names it once, at the boundary', () => {
+    const request = { environment: EnvironmentId('smoke:marker'), workspace: '/tmp' }
+    expect(resolveImplementer(request)).toEqual({ kind: 'route' })
+    const delegated = { kind: 'subagent', provider: 'claude-code' } as const
+    expect(resolveImplementer({ ...request, implementer: delegated })).toBe(delegated)
+    expect(implementerName({ kind: 'route' })).toBe('route')
+    expect(implementerName(delegated)).toBe('claude-code')
+  })
+
   it('resolves defaults once, at the boundary', () => {
     expect(resolveConfig({ isolation: 'host' })).toEqual({
       isolation: 'host', maxAttempts: 1, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20, topP: undefined,
@@ -780,6 +860,139 @@ describe('EnvironmentRunner', () => {
     await ctx.plugin(SessionStore)
     await ctx.plugin(InvariantRegistry, { enabled: true })
     await expect(ctx.plugin(invariantCompanion)).resolves.toBeDefined()
+  })
+})
+
+describe('EnvironmentRunner delegated to an external implementer', () => {
+  const SPAWN = { kind: 'subagent', provider: 'spawn' } as const
+
+  it('starts one child per attempt, records each, and validates the tree the child left', async () => {
+    const { run, workspace } = await harness({
+      config: { maxAttempts: 2 },
+      providers: { spawn: IN_PROCESS_CAPABILITIES },
+    })
+    StubSubagents.current.children = [
+      { childUsage: { inputTokens: 21, outputTokens: 4 } },
+      {
+        result: { output: [], stopReason: 'completed', structured: { wrote: 'MARKER' } },
+        childUsage: { inputTokens: 9, outputTokens: 2 },
+        work: (directory) => { writeFileSync(join(directory, 'MARKER'), 'done\n') },
+      },
+    ]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1, stderr: 'no MARKER\n' }), shellResult())
+    const signal = new AbortController().signal
+    const report = await run({ implementer: { ...SPAWN, label: 'external' }, signal })
+
+    expect(report.certified).toBe(true)
+    expect(report.stamp.implementer).toBe('spawn')
+    // The cell agent implements nothing itself: no turn of its own is driven.
+    expect(StubAgents.current.agent.turns).toEqual([])
+    const starts = StubSubagents.current.started
+    expect(starts.map(start => start.name)).toEqual(['spawn', 'spawn'])
+    expect(starts.map(start => start.request.prompt)).toEqual([
+      [{ type: 'text', text: 'Create a file named MARKER in the workspace.' }],
+      [{ type: 'text', text: "<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nstderr: no MARKER\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>" }],
+    ])
+    expect(starts[0]?.request).toMatchObject({ label: 'external', parent: StubAgents.current.agent, signal })
+    expect(StubSubagents.current.disposed).toBe(2)
+
+    const delegations = StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation')
+    expect(delegations.map(event => event.data)).toEqual([
+      { attempt: 1, provider: 'spawn', runId: 'child-1', stopReason: 'completed', usage: { inputTokens: 21, outputTokens: 4 } },
+      {
+        attempt: 2,
+        provider: 'spawn',
+        runId: 'child-2',
+        stopReason: 'completed',
+        structured: { wrote: 'MARKER' },
+        usage: { inputTokens: 9, outputTokens: 2 },
+      },
+    ])
+    // The runner still executed the checks itself over the restored tree.
+    expect(StubStandards.current.runs.map(recorded => recorded.evidence.executor)).toEqual(['runner', 'runner'])
+    expect(StubShell.current.requests.map(request => request.workdir)).toEqual([workspace, workspace])
+    // No assistant message reaches the cell log, so the run reports no usage of its own.
+    expect(report).not.toHaveProperty('usage')
+  })
+
+  it('records a child that produced no local agent and delegates under a signal of its own', async () => {
+    const { run } = await harness({ providers: { 'claude-code': NO_START_CAPABILITIES }, config: { isolation: 'none' } })
+    StubSubagents.current.children = [{ result: { output: [], stopReason: 'refusal' } }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    const report = await run({ implementer: { kind: 'subagent', provider: 'claude-code' } })
+
+    expect(report.certified).toBe(false)
+    expect(report.stamp.implementer).toBe('claude-code')
+    expect(StubSubagents.current.started[0]?.request.signal.aborted).toBe(false)
+    expect(StubSubagents.current.started[0]?.request).not.toHaveProperty('label')
+    // A refusal is recorded and validated like any other ending; only the tree decides.
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
+      .toEqual([{ attempt: 1, provider: 'claude-code', runId: 'child-1', stopReason: 'refusal' }])
+  })
+
+  it('ends a tampered delegated attempt without starting another child', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-delegated-tamper-'))
+    await writeFile(join(fixture, 'reference.txt'), 'expected\n')
+    const built = await harness({
+      config: { maxAttempts: 2 },
+      providers: { spawn: IN_PROCESS_CAPABILITIES },
+      definition: environment({
+        task: { prompt: 'Leave the reference alone.', fixture, immutable: ['reference.txt'] },
+      }),
+    })
+    StubSubagents.current.children = [{ work: (directory) => { writeFileSync(join(directory, 'reference.txt'), 'rewritten\n') } }]
+    const report = await built.run({ implementer: SPAWN })
+
+    expect(report.certified).toBe(false)
+    expect(StubStandards.current.runs[0]?.evidence.tampered).toBe(true)
+    expect(StubStandards.current.directives).toEqual([{
+      rootCause: 'the files this task is measured with were modified during the attempt',
+      detail: 'Those files belong to the validator: the task is to make them pass, never to change them. This run is void and no certificate can follow it.',
+    }])
+    // The directive is the whole record: no follow-up turn and no second child.
+    expect(StubAgents.current.agent.turns).toEqual([])
+    expect(StubSubagents.current.started).toHaveLength(1)
+  })
+
+  it('refuses a provider the composition does not hold, before any agent exists', async () => {
+    const bare = await harness()
+    await expect(bare.run({ implementer: SPAWN })).rejects.toThrow(new EnvironmentRunError(
+      'implementer provider "spawn" is unavailable: this composition has no subagent service',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    ))
+    expect(StubAgents.current.created).toEqual([])
+
+    const composed = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES } })
+    await expect(composed.run({ implementer: { kind: 'subagent', provider: 'absent' } })).rejects.toThrow(new EnvironmentRunError(
+      'implementer provider "absent" is unavailable: no subagent provider is registered under that name',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    ))
+    expect(StubAgents.current.created).toEqual([])
+  })
+
+  it('refuses an out-of-process provider under an isolation the census cannot back', async () => {
+    for (const isolation of ['process', 'host'] as const) {
+      const { run } = await harness({ config: { isolation }, providers: { 'claude-code': NO_START_CAPABILITIES } })
+      await expect(run({ implementer: { kind: 'subagent', provider: 'claude-code' } })).rejects.toThrow(new EnvironmentRunError(
+        `implementer provider "claude-code" runs outside this process, where the read-barrier census cannot confine it, so it cannot implement a run declaring "${isolation}" isolation`,
+        'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED',
+      ))
+      expect(StubAgents.current.created).toEqual([])
+    }
+
+    // An in-process provider keeps the deployment's own isolation, so the same
+    // claim is not refused for it.
+    const { run } = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES } })
+    StubShell.current.script(MARKER, shellResult())
+    expect((await run({ implementer: SPAWN })).certified).toBe(true)
+  })
+
+  it('stamps the route implementer for a run that names none', async () => {
+    const { run } = await harness()
+    StubShell.current.script(MARKER, shellResult())
+    const report = await run()
+    expect(report.stamp.implementer).toBe('route')
+    expect(StubAgents.current.agent.turns).toHaveLength(1)
   })
 })
 

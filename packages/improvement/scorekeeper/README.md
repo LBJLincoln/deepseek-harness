@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-The session log as the dataset. A `sessionFacts` projection unit folds one live session into four fact groups, and `ctx.scorekeeper` folds the same groups out of persisted logs: one record per session, a scoreboard grouped by model route, environment, isolation level, held-out split, and district, and a JSONL export. The service reads through the session persistence seam and writes no session event. The [scorekeeper Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) owns the design rationale.
+The session log as the dataset. A `sessionFacts` projection unit folds one live session into four fact groups, and `ctx.scorekeeper` folds the same groups out of persisted logs: one record per session, a scoreboard grouped by model route, environment, isolation level, implementer, held-out split, and district, and a JSONL export. The service reads through the session persistence seam and writes no session event. The [scorekeeper Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) owns the design rationale.
 
 ## Config
 
@@ -27,7 +27,7 @@ The service requires a session persistence backend. It registers the `sessionFac
 
 `ctx.scorekeeper.facts(sessionId)` reads one persisted session through `ctx.sessionPersistence.inspect()` and returns its `SessionFactsRecord`; a session that cannot be read, or whose goal or verification stream is malformed, rejects.
 
-`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` folds each named session (or every persisted session when `sessions` is absent) and groups the stamped ones into one row per model route, environment, isolation level, held-out split, and district. A session that cannot be read or folded is added to `skipped` with its reason and the fold continues; a session whose log carries no `environment/run` stamp is counted as `unstamped` because no row can name its cell; a stamped session the `group` or `heldOut` condition rejects is counted as `excluded`.
+`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` folds each named session (or every persisted session when `sessions` is absent) and groups the stamped ones into one row per model route, environment, isolation level, implementer, held-out split, and district. A session that cannot be read or folded is added to `skipped` with its reason and the fold continues; a session whose log carries no `environment/run` stamp is counted as `unstamped` because no row can name its cell; a stamped session the `group` or `heldOut` condition rejects is counted as `excluded`.
 
 `ctx.scorekeeper.exportFacts({ sessions?, sink })` writes `JSON.stringify(record) + '\n'` per session to `sink.write()` and closes the sink exactly once, after the last write or after a failure. The sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
 
@@ -42,7 +42,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | Field | Source |
 |---|---|
 | `sessionId`, `createdAt` | The stored session header (`facts()` and `exportFacts()` only; a projection value is already addressed by its session) |
-| `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.district`, `.contentSha256`, `.provider`, `.model`, `.isolation` | The `environment/run` stamp, absent for a session no runner stamped |
+| `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.district`, `.contentSha256`, `.provider`, `.model`, `.isolation`, `.implementer` | The `environment/run` stamp, absent for a session no runner stamped; a stamp naming no `implementer` folds as `route`, the run its own model route implemented |
 | `requestProvider`, `requestModel` | `config.provider` and `config.model` of the last `request/header` |
 | `compositionSha256` | The `compositionSha256` of the last `composition/manifest` (`@deepseek-ai/dsh-components-manifest`), absent for a session whose log carries none |
 
@@ -86,7 +86,7 @@ The fold takes no pricing table: cost is the sum the `usage/priced` records them
 
 ## Scoreboard rows
 
-A row is one model route on one environment at one isolation level, one side of the held-out split, and one district; a row never averages across isolation, the split, or districts, so a publication that withholds a district drops whole rows instead of blending them. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
+A row is one model route and implementer on one environment at one isolation level, one side of the held-out split, and one district; a row never averages across the implementer, isolation, the split, or districts, so an external coding agent and the harness's own route on one environment stay two rows and a publication that withholds a district drops whole rows instead of blending them. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
 
 Three columns state what a publication needs beside those rates. `tampered` counts the sessions whose last recorded run carried the `tampered` verdict; a row's `errors` is exactly its not-instrumented sessions, because a session that recorded no run carries no verdict to read. `compositionSha256` is the digest every session of the row states, absent when a session states none or two disagree, so a digest covering part of a row never attributes the whole row. `certificateExecutors` holds the distinct executors of the row's certified sessions in first-appearance order: empty for a row that certified nothing, and two or more for a row whose certificates disagree, where no single executor may be published beside its rate.
 

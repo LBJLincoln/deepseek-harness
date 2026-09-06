@@ -97,6 +97,8 @@ interface ReportShape {
   certified: boolean
   attempts?: number
   usage?: { inputTokens: number; outputTokens: number }
+  /** Omit the stamp's implementer, as a log written before the field existed states it. */
+  unstampedImplementer?: boolean
 }
 
 function report(request: EnvironmentRunRequest, shape: ReportShape): EnvironmentRunReport {
@@ -127,6 +129,9 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
       ...request.group === undefined ? {} : { group: request.group },
       model,
       isolation: 'process',
+      ...shape.unstampedImplementer === true
+        ? {}
+        : { implementer: request.implementer?.kind === 'subagent' ? request.implementer.provider : 'route' },
     },
     attempts,
     certified: shape.certified,
@@ -140,6 +145,7 @@ function row(overrides: Partial<LeaderboardRow> & Pick<LeaderboardRow, 'model' |
     environmentKind: 'smoke',
     heldOut: false,
     isolation: 'process',
+    implementer: 'route',
     runs: 2,
     errors: 0,
     certified: 2,
@@ -221,6 +227,32 @@ describe('FleetService', () => {
     ])
   })
 
+  it('forwards the plan\'s implementer to every cell and folds it onto the row', async () => {
+    const { ctx, plan } = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    const implementer = { kind: 'subagent', provider: 'claude-code', label: 'external' } as const
+    const result = await ctx.fleet.run(plan({ implementer, models: [MODEL_A], repetitions: 1 }))
+
+    expect(StubRuns.current.requests.map(request => request.implementer)).toEqual([implementer, implementer])
+    expect(result.leaderboard.map(entry => entry.implementer)).toEqual(['claude-code', 'claude-code'])
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | claude-code | smoke:round-trip |')
+
+    // A plan that names none leaves every cell on its own route, and the row
+    // states that rather than leaving the column empty.
+    const routed = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    const plain = await routed.ctx.fleet.run(routed.plan({ models: [MODEL_A], repetitions: 1 }))
+    expect(StubRuns.current.requests[0]).not.toHaveProperty('implementer')
+    expect(plain.leaderboard.map(entry => entry.implementer)).toEqual(['route', 'route'])
+
+    // A stamp that names no implementer is a run its own model route
+    // implemented, and the row says so rather than leaving the column empty.
+    const unstamped = await harness()
+    StubRuns.current.script = request => report(request, { certified: true, unstampedImplementer: true })
+    const legacy = await unstamped.ctx.fleet.run(unstamped.plan({ models: [MODEL_A], repetitions: 1 }))
+    expect(legacy.leaderboard.map(entry => entry.implementer)).toEqual(['route', 'route'])
+  })
+
   it('selects by registry filter, runs the default route when no model is named, and mints a group', async () => {
     const { ctx, plan } = await harness()
     const result = await ctx.fleet.run(plan({ environments: { filter: { heldOut: true } }, models: [], repetitions: 1 }, null))
@@ -231,7 +263,7 @@ describe('FleetService', () => {
     expect(result.leaderboard).toEqual([
       row({ model: 'mock-default', environmentId: RESERVED, heldOut: true, runs: 1, certified: 1 }),
     ])
-    expect(leaderboardMarkdown(result)).toContain('| mock/mock-default | smoke:reserved | yes | process | 1 | 0 | 1 | 1.00 | 1.00 | 0 / 0 |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/mock-default | route | smoke:reserved | yes | process | 1 | 0 | 1 | 1.00 | 1.00 | 0 / 0 |')
   })
 
   it('keeps a failing cell as an error outcome and leaves its row without an isolation claim', async () => {
@@ -266,10 +298,11 @@ describe('FleetService', () => {
       outputTokens: 0,
     })
     expect(failed).not.toHaveProperty('isolation')
+    expect(failed).not.toHaveProperty('implementer')
     const markdown = leaderboardMarkdown(result)
     expect(markdown.split('\n')[0]).toBe('Fleet run `batch-1`')
-    expect(markdown).toContain('| mock/a | smoke:round-trip | no | process | 3 | 0 | 3 | 1.00 | 1.00 | 0 / 0 |')
-    expect(markdown).toContain('| mock/a | smoke:unsatisfiable | no | - | 0 | 3 | 0 | 0.00 | 0.00 | 0 / 0 |')
+    expect(markdown).toContain('| mock/a | route | smoke:round-trip | no | process | 3 | 0 | 3 | 1.00 | 1.00 | 0 / 0 |')
+    expect(markdown).toContain('| mock/a | - | smoke:unsatisfiable | no | - | 0 | 3 | 0 | 0.00 | 0.00 | 0 / 0 |')
     expect(markdown.endsWith('|\n')).toBe(true)
   })
 

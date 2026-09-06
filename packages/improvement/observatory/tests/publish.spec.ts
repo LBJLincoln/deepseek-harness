@@ -45,20 +45,22 @@ describe('withhold', () => {
 })
 
 describe('orderRows', () => {
-  it('orders by route, environment, isolation, held-out split, and district whatever order the fold produced', () => {
+  it('orders by route, environment, isolation, implementer, held-out split, and district whatever order the fold produced', () => {
     const ordered = orderRows([
       row({ model: 'b', environmentId: 'smoke:round-trip' }),
       row({ model: 'a', environmentId: 'smoke:unsatisfiable', district: 'proving-ground' }),
       row({ model: 'a', environmentId: 'smoke:round-trip', heldOut: true }),
       row({ model: 'a', environmentId: 'smoke:round-trip', isolation: 'host' }),
+      row({ model: 'a', environmentId: 'smoke:round-trip', implementer: 'claude-code' }),
       row({ model: 'a', environmentId: 'smoke:round-trip' }),
     ])
-    expect(ordered.map(entry => [entry.model, entry.environmentId, entry.isolation, entry.heldOut])).toEqual([
-      ['a', 'smoke:round-trip', 'host', false],
-      ['a', 'smoke:round-trip', 'none', false],
-      ['a', 'smoke:round-trip', 'none', true],
-      ['a', 'smoke:unsatisfiable', 'none', false],
-      ['b', 'smoke:round-trip', 'none', false],
+    expect(ordered.map(entry => [entry.model, entry.environmentId, entry.isolation, entry.implementer, entry.heldOut])).toEqual([
+      ['a', 'smoke:round-trip', 'host', 'route', false],
+      ['a', 'smoke:round-trip', 'none', 'claude-code', false],
+      ['a', 'smoke:round-trip', 'none', 'route', false],
+      ['a', 'smoke:round-trip', 'none', 'route', true],
+      ['a', 'smoke:unsatisfiable', 'none', 'route', false],
+      ['b', 'smoke:round-trip', 'none', 'route', false],
     ])
   })
 })

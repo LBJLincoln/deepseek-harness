@@ -160,4 +160,11 @@ export interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
+  /**
+   * Who did the work: `route` for the session's own model route, or the
+   * subagent provider name for a run delegated to an out-of-band coding agent.
+   * A scoreboard row is keyed by it, so two implementers on one environment
+   * stay two rows. Absent in a payload that states none, which is the route.
+   */
+  readonly implementer?: string
 }

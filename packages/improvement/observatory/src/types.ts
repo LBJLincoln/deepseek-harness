@@ -87,6 +87,8 @@ export interface ObservatoryPublishedRow {
   readonly district?: string
   readonly heldOut: boolean
   readonly isolation: CertificateIsolation
+  /** Who did the work of the row's sessions: `route`, or the subagent provider name of a delegated cell. */
+  readonly implementer: string
   /** Executors of the row's certificates; empty for a row that certified nothing. */
   readonly certificateExecutors: readonly RunExecutor[]
   /** Composition digest every session of the row states, absent when the page shows `pending`. */

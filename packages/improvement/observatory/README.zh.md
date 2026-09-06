@@ -55,6 +55,7 @@
 | 列 | 陈述什么 |
 |---|---|
 | Route | 该行 stamp 的 `provider/model`。 |
+| Implementer | 由谁完成工作：会话自身模型路由为 `route`，被委派的 cell 则为 subagent provider 名。任何一行都不跨它求平均。 |
 | Environment | 该行会话运行的环境 id。 |
 | District | 该行每个会话被盖章的区，区外的行为 `none`。 |
 | Isolation | 各次运行声明的隔离级别；行绝不跨它取平均。 |

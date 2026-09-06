@@ -404,7 +404,7 @@ describe('environment run stamps', () => {
   it('decodes a complete stamp, leaves unrelated values alone, and keeps optional fields exact', () => {
     const decoded = decodeEnvironmentRun(stamp({
       fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3,
-      policyVersion: 'policy-2026-09', seed: 0,
+      policyVersion: 'policy-2026-09', seed: 0, implementer: 'claude-code',
     }))
     expect(decoded).toEqual<EnvironmentRunStamp>({
       kind: 'environment/run',
@@ -423,12 +423,14 @@ describe('environment run stamps', () => {
       seed: 0,
       model: { provider: 'cli-mock', model: 'cli-mock' },
       isolation: 'none',
+      implementer: 'claude-code',
     })
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('fixtureSha256')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('group')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('district')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('policyVersion')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('seed')
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('implementer')
     expect(decodeEnvironmentRun({ kind: 'goal/change' })).toBeUndefined()
     expect(decodeEnvironmentRun('environment/run')).toBeUndefined()
     expect(decodeEnvironmentRun([stamp()])).toBeUndefined()
@@ -461,6 +463,7 @@ describe('environment run stamps', () => {
       [stamp({ policyVersion: '' }), 'policyVersion must be a non-empty string'],
       [stamp({ seed: -1 }), 'seed must be a non-negative integer'],
       [stamp({ seed: '7' }), 'seed must be a non-negative integer'],
+      [stamp({ implementer: '' }), 'implementer must be a non-empty string'],
     ]
     for (const [value, message] of cases) {
       expect(() => decodeEnvironmentRun(value), message).toThrow(message)

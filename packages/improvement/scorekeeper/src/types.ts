@@ -45,6 +45,12 @@ export interface SessionFactsEnvironment {
   readonly model: string
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
+  /**
+   * Who did the work: `route` for the session's own model route, or the
+   * subagent provider name for a delegated run. A stamp that states none is a
+   * route run, so the fact is always stated even where the stamp is not.
+   */
+  readonly implementer: string
 }
 
 /** Who ran what, on which route: the identity and provenance the session log carries. */
@@ -223,10 +229,11 @@ export interface EnvironmentStats {
 }
 
 /**
- * One scoreboard row: one model route on one environment at one isolation
- * level, one side of the held-out split, and one district. Rows never average
- * across isolation, the split, or districts; all three are columns a consumer
- * partitions by, and a publication that withholds a district drops whole rows.
+ * One scoreboard row: one model route and implementer on one environment at
+ * one isolation level, one side of the held-out split, and one district. Rows
+ * never average across the implementer, isolation, the split, or districts;
+ * all four are columns a consumer partitions by, and a publication that
+ * withholds a district drops whole rows.
  */
 export interface ScoreboardRow {
   readonly provider: string
@@ -235,6 +242,8 @@ export interface ScoreboardRow {
   readonly environmentKind: string
   readonly heldOut: boolean
   readonly isolation: CertificateIsolation
+  /** Implementer every session of the row was stamped with: `route` or the subagent provider name. */
+  readonly implementer: string
   /** District every session of the row was stamped with, absent for a row outside every district. */
   readonly district?: string
   /** Sessions that recorded at least one `verification/run`. */

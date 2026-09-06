@@ -42,6 +42,14 @@ declare module '@deepseek-ai/dsh-session/types' {
 /** Self-declared payload version of the `environment/run` event. */
 export const ENVIRONMENT_RUN_VERSION = 1
 
+/**
+ * The {@link EnvironmentRunStamp.implementer} name of a run the session's own
+ * model route implemented. Every other value is a subagent provider name, so
+ * one reserved word keeps the two apart in a stamp, a fact record, and a row
+ * key without a second field stating which kind the name is.
+ */
+export const ROUTE_IMPLEMENTER = 'route'
+
 const ISOLATIONS = new Set(['none', 'process', 'host'])
 const HEX_64 = /^[0-9a-f]{64}$/
 /** A Windows drive prefix, which no workspace-relative path may carry. */
@@ -150,6 +158,7 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
   const district = value['district'] === undefined ? {} : { district: stampText(value, 'district') }
   const policyVersion = value['policyVersion'] === undefined ? {} : { policyVersion: stampText(value, 'policyVersion') }
   const seed = value['seed'] === undefined ? {} : { seed: stampSeed(value['seed']) }
+  const implementer = value['implementer'] === undefined ? {} : { implementer: stampText(value, 'implementer') }
   return {
     kind: 'environment/run',
     version: ENVIRONMENT_RUN_VERSION,
@@ -167,6 +176,7 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
     ...seed,
     model: { provider: stampText(model, 'provider'), model: stampText(model, 'model') },
     isolation: isolation as EnvironmentRunStamp['isolation'],
+    ...implementer,
   }
 }
 

@@ -51,7 +51,7 @@ Daliesk Village 是一组既有插件按班次运行的组合，绝不是持有�
 
 ### 数据
 
-Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是从 Workshop 失败中持续挖掘环境、持续重新校准 `EnvironmentStats`、为 SFT 冷启动提供稳定的已认证轨迹供给，以及一个公开排行榜，而不是更好的 GRPO 组。在 Proving Ground 供给强化学习步骤之前，stamp 新增 `policyVersion` 与 `seed`，轨迹折叠对被截断、被中止与供应商错误的会话给出 `outcome: null` 而不是 `0`，环境准入新增对留出套件的近重复检查，预算策略新增设备槽位资源，使共享 GPU 上的 rollout 与训练不会悄然互相拖累。AI Village 数据集只在限定为评估用途的数据使用条款下进入：作为 `SessionDiagnosis` 的行为分类法，以及作为用虚构实体重新合成的环境原料，绝不作为训练数据，也绝不作为逐字摘录。[`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) 正是让这成为屏障而非声称的东西：策展导出在没有脱敏配置时拒绝运行，并扣留其被钉定的 `dataUse/terms` 不接纳本次导出用途的每一个会话——包括完全不携带条款的会话——于是为评估而接纳的转录从不到达训练导出。
+Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是从 Workshop 失败中持续挖掘环境、持续重新校准 `EnvironmentStats`、为 SFT 冷启动提供稳定的已认证轨迹供给，以及一个公开排行榜，而不是更好的 GRPO 组。在 Proving Ground 供给强化学习步骤之前，stamp 新增 `policyVersion` 与 `seed`，轨迹折叠对被截断、被中止与供应商错误的会话给出 `outcome: null` 而不是 `0`，环境准入新增对留出套件的近重复检查，预算策略新增设备槽位资源，使共享 GPU 上的 rollout 与训练不会悄然互相拖累。外部 coding agent 作为普通 cell 的实现者跑在 Proving Ground 里，受同一个运行器、同一份标准与同一批证书约束，且处在 `isolation: none`——对一个本进程无法约束的 agent，这是读取屏障普查唯一能支撑的声明（[设计](2026-09-06-external-implementer.md)）。AI Village 数据集只在限定为评估用途的数据使用条款下进入：作为 `SessionDiagnosis` 的行为分类法，以及作为用虚构实体重新合成的环境原料，绝不作为训练数据，也绝不作为逐字摘录。[`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) 正是让这成为屏障而非声称的东西：策展导出在没有脱敏配置时拒绝运行，并扣留其被钉定的 `dataUse/terms` 不接纳本次导出用途的每一个会话——包括完全不携带条款的会话——于是为评估而接纳的转录从不到达训练导出。
 
 ### Commons 与归档
 

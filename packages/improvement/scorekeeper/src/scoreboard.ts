@@ -1,6 +1,6 @@
 /**
  * Pure fold of session facts into scoreboard rows: one row per model route,
- * environment, isolation level, held-out split, and district, each carrying the
+ * environment, isolation level, implementer, held-out split, and district, each carrying the
  * unbiased pass@k estimate over the repetition batches its sessions belong to,
  * the cost its sessions logged, and the mean weighted pass rate of the sessions
  * that measured cases.
@@ -77,6 +77,7 @@ function rowKey(environment: SessionFactsEnvironment): string {
     environment.model,
     environment.environmentId,
     environment.isolation,
+    environment.implementer,
     environment.heldOut,
     environment.district ?? null,
   ])
@@ -195,6 +196,7 @@ function finish(row: RowAccumulator, ks: readonly number[]): ScoreboardRow {
     environmentKind: row.environment.environmentKind,
     heldOut: row.environment.heldOut,
     isolation: row.environment.isolation,
+    implementer: row.environment.implementer,
     ...row.environment.district === undefined ? {} : { district: row.environment.district },
     runs: row.runs,
     errors: row.errors,
