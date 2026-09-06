@@ -560,22 +560,22 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     methods: [
       {
         signature: 'register(descriptor: ComponentDescriptor): () => void',
-        description: 'Register one component. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the component.',
-        parameters: [{ name: 'descriptor', description: 'complete component description.' }],
+        description: 'Register one component into the calling context\'s layer: an unscoped context (a host row or repository plugin) registers globally, while a scoped context (an agent preset\'s standing mount) registers for that scope alone. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the component.',
+        parameters: [{ name: 'descriptor', description: 'complete component description, including the digest its producer computed.' }],
         returns: 'the exact disposer that removes this registration and no later one under the same id.',
-        throws: ['{@link ComponentError} when the id is already registered.'],
+        throws: ['{@link ComponentError} when the id is already registered in the same layer.'],
       },
       {
-        signature: 'get(id: ComponentIdType): ComponentDescriptor | undefined',
-        description: 'Read one component.',
-        parameters: [{ name: 'id', description: 'component identity.' }],
-        returns: 'a detached descriptor, or `undefined` when nothing is registered under the id.',
+        signature: 'get(id: ComponentIdType, options: ComponentViewOptions = {}): ComponentView | undefined',
+        description: 'Read one component as a scope sees it.',
+        parameters: [{ name: 'id', description: 'component identity.' }, { name: 'options', description: 'read options; `scope` selects the viewing agent\'s layers.' }],
+        returns: 'a detached view carrying its winning layer, or `undefined` when the id is absent.',
       },
       {
-        signature: 'list(kind?: ComponentKind): ComponentDescriptor[]',
-        description: 'List components in registration order.',
-        parameters: [{ name: 'kind', description: 'when given, only components of this kind.' }],
-        returns: 'detached descriptors.',
+        signature: 'list(options: ComponentListOptions = {}): ComponentView[]',
+        description: 'List components as a scope sees them, in registration order with the global layer first.',
+        parameters: [{ name: 'options', description: 'read options; `scope` selects the viewing agent\'s layers and `kind` filters by kind.' }],
+        returns: 'detached views carrying their winning layer.',
       },
     ],
   },
@@ -3114,11 +3114,19 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ComponentDescriptor',
-    declaration: 'export interface ComponentDescriptor<K extends ComponentKind = ComponentKind> {\n    readonly id: ComponentId;\n    readonly kind: K;\n    readonly name: string;\n    readonly description: string;\n    readonly owner: string;\n    readonly provenance: ComponentProvenance;\n    readonly lineage?: ComponentId;\n    readonly members?: readonly ComponentId[];\n    readonly invoke?: ComponentInvoke;\n    readonly detail: ComponentDetail<K>;\n}',
+    declaration: 'export interface ComponentDescriptor<K extends ComponentKind = ComponentKind> {\n    readonly id: ComponentId;\n    readonly kind: K;\n    readonly digest: ComponentDigest;\n    readonly digestBasis: ComponentDigestBasis;\n    readonly name: string;\n    readonly description: string;\n    readonly owner: string;\n    readonly provenance: ComponentProvenance;\n    readonly lineage?: ComponentId;\n    readonly members?: readonly ComponentId[];\n    readonly invoke?: ComponentInvoke;\n    readonly detail: ComponentDetail<K>;\n}',
   },
   {
     name: 'ComponentDetail',
     declaration: 'export type ComponentDetail<K extends string> = K extends keyof ComponentKindMap ? ComponentKindMap[K] : unknown;',
+  },
+  {
+    name: 'ComponentDigest',
+    declaration: 'export type ComponentDigest = Branded<\'ComponentDigest\'>;',
+  },
+  {
+    name: 'ComponentDigestBasis',
+    declaration: 'export type ComponentDigestBasis = \'content\' | \'registration\';',
   },
   {
     name: 'ComponentId',
@@ -3137,8 +3145,24 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ComponentKindMap {\n}',
   },
   {
+    name: 'ComponentLayer',
+    declaration: 'export type ComponentLayer = \'global\' | \'agent\';',
+  },
+  {
+    name: 'ComponentListOptions',
+    declaration: 'export interface ComponentListOptions extends ComponentViewOptions {\n    readonly kind?: ComponentKind | undefined;\n}',
+  },
+  {
     name: 'ComponentProvenance',
     declaration: 'export type ComponentProvenance = \'curated\' | \'synthesized\';',
+  },
+  {
+    name: 'ComponentView',
+    declaration: 'export interface ComponentView<K extends ComponentKind = ComponentKind> extends ComponentDescriptor<K> {\n    readonly layer: ComponentLayer;\n}',
+  },
+  {
+    name: 'ComponentViewOptions',
+    declaration: 'export interface ComponentViewOptions {\n    readonly scope?: ScopeKey | undefined;\n}',
   },
   {
     name: 'ConfidenceInterval',

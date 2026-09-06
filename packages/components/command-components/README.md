@@ -17,7 +17,7 @@ The command registers globally through `ctx.commands` and requires the component
 
 ## Command
 
-`/components` takes no arguments. Without registered components it prints the empty-inventory notice; otherwise it prints the total, then each kind in first-seen order with its count and one line per component: the id, the description, the provenance, and, when present, `from <lineage>`, `<n> members`, and `via <tool>`. A rejected argument or an empty inventory never writes a session event.
+`/components` takes no arguments. The invoking agent is the viewing scope, so the inventory is what that agent sees: the global layer plus every layer on its scope chain, the nearest registration winning a duplicate id. Without visible components it prints the empty-inventory notice; otherwise it prints the total, then each kind in first-seen order with its count and one line per component: the id, the description, the provenance, and, when present, `from <lineage>`, `<n> members`, and `via <tool>`. A rejected argument or an empty inventory never writes a session event.
 
 ## Model Experience
 
@@ -39,4 +39,5 @@ None; command discovery and direct output never touch the request prefix.
 
 - **Read-only by design** — registration stays with producer adapters; a human registration grammar would create components no seam mirrors.
 - **Plain-text inventory only** — filtering by kind, adapter-specific badges, and a Web client panel remain future UI work.
+- **Identity fields unrendered** — a line names the component but not its content address or registry layer; showing a truncated digest and the layer is presentation work a UI can add without touching the registry.
 - **Web command adapter only in the shipped apps** — headless, ACP automation, and JSON-RPC adapters do not consume `ctx.commands`; those callers read `ctx.components` directly.
