@@ -29,6 +29,133 @@ interface StandardCheck {
   readonly outcome: string
   /** Validator-owned execution instruction (command line or procedure). */
   readonly run: string
+  /** Reference to the check's case bodies; absent for a check whose verdict is its own exit code. */
+  readonly cases?: CheckCasesRef
+  /**
+   * Normalized workspace-relative directory the `tree` channel digests, which
+   * the runner empties before each case that compares it. Present exactly when
+   * a case compares `tree`.
+   */
+  readonly treeScope?: string
+}
+```
+
+## 加权用例
+
+一个检查可以逐用例采样候选程序的行为，而不是归结为一个退出码。持久日志携带引用；用例正文存放在验证者的预留目录中，`sha256` 把两者绑定。
+
+```ts type-equiv
+/**
+ * The durable reference to one check's case bodies. The bodies live in the
+ * validator's reservation, never in the session log; `sha256` binds the two.
+ */
+interface CheckCasesRef {
+  /** Number of cases the bodies hold. */
+  readonly count: number
+  /** Sum of every case weight. */
+  readonly weightTotal: number
+  /** SHA-256 hex of the canonical case bodies. */
+  readonly sha256: string
+}
+```
+
+```ts type-equiv
+/** One behavioural sample of a check: what the candidate is fed and what it must produce. */
+interface CheckCase {
+  /** Lower-kebab-case identity unique inside the owning check. */
+  readonly id: CheckCaseId
+  /** Positive safe-integer share of the check's weight this case carries. */
+  readonly weight: number
+  /** What the case feeds the candidate. */
+  readonly input: CheckCaseInput
+  /** Digests the case's configured channels are compared against. */
+  readonly expected: CheckCaseExpectation
+  /** Channels compared and the normalizers applied before comparison. */
+  readonly comparator: CheckCaseComparator
+}
+```
+
+```ts type-equiv
+/**
+ * Channel one case compares. `exit` is the candidate's exit code, `stdout` and
+ * `stderr` its captured bytes, and `tree` the work tree under the check's
+ * `treeScope` as the case left it.
+ */
+type CheckCaseChannel = 'exit' | 'stdout' | 'stderr' | 'tree'
+```
+
+规范化器集合是封闭的：每一项都会放宽“相等”的判定，因此扩展它是一次设计决定，而不是部署选择。每一项都是对通道字节的纯粹幂等函数，按比较器给定的顺序应用；[`packages/verification/verification`](../../packages/verification/verification/README.md#weighted-cases) 陈述每一项的作用。
+
+```ts type-equiv
+/**
+ * Pure byte function applied to a compared channel before it is digested, in
+ * the comparator's order. The set is closed: every normalizer widens what
+ * counts as equal, so a new one is a design decision rather than a
+ * deployment choice.
+ *
+ * - `crlf` rewrites every `\r\n` to `\n`.
+ * - `trailing-whitespace` drops spaces and tabs at the end of each line.
+ * - `blank-lines` drops leading and trailing blank lines and collapses each
+ *   interior run of them to one.
+ * - `iso8601-timestamps` replaces each ISO-8601 timestamp with `<timestamp>`.
+ * - `temp-paths` replaces each temporary-directory prefix with `<temp>`.
+ * - `json-canonical` reserializes valid JSON with sorted keys and no
+ *   insignificant whitespace, and leaves anything else unchanged.
+ */
+type CheckCaseNormalizer =
+  | 'crlf'
+  | 'trailing-whitespace'
+  | 'blank-lines'
+  | 'iso8601-timestamps'
+  | 'temp-paths'
+  | 'json-canonical'
+```
+
+带用例的检查，其结果携带裁定所依据的用例统计；一次运行把这些统计汇总为一个加权通过率。
+
+```ts type-equiv
+/** Case tally of one executed check, present exactly for a check that carries cases. */
+interface CheckCaseResults {
+  /** Cases whose every configured channel matched. */
+  readonly passed: number
+  /** Cases executed; equal to the check's `cases.count`. */
+  readonly total: number
+  /** Summed weight of the passing cases. */
+  readonly weightPassed: number
+  /** Summed weight of every case; equal to the check's `cases.weightTotal`. */
+  readonly weightTotal: number
+  /** Failed cases, bounded by the executing runner; never longer than `total - passed`. */
+  readonly failed: readonly FailedCheckCase[]
+}
+```
+
+```ts type-equiv
+/** Weighted pass rate of one run, summed over the checks that carry cases. */
+interface RunParity {
+  /** Summed weight of every passing case of the run. */
+  readonly weightPassed: number
+  /** Summed weight of every case of the run. */
+  readonly weightTotal: number
+}
+```
+
+`parity` 随 `verification/run` 事件一起记录，且不构成任何认证：一张证书仍要求每个活动检查的每个用例都通过。跨越到实现者的指令只携带聚类，绝不携带用例正文、期望摘要或捕获输出。
+
+```ts type-equiv
+/**
+ * One failure cluster of a directive: the failed cases of one check that
+ * disagreed on the same channels and ended the same way. It carries counts and
+ * weights only, never a case body, an expected digest, or captured output.
+ */
+interface DirectiveCluster {
+  /** Check whose cases the cluster groups. */
+  readonly checkId: CheckId
+  /** Channels that disagreed, in the canonical `exit`, `stdout`, `stderr`, `tree` order. */
+  readonly channels: readonly CheckCaseChannel[]
+  /** Cases in the cluster. */
+  readonly count: number
+  /** Summed weight of the cluster's cases. */
+  readonly weight: number
 }
 ```
 
@@ -170,7 +297,7 @@ author(agent: Agent, request: AuthorStandardRequest): StandardView
  * @param checks - one or more checks to append.
  * @returns the extended view.
  */
-extend(agent: Agent, ref: StandardRef, checks: readonly StandardCheck[]): StandardView
+extend(agent: Agent, ref: StandardRef, checks: readonly AuthoredCheck[]): StandardView
 
 /**
  * Remove one check with recorded evidence that its stricter form is
@@ -206,7 +333,7 @@ recordRun( agent: Agent, ref: StandardRef, isolation: CertificateIsolation, resu
  * the candidate is weak without revealing individual checks.
  * @param agent - owning live agent.
  * @param ref - expected current revision.
- * @param request - root cause and actionable detail.
+ * @param request - root cause, actionable detail, and the failure clusters the detail was built from.
  */
 issueDirective(agent: Agent, ref: StandardRef, request: DirectiveRequest): void
 
@@ -230,7 +357,7 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 
 Types: [Agent](core.md)
 
-Source: [`packages/verification/verification/src/index.ts:215`](../../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:277`](../../packages/verification/verification/src/index.ts)
 
 <a id="ctxreadbarrier--readbarrierservice"></a>
 

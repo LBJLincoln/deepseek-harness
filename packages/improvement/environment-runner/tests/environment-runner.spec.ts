@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -14,10 +15,13 @@ import type { UserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
-import { CheckId, StandardId } from '@deepseek-ai/dsh-verification'
+import { caseChannelDigest, CheckCaseId, checkCasesRef, CheckId, StandardId } from '@deepseek-ai/dsh-verification'
 import type {
+  AuthoredCheck,
   AuthorStandardRequest,
   CertificateIsolation,
+  CheckCase,
+  CheckCaseNormalizer,
   CheckResult,
   DirectiveRequest,
   RunEvidence,
@@ -377,7 +381,7 @@ describe('EnvironmentRunner', () => {
   it('reserves the run, writes the standard and one script per check, and runs the script', async () => {
     const { run, barrierRoot, workspace } = await harness({ barrierPrefix: 'environment-runner-barrier-' })
     const reservation = join(barrierRoot ?? '', 'runs', 'environment-test')
-    const script = join(reservation, 'checks', 'marker')
+    const script = join(reservation, 'checks', 'marker', 'run')
     StubShell.current.script(`. ${script}`, shellResult({ stdout: 'present\n' }))
     const report = await run()
 
@@ -397,7 +401,7 @@ describe('EnvironmentRunner', () => {
       barrierPrefix: 'environment-runner-heldout-barrier-',
       definition: environment({ heldOut: true, task: { prompt: 'Create a file named MARKER in the workspace.', fixture } }),
     })
-    const script = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker')
+    const script = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker', 'run')
     StubShell.current.script(`. ${script}`, shellResult())
     await run()
     expect(await readFile(join(barrierRoot ?? '', 'runs', 'environment-test', 'fixture', 'expected.txt'), 'utf8')).toBe('reference\n')
@@ -413,7 +417,7 @@ describe('EnvironmentRunner', () => {
 
   it('refuses a reservation whose path the check command line cannot carry unquoted', async () => {
     const { run, barrierRoot } = await harness({ barrierPrefix: 'environment runner spaced ' })
-    const script = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker')
+    const script = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker', 'run')
     await expect(run()).rejects.toThrow(new EnvironmentRunError(`reserved check script "${script}" contains characters the check command line cannot carry unquoted`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'))
   })
 
@@ -608,7 +612,7 @@ describe('EnvironmentRunner', () => {
       definition,
       onTurn: (turn, session) => {
         assistantTurns(turn, session)
-        if (turn === 1) writeFileSync(join(reservation, 'checks', 'marker'), 'exit 0\n')
+        if (turn === 1) writeFileSync(join(reservation, 'checks', 'marker', 'run'), 'exit 0\n')
       },
     })
     reservation = join(rewritten.barrierRoot ?? '', 'runs', 'environment-test')
@@ -659,10 +663,10 @@ describe('EnvironmentRunner', () => {
 
   it('resolves defaults once, at the boundary', () => {
     expect(resolveConfig({ isolation: 'host' })).toEqual({
-      isolation: 'host', maxAttempts: 1, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000,
+      isolation: 'host', maxAttempts: 1, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20,
     })
-    expect(resolveConfig({ isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50 })).toEqual({
-      isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50,
+    expect(resolveConfig({ isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3 })).toEqual({
+      isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3,
     })
   })
 
@@ -671,5 +675,222 @@ describe('EnvironmentRunner', () => {
     await ctx.plugin(SessionStore)
     await ctx.plugin(InvariantRegistry, { enabled: true })
     await expect(ctx.plugin(invariantCompanion)).resolves.toBeDefined()
+  })
+})
+
+const digest = (text: string, normalizers: readonly CheckCaseNormalizer[] = []): string =>
+  caseChannelDigest(Buffer.from(text, 'utf8'), normalizers)
+
+/** Digest of a directory holding no regular file, which an emptied `treeScope` always has. */
+const EMPTY_TREE = createHash('sha256').digest('hex')
+
+const REVERSE = 'node reverse.js'
+
+/** One case of the `reverses-lines` check, addressed by the argv word it appends. */
+function sample(id: string, rest: Partial<CheckCase> = {}): CheckCase {
+  return {
+    id: CheckCaseId(id),
+    weight: 1,
+    input: { argv: [`--${id}`] },
+    expected: { stdoutSha256: digest('expected\n') },
+    comparator: { channels: ['stdout'], normalizers: ['crlf'] },
+    ...rest,
+  }
+}
+
+/** An environment whose one check carries the given cases. */
+function casedEnvironment(bodies: readonly CheckCase[], rest: Partial<AuthoredCheck> = {}): EnvironmentDefinition {
+  return environment({
+    checks: [{
+      id: CheckId('reverses-lines'),
+      outcome: 'the program reverses each line',
+      run: REVERSE,
+      cases: checkCasesRef(bodies),
+      caseBodies: bodies,
+      ...rest,
+    }],
+  })
+}
+
+describe('EnvironmentRunner weighted cases', () => {
+  it('runs one case per sample, compares four channels, and tallies the weights', async () => {
+    const bodies: CheckCase[] = [
+      // Passing: the normalizer folds the candidate's CRLF before the digest.
+      sample('crlf-ok'),
+      // Failing on stdout alone, exiting zero.
+      sample('stdout-a', { weight: 2 }),
+      // Failing on stdout alone, exiting zero: the same cluster as stdout-a.
+      sample('stdout-b', { weight: 3 }),
+      // Failing on stderr, exiting non-zero: its own cluster.
+      sample('stderr-x', {
+        weight: 4,
+        expected: { stderrSha256: digest('') },
+        comparator: { channels: ['stderr'], normalizers: [] },
+      }),
+      // Passing on every configured channel at once.
+      sample('all-clear', {
+        weight: 5,
+        input: { argv: ['--all-clear'], stdin: 'seed\n', files: { 'in/data.txt': 'staged' } },
+        expected: { exitCode: 0, stdoutSha256: digest('done\n'), stderrSha256: digest(''), treeSha256: EMPTY_TREE },
+        comparator: { channels: ['exit', 'stdout', 'stderr', 'tree'], normalizers: [] },
+      }),
+    ]
+    let workspace = ''
+    const built = await harness({
+      definition: casedEnvironment(bodies, { treeScope: 'out' }),
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        // The runner empties the tree scope before each case, so this file
+        // never reaches the digest the `all-clear` case compares.
+        mkdirSync(join(workspace, 'out'), { recursive: true })
+        writeFileSync(join(workspace, 'out', 'leftover.txt'), 'stale')
+      },
+    })
+    workspace = built.workspace
+    const shell = StubShell.current
+    shell.script(`${REVERSE} --crlf-ok`, shellResult({ stdout: 'expected\r\n' }))
+    shell.script(`${REVERSE} --stdout-a`, shellResult({ stdout: 'wrong\n' }))
+    shell.script(`${REVERSE} --stdout-b`, shellResult({ stdout: 'other\n' }))
+    shell.script(`${REVERSE} --stderr-x`, shellResult({ exitCode: 1, stderr: 'boom\n' }))
+    shell.script(`${REVERSE} --all-clear`, shellResult({ stdout: 'done\n' }))
+    const report = await built.run()
+
+    const result = report.attempts[0]?.results[0]
+    expect(result?.status).toBe('fail')
+    expect(result?.cases).toEqual({
+      passed: 2,
+      total: 5,
+      weightPassed: 6,
+      weightTotal: 15,
+      failed: [
+        { id: 'stdout-a', weight: 2, channels: ['stdout'], exitClass: 'zero' },
+        { id: 'stdout-b', weight: 3, channels: ['stdout'], exitClass: 'zero' },
+        { id: 'stderr-x', weight: 4, channels: ['stderr'], exitClass: 'nonzero' },
+      ],
+    })
+    expect(result?.evidence).toBe([
+      'cases: 2 of 5 passed (weight 6 of 15)',
+      'case "stdout-a" differed on stdout; exit 0',
+      'stdout: wrong',
+      'case "stdout-b" differed on stdout; exit 0',
+      'stdout: other',
+      'case "stderr-x" differed on stderr; exit 1',
+      'stderr: boom',
+    ].join('\n'))
+    // The case that stages files and stdin resolves them through the executor.
+    expect(shell.requests.at(-1)).toMatchObject({ command: `${REVERSE} --all-clear`, stdin: 'seed\n' })
+    expect(await readFile(join(workspace, 'in', 'data.txt'), 'utf8')).toBe('staged')
+    expect(report.certified).toBe(false)
+  })
+
+  it('builds the directive from clusters and names no captured output', async () => {
+    const sentinel = 'SENTINEL-EXPECTED-OUTPUT'
+    const bodies: CheckCase[] = [
+      sample('stdout-a', { weight: 2 }),
+      sample('stdout-b', { weight: 3 }),
+      sample('stderr-x', {
+        weight: 4,
+        expected: { stderrSha256: digest('') },
+        comparator: { channels: ['stderr'], normalizers: [] },
+      }),
+    ]
+    const definition = casedEnvironment(bodies)
+    const { run } = await harness({
+      config: { maxAttempts: 2 },
+      definition: {
+        ...definition,
+        checks: [...definition.checks, { id: CheckId('builds'), outcome: 'the build succeeds', run: 'make' }],
+      },
+    })
+    // Two attempts run every command twice.
+    const shell = StubShell.current
+    const twice = (result: ShellRunResult): [ShellRunResult, ShellRunResult] => [result, result]
+    shell.script(`${REVERSE} --stdout-a`, ...twice(shellResult({ stdout: 'wrong\n' })))
+    shell.script(`${REVERSE} --stdout-b`, ...twice(shellResult({ stdout: 'other\n' })))
+    shell.script(`${REVERSE} --stderr-x`, ...twice(shellResult({ exitCode: 1, stderr: `expected: ${sentinel}\n` })))
+    shell.script('make', ...twice(shellResult({ exitCode: 2, stderr: `make: expected ${sentinel}\n` })))
+    const report = await run()
+
+    const directive = StubStandards.current.directives[0]
+    expect(directive?.rootCause).toBe("2 of the standard's checks failed")
+    expect(directive?.detail).toBe([
+      '1. the program reverses each line: 2 of 3 cases failed (weight 5 of 9); mismatching channels: stdout; the program exited 0',
+      '2. the program reverses each line: 1 of 3 cases failed (weight 4 of 9); mismatching channels: stderr; the program exited non-zero',
+      '3. exit 2',
+      `stderr: make: expected ${sentinel}`,
+    ].join('\n'))
+    expect(directive?.clusters).toEqual([
+      { checkId: 'reverses-lines', channels: ['stdout'], count: 2, weight: 5 },
+      { checkId: 'reverses-lines', channels: ['stderr'], count: 1, weight: 4 },
+    ])
+    // The validator's own expected output reaches the durable run evidence and
+    // never the directive line built from the cased check's clusters.
+    const casedEvidence = report.attempts[0]?.results[0]?.evidence ?? ''
+    expect(casedEvidence).toContain(sentinel)
+    expect(directive?.detail.split('\n').slice(0, 2).join('\n')).not.toContain(sentinel)
+  })
+
+  it('classifies a timeout, a signal, and a truncated stream, and bounds the failed list', async () => {
+    const bodies: CheckCase[] = [
+      sample('slow'),
+      sample('killed'),
+      sample('truncated'),
+      sample('exit-only', { expected: { exitCode: 0 }, comparator: { channels: ['exit'], normalizers: [] } }),
+    ]
+    const { run } = await harness({ config: { maxFailedCases: 2 }, definition: casedEnvironment(bodies) })
+    const shell = StubShell.current
+    shell.script(`${REVERSE} --slow`, shellResult({ exitCode: null, signal: 'SIGKILL', timedOut: true, timeoutMs: 250 }))
+    shell.script(`${REVERSE} --killed`, shellResult({ exitCode: null, signal: 'SIGTERM' }))
+    shell.script(`${REVERSE} --truncated`, { ...shellResult(), stdout: { text: 'expected\n', truncated: true } })
+    shell.script(`${REVERSE} --exit-only`, shellResult({ exitCode: 3 }))
+    const report = await run()
+
+    const cases = report.attempts[0]?.results[0]?.cases
+    expect(cases).toMatchObject({ passed: 0, total: 4, weightPassed: 0, weightTotal: 4 })
+    expect(cases?.failed).toEqual([
+      { id: 'slow', weight: 1, channels: ['stdout'], exitClass: 'timeout' },
+      { id: 'killed', weight: 1, channels: ['stdout'], exitClass: 'signal' },
+    ])
+    expect(StubStandards.current.directives[0]?.clusters).toEqual([
+      { checkId: 'reverses-lines', channels: ['stdout'], count: 1, weight: 1 },
+      { checkId: 'reverses-lines', channels: ['stdout'], count: 1, weight: 1 },
+    ])
+  })
+
+  it('empties the tree scope before each case and reports a tree mismatch', async () => {
+    const bodies: CheckCase[] = [
+      sample('tree-clean', {
+        expected: { treeSha256: EMPTY_TREE },
+        comparator: { channels: ['tree'], normalizers: ['crlf'] },
+      }),
+      sample('tree-dirty', {
+        weight: 2,
+        expected: { treeSha256: 'c'.repeat(64) },
+        comparator: { channels: ['tree'], normalizers: [] },
+      }),
+    ]
+    const { run } = await harness({ definition: casedEnvironment(bodies, { treeScope: 'out/artifacts' }) })
+    StubShell.current.script(`${REVERSE} --tree-clean`, shellResult())
+    StubShell.current.script(`${REVERSE} --tree-dirty`, shellResult())
+    const report = await run()
+    expect(report.attempts[0]?.results[0]?.cases).toMatchObject({
+      passed: 1,
+      weightPassed: 1,
+      failed: [{ id: 'tree-dirty', weight: 2, channels: ['tree'], exitClass: 'zero' }],
+    })
+  })
+
+  it('writes each check its own reserved directory with its run script and case bodies', async () => {
+    const bodies = [sample('crlf-ok')]
+    const { run, barrierRoot } = await harness({
+      barrierPrefix: 'environment-runner-cases-',
+      definition: casedEnvironment(bodies),
+    })
+    const directory = join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'reverses-lines')
+    StubShell.current.script(`. ${join(directory, 'run')} --crlf-ok`, shellResult({ stdout: 'expected\n' }))
+    const report = await run()
+    expect(report.certified).toBe(true)
+    expect(await readFile(join(directory, 'run'), 'utf8')).toBe(`${REVERSE}\n`)
+    expect(await readFile(join(directory, 'cases.jsonl'), 'utf8')).toBe(`${JSON.stringify(bodies[0])}\n`)
   })
 })

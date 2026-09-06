@@ -48,6 +48,8 @@ function checkCertifiedRunExecuted(state: VerificationFoldState, event: SessionE
   if (change === undefined) return
   const covered = change.certificate.standard
   const run = state.lastRun
+  // A cased result's status follows its cases at the decoder, so a run holding
+  // a failing case cannot report every result passing here.
   if (run !== undefined && run.standard.id === covered.id && run.standard.revision === covered.revision
     && run.results.every(result => result.status === 'pass')) {
     // A tampered run can carry passing results: the digest, not the checks,

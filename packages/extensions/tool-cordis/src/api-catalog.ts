@@ -515,7 +515,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the authored view at revision one.',
       },
       {
-        signature: 'extend(agent: Agent, ref: StandardRef, checks: readonly StandardCheck[]): StandardView',
+        signature: 'extend(agent: Agent, ref: StandardRef, checks: readonly AuthoredCheck[]): StandardView',
         description: 'Add checks to the current standard. Existing checks and relaxations are preserved exactly; the mutation invalidates any prior certificate.',
         parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'checks', description: 'one or more checks to append.' }],
         returns: 'the extended view.',
@@ -536,7 +536,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'issueDirective(agent: Agent, ref: StandardRef, request: DirectiveRequest): void',
         description: 'Record one root-cause failure aggregation for the implementer. The directive is the durable channel across the read barrier: it names where the candidate is weak without revealing individual checks.',
-        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'request', description: 'root cause and actionable detail.' }],
+        parameters: [{ name: 'agent', description: 'owning live agent.' }, { name: 'ref', description: 'expected current revision.' }, { name: 'request', description: 'root cause, actionable detail, and the failure clusters the detail was built from.' }],
       },
       {
         signature: 'certified(agent: Agent): VerificationCertificate | undefined',
@@ -3041,8 +3041,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type AttachmentId = Branded<\'AttachmentId\'>;',
   },
   {
+    name: 'AuthoredCheck',
+    declaration: 'export interface AuthoredCheck extends StandardCheck {\n    readonly caseBodies?: readonly CheckCase[];\n}',
+  },
+  {
     name: 'AuthorStandardRequest',
-    declaration: 'export interface AuthorStandardRequest {\n    readonly goalId: GoalId;\n    readonly checks: readonly StandardCheck[];\n}',
+    declaration: 'export interface AuthorStandardRequest {\n    readonly goalId: GoalId;\n    readonly checks: readonly AuthoredCheck[];\n}',
   },
   {
     name: 'BackendRegistry',
@@ -3073,8 +3077,48 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface CancelOptions {\n    keepInbox?: boolean | undefined;\n}',
   },
   {
+    name: 'CaseExitClass',
+    declaration: 'export type CaseExitClass = \'zero\' | \'nonzero\' | \'signal\' | \'timeout\';',
+  },
+  {
     name: 'CertificateIsolation',
     declaration: 'export type CertificateIsolation = \'none\' | \'process\' | \'host\';',
+  },
+  {
+    name: 'CheckCase',
+    declaration: 'export interface CheckCase {\n    readonly id: CheckCaseId;\n    readonly weight: number;\n    readonly input: CheckCaseInput;\n    readonly expected: CheckCaseExpectation;\n    readonly comparator: CheckCaseComparator;\n}',
+  },
+  {
+    name: 'CheckCaseChannel',
+    declaration: 'export type CheckCaseChannel = \'exit\' | \'stdout\' | \'stderr\' | \'tree\';',
+  },
+  {
+    name: 'CheckCaseComparator',
+    declaration: 'export interface CheckCaseComparator {\n    readonly channels: readonly CheckCaseChannel[];\n    readonly normalizers: readonly CheckCaseNormalizer[];\n}',
+  },
+  {
+    name: 'CheckCaseExpectation',
+    declaration: 'export interface CheckCaseExpectation {\n    readonly exitCode?: number;\n    readonly stdoutSha256?: string;\n    readonly stderrSha256?: string;\n    readonly treeSha256?: string;\n}',
+  },
+  {
+    name: 'CheckCaseId',
+    declaration: 'export type CheckCaseId = Branded<\'CheckCaseId\'>;',
+  },
+  {
+    name: 'CheckCaseInput',
+    declaration: 'export interface CheckCaseInput {\n    readonly argv: readonly string[];\n    readonly stdin?: string;\n    readonly files?: Readonly<Record<string, string>>;\n}',
+  },
+  {
+    name: 'CheckCaseNormalizer',
+    declaration: 'export type CheckCaseNormalizer = \'crlf\' | \'trailing-whitespace\' | \'blank-lines\' | \'iso8601-timestamps\' | \'temp-paths\' | \'json-canonical\';',
+  },
+  {
+    name: 'CheckCaseResults',
+    declaration: 'export interface CheckCaseResults {\n    readonly passed: number;\n    readonly total: number;\n    readonly weightPassed: number;\n    readonly weightTotal: number;\n    readonly failed: readonly FailedCheckCase[];\n}',
+  },
+  {
+    name: 'CheckCasesRef',
+    declaration: 'export interface CheckCasesRef {\n    readonly count: number;\n    readonly weightTotal: number;\n    readonly sha256: string;\n}',
   },
   {
     name: 'CheckId',
@@ -3082,7 +3126,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'CheckResult',
-    declaration: 'export interface CheckResult {\n    readonly checkId: CheckId;\n    readonly status: CheckStatus;\n    readonly evidence: string;\n}',
+    declaration: 'export interface CheckResult {\n    readonly checkId: CheckId;\n    readonly status: CheckStatus;\n    readonly evidence: string;\n    readonly cases?: CheckCaseResults;\n}',
   },
   {
     name: 'CheckStatus',
@@ -3341,8 +3385,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface DiffResultView {\n    card: \'diff\';\n    title?: string;\n    diffs: FileDiff[];\n}',
   },
   {
+    name: 'DirectiveCluster',
+    declaration: 'export interface DirectiveCluster {\n    readonly checkId: CheckId;\n    readonly channels: readonly CheckCaseChannel[];\n    readonly count: number;\n    readonly weight: number;\n}',
+  },
+  {
     name: 'DirectiveRequest',
-    declaration: 'export interface DirectiveRequest {\n    readonly rootCause: string;\n    readonly detail: string;\n}',
+    declaration: 'export interface DirectiveRequest {\n    readonly rootCause: string;\n    readonly detail: string;\n    readonly clusters?: readonly DirectiveCluster[];\n}',
   },
   {
     name: 'DirectoryPickerBrowseCapability',
@@ -3446,7 +3494,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentDefinition',
-    declaration: 'export interface EnvironmentDefinition<K extends EnvironmentKind = EnvironmentKind> {\n    readonly id: EnvironmentId;\n    readonly kind: K;\n    readonly name: string;\n    readonly description: string;\n    readonly task: EnvironmentTask;\n    readonly checks: readonly StandardCheck[];\n    readonly heldOut: boolean;\n    readonly owner: string;\n    readonly provenance: EnvironmentProvenance;\n    readonly lineage?: EnvironmentId;\n    readonly detail: EnvironmentDetail<K>;\n}',
+    declaration: 'export interface EnvironmentDefinition<K extends EnvironmentKind = EnvironmentKind> {\n    readonly id: EnvironmentId;\n    readonly kind: K;\n    readonly name: string;\n    readonly description: string;\n    readonly task: EnvironmentTask;\n    readonly checks: readonly AuthoredCheck[];\n    readonly heldOut: boolean;\n    readonly owner: string;\n    readonly provenance: EnvironmentProvenance;\n    readonly lineage?: EnvironmentId;\n    readonly detail: EnvironmentDetail<K>;\n}',
   },
   {
     name: 'EnvironmentDetail',
@@ -3543,6 +3591,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'FactsExportRequest',
     declaration: 'export interface FactsExportRequest {\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n}',
+  },
+  {
+    name: 'FailedCheckCase',
+    declaration: 'export interface FailedCheckCase {\n    readonly id: CheckCaseId;\n    readonly weight: number;\n    readonly channels: readonly CheckCaseChannel[];\n    readonly exitClass: CaseExitClass;\n}',
   },
   {
     name: 'FileDiff',
@@ -4754,7 +4806,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'StandardCheck',
-    declaration: 'export interface StandardCheck {\n    readonly id: CheckId;\n    readonly outcome: string;\n    readonly run: string;\n}',
+    declaration: 'export interface StandardCheck {\n    readonly id: CheckId;\n    readonly outcome: string;\n    readonly run: string;\n    readonly cases?: CheckCasesRef;\n    readonly treeScope?: string;\n}',
   },
   {
     name: 'StandardId',

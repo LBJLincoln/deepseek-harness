@@ -28,6 +28,18 @@ For a check with cases the runner spawns the candidate once per case through the
 
 A `recreation` environment kind declares `task.reference`: a directory under the fixture, copied beneath the barrier root at reservation time and listed as immutable, holding the reference program the validator may execute and the implementer may never read. A validator-role preset composes a `standard_author` tool carrying a new `standard-author` tool authority, which the mount audit and the per-agent guard deny to `implementer` sessions exactly as `session-log` is denied today. The tool offers three verbs: `record_case` runs the reference under the same four-channel capture and stores the expected digests for the given input, `weigh` sets a case weight, and `freeze` writes the cases file and authors or extends the standard through `ctx.completionStandards`. Behavioural sampling stays the validator agent's semantic work, bounded by `maxCases` and guided by a skill; the executor, the digests, and the wall are deterministic. `% resolved` (a certificate) and `parity` (the weighted pass rate) are reported as two metrics under their own names, following the distinction the ProgramBench authors draw.
 
+### Deviations recorded while slices 1 and 2 landed
+
+A definition carries case bodies on the check itself: `AuthoredCheck extends StandardCheck` with `caseBodies`, which `author()` and `extend()` validate against the `cases` reference and then drop, so the log keeps the reference alone and no second keyed map can name a check that does not exist. Registration hashes the bodies into `checksSha256` and validates nothing about them, because authorship is the operation that decides whether cases are usable.
+
+The check script moved to `checks/<checkId>/run`, so `checks/<checkId>` can be the directory holding `cases.jsonl` beside it.
+
+`CheckResult.cases.failed` carries a record per failed case — `{ id, weight, channels, exitClass }` — rather than a bare case id: the directive clusters by channels and exit-code class, and the run results are the only place those facts exist. The runner's `maxFailedCases` bounds the list; the tally still counts and weighs every failure.
+
+The `tree` channel digests every regular file under `treeScope` as the case left it, and the runner empties that directory before each case of a check that declares one, which is what makes the digest a per-case delta.
+
+`describeFailures` clusters a cased check and leaves a caseless check's evidence line as it was, so the wall closes exactly where cases exist; an environment closes it for a check by giving that check cases.
+
 ## Alternatives considered
 
 **Cases inside the `verification/standard` event.** Rejected: a recreation task carries hundreds of cases and the log is the record every replay reads; the reservation already holds the check bodies, the tamper digest already covers it, and the event carries the digest that binds the two.
@@ -52,8 +64,8 @@ A `recreation` environment kind declares `task.reference`: a directory under the
 
 ## Rollout
 
-1. Cases on checks: the `cases` reference, `CheckCase`, the normalizer set, `maxCases`, four-channel execution in the runner, `CheckResult.cases` and `verification/run.parity`, the invariant rules, catalogs regenerated.
-2. The wall closed: clustered directives with `clusters` on `verification/directive`, the sentinel test, the snapshot.
+1. Landed. Cases on checks: the `cases` reference, `CheckCase`, the normalizer set, `maxCases`, four-channel execution in the runner, `CheckResult.cases` and `verification/run.parity`, the invariant rules, catalogs regenerated.
+2. Landed. The wall closed: clustered directives with `clusters` on `verification/directive`, the sentinel test, and the `instrument-cases` snapshot over a Loader-booted fixture.
 3. Parity downstream: scorekeeper facts and columns, the trajectory record, publication rules in the Village note.
 4. The instrument: the `recreation` kind with `task.reference`, the `standard-author` authority, the `standard_author` tool, the validator preset, the sampling skill, the `recreation-instrument` fixture.
 5. Suite admission: recreation environments admitted through the curator of the four-goal note with both metrics on the stamp.

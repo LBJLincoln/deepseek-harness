@@ -534,6 +534,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   AgentHandle: 'agent ownership handle is owned by packages/core/agent/README.md',
   GoalId: 'goal identity brand is owned by packages/goal/goal/README.md',
   GoalCompletionGuard: 'completion admission guard is owned by packages/goal/goal/README.md',
+  AuthoredCheck: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   AuthorStandardRequest: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   CertificateIsolation: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',
   CheckId: 'completion-standard vocabulary is owned by packages/verification/verification/README.md',

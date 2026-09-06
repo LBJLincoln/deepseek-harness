@@ -639,16 +639,18 @@ export interface Config {
   maxAttempts?: number
   /** Round cap handed to goal creation; absent applies the goal service default. */
   maxGoalRounds?: number
-  /** Timeout override for each check command, capped by the executor; absent applies the executor default. */
+  /** Timeout override for each check command and each case, capped by the executor; absent applies the executor default. */
   checkTimeoutMs?: number
   /** Bound of each evidence string and of the directive detail. */
   evidenceMaxChars?: number
+  /** Maximum failed cases one check result lists; the rest are counted and not named. */
+  maxFailedCases?: number
 }
 ```
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:74`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:80`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -3133,12 +3135,14 @@ Requires: `agents`
 export interface Config {
   /** Maximum active checks one standard may hold. */
   maxChecks?: number
+  /** Maximum cases one standard's active checks may hold in total. */
+  maxCases?: number
   /** Maximum characters of one outcome, run, evidence, root-cause, or detail text. */
   maxTextChars?: number
 }
 ```
 
-Source: [`packages/verification/verification/src/index.ts:185`](../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:229`](../packages/verification/verification/src/index.ts)
 
 <a id="deepseek-aidsh-web"></a>
 

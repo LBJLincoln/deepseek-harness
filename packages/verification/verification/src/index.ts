@@ -30,17 +30,21 @@ import {
   nextRunAttempt,
 } from './fold.ts'
 import type { VerificationFoldState } from './fold.ts'
+import { resolveAuthoredCases } from './cases.ts'
 import { isolationProblem } from './isolation.ts'
 import { isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION, VerificationError } from './runtime.ts'
 import type {
+  AuthoredCheck,
   AuthorStandardRequest,
   CertificateIsolation,
   CheckId,
   CheckResult,
   CompletionStandardSnapshot,
+  DirectiveCluster,
   DirectiveRequest,
   RunEvidence,
   RunOutcome,
+  RunParity,
   RunVerdict,
   StandardCheck,
   StandardRef,
@@ -59,7 +63,17 @@ import type {
 
 export type * from './types.ts'
 export type * from './domain.ts'
-export { CheckId, isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION, VerificationError } from './runtime.ts'
+export { CheckCaseId, CheckId, isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION, VerificationError } from './runtime.ts'
+export {
+  applyCaseNormalizer,
+  caseBodiesSha256,
+  caseChannelDigest,
+  CHECK_CASE_CHANNELS,
+  CHECK_CASE_NORMALIZERS,
+  checkCasesRef,
+  normalizeCaseBytes,
+  resolveAuthoredCases,
+} from './cases.ts'
 export {
   applyVerificationEvent,
   decodeCertificateChange,
@@ -79,6 +93,48 @@ declare module '@deepseek-ai/cordis' {
   }
 }
 
+/** Wire payload of one check, whose case reference travels while the bodies stay in the reservation. */
+const checkSchema = zod.object({
+  id: zod.string().min(1),
+  outcome: zod.string().min(1),
+  run: zod.string().min(1),
+  cases: zod.object({
+    count: zod.number().int().positive(),
+    weightTotal: zod.number().int().positive(),
+    sha256: zod.string().min(1),
+  }).optional(),
+  treeScope: zod.string().min(1).optional(),
+})
+
+/** Wire payload of one executed check's result, carrying its case tally when the check has cases. */
+const resultSchema = zod.object({
+  checkId: zod.string().min(1),
+  status: zod.union([zod.literal('pass'), zod.literal('fail')]),
+  evidence: zod.string().min(1),
+  cases: zod.object({
+    passed: zod.number().int().nonnegative(),
+    total: zod.number().int().positive(),
+    weightPassed: zod.number().int().nonnegative(),
+    weightTotal: zod.number().int().positive(),
+    failed: zod.array(zod.object({
+      id: zod.string().min(1),
+      weight: zod.number().int().positive(),
+      channels: zod.array(zod.union([
+        zod.literal('exit'),
+        zod.literal('stdout'),
+        zod.literal('stderr'),
+        zod.literal('tree'),
+      ])).min(1),
+      exitClass: zod.union([
+        zod.literal('zero'),
+        zod.literal('nonzero'),
+        zod.literal('signal'),
+        zod.literal('timeout'),
+      ]),
+    })),
+  }).optional(),
+})
+
 /** Wire payload schema of the `verification` projection (whole current standard or pre-authorship null). */
 const verificationProjectionSchema: ZodType<VerificationProjection | null> = zod.union([
   zod.object({
@@ -86,17 +142,9 @@ const verificationProjectionSchema: ZodType<VerificationProjection | null> = zod
       id: zod.string().min(1),
       revision: zod.number().int().positive(),
       goalId: zod.string().min(1),
-      checks: zod.array(zod.object({
-        id: zod.string().min(1),
-        outcome: zod.string().min(1),
-        run: zod.string().min(1),
-      })),
+      checks: zod.array(checkSchema),
       relaxed: zod.array(zod.object({
-        check: zod.object({
-          id: zod.string().min(1),
-          outcome: zod.string().min(1),
-          run: zod.string().min(1),
-        }),
+        check: checkSchema,
         evidence: zod.string().min(1),
       })),
     }),
@@ -105,11 +153,7 @@ const verificationProjectionSchema: ZodType<VerificationProjection | null> = zod
       goalId: zod.string().min(1),
       isolation: zod.union([zod.literal('none'), zod.literal('process'), zod.literal('host')]),
       executor: zod.union([zod.literal('runner'), zod.literal('agent-reported')]),
-      results: zod.array(zod.object({
-        checkId: zod.string().min(1),
-        status: zod.union([zod.literal('pass'), zod.literal('fail')]),
-        evidence: zod.string().min(1),
-      })),
+      results: zod.array(resultSchema),
       recordedAt: zod.number(),
     }).optional(),
     directivesIssued: zod.number().int().nonnegative(),
@@ -185,6 +229,8 @@ export function applyVerificationProjection(
 export interface Config {
   /** Maximum active checks one standard may hold. */
   maxChecks?: number
+  /** Maximum cases one standard's active checks may hold in total. */
+  maxCases?: number
   /** Maximum characters of one outcome, run, evidence, root-cause, or detail text. */
   maxTextChars?: number
 }
@@ -193,6 +239,8 @@ export interface Config {
 export interface ResolvedConfig {
   /** Validated positive safe-integer check cap. */
   maxChecks: number
+  /** Validated positive safe-integer case cap. */
+  maxCases: number
   /** Validated positive safe-integer text cap. */
   maxTextChars: number
 }
@@ -201,6 +249,20 @@ export interface ResolvedConfig {
 interface VerificationCache {
   readonly state: VerificationFoldState
   observedSeq: number
+}
+
+/**
+ * The run's weighted pass rate, summed over the results that carry cases.
+ * @param results - the run's results in check order.
+ * @returns the parity, or `undefined` when no result carries cases.
+ */
+function runParity(results: readonly CheckResult[]): RunParity | undefined {
+  const cased = results.flatMap(result => result.cases === undefined ? [] : [result.cases])
+  if (cased.length === 0) return undefined
+  return {
+    weightPassed: cased.reduce((sum, cases) => sum + cases.weightPassed, 0),
+    weightTotal: cased.reduce((sum, cases) => sum + cases.weightTotal, 0),
+  }
 }
 
 /** Validate one caller-visible positive safe-integer bound. */
@@ -217,6 +279,7 @@ export class CompletionStandardService extends Service {
 
   static Config: z<Config> = z.object({
     maxChecks: z.number().default(256),
+    maxCases: z.number().default(1024),
     maxTextChars: z.number().default(16384),
   })
 
@@ -227,6 +290,7 @@ export class CompletionStandardService extends Service {
     super(ctx, 'completionStandards')
     this.resolved = {
       maxChecks: resolveBound(config.maxChecks ?? 256, 'maxChecks'),
+      maxCases: resolveBound(config.maxCases ?? 1024, 'maxCases'),
       maxTextChars: resolveBound(config.maxTextChars ?? 16384, 'maxTextChars'),
     }
     // Certificate admission activates only when a goal service is composed
@@ -277,6 +341,7 @@ export class CompletionStandardService extends Service {
     if (checks.length === 0) {
       throw new VerificationError('standard requires at least one check', 'VERIFICATION_INVALID_CHECK')
     }
+    this.assertCaseBudget(checks)
     const cache = this.prepareMutation(agent)
     const current = cache.state.standard
     if (current !== undefined && current.goalId === request.goalId) {
@@ -304,7 +369,7 @@ export class CompletionStandardService extends Service {
    * @param checks - one or more checks to append.
    * @returns the extended view.
    */
-  extend(agent: Agent, ref: StandardRef, checks: readonly StandardCheck[]): StandardView {
+  extend(agent: Agent, ref: StandardRef, checks: readonly AuthoredCheck[]): StandardView {
     const cache = this.prepareMutation(agent)
     const current = this.expectCurrent(cache, ref)
     const taken = new Set<string>([
@@ -326,6 +391,7 @@ export class CompletionStandardService extends Service {
         'VERIFICATION_INVALID_CHECK',
       )
     }
+    this.assertCaseBudget(standard.checks)
     return this.commitStandard(agent, cache, 'extend', standard, this.currentCreatedAt(cache), this.nextMutationTime(cache))
   }
 
@@ -409,6 +475,7 @@ export class CompletionStandardService extends Service {
         checkId: result.checkId,
         status: result.status,
         evidence: this.text(result.evidence, `result for "${result.checkId}"`, 'VERIFICATION_INVALID_RESULTS'),
+        ...result.cases === undefined ? {} : { cases: result.cases },
       })
     }
     const ordered: CheckResult[] = []
@@ -418,7 +485,7 @@ export class CompletionStandardService extends Service {
         throw new VerificationError(`run is missing a result for check "${check.id}"`, 'VERIFICATION_INVALID_RESULTS')
       }
       byCheck.delete(check.id)
-      ordered.push(result)
+      ordered.push(this.resolveCaseTally(check, result))
     }
     const extra = [...byCheck.keys()]
     if (extra.length > 0) {
@@ -432,6 +499,7 @@ export class CompletionStandardService extends Service {
     const verdict: RunVerdict = evidence.tampered === true
       ? 'tampered'
       : failures.length > 0 ? 'failed' : 'passed'
+    const parity = runParity(ordered)
     const run: VerificationRunChangeMeta = {
       kind: 'verification/run',
       version: VERIFICATION_CHANGE_VERSION,
@@ -441,6 +509,7 @@ export class CompletionStandardService extends Service {
       executor: evidence.executor,
       verdict,
       results: ordered,
+      ...parity === undefined ? {} : { parity },
       ...evidence.treeHash === undefined ? {} : { treeHash: evidence.treeHash },
       recordedAt: this.nextMutationTime(cache),
     }
@@ -471,22 +540,51 @@ export class CompletionStandardService extends Service {
    * the candidate is weak without revealing individual checks.
    * @param agent - owning live agent.
    * @param ref - expected current revision.
-   * @param request - root cause and actionable detail.
+   * @param request - root cause, actionable detail, and the failure clusters the detail was built from.
    */
   issueDirective(agent: Agent, ref: StandardRef, request: DirectiveRequest): void {
     const rootCause = this.text(request.rootCause, 'rootCause', 'VERIFICATION_INVALID_DIRECTIVE')
     const detail = this.text(request.detail, 'detail', 'VERIFICATION_INVALID_DIRECTIVE')
     const cache = this.prepareMutation(agent)
     const current = this.expectCurrent(cache, ref)
+    const clusters = this.resolveClusters(current, request.clusters)
     const change: DirectiveChangeMeta = {
       kind: 'verification/directive',
       version: VERIFICATION_CHANGE_VERSION,
       standard: { id: current.id, revision: current.revision },
       rootCause,
       detail,
+      ...clusters === undefined ? {} : { clusters },
       issuedAt: this.nextMutationTime(cache),
     }
     this.commit(agent, cache, 'verification/directive', change)
+  }
+
+  /** Check every cluster against the standard's own cased checks before it enters the log. */
+  private resolveClusters(
+    current: CompletionStandardSnapshot,
+    clusters: readonly DirectiveCluster[] | undefined,
+  ): DirectiveCluster[] | undefined {
+    if (clusters === undefined) return undefined
+    if (clusters.length === 0) {
+      throw new VerificationError('clusters must be a non-empty list when present', 'VERIFICATION_INVALID_DIRECTIVE')
+    }
+    return clusters.map((cluster) => {
+      const check = current.checks.find(candidate => candidate.id === cluster.checkId)
+      if (check?.cases === undefined) {
+        throw new VerificationError(
+          `cluster names unknown or caseless check "${cluster.checkId}"`,
+          'VERIFICATION_INVALID_DIRECTIVE',
+        )
+      }
+      if (cluster.count > check.cases.count || cluster.weight > check.cases.weightTotal) {
+        throw new VerificationError(
+          `cluster of check "${cluster.checkId}" exceeds its cases reference`,
+          'VERIFICATION_INVALID_DIRECTIVE',
+        )
+      }
+      return { checkId: cluster.checkId, channels: [...cluster.channels], count: cluster.count, weight: cluster.weight }
+    })
   }
 
   /**
@@ -545,6 +643,38 @@ export class CompletionStandardService extends Service {
     }
   }
 
+  /**
+   * Check one result's case tally against the check's own case reference and
+   * derive the verdict from it: a cased check passes only when every one of its
+   * cases passed, whatever status the caller reported. A caseless result of a
+   * cased check keeps its reported status, which is how a tampered attempt
+   * records checks it never executed.
+   */
+  private resolveCaseTally(check: StandardCheck, result: CheckResult): CheckResult {
+    const cases = result.cases
+    if (cases === undefined) return result
+    const reject = (reason: string): never => {
+      throw new VerificationError(`result for check "${check.id}" ${reason}`, 'VERIFICATION_INVALID_RESULTS')
+    }
+    const reference = check.cases
+    if (reference === undefined) {
+      return reject('reports cases for a check that references none')
+    }
+    if (cases.total !== reference.count || cases.weightTotal !== reference.weightTotal) {
+      reject(`reports ${cases.total} cases of weight ${cases.weightTotal} against a reference of ${reference.count} of weight ${reference.weightTotal}`)
+    }
+    if (!Number.isSafeInteger(cases.passed) || cases.passed < 0 || cases.passed > cases.total) {
+      reject(`reports ${cases.passed} of ${cases.total} cases passing`)
+    }
+    if (!Number.isSafeInteger(cases.weightPassed) || cases.weightPassed < 0 || cases.weightPassed > cases.weightTotal) {
+      reject(`reports passing weight ${cases.weightPassed} of ${cases.weightTotal}`)
+    }
+    if (cases.failed.length > cases.total - cases.passed) {
+      reject(`lists ${cases.failed.length} failed cases while ${cases.total - cases.passed} failed`)
+    }
+    return { ...result, status: cases.passed === cases.total ? 'pass' : 'fail' }
+  }
+
   /** Validate, trim, and cap one recorded text. */
   private text(value: string, field: string, code: VerificationErrorCode): string {
     const trimmed = value.trim()
@@ -557,8 +687,13 @@ export class CompletionStandardService extends Service {
     return trimmed
   }
 
-  /** Validate one added check inventory against ids already taken. */
-  private resolveChecks(checks: readonly StandardCheck[], taken: Set<string>): StandardCheck[] {
+  /**
+   * Validate one added check inventory against ids already taken, and each
+   * cased check's bodies against the reference it hands in. The stored check
+   * keeps the reference alone: the bodies live in the validator's reservation,
+   * never in the log.
+   */
+  private resolveChecks(checks: readonly AuthoredCheck[], taken: Set<string>): StandardCheck[] {
     if (checks.length > this.resolved.maxChecks) {
       throw new VerificationError(
         `standard cannot exceed ${this.resolved.maxChecks} active checks`,
@@ -575,13 +710,27 @@ export class CompletionStandardService extends Service {
         throw new VerificationError(`check id "${check.id}" is already taken`, 'VERIFICATION_INVALID_CHECK')
       }
       seen.add(check.id)
+      resolveAuthoredCases(check)
       resolved.push({
         id: check.id,
         outcome: this.text(check.outcome, `check "${check.id}" outcome`, 'VERIFICATION_INVALID_CHECK'),
         run: this.text(check.run, `check "${check.id}" run`, 'VERIFICATION_INVALID_CHECK'),
+        ...check.cases === undefined ? {} : { cases: { ...check.cases } },
+        ...check.treeScope === undefined ? {} : { treeScope: check.treeScope },
       })
     }
     return resolved
+  }
+
+  /** Reject a standard whose active checks hold more cases than the deployment allows. */
+  private assertCaseBudget(checks: readonly StandardCheck[]): void {
+    const cases = checks.reduce((sum, check) => sum + (check.cases?.count ?? 0), 0)
+    if (cases > this.resolved.maxCases) {
+      throw new VerificationError(
+        `standard cannot exceed ${this.resolved.maxCases} cases`,
+        'VERIFICATION_INVALID_CASE',
+      )
+    }
   }
 
   /** Resolve and validate the cache used by a mutation. */
