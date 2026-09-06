@@ -16,7 +16,7 @@ import {
   foldSessionFacts,
   foldSessionFactsState,
 } from '@deepseek-ai/dsh-scorekeeper'
-import { cellLog, certificate, directive, goalChange, header, Log, MOCK_ROUTE, runRecord, standard, stamp } from './log.ts'
+import { cellLog, certificate, directive, goalChange, header, Log, manifest, MOCK_ROUTE, runRecord, standard, stamp } from './log.ts'
 import type { Route } from './log.ts'
 
 /** The rates one deployment priced the mock route at, and the ten-times-higher rates that replaced them. */
@@ -43,6 +43,7 @@ describe('foldSessionFacts', () => {
         reward: null,
         rewardBasis: 'none',
         certified: false,
+        tamper: 'not-instrumented',
         runsRecorded: 0,
         attempts: 0,
         directives: 0,
@@ -97,6 +98,7 @@ describe('foldSessionFacts', () => {
       certified: true,
       certificateRevision: 1,
       certificateExecutor: 'runner',
+      tamper: 'passed',
       runsRecorded: 1,
       attempts: 1,
       directives: 0,
@@ -163,6 +165,25 @@ describe('foldSessionFacts', () => {
     expect(cased).toMatchObject({ reward: 0, certified: false, runsRecorded: 2 })
     const caseless = foldSessionFacts(header('caseless'), cellLog({ certified: false, runs: 1 })).outcome
     expect(caseless.parity).toBeUndefined()
+  })
+
+  it('carries the verdict of the last recorded run as the tamper status', () => {
+    const log = new Log()
+    log.push('environment/run', stamp())
+    log.push('goal/change', goalChange('create', 'active', 1))
+    log.push('verification/standard', standard())
+    log.push('verification/run', runRecord(1, 'fail'))
+    expect(foldSessionFacts(header('failed'), log.events).outcome.tamper).toBe('failed')
+    log.push('verification/run', runRecord(2, 'fail', 'none', undefined, 'tampered'))
+    expect(foldSessionFacts(header('tampered'), log.events).outcome.tamper).toBe('tampered')
+  })
+
+  it('carries the composition digest of the last recorded manifest and none for a log carrying no manifest', () => {
+    const log = new Log()
+    log.push('composition/manifest', manifest('a'.repeat(64)))
+    log.push('composition/manifest', manifest('b'.repeat(64)))
+    expect(foldSessionFacts(header('composed'), log.events).identity.compositionSha256).toBe('b'.repeat(64))
+    expect(foldSessionFacts(header('bare'), new Log().events).identity.compositionSha256).toBeUndefined()
   })
 
   it('records the cap of the last budget breach', () => {

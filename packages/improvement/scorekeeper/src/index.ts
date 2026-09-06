@@ -71,6 +71,7 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     environment: environmentSchema.optional(),
     requestProvider: zod.string().min(1).optional(),
     requestModel: zod.string().min(1).optional(),
+    compositionSha256: zod.string().min(1).optional(),
   }),
   outcome: zod.object({
     reward: zod.union([zod.literal(1), zod.literal(0), zod.null()]),
@@ -86,6 +87,12 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
       weightPassed: zod.number().int().nonnegative(),
       weightTotal: zod.number().int().positive(),
     }).optional(),
+    tamper: zod.union([
+      zod.literal('passed'),
+      zod.literal('failed'),
+      zod.literal('tampered'),
+      zod.literal('not-instrumented'),
+    ]),
     runsRecorded: zod.number().int().nonnegative(),
     attempts: zod.number().int().nonnegative(),
     directives: zod.number().int().nonnegative(),
@@ -192,7 +199,7 @@ export class ScorekeeperService extends Service {
         init: emptySessionFactsState,
         apply: applySessionFactsProjection,
         view: state => state.facts,
-        stateVersion: 2,
+        stateVersion: 3,
       })
     })
   }

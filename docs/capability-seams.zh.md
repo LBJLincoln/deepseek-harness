@@ -142,6 +142,8 @@ flowchart LR
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
   svc_scorekeeper["ctx.scorekeeper<br/>Session facts and the scoreboard"]
+  pkg_observatory["observatory"]
+  svc_observatory["ctx.observatory<br/>The public scoreboard page"]
   pkg_e2b["e2b"]
   svc_e2b["ctx.e2b<br/>E2B sandbox lifecycle owner"]
   pkg_fs_e2b["fs-e2b"]
@@ -273,6 +275,7 @@ flowchart LR
   pkg_lsp_local --> svc_lsp
   pkg_message_feedback --> svc_messageFeedback
   pkg_modules --> svc_clientModules
+  pkg_observatory --> svc_observatory
   pkg_permission_presets --> svc_permissionPresets
   pkg_plan_mode --> svc_planMode
   pkg_program --> svc_programs
@@ -388,6 +391,7 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_observatory --> pkg_headless_agent
   svc_programs --> pkg_headless_agent
   svc_readBarrier --> pkg_environment_runner
   svc_readBarrier --> pkg_fs_read_barrier
@@ -397,6 +401,7 @@ flowchart LR
   svc_sandboxPolicy --> pkg_fs_sandbox
   svc_sandboxPolicy --> pkg_terminal_bash
   svc_scorekeeper --> pkg_headless_agent
+  svc_scorekeeper --> pkg_observatory
   svc_sessionPersistence --> pkg_agent_loop
   svc_sessionPersistence --> pkg_hooks_claude_code
   svc_sessionPersistence --> pkg_hooks_codex
@@ -520,7 +525,8 @@ flowchart LR
 | `ctx.programs` | `core` | [`program`](../packages/improvement/program) | - | `headless-agent` | - | 把一份交付物分解为部门目标，每个目标都有自己的工作树、会话、预设与配额，把每一次状态变化以 program/* 事件记入该程序自己的会话，并且只在合并后 head 的证书之上发布。 |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | 以内容摘要冻结一份计划，让两个 arm 都经 fleet 以配对的重复索引、在由摘要派生的 stamp group 之下运行，并连同 bootstrap 区间与判定一起折叠出证书率 delta。 |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`、[`scorekeeper`](../packages/improvement/scorekeeper) | - | 将已持久化会话折叠为带证书判定奖励与组件来源的 dsh-trajectory/1 记录；不写入任何会话事件。 |
-| `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | 注册 sessionFacts 投影单元，并把已持久化日志折叠为事实记录、按路由、环境、隔离级别与留出划分分区的记分板，以及 JSONL 导出。 |
+| `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent`, [`observatory`](../packages/improvement/observatory) | - | 注册 sessionFacts 投影单元，并把已持久化日志折叠为事实记录、按路由、环境、隔离级别与留出划分分区的记分板，以及 JSONL 导出。 |
+| `ctx.observatory` | `core` | [`observatory`](../packages/improvement/observatory) | - | `headless-agent` | - | 在全部持久化会话上折叠记分板，把配置的区与留出划分扣留在公开行之外并对两者计数，并渲染出一个自包含的 HTML 页面以及同一次发布的 JSON。 |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | 拥有一个共享的 E2B SDK 句柄、远程工作目录和最终沙箱处置，使两个基础 E2B 提供方处于同一个 Linux 运行时中。 |
 | `ctx.subprocess` | `seam` | [`subprocess`](../packages/subprocess/subprocess) | [`subprocess-local`](../packages/subprocess/subprocess-local), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`terminal-bash`](../packages/terminal/terminal-bash), [`lsp-stdio`](../packages/lsp/lsp-stdio), [`subagent-acp`](../packages/subagent/subagent-acp), [`subagent-codex`](../packages/subagent/subagent-codex), [`subagent-claude-code`](../packages/subagent/subagent-claude-code) | - | Bash 执行器、PTY shell 后端、LSP Host，以及进程外 ACP、Codex 和 Claude Code subagent 后端都通过 ctx.subprocess 执行 spawn；该服务负责进程坐标、进程树／会话生命周期、stdio 处置、终端机制和 kill 升级。 |
 | `ctx.shell` | `seam` | [`shell`](../packages/shell/shell) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`pwsh-local`](../packages/shell/pwsh-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`hooks-claude-code`](../packages/hooks/hooks-claude-code), [`hooks-codex`](../packages/hooks/hooks-codex) | - | 面向模型的 shell 工具和钩子桥接消费此 seam；沙箱、远程或 PowerShell 执行器可以替换 bash-local，而无需改动这些消费方。 |

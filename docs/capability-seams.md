@@ -140,6 +140,8 @@ flowchart LR
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
   svc_scorekeeper["ctx.scorekeeper<br/>Session facts and the scoreboard"]
+  pkg_observatory["observatory"]
+  svc_observatory["ctx.observatory<br/>The public scoreboard page"]
   pkg_e2b["e2b"]
   svc_e2b["ctx.e2b<br/>E2B sandbox lifecycle owner"]
   pkg_fs_e2b["fs-e2b"]
@@ -271,6 +273,7 @@ flowchart LR
   pkg_lsp_local --> svc_lsp
   pkg_message_feedback --> svc_messageFeedback
   pkg_modules --> svc_clientModules
+  pkg_observatory --> svc_observatory
   pkg_permission_presets --> svc_permissionPresets
   pkg_plan_mode --> svc_planMode
   pkg_program --> svc_programs
@@ -386,6 +389,7 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_observatory --> pkg_headless_agent
   svc_programs --> pkg_headless_agent
   svc_readBarrier --> pkg_environment_runner
   svc_readBarrier --> pkg_fs_read_barrier
@@ -395,6 +399,7 @@ flowchart LR
   svc_sandboxPolicy --> pkg_fs_sandbox
   svc_sandboxPolicy --> pkg_terminal_bash
   svc_scorekeeper --> pkg_headless_agent
+  svc_scorekeeper --> pkg_observatory
   svc_sessionPersistence --> pkg_agent_loop
   svc_sessionPersistence --> pkg_hooks_claude_code
   svc_sessionPersistence --> pkg_hooks_codex
@@ -518,7 +523,8 @@ flowchart LR
 | `ctx.programs` | `core` | [`program`](../packages/improvement/program) | - | `headless-agent` | - | Decomposes one deliverable into department goals, each on its own worktree, session, preset, and caps, records every status as program/* events in the program's own session, and releases only on a certificate of the merged head. |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | Freezes a plan by a content digest, runs both arms through the fleet at paired repetition indexes under digest-derived stamp groups, and folds the certificate-rate delta with a bootstrap interval and a verdict. |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`, [`scorekeeper`](../packages/improvement/scorekeeper) | - | Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event. |
-| `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export. |
+| `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent`, [`observatory`](../packages/improvement/observatory) | - | Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export. |
+| `ctx.observatory` | `core` | [`observatory`](../packages/improvement/observatory) | - | `headless-agent` | - | Folds the scoreboard over every persisted session, withholds the configured districts and the held-out split from its public rows while counting both, and renders one self-contained HTML page beside the same publication as JSON. |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | Owns one shared E2B SDK handle, remote working directory, and final sandbox disposition so both fundamental E2B providers inhabit the same Linux runtime. |
 | `ctx.subprocess` | `seam` | [`subprocess`](../packages/subprocess/subprocess) | [`subprocess-local`](../packages/subprocess/subprocess-local), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`terminal-bash`](../packages/terminal/terminal-bash), [`lsp-stdio`](../packages/lsp/lsp-stdio), [`subagent-acp`](../packages/subagent/subagent-acp), [`subagent-codex`](../packages/subagent/subagent-codex), [`subagent-claude-code`](../packages/subagent/subagent-claude-code) | - | The bash executors, the PTY shell backend, the LSP host, and the out-of-process ACP, Codex, and Claude Code subagent backends spawn through ctx.subprocess; the service owns process coordinates, tree/session lifetime, stdio dispositions, terminal mechanics, and kill escalation. |
 | `ctx.shell` | `seam` | [`shell`](../packages/shell/shell) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`pwsh-local`](../packages/shell/pwsh-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`hooks-claude-code`](../packages/hooks/hooks-claude-code), [`hooks-codex`](../packages/hooks/hooks-codex) | - | The model-facing shell tools and hook bridges consume this seam; sandboxed, remote, or PowerShell executors replace bash-local without touching them. |

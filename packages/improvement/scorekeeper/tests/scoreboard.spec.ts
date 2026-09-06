@@ -11,6 +11,7 @@ import { pricingTableDigest } from '@deepseek-ai/dsh-budget-policy'
 import type { BudgetRoutePricing } from '@deepseek-ai/dsh-budget-policy'
 import { foldScoreboard, foldSessionFacts, unbiasedPassAtK } from '@deepseek-ai/dsh-scorekeeper'
 import type { SessionFactsRecord } from '@deepseek-ai/dsh-scorekeeper'
+import type { RunExecutor, RunVerdict } from '@deepseek-ai/dsh-verification/types'
 import { cellLog, header, Log, MOCK_ROUTE, stamp } from './log.ts'
 
 /** The rates one deployment priced the mock route at, and the rates that replaced them. */
@@ -36,7 +37,10 @@ function cell(id: string, options: {
   readonly environmentId?: string
   readonly isolation?: string
   readonly district?: string
+  readonly verdict?: RunVerdict
   readonly weightPassed?: number
+  readonly executor?: RunExecutor
+  readonly composition?: string
   readonly pricing?: { readonly rates: BudgetRoutePricing; readonly digest: string }
 }): SessionFactsRecord {
   const overrides = {
@@ -51,7 +55,10 @@ function cell(id: string, options: {
     stamp: stamp(overrides),
     certified: options.certified,
     runs: options.runs,
+    ...options.verdict === undefined ? {} : { verdict: options.verdict },
     ...options.weightPassed === undefined ? {} : { weightPassed: options.weightPassed },
+    ...options.executor === undefined ? {} : { executor: options.executor },
+    ...options.composition === undefined ? {} : { composition: options.composition },
     ...options.pricing === undefined ? {} : { pricing: options.pricing },
   }))
 }
@@ -182,6 +189,51 @@ describe('foldScoreboard', () => {
   it('states no weighted pass rate for a row whose sessions measured no cases', () => {
     const fold = foldScoreboard([cell('caseless', { certified: true, runs: 1 })], {}, [1])
     expect(fold.rows[0]).not.toHaveProperty('parity')
+  })
+
+  it('counts the tampered sessions of the row and leaves a row with no run without a verdict to read', () => {
+    const fold = foldScoreboard([
+      cell('tampered-0', { certified: false, runs: 1, verdict: 'tampered' }),
+      cell('failed-0', { certified: false, runs: 1 }),
+      cell('errored-0', { certified: false, runs: 0 }),
+    ], {}, [1])
+    expect(fold.rows).toHaveLength(1)
+    expect(fold.rows[0]).toMatchObject({ runs: 2, errors: 1, tampered: 1 })
+  })
+
+  it('states the composition digest only when every session of the row states the same one', () => {
+    const shared = foldScoreboard([
+      cell('composed-0', { certified: true, runs: 1, composition: 'd'.repeat(64) }),
+      cell('composed-1', { certified: false, runs: 1, composition: 'd'.repeat(64) }),
+    ], {}, [1])
+    expect(shared.rows[0]?.compositionSha256).toBe('d'.repeat(64))
+
+    const disagreeing = foldScoreboard([
+      cell('composed-0', { certified: true, runs: 1, composition: 'd'.repeat(64) }),
+      cell('composed-2', { certified: false, runs: 1, composition: 'e'.repeat(64) }),
+    ], {}, [1])
+    expect(disagreeing.rows[0]).not.toHaveProperty('compositionSha256')
+
+    const partial = foldScoreboard([
+      cell('composed-0', { certified: true, runs: 1, composition: 'd'.repeat(64) }),
+      cell('bare-0', { certified: false, runs: 1 }),
+    ], {}, [1])
+    expect(partial.rows[0]).not.toHaveProperty('compositionSha256')
+
+    const none = foldScoreboard([cell('bare-0', { certified: false, runs: 1 })], {}, [1])
+    expect(none.rows[0]).not.toHaveProperty('compositionSha256')
+  })
+
+  it('unions the certificate executors of the row and states none for a row that certified nothing', () => {
+    const mixed = foldScoreboard([
+      cell('runner-0', { certified: true, runs: 1 }),
+      cell('reported-0', { certified: true, runs: 1, executor: 'agent-reported' }),
+      cell('runner-1', { certified: true, runs: 1 }),
+    ], {}, [1])
+    expect(mixed.rows[0]?.certificateExecutors).toEqual(['runner', 'agent-reported'])
+
+    const uncertified = foldScoreboard([cell('failed-0', { certified: false, runs: 1 })], {}, [1])
+    expect(uncertified.rows[0]?.certificateExecutors).toEqual([])
   })
 
   it('excludes stamped sessions the group and held-out conditions reject, and rows no stamp names', () => {

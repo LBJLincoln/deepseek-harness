@@ -8,6 +8,7 @@
  * @module @deepseek-ai/dsh-scorekeeper
  */
 
+import type { RunExecutor } from '@deepseek-ai/dsh-verification/types'
 import type {
   EnvironmentStats,
   LeaderboardFilter,
@@ -42,8 +43,16 @@ interface RowAccumulator {
   parityRateSum: number
   /** How many sessions of the row carry a parity; the divisor of that sum. */
   paritySessions: number
+  /** Sessions whose last recorded run carried the `tampered` verdict. */
+  tampered: number
+  /** Composition digest every session so far stated, absent until the first session. */
+  compositionSha256: string | undefined
+  /** Whether a session stated no digest or a second one, which withholds the row's digest for good. */
+  compositionMixed: boolean
   /** Pricing digests of every session of the row, in first-appearance order. */
   readonly digests: Set<string>
+  /** Certificate executors of the row's certified sessions, in first-appearance order. */
+  readonly executors: Set<RunExecutor>
   readonly batches: Map<string, Batch>
 }
 
@@ -113,6 +122,16 @@ function matches(filter: LeaderboardFilter, environment: SessionFactsEnvironment
   return filter.heldOut === undefined || environment.heldOut === filter.heldOut
 }
 
+/**
+ * Fold one session's composition digest into the row's agreement. A session
+ * that states none, or one that states a second digest, breaks the agreement
+ * for good, so a digest covering part of a row is never published as the row's.
+ */
+function agreeComposition(row: RowAccumulator, digest: string | undefined, first: boolean): void {
+  if (digest === undefined || (!first && row.compositionSha256 !== digest)) row.compositionMixed = true
+  else row.compositionSha256 = digest
+}
+
 /** Add one stamped session to its row. */
 function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecord, environment: SessionFactsEnvironment): void {
   const key = rowKey(environment)
@@ -128,9 +147,14 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     uncostedCertified: 0,
     parityRateSum: 0,
     paritySessions: 0,
+    tampered: 0,
+    compositionSha256: undefined,
+    compositionMixed: false,
     digests: new Set<string>(),
+    executors: new Set<RunExecutor>(),
     batches: new Map<string, Batch>(),
   }
+  const first = !rows.has(key)
   rows.set(key, row)
   const outcome = record.outcome
   const efficiency = record.efficiency
@@ -139,8 +163,12 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     row.runs += 1
     row.attemptSum += outcome.runsRecorded
   }
+  if (outcome.tamper === 'tampered') row.tampered += 1
+  agreeComposition(row, record.identity.compositionSha256, first)
   if (outcome.certified) {
     row.certified += 1
+    /* v8 ignore next -- a certified session states the executor of the run its certificate cites. */
+    if (outcome.certificateExecutor !== undefined) row.executors.add(outcome.certificateExecutor)
     if (efficiency.costEur === undefined) row.uncostedCertified += 1
     else row.certifiedCostEur += efficiency.costEur
   }
@@ -170,6 +198,11 @@ function finish(row: RowAccumulator, ks: readonly number[]): ScoreboardRow {
     ...row.environment.district === undefined ? {} : { district: row.environment.district },
     runs: row.runs,
     errors: row.errors,
+    tampered: row.tampered,
+    ...row.compositionSha256 === undefined || row.compositionMixed
+      ? {}
+      : { compositionSha256: row.compositionSha256 },
+    certificateExecutors: [...row.executors],
     certified: row.certified,
     certificateRate: row.runs === 0 ? 0 : row.certified / row.runs,
     ...row.paritySessions === 0 ? {} : { parity: row.parityRateSum / row.paritySessions },

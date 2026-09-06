@@ -1420,6 +1420,47 @@ export interface Config {
 
 来源：[`packages/feedback/message-feedback/src/index.ts:49`](../packages/feedback/message-feedback/src/index.ts)
 
+<a id="deepseek-aidsh-observatory"></a>
+
+## `@deepseek-ai/dsh-observatory`
+
+需要：`scorekeeper` · `sessionPersistence`
+
+```ts config-catalog
+/**
+ * Deployment choices of the observatory, validated from `cordis.yml`. Every
+ * field is required: what a deployment withholds, how old is too old, and how
+ * often it refolds are all statements the page makes to its readers, and none
+ * of them has a value this package could pick on a deployment's behalf.
+ *
+ * Publishing a cost without the digest that priced it is not among them. That
+ * rule is fixed at `true` and is not a config key, because a row priced under
+ * two pricing tables states a sum across tables rather than a price.
+ */
+export interface Config {
+  /** What never reaches the public rows. */
+  withhold: WithholdConfig
+  /** Age of the newest folded session past which the page shows the staleness notice in place of every figure. */
+  staleAfterMs: number
+  /** Batch refresh interval, stated on the page as the cadence its numbers were folded under. */
+  refreshIntervalMs: number
+}
+
+/** What a deployment never publishes. */
+export interface WithholdConfig {
+  /**
+   * Districts whose rows never reach the public page. The package ships no
+   * district name: a deployment states the districts whose sessions may not
+   * leave it, exactly as the trajectory exporter does.
+   */
+  districts: string[]
+  /** Whether held-out rows are withheld as well. */
+  heldOut: boolean
+}
+```
+
+来源：[`packages/improvement/observatory/src/index.ts:59`](../packages/improvement/observatory/src/index.ts)
+
 <a id="deepseek-aidsh-permission-presets"></a>
 
 ## `@deepseek-ai/dsh-permission-presets`
@@ -1743,7 +1784,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/improvement/scorekeeper/src/index.ts:145`](../packages/improvement/scorekeeper/src/index.ts)
+来源：[`packages/improvement/scorekeeper/src/index.ts:152`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 

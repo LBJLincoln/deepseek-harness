@@ -44,6 +44,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | `sessionId`, `createdAt` | The stored session header (`facts()` and `exportFacts()` only; a projection value is already addressed by its session) |
 | `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.district`, `.contentSha256`, `.provider`, `.model`, `.isolation` | The `environment/run` stamp, absent for a session no runner stamped |
 | `requestProvider`, `requestModel` | `config.provider` and `config.model` of the last `request/header` |
+| `compositionSha256` | The `compositionSha256` of the last `composition/manifest` (`@deepseek-ai/dsh-components-manifest`), absent for a session whose log carries none |
 
 ### Outcome
 
@@ -52,6 +53,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | `reward`, `rewardBasis` | The trajectory reward fold over `goal/change` and the `verification/*` events |
 | `certified`, `certificateRevision`, `certificateExecutor` | The verification fold's certificate for the current standard revision, and the executor of the run it cites |
 | `parity` | The `parity` of the last `verification/run`, absent when that run measured no cases |
+| `tamper` | The `verdict` of the last `verification/run`, `not-instrumented` when the session recorded none |
 | `runsRecorded` | `verification/run` events, passing or failing |
 | `attempts` | The `attempt` of the last `verification/run`; it restarts at one for each authored standard |
 | `directives` | `verification/directive` events |
@@ -86,6 +88,8 @@ The fold takes no pricing table: cost is the sum the `usage/priced` records them
 
 A row is one model route on one environment at one isolation level, one side of the held-out split, and one district; a row never averages across isolation, the split, or districts, so a publication that withholds a district drops whole rows instead of blending them. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
 
+Three columns state what a publication needs beside those rates. `tampered` counts the sessions whose last recorded run carried the `tampered` verdict; a row's `errors` is exactly its not-instrumented sessions, because a session that recorded no run carries no verdict to read. `compositionSha256` is the digest every session of the row states, absent when a session states none or two disagree, so a digest covering part of a row never attributes the whole row. `certificateExecutors` holds the distinct executors of the row's certified sessions in first-appearance order: empty for a row that certified nothing, and two or more for a row whose certificates disagree, where no single executor may be published beside its rate.
+
 `certificateRate` and `parity` are two columns and stay two. The certificate measure — `certified`, `certificateRate`, and the `stats` estimates built on it — says that every case of every active check passed. `parity` is the mean of `weightPassed / weightTotal` over the row's sessions that measured cases, absent for a row where none did, and every such session counts once however many cases sampled it. Nothing this package renders merges the two into one score or ranks across them: a row that reached most of a standard's case weight and a row that certified are different facts about the work, and a consumer that ranks reads one column or the other. The [ProgramBench distinction](../../../.agents/notes/proposed/architecture/2026-09-06-competitive-baselines.md) is the same one.
 
 `costEurPerCertified` is the mean `costEur` over the row's certified sessions, and `pricingDigests` the distinct digests across every session of the row, errored and uncertified ones included. The mean is absent for a row that certified nothing and absent when any certified session of the row states no cost, so a published cost per certified session never counts an unpriced session as a free one.
@@ -103,7 +107,7 @@ None; the service neither adds to nor changes any model request.
 ## Known Limitations and Deferred Work
 
 - **The projection value changes on every event** — `wallMs` spans the log, so no committed event leaves the `sessionFacts` state reference untouched and a subscribed carrier is notified once per event.
-- **Field groups without a source event** — process quality, judge scores, safety and oversight, and training and data are named by the [four-goal-workflows note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) but ship no field here: `signoff/recorded`, the composition manifest, the oversight monitor, the judge council, and the curator's consent and redaction events do not exist yet.
+- **Field groups without a source event** — process quality, judge scores, safety and oversight, and training and data are named by the [four-goal-workflows note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) but ship no field here: `signoff/recorded`, the oversight monitor, the judge council, and the curator's consent and redaction events do not exist yet.
 - **Shell exit codes are not observable** — a bash result's exit code travels inside the tool's own model-facing output rather than a session-event field, so `shellNonzeroExits` is not a field; a tool-owned result event would be needed first.
 - **Cost covers priced routes only** — a route the deployment's pricing table did not name records no `usage/priced`, so a session that touched one states no `costEur` and every row holding it states no `costEurPerCertified`. A deployment that wants a cost for every session prices every route it runs.
 - **One standard per session** — the outcome group reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.

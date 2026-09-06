@@ -1,11 +1,11 @@
 /**
  * Pure fold of one session log into {@link SessionFacts}. Every field comes
- * from a named session event: the identity group from `environment/run` and
- * `request/header`, the outcome group from `goal/change`, the five
- * `verification/*` events and `budget/breach`, the efficiency group from
- * `turn/start`, `step/start`, the usage of `assistant/message` and the
- * `usage/priced` records, and the tool group from `tool/call` and
- * `tool/result`.
+ * from a named session event: the identity group from `environment/run`,
+ * `request/header` and `composition/manifest`, the outcome group from
+ * `goal/change`, the five `verification/*` events and `budget/breach`, the
+ * efficiency group from `turn/start`, `step/start`, the usage of
+ * `assistant/message` and the `usage/priced` records, and the tool group from
+ * `tool/call` and `tool/result`.
  *
  * The fold takes no pricing table: cost is the sum the `usage/priced` events
  * themselves state, so a deployment that re-rates its routes cannot change what
@@ -23,6 +23,8 @@ import { foldGoal } from '@deepseek-ai/dsh-goal'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 // Type-only: the `budget/breach` SessionEventMap merge this fold reads.
 import type {} from '@deepseek-ai/dsh-budget-policy'
+// Type-only: the `composition/manifest` SessionEventMap merge this fold reads.
+import type {} from '@deepseek-ai/dsh-components-manifest'
 import { TOOL_TIMEOUT } from '@deepseek-ai/dsh-tool-call-timeout-policy'
 import { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@deepseek-ai/dsh-tools'
 import { foldTrajectoryReward } from '@deepseek-ai/dsh-trajectories'
@@ -61,6 +63,7 @@ const EMPTY_OUTCOME: SessionFactsOutcome = {
   reward: null,
   rewardBasis: 'none',
   certified: false,
+  tamper: 'not-instrumented',
   runsRecorded: 0,
   attempts: 0,
   directives: 0,
@@ -160,6 +163,7 @@ function foldOutcome(events: readonly SessionEvent[]): SessionFactsOutcome {
         certificateExecutor: verification.certificate.executor,
       },
     ...verification.lastRun?.parity === undefined ? {} : { parity: verification.lastRun.parity },
+    tamper: verification.lastRun?.verdict ?? 'not-instrumented',
     runsRecorded: verification.runsRecorded,
     attempts: verification.lastRun?.attempt ?? 0,
     directives: reward.directives,
@@ -313,6 +317,8 @@ export function applySessionFacts(state: SessionFactsState, event: SessionEvent)
         requestProvider: event.data.header.config.provider,
         requestModel: event.data.header.config.model,
       })
+    case 'composition/manifest':
+      return withIdentity(timed, { compositionSha256: event.data.compositionSha256 })
     case 'tool/call': {
       const tools = timed.facts.tools
       const calls = tools.toolCallsByName[event.data.name] ?? 0

@@ -442,8 +442,16 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'scorekeeper',
     title: 'Session facts and the scoreboard',
     mode: 'core',
-    consumers: ['headless-agent'],
+    consumers: ['headless-agent', 'observatory'],
     note: 'Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export.',
+  },
+  {
+    key: 'observatory',
+    pkg: 'observatory',
+    title: 'The public scoreboard page',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Folds the scoreboard over every persisted session, withholds the configured districts and the held-out split from its public rows while counting both, and renders one self-contained HTML page beside the same publication as JSON.',
   },
   {
     key: 'e2b',
