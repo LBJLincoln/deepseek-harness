@@ -41,6 +41,52 @@ export interface InvariantInstaller {
   readonly inject?: Inject
 }
 
+/**
+ * Build an installer for the recurring shape of a session-event invariant:
+ * check every event already committed to each tracked session, oldest first,
+ * then keep checking every future candidate at the exact point Session
+ * dispatches it, before deciding whether to publish it.
+ *
+ * Generic over the calling package's own session and event types so this
+ * foundational package never imports `@deepseek-ai/dsh-session`, which
+ * itself depends on this package for its own `./invariant` companion; a
+ * dependency running the other way would form a circular package reference.
+ *
+ * @param validate - checks one candidate event against the events already
+ *   committed to the same session, oldest first; call `fail(message)` to
+ *   report a violated relation. Receives the same kind of `prior` array in
+ *   both phases below, so one definition covers loaded and live events alike.
+ * @param sessions - reads every currently tracked session from the calling
+ *   package's own session service, typically `(ctx) => ctx.sessions.list()`.
+ * @returns an installer that first calls `validate` for every event already
+ *   committed to each session `sessions` returns, threading the events that
+ *   precede each one as `prior`, then subscribes to `internal/dispatch` and
+ *   calls `validate` again for every future `session/event` dispatch, passing
+ *   the dispatching session's currently committed events as `prior` — the
+ *   events immediately preceding the candidate, since Session dispatches
+ *   before publishing it. Injects the `sessions` service, matching what every
+ *   current caller of this helper already requires.
+ */
+export function sessionEventValidator<TEvent>(
+  validate: (prior: readonly TEvent[], event: TEvent, fail: InvariantFailure) => void,
+  sessions: (ctx: Context) => Iterable<{ readonly events: readonly TEvent[] }>,
+): InvariantInstaller {
+  return Object.assign((ctx: Context, fail: InvariantFailure): void => {
+    for (const session of sessions(ctx)) {
+      const prior: TEvent[] = []
+      for (const event of session.events) {
+        validate(prior, event, fail)
+        prior.push(event)
+      }
+    }
+    ctx.on('internal/dispatch', (_mode, eventName, args) => {
+      if (eventName !== 'session/event') return
+      const [session, event] = args as [{ readonly events: readonly TEvent[] }, TEvent]
+      validate(session.events, event, fail)
+    }, { global: true })
+  }, { inject: ['sessions'] })
+}
+
 /** Internal effect shape used to join child startup before a companion loads. */
 interface PendingInvariantRegistration extends PromiseLike<() => void> {
   (): void | Promise<void>

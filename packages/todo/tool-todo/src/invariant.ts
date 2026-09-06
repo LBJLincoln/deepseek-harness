@@ -1,7 +1,8 @@
 /** Package-owned durable todo-snapshot invariants. @module @deepseek-ai/dsh-tool-todo/invariant */
 
 import type { Context } from '@deepseek-ai/cordis'
-import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-tool-todo'
@@ -38,24 +39,13 @@ function validateTodos(value: unknown, fail: InvariantFailure): void {
   }
 }
 
-/* jscpd:ignore-start -- package companions share replay and dispatch plumbing */
 /** Validate the package-owned event fields and ignore unrelated events. */
-function validateEvent(event: SessionEvent, fail: InvariantFailure): void {
+function validateEvent(_prior: readonly SessionEvent[], event: SessionEvent, fail: InvariantFailure): void {
   if (event.type === 'todo/write') validateTodos(event.data.todos, fail)
 }
 
 /** Install validation for loaded and newly appended whole-list todo snapshots. */
-const install: InvariantInstaller = Object.assign((ctx: Context, fail: InvariantFailure) => {
-  for (const session of ctx.sessions.list()) {
-    for (const event of session.events) validateEvent(event, fail)
-  }
-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
-    if (eventName !== 'session/event') return
-    const event = (args as [Session, SessionEvent])[1]
-    validateEvent(event, fail)
-  }, { global: true })
-}, { inject: ['sessions'] })
-/* jscpd:ignore-end */
+const install: InvariantInstaller = sessionEventValidator(validateEvent, ctx => ctx.sessions.list())
 
 /**
  * Register the todo invariant companion.

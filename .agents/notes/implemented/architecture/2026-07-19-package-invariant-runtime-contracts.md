@@ -23,7 +23,7 @@ Every workspace package publishes a separately built `./invariant` companion and
 
 The empty form is an explicit architectural conclusion, not a generated placeholder. A future package change that introduces mutable state or an event protocol must replace the explanation with the corresponding check.
 
-The central `dsh-invariants` service owns only configuration, registration uniqueness, child-fiber lifecycle, rollback, disposal, and package-attributed failure. It exposes no generic plugin-shape, service-shape, or startup-assertion helpers and imports no product package.
+The central `dsh-invariants` service owns only configuration, registration uniqueness, child-fiber lifecycle, rollback, disposal, and package-attributed failure. It exposes no plugin-shape, service-shape, or startup-assertion helpers, imports no product package, and owns none of a companion's actual relation checks. Its one exception is `sessionEventValidator`, a package-agnostic factory for the recurring "check every committed session event, then every future one before Session publishes it" wiring shared across several companions ([shared session-event validator plumbing](2026-09-06-shared-session-event-validator-plumbing.md)); the check it runs is still a caller-supplied function, never the service's own.
 
 ### Implemented checks
 

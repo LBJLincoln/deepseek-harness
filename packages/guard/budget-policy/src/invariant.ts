@@ -17,8 +17,9 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
-import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { foldBudgetSpend, measuredFor } from './fold.ts'
 import { billedInputTokens, costEurFor, routeKey } from './pricing.ts'
 import type { BudgetBreach, UsagePriced } from './types.ts'
@@ -94,21 +95,7 @@ function validateEvent(
 }
 
 /** Check existing sessions and every candidate event before Session publishes it. */
-const install: InvariantInstaller = Object.assign((ctx: Context, fail: InvariantFailure) => {
-  for (const session of ctx.sessions.list()) {
-    const prior: SessionEvent[] = []
-    for (const event of session.events) {
-      validateEvent(prior, event, fail)
-      prior.push(event)
-    }
-  }
-  /* jscpd:ignore-start -- package companions share dispatch and registration plumbing */
-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
-    if (eventName !== 'session/event') return
-    const [session, event] = args as [Session, SessionEvent]
-    validateEvent(session.events, event, fail)
-  }, { global: true })
-}, { inject: ['sessions'] })
+const install: InvariantInstaller = sessionEventValidator(validateEvent, ctx => ctx.sessions.list())
 
 /**
  * Register the budget-breach invariant companion.
@@ -117,4 +104,3 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
  */
 export const apply = (ctx: Context): Promise<() => void> =>
   Promise.resolve(ctx.invariants.register(PACKAGE_NAME, install))
-/* jscpd:ignore-end */

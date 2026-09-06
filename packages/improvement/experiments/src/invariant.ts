@@ -11,8 +11,9 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { decodeEnvironmentRun } from '@deepseek-ai/dsh-environments'
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
-import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { EXPERIMENT_GROUP_PREFIX, parseExperimentGroup } from './plan.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-experiments'
@@ -44,18 +45,13 @@ export function checkStampGroup(event: SessionEvent, fail: InvariantFailure): vo
   }
 }
 
+/** Validate one candidate event, ignoring the events that precede it. */
+function validateEvent(_prior: readonly SessionEvent[], event: SessionEvent, fail: InvariantFailure): void {
+  checkStampGroup(event, fail)
+}
+
 /** Check existing sessions and every candidate event before Session publishes it. */
-const install: InvariantInstaller = Object.assign((ctx: Context, fail: InvariantFailure) => {
-  for (const session of ctx.sessions.list()) {
-    for (const event of session.events) checkStampGroup(event, fail)
-  }
-  /* jscpd:ignore-start -- package companions share dispatch and registration plumbing */
-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
-    if (eventName !== 'session/event') return
-    const [, event] = args as [Session, SessionEvent]
-    checkStampGroup(event, fail)
-  }, { global: true })
-}, { inject: ['sessions'] })
+const install: InvariantInstaller = sessionEventValidator(validateEvent, ctx => ctx.sessions.list())
 
 /**
  * Register the experiment-group invariant companion.
@@ -64,4 +60,3 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
  */
 export const apply = (ctx: Context): Promise<() => void> =>
   Promise.resolve(ctx.invariants.register(PACKAGE_NAME, install))
-/* jscpd:ignore-end */

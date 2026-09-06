@@ -26,6 +26,24 @@ interface Config {
 
 在每个组合中，Session 自身负责不可变且在对外接口层面有效的日志存储：它对每个候选项制作一份无损 JSON 快照，验证引用的源事件是否齐全以及位置替换是否合法，将 `tool/result` 替换限制为一个当前结果的 `content`，深度冻结已接受记录，并通过不可变数组快照公开日志。`dsh-session` 不变量配套入口检查 Session 不负责的其余跨记录规则。
 
+## Helper：`sessionEventValidator`
+
+```ts
+import type { Context } from '@deepseek-ai/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
+
+declare function sessionEventValidator<TEvent>(
+  validate: (prior: readonly TEvent[], event: TEvent, fail: InvariantFailure) => void,
+  sessions: (ctx: Context) => Iterable<{ readonly events: readonly TEvent[] }>,
+): InvariantInstaller
+```
+
+为符合以下检查方式的 companion 构建安装器：“先验证每个已跟踪会话中已提交的每个事件，再在 Session 决定是否发布某个未来事件之前的确切 dispatch 时刻持续验证它。”`validate` 是包自有的关系检查，调用时会传入该候选事件在同一会话中的前置事件（按由旧到新的顺序，作为 `prior`）、候选事件本身，以及绑定的失败报告器。`sessions` 从调用方包自己的会话服务中读取当前所有被跟踪的会话；当前每个调用方都传入 `ctx => ctx.sessions.list()`。
+
+返回的安装器会先对 `sessions` 返回的每个会话中已提交的每个事件调用 `validate`，并把每个事件之前的事件依次作为 `prior` 传入；随后订阅 `internal/dispatch`，对之后每个未来的 `session/event` dispatch 再次调用 `validate`，把触发该 dispatch 的会话当前已提交的事件作为 `prior` 传入。它会注入 `sessions` 服务。该 helper 在调用方自己的会话和事件类型上保持泛型，而不从 `@deepseek-ai/dsh-session` 导入 `Session`/`SessionEvent`——后者本身依赖本包来实现自己的 `./invariant` companion，反向导入会形成循环的包依赖。
+
+`dsh-budget-policy`、`dsh-goal-round-driver`、`dsh-scorekeeper`、`dsh-shifts`、`dsh-experiments` 和 `dsh-tool-todo` 都以这种方式构建各自的 companion。`pnpm run verify-package-invariants` 识别 `sessionEventValidator(validate, sessions)` 调用的方式，与它识别直接 `(ctx, fail) => …` 安装器的方式相同：它会解析 `validate`——无论是内联函数还是本地具名函数引用——并对该函数自身的最后一个参数应用同样的“必须接收并使用报告器”规则。
+
 ## 包配套入口
 
 发布和注册覆盖全部包；但不会为了覆盖全部包而人为编造运行时断言。只有当包拥有可观察事件关系或相关可变数据关系时，配套入口才安装检查。确认必需方法、插件名称、注入、effect 或固定纯函数结果属于类型、加载或单元测试关注点，而非运行时不变量。
