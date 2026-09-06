@@ -378,8 +378,8 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'components',
     title: 'Component registry',
     mode: 'core',
-    consumers: ['components-subagents', 'command-components'],
-    note: 'Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it.',
+    consumers: ['components-tools', 'components-prompt', 'components-presets', 'components-subagents', 'components-manifest', 'command-components'],
+    note: 'Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it and the manifest writer records what one agent had in play.',
   },
   {
     key: 'environments',

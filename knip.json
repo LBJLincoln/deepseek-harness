@@ -46,6 +46,9 @@
         "headless-agent/tests/fixtures/trajectory-export/driver.ts",
         "headless-agent/tests/fixtures/environment-run/driver.ts",
         "headless-agent/tests/fixtures/environment-run/register-environments.ts",
+        "headless-agent/tests/fixtures/composition-manifest/driver.ts",
+        "headless-agent/tests/fixtures/composition-manifest/mock-llm.ts",
+        "headless-agent/tests/fixtures/composition-manifest/presets/manifest/section.ts",
         "headless-agent/tests/fixtures/read-barrier/driver.ts",
         "headless-agent/tests/fixtures/read-barrier/reserve-implementer.ts",
         "headless-agent/tests/fixtures/read-barrier-guard/driver.ts",
@@ -342,6 +345,16 @@
     "packages/*/*": {
       "entry": [
         "tests/**/*.spec.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
+    "packages/components/components-manifest": {
+      "entry": [
+        "tests/**/*.spec.ts",
+        "tests/**/*.e2e.ts"
       ],
       "project": [
         "src/**/*.ts",

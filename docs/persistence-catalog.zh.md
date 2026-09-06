@@ -410,6 +410,29 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 来源：[`packages/compaction/compaction/src/types.ts:33`](../packages/compaction/compaction/src/types.ts)
 
+### `composition/*`
+
+<a id="compositionmanifest--log-only"></a>
+
+#### `composition/manifest` — log-only
+
+```ts persistence-catalog
+/**
+ * Every component one agent had in play when a step was proposed: its
+ * `id@digest` address, kind, digest basis, provenance, lineage, and the
+ * registry layer the winning registration sat in, ordered by address, with
+ * `compositionSha256` hashing that ordered address list. Log-only, and
+ * written only when the hash differs from the last manifest in the same
+ * log, so a stable composition records exactly one event and a resumed
+ * session re-emits nothing. Required on read: a build that cannot
+ * interpret it would otherwise treat a composition it cannot name as a
+ * known one.
+ */
+'composition/manifest': CompositionManifest
+```
+
+来源：[`packages/components/components-manifest/src/types.ts:64`](../packages/components/components-manifest/src/types.ts)
+
 ### `environment/*`
 
 <a id="environmentrun--log-only"></a>

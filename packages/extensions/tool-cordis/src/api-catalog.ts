@@ -1966,6 +1966,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the exact Cordis effect disposer.',
       },
       {
+        signature: 'sections(scope?: ScopeKey): PromptSection[]',
+        description: 'The prompt sections one scope resolves, in the order assemble renders them. Scoped registrations shadow globals under the same name, and sections that declare the same order keep their registration order. The registered `text` is returned as it stands, so a provider is a function here and only an assembly evaluates it.',
+        parameters: [{ name: 'scope', description: 'the viewing scope (the agent); omitted = the global view.' }],
+        returns: 'the resolved sections, ascending by {@link PromptSection.order}.',
+      },
+      {
         signature: 'context(context: PromptContext): () => void',
         description: 'Register ordered dynamic context in the calling context\'s scope. Scoped entries shadow global entries with the same name.',
         parameters: [{ name: 'context', description: 'the context contribution to register.' }],
@@ -4881,7 +4887,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SystemPrompt',
-    declaration: 'export class SystemPrompt extends Service {\n    static Config: z<Config>;\n    constructor(ctx: Context, config: Config);\n    section(section: PromptSection): () => void;\n    context(context: PromptContext): () => void;\n    suppressRuntimeContext(): () => void;\n    tools(provider: (context: AssembleContext) => ToolProviderResult): () => void;\n    variable(name: string, provider: (context: AssembleContext) => string | undefined): () => void;\n    async assemble(context: AssembleContext = {}): Promise<PromptAssembly>;\n}',
+    declaration: 'export class SystemPrompt extends Service {\n    static Config: z<Config>;\n    constructor(ctx: Context, config: Config);\n    section(section: PromptSection): () => void;\n    sections(scope?: ScopeKey): PromptSection[];\n    context(context: PromptContext): () => void;\n    suppressRuntimeContext(): () => void;\n    tools(provider: (context: AssembleContext) => ToolProviderResult): () => void;\n    variable(name: string, provider: (context: AssembleContext) => string | undefined): () => void;\n    async assemble(context: AssembleContext = {}): Promise<PromptAssembly>;\n}',
   },
   {
     name: 'TableKeyOf',

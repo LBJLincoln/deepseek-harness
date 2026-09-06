@@ -3346,7 +3346,11 @@ export interface Config {
 - `@deepseek-ai/dsh-command-verification` — 需要 `commands` · `completionStandards`（[`packages/verification/command-verification/src/index.ts`](../packages/verification/command-verification/src/index.ts)）
 - `@deepseek-ai/dsh-commands`（[`packages/interaction/commands/src/index.ts`](../packages/interaction/commands/src/index.ts)）
 - `@deepseek-ai/dsh-components`（[`packages/components/components/src/index.ts`](../packages/components/components/src/index.ts)）
+- `@deepseek-ai/dsh-components-manifest` — 需要 `agents` · `components`（[`packages/components/components-manifest/src/index.ts`](../packages/components/components-manifest/src/index.ts)）
+- `@deepseek-ai/dsh-components-presets` — 需要 `components` · `agentPresets`（[`packages/components/components-presets/src/index.ts`](../packages/components/components-presets/src/index.ts)）
+- `@deepseek-ai/dsh-components-prompt` — 需要 `components` · `systemPrompt`（[`packages/components/components-prompt/src/index.ts`](../packages/components/components-prompt/src/index.ts)）
 - `@deepseek-ai/dsh-components-subagents` — 需要 `components` · `subagents`（[`packages/components/components-subagents/src/index.ts`](../packages/components/components-subagents/src/index.ts)）
+- `@deepseek-ai/dsh-components-tools` — 需要 `components` · `tools`（[`packages/components/components-tools/src/index.ts`](../packages/components/components-tools/src/index.ts)）
 - `@deepseek-ai/dsh-cordis-client-runner`（[`packages/extensions/cordis-client-runner/src/index.ts`](../packages/extensions/cordis-client-runner/src/index.ts)）
 - `@deepseek-ai/dsh-environments`（[`packages/improvement/environments/src/index.ts`](../packages/improvement/environments/src/index.ts)）
 - `@deepseek-ai/dsh-fs-e2b` — 需要 `e2b`（[`packages/e2b/fs-e2b/src/index.ts`](../packages/e2b/fs-e2b/src/index.ts)）
