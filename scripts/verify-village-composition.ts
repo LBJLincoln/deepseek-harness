@@ -11,10 +11,12 @@
  * leave the decision to a default.
  *
  * A runner declaring `isolation: process` or `host` reports a warning. That
- * claim reaches the certificate, and the read-barrier slices that would make it
- * true (shell, subprocess, and terminal denial) are not on this branch, so the
- * claim is unproven rather than wrong. `--strict` fails on those warnings as
- * well, for a deployment that requires every isolation claim to be provable.
+ * claim reaches the certificate, and the composition alone cannot prove it:
+ * the proof is the session's read-barrier census recording every path-opening
+ * capability as denied at its executor, which `recordRun` checks per run and
+ * which depends on the sandbox backend the host can actually run. The warning
+ * asks for that review. `--strict` fails on those warnings as well, for a
+ * deployment that requires every isolation claim to be provable statically.
  *
  * Scope is the Loader configuration inventory `verify-cordis-config` scans. An
  * entry disabled by a literal value is not composed; an entry gated by a `!!js`
@@ -208,7 +210,7 @@ export function villageCompositionDiagnostics(file: string, source: string): Vil
       entryId: row.id,
       rule: 'runner-isolation',
       severity: 'warning',
-      detail: `isolation: ${isolation} reaches the certificate, and the read-barrier slices that deny shell, subprocess, and terminal reads are not on this branch, so the claim is unproven`,
+      detail: `isolation: ${isolation} reaches the certificate, and the composition alone cannot prove it: the run's read-barrier census must record every path-opening capability as denied at its executor, which depends on the sandbox backend this host can run`,
     })
   }
 

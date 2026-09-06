@@ -483,9 +483,11 @@ describe('ShiftService refusals and disposal', () => {
       { root: first.root },
     )
     await second.ctx.shifts.start()
+    // Booting the second process and its first slot can take longer than the
+    // default wait under a loaded test host; the assertion is about count, not time.
     await vi.waitFor(async () => {
       expect((await sessionIds(second.ctx)).filter(id => id.startsWith('shift-')).length).toBeGreaterThan(1)
-    })
+    }, { timeout: 15_000 })
     await second.ctx.shifts.stop()
 
     const refused = [...(await ledgers(second.ctx)).values()].filter(events => events[0]?.type === 'shift/skipped')
