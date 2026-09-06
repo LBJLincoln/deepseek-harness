@@ -103,7 +103,7 @@ Six judges reviewed the first draft with the AI Village sources and the harness 
 4. **Named comparisons and the Commons.** Needs the composition manifest slices (digest on the stamp, preset as an experiment arm, `harnessVariantId` on the leaderboard) and the archive with `parked` and sibling summaries.
 5. **Workshop in public and excerpt disclosure.** Needs `signoff/recorded`, `dataUse/terms`, mandatory redaction, and the trust-dossier export.
 6. **Any outreach.** Needs the `external-communication` authority and the deny-capable monitor.
-7. **A live observatory.** Needs the leaderboard as a cached session projection; until then the page states its batch refresh interval.
+7. **A live observatory.** Landed: [`@deepseek-ai/dsh-observatory`](../../../../packages/improvement/observatory/README.md) folds the scoreboard over every persisted session, withholds the configured districts and the held-out split from its public rows while counting both, and renders one self-contained page and one JSON document carrying the honest column set, the staleness notice in place of every figure past its threshold, and the batch refresh interval it was folded under. Still needed: the leaderboard as a cached session projection, which has no seam yet because `ProjectionDefinition` and the projection cache are both keyed by one session; the [observatory note](2026-09-06-observatory.md) records the choice.
 8. **Feeding W3.** Needs `policyVersion` and `seed` on the stamp, masked terminal reasons in the trajectory fold, near-duplicate admission, and the device-slot budget.
 
 ## Risks

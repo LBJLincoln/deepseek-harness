@@ -1,0 +1,95 @@
+# Test-only composition: two fleet plans over the training-eligible environments of the environment-run fixture — one inside the Workshop district and one outside every district — then the observatory folding both back out of the persisted logs and rendering the public page.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../environment-run/register-environments.ts'
+
+# The runner creates its own agent per cell from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    evidenceMaxChars: 512
+
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 1
+    workspaceRetention: keep
+
+# Village rule: a composition that runs unattended cells carries a session
+# budget. The caps are far out of reach of the mock route, so no cell breaches them.
+# The mock route is priced so every served step records a `usage/priced` event and
+# the observatory can publish a cost beside its digest; the rates are fixture values.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+    pricing:
+      cli-mock/cli-mock:
+        inputEurPerMillionTokens: 1
+        outputEurPerMillionTokens: 2
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run registered environments as validated sessions.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+- id: scorekeeper
+  name: '@deepseek-ai/dsh-scorekeeper'
+  config:
+    passAtK:
+      - 1
+
+# The Workshop district and the held-out split never reach the public rows; the
+# staleness threshold and the batch refresh interval are what the page states
+# about its own currency.
+- id: observatory
+  name: '@deepseek-ai/dsh-observatory'
+  config:
+    withhold:
+      districts:
+        - workshop
+      heldOut: true
+    staleAfterMs: 3600000
+    refreshIntervalMs: 900000

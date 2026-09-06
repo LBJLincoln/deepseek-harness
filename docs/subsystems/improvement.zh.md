@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；而一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)与[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 与 [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中；而一次观测台快照则是对全部持久化会话的公开折叠，被扣留的区与留出划分被挡在它的行之外并被计数。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)、[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)与[观测台](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 、[`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 与 [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -122,7 +122,7 @@ interface TrajectoryReward {
 
 ## 会话事实
 
-记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。
+记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。与它们并列的还有发布所读取的两个事实：`tamper` 是最后一次运行的裁决，会话一次运行也没有记录时为 `not-instrumented`；identity 分组的 `compositionSha256` 是日志中最后一条 `composition/manifest` 的摘要。只有当一行的每个会话都陈述同一个摘要时该行才陈述它，同时该行统计自己的 `tampered` 会话，并列出自己证书的去重 executor。
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -161,6 +161,77 @@ interface ExperimentResult {
   /** Thresholds the digest froze, restated so a stored result is readable alone. */
   readonly thresholds: ExperimentThresholds
   readonly verdict: ExperimentVerdict
+}
+```
+
+## 观测台快照
+
+观测台经记分员在全部持久化会话上折叠记分板，把配置的区与留出划分挡在公开行之外，并对丢弃的内容计数。扣留是一次行操作，因为它本来就是一次会话操作：记分板的键携带 `district` 与 `heldOut`，因此被扣留行中的每个会话都被扣留，任何被扣留的会话都不可能进入公开行。没有任何会话事件携带 `ExperimentResult`，因此没有收到结果的折叠不发布排名；[包 README](../../packages/improvement/observatory/README.md) 拥有发布规则与渲染出的列集。
+
+```ts type-equiv
+/** One fold over every persisted session, before rendering decides what it shows. */
+interface ObservatorySnapshot {
+  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
+  readonly rows: readonly ScoreboardRow[]
+  /** What withholding removed from those rows. */
+  readonly withheld: ObservatoryWithheld
+  /** Experiment results whose two arm routes both appear in {@link rows}; empty publishes no ranking. */
+  readonly experiments: readonly ExperimentResult[]
+  /** Session headers the fold read. */
+  readonly sessions: number
+  /** Folded sessions whose log carries no `environment/run` stamp, so no row can name their cell. */
+  readonly unstamped: number
+  /** Sessions that could not be read or folded. */
+  readonly skipped: readonly ScorekeeperSkip[]
+  /** Epoch milliseconds at which the fold ran. */
+  readonly foldedAt: number
+  /** Newest `createdAt` among the session headers the fold read, absent when the store held none. */
+  readonly newestSessionAt?: number
+  /** Batch refresh interval the page names, milliseconds. */
+  readonly refreshIntervalMs: number
+}
+```
+
+## 发布出的行
+
+`render(snapshot, now)` 施加逐行的发布规则，返回一个自包含的 HTML 页面以及同一份文档的 JSON。超过配置的陈旧阈值后，两者都以陈旧提示取代全部数字：JSON 陈述 `stale: true`，且没有行、没有排名。
+
+```ts type-equiv
+/**
+ * One published row: the honest column set, with the publication rules already
+ * applied. `resolved` and `parity` are two fields and stay two — neither is
+ * ever computed from the other, and no field merges them.
+ */
+interface ObservatoryPublishedRow {
+  readonly provider: string
+  readonly model: string
+  readonly environmentId: EnvironmentId
+  readonly environmentKind: string
+  /** District the row's sessions were stamped with, absent for a row outside every district. */
+  readonly district?: string
+  readonly heldOut: boolean
+  readonly isolation: CertificateIsolation
+  /** Executors of the row's certificates; empty for a row that certified nothing. */
+  readonly certificateExecutors: readonly RunExecutor[]
+  /** Composition digest every session of the row states, absent when the page shows `pending`. */
+  readonly compositionSha256?: string
+  readonly tamper: ObservatoryTamper
+  /** Sessions of the row whose last recorded run carried the `tampered` verdict. */
+  readonly tampered: number
+  /** Sessions that recorded at least one run. */
+  readonly runs: number
+  /** Sessions that ended without recording one. */
+  readonly errors: number
+  /** Sessions holding a certificate. */
+  readonly certified: number
+  /** `certified / runs`: the certificate rate under its own name, `0` without runs. */
+  readonly resolved: number
+  /** Mean weighted pass rate over the row's sessions that measured cases, absent when none did. */
+  readonly parity?: number
+  /** Mean cost of the row's certified sessions, absent unless {@link pricingDigest} names the one table that priced them. */
+  readonly costEurPerCertified?: number
+  /** The single pricing digest that priced the row, absent when the row carries none or more than one. */
+  readonly pricingDigest?: string
 }
 ```
 
@@ -403,6 +474,33 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 
 Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
 
+<a id="ctxobservatory--observatoryservice"></a>
+
+### `ctx.observatory` — `ObservatoryService`
+
+Observatory (`ctx.observatory`): the withheld, staleness-aware scoreboard page.
+
+```ts cordis-catalog
+/**
+ * Fold every persisted session into one publication-ready snapshot.
+ * @param request - the experiment results the caller holds; absent publishes no ranking.
+ * @returns the public rows in the page's stable order, what withholding
+ *   removed, the rankable verdicts, the fold time, and the newest folded
+ *   session's creation time.
+ */
+async snapshot(request: ObservatorySnapshotRequest = {}): Promise<ObservatorySnapshot>
+
+/**
+ * Render one snapshot as both faces of one publication.
+ * @param snapshot - the fold to publish.
+ * @param now - epoch milliseconds the publication is rendered at; it decides staleness against the configured threshold.
+ * @returns the self-contained HTML page and the JSON document, which state the same facts.
+ */
+render(snapshot: ObservatorySnapshot, now: number): ObservatoryPage
+```
+
+Source: [`packages/improvement/observatory/src/index.ts:78`](../../packages/improvement/observatory/src/index.ts)
+
 <a id="ctxprograms--programservice"></a>
 
 ### `ctx.programs` — `ProgramService`
@@ -473,7 +571,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:174`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:181`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxshifts--shiftservice"></a>
 

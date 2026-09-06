@@ -8,7 +8,7 @@ import type { TokenUsage } from '@deepseek-ai/dsh-llm'
 import { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
-import type { CertificateIsolation, RunExecutor } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, RunExecutor, RunVerdict } from '@deepseek-ai/dsh-verification/types'
 
 /** One durable payload as the log carries it, before the fold's decoders narrow it. */
 export type Raw = Record<string, unknown>
@@ -213,6 +213,7 @@ export function standard(cased = false): Raw {
  * @param status - the verdict of the single check.
  * @param isolation - the isolation the run executed under.
  * @param weightPassed - passing case weight of a run measured case by case; absent for a caseless run.
+ * @param verdict - what the run means, absent to let the results decide it.
  * @returns the durable run payload.
  */
 export function runRecord(
@@ -220,6 +221,7 @@ export function runRecord(
   status: 'pass' | 'fail',
   isolation: CertificateIsolation = 'none',
   weightPassed?: number,
+  verdict?: RunVerdict,
 ): Raw {
   const cases = weightPassed === undefined ? {} : {
     cases: {
@@ -239,6 +241,7 @@ export function runRecord(
     attempt,
     isolation,
     executor: 'runner',
+    ...verdict === undefined ? {} : { verdict },
     results: [{ checkId: CHECK.id, status, evidence: `${status} round-trip`, ...cases }],
     ...weightPassed === undefined ? {} : { parity: { weightPassed, weightTotal: CASE_SET.weightTotal } },
     recordedAt: 20 + attempt,
@@ -267,6 +270,15 @@ export function certificate(isolation: CertificateIsolation = 'none', executor: 
 }
 
 /**
+ * The composition manifest one agent recorded for the components it had in play.
+ * @param compositionSha256 - the digest addressing the ordered component set.
+ * @returns the durable manifest payload.
+ */
+export function manifest(compositionSha256: string): Raw {
+  return { version: 1, components: [], compositionSha256 }
+}
+
+/**
  * One directive the validator issued.
  * @returns the durable directive payload.
  */
@@ -284,20 +296,25 @@ export function directive(): Raw {
 /**
  * A whole session log for one cell.
  * @param options - the cell's stamp overrides, whether it certified, how many
- *   runs it recorded, the passing case weight of each of those runs, its usage,
- *   and the rates that priced its one step.
+ *   runs it recorded, the verdict and passing case weight of each of those runs,
+ *   the executor its certificate cites, the composition manifest it records, its
+ *   usage, and the rates that priced its one step.
  * @returns the contiguous events of that session.
  */
 export function cellLog(options: {
   readonly stamp?: Raw
   readonly certified: boolean
   readonly runs: number
+  readonly verdict?: RunVerdict
   readonly weightPassed?: number
+  readonly executor?: RunExecutor
+  readonly composition?: string
   readonly usage?: TokenUsage
   readonly pricing?: { readonly rates: BudgetRoutePricing; readonly digest: string }
 }): SessionEvent[] {
   const log = new Log()
   if (options.stamp !== undefined) log.push('environment/run', options.stamp)
+  if (options.composition !== undefined) log.push('composition/manifest', manifest(options.composition))
   log.push('turn/start', { turn: 1 })
   log.push('step/start', { turn: 1, step: 1 })
   log.push('request/header', { header: { config: { ...MOCK_ROUTE } }, reason: 'initial' })
@@ -310,10 +327,10 @@ export function cellLog(options: {
   }
   for (let attempt = 1; attempt <= options.runs; attempt += 1) {
     const status = options.certified && attempt === options.runs ? 'pass' : 'fail'
-    log.push('verification/run', runRecord(attempt, status, 'none', options.weightPassed))
+    log.push('verification/run', runRecord(attempt, status, 'none', options.weightPassed, options.verdict))
   }
   if (options.certified) {
-    log.push('verification/certificate', certificate())
+    log.push('verification/certificate', certificate('none', options.executor))
     log.push('goal/change', goalChange('complete', 'complete', 2))
   }
   log.push('step/end', { turn: 1, step: 1 })

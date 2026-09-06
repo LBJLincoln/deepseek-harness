@@ -11,7 +11,14 @@ import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
 import type { GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { TrajectoryRewardBasis, TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
-import type { CertificateIsolation, RunExecutor, RunParity } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, RunExecutor, RunParity, RunVerdict } from '@deepseek-ai/dsh-verification/types'
+
+/**
+ * Tamper status of one session: the verdict of its last recorded
+ * `verification/run`, or `not-instrumented` for a session whose log records no
+ * run at all, so no verdict states whether the check-owned files changed.
+ */
+export type SessionTamper = RunVerdict | 'not-instrumented'
 
 /**
  * The fields of the `environment/run` stamp the facts keep: the cell identity
@@ -48,6 +55,13 @@ export interface SessionFactsIdentity {
   readonly requestProvider?: string
   /** Model id of the last `request/header`, absent for a session that made no request. */
   readonly requestModel?: string
+  /**
+   * `compositionSha256` of the last `composition/manifest` in the session,
+   * absent for a session whose log carries none. It addresses the component set
+   * the agent had in play, so a row carrying it is attributable to one harness
+   * variant rather than to a route and whatever the harness was that week.
+   */
+  readonly compositionSha256?: string
 }
 
 /** {@link SessionFactsIdentity} plus the identity only the persisted session header carries. */
@@ -81,6 +95,14 @@ export interface SessionFactsOutcome {
    * measure, and the two are separate facts that are never merged.
    */
   readonly parity?: RunParity
+  /**
+   * Verdict of the last recorded run, `not-instrumented` when the session
+   * recorded none. It is the tamper column a publication carries: `passed` and
+   * `failed` follow from the run's results, while `tampered` says the
+   * check-owned files changed under the validator and only the run payload
+   * states it.
+   */
+  readonly tamper: SessionTamper
   /** `verification/run` events recorded across the session, passing or failing. */
   readonly runsRecorded: number
   /** Attempt number the last recorded run carried; it restarts at one for each authored standard. */
@@ -217,8 +239,27 @@ export interface ScoreboardRow {
   readonly district?: string
   /** Sessions that recorded at least one `verification/run`. */
   readonly runs: number
-  /** Sessions that ended without recording one. */
+  /** Sessions that ended without recording one; they are exactly the row's not-instrumented sessions. */
   readonly errors: number
+  /**
+   * Sessions whose last recorded run carried the `tampered` verdict. A row
+   * whose {@link runs} is zero states no tamper status at all, because a
+   * session that recorded no run carries no verdict to read.
+   */
+  readonly tampered: number
+  /**
+   * `compositionSha256` every session of the row states, absent when a session
+   * states none or two disagree. A digest covering only part of a row would
+   * attribute the whole row to a composition that did not run all of it.
+   */
+  readonly compositionSha256?: string
+  /**
+   * Distinct certificate executors across the row's certified sessions, in
+   * first-appearance order. Empty for a row that certified nothing; two or more
+   * mean the row's certificates disagree, so no single executor may be
+   * published beside its {@link certificateRate}.
+   */
+  readonly certificateExecutors: readonly RunExecutor[]
   /** Sessions holding a certificate. */
   readonly certified: number
   /** `certified / runs`, `0` without runs. */

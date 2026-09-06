@@ -584,6 +584,9 @@ importers:
       '@deepseek-ai/dsh-lsp-stdio':
         specifier: workspace:*
         version: link:../packages/lsp/lsp-stdio
+      '@deepseek-ai/dsh-observatory':
+        specifier: workspace:*
+        version: link:../packages/improvement/observatory
       '@deepseek-ai/dsh-permission-presets':
         specifier: workspace:*
         version: link:../packages/interaction/permission-presets
@@ -5462,6 +5465,46 @@ importers:
         specifier: workspace:^
         version: link:../../verification/verification
 
+  packages/improvement/observatory:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-environments':
+        specifier: workspace:^
+        version: link:../environments
+      '@deepseek-ai/dsh-experiments':
+        specifier: workspace:^
+        version: link:../experiments
+      '@deepseek-ai/dsh-fleet':
+        specifier: workspace:^
+        version: link:../fleet
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-loader-smoke':
+        specifier: workspace:^
+        version: link:../../test-support/loader-smoke
+      '@deepseek-ai/dsh-scorekeeper':
+        specifier: workspace:^
+        version: link:../scorekeeper
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@deepseek-ai/dsh-session-persistence':
+        specifier: workspace:^
+        version: link:../../session/session-persistence
+      '@deepseek-ai/dsh-session-persistence-jsonl':
+        specifier: workspace:^
+        version: link:../../session/session-persistence-jsonl
+      '@deepseek-ai/dsh-verification':
+        specifier: workspace:^
+        version: link:../../verification/verification
+
   packages/improvement/program:
     dependencies:
       '@deepseek-ai/schemastery':
@@ -5535,6 +5578,9 @@ importers:
       '@deepseek-ai/dsh-budget-policy':
         specifier: workspace:^
         version: link:../../guard/budget-policy
+      '@deepseek-ai/dsh-components-manifest':
+        specifier: workspace:^
+        version: link:../../components/components-manifest
       '@deepseek-ai/dsh-environments':
         specifier: workspace:^
         version: link:../environments

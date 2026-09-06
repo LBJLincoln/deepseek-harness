@@ -103,7 +103,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。
 5. **公开的 Workshop 与摘录披露。** 需要 `signoff/recorded`、`dataUse/terms`、强制脱敏与信任档案导出。
 6. **任何外联。** 需要 `external-communication` 权限与可拒绝的 monitor。
-7. **实时观测台。** 需要作为带缓存会话投影的排行榜；在此之前页面注明其批量刷新间隔。
+7. **实时观测台。** 已落地：[`@deepseek-ai/dsh-observatory`](../../../../packages/improvement/observatory/README.md) 在全部持久化会话上折叠记分板，把配置的区与留出划分扣留在公开行之外并对两者计数，并渲染出一个自包含页面与一份 JSON 文档，携带诚实列集、超过阈值后取代全部数字的陈旧提示，以及它被折叠所依的批量刷新间隔。仍需要：作为带缓存会话投影的排行榜，它尚无 seam，因为 `ProjectionDefinition` 与投影缓存都以单个会话为键；[观测台 note](2026-09-06-observatory.md) 记录了这一选择。
 8. **供给 W3。** 需要 stamp 上的 `policyVersion` 与 `seed`、轨迹折叠中被掩码的终止原因、近重复准入与设备槽位预算。
 
 ## Risks

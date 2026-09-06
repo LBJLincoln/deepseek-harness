@@ -1098,6 +1098,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'observatory',
+    summary: 'Observatory (`ctx.observatory`): the withheld, staleness-aware scoreboard page.',
+    description: 'Observatory (`ctx.observatory`): the withheld, staleness-aware scoreboard page.',
+    methods: [
+      {
+        signature: 'async snapshot(request: ObservatorySnapshotRequest = {}): Promise<ObservatorySnapshot>',
+        description: 'Fold every persisted session into one publication-ready snapshot.',
+        parameters: [{ name: 'request', description: 'the experiment results the caller holds; absent publishes no ranking.' }],
+        returns: 'the public rows in the page\'s stable order, what withholding removed, the rankable verdicts, the fold time, and the newest folded session\'s creation time.',
+      },
+      {
+        signature: 'render(snapshot: ObservatorySnapshot, now: number): ObservatoryPage',
+        description: 'Render one snapshot as both faces of one publication.',
+        parameters: [{ name: 'snapshot', description: 'the fold to publish.' }, { name: 'now', description: 'epoch milliseconds the publication is rendered at; it decides staleness against the configured threshold.' }],
+        returns: 'the self-contained HTML page and the JSON document, which state the same facts.',
+      },
+    ],
+  },
+  {
     key: 'permissionPresets',
     summary: 'Owns the deployment\'s permission presets and their write path.',
     description: 'Owns the deployment\'s permission presets and their write path. Requires a confining `ctx.shell` executor and `ctx.approval`; unmatched knob values are reported as CUSTOM_PRESET, not an error.',
@@ -4163,6 +4182,38 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ObjectJsonSchema = JsonSchemaNode & {\n    type: \'object\';\n};',
   },
   {
+    name: 'ObservatoryDocument',
+    declaration: 'export interface ObservatoryDocument {\n    readonly version: typeof OBSERVATORY_DOCUMENT_VERSION;\n    readonly stale: boolean;\n    readonly foldedAt: number;\n    readonly newestSessionAt?: number;\n    readonly refreshIntervalMs: number;\n    readonly staleAfterMs: number;\n    readonly rows: readonly ObservatoryPublishedRow[];\n    readonly withheld: ObservatoryWithheld;\n    readonly rankings: readonly ObservatoryRanking[];\n}',
+  },
+  {
+    name: 'ObservatoryPage',
+    declaration: 'export interface ObservatoryPage {\n    readonly html: string;\n    readonly json: ObservatoryDocument;\n}',
+  },
+  {
+    name: 'ObservatoryPublishedRow',
+    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
+  },
+  {
+    name: 'ObservatoryRanking',
+    declaration: 'export interface ObservatoryRanking {\n    readonly digest: string;\n    readonly baseline: EnvironmentRunModel;\n    readonly candidate: EnvironmentRunModel;\n    readonly delta: number;\n    readonly verdict: ExperimentVerdict;\n}',
+  },
+  {
+    name: 'ObservatorySnapshot',
+    declaration: 'export interface ObservatorySnapshot {\n    readonly rows: readonly ScoreboardRow[];\n    readonly withheld: ObservatoryWithheld;\n    readonly experiments: readonly ExperimentResult[];\n    readonly sessions: number;\n    readonly unstamped: number;\n    readonly skipped: readonly ScorekeeperSkip[];\n    readonly foldedAt: number;\n    readonly newestSessionAt?: number;\n    readonly refreshIntervalMs: number;\n}',
+  },
+  {
+    name: 'ObservatorySnapshotRequest',
+    declaration: 'export interface ObservatorySnapshotRequest {\n    readonly experiments?: readonly ExperimentResult[];\n}',
+  },
+  {
+    name: 'ObservatoryTamper',
+    declaration: 'export type ObservatoryTamper = \'not-instrumented\' | \'tampered\' | \'none\';',
+  },
+  {
+    name: 'ObservatoryWithheld',
+    declaration: 'export interface ObservatoryWithheld {\n    readonly districts: readonly string[];\n    readonly districtRows: number;\n    readonly districtSessions: number;\n    readonly heldOutRows: number;\n    readonly heldOutSessions: number;\n}',
+  },
+  {
     name: 'OneShotSubagentDescriptorData',
     declaration: 'export interface OneShotSubagentDescriptorData extends SubagentDescriptorBase {\n    readonly mode: \'one-shot\';\n    readonly label?: string;\n}',
   },
@@ -4455,6 +4506,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RunParity {\n    readonly weightPassed: number;\n    readonly weightTotal: number;\n}',
   },
   {
+    name: 'RunVerdict',
+    declaration: 'export type RunVerdict = \'passed\' | \'failed\' | \'tampered\';',
+  },
+  {
     name: 'SandboxEnforcement',
     declaration: 'export type SandboxEnforcement = \'full\' | \'partial\';',
   },
@@ -4504,7 +4559,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4616,11 +4671,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsIdentity',
-    declaration: 'export interface SessionFactsIdentity {\n    readonly environment?: SessionFactsEnvironment;\n    readonly requestProvider?: string;\n    readonly requestModel?: string;\n}',
+    declaration: 'export interface SessionFactsIdentity {\n    readonly environment?: SessionFactsEnvironment;\n    readonly requestProvider?: string;\n    readonly requestModel?: string;\n    readonly compositionSha256?: string;\n}',
   },
   {
     name: 'SessionFactsOutcome',
-    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly parity?: RunParity;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
+    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly parity?: RunParity;\n    readonly tamper: SessionTamper;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
   },
   {
     name: 'SessionFactsRecord',
@@ -4733,6 +4788,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionSurfaceSnapshot',
     declaration: 'export interface SessionSurfaceSnapshot {\n    session: SessionHeader;\n    capturedThroughSeq: number | null;\n    events: SurfaceEvent[];\n}',
+  },
+  {
+    name: 'SessionTamper',
+    declaration: 'export type SessionTamper = RunVerdict | \'not-instrumented\';',
   },
   {
     name: 'SessionTelemetryRecord',

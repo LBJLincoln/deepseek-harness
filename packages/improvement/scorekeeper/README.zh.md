@@ -44,6 +44,7 @@
 | `sessionId`、`createdAt` | 已存储的会话头（仅 `facts()` 与 `exportFacts()`；投影值本身已由其会话定址） |
 | `environment.environmentId`、`.environmentKind`、`.heldOut`、`.repetition`、`.group`、`.district`、`.contentSha256`、`.provider`、`.model`、`.isolation` | `environment/run` stamp；未被运行器盖章的会话没有该字段 |
 | `requestProvider`、`requestModel` | 最后一条 `request/header` 的 `config.provider` 与 `config.model` |
+| `compositionSha256` | 最后一条 `composition/manifest`（`@deepseek-ai/dsh-components-manifest`）的 `compositionSha256`；日志中没有该事件的会话没有该字段 |
 
 ### Outcome
 
@@ -52,6 +53,7 @@
 | `reward`、`rewardBasis` | 轨迹奖励折叠，读取 `goal/change` 与各 `verification/*` 事件 |
 | `certified`、`certificateRevision`、`certificateExecutor` | 验证折叠中覆盖当前标准修订的证书，以及它所引运行的执行者 |
 | `parity` | 最后一条 `verification/run` 的 `parity`；该次运行没有度量用例时不存在 |
+| `tamper` | 最后一条 `verification/run` 的 `verdict`；会话一次运行也没有记录时为 `not-instrumented` |
 | `runsRecorded` | `verification/run` 事件，无论通过与否 |
 | `attempts` | 最后一条 `verification/run` 的 `attempt`；每编写一个标准便从一重新开始 |
 | `directives` | `verification/directive` 事件 |
@@ -86,6 +88,8 @@
 
 一行是一个模型路由在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨隔离级别、该划分或跨区求平均，因此按区扣留的发布是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而不是缺失的行。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；token 求和覆盖该行的每个会话，含出错的会话。
 
+另有三列陈述发布在这些比率之外所需要的东西。`tampered` 统计最后一次记录运行带 `tampered` 裁决的会话；一行的 `errors` 恰好就是它的未插桩会话，因为没有记录运行的会话没有裁决可读。`compositionSha256` 是该行每个会话都陈述的摘要，某个会话没有陈述或两者不一致时缺席，因此只覆盖一行中一部分的摘要绝不归因整行。`certificateExecutors` 按首次出现顺序保存该行已认证会话的去重 executor：没有认证任何东西的行为空，有两个或更多则表示该行的证书彼此不一致，任何单一 executor 都不得与其比率并列发布。
+
 `certificateRate` 与 `parity` 是两列，并且始终是两列。证书度量——`certified`、`certificateRate` 以及建立在它之上的 `stats` 估计——说的是每个活动检查的每个用例都通过了。`parity` 是该行度量了用例的会话上 `weightPassed / weightTotal` 的均值，没有任何这样的会话的行没有它；无论一个会话被多少用例采样，它都只计一次。本包渲染的任何东西都不把二者合并成一个分数，也不跨它们排名：达到了标准大部分用例权重的行与取得证书的行，是关于这份工作的两个不同事实，做排名的消费方只读其中一列。[ProgramBench 的区分](../../../.agents/notes/proposed/architecture/2026-09-06-competitive-baselines.md)正是同一个。
 
 `costEurPerCertified` 是该行取得证书的会话上 `costEur` 的均值，`pricingDigests` 是该行每个会话（含出错的与未取得证书的）互不相同的摘要。没有任何会话取得证书的行没有该均值；该行只要有一个取得证书的会话不陈述成本，也没有该均值——这样发布出去的每证书成本，绝不会把一个未定价的会话当作免费会话计入。
@@ -103,7 +107,7 @@
 ## Known Limitations and Deferred Work
 
 - **投影值在每个事件上都变化**——`wallMs` 跨越整个日志，因此没有任何已提交事件会让 `sessionFacts` 状态引用保持不变，订阅的载体每个事件都会收到一次通知。
-- **尚无来源事件的字段组**——[四目标工作流 note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) 指名的过程质量、评审打分、安全与监督、训练与数据在此不产出任何字段：`signoff/recorded`、组合清单、监督监视器、评审团以及策展方的同意与脱敏事件都尚不存在。
+- **尚无来源事件的字段组**——[四目标工作流 note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) 指名的过程质量、评审打分、安全与监督、训练与数据在此不产出任何字段：`signoff/recorded`、监督监视器、评审团以及策展方的同意与脱敏事件都尚不存在。
 - **shell 退出码不可观测**——bash 结果的退出码位于工具自身的模型可见输出内，而非某个会话事件字段，因此 `shellNonzeroExits` 不是字段；这需要先有一个工具自有的结果事件。
 - **成本只覆盖已定价的路由**——部署的定价表未指名的路由不记录 `usage/priced`，因此触及这类路由的会话不陈述 `costEur`，包含它的每一行也不陈述 `costEurPerCertified`。要让每个会话都有成本，部署就要为自己运行的每条路由定价。
 - **每会话一个标准**——结果分组读取会话的验证折叠，其中只有一个完成标准；度量多个 goal 的会话按生效中的标准评分。
