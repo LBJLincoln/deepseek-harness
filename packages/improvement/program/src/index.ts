@@ -39,7 +39,8 @@ import type { SignoffTransition } from '@deepseek-ai/dsh-signoff'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type { ShellRunResult } from '@deepseek-ai/dsh-shell'
 // Also resolves the optional ctx.subagents a delegated department reads.
-import type { SubagentProvider, SubagentRuntime } from '@deepseek-ai/dsh-subagent'
+import { runsOutOfProcess } from '@deepseek-ai/dsh-subagent'
+import type { SubagentRuntime } from '@deepseek-ai/dsh-subagent'
 import type {} from '@deepseek-ai/dsh-verification'
 import type { CertificateIsolation, CheckResult, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 import {
@@ -244,17 +245,6 @@ function outcomeOf(result: ShellRunResult): string {
 function retryText(failures: readonly CheckResult[]): string {
   const listed = failures.map(failure => `- ${failure.checkId}: ${failure.evidence}`).join('\n')
   return `<checks_failed>\n${String(failures.length)} of this goal's checks did not pass on the branch as it stands.\n${listed}\nKeep working and commit; the checks run again when you stop.\n</checks_failed>`
-}
-
-/**
- * Whether one provider runs its child outside this process. An out-of-process
- * backend advertises no start-time capability at all, because a child in
- * another process can honor none of them; an in-process backend composes the
- * child here and honors them.
- */
-function outOfProcess(provider: SubagentProvider): boolean {
-  const { outputSchema, depthLimit, toolFilter, persona } = provider.capabilities
-  return !outputSchema && !depthLimit && !toolFilter && !persona
 }
 
 /** Directory test that treats a missing or unreadable path as no directory. */
@@ -836,7 +826,7 @@ export class ProgramService extends Service {
             'PROGRAM_IMPLEMENTER_UNAVAILABLE',
           )
         }
-        if (goal.isolation !== 'none' && outOfProcess(provider)) {
+        if (goal.isolation !== 'none' && runsOutOfProcess(provider.capabilities)) {
           throw new ProgramError(
             `goal "${goal.key}" claims "${goal.isolation}" isolation, which no department delegated to the out-of-process provider "${implementer.provider}" can support`,
             'PROGRAM_IMPLEMENTER_ISOLATION',

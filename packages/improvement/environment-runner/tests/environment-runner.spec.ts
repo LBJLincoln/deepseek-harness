@@ -296,6 +296,7 @@ const IN_PROCESS_CAPABILITIES: SubagentProvider['capabilities'] = {
   depthLimit: true,
   toolFilter: true,
   persona: true,
+  harnessTools: false,
 }
 
 /** What one scripted child run resolves with and leaves behind. */
@@ -695,27 +696,31 @@ describe('EnvironmentRunner', () => {
     expect((await bare()).stamp.contentSha256).not.toBe(report.stamp.contentSha256)
   })
 
-  it('restores the fixture over the implementer edits before each validation', async () => {
+  it('restores only the immutable paths before each validation, so an edit to any other fixture file reaches the checks', async () => {
     const fixture = await mkdtemp(join(tmpdir(), 'environment-fixture-'))
     await writeFile(join(fixture, 'seed.txt'), 'seed')
+    await mkdir(join(fixture, 'tests'))
+    await writeFile(join(fixture, 'tests', 'suite.sh'), 'exit 1\n')
     let workspace = ''
     const built = await harness({
       config: { maxAttempts: 2 },
-      definition: environment({ task: { prompt: 'Extend the seed.', fixture } }),
+      definition: environment({ task: { prompt: 'Extend the seed.', fixture, immutable: ['tests'] } }),
       onTurn: (turn, session) => {
         assistantTurns(turn, session)
-        writeFileSync(join(workspace, 'seed.txt'), `tampered on turn ${turn}`)
+        writeFileSync(join(workspace, 'seed.txt'), `edited on turn ${turn}`)
       },
     })
     workspace = built.workspace
     StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
     const report = await built.run()
 
-    expect(await readFile(join(workspace, 'seed.txt'), 'utf8')).toBe('seed')
-    expect(report.attempts.map(attempt => attempt.treeHash))
-      .toEqual([report.attempts[0]?.treeHash, report.attempts[0]?.treeHash])
-    expect(StubStandards.current.runs.map(run => run.evidence.treeHash))
-      .toEqual([report.attempts[0]?.treeHash, report.attempts[0]?.treeHash])
+    // The seed is the implementer's to change; the suite is the validator's and stays.
+    expect(await readFile(join(workspace, 'seed.txt'), 'utf8')).toBe('edited on turn 2')
+    expect(await readFile(join(workspace, 'tests', 'suite.sh'), 'utf8')).toBe('exit 1\n')
+    // Each validation digests the tree it ran on, edits included, so the two attempts differ.
+    const hashes = report.attempts.map(attempt => attempt.treeHash)
+    expect(new Set(hashes).size).toBe(2)
+    expect(StubStandards.current.runs.map(run => run.evidence.treeHash)).toEqual(hashes)
   })
 
   it('records a tampered attempt, runs no check, issues the tamper directive, and ends the run', async () => {
@@ -816,6 +821,13 @@ describe('EnvironmentRunner', () => {
     StubEnvironments.current.definitions.set('smoke:marker', environment({ task: { prompt: 'p', fixture: 'fixtures/relative' } }))
     await reject({}, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
     StubEnvironments.current.definitions.set('smoke:marker', environment({ task: { prompt: 'p', fixture: join(workspace, 'no-fixture') } }))
+    await reject({}, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
+    // An immutable path the fixture does not supply, or one that names the reference.
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-fixture-'))
+    await mkdir(join(fixture, 'reference'))
+    StubEnvironments.current.definitions.set('smoke:marker', environment({ task: { prompt: 'p', fixture, immutable: ['tests'] } }))
+    await reject({}, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
+    StubEnvironments.current.definitions.set('smoke:marker', environment({ task: { prompt: 'p', fixture, reference: 'reference', immutable: ['reference/expected.txt'] } }))
     await reject({}, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
     expect(StubAgents.current.created).toEqual([])
   })

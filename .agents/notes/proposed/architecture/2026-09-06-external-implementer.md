@@ -32,7 +32,7 @@ The attempt text is the environment's task prompt on the first attempt and the d
 
 A child that ends in any way at all is still validated. A refusal, an error, or a cancellation leaves the workspace as the child left it, and the checks decide what that is worth — the run's verdict is what the tree does, never what the implementer reported about itself.
 
-**What a delegated certificate proves, and what it does not.** It proves that the runner ran the standard's checks, itself, on the tree the external agent left, after restoring the fixture over it and after finding the check-owned set unchanged. That is the whole of what a `runner` certificate ever proved, and delegation does not weaken it: no part of the measurement moved into the child.
+**What a delegated certificate proves, and what it does not.** It proves that the runner ran the standard's checks, itself, on the tree the external agent left, after restoring its immutable paths from the fixture and after finding the check-owned set unchanged. That is the whole of what a `runner` certificate ever proved, and delegation does not weaken it: no part of the measurement moved into the child.
 
 It does not prove anything about how the work was done. No model-visible history of the external implementer reaches our log: the child's prompts, tool calls, and reasoning stay in its own product, so a delegated cell's session carries the stamp, the standard, the delegation records, the runs, and the certificate, and no assistant turn at all. The trajectory exported from it therefore carries no step, and it is not training data — it is a measurement. Its usage is the same: an in-process child's spend is recorded on the delegation event because that child ran on our own route, and an out-of-process child's is absent because this process never saw a token of it.
 
@@ -63,7 +63,7 @@ It does not prove anything about how the work was done. No model-visible history
 
 An external implementer sees the workspace and nothing else the harness controls. Its own settings decide its model, its tools, and its permissions, so two runs of one provider on two hosts are not the same implementer even though the stamp names them alike. The stamp records the provider, never the product version or the account behind it, and a published comparison has to say so.
 
-A delegated cell's certificate is only as good as the fixture restoration and the immutable set the environment declared, exactly as a route cell's is — but the external agent is likelier to reach outside the task than a preset-composed harness agent, because no `tools.restrict()` or read barrier of ours applies to it. At `isolation: none` that is stated rather than prevented, and above `none` the run is refused instead.
+A delegated cell's certificate is only as good as the immutable set the environment declared and its restoration, exactly as a route cell's is — but the external agent is likelier to reach outside the task than a preset-composed harness agent, because no `tools.restrict()` or read barrier of ours applies to it. At `isolation: none` that is stated rather than prevented, and above `none` the run is refused instead.
 
 The delegated trajectory is empty of steps by construction. A pipeline that reads trajectories without checking the implementer would train on a certified session that contains no work; the `implementer` field on the stamp is what a curated export has to filter on, and nothing yet forces it to.
 

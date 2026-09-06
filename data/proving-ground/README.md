@@ -32,7 +32,7 @@ Copy the exports, the session logs, and the last stdout line (as `result.json`) 
 
 ## What a row proves
 
-A delegated cell's certificate proves that the runner authored the standard before any work started, restored the fixture over the tree the external agent left, found the check-owned set unchanged, and ran the checks itself. It proves nothing about how the work was done: the external agent's prompts, tool calls, and reasoning stay in its own product, so the cell session holds the stamp, the standard, the delegation records, the runs, and the certificate, and no assistant turn. The exported trajectory therefore carries no step. It is a measurement, not training data, and the `implementer` field on the stamp is what a curated export filters on. The [external implementer note](../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md) owns these rules.
+A delegated cell's certificate proves that the runner authored the standard before any work started, restored the immutable paths from the fixture over the tree the external agent left, found the check-owned set unchanged, and ran the checks itself. It proves nothing about how the work was done: the external agent's prompts, tool calls, and reasoning stay in its own product, so the cell session holds the stamp, the standard, the delegation records, the runs, and the certificate, and no assistant turn. The exported trajectory therefore carries no step. It is a measurement, not training data, and the `implementer` field on the stamp is what a curated export filters on. The [external implementer note](../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md) owns these rules.
 
 ## Runs
 

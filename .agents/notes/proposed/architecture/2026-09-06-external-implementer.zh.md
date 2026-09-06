@@ -32,7 +32,7 @@ ctx.subagents.start(provider, { prompt: [attempt text], parent: cellAgent, signa
 
 子进程无论以何种方式结束都照样被校验。拒绝、报错或取消，都把工作区留在子进程离开时的样子，由检查来判定它值多少——运行的裁决取决于这棵树是什么，绝不取决于实现者对自己的陈述。
 
-**What a delegated certificate proves, and what it does not.** 它证明 runner 亲自在外部 agent 留下的这棵树上跑了标准的检查，且是在把 fixture 覆盖回去之后、在确认 check-owned 集合未被改动之后跑的。这正是一张 `runner` 证书一直以来所证明的全部，委派并没有削弱它：测量没有任何一部分挪进子进程。
+**What a delegated certificate proves, and what it does not.** 它证明 runner 亲自在外部 agent 留下的这棵树上跑了标准的检查，且是在从 fixture 恢复了不可变路径之后、在确认 check-owned 集合未被改动之后跑的。这正是一张 `runner` 证书一直以来所证明的全部，委派并没有削弱它：测量没有任何一部分挪进子进程。
 
 它不证明工作是怎么做的。外部实现者的模型可见历史没有一点进入我们的日志：子进程的 prompt、工具调用与推理都留在它自己的产品里，所以一个被委派 cell 的会话携带 stamp、标准、委派记录、运行与证书，而没有任何一轮 assistant 消息。由它导出的轨迹因此不含任何 step，它也不是训练数据——它是一次测量。用量同理：进程内子进程的花费记录在委派事件上，因为那个子进程跑在我们自己的路由上；进程外子进程的花费缺席，因为本进程从未见过它的一个 token。
 
@@ -63,7 +63,7 @@ ctx.subagents.start(provider, { prompt: [attempt text], parent: cellAgent, signa
 
 外部实现者看得见工作区，看不见 harness 掌控的其余任何东西。它自己的设置决定它的模型、工具与权限，所以同一 provider 在两台主机上的两次运行并不是同一个实现者，哪怕 stamp 把它们叫作同一个名字。stamp 记录 provider，从不记录产品版本或其背后的账户，一份公开比较必须把这点说出来。
 
-一个被委派 cell 的证书，其可靠程度与 fixture 恢复以及环境所声明的不可变集合完全一致，route cell 亦然——但外部 agent 比一个由 preset 组合出来的 harness agent 更可能伸到任务之外，因为我们的 `tools.restrict()` 与读取屏障都管不到它。在 `isolation: none` 下这一点是被陈述而不是被阻止的，高于 `none` 时运行则直接被拒。
+一个被委派 cell 的证书，其可靠程度与环境所声明的不可变集合及其恢复完全一致，route cell 亦然——但外部 agent 比一个由 preset 组合出来的 harness agent 更可能伸到任务之外，因为我们的 `tools.restrict()` 与读取屏障都管不到它。在 `isolation: none` 下这一点是被陈述而不是被阻止的，高于 `none` 时运行则直接被拒。
 
 被委派的轨迹按构造就没有 step。一条不检查实现者就读取轨迹的流水线，会在一个不含任何工作的已认证会话上训练；stamp 上的 `implementer` 字段正是策展导出必须据以过滤的东西，而目前还没有任何机制强制它这么做。
 

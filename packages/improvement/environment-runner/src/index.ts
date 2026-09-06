@@ -4,8 +4,9 @@
  * environment it runs, authors the completion standard from the environment's
  * checks, has each attempt implemented either by the session's own model route
  * or by an out-of-band coding agent started through the subagent seam, restores
- * the fixture and executes the checks through the shell executor after each
- * attempt, records the run, and completes the goal only under a certificate. The
+ * the fixture's immutable paths and executes the checks through the shell
+ * executor after each attempt, records the run, and completes the goal only
+ * under a certificate. The
  * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)
  * and [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)
  * Agent Notes own the design rationale.
@@ -328,9 +329,24 @@ async function overlayFixture(workspace: string, task: EnvironmentTask): Promise
   if (task.reference !== undefined) await rm(join(workspace, task.reference), { recursive: true, force: true })
 }
 
+/** Whether a path exists at all, whatever its kind. */
+async function exists(path: string): Promise<boolean> {
+  try {
+    await stat(path)
+    return true
+  } catch {
+    // stat rejects only with filesystem access errors (ENOENT/EACCES/ENOTDIR),
+    // each of which means the fixture does not supply the path.
+    return false
+  }
+}
+
 /**
- * Reject a workspace or fixture that is not an existing absolute directory,
- * then overlay the fixture and return its digest.
+ * Reject a workspace or fixture that is not an existing absolute directory, an
+ * immutable path the fixture does not supply, and an immutable path that names
+ * the reference or lies inside it (the restoration before each validation
+ * would carry the reference into the implementer's tree), then overlay the
+ * fixture and return its digest.
  * @returns the fixture digest, or `undefined` for a task without a fixture.
  */
 async function prepareWorkspace(workspace: string, task: EnvironmentTask): Promise<string | undefined> {
@@ -342,19 +358,34 @@ async function prepareWorkspace(workspace: string, task: EnvironmentTask): Promi
   if (!isAbsolute(fixture) || !await isDirectory(fixture)) {
     throw new EnvironmentRunError(`fixture "${fixture}" is not an existing absolute directory`, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
   }
+  for (const path of task.immutable ?? []) {
+    if (task.reference !== undefined && (path === task.reference || path.startsWith(`${task.reference}/`))) {
+      throw new EnvironmentRunError(`immutable path "${path}" names the reference, which never reaches the workspace`, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
+    }
+    if (!await exists(join(fixture, path))) {
+      throw new EnvironmentRunError(`fixture "${fixture}" does not supply the immutable path "${path}"`, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
+    }
+  }
   await overlayFixture(workspace, task)
   return hashWorkspaceTree(fixture)
 }
 
 /**
- * Overlay the fixture again so implementer edits to validator-owned files do
- * not reach the checks, then digest the workspace the validation will read.
+ * Copy the environment's immutable paths from the fixture again, so an
+ * implementer edit to a validator-owned file never reaches the checks, and
+ * leave every other file as the implementer left it: a task that asks for a
+ * change to a fixture-supplied source file is satisfiable only that way. Then
+ * digest the workspace the validation will read.
  * @param workspace - the run's workspace directory.
- * @param task - the task, supplying the fixture and any reference.
+ * @param task - the task, supplying the fixture and its immutable paths.
  * @returns the workspace digest as the validation begins.
  */
 async function restoreFixture(workspace: string, task: EnvironmentTask): Promise<string> {
-  await overlayFixture(workspace, task)
+  if (task.fixture !== undefined) {
+    for (const path of task.immutable ?? []) {
+      await cp(join(task.fixture, path), join(workspace, path), { recursive: true })
+    }
+  }
   return hashWorkspaceTree(workspace)
 }
 

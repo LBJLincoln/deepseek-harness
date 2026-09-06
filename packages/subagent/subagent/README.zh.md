@@ -65,7 +65,7 @@ subagent seam 允许一个 agent（智能体）通过具名提供方把工作委
 
 进程内驱动不做这两次调用。通过 `composeFrom()` 加入父级现有组合的子 agent 继承同一份普查、同一作用域层和同一角色，因此父级自身的执行器已经对它执行拒绝。
 
-`runsOutOfProcess(capabilities)` 回答一个被命名的 provider 在哪里运行它的子进程，供必须在启动之前作出判断的调用方使用——[环境运行器](../../improvement/environment-runner/README.md#the-two-implementers)据此拒绝一个它无法约束的被委派 cell。四项启动期特性全部由父方强制，因此进程外后端声明 `NO_START_CAPABILITIES`，而自己组装子 agent 的进程内驱动至少支持其中一项。该判断失败关闭：什么都不声明的后端一律按本进程无法为其设围栏来处理。
+`runsOutOfProcess(capabilities)` 回答一个被命名的 provider 在哪里运行它的子进程，供必须在启动之前作出判断的调用方使用——[环境运行器](../../improvement/environment-runner/README.md#the-two-implementers)据此拒绝一个它无法约束的被委派 cell。四项由父方强制的启动期特性（`outputSchema`、`depthLimit`、`toolFilter`、`persona`）只有在本进程组装子 agent 的驱动才能兑现，因此进程外后端一项都不声明，而进程内驱动至少支持其中一项；`harnessTools` 不参与判断，因为桥接后端声明它时，其模型仍在别处运行。该判断失败关闭：什么都不声明的后端一律按本进程无法为其设围栏来处理。
 
 ## 委派策略
 

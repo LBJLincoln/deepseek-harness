@@ -32,10 +32,13 @@ describe('NO_START_CAPABILITIES', () => {
 describe('runsOutOfProcess', () => {
   it('reads the advertisement: nothing supported is out of process, one feature is not', () => {
     expect(runsOutOfProcess(NO_START_CAPABILITIES)).toBe(true)
-    expect(runsOutOfProcess({ outputSchema: true, depthLimit: true, toolFilter: true, persona: true })).toBe(false)
+    expect(runsOutOfProcess({ outputSchema: true, depthLimit: true, toolFilter: true, persona: true, harnessTools: false })).toBe(false)
     // A single supported feature is enough: only a provider that composes the
     // child in this process can enforce any of them.
     expect(runsOutOfProcess({ ...NO_START_CAPABILITIES, persona: true })).toBe(false)
+    // A bridging backend serves the harness tools to a model that still runs
+    // elsewhere, so `harnessTools` alone does not make it in-process.
+    expect(runsOutOfProcess({ ...NO_START_CAPABILITIES, harnessTools: true })).toBe(true)
   })
 })
 

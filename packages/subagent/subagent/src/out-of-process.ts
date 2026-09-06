@@ -36,16 +36,21 @@ export const NO_START_CAPABILITIES: SubagentCapabilities = Object.freeze({
 /**
  * Whether a provider's advertisement is the out-of-process one. A caller that
  * must know where a NAMED provider runs its child asks here instead of matching
- * provider names: the four start-time features are all parent-enforced, so an
- * in-process driver — which composes the child itself — supports at least one
- * of them, and a backend that launches a foreign agent supports none. The test
- * fails closed, which is what a caller needs it for: an unknown backend that
- * advertises nothing is treated as one this process cannot fence.
+ * provider names: the four parent-enforced start-time features
+ * (`outputSchema`, `depthLimit`, `toolFilter`, `persona`) can only be honored
+ * by a driver that composes the child in this process, so an in-process driver
+ * supports at least one of them and a backend that launches a foreign agent
+ * supports none. `harnessTools` is deliberately not read: a bridging backend
+ * advertises it while its child still runs in another process, because the
+ * served tools execute here and the model does not. The test fails closed,
+ * which is what a caller needs it for: an unknown backend that advertises
+ * nothing is treated as one this process cannot fence.
  * @param capabilities - the provider's {@link SubagentCapabilities} advertisement.
- * @returns true when the provider advertises no start-time capability.
+ * @returns true when the provider advertises no parent-enforced start-time capability.
  */
 export function runsOutOfProcess(capabilities: SubagentCapabilities): boolean {
-  return !Object.values(capabilities).some(supported => supported)
+  const { outputSchema, depthLimit, toolFilter, persona } = capabilities
+  return !outputSchema && !depthLimit && !toolFilter && !persona
 }
 
 /**

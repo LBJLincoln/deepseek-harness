@@ -65,7 +65,7 @@ An out-of-process child launches a foreign agent with its own tool stack and no 
 
 The in-process drivers make neither call. A child that joins its parent's standing composition through `composeFrom()` inherits the same census, the same scope layer, and the same role, so the parent's own executors already deny it.
 
-`runsOutOfProcess(capabilities)` answers where a named provider runs its child, for a caller that must decide before starting one — the [environment runner](../../improvement/environment-runner/README.md#the-two-implementers) refuses a delegated cell it cannot confine. All four start-time features are parent-enforced, so an out-of-process backend advertises `NO_START_CAPABILITIES` and an in-process driver, which composes the child itself, supports at least one. The test fails closed: a backend that advertises nothing is treated as one this process cannot fence.
+`runsOutOfProcess(capabilities)` answers where a named provider runs its child, for a caller that must decide before starting one — the [environment runner](../../improvement/environment-runner/README.md#the-two-implementers) refuses a delegated cell it cannot confine. The four parent-enforced start-time features (`outputSchema`, `depthLimit`, `toolFilter`, `persona`) can only be honored by a driver that composes the child here, so an out-of-process backend advertises none of them and an in-process driver supports at least one; `harnessTools` is not read, because a bridging backend advertises it while its model still runs elsewhere. The test fails closed: a backend that advertises nothing is treated as one this process cannot fence.
 
 ## Delegated policy
 

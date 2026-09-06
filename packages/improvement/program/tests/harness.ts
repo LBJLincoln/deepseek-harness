@@ -91,6 +91,7 @@ export const IN_PROCESS_CAPABILITIES: SubagentCapabilities = {
   depthLimit: true,
   toolFilter: true,
   persona: true,
+  harnessTools: false,
 }
 
 /** Start-time capabilities of an out-of-process backend, which can honor none of them. */
@@ -99,6 +100,7 @@ export const OUT_OF_PROCESS_CAPABILITIES: SubagentCapabilities = {
   depthLimit: false,
   toolFilter: false,
   persona: false,
+  harnessTools: false,
 }
 
 /** One delegated child the stubbed seam serves. */

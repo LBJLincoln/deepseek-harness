@@ -44,12 +44,17 @@
   name: '@deepseek-ai/dsh-subagent'
 
 # No `env` overlay: the child resolves the host's own `claude` installation and
-# runs on the account and settings that installation already holds. Unattended
-# program tasks need those settings to allow file edits and `node` commands
-# without a prompt; the provider registers its read-barrier refusal, which the
-# `isolation: none` runner below asks nothing of.
+# runs on the account that installation already holds. An unattended program
+# task needs the product to edit files and run the test command without a
+# prompt, which is what `acceptEdits` and the `node` allowance grant; the
+# provider registers its read-barrier refusal, which the `isolation: none`
+# runner below asks nothing of.
 - id: subagent-claude-code
   name: '@deepseek-ai/dsh-subagent-claude-code'
+  config:
+    permissionMode: acceptEdits
+    allowedTools:
+      - 'Bash(node:*)'
 
 # `isolation: none` is the only claim an out-of-process implementer can serve:
 # the read-barrier census cannot confine a foreign agent, and the runner refuses
