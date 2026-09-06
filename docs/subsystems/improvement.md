@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log; and a program is one client deliverable decomposed into department goals whose ledger lives in the program's own session. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md), and [program-ledger](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts), and [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log; a program is one client deliverable decomposed into department goals whose ledger lives in the program's own session; and an observatory snapshot is the public fold of every persisted session, with the withheld districts and the held-out split kept out of its rows and counted. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md), [program-ledger](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md), and [observatory](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts), [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts), and [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts).
 
 ## Environment definition
 
@@ -144,7 +144,7 @@ Messages are projected from the session surface after compaction replacements, e
 
 ## Session facts
 
-The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one. The outcome group carries the last run's `parity` beside `certified`, and a row means it over the sessions that measured cases: the certificate and the weighted pass rate are separate columns, never merged into one score and never ranked across.
+The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one. The outcome group carries the last run's `parity` beside `certified`, and a row means it over the sessions that measured cases: the certificate and the weighted pass rate are separate columns, never merged into one score and never ranked across. Two facts a publication reads sit beside them: `tamper` is the last run's verdict, `not-instrumented` for a session that recorded none, and the identity group's `compositionSha256` is the digest of the last `composition/manifest` in the log; a row states the digest only when every session of it states the same one, counts its `tampered` sessions, and lists the distinct executors of its certificates.
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -183,6 +183,77 @@ interface ExperimentResult {
   /** Thresholds the digest froze, restated so a stored result is readable alone. */
   readonly thresholds: ExperimentThresholds
   readonly verdict: ExperimentVerdict
+}
+```
+
+## Observatory snapshot
+
+The observatory folds the scoreboard through the scorekeeper over every persisted session, withholds the configured districts and the held-out split from its public rows, and counts what it dropped. Withholding is a row operation because it is already a session operation: the scoreboard key carries `district` and `heldOut`, so every session of a withheld row is withheld and no withheld session can reach a published row. No session event carries an `ExperimentResult`, so a fold that is handed none publishes no ranking; [the package README](../../packages/improvement/observatory/README.md) owns the publication rules and the rendered column set.
+
+```ts type-equiv
+/** One fold over every persisted session, before rendering decides what it shows. */
+interface ObservatorySnapshot {
+  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
+  readonly rows: readonly ScoreboardRow[]
+  /** What withholding removed from those rows. */
+  readonly withheld: ObservatoryWithheld
+  /** Experiment results whose two arm routes both appear in {@link rows}; empty publishes no ranking. */
+  readonly experiments: readonly ExperimentResult[]
+  /** Session headers the fold read. */
+  readonly sessions: number
+  /** Folded sessions whose log carries no `environment/run` stamp, so no row can name their cell. */
+  readonly unstamped: number
+  /** Sessions that could not be read or folded. */
+  readonly skipped: readonly ScorekeeperSkip[]
+  /** Epoch milliseconds at which the fold ran. */
+  readonly foldedAt: number
+  /** Newest `createdAt` among the session headers the fold read, absent when the store held none. */
+  readonly newestSessionAt?: number
+  /** Batch refresh interval the page names, milliseconds. */
+  readonly refreshIntervalMs: number
+}
+```
+
+## Published row
+
+`render(snapshot, now)` applies the row-level publication rules and returns a self-contained HTML page beside the same document as JSON. Past the configured staleness threshold both carry the staleness notice in place of every figure: the JSON states `stale: true` with no row and no ranking.
+
+```ts type-equiv
+/**
+ * One published row: the honest column set, with the publication rules already
+ * applied. `resolved` and `parity` are two fields and stay two — neither is
+ * ever computed from the other, and no field merges them.
+ */
+interface ObservatoryPublishedRow {
+  readonly provider: string
+  readonly model: string
+  readonly environmentId: EnvironmentId
+  readonly environmentKind: string
+  /** District the row's sessions were stamped with, absent for a row outside every district. */
+  readonly district?: string
+  readonly heldOut: boolean
+  readonly isolation: CertificateIsolation
+  /** Executors of the row's certificates; empty for a row that certified nothing. */
+  readonly certificateExecutors: readonly RunExecutor[]
+  /** Composition digest every session of the row states, absent when the page shows `pending`. */
+  readonly compositionSha256?: string
+  readonly tamper: ObservatoryTamper
+  /** Sessions of the row whose last recorded run carried the `tampered` verdict. */
+  readonly tampered: number
+  /** Sessions that recorded at least one run. */
+  readonly runs: number
+  /** Sessions that ended without recording one. */
+  readonly errors: number
+  /** Sessions holding a certificate. */
+  readonly certified: number
+  /** `certified / runs`: the certificate rate under its own name, `0` without runs. */
+  readonly resolved: number
+  /** Mean weighted pass rate over the row's sessions that measured cases, absent when none did. */
+  readonly parity?: number
+  /** Mean cost of the row's certified sessions, absent unless {@link pricingDigest} names the one table that priced them. */
+  readonly costEurPerCertified?: number
+  /** The single pricing digest that priced the row, absent when the row carries none or more than one. */
+  readonly pricingDigest?: string
 }
 ```
 
