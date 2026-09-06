@@ -479,15 +479,31 @@ describe('ShiftService refusals and disposal', () => {
     await first.ctx.fiber.dispose()
 
     const second = await harness(
-      { districts: [district({ cadence: { intervalMs: 1 }, spendWindow: windowed })] },
+      // A millisecond cadence floods the ledger with overlap refusals faster than
+      // the refusing slot's own record can flush; the cadence stays short enough
+      // to land overlaps during the slot's scan and long enough to let it finish.
+      { districts: [district({ cadence: { intervalMs: 25 }, spendWindow: windowed })] },
       { root: first.root },
     )
     await second.ctx.shifts.start()
-    // Booting the second process and its first slot can take longer than the
-    // default wait under a loaded test host; the assertion is about count, not time.
+    // The first slot scans the persisted sessions before it can refuse for the
+    // window, and every slot arriving meanwhile is refused for the overlap, so a
+    // slot session may be mid-write whenever this polls: read each ledger
+    // tolerantly and wait for the spend-window refusal itself, however slow the
+    // host is, instead of stopping on a session count the overlap refusals reach
+    // first.
     await vi.waitFor(async () => {
-      expect((await sessionIds(second.ctx)).filter(id => id.startsWith('shift-')).length).toBeGreaterThan(1)
-    }, { timeout: 15_000 })
+      const shifts = (await sessionIds(second.ctx)).filter(id => id.startsWith('shift-'))
+      const reasons = await Promise.all(shifts.map(async (id) => {
+        try {
+          return (((await ledgerOf(second.ctx, id))[0]?.data) as ShiftSkipped | undefined)?.reason
+        } catch {
+          // A slot session the driver is still writing; the next poll reads it whole.
+          return undefined
+        }
+      }))
+      expect(reasons).toContain('spend-window')
+    }, { timeout: 20_000 })
     await second.ctx.shifts.stop()
 
     const refused = [...(await ledgers(second.ctx)).values()].filter(events => events[0]?.type === 'shift/skipped')
@@ -498,7 +514,7 @@ describe('ShiftService refusals and disposal', () => {
     expect(reasons).toContain('spend-window')
     expect(reasons.every(reason => reason === 'spend-window' || reason === 'overlap')).toBe(true)
     expect(StubFleet.current.plans).toEqual([])
-  })
+  }, 30_000)
 
   it('cancels the run in flight when the driver stops, and closes the shift as stopped', async () => {
     let release!: () => void
