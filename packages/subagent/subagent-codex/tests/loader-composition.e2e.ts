@@ -39,6 +39,7 @@ describe('Codex provider public Loader composition', () => {
           depthLimit: false,
           toolFilter: false,
           persona: false,
+          harnessTools: false,
         },
         inheritsParentContext: false,
       },

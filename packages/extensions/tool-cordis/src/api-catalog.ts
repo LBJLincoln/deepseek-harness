@@ -1114,6 +1114,26 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'mcpToolServer',
+    summary: 'The MCP tool server service.',
+    description: 'The MCP tool server service. One instance serves any number of agents; each `instance()` call owns one run, and one agent may hold only one live run.',
+    methods: [
+      {
+        signature: 'resolve(request: McpToolServerRequest): McpToolServerSpec',
+        description: 'Resolve one request against the deployment\'s configuration. Defaulting happens here and nowhere else, so a caller reading a resolved spec sees exactly what the run uses.',
+        parameters: [{ name: 'request', description: 'the caller\'s optional namespace override.' }],
+        returns: 'the resolved server inputs.',
+      },
+      {
+        signature: 'instance(agent: Agent, request: McpToolServerRequest = {}): McpToolServerHandle',
+        description: 'Serve one agent\'s tools as an in-process MCP server and open the turn its calls are recorded in.',
+        parameters: [{ name: 'agent', description: 'the agent whose registry view is served and whose session records the run.' }, { name: 'request', description: 'optional namespace override for this run.' }],
+        returns: 'the handle carrying the SDK configuration, the served names, and disposal.',
+        throws: ['when that agent already holds a live run, or when its session has a turn open.'],
+      },
+    ],
+  },
+  {
     key: 'messageFeedback',
     summary: 'Storage-domain sidecar service.',
     description: 'Storage-domain sidecar service. It inspects persisted Session history and never creates or resumes an Agent or Session.',
@@ -4173,6 +4193,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ManualCompactAgentContext extends CompactionAgentContext {\n    runMaintenance<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T>;\n}',
   },
   {
+    name: 'McpToolServerHandle',
+    declaration: 'export interface McpToolServerHandle {\n    readonly serverName: string;\n    readonly serves: Agent;\n    readonly config: McpToolServerInstanceConfig;\n    readonly toolNames: readonly string[];\n    dispose(): Promise<void>;\n}',
+  },
+  {
+    name: 'McpToolServerInstanceConfig',
+    declaration: 'export interface McpToolServerInstanceConfig {\n    readonly type: \'sdk\';\n    readonly name: string;\n    readonly instance: McpServer;\n}',
+  },
+  {
+    name: 'McpToolServerRequest',
+    declaration: 'export interface McpToolServerRequest {\n    readonly serverName?: string;\n}',
+  },
+  {
+    name: 'McpToolServerSpec',
+    declaration: 'export interface McpToolServerSpec {\n    readonly serverName: string;\n}',
+  },
+  {
     name: 'Message',
     declaration: 'export interface Message {\n    readonly id: MessageId;\n    readonly role: \'system\' | \'user\' | \'assistant\';\n    readonly content: ContentBlock[];\n    readonly source: MessageSource;\n}',
   },
@@ -5130,7 +5166,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentCapabilities',
-    declaration: 'export interface SubagentCapabilities {\n    readonly outputSchema: boolean;\n    readonly depthLimit: boolean;\n    readonly toolFilter: boolean;\n    readonly persona: boolean;\n}',
+    declaration: 'export interface SubagentCapabilities {\n    readonly outputSchema: boolean;\n    readonly depthLimit: boolean;\n    readonly toolFilter: boolean;\n    readonly persona: boolean;\n    readonly harnessTools: boolean;\n}',
   },
   {
     name: 'SubagentDescendantListEntry',
@@ -5143,6 +5179,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SubagentFollowupOptions',
     declaration: 'export interface SubagentFollowupOptions {\n    readonly source: MessageSource;\n    readonly signal: AbortSignal;\n}',
+  },
+  {
+    name: 'SubagentHarnessTools',
+    declaration: 'export interface SubagentHarnessTools {\n    readonly only: true;\n}',
   },
   {
     name: 'SubagentInterruptAuthority',
@@ -5186,7 +5226,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentStartRequest',
-    declaration: 'export interface SubagentStartRequest {\n    readonly label?: string;\n    readonly prompt: ContentBlock[];\n    readonly parent: Agent;\n    readonly signal: AbortSignal;\n    readonly agentOptions?: AgentOptions;\n    readonly outputSchema?: ObjectJsonSchema;\n    readonly maxDepth?: number;\n    readonly toolFilter?: ToolRestriction;\n    readonly persona?: string;\n}',
+    declaration: 'export interface SubagentStartRequest {\n    readonly label?: string;\n    readonly prompt: ContentBlock[];\n    readonly parent: Agent;\n    readonly signal: AbortSignal;\n    readonly agentOptions?: AgentOptions;\n    readonly outputSchema?: ObjectJsonSchema;\n    readonly maxDepth?: number;\n    readonly toolFilter?: ToolRestriction;\n    readonly persona?: string;\n    readonly harnessTools?: SubagentHarnessTools;\n}',
   },
   {
     name: 'SubagentStopReason',

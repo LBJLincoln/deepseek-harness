@@ -475,6 +475,10 @@ type ObjectJsonSchema = JsonSchemaNode & { type: 'object' }
 
 完整的展示字段文档见 [`packages/core/tools/src/presentation.ts`](../../packages/core/tools/src/presentation.ts)。`bash` schema 与执行器见 [shell.md](shell.md)；通用后台控制见 [jobs.md](jobs.md)。
 
+## 把一个智能体的注册表提供给外部智能体
+
+`ctx.mcpToolServer`（[`dsh-mcp-tool-server`](../../packages/mcp/mcp-tool-server/README.md)）是注册表朝外的那一面：它把**一个**智能体可见的工具作为一台 MCP 服务器发布出去，并把每一次 `tools/call` 都经由该智能体上的 `ctx.tools.execute()` 送回，于是一个在本进程之外运行的模型抵达的是与本仓库模型相同的流水线 —— 审批、守卫、`tools/execute` 包装器、定义自有的内容投影。它的 handle 拥有被服务智能体会话的一个 turn，因为它追加的 `tool/call`/`tool/result` 事件对是 step 作用域的。`ctx.tools` 自身不因它而改变：该服务器是注册表的消费者，而不是第二个注册表。
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -482,6 +486,37 @@ type ObjectJsonSchema = JsonSchemaNode & { type: 'object' }
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — this section is byte-identical in both language sides of the page. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxmcptoolserver--mcptoolserverservice"></a>
+
+### `ctx.mcpToolServer` — `McpToolServerService`
+
+The MCP tool server service. One instance serves any number of agents; each `instance()` call owns one run, and one agent may hold only one live run.
+
+```ts cordis-catalog
+/**
+ * Resolve one request against the deployment's configuration. Defaulting
+ * happens here and nowhere else, so a caller reading a resolved spec sees
+ * exactly what the run uses.
+ * @param request - the caller's optional namespace override.
+ * @returns the resolved server inputs.
+ */
+resolve(request: McpToolServerRequest): McpToolServerSpec
+
+/**
+ * Serve one agent's tools as an in-process MCP server and open the turn its
+ * calls are recorded in.
+ * @param agent - the agent whose registry view is served and whose session records the run.
+ * @param request - optional namespace override for this run.
+ * @returns the handle carrying the SDK configuration, the served names, and disposal.
+ * @throws when that agent already holds a live run, or when its session has a turn open.
+ */
+instance(agent: Agent, request: McpToolServerRequest = {}): McpToolServerHandle
+```
+
+Types: [Agent](core.md)
+
+Source: [`packages/mcp/mcp-tool-server/src/index.ts:97`](../../packages/mcp/mcp-tool-server/src/index.ts)
 
 <a id="ctxtools--toolruntime"></a>
 

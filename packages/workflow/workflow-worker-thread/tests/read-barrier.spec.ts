@@ -36,7 +36,9 @@ function parentAgent(id: string): Agent {
 /** The provider the engine routes `agent()` calls to; these scripts start no children. */
 class UnusedProvider implements SubagentProvider {
   readonly name = 'spawn'
-  readonly capabilities: SubagentCapabilities = { outputSchema: false, depthLimit: false, toolFilter: false, persona: false }
+  readonly capabilities: SubagentCapabilities = {
+    outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false,
+  }
   readonly inheritsParentContext = false
 
   start(): Promise<SubagentRun> {

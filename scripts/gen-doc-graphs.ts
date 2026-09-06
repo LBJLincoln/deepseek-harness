@@ -590,6 +590,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The basic backend consumes post-step pressure and request-error recovery events; there is no model-facing compact tool.',
   },
   {
+    key: 'mcpToolServer',
+    pkg: 'mcp-tool-server',
+    title: 'One agent\'s tool registry, served over MCP',
+    mode: 'core',
+    consumers: ['subagent-claude-code'],
+    note: 'Publishes one agent\'s visible tools to an external agent and routes every call back through ctx.tools.execute() on that agent, so the foreign model runs under harness policy and the call lands in that agent\'s log.',
+  },
+  {
     key: 'subagents',
     pkg: 'subagent',
     title: 'Subagent provider and continuation service',

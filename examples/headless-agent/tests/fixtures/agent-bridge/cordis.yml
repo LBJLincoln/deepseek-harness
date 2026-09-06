@@ -1,0 +1,42 @@
+# Test-only composition: one agent whose own tool registry is served over MCP,
+# so a client outside the agent loop can be shown to reach the harness executor.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+- id: fs-observation-policy
+  name: '@deepseek-ai/dsh-fs-observation-policy'
+
+# A small real tool set: one `read` through the served server is enough to show
+# the call taking the same executor an agent's own call would take.
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: mcp-tool-server
+  name: '@deepseek-ai/dsh-mcp-tool-server'
+
+# The driver creates the served agent from this selection; the spine composes none of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Prove a served MCP tool call reaches the harness executor.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

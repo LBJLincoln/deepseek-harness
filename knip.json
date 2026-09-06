@@ -53,6 +53,7 @@
         "headless-agent/tests/fixtures/composition-manifest-mutation/mock-llm.ts",
         "headless-agent/tests/fixtures/composition-quarantine/driver.ts",
         "headless-agent/tests/fixtures/composition-quarantine/mock-llm.ts",
+        "headless-agent/tests/fixtures/agent-bridge/driver.ts",
         "headless-agent/tests/fixtures/read-barrier/driver.ts",
         "headless-agent/tests/fixtures/read-barrier/reserve-implementer.ts",
         "headless-agent/tests/fixtures/read-barrier-guard/driver.ts",
@@ -885,6 +886,16 @@
     "packages/fs/tool-fs-search": {
       "entry": [
         "tests/**/*.spec.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
+    "packages/mcp/mcp-tool-server": {
+      "entry": [
+        "tests/**/*.spec.ts",
+        "tests/**/*.e2e.ts"
       ],
       "project": [
         "src/**/*.ts",

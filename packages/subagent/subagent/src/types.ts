@@ -88,6 +88,18 @@ export interface SubagentCapabilities {
   readonly depthLimit: boolean
   readonly toolFilter: boolean
   readonly persona: boolean
+  readonly harnessTools: boolean
+}
+
+/**
+ * How the child's tool surface is decided. `only: true` is the whole option
+ * rather than a flag: the child model sees the harness tool set of a child
+ * harness agent the provider creates under the parent's lineage, AND NOTHING
+ * ELSE — no tool of the backend's own. Written as an object so a later
+ * non-exclusive member widens the option instead of redefining a boolean.
+ */
+export interface SubagentHarnessTools {
+  readonly only: true
 }
 
 /**
@@ -146,6 +158,16 @@ export interface SubagentStartRequest {
    * persona (strict `{{…}}` interpolation against the registered variables).
    */
   readonly persona?: string
+  /**
+   * Optional replacement of the child's whole tool surface with the harness's
+   * own. Requires {@link SubagentCapabilities.harnessTools}; rejected at start
+   * otherwise. An out-of-process backend that supports it creates a child
+   * harness agent under the parent's lineage, serves that agent's registry view
+   * to the foreign model, and executes every call the model makes through the
+   * harness executor on that agent — which is what makes the child's session
+   * the durable record of the run.
+   */
+  readonly harnessTools?: SubagentHarnessTools
 }
 
 /**

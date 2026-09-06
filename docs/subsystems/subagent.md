@@ -29,12 +29,26 @@ interface SubagentCapabilities {
   readonly depthLimit: boolean
   readonly toolFilter: boolean
   readonly persona: boolean
+  readonly harnessTools: boolean
+}
+```
+
+```ts type-equiv
+/**
+ * How the child's tool surface is decided. `only: true` is the whole option
+ * rather than a flag: the child model sees the harness tool set of a child
+ * harness agent the provider creates under the parent's lineage, AND NOTHING
+ * ELSE — no tool of the backend's own. Written as an object so a later
+ * non-exclusive member widens the option instead of redefining a boolean.
+ */
+interface SubagentHarnessTools {
+  readonly only: true
 }
 ```
 
 ## The one-shot start request
 
-The tool layer builds this request from the model input and its own config; the service validates it against the named provider before `start`. Required `parent` supplies the session cwd, lineage, and delegation depth. Optional output schema, depth, tool filter, and persona require matching capability flags. Unsupported schemas fail at start; in-process backends scope filters and personas to child creation and implement the supported object-rooted schema with a forced capture tool.
+The tool layer builds this request from the model input and its own config; the service validates it against the named provider before `start`. Required `parent` supplies the session cwd, lineage, and delegation depth. Optional output schema, depth, tool filter, persona, and harness tools require matching capability flags. Unsupported schemas fail at start; in-process backends scope filters and personas to child creation and implement the supported object-rooted schema with a forced capture tool. `harnessTools` is the only one an out-of-process backend can hold: the provider creates a child harness agent under the parent's lineage, serves that agent's registry to its foreign model through [`dsh-mcp-tool-server`](../../packages/mcp/mcp-tool-server/README.md), and runs every call the model makes through the harness executor on that agent, which is what makes the child's session the run's durable record ([the external-agent bridge Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md)).
 
 ```ts type-equiv
 /**
@@ -93,6 +107,16 @@ interface SubagentStartRequest {
    * persona (strict `{{…}}` interpolation against the registered variables).
    */
   readonly persona?: string
+  /**
+   * Optional replacement of the child's whole tool surface with the harness's
+   * own. Requires {@link SubagentCapabilities.harnessTools}; rejected at start
+   * otherwise. An out-of-process backend that supports it creates a child
+   * harness agent under the parent's lineage, serves that agent's registry view
+   * to the foreign model, and executes every call the model makes through the
+   * harness executor on that agent — which is what makes the child's session
+   * the durable record of the run.
+   */
+  readonly harnessTools?: SubagentHarnessTools
 }
 ```
 
@@ -646,7 +670,7 @@ async start(name: string, request: SubagentStartRequest): Promise<SubagentRun>
 
 Types: [Agent](core.md) · [ContentBlock](llm-streaming.md) · [MessageId](llm-streaming.md) · [SessionId](core.md)
 
-Source: [`packages/subagent/subagent/src/index.ts:176`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:177`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagent-events"></a>
 
@@ -672,7 +696,7 @@ A published child settled. Scope-filtered dispatch uses the same delegating pare
 
 Types: [Scoped](scope.md)
 
-Source: [`packages/subagent/subagent/src/index.ts:171`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:172`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagentprovider-added--emit"></a>
 
@@ -689,7 +713,7 @@ A provider became resolvable in the registry.
 'subagent/provider-added'(provider: SubagentProvider): void
 ```
 
-Source: [`packages/subagent/subagent/src/index.ts:145`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:146`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagentprovider-removed--emit"></a>
 
@@ -706,7 +730,7 @@ A provider left the registry. Accepted runs remain holder-owned.
 'subagent/provider-removed'(name: string): void
 ```
 
-Source: [`packages/subagent/subagent/src/index.ts:151`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:152`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagentstart--emit"></a>
 
@@ -730,5 +754,5 @@ A provider established a published child. For in-process providers, `ctx.agents.
 
 Types: [Scoped](scope.md)
 
-Source: [`packages/subagent/subagent/src/index.ts:162`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:163`](../../packages/subagent/subagent/src/index.ts)
 <!-- END GENERATED cordis-surface -->
