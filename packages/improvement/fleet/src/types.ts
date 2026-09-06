@@ -7,6 +7,7 @@
 
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentFilter, EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { SessionId } from '@deepseek-ai/dsh-session'
 import type { CertificateIsolation } from '@deepseek-ai/dsh-verification/types'
 
 /** Which environments a plan runs: named ids, or everything the registry filter matches. */
@@ -22,6 +23,15 @@ export interface FleetPlan {
   readonly models: readonly EnvironmentRunModel[]
   /** Positive number of repetitions per environment and model; repetition indexes start at zero. */
   readonly repetitions: number
+  /**
+   * Exact cells to run out of the plan's enumeration; absent runs every
+   * enumerated cell. A driver resuming a partly run plan names the cells that
+   * never started, so each keeps the environment, route, and repetition index
+   * the plan gave it instead of being restated as a smaller plan whose
+   * repetition indexes would start again at zero. The cells run in plan order,
+   * whatever order they are named in.
+   */
+  readonly cells?: readonly FleetCell[]
   /** Existing absolute directory under which every cell gets its own fresh workspace directory. */
   readonly workspaceRoot: string
   /** Batch identity written into every run stamp as `group`; absent mints one. */
@@ -95,6 +105,33 @@ export interface LeaderboardRow {
   /** Summed model usage over reported cells. */
   readonly inputTokens: number
   readonly outputTokens: number
+}
+
+/**
+ * What one settled cell produced, as the `fleet/cell` event reports it:
+ * `reported` names the session the runner created and whether it certified,
+ * `error` carries the failure that prevented a report, including the code of a
+ * cell the fleet refused to start.
+ */
+export type FleetCellEventOutcome =
+  | { readonly kind: 'reported'; readonly sessionId: SessionId; readonly certified: boolean }
+  | { readonly kind: 'error'; readonly code?: string; readonly message: string }
+
+/**
+ * Payload of the observe-only `fleet/cell` event. It carries the durable
+ * coordinates of one settled cell — the batch group, the district, and the
+ * cell — so an observer can write its own record without holding the fleet's
+ * in-memory report.
+ */
+export interface FleetCellEvent {
+  /** Batch identity every run stamp of this fleet run carries. */
+  readonly group: string
+  /** District the plan stamped its cells with, absent for a plan outside every district. */
+  readonly district?: string
+  /** The environment, model route, and repetition that settled. */
+  readonly cell: FleetCell
+  /** The settled outcome, exactly as the report keeps it. */
+  readonly outcome: FleetCellEventOutcome
 }
 
 /** Model usage of one whole fleet run, summed over every reported cell. */

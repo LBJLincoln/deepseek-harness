@@ -130,6 +130,8 @@ flowchart LR
   pkg_headless_agent["headless-agent"]
   svc_fleet["ctx.fleet<br/>Fleet runs"]
   pkg_experiments["experiments"]
+  pkg_shifts["shifts"]
+  svc_shifts["ctx.shifts<br/>Durable shift driver"]
   svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
@@ -291,6 +293,7 @@ flowchart LR
   pkg_settings_file --> svc_settings
   pkg_shell --> svc_shell
   pkg_shell_env --> svc_shellEnv
+  pkg_shifts --> svc_shifts
   pkg_skill --> svc_skills
   pkg_skill_badge --> svc_skills
   pkg_skill_filesystem --> svc_skills
@@ -361,6 +364,7 @@ flowchart LR
   svc_experiments --> pkg_headless_agent
   svc_fleet --> pkg_experiments
   svc_fleet --> pkg_headless_agent
+  svc_fleet --> pkg_shifts
   svc_fs --> pkg_tool_fs
   svc_invariants --> pkg_agent
   svc_invariants --> pkg_agent_loop
@@ -411,6 +415,7 @@ flowchart LR
   svc_shell --> pkg_tool_pwsh
   svc_shellEnv --> pkg_tool_bash
   svc_shellEnv --> pkg_tool_pwsh
+  svc_shifts --> pkg_headless_agent
   svc_skills --> pkg_tool_skill
   svc_spillStore --> pkg_spill_policy
   svc_storage --> pkg_storage_domain
@@ -498,7 +503,8 @@ flowchart LR
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | 组合期清单，收录每个可寻址单元及其种类、内容地址、来源、谱系、成员关系与可调用路由，按先全局后 agent 分层；适配器将活跃 seam 镜像入内。 |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | 组合期任务清单，任务携带以完成标准词汇书写的可执行检查，标记为留出或可用于训练；拥有 environment/run stamp 词汇。 |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | 把一个环境作为一个全新的、已盖章的会话运行，由其检查编写标准，作为验证者执行检查，并且只在有证书时才完成 goal。 |
-| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`、[`experiments`](../packages/improvement/experiments) | - | 把环境 × 模型 × 重复的 cell 计划通过运行器运行，保留每个 cell 的结果，并折叠出按隔离级别与留出划分分区的排行榜。 |
+| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`、[`experiments`](../packages/improvement/experiments)、[`shifts`](../packages/improvement/shifts) | - | 把环境 × 模型 × 重复的 cell 计划通过运行器运行，保留每个 cell 的结果，并折叠出按隔离级别与留出划分分区的排行榜。 |
+| `ctx.shifts` | `core` | [`shifts`](../packages/improvement/shifts) | - | `headless-agent` | - | 按每个区的节拍开启一个班次时槽，把该时槽运行的内容冻结为摘要，并把整个班次以 shift/* 事件记入它自己的会话，因此重启只会恢复那些从未开始过的 cell。 |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | 以内容摘要冻结一份计划，让两个 arm 都经 fleet 以配对的重复索引、在由摘要派生的 stamp group 之下运行，并连同 bootstrap 区间与判定一起折叠出证书率 delta。 |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`、[`scorekeeper`](../packages/improvement/scorekeeper) | - | 将已持久化会话折叠为带证书判定奖励与组件来源的 dsh-trajectory/1 记录；不写入任何会话事件。 |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | 注册 sessionFacts 投影单元，并把已持久化日志折叠为事实记录、按路由、环境、隔离级别与留出划分分区的记分板，以及 JSONL 导出。 |

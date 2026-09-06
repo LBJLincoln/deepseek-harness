@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import type { FleetRunReport } from '@deepseek-ai/dsh-fleet'
+import type { FleetCellEvent, FleetRunReport } from '@deepseek-ai/dsh-fleet'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
 import type { Trajectory, TrajectoryExportReport } from '@deepseek-ai/dsh-trajectories'
 
@@ -13,6 +13,7 @@ const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.m
 interface DriverResult {
   type: string
   report: FleetRunReport
+  announced: FleetCellEvent[]
   withheld: TrajectoryExportReport
   named: TrajectoryExportReport
   workspaces: string[]
@@ -48,6 +49,19 @@ describe('a districted fleet shift through a real cordis.yml and headless proces
       ['smoke:round-trip', 1, 1],
       ['smoke:unsatisfiable', 0, 2],
     ])
+
+    // One announcement per cell, in settle order, each carrying the district
+    // the plan stamped and the outcome the report kept.
+    expect(result.announced.map(payload => [payload.cell.environment, payload.cell.repetition, payload.outcome.kind])).toEqual([
+      ['smoke:round-trip', 0, 'reported'],
+      ['smoke:round-trip', 1, 'error'],
+      ['smoke:unsatisfiable', 0, 'error'],
+      ['smoke:unsatisfiable', 1, 'error'],
+    ])
+    expect(result.announced.every(payload => payload.group === 'fleet-shift-e2e' && payload.district === 'workshop')).toBe(true)
+    const reported = result.announced[0]?.outcome
+    expect(reported).toMatchObject({ kind: 'reported', certified: true })
+    expect(reported?.kind === 'reported' && reported.sessionId.startsWith('environment-')).toBe(true)
 
     expect(result.workspaces).toEqual([])
 

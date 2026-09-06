@@ -37,15 +37,19 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 
 ## Service contract
 
-`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、`models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、正整数 `repetitions`、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、或注册表中没有的 id 为 `FLEET_INVALID_PLAN`，选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
+`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、`models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
 
-cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举，并通过 `ctx.environmentRuns.run` 运行，同时在途至多 `maxConcurrent` 个。每个 cell 在 `workspaceRoot` 下获得一个全新的 `cell-*` 目录，并把计划的 `group`（或铸造的 `fleet-<uuid>`）、其重复序号与计划的 `district` 带入运行 stamp，因此该批次的每个会话都在自己的日志中被持久地归组。运行抛出的 cell 保留为 `{ cell, error }`，错误带有 harness 错误码时一并保留；fleet 运行本身绝不因某一个 cell 而失败。
+cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举，并通过 `ctx.environmentRuns.run` 运行，同时在途至多 `maxConcurrent` 个。点名了 `cells` 的计划只运行这些 cell，且仍按计划顺序，因此恢复一个只跑了一半的计划的驱动器能保住每个 cell 的环境、路由与重复序号，而不必把它们改写成一个重复序号又从零开始的更小计划。`fleetCellKey(cell)` 是消费方为 cell 建立索引所用的身份，无论是在它自己维护的台账里，还是对照会话日志中已有的运行 stamp。每个 cell 在 `workspaceRoot` 下获得一个全新的 `cell-*` 目录，并把计划的 `group`（或铸造的 `fleet-<uuid>`）、其重复序号与计划的 `district` 带入运行 stamp，因此该批次的每个会话都在自己的日志中被持久地归组。运行抛出的 cell 保留为 `{ cell, error }`，错误带有 harness 错误码时一并保留；fleet 运行本身绝不因某一个 cell 而失败。
 
 有两种情况在 cell 启动之前拒绝它，因此每个计划都为每个 cell 保留一行，runs 与 errors 两列也保持诚实。一条模型路由连续产生 `routeBreaker.consecutiveErrors` 个错误结果之后，它余下的 cell 被记录为 `FLEET_ROUTE_BREAKER_OPEN` 错误，消息点名该路由与该计数；有报告的 cell 会重置该路由的计数，且熔断器按计划生效。已在手的报告的输入加输出 token 之和越过 `tokenCeiling` 之后，每个尚未启动的 cell 被记录为 `FLEET_TOKEN_CEILING_REACHED` 错误，而已经在途的 cell 照常完成。被拒绝的 cell 不铸造工作区，也既不折叠进熔断器也不折叠进 spend。
 
 报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所声明的 `isolation`（该行全部 cell 在运行前失败时缺省）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
 
 工作区保留在 cell 的结果到手之后执行：`remove-certified` 删除运行已认证的 cell 的 `cell-*` 目录，`remove-all` 无论该 cell 是有报告还是失败都删除，`keep` 什么都不删除。
+
+## `fleet/cell` 事件
+
+在一个 cell 的结果被记录、其保留策略执行完毕之后，fleet 立即发出只供观察的 Cordis 事件 `fleet/cell`，携带计划的 `group`、存在时的 `district`、该 `cell`，以及 `reported`（带运行器的 `sessionId` 与 `certified` 标志）或 `error`（带失败的代码与消息）之一的 `outcome`。每个 cell 一个事件，按结算顺序——只有当 `maxConcurrent` 为 `1` 时它才等于计划顺序。监听器无法改变结果，其失败也被隔离，因此像[班次驱动器](../shifts/README.md)这样的观察方无需持有本报告即可写下自己的逐 cell 记录；[Cordis 目录](../../../docs/subsystems/improvement.md#cordis-surface)记录了该声明。
 
 ## Model Experience
 

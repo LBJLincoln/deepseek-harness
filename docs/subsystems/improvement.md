@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; and an experiment result is the paired comparison of two arms over the same cells. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), and [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), and [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; and a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), and [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), and [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts).
 
 ## Environment definition
 
@@ -162,6 +162,68 @@ interface ExperimentResult {
 }
 ```
 
+## Cell announcement
+
+The fleet announces each settled cell on the observe-only `fleet/cell` event, once its outcome is recorded and its workspace retention has run. The payload carries the durable coordinates rather than the in-memory report, so an observer writes its own per-cell record without holding the fleet's; [the package README](../../packages/improvement/fleet/README.md) states the emission order.
+
+```ts type-equiv
+/**
+ * Payload of the observe-only `fleet/cell` event. It carries the durable
+ * coordinates of one settled cell — the batch group, the district, and the
+ * cell — so an observer can write its own record without holding the fleet's
+ * in-memory report.
+ */
+interface FleetCellEvent {
+  /** Batch identity every run stamp of this fleet run carries. */
+  readonly group: string
+  /** District the plan stamped its cells with, absent for a plan outside every district. */
+  readonly district?: string
+  /** The environment, model route, and repetition that settled. */
+  readonly cell: FleetCell
+  /** The settled outcome, exactly as the report keeps it. */
+  readonly outcome: FleetCellEventOutcome
+}
+```
+
+## Shift ledger
+
+A shift is one durable pass of the fleet over a district's plan. Its identity is frozen before any cell runs — `shift-<digest>-<scheduledAt>`, over the district, the sorted environment ids, the routes in listing order, the repetitions, and the token ceiling — and that id is the `group` on every cell's run stamp. The shift's own session log carries the ledger: `shift/start`, one `shift/cell` per settled cell, `shift/resume` when a later process picks the shift up, `shift/skipped` for a refused slot, and `shift/end`; [the persistence catalog](../persistence-catalog.md) carries each payload's declaration and [the package README](../../packages/improvement/shifts/README.md) owns the cadence and the resume rule.
+
+```ts type-equiv
+/**
+ * One shift's frozen plan. `environments` holds the ids a config filter
+ * resolved to against the registry at freeze time, so the digest and the cell
+ * enumeration are decided before any cell runs and a registry that changes
+ * mid-shift cannot move them.
+ */
+interface ShiftPlan {
+  /** District every cell of the shift is stamped with. */
+  readonly district: string
+  /** Environments the shift runs, as resolved at freeze time. */
+  readonly environments: readonly EnvironmentId[]
+  /** Model routes in listing order, at least one; the fleet enumerates cells in it. */
+  readonly models: readonly EnvironmentRunModel[]
+  /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
+  readonly repetitions: number
+  /** Positive integer bound on the input plus output tokens the shift's reported cells may sum to. */
+  readonly tokenCeiling?: number
+}
+```
+
+A `shift/cell` record carries the cell's coordinates, the session the runner created for it when one exists, and one of three outcomes. `interrupted` is the orphan a later process found stamped but unrecorded: its session already exists, so the cell is never run again under the same repetition and the crash stays an error row.
+
+```ts type-equiv
+/**
+ * What one cell of a shift produced: a report with its certification, the
+ * failure that prevented one, or the crash that left a started cell with no
+ * outcome at all.
+ */
+type ShiftCellOutcome =
+  | { readonly kind: 'reported'; readonly certified: boolean }
+  | { readonly kind: 'error'; readonly code?: string; readonly message: string }
+  | { readonly kind: 'interrupted' }
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -261,15 +323,17 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, repetitions, workspace root, group, district, token ceiling, and abort signal.
+ * @param plan - environments, model routes, repetitions, an optional exact
+ *   cell selection, workspace root, group, district, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
- *   no repetition, or sets a token ceiling that is not a positive integer.
+ *   no repetition, names no or an unenumerated cell, or sets a token ceiling
+ *   that is not a positive integer.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:254`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 
@@ -309,6 +373,35 @@ Types: [SessionId](core.md)
 
 Source: [`packages/improvement/scorekeeper/src/index.ts:170`](../../packages/improvement/scorekeeper/src/index.ts)
 
+<a id="ctxshifts--shiftservice"></a>
+
+### `ctx.shifts` — `ShiftService`
+
+Shifts (`ctx.shifts`): a cadenced, spend-windowed, resumable loop over fleet plans.
+
+```ts cordis-catalog
+/**
+ * Resume every interrupted shift, then open each district's due slot and arm
+ * its cadence timer. The loop runs once per process: a second call joins the
+ * first, so the plugin's own start and a driver awaiting the first slot
+ * observe the same run.
+ * @returns a promise settling once every resumed shift has ended and every
+ *   district is either running its due slot or armed for its next one.
+ */
+async start(): Promise<void>
+
+/**
+ * Stop the loop: disarm every cadence timer, cancel the fleet run in flight
+ * through its signal, and wait for the slots that are settling. The
+ * interrupted cells end as the runner ends them and their sessions become
+ * the orphans the next process records.
+ * @returns a promise settling once no slot is in flight.
+ */
+async stop(): Promise<void>
+```
+
+Source: [`packages/improvement/shifts/src/index.ts:124`](../../packages/improvement/shifts/src/index.ts)
+
 <a id="ctxtrajectories--trajectoryservice"></a>
 
 ### `ctx.trajectories` — `TrajectoryService`
@@ -328,4 +421,32 @@ async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>
 ```
 
 Source: [`packages/improvement/trajectories/src/index.ts:80`](../../packages/improvement/trajectories/src/index.ts)
+
+<a id="fleet-events"></a>
+
+### `fleet/*` events
+
+<a id="fleetcell--emit"></a>
+
+#### `fleet/cell` — emit
+
+One cell of a running plan settled: the fleet has recorded its outcome and applied the configured workspace retention. Observe-only — a listener cannot change the outcome, and its failure is contained without failing the cell. Cells are emitted in settle order, which equals plan order only while `maxConcurrent` is `1`.
+
+```ts cordis-catalog
+/**
+ * One cell of a running plan settled: the fleet has recorded its outcome
+ * and applied the configured workspace retention. Observe-only — a
+ * listener cannot change the outcome, and its failure is contained without
+ * failing the cell. Cells are emitted in settle order, which equals plan
+ * order only while `maxConcurrent` is `1`.
+ * @param payload.group - batch identity every run stamp of this fleet run carries.
+ * @param payload.district - district the plan stamped its cells with, absent for a plan outside every district.
+ * @param payload.cell - the environment, model route, and repetition that settled.
+ * @param payload.outcome - the session and certification of a reported cell, or the code and message of a cell that produced none.
+ * @mode emit
+ */
+'fleet/cell'(payload: FleetCellEvent): void
+```
+
+Source: [`packages/improvement/fleet/src/index.ts:55`](../../packages/improvement/fleet/src/index.ts)
 <!-- END GENERATED cordis-surface -->

@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)与[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 与 [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次则是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)与[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 与 [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -162,6 +162,68 @@ interface ExperimentResult {
 }
 ```
 
+## cell 公告
+
+每当一个 cell 的结果被记录、且其工作区保留策略执行完毕之后，fleet 就在只供观察的 `fleet/cell` 事件上公告它。载荷携带的是持久坐标而非内存中的报告，因此观察方无需持有 fleet 的报告即可写下自己的逐 cell 记录；[包 README](../../packages/improvement/fleet/README.md) 说明了发出顺序。
+
+```ts type-equiv
+/**
+ * Payload of the observe-only `fleet/cell` event. It carries the durable
+ * coordinates of one settled cell — the batch group, the district, and the
+ * cell — so an observer can write its own record without holding the fleet's
+ * in-memory report.
+ */
+interface FleetCellEvent {
+  /** Batch identity every run stamp of this fleet run carries. */
+  readonly group: string
+  /** District the plan stamped its cells with, absent for a plan outside every district. */
+  readonly district?: string
+  /** The environment, model route, and repetition that settled. */
+  readonly cell: FleetCell
+  /** The settled outcome, exactly as the report keeps it. */
+  readonly outcome: FleetCellEventOutcome
+}
+```
+
+## 班次台账
+
+一个班次是 fleet 针对某个区（district）的计划所做的一次持久运行。它的身份在任何 cell 运行之前就被冻结——`shift-<digest>-<scheduledAt>`，摘要取自区、排序后的环境 id、按列出顺序排列的路由、重复次数与 token 上限——该 id 就是每个 cell 运行 stamp 上的 `group`。班次自己的会话日志承载台账：`shift/start`、每个已结算 cell 一条 `shift/cell`、后续进程接手时的 `shift/resume`、时槽被拒绝时的 `shift/skipped`，以及 `shift/end`；[持久化目录](../persistence-catalog.md)记录每个载荷的声明，[包 README](../../packages/improvement/shifts/README.md) 拥有节拍与恢复规则。
+
+```ts type-equiv
+/**
+ * One shift's frozen plan. `environments` holds the ids a config filter
+ * resolved to against the registry at freeze time, so the digest and the cell
+ * enumeration are decided before any cell runs and a registry that changes
+ * mid-shift cannot move them.
+ */
+interface ShiftPlan {
+  /** District every cell of the shift is stamped with. */
+  readonly district: string
+  /** Environments the shift runs, as resolved at freeze time. */
+  readonly environments: readonly EnvironmentId[]
+  /** Model routes in listing order, at least one; the fleet enumerates cells in it. */
+  readonly models: readonly EnvironmentRunModel[]
+  /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
+  readonly repetitions: number
+  /** Positive integer bound on the input plus output tokens the shift's reported cells may sum to. */
+  readonly tokenCeiling?: number
+}
+```
+
+一条 `shift/cell` 记录携带该 cell 的坐标、运行器为它创建的会话（若存在），以及三种结果之一。`interrupted` 是后续进程发现的遗留 cell：它有 stamp 却没有记录，其会话已经存在，因此该 cell 在同一重复序号下绝不会再运行，崩溃留在错误列里。
+
+```ts type-equiv
+/**
+ * What one cell of a shift produced: a report with its certification, the
+ * failure that prevented one, or the crash that left a started cell with no
+ * outcome at all.
+ */
+type ShiftCellOutcome =
+  | { readonly kind: 'reported'; readonly certified: boolean }
+  | { readonly kind: 'error'; readonly code?: string; readonly message: string }
+  | { readonly kind: 'interrupted' }
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -261,15 +323,17 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, repetitions, workspace root, group, district, token ceiling, and abort signal.
+ * @param plan - environments, model routes, repetitions, an optional exact
+ *   cell selection, workspace root, group, district, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
- *   no repetition, or sets a token ceiling that is not a positive integer.
+ *   no repetition, names no or an unenumerated cell, or sets a token ceiling
+ *   that is not a positive integer.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:254`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 
@@ -309,6 +373,35 @@ Types: [SessionId](core.md)
 
 Source: [`packages/improvement/scorekeeper/src/index.ts:170`](../../packages/improvement/scorekeeper/src/index.ts)
 
+<a id="ctxshifts--shiftservice"></a>
+
+### `ctx.shifts` — `ShiftService`
+
+Shifts (`ctx.shifts`): a cadenced, spend-windowed, resumable loop over fleet plans.
+
+```ts cordis-catalog
+/**
+ * Resume every interrupted shift, then open each district's due slot and arm
+ * its cadence timer. The loop runs once per process: a second call joins the
+ * first, so the plugin's own start and a driver awaiting the first slot
+ * observe the same run.
+ * @returns a promise settling once every resumed shift has ended and every
+ *   district is either running its due slot or armed for its next one.
+ */
+async start(): Promise<void>
+
+/**
+ * Stop the loop: disarm every cadence timer, cancel the fleet run in flight
+ * through its signal, and wait for the slots that are settling. The
+ * interrupted cells end as the runner ends them and their sessions become
+ * the orphans the next process records.
+ * @returns a promise settling once no slot is in flight.
+ */
+async stop(): Promise<void>
+```
+
+Source: [`packages/improvement/shifts/src/index.ts:124`](../../packages/improvement/shifts/src/index.ts)
+
 <a id="ctxtrajectories--trajectoryservice"></a>
 
 ### `ctx.trajectories` — `TrajectoryService`
@@ -328,4 +421,32 @@ async export(request: TrajectoryExportRequest): Promise<TrajectoryExportReport>
 ```
 
 Source: [`packages/improvement/trajectories/src/index.ts:80`](../../packages/improvement/trajectories/src/index.ts)
+
+<a id="fleet-events"></a>
+
+### `fleet/*` events
+
+<a id="fleetcell--emit"></a>
+
+#### `fleet/cell` — emit
+
+One cell of a running plan settled: the fleet has recorded its outcome and applied the configured workspace retention. Observe-only — a listener cannot change the outcome, and its failure is contained without failing the cell. Cells are emitted in settle order, which equals plan order only while `maxConcurrent` is `1`.
+
+```ts cordis-catalog
+/**
+ * One cell of a running plan settled: the fleet has recorded its outcome
+ * and applied the configured workspace retention. Observe-only — a
+ * listener cannot change the outcome, and its failure is contained without
+ * failing the cell. Cells are emitted in settle order, which equals plan
+ * order only while `maxConcurrent` is `1`.
+ * @param payload.group - batch identity every run stamp of this fleet run carries.
+ * @param payload.district - district the plan stamped its cells with, absent for a plan outside every district.
+ * @param payload.cell - the environment, model route, and repetition that settled.
+ * @param payload.outcome - the session and certification of a reported cell, or the code and message of a cell that produced none.
+ * @mode emit
+ */
+'fleet/cell'(payload: FleetCellEvent): void
+```
+
+Source: [`packages/improvement/fleet/src/index.ts:55`](../../packages/improvement/fleet/src/index.ts)
 <!-- END GENERATED cordis-surface -->

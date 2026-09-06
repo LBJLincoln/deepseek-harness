@@ -10,6 +10,8 @@ The [Daliesk Village note](2026-09-05-daliesk-village.md) describes an always-ru
 
 ## Proposal
 
+Three details settled during slices 1 and 2. `ctx.fleet.run` gained an optional `cells` selection out of the plan's own enumeration, because a `FleetPlan` is a cross product and a resumed shift's pending set is not one — without it a resumed cell would run at repetition zero and double-count in its group. A district's plan names its model routes rather than falling back to the composition's default route, because the driver enumerates its own cells to compute a pending set and to digest the plan, and a digest that moved with another plugin's current selection would not freeze anything. The driver reads the environment registry through `ctx.get('environments')` rather than declaring it, keeping the Loader requirement at `fleet`, `sessions`, and `sessionPersistence`; a slot that cannot reach the registry is refused with `SHIFT_INVALID_PLAN`.
+
 A `@deepseek-ai/dsh-shifts` plugin under `packages/improvement/shifts` providing `ctx.shifts`: a durable loop over the fleet that freezes each shift's identity, records the shift in its own session log, resumes an interrupted shift by running only the cells that never started, and refuses a shift that would overrun its district's spend window. The session event log stays the sole authority: the shift ledger is a set of `shift/*` events in a shift session, cells are recovered from the `environment/run` stamps their sessions already carry, and the driver holds nothing in memory that a restart needs.
 
 ### Shift identity
@@ -55,10 +57,10 @@ The driver starts its loop on the application's ready event and stops on disposa
 
 ## Rollout
 
-1. Fleet: the observe-only `fleet/cell` event with its unit and e2e assertions.
-2. `dsh-shifts`: the digest, the shift session and `shift/*` events, resume by ledger and stamp scan, cadence, spend window, the invariant companion, a Loader-booted e2e with kill and restart, the README pair, the persistence catalog regenerated.
+1. Landed. Fleet: the observe-only `fleet/cell` event with its unit and e2e assertions, plus the `cells` selection slice 2 needs to run a subset of one plan through `ctx.fleet.run`.
+2. Landed. `dsh-shifts`: the digest, the shift session and `shift/*` events, resume by ledger and stamp scan, cadence, spend window, the invariant companion, a Loader-booted e2e with kill and restart, the README pair, the persistence catalog regenerated. The README also carries slice 4's unit file, container example, and runbook, so an operator reading the package has them before the gate message exists.
 3. Scorekeeper: `shiftFacts`, one row per shift from the ledger, and the `district` column of `ScoreboardRow`, closing the Village note's TODO.
-4. Supervision: the unit file and container example, the runbook, and a `verify-village-composition` message naming the driver when a shift composition lacks persistence.
+4. Supervision: the `verify-village-composition` message naming the driver when a shift composition lacks persistence; the unit file, the container example, and the runbook landed with slice 2.
 5. Later, the journaling workflow engine of the four-goal note hosts the loop; the ledger events do not change.
 
 ## Risks

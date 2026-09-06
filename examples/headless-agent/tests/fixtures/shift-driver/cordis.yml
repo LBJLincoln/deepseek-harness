@@ -1,0 +1,92 @@
+# Test-only composition: one district of the Daliesk Village driven by the shift loop — a slot per cadence, its ledger in its own session, and a restart that resumes what never ran.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../environment-run/register-environments.ts'
+
+# The runner creates its own agent per cell from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    evidenceMaxChars: 512
+
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 1
+    workspaceRetention: remove-all
+
+# Village rule: a composition that runs unattended cells carries a session
+# budget. The caps are far out of reach of the mock route, so no cell breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run registered environments as validated sessions.'
+    workspaceContext: false
+
+# The ledger and every cell log outlive the process, so the three phases of the
+# e2e share one root while each gets its own working directory.
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_TEST_SESSION_ROOT ?? './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# One district whose name the kill-and-restart phases vary, so the restarted
+# process opens its first slot at once instead of waiting out the cadence.
+- id: shifts
+  name: '@deepseek-ai/dsh-shifts'
+  config:
+    workspaceRoot: !!js process.cwd()
+    startImmediately: true
+    districts:
+      - district: !!js process.env.DSH_TEST_SHIFT_DISTRICT ?? 'workshop'
+        plan:
+          environments:
+            filter:
+              heldOut: false
+          models:
+            - provider: cli-mock
+              model: cli-mock
+          repetitions: 1
+        cadence:
+          intervalMs: 86400000

@@ -707,9 +707,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
         description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
-        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, workspace root, group, district, token ceiling, and abort signal.' }],
+        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, an optional exact cell selection, workspace root, group, district, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
-        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, or sets a token ceiling that is not a positive integer.'],
+        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, or sets a token ceiling that is not a positive integer.'],
       },
     ],
   },
@@ -1727,6 +1727,25 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'shifts',
+    summary: 'Shifts (`ctx.shifts`): a cadenced, spend-windowed, resumable loop over fleet plans.',
+    description: 'Shifts (`ctx.shifts`): a cadenced, spend-windowed, resumable loop over fleet plans.',
+    methods: [
+      {
+        signature: 'async start(): Promise<void>',
+        description: 'Resume every interrupted shift, then open each district\'s due slot and arm its cadence timer. The loop runs once per process: a second call joins the first, so the plugin\'s own start and a driver awaiting the first slot observe the same run.',
+        parameters: [],
+        returns: 'a promise settling once every resumed shift has ended and every district is either running its due slot or armed for its next one.',
+      },
+      {
+        signature: 'async stop(): Promise<void>',
+        description: 'Stop the loop: disarm every cadence timer, cancel the fleet run in flight through its signal, and wait for the slots that are settling. The interrupted cells end as the runner ends them and their sessions become the orphans the next process records.',
+        parameters: [],
+        returns: 'a promise settling once no slot is in flight.',
+      },
+    ],
+  },
+  {
     key: 'skills',
     summary: 'Layered registry of skill providers, the host+per-scope shape the tools registry established.',
     description: 'Layered registry of skill providers, the host+per-scope shape the tools registry established. A registration files into the layer of its calling context\'s scope (scopeOf): host rows and repository plugins land in the global layer, while a plugin mounted by an agent preset\'s standing composition lands in that preset\'s layer. A read merges the global layer with the viewing scope\'s chain — the nearest layer\'s entry wins a duplicate name outright, and the rank order decides duplicates only within one layer. It exposes sorted invocation-neutral summaries and loads full skill bodies on demand.',
@@ -2603,6 +2622,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     summary: 'A domain record or the global singleton changed, emitted once per write strictly after the backend acknowledged durability.',
     description: 'A domain record or the global singleton changed, emitted once per write strictly after the backend acknowledged durability. Events of one domain arrive in its write-chain order.',
     parameters: [{ name: 'change', description: 'domain, table (`\'\'` for global), key (`\'\'` for global), operation discriminant, and on `put` the new snapshot.' }],
+  },
+  {
+    name: 'fleet/cell',
+    mode: 'emit',
+    signature: '\'fleet/cell\'(payload: FleetCellEvent): void',
+    summary: 'One cell of a running plan settled: the fleet has recorded its outcome and applied the configured workspace retention.',
+    description: 'One cell of a running plan settled: the fleet has recorded its outcome and applied the configured workspace retention. Observe-only — a listener cannot change the outcome, and its failure is contained without failing the cell. Cells are emitted in settle order, which equals plan order only while `maxConcurrent` is `1`.',
+    parameters: [{ name: 'payload', description: '.outcome - the session and certification of a reported cell, or the code and message of a cell that produced none.' }],
   },
   {
     name: 'fs/edit-intent',
@@ -3505,6 +3532,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface FleetCellError {\n    readonly code?: string;\n    readonly message: string;\n}',
   },
   {
+    name: 'FleetCellEvent',
+    declaration: 'export interface FleetCellEvent {\n    readonly group: string;\n    readonly district?: string;\n    readonly cell: FleetCell;\n    readonly outcome: FleetCellEventOutcome;\n}',
+  },
+  {
+    name: 'FleetCellEventOutcome',
+    declaration: 'export type FleetCellEventOutcome = {\n    readonly kind: \'reported\';\n    readonly sessionId: SessionId;\n    readonly certified: boolean;\n} | {\n    readonly kind: \'error\';\n    readonly code?: string;\n    readonly message: string;\n};',
+  },
+  {
     name: 'FleetCellOutcome',
     declaration: 'export type FleetCellOutcome = {\n    readonly cell: FleetCell;\n    readonly report: EnvironmentRunReport;\n} | {\n    readonly cell: FleetCell;\n    readonly error: FleetCellError;\n};',
   },
@@ -3514,7 +3549,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'FleetPlan',
-    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'FleetRunReport',

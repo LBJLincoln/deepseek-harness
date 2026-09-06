@@ -78,6 +78,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   experiments: 'improvement.md',
   fleet: 'improvement.md',
   scorekeeper: 'improvement.md',
+  shifts: 'improvement.md',
   trajectories: 'improvement.md',
   webServer: 'web-server.md',
   invariants: 'invariants.md',
@@ -180,6 +181,7 @@ export const EVENT_SCOPE_PAGE: Record<string, string> = {
   'cordis': 'extensions.md',
   'credentials': 'credentials.md',
   'domain': 'storage.md',
+  'fleet': 'improvement.md',
   'fs': 'filesystem.md',
   'goal': 'goal.md',
   'llm': 'llm-streaming.md',
@@ -223,6 +225,7 @@ export const EVENT_WALK_EXEMPTIONS: Record<string, string> = {
  */
 export const LINK_MAP: Readonly<Record<string, string>> = {
   Agent: 'core.md',
+  FleetCellEvent: 'improvement.md',
   AgentCancelCause: 'core.md',
   AgentFactory: 'core.md',
   AgentHandle: 'core.md',

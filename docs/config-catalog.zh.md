@@ -708,7 +708,7 @@ export interface RouteBreakerConfig {
 export type WorkspaceRetention = 'keep' | 'remove-certified' | 'remove-all'
 ```
 
-来源：[`packages/improvement/fleet/src/index.ts:68`](../packages/improvement/fleet/src/index.ts)
+来源：[`packages/improvement/fleet/src/index.ts:85`](../packages/improvement/fleet/src/index.ts)
 
 <a id="deepseek-aidsh-fs-local"></a>
 
@@ -2023,6 +2023,70 @@ export interface Config {
 ```
 
 来源：[`packages/shell/shell-env/src/index.ts:29`](../packages/shell/shell-env/src/index.ts)
+
+<a id="deepseek-aidsh-shifts"></a>
+
+## `@deepseek-ai/dsh-shifts`
+
+需要：`fleet` · `sessions` · `sessionPersistence`
+
+```ts config-catalog
+/** Deployment choices of the shift driver, validated from `cordis.yml`. */
+export interface Config {
+  /** Existing absolute directory the fleet mints each cell's workspace under. */
+  workspaceRoot: string
+  /** The districts this process drives; at least one, each named once. */
+  districts: ShiftDistrictConfig[]
+  /** Whether a district with no slot in the ledger opens one as the process starts. */
+  startImmediately: boolean
+}
+
+/** One district's shifts: what they run, how often, and what they may spend. */
+export interface ShiftDistrictConfig {
+  /** District name, unique in the deployment; every cell's run stamp carries it. */
+  district: string
+  /** What every slot of this district runs, frozen into the shift digest. */
+  plan: ShiftPlanConfig
+  /** How often the district opens a slot. */
+  cadence: ShiftCadenceConfig
+  /** Cross-slot spend ceiling; absent lets the district run every slot its cadence opens. */
+  spendWindow?: ShiftSpendWindowConfig
+}
+
+/** Environments, routes, repetitions, and ceiling one district's slots run. */
+export interface ShiftPlanConfig {
+  /** Environments to run: named ids, or everything the registry filter matches at freeze time. */
+  environments: FleetEnvironmentSelection
+  /**
+   * Model routes to run, at least one. The shift enumerates its own cells to
+   * compute a pending set and to digest the plan, so the routes are named here
+   * rather than taken from whatever default the composition currently selects.
+   */
+  models: EnvironmentRunModel[]
+  /** Positive number of repetitions per environment and route. */
+  repetitions: number
+  /** Positive integer token ceiling of one shift; absent runs each shift uncapped. */
+  tokenCeiling?: number
+}
+
+/** How often one district opens a slot. */
+export interface ShiftCadenceConfig {
+  /** Positive milliseconds between consecutive slots of the district. */
+  intervalMs: number
+}
+
+/** The spend a district may reach across slots before its next one is refused. */
+export interface ShiftSpendWindowConfig {
+  /** Positive width of the trailing window in milliseconds. */
+  windowMs: number
+  /** Positive token sum inside the window at which the next slot is refused. */
+  maxTokens: number
+}
+```
+
+依赖：`EnvironmentRunModel`（`@deepseek-ai/dsh-environments/types`） · `FleetEnvironmentSelection`（`@deepseek-ai/dsh-fleet/types`）
+
+来源：[`packages/improvement/shifts/src/index.ts:87`](../packages/improvement/shifts/src/index.ts)
 
 <a id="deepseek-aidsh-skill"></a>
 
