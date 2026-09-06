@@ -1081,20 +1081,6 @@ flowchart TD
   pkg_environments --> pkg_llm
   pkg_environments --> pkg_session
   pkg_environments --> pkg_verification
-  pkg_program --> pkg_agent
-  pkg_program --> pkg_agent_default_model
-  pkg_program --> pkg_agent_presets
-  pkg_program --> pkg_brand
-  pkg_program --> pkg_budget_policy
-  pkg_program --> pkg_goal
-  pkg_program --> pkg_invariants
-  pkg_program --> pkg_llm
-  pkg_program --> pkg_read_barrier
-  pkg_program --> pkg_session
-  pkg_program --> pkg_session_persistence
-  pkg_program --> pkg_shell
-  pkg_program --> pkg_signoff
-  pkg_program --> pkg_verification
   pkg_permission_presets --> pkg_commands
   pkg_permission_presets --> pkg_invariants
   pkg_permission_presets --> pkg_sandbox
@@ -1236,7 +1222,23 @@ flowchart TD
   pkg_environment_runner --> pkg_read_barrier
   pkg_environment_runner --> pkg_session
   pkg_environment_runner --> pkg_shell
+  pkg_environment_runner --> pkg_subagent
   pkg_environment_runner --> pkg_verification
+  pkg_program --> pkg_agent
+  pkg_program --> pkg_agent_default_model
+  pkg_program --> pkg_agent_presets
+  pkg_program --> pkg_brand
+  pkg_program --> pkg_budget_policy
+  pkg_program --> pkg_goal
+  pkg_program --> pkg_invariants
+  pkg_program --> pkg_llm
+  pkg_program --> pkg_read_barrier
+  pkg_program --> pkg_session
+  pkg_program --> pkg_session_persistence
+  pkg_program --> pkg_shell
+  pkg_program --> pkg_signoff
+  pkg_program --> pkg_subagent
+  pkg_program --> pkg_verification
   pkg_trajectories --> pkg_components
   pkg_trajectories --> pkg_environments
   pkg_trajectories --> pkg_goal
@@ -1812,7 +1814,6 @@ flowchart TD
 | [`components-presets`](../packages/components/components-presets) | `components` | [`agent`](../packages/core/agent), [`agent-presets`](../packages/preset/agent-presets), [`components`](../packages/components/components), [`invariants`](../packages/runtime-diagnostics/invariants), [`session`](../packages/core/session) |
 | [`host-apiproxy`](../packages/host/apiproxy) | `host` | [`agent-presets`](../packages/preset/agent-presets), [`cordis-host-runner`](../packages/extensions/cordis-host-runner), [`invariants`](../packages/runtime-diagnostics/invariants) |
 | [`environments`](../packages/improvement/environments) | `improvement` | [`brand`](../packages/util/brand), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`session`](../packages/core/session), [`verification`](../packages/verification/verification) |
-| [`program`](../packages/improvement/program) | `improvement` | [`agent`](../packages/core/agent), [`agent-default-model`](../packages/core/agent-default-model), [`agent-presets`](../packages/preset/agent-presets), [`brand`](../packages/util/brand), [`budget-policy`](../packages/guard/budget-policy), [`goal`](../packages/goal/goal), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`read-barrier`](../packages/verification/read-barrier), [`session`](../packages/core/session), [`session-persistence`](../packages/session/session-persistence), [`shell`](../packages/shell/shell), [`signoff`](../packages/governance/signoff), [`verification`](../packages/verification/verification) |
 | [`permission-presets`](../packages/interaction/permission-presets) | `interaction` | [`commands`](../packages/interaction/commands), [`invariants`](../packages/runtime-diagnostics/invariants), [`sandbox`](../packages/sandbox/sandbox), [`sandbox-policy`](../packages/sandbox/sandbox-policy), [`session`](../packages/core/session), [`session-projection`](../packages/session/session-projection), [`settings`](../packages/settings/settings), [`shell`](../packages/shell/shell), [`user-approval`](../packages/interaction/user-approval) |
 | [`bash-sandbox`](../packages/shell/bash-sandbox) | `shell` | [`bash-local`](../packages/shell/bash-local), [`invariants`](../packages/runtime-diagnostics/invariants), [`sandbox`](../packages/sandbox/sandbox), [`sandbox-policy`](../packages/sandbox/sandbox-policy), [`shell`](../packages/shell/shell) |
 | [`pwsh-sandbox`](../packages/shell/pwsh-sandbox) | `shell` | [`invariants`](../packages/runtime-diagnostics/invariants), [`pwsh-local`](../packages/shell/pwsh-local), [`sandbox`](../packages/sandbox/sandbox), [`sandbox-policy`](../packages/sandbox/sandbox-policy), [`shell`](../packages/shell/shell) |
@@ -1831,7 +1832,8 @@ flowchart TD
 | [`client-runtime`](../packages/client/runtime) | `client` | [`api-remotes`](../packages/api/remotes), [`invariants`](../packages/runtime-diagnostics/invariants), [`typert-protocol`](../packages/typert/protocol), [`typert-registry`](../packages/typert/registry) |
 | [`components-subagents`](../packages/components/components-subagents) | `components` | [`components`](../packages/components/components), [`invariants`](../packages/runtime-diagnostics/invariants), [`subagent`](../packages/subagent/subagent) |
 | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | `examples` | [`agent`](../packages/core/agent), [`agent-instructions`](../packages/context/agent-instructions), [`agent-loop`](../packages/core/agent-loop), [`goal`](../packages/goal/goal), [`goal-round-driver`](../packages/goal/goal-round-driver), [`home-paths`](../packages/util/home-paths), [`invariants`](../packages/runtime-diagnostics/invariants), [`jobs-local`](../packages/jobs/jobs-local), [`llm`](../packages/llm/llm), [`llm-retry`](../packages/llm/llm-retry), [`scope`](../packages/core/scope), [`session`](../packages/core/session), [`session-title`](../packages/session/session-title), [`shell-env`](../packages/shell/shell-env), [`skill`](../packages/skill/skill), [`skill-filesystem`](../packages/skill/skill-filesystem), [`system-prompt`](../packages/core/system-prompt), [`tool-bash`](../packages/shell/tool-bash), [`tool-goal`](../packages/goal/tool-goal), [`tool-jobs`](../packages/jobs/tool-jobs), [`tool-skill`](../packages/skill/tool-skill), [`tools`](../packages/core/tools) |
-| [`environment-runner`](../packages/improvement/environment-runner) | `improvement` | [`agent`](../packages/core/agent), [`agent-default-model`](../packages/core/agent-default-model), [`environments`](../packages/improvement/environments), [`goal`](../packages/goal/goal), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`read-barrier`](../packages/verification/read-barrier), [`session`](../packages/core/session), [`shell`](../packages/shell/shell), [`verification`](../packages/verification/verification) |
+| [`environment-runner`](../packages/improvement/environment-runner) | `improvement` | [`agent`](../packages/core/agent), [`agent-default-model`](../packages/core/agent-default-model), [`environments`](../packages/improvement/environments), [`goal`](../packages/goal/goal), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`read-barrier`](../packages/verification/read-barrier), [`session`](../packages/core/session), [`shell`](../packages/shell/shell), [`subagent`](../packages/subagent/subagent), [`verification`](../packages/verification/verification) |
+| [`program`](../packages/improvement/program) | `improvement` | [`agent`](../packages/core/agent), [`agent-default-model`](../packages/core/agent-default-model), [`agent-presets`](../packages/preset/agent-presets), [`brand`](../packages/util/brand), [`budget-policy`](../packages/guard/budget-policy), [`goal`](../packages/goal/goal), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`read-barrier`](../packages/verification/read-barrier), [`session`](../packages/core/session), [`session-persistence`](../packages/session/session-persistence), [`shell`](../packages/shell/shell), [`signoff`](../packages/governance/signoff), [`subagent`](../packages/subagent/subagent), [`verification`](../packages/verification/verification) |
 | [`trajectories`](../packages/improvement/trajectories) | `improvement` | [`components`](../packages/components/components), [`environments`](../packages/improvement/environments), [`goal`](../packages/goal/goal), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`session`](../packages/core/session), [`session-persistence`](../packages/session/session-persistence), [`verification`](../packages/verification/verification) |
 | [`sdk-protocol`](../packages/sdk/protocol) | `sdk` | [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`session`](../packages/core/session), [`subagent`](../packages/subagent/subagent) |
 | [`tool-ralph`](../packages/workflow/tool-ralph) | `workflow` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`subagent`](../packages/subagent/subagent), [`system-prompt`](../packages/core/system-prompt), [`tools`](../packages/core/tools), [`workflow`](../packages/workflow/workflow) |
