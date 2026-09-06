@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; and a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), and [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), and [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/1` record a trainer reads, with the reward a certificate decided; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log; and a program is one client deliverable decomposed into department goals whose ledger lives in the program's own session. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md), and [program-ledger](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts), and [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts).
 
 ## Environment definition
 
@@ -224,6 +224,72 @@ type ShiftCellOutcome =
   | { readonly kind: 'interrupted' }
 ```
 
+## Program ledger
+
+A program is one client deliverable decomposed into goals, frozen before any of them starts. `programSpecDigest(spec)` is the SHA-256 hex over the canonical spec — goals sorted by key, each goal's dependencies sorted, checks and gates in authored order, `signoff` excluded — and `program-<digest>` is both the program id and the program session's id. That session carries the ledger: `program/start`, one `program/goal` per status change, `program/integration`, `program/resume` when a later process picks the program up, and `program/end`; each department and the integration session carries one `program/member` stamp. [The persistence catalog](../persistence-catalog.md) carries each payload's declaration and [the package README](../../packages/improvement/program/README.md) owns the departments, the merge order, and the resume rule.
+
+```ts type-equiv
+/** One client deliverable, frozen before its first department starts. */
+interface ProgramSpec {
+  /** What the whole program delivers, stated for a reader of the ledger. */
+  readonly objective: string
+  /** Git revision every worktree of the program is created from. */
+  readonly baseRevision: string
+  /** The goals the deliverable decomposes into, at least one. */
+  readonly goals: readonly ProgramGoalSpec[]
+  /** What the merged head is certified against. */
+  readonly integration: ProgramIntegrationSpec
+  /** The spec-freeze record; required by `requireSignoff`. */
+  readonly signoff?: ProgramSignoff
+  /** Input plus output tokens every session of the program may sum to. */
+  readonly tokenCeiling?: number
+}
+```
+
+One goal is one department: its own git worktree on `<branchPrefix>/<programId>/<key>`, its own session composed from `preset`, its own `budget/caps`, and its own standard authored from `checks`. `dependsOn` is a directed acyclic graph over the program's keys, and a goal starts once every goal it depends on has certified.
+
+```ts type-equiv
+/** One goal of a program: what one department delivers, and what certifies it. */
+interface ProgramGoalSpec {
+  /** Lower-kebab-case identity, unique in the program; it names the branch and the worktree. */
+  readonly key: string
+  /** The objective the department's goal is created with. */
+  readonly objective: string
+  /** Id of a shipped preset declaring the `implementer` role, mounted into the department session. */
+  readonly preset: string
+  /** Isolation the department's certified run claims. */
+  readonly isolation: CertificateIsolation
+  /** Caps recorded on the department session before its first turn. */
+  readonly budget: ProgramGoalBudget
+  /** Keys of the goals this one is delivered after; a directed acyclic graph over the program's keys. */
+  readonly dependsOn: readonly string[]
+  /** The standard the department is certified against, compiled before any department starts. */
+  readonly checks: readonly StandardCheck[]
+}
+```
+
+A goal's status is derivable from what the departments themselves hold, which is what a restart reconciles: `certified` follows a `verification/certificate` in the department's own log, `blocked` follows its goal reaching the blocked phase, `merged` follows a certified integration over its branch, `failed` follows a department that ended without a certificate or lost its worktree, and `abandoned` follows a program that ended before the goal started.
+
+```ts type-equiv
+/**
+ * Status of one goal in its program's ledger.
+ *
+ * `pending` has no department yet, `running` has one working, `blocked` waits
+ * for an operator's resume through the goal domain, `certified` holds a
+ * certificate over its own branch head, `merged` has that branch inside a
+ * certified integration, `failed` ended without a certificate, and `abandoned`
+ * never started because the program ended first.
+ */
+type ProgramGoalStatus =
+  | 'pending'
+  | 'running'
+  | 'blocked'
+  | 'certified'
+  | 'failed'
+  | 'merged'
+  | 'abandoned'
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -334,6 +400,40 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
 Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
+
+<a id="ctxprograms--programservice"></a>
+
+### `ctx.programs` — `ProgramService`
+
+Programs (`ctx.programs`): a durable, resumable ledger over one deliverable's goals.
+
+```ts cordis-catalog
+/**
+ * Start one program, or resume the program its spec already identifies.
+ *
+ * The spec is frozen into a digest before anything runs, so starting the same
+ * spec twice addresses one program: the second call reconciles the existing
+ * ledger instead of forking a second one.
+ * @param spec - the deliverable to run.
+ * @returns the ledger this pass left behind.
+ * @throws {@link ProgramError} when the spec, its presets, or the required
+ *   signoff record cannot support a program.
+ */
+async start(spec: ProgramSpec): Promise<ProgramReport>
+
+/**
+ * Reconcile every unfinished program in the persistence root and carry it on.
+ *
+ * Each program's goals are read from their own department sessions and
+ * worktrees rather than from the ledger, so a process that died between a
+ * durable fact and its ledger record records the fact rather than repeating
+ * the work.
+ * @returns one report per program this pass reconciled, in scan order.
+ */
+async resume(): Promise<ProgramReport[]>
+```
+
+Source: [`packages/improvement/program/src/index.ts:210`](../../packages/improvement/program/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 

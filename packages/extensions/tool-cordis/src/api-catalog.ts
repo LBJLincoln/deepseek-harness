@@ -1121,6 +1121,26 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'programs',
+    summary: 'Programs (`ctx.programs`): a durable, resumable ledger over one deliverable\'s goals.',
+    description: 'Programs (`ctx.programs`): a durable, resumable ledger over one deliverable\'s goals.',
+    methods: [
+      {
+        signature: 'async start(spec: ProgramSpec): Promise<ProgramReport>',
+        description: 'Start one program, or resume the program its spec already identifies.\n\nThe spec is frozen into a digest before anything runs, so starting the same spec twice addresses one program: the second call reconciles the existing ledger instead of forking a second one.',
+        parameters: [{ name: 'spec', description: 'the deliverable to run.' }],
+        returns: 'the ledger this pass left behind.',
+        throws: ['{@link ProgramError} when the spec, its presets, or the required signoff record cannot support a program.'],
+      },
+      {
+        signature: 'async resume(): Promise<ProgramReport[]>',
+        description: 'Reconcile every unfinished program in the persistence root and carry it on.\n\nEach program\'s goals are read from their own department sessions and worktrees rather than from the ledger, so a process that died between a durable fact and its ledger record records the fact rather than repeating the work.',
+        parameters: [],
+        returns: 'one report per program this pass reconciled, in scan order.',
+      },
+    ],
+  },
+  {
     key: 'readBarrier',
     summary: 'The read-barrier service (`ctx.readBarrier`).',
     description: 'The read-barrier service (`ctx.readBarrier`). It owns the validator root, the per-session reservations that make a session an implementer, and the denied set every enforcing capability resolves against.',
@@ -4083,6 +4103,46 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PreToolDecision',
     declaration: 'export type PreToolDecision = {\n    kind: \'allow\';\n} | {\n    kind: \'deny\';\n    reason: string;\n} | {\n    kind: \'ask\';\n    reason?: string;\n};',
+  },
+  {
+    name: 'ProgramGoalBudget',
+    declaration: 'export interface ProgramGoalBudget {\n    readonly maxTotalTokens?: number;\n    readonly maxWallMs?: number;\n    readonly maxCostEur?: number;\n}',
+  },
+  {
+    name: 'ProgramGoalOutcome',
+    declaration: 'export interface ProgramGoalOutcome {\n    readonly key: string;\n    readonly status: ProgramGoalStatus;\n    readonly sessionId?: SessionId;\n    readonly revision?: string;\n    readonly reason?: string;\n}',
+  },
+  {
+    name: 'ProgramGoalSpec',
+    declaration: 'export interface ProgramGoalSpec {\n    readonly key: string;\n    readonly objective: string;\n    readonly preset: string;\n    readonly isolation: CertificateIsolation;\n    readonly budget: ProgramGoalBudget;\n    readonly dependsOn: readonly string[];\n    readonly checks: readonly StandardCheck[];\n}',
+  },
+  {
+    name: 'ProgramGoalStatus',
+    declaration: 'export type ProgramGoalStatus = \'pending\' | \'running\' | \'blocked\' | \'certified\' | \'failed\' | \'merged\' | \'abandoned\';',
+  },
+  {
+    name: 'ProgramId',
+    declaration: 'export type ProgramId = Branded<\'ProgramId\'>;',
+  },
+  {
+    name: 'ProgramIntegrationSpec',
+    declaration: 'export interface ProgramIntegrationSpec {\n    readonly checks: readonly StandardCheck[];\n    readonly gates: readonly string[];\n}',
+  },
+  {
+    name: 'ProgramOutcome',
+    declaration: 'export type ProgramOutcome = \'released\' | \'failed\' | \'abandoned\';',
+  },
+  {
+    name: 'ProgramReport',
+    declaration: 'export interface ProgramReport {\n    readonly programId: ProgramId;\n    readonly sessionId: SessionId;\n    readonly outcome?: ProgramOutcome;\n    readonly mergedRevision?: string;\n    readonly goals: readonly ProgramGoalOutcome[];\n}',
+  },
+  {
+    name: 'ProgramSignoff',
+    declaration: 'export interface ProgramSignoff {\n    readonly principal: string;\n    readonly artefactSha256: string;\n}',
+  },
+  {
+    name: 'ProgramSpec',
+    declaration: 'export interface ProgramSpec {\n    readonly objective: string;\n    readonly baseRevision: string;\n    readonly goals: readonly ProgramGoalSpec[];\n    readonly integration: ProgramIntegrationSpec;\n    readonly signoff?: ProgramSignoff;\n    readonly tokenCeiling?: number;\n}',
   },
   {
     name: 'ProjectionChangeListener',

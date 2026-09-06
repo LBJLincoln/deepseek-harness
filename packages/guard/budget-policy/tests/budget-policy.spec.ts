@@ -19,10 +19,13 @@ import { Session, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import * as budgetPolicy from '@deepseek-ai/dsh-budget-policy'
 import {
+  BUDGET_CAP_ORDER,
   BUDGET_EXHAUSTED,
   foldBudgetSpend,
+  foldSessionCaps,
   measuredFor,
   pricingTableDigest,
+  tightenedCaps,
   unpricedUsage,
 } from '@deepseek-ai/dsh-budget-policy'
 import type { BudgetRoutePricing, BudgetSpend, UsagePriced } from '@deepseek-ai/dsh-budget-policy'
@@ -246,6 +249,72 @@ describe('measuredFor', () => {
     expect(measuredFor(spend, 'maxTotalTokens')).toBe(3)
     expect(measuredFor(spend, 'maxWallMs')).toBe(4)
     expect(measuredFor(spend, 'maxCostEur')).toBe(5)
+  })
+})
+
+describe('foldSessionCaps', () => {
+  it('reports no caps for a log that records none', () => {
+    const session = Session.create(SessionId('caps-absent'))
+    appendPricedStep(session, 1, { inputTokens: 1, outputTokens: 1 })
+    expect(foldSessionCaps(session.events)).toEqual({})
+  })
+
+  it('reports the newest record when a session states its caps twice', () => {
+    const session = Session.create(SessionId('caps-last-wins'))
+    session.append('budget/caps', { maxTotalTokens: 50, maxWallMs: 5_000 })
+    session.append('budget/caps', { maxTotalTokens: 20 })
+    expect(foldSessionCaps(session.events)).toEqual({ maxTotalTokens: 20 })
+  })
+})
+
+describe('tightenedCaps', () => {
+  it('applies a cap only the session records', () => {
+    expect(tightenedCaps([], { maxWallMs: 900 })).toEqual([['maxWallMs', 900]])
+  })
+
+  it('applies the smaller of a cap both the deployment and the session record', () => {
+    expect(tightenedCaps([['maxTotalTokens', 100]], { maxTotalTokens: 40 })).toEqual([['maxTotalTokens', 40]])
+    expect(tightenedCaps([['maxTotalTokens', 30]], { maxTotalTokens: 40 })).toEqual([['maxTotalTokens', 30]])
+  })
+
+  it('keeps a configured cap the session does not mention, in evaluation order', () => {
+    expect(tightenedCaps([['maxOutputTokens', 7], ['maxWallMs', 9]], { maxInputTokens: 3 }))
+      .toEqual([['maxInputTokens', 3], ['maxOutputTokens', 7], ['maxWallMs', 9]])
+    expect(BUDGET_CAP_ORDER).toEqual([
+      'maxInputTokens',
+      'maxOutputTokens',
+      'maxTotalTokens',
+      'maxWallMs',
+      'maxCostEur',
+    ])
+  })
+})
+
+describe('budget-policy per-session caps', () => {
+  it('stops a session on a cap only its own log records', async () => {
+    const { ctx, agent, session } = await harness()
+    session.append('budget/caps', { maxTotalTokens: 5 })
+    appendPricedStep(session, 1, { inputTokens: 4, outputTokens: 6 })
+    await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'reject' })
+    expect(breaches(session).map(event => event.data)).toEqual([
+      { cap: 'maxTotalTokens', measured: 10, limit: 5 },
+    ])
+  })
+
+  it('enforces the smaller of the configured and the recorded cap', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 100 })
+    session.append('budget/caps', { maxTotalTokens: 8 })
+    appendPricedStep(session, 1, { inputTokens: 4, outputTokens: 6 })
+    await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'reject' })
+    expect(breaches(session).map(event => event.data.limit)).toEqual([8])
+  })
+
+  it('never lets a record buy a session more than the deployment configured', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 5 })
+    session.append('budget/caps', { maxTotalTokens: 1_000 })
+    appendPricedStep(session, 1, { inputTokens: 4, outputTokens: 6 })
+    await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'reject' })
+    expect(breaches(session).map(event => event.data.limit)).toEqual([5])
   })
 })
 

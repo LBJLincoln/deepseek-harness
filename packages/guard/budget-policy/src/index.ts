@@ -14,16 +14,23 @@ import z from '@deepseek-ai/schemastery'
 import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
 // Type-only: resolves ctx.goals for the optional durable block.
 import type {} from '@deepseek-ai/dsh-goal'
-import { foldBudgetSpend, measuredFor, unpricedUsage } from './fold.ts'
+import { BUDGET_CAP_ORDER, foldBudgetSpend, foldSessionCaps, measuredFor, tightenedCaps, unpricedUsage } from './fold.ts'
 import { billedInputTokens, costEurFor, pricingTableDigest, routeKey } from './pricing.ts'
 import type { AccountedMessage, BudgetBreach, BudgetCapId, BudgetRoutePricing, UsagePriced } from './types.ts'
 
-// The pure payload outlet (./types.ts, ONE home of the `budget/breach` and
-// `usage/priced` declarations) re-exported onto the package root keeps the
-// module edge in the emitted index.d.ts, so aggregate programs consuming the
-// declarations still receive the SessionEventMap merge.
+// The pure payload outlet (./types.ts, ONE home of the `budget/caps`,
+// `budget/breach`, and `usage/priced` declarations) re-exported onto the
+// package root keeps the module edge in the emitted index.d.ts, so aggregate
+// programs consuming the declarations still receive the SessionEventMap merge.
 export type * from './types.ts'
-export { foldBudgetSpend, measuredFor, unpricedUsage } from './fold.ts'
+export {
+  BUDGET_CAP_ORDER,
+  foldBudgetSpend,
+  foldSessionCaps,
+  measuredFor,
+  tightenedCaps,
+  unpricedUsage,
+} from './fold.ts'
 export { pricingTableDigest } from './pricing.ts'
 
 /** Cordis plugin name used by loader diagnostics. */
@@ -38,19 +45,6 @@ export const inject = ['agents']
  * from every other blocked goal.
  */
 export const BUDGET_EXHAUSTED = 'budget-exhausted'
-
-/**
- * Evaluation order of the caps. The first cap the log exceeds is the one
- * recorded, so this order decides which breach a session that overruns two
- * caps in the same step reports.
- */
-const CAP_ORDER: readonly BudgetCapId[] = [
-  'maxInputTokens',
-  'maxOutputTokens',
-  'maxTotalTokens',
-  'maxWallMs',
-  'maxCostEur',
-]
 
 /**
  * Per-session ceilings. Every cap is optional and uncapped when omitted, so an
@@ -127,7 +121,7 @@ function resolveBudgetConfig(config: Config): ResolvedConfig {
     throw new TypeError('budget-policy: maxCostEur needs a non-empty pricing table; an unpriced route has no cost cap')
   }
   const caps: (readonly [BudgetCapId, number])[] = []
-  for (const cap of CAP_ORDER) {
+  for (const cap of BUDGET_CAP_ORDER) {
     const value = config[cap]
     if (value === undefined) continue
     requireFiniteCap(cap, value)
@@ -177,15 +171,17 @@ function priceUnpricedSteps(agent: Agent, resolved: ResolvedConfig): void {
 }
 
 /**
- * Measure the session log against the enforced caps.
- * @param agent - the agent whose session log carries the spend.
+ * Measure the session log against the caps this session actually runs under:
+ * the configured caps tightened by the session's own `budget/caps` record.
+ * @param agent - the agent whose session log carries the spend and its caps.
  * @param resolved - the caps and pricing this deployment enforces.
- * @returns the first breach in {@link CAP_ORDER}, or `undefined` while every cap holds.
+ * @returns the first breach in {@link BUDGET_CAP_ORDER}, or `undefined` while every cap holds.
  */
 function detectBreach(agent: Agent, resolved: ResolvedConfig): BudgetBreach | undefined {
-  if (resolved.caps.length === 0) return undefined
+  const caps = tightenedCaps(resolved.caps, foldSessionCaps(agent.session.events))
+  if (caps.length === 0) return undefined
   const spend = foldBudgetSpend(agent.session.events, resolved.pricing)
-  for (const [cap, limit] of resolved.caps) {
+  for (const [cap, limit] of caps) {
     const measured = measuredFor(spend, cap)
     if (measured > limit) return { cap, measured, limit }
   }

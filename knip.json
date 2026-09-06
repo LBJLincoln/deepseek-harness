@@ -63,6 +63,7 @@
         "headless-agent/tests/fixtures/scoreboard/driver.ts",
         "headless-agent/tests/fixtures/experiment/driver.ts",
         "headless-agent/tests/fixtures/shift-driver/driver.ts",
+        "headless-agent/tests/fixtures/program/driver.ts",
         "headless-agent/tests/fixtures/budget-policy/seed-budgeted-goal.ts",
         "headless-agent/tests/fixtures/time-context-driver.ts",
         "headless-agent/tests/fixtures/time-context-mock-llm.ts",
@@ -231,6 +232,16 @@
       ]
     },
     "packages/improvement/shifts": {
+      "entry": [
+        "tests/**/*.spec.ts",
+        "tests/**/*.e2e.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
+    "packages/improvement/program": {
       "entry": [
         "tests/**/*.spec.ts",
         "tests/**/*.e2e.ts"

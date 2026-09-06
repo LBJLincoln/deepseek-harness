@@ -46,6 +46,23 @@ export interface BudgetSpend {
   readonly costEur: number
 }
 
+/**
+ * Ceilings recorded on one session's own log. Every cap is optional; a cap the
+ * record omits leaves the deployment's configured value in force.
+ */
+export interface BudgetCaps {
+  /** Billed input tokens (uncached input plus cache reads and writes) allowed in this session. */
+  readonly maxInputTokens?: number
+  /** Output tokens allowed in this session. */
+  readonly maxOutputTokens?: number
+  /** Input plus output tokens allowed in this session. */
+  readonly maxTotalTokens?: number
+  /** Milliseconds this session's log may span between its first and last event. */
+  readonly maxWallMs?: number
+  /** EUR this session's priced routes may cost; an unpriced route contributes nothing to it. */
+  readonly maxCostEur?: number
+}
+
 /** The durable record of one cap that stopped the next model request. */
 export interface BudgetBreach {
   /** The cap that tripped. */
@@ -89,6 +106,15 @@ export interface UsagePriced {
 
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
+    /**
+     * Ceilings this one session runs under, recorded by whoever created it for
+     * a narrower purpose than the deployment's own configuration. The caps the
+     * policy enforces are the configured caps tightened by the latest record in
+     * the log: a cap only this record carries applies as written, and a cap
+     * both carry applies at the smaller of the two, so a record can never buy a
+     * session more budget than its deployment configured.
+     */
+    'budget/caps': BudgetCaps
     /**
      * One configured session budget stopped the step that was about to make a
      * model request: the cap that tripped, the spend measured from the events

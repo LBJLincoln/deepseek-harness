@@ -77,6 +77,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   environments: 'improvement.md',
   experiments: 'improvement.md',
   fleet: 'improvement.md',
+  programs: 'improvement.md',
   scorekeeper: 'improvement.md',
   shifts: 'improvement.md',
   trajectories: 'improvement.md',
@@ -226,6 +227,7 @@ export const EVENT_WALK_EXEMPTIONS: Record<string, string> = {
 export const LINK_MAP: Readonly<Record<string, string>> = {
   Agent: 'core.md',
   FleetCellEvent: 'improvement.md',
+  ProgramSpec: 'improvement.md',
   AgentCancelCause: 'core.md',
   AgentFactory: 'core.md',
   AgentHandle: 'core.md',
@@ -558,6 +560,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   EnvironmentRunRequest: 'environment run contract is owned by packages/improvement/environment-runner/README.md',
   FleetPlan: 'fleet run contract is owned by packages/improvement/fleet/README.md',
   FleetRunReport: 'fleet run contract is owned by packages/improvement/fleet/README.md',
+  ProgramReport: 'program pass report is owned by packages/improvement/program/README.md',
   TrajectoryExportReport: 'trajectory export contract is owned by packages/improvement/trajectories/README.md',
   TrajectoryExportRequest: 'trajectory export contract is owned by packages/improvement/trajectories/README.md',
   FactsExportReport: 'facts export contract is owned by packages/improvement/scorekeeper/README.md',

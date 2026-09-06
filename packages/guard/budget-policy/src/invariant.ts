@@ -13,6 +13,13 @@
  * its own recorded rates, and is the first record of that step — the rates come
  * from the record itself, so cost is recomputable from the log alone.
  *
+ * Every `budget/caps` only ever tightens the caps the same log already carries.
+ * The deployment's configured caps are not in the log, so widening one of those
+ * is invisible here and is refused by the enforcing fold instead; what this
+ * companion owns is the relation between successive records of one session,
+ * where a later record that raises an earlier cap would hand the session budget
+ * its own log already denied it.
+ *
  * @module @deepseek-ai/dsh-budget-policy/invariant
  */
 
@@ -20,9 +27,9 @@ import type { Context } from '@deepseek-ai/cordis'
 import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
-import { foldBudgetSpend, measuredFor } from './fold.ts'
+import { BUDGET_CAP_ORDER, foldBudgetSpend, foldSessionCaps, measuredFor } from './fold.ts'
 import { billedInputTokens, costEurFor, routeKey } from './pricing.ts'
-import type { BudgetBreach, UsagePriced } from './types.ts'
+import type { BudgetBreach, BudgetCaps, UsagePriced } from './types.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-budget-policy'
 
@@ -81,6 +88,27 @@ function validatePriced(
   }
 }
 
+/** Validate one recorded set of caps against the caps the same log already carries. */
+function validateCaps(
+  prior: readonly SessionEvent[],
+  caps: BudgetCaps,
+  fail: InvariantFailure,
+): void {
+  const standing = foldSessionCaps(prior)
+  for (const cap of BUDGET_CAP_ORDER) {
+    const recorded = caps[cap]
+    const earlier = standing[cap]
+    if (earlier === undefined) continue
+    if (recorded === undefined) {
+      fail(`budget/caps drops ${cap}, which this session's own log caps at ${earlier}`)
+      continue
+    }
+    if (recorded > earlier) {
+      fail(`budget/caps raises ${cap} to ${recorded}, which this session's own log caps at ${earlier}`)
+    }
+  }
+}
+
 /** Validate one candidate event against the durable prefix that precedes it. */
 function validateEvent(
   prior: readonly SessionEvent[],
@@ -91,6 +119,10 @@ function validateEvent(
     validateBreach(prior, event.data, fail)
     return
   }
+  if (event.type === 'budget/caps') {
+    validateCaps(prior, event.data, fail)
+    return
+  }
   if (event.type === 'usage/priced') validatePriced(prior, event.data, fail)
 }
 
@@ -98,7 +130,7 @@ function validateEvent(
 const install: InvariantInstaller = sessionEventValidator(validateEvent, ctx => ctx.sessions.list())
 
 /**
- * Register the budget-breach invariant companion.
+ * Register the budget-record invariant companion.
  * @param ctx - Cordis context carrying the invariant service.
  * @returns the installed registration's disposer after setup succeeds.
  */

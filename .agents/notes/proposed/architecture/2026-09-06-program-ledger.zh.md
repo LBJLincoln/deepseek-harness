@@ -36,6 +36,19 @@ Status: proposed
 
 该插件需要 `agents`、`sessions`、`sessionPersistence`、`goals`、`completionStandards`、`shell` 与 `agentPresets`；可选地读取 `readBarrier`。`verify-village-composition` 把组合了 `dsh-program` 的组合计为区组合，因此它必须携带预算策略、持久化与检查点策略。Config：`workspaceRoot`、`requireSignoff`、`maxConcurrentGoals`、`maxGoalRounds`、`branchPrefix`。
 
+### 切片 1 至 3 落地时的差异
+
+- **目标在依赖 `certified` 时启动，而不是 `merged` 时。** `merged` 跟随唯一一次整合，而整合需要每个目标都已认证，因此要求依赖 `merged` 才能启动后继目标会让任何带依赖的程序死锁。`merged` 仍是已认证整合所记录的状态。
+- **程序既是各部门的验证方，也驱动它们的尝试。** 它创建每个目标，像环境运行器那样把它停用，投递目标描述，通过 shell 运行标准中的检查，记录该次运行，并在两次尝试之间下达指令；`maxGoalRounds` 既是目标的上限，也是尝试次数的界。恢复的部门会先取用目标域自身的 resume 边——这是本进程重新接管它的持久记录——然后服务再次将其停用，因此所组合的目标轮次驱动器仍是操作者自行恢复时所走的路径。
+- **两项本 note 未列出的组合事实。** `agentDefaultModel` 是必需的注入，因为部门会话需要一条模型路由；`Config.evidenceMaxChars` 限定所记录的证据长度，因为验证域会拒绝超过它自己 `maxTextChars` 的文本。
+- **`workspaceRoot` 就是那个仓库。** 本 note 只指明了生成 worktree 的目录，却没有指明持有 `baseRevision` 的仓库；落地的字段是程序交付进入的 git 仓库，`<workspaceRoot>/<programId>/<key>` 位于其下。
+- **整合是一个 key，其门禁是检查。** 整合 worktree 与会话使用 `@integration`，任何小写短横线目标 key 都无法占用它；`integration.gates` 的每一项都会成为整合标准中的一条 `gate-<n>` 检查，因此证书覆盖门禁，而占用此类 id 的整合检查会在规格校验时被拒。整合会话挂载花名册的默认预设，并声明 `none` 隔离级别。
+- **摘要排除 `signoff`。** 它是对规格的背书，而不是对程序运行内容的陈述，因此同一组目标由两位负责人签署仍是同一个程序。
+- **台账先声明再报告。** `program/start` 之后为每个目标写一条 `pending` 记录，核对时也会为台账从未记录过的目标补上声明，因此某个 key 的第一条记录总是 `pending`，伴随件据此校验其后的每一次状态迁移。当整合 worktree 根本无法创建时，`program/integration` 可以直接以 `failed` 进入。
+- **部门会话 id 由推导得出**，形如 `<programId>-<key>`，这让"任何 key 都不会有第二个会话"成为身份的性质，而不是某次查找的结果。
+- **屏障预留不落盘任何东西。** 运行目录被预留，以便屏障把该部门记为实现方，但检查脚本并不写入其中，因此声明高于 `none` 的隔离级别的目标会被验证域拒绝，除非该会话自身的普查能证明该声明。
+- **`abandoned` 有了产生者。** 达到 `tokenCeiling` 的程序，或在某个待办目标启动之前就结束的程序，会把这些目标记为 `abandoned`；因上限而停止的程序以 `abandoned` 而不是 `failed` 结束。
+
 ## Alternatives considered
 
 **以工作流引擎脚本作为编排器。** 暂时否决：worker 线程引擎不做日志记录，程序随进程一起死亡；四目标笔记第 11 项的日志式引擎日后可以承载这个循环而无需改动账本事件。
@@ -59,10 +72,10 @@ Status: proposed
 
 ## Rollout
 
-1. `dsh-program`：规格摘要、程序会话与 `program/*` 事件、带工作树与 `program/member` 的部门、恢复、不变量伴随件、带杀死与重启的双目标 e2e、README 对、重新生成的目录。
-2. 预算策略中的 `budget/caps`：事件、收紧折叠、伴随件规则，以及由程序写入它。
-3. 集成：按依赖顺序的合并、集成会话、`program/integration`、发布。
-4. 下游：scorekeeper 从 `program/member` 得到的 `program` 事实组、`verify-village-composition` 规则、班次驱动器能把程序作为时段排程。
+1. 已落地。`dsh-program`：规格摘要、程序会话与 `program/*` 事件、带工作树与 `program/member` 的部门、恢复、不变量伴随件、带杀死与重启的双目标 e2e、README 对、重新生成的目录。
+2. 已落地。预算策略中的 `budget/caps`：事件、收紧折叠、伴随件规则，以及由程序写入它。
+3. 已落地。集成：按依赖顺序的合并、集成会话、`program/integration`、发布。第 4 项中的 `verify-village-composition` 规则随它一并落地，因为没有带上限预算策略的程序组合，正是上限与各部门配额所依赖的前提。
+4. 下游：scorekeeper 从 `program/member` 得到的 `program` 事实组、班次驱动器能把程序作为时段排程。
 5. 治理：`signoff/recorded` 在启动与发布处取代调用方提供的记录；验证仪器的 `standard_author` 从冻结的规格编写程序的检查。
 6. 之后，日志式工作流引擎承载该循环；账本事件不变。
 

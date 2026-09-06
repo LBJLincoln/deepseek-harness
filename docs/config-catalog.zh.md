@@ -426,7 +426,7 @@ export interface BudgetRoutePricing {
 }
 ```
 
-来源：[`packages/guard/budget-policy/src/index.ts:61`](../packages/guard/budget-policy/src/index.ts)
+来源：[`packages/guard/budget-policy/src/index.ts:55`](../packages/guard/budget-policy/src/index.ts)
 
 <a id="deepseek-aidsh-client-connection"></a>
 
@@ -1496,6 +1496,32 @@ export interface PlanModeConfig {
 ```
 
 来源：[`packages/plan/plan-mode/src/index.ts:70`](../packages/plan/plan-mode/src/index.ts)
+
+<a id="deepseek-aidsh-program"></a>
+
+## `@deepseek-ai/dsh-program`
+
+需要：`agents` · `agentDefaultModel` · `agentPresets` · `completionStandards` · `goals` · `sessions` · `sessionPersistence` · `shell`
+
+```ts config-catalog
+/** Deployment choices of the program service, validated from `cordis.yml`. */
+export interface Config {
+  /** The git repository the program delivers into; every worktree is minted under it. */
+  workspaceRoot: string
+  /** Whether a program without a signoff record may start departments or release. */
+  requireSignoff: boolean
+  /** Departments of one program that may run at the same time. */
+  maxConcurrentGoals: number
+  /** Round cap of every department and integration goal, and the attempts this service drives. */
+  maxGoalRounds: number
+  /** Branch namespace of every worktree: `<branchPrefix>/<programId>/<key>`. */
+  branchPrefix: string
+  /** Bound of each recorded check evidence; keep it at or below the verification domain's text cap. */
+  evidenceMaxChars: number
+}
+```
+
+来源：[`packages/improvement/program/src/index.ts:107`](../packages/improvement/program/src/index.ts)
 
 <a id="deepseek-aidsh-pwsh-local"></a>
 
