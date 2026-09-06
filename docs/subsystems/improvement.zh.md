@@ -341,7 +341,7 @@ type ShiftCellOutcome =
 
 ## 程序台账
 
-一个程序是一份被拆解为多个目标的客户交付物，并在其中任何一个目标启动之前就被冻结。`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制——目标按 key 排序、每个目标的依赖也排序、检查与门禁保持撰写顺序、`signoff` 被排除在外——而 `program-<digest>` 既是程序 id，也是程序会话的 id。该会话承载台账：`program/start`、每次状态变化一条 `program/goal`、`program/integration`、后续进程接手该程序时的 `program/resume`，以及 `program/end`；每个部门会话与整合会话各携带一条 `program/member` 标记。[持久化目录](../persistence-catalog.md) 收录了每个载荷的声明，[包 README](../../packages/improvement/program/README.md) 承载部门、合并顺序与恢复规则。
+一个程序是一份被拆解为多个目标的客户交付物，并在其中任何一个目标启动之前就被冻结。`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制——目标按 key 排序、每个目标的依赖也排序、检查与门禁保持撰写顺序、覆盖解析后的 `implementer`、`signoff` 被排除在外——而 `program-<digest>` 既是程序 id，也是程序会话的 id。该会话承载台账：`program/start`、每次状态变化一条 `program/goal`、`program/integration`、后续进程接手该程序时的 `program/resume`，以及 `program/end`；每个部门会话与整合会话各携带一条 `program/member` 标记，被委派的部门则每次尝试再加一条 `program/delegation`。[持久化目录](../persistence-catalog.md) 收录了每个载荷的声明，[包 README](../../packages/improvement/program/README.md) 承载部门、合并顺序与恢复规则。
 
 ```ts type-equiv
 /** One client deliverable, frozen before its first department starts. */
@@ -354,11 +354,40 @@ interface ProgramSpec {
   readonly goals: readonly ProgramGoalSpec[]
   /** What the merged head is certified against. */
   readonly integration: ProgramIntegrationSpec
+  /**
+   * How every department of the program is staffed. A caller may omit it;
+   * `resolveProgramSpec` materializes `{ kind: 'route' }`, so a
+   * {@link FrozenProgramSpec} always states one and the digest always covers it.
+   */
+  readonly implementer?: ProgramImplementer
   /** The artefact the program's signatures attest; required by `requireSignoff`. */
   readonly signoff?: ProgramSignoff
   /** Input plus output tokens every session of the program may sum to. */
   readonly tokenCeiling?: number
 }
+```
+
+`implementer` 决定由谁写代码，对程序的每个部门一视同仁。`route` 是本服务经由 LLM 缝合面自己驱动的 harness agent，每次尝试一个用户回合；`subagent` 则把每次尝试委派给一次已注册 `ctx.subagents` provider 的子代运行，该子代写入它从部门会话自身的 `cwd` 推导出的部门 worktree。无论哪种方式，程序都保留检查、证书、上限与台账；而被委派给在本进程之外运行子代的 provider 的部门，不得声称高于 `none` 的隔离级别。
+
+```ts type-equiv
+/**
+ * How every department of one program is staffed.
+ *
+ * `route` is the harness agent the program drives itself through the LLM seam,
+ * one user turn per attempt. `subagent` delegates each attempt to one child run
+ * of a registered `ctx.subagents` provider, which writes into the department's
+ * worktree while the program keeps the checks, the certificate, the caps, and
+ * the ledger.
+ */
+type ProgramImplementer =
+  | { readonly kind: 'route' }
+  | {
+    readonly kind: 'subagent'
+    /** Name the provider is registered under on `ctx.subagents`. */
+    readonly provider: string
+    /** Display label persisted with a session-backed child, passed through to the provider. */
+    readonly label?: string
+  }
 ```
 
 一个目标就是一个部门：它有自己的 git worktree（位于 `<branchPrefix>/<programId>/<key>`）、由 `preset` 组合出的自有会话、自有的 `budget/caps`，以及由 `checks` 撰写的自有标准。`dependsOn` 是程序内 key 上的有向无环图，只有当某目标依赖的每个目标都已认证，它才会启动。
@@ -611,7 +640,7 @@ async start(spec: ProgramSpec): Promise<ProgramReport>
 async resume(): Promise<ProgramReport[]>
 ```
 
-Source: [`packages/improvement/program/src/index.ts:212`](../../packages/improvement/program/src/index.ts)
+Source: [`packages/improvement/program/src/index.ts:272`](../../packages/improvement/program/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 

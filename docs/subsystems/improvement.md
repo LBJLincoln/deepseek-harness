@@ -341,7 +341,7 @@ type ShiftCellOutcome =
 
 ## Program ledger
 
-A program is one client deliverable decomposed into goals, frozen before any of them starts. `programSpecDigest(spec)` is the SHA-256 hex over the canonical spec — goals sorted by key, each goal's dependencies sorted, checks and gates in authored order, `signoff` excluded — and `program-<digest>` is both the program id and the program session's id. That session carries the ledger: `program/start`, one `program/goal` per status change, `program/integration`, `program/resume` when a later process picks the program up, and `program/end`; each department and the integration session carries one `program/member` stamp. [The persistence catalog](../persistence-catalog.md) carries each payload's declaration and [the package README](../../packages/improvement/program/README.md) owns the departments, the merge order, and the resume rule.
+A program is one client deliverable decomposed into goals, frozen before any of them starts. `programSpecDigest(spec)` is the SHA-256 hex over the canonical spec — goals sorted by key, each goal's dependencies sorted, checks and gates in authored order, the resolved `implementer` covered, `signoff` excluded — and `program-<digest>` is both the program id and the program session's id. That session carries the ledger: `program/start`, one `program/goal` per status change, `program/integration`, `program/resume` when a later process picks the program up, and `program/end`; each department and the integration session carries one `program/member` stamp, and a delegated department adds one `program/delegation` per attempt. [The persistence catalog](../persistence-catalog.md) carries each payload's declaration and [the package README](../../packages/improvement/program/README.md) owns the departments, the merge order, and the resume rule.
 
 ```ts type-equiv
 /** One client deliverable, frozen before its first department starts. */
@@ -354,11 +354,40 @@ interface ProgramSpec {
   readonly goals: readonly ProgramGoalSpec[]
   /** What the merged head is certified against. */
   readonly integration: ProgramIntegrationSpec
+  /**
+   * How every department of the program is staffed. A caller may omit it;
+   * `resolveProgramSpec` materializes `{ kind: 'route' }`, so a
+   * {@link FrozenProgramSpec} always states one and the digest always covers it.
+   */
+  readonly implementer?: ProgramImplementer
   /** The artefact the program's signatures attest; required by `requireSignoff`. */
   readonly signoff?: ProgramSignoff
   /** Input plus output tokens every session of the program may sum to. */
   readonly tokenCeiling?: number
 }
+```
+
+`implementer` decides who writes the code, for every department of the program alike. `route` is the harness agent the service drives itself through the LLM seam, one user turn per attempt; `subagent` delegates each attempt to one child run of a registered `ctx.subagents` provider, which writes into the department worktree it derives from the department session's own `cwd`. The program keeps the checks, the certificate, the caps, and the ledger either way, and a department delegated to a provider that runs its child outside this process may claim no isolation above `none`.
+
+```ts type-equiv
+/**
+ * How every department of one program is staffed.
+ *
+ * `route` is the harness agent the program drives itself through the LLM seam,
+ * one user turn per attempt. `subagent` delegates each attempt to one child run
+ * of a registered `ctx.subagents` provider, which writes into the department's
+ * worktree while the program keeps the checks, the certificate, the caps, and
+ * the ledger.
+ */
+type ProgramImplementer =
+  | { readonly kind: 'route' }
+  | {
+    readonly kind: 'subagent'
+    /** Name the provider is registered under on `ctx.subagents`. */
+    readonly provider: string
+    /** Display label persisted with a session-backed child, passed through to the provider. */
+    readonly label?: string
+  }
 ```
 
 One goal is one department: its own git worktree on `<branchPrefix>/<programId>/<key>`, its own session composed from `preset`, its own `budget/caps`, and its own standard authored from `checks`. `dependsOn` is a directed acyclic graph over the program's keys, and a goal starts once every goal it depends on has certified.
@@ -611,7 +640,7 @@ async start(spec: ProgramSpec): Promise<ProgramReport>
 async resume(): Promise<ProgramReport[]>
 ```
 
-Source: [`packages/improvement/program/src/index.ts:212`](../../packages/improvement/program/src/index.ts)
+Source: [`packages/improvement/program/src/index.ts:272`](../../packages/improvement/program/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 

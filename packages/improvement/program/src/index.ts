@@ -5,9 +5,14 @@
  * session whose certificate over the merged head is what a release claims.
  * Every ledger event is appended after the fact it records is durable, so a
  * restarted process reconciles each goal from its department's own log and
- * worktree and never runs a department twice. The
- * [program-ledger Agent Note](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)
- * owns the design rationale.
+ * worktree and never runs a department twice. A department is staffed either by
+ * the harness agent this service drives or, through the subagent seam, by an
+ * external coding agent whose attempts this service records and whose tree it
+ * certifies. The
+ * [program-ledger](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)
+ * and
+ * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-program-external-implementer.md)
+ * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-program
  */
 
@@ -24,7 +29,7 @@ import type {} from '@deepseek-ai/dsh-agent-default-model'
 import type {} from '@deepseek-ai/dsh-agent-presets'
 import { foldBudgetSpend } from '@deepseek-ai/dsh-budget-policy'
 import type {} from '@deepseek-ai/dsh-goal'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { assertNever, createUserMessage } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
@@ -33,6 +38,8 @@ import type { SignoffTransition } from '@deepseek-ai/dsh-signoff'
 // Type-only: resolves ctx.sessionPersistence.
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type { ShellRunResult } from '@deepseek-ai/dsh-shell'
+// Also resolves the optional ctx.subagents a delegated department reads.
+import type { SubagentProvider, SubagentRuntime } from '@deepseek-ai/dsh-subagent'
 import type {} from '@deepseek-ai/dsh-verification'
 import type { CertificateIsolation, CheckResult, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 import {
@@ -54,10 +61,13 @@ import {
 } from './spec.ts'
 import { PROGRAM_BRANCH_PREFIX } from './spec.ts'
 import type {
+  FrozenProgramSpec,
+  ProgramDelegationUsage,
   ProgramEnd,
   ProgramGoalSpec,
   ProgramGoalStatus,
   ProgramId,
+  ProgramImplementer,
   ProgramIntegrationRecord,
   ProgramOutcome,
   ProgramSpec,
@@ -161,12 +171,51 @@ interface DepartmentState {
 /** One program being driven by one pass. */
 interface ProgramRun {
   readonly programId: ProgramId
-  readonly spec: ProgramSpec
+  readonly spec: FrozenProgramSpec
   /** The program session, entered and announced for the length of the pass. */
   readonly session: Session
   readonly states: Map<string, DepartmentState>
   integration: ProgramIntegrationRecord | undefined
   outcome: ProgramOutcome | undefined
+}
+
+/**
+ * One department's resolved staffing, captured before its first attempt: the
+ * seam the children start on, the provider name, and the label they carry.
+ */
+interface ResolvedImplementer {
+  /** The seam this department's attempts run on. */
+  readonly subagents: SubagentRuntime
+  /** Name the provider is registered under on {@link ResolvedImplementer.subagents}. */
+  readonly provider: string
+  /** The label passed to every child of this department. */
+  readonly label?: string
+}
+
+/**
+ * What one attempt does on the branch before the checks run: the model turn
+ * this service drives, or one delegated child run.
+ * @param prompt - the text this attempt starts from.
+ * @param attempt - the 1-based attempt, counted across every process that drove
+ *   this session.
+ * @returns whether the session may still be certified; `false` stops the attempts.
+ */
+type AttemptWork = (prompt: string, attempt: number) => Promise<boolean>
+
+/** One certification pass over one session's standard. */
+interface AttemptPlan {
+  /** The session being certified. */
+  readonly agent: Agent
+  /** The worktree the checks execute in. */
+  readonly workspace: string
+  /** The isolation level the certified run claims. */
+  readonly isolation: CertificateIsolation
+  /** The first attempt's text, or `undefined` to measure before any work. */
+  readonly objective: string | undefined
+  /** The attempt this pass starts at; a resumed department continues after what its log records. */
+  readonly from: number
+  /** What one attempt does before the checks run. */
+  readonly work: AttemptWork
 }
 
 /** Whether one executed check passed: a zero exit that neither timed out nor was aborted. */
@@ -195,6 +244,17 @@ function outcomeOf(result: ShellRunResult): string {
 function retryText(failures: readonly CheckResult[]): string {
   const listed = failures.map(failure => `- ${failure.checkId}: ${failure.evidence}`).join('\n')
   return `<checks_failed>\n${String(failures.length)} of this goal's checks did not pass on the branch as it stands.\n${listed}\nKeep working and commit; the checks run again when you stop.\n</checks_failed>`
+}
+
+/**
+ * Whether one provider runs its child outside this process. An out-of-process
+ * backend advertises no start-time capability at all, because a child in
+ * another process can honor none of them; an in-process backend composes the
+ * child here and honors them.
+ */
+function outOfProcess(provider: SubagentProvider): boolean {
+  const { outputSchema, depthLimit, toolFilter, persona } = provider.capabilities
+  return !outputSchema && !depthLimit && !toolFilter && !persona
 }
 
 /** Directory test that treats a missing or unreadable path as no directory. */
@@ -234,6 +294,13 @@ export class ProgramService extends Service {
   /** Serializes every pass, so two entry points never drive one program twice. */
   private queue: Promise<unknown> = Promise.resolve()
   private stopping = false
+  /**
+   * Cancellation of every delegated child, aborted before the fiber waits for
+   * the pass in flight. A child in another process observes nothing else this
+   * service does, so without it a stopping process would wait on an external
+   * agent that was never told to stop.
+   */
+  private readonly teardown = new AbortController()
 
   constructor(ctx: Context, config: Config) {
     super(ctx, 'programs')
@@ -263,7 +330,7 @@ export class ProgramService extends Service {
    *   signature the program session must carry cannot support a program.
    */
   async start(spec: ProgramSpec): Promise<ProgramReport> {
-    const frozen = resolveProgramSpec(spec)
+    const frozen: FrozenProgramSpec = resolveProgramSpec(spec)
     if (!PROGRAM_REVISION.test(frozen.baseRevision)) {
       throw new ProgramError(`baseRevision "${frozen.baseRevision}" is not a revision the composed shell can carry unquoted`, 'PROGRAM_INVALID_SPEC')
     }
@@ -303,6 +370,7 @@ export class ProgramService extends Service {
    */
   private async settle(): Promise<void> {
     this.stopping = true
+    this.teardown.abort()
     await this.queue
   }
 
@@ -321,7 +389,7 @@ export class ProgramService extends Service {
   }
 
   /** Reject a spec naming a preset the roster does not supply or does not compose as an implementer. */
-  private async requirePresets(spec: ProgramSpec): Promise<void> {
+  private async requirePresets(spec: FrozenProgramSpec): Promise<void> {
     const presets = await this.ctx.agentPresets.list()
     for (const goal of spec.goals) {
       const preset = presets.find(candidate => candidate.id === goal.preset)
@@ -367,7 +435,7 @@ export class ProgramService extends Service {
   }
 
   /** Start a program that has no ledger yet, or reconcile the one it already has. */
-  private async open(programId: ProgramId, spec: ProgramSpec): Promise<ProgramReport> {
+  private async open(programId: ProgramId, spec: FrozenProgramSpec): Promise<ProgramReport> {
     const scan = await this.scan()
     const existing = scan.ledgers.find(ledger => ledger.start.programId === programId)
     if (existing !== undefined) {
@@ -393,12 +461,13 @@ export class ProgramService extends Service {
   }
 
   /** Declare the program and every goal of its spec, then run it. */
-  private async begin(session: Session, programId: ProgramId, spec: ProgramSpec): Promise<ProgramReport> {
+  private async begin(session: Session, programId: ProgramId, spec: FrozenProgramSpec): Promise<ProgramReport> {
     session.append('program/start', {
       programId,
       specSha256: programSpecDigest(spec),
       spec,
       baseRevision: spec.baseRevision,
+      implementer: spec.implementer,
       ...spec.signoff === undefined ? {} : { signoff: spec.signoff },
     })
     const run = this.newRun(programId, spec, session)
@@ -418,7 +487,7 @@ export class ProgramService extends Service {
    * @param transitioning - the refused transition, for the message.
    */
   private requireSignoffRecord(
-    spec: ProgramSpec,
+    spec: FrozenProgramSpec,
     events: readonly SessionEvent[],
     transition: SignoffTransition,
     transitioning: string,
@@ -481,7 +550,7 @@ export class ProgramService extends Service {
   }
 
   /** The live state of one program before any department of this pass runs. */
-  private newRun(programId: ProgramId, spec: ProgramSpec, session: Session): ProgramRun {
+  private newRun(programId: ProgramId, spec: FrozenProgramSpec, session: Session): ProgramRun {
     return {
       programId,
       spec,
@@ -692,8 +761,17 @@ export class ProgramService extends Service {
       this.ctx.completionStandards.author(agent, { goalId: goal.id, checks: integrationChecks(run.spec.integration) })
       await this.ctx.sessions.flush(agent.session)
       // The merge itself is the first candidate: a clean merge whose checks
-      // pass needs no model turn at all.
-      const certified = await this.attempts(agent, workspace, 'none', undefined)
+      // pass needs no model turn at all. The integration is always driven
+      // through the model route, whatever staffs the program's departments:
+      // making a merged head pass is this harness's own repair work.
+      const certified = await this.attempts({
+        agent,
+        workspace,
+        isolation: 'none',
+        objective: undefined,
+        from: 1,
+        work: (prompt): Promise<boolean> => this.turn(agent, prompt),
+      })
       if (!certified) {
         await this.failIntegration(run, 'the merged head did not pass the integration standard')
         return false
@@ -714,8 +792,12 @@ export class ProgramService extends Service {
     const workspace = this.worktreePath(run.programId, goal.key)
     const sessionId = this.departmentSessionId(run.programId, goal.key)
     const resuming = state.status === 'running'
+    let delegation: ResolvedImplementer | undefined
     let handle: AgentHandle
     try {
+      // The staffing is refused before the worktree exists, so a program whose
+      // implementer this deployment cannot supply costs no branch and no session.
+      delegation = this.resolveImplementer(run.spec.implementer, goal)
       handle = resuming
         ? await this.resumeSession(sessionId, goal.preset)
         : await this.openDepartment(run, state, workspace, sessionId)
@@ -724,11 +806,52 @@ export class ProgramService extends Service {
       return
     }
     try {
-      await this.driveDepartment(run, state, handle.agent, workspace, resuming)
+      await this.driveDepartment(run, state, handle.agent, workspace, resuming, delegation)
     } catch (error: unknown) {
       await this.transition(run, state, 'failed', String(error))
     } finally {
       await handle.dispose()
+    }
+  }
+
+  /**
+   * The staffing one department's attempts run under.
+   * @param implementer - the frozen spec's staffing.
+   * @param goal - the goal being staffed, whose isolation the provider must support.
+   * @returns the resolved provider and label, or `undefined` for a department
+   *   this service drives through the model route itself.
+   * @throws {@link ProgramError} when the seam or the named provider is absent,
+   *   or when an out-of-process provider cannot support the goal's isolation.
+   */
+  private resolveImplementer(implementer: ProgramImplementer, goal: ProgramGoalSpec): ResolvedImplementer | undefined {
+    switch (implementer.kind) {
+      case 'route':
+        return undefined
+      case 'subagent': {
+        const subagents = this.ctx.get('subagents')
+        const provider = subagents?.getProvider(implementer.provider)
+        if (subagents === undefined || provider === undefined) {
+          throw new ProgramError(
+            `this program delegates its departments to the subagent provider "${implementer.provider}", which this deployment does not compose`,
+            'PROGRAM_IMPLEMENTER_UNAVAILABLE',
+          )
+        }
+        if (goal.isolation !== 'none' && outOfProcess(provider)) {
+          throw new ProgramError(
+            `goal "${goal.key}" claims "${goal.isolation}" isolation, which no department delegated to the out-of-process provider "${implementer.provider}" can support`,
+            'PROGRAM_IMPLEMENTER_ISOLATION',
+          )
+        }
+        return {
+          subagents,
+          provider: implementer.provider,
+          ...implementer.label === undefined ? {} : { label: implementer.label },
+        }
+      }
+      /* v8 ignore next 2 -- ProgramImplementer is a closed union validated at
+       * the spec boundary; this arm is only the static exhaustiveness guard. */
+      default:
+        return assertNever(implementer)
     }
   }
 
@@ -766,6 +889,7 @@ export class ProgramService extends Service {
     agent: Agent,
     workspace: string,
     resuming: boolean,
+    delegation: ResolvedImplementer | undefined,
   ): Promise<void> {
     // A department whose goal is blocked is never driven: the reconciliation
     // routes it to `blocked` and waits for an operator's own resume.
@@ -783,7 +907,18 @@ export class ProgramService extends Service {
       this.ctx.goals.resume(agent, { id: current.id, revision: current.revision })
       this.ctx.goals.disarm(agent)
     }
-    const certified = await this.attempts(agent, workspace, state.goal.isolation, state.goal.objective)
+    const certified = await this.attempts({
+      agent,
+      workspace,
+      isolation: state.goal.isolation,
+      objective: state.goal.objective,
+      // A delegated attempt that already ended is recorded, and this pass
+      // continues after it rather than running it a second time.
+      from: foldDepartmentLog(agent.session.events).delegated + 1,
+      work: delegation === undefined
+        ? (prompt): Promise<boolean> => this.turn(agent, prompt)
+        : (prompt, attempt): Promise<boolean> => this.delegate(agent, delegation, state.goal.key, prompt, attempt),
+    })
     const settled = this.ctx.goals.get(agent)
     if (settled?.phase === 'blocked') {
       await this.transition(run, state, 'blocked', settled.blockedReason?.code)
@@ -797,34 +932,80 @@ export class ProgramService extends Service {
     await this.transition(run, state, 'certified', undefined)
   }
 
+  /** Deliver one attempt as a user turn to the department this service drives itself. */
+  private async turn(agent: Agent, prompt: string): Promise<boolean> {
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } }))
+    await agent.whenIdle()
+    return this.ctx.goals.get(agent)?.phase !== 'blocked'
+  }
+
   /**
-   * Run the session's standard against its workspace, letting the model work
-   * between attempts, until it certifies or the round cap is spent.
-   * @param agent - the session being certified.
-   * @param workspace - the worktree the checks execute in.
-   * @param isolation - the isolation level the certified run claims.
-   * @param objective - the first user turn, or `undefined` to measure before any turn.
+   * Run one attempt of a delegated department as one child of the external
+   * coding agent and record what it came to. The provider derives the child's
+   * working directory from the department session's own `cwd`, which is the
+   * department worktree, so the child works on the department branch.
+   * @param agent - the department session, which is the child's delegating parent.
+   * @param delegation - the resolved provider and label, already checked against the goal's isolation.
+   * @param goalKey - the goal this department delivers, recorded with the run.
+   * @param prompt - the goal text on the first attempt, the check-failure text after.
+   * @param attempt - the 1-based attempt this run serves.
+   * @returns `true`, because a run that ended without completing still leaves a
+   *   tree the department's checks measure.
+   */
+  private async delegate(
+    agent: Agent,
+    delegation: ResolvedImplementer,
+    goalKey: string,
+    prompt: string,
+    attempt: number,
+  ): Promise<boolean> {
+    const child = await delegation.subagents.start(delegation.provider, {
+      prompt: [{ type: 'text', text: prompt }],
+      parent: agent,
+      signal: this.teardown.signal,
+      ...delegation.label === undefined ? {} : { label: delegation.label },
+    })
+    try {
+      const result = await child.result
+      agent.session.append('program/delegation', {
+        goalKey,
+        attempt,
+        provider: delegation.provider,
+        runId: child.id,
+        stopReason: result.stopReason,
+        ...result.structured === undefined ? {} : { structured: result.structured },
+        ...this.delegationUsage(child.localAgent),
+      })
+      await this.ctx.sessions.flush(agent.session)
+    } finally {
+      await child.dispose()
+    }
+    return true
+  }
+
+  /** What one delegated attempt cost, for a child whose own session this process holds. */
+  private delegationUsage(child: Agent | undefined): { usage?: ProgramDelegationUsage } {
+    if (child === undefined) return {}
+    return { usage: { totalTokens: foldBudgetSpend(child.session.events, {}).totalTokens } }
+  }
+
+  /**
+   * Run the session's standard against its workspace, letting the attempt's own
+   * work happen between runs, until it certifies or the round cap is spent.
+   * @param plan - the session, worktree, isolation claim, first prompt, first
+   *   attempt, and the work one attempt does.
    * @returns whether a run certified the standard.
    */
-  private async attempts(
-    agent: Agent,
-    workspace: string,
-    isolation: CertificateIsolation,
-    objective: string | undefined,
-  ): Promise<boolean> {
-    let prompt = objective
-    for (let round = 1; round <= this.config.maxGoalRounds; round += 1) {
-      if (prompt !== undefined) {
-        agent.followup(createUserMessage({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } }))
-        await agent.whenIdle()
-        const goal = this.ctx.goals.get(agent)
-        if (goal?.phase === 'blocked') return false
-      }
+  private async attempts(plan: AttemptPlan): Promise<boolean> {
+    const { agent, workspace } = plan
+    let prompt = plan.objective
+    for (let round = plan.from; round <= this.config.maxGoalRounds; round += 1) {
+      if (prompt !== undefined && !await plan.work(prompt, round)) return false
       const standard = this.ctx.completionStandards.get(agent)
       if (standard === undefined) return false
       const ref = { id: standard.id, revision: standard.revision }
       const results = await this.execute(standard.checks, workspace)
-      const outcome = this.ctx.completionStandards.recordRun(agent, ref, isolation, results, { executor: 'runner' })
+      const outcome = this.ctx.completionStandards.recordRun(agent, ref, plan.isolation, results, { executor: 'runner' })
       await this.ctx.sessions.flush(agent.session)
       if (outcome.certified) {
         const goal = this.ctx.goals.get(agent)

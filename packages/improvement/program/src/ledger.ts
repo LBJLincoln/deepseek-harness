@@ -52,6 +52,13 @@ export interface DepartmentLog {
   readonly phase?: GoalPhase
   /** The blocking code of a blocked goal, absent otherwise. */
   readonly blockedCode?: string
+  /**
+   * The highest attempt a `program/delegation` in this log records, and `0`
+   * when it records none. A resumed delegated department continues after it, so
+   * an attempt that already ended is never run again. One department session
+   * carries one goal's delegations, so the fold reads every record.
+   */
+  readonly delegated: number
 }
 
 /** One session stamped as a member of some program, with the tokens its log accounts for. */
@@ -94,13 +101,19 @@ export function foldProgramLedger(session: ScannedSession): ProgramLedger | unde
 /**
  * Fold one department session's log into what it states about its own work.
  * @param events - the department session's stored log, oldest first.
- * @returns the certificate presence, the goal phase, and the blocking code.
+ * @returns the certificate presence, the goal phase, the blocking code, and
+ *   the last delegated attempt the log records.
  */
 export function foldDepartmentLog(events: readonly SessionEvent[]): DepartmentLog {
   const certified = events.some(event => event.type === 'verification/certificate')
   const goal = foldGoal(events).goal
+  let delegated = 0
+  for (const event of events) {
+    if (event.type === 'program/delegation') delegated = Math.max(delegated, event.data.attempt)
+  }
   return {
     certified,
+    delegated,
     ...goal === undefined ? {} : { phase: goal.phase },
     ...goal?.blockedReason === undefined ? {} : { blockedCode: goal.blockedReason.code },
   }

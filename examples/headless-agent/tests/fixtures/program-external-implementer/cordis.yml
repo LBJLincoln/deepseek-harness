@@ -1,0 +1,91 @@
+# Test-only composition: a program whose departments are staffed by an external
+# coding agent rather than by turns the program drives. The in-process `spawn`
+# provider stands in for one: its child joins the parent's composition and so
+# runs on the same keyless mock route, while the program keeps the worktree, the
+# checks, the certificate, and the ledger.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+# Composed beside the program, which disarms every goal it creates: a department
+# an operator resumes by hand is driven by this row instead.
+- id: goal-round-driver
+  name: '@deepseek-ai/dsh-goal-round-driver'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+# The roster's root is absolute: the smoke runs in an isolated temporary cwd, so
+# the presets beside this file are reachable only through the path the driver exports.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: implementing
+    roots:
+      - path: !!js process.env.DSH_TEST_PROGRAM_PRESETS
+        trust: system
+    includeUserRoot: false
+
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no department
+# breaches them before its own `budget/caps` record tightens them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Deliver one goal of a program on its own branch.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_TEST_SESSION_ROOT ?? './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The seam the program's `implementer` names, plus the one provider this
+# composition registers on it.
+- id: subagent
+  name: '@deepseek-ai/dsh-subagent'
+
+- id: subagent-spawn-in-process
+  name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+  config:
+    providerName: spawn
+
+- id: program
+  name: '@deepseek-ai/dsh-program'
+  config:
+    workspaceRoot: !!js process.env.DSH_TEST_PROGRAM_REPO
+    requireSignoff: false
+    maxConcurrentGoals: 1
+    maxGoalRounds: 2
+    branchPrefix: program
+    evidenceMaxChars: 512

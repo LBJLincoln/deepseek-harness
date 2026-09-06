@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-程序（program）：把一份客户交付物拆解为多个目标后的持久账本。一个程序由冻结的规格、一个持有 `program/*` 事件的程序会话、每个目标一个部门会话与一个 git worktree，以及一个整合会话构成——发布所依据的正是该整合会话对合并后 head 的证书。每一条账本事件都在它所记录的事实持久之后才追加，因此重启后的进程会从各部门自己的日志与 worktree 出发对每个目标做核对，绝不会重复运行同一个部门，也绝不会在没有证书的情况下发布。设计依据见 [program-ledger Agent Note](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)。
+程序（program）：把一份客户交付物拆解为多个目标后的持久账本。一个程序由冻结的规格、一个持有 `program/*` 事件的程序会话、每个目标一个部门会话与一个 git worktree，以及一个整合会话构成——发布所依据的正是该整合会话对合并后 head 的证书。每一条账本事件都在它所记录的事实持久之后才追加，因此重启后的进程会从各部门自己的日志与 worktree 出发对每个目标做核对，绝不会重复运行同一个部门，也绝不会在没有证书的情况下发布。一个部门要么由本服务驱动的 harness agent 配备，要么经由 subagent 缝合面由外部编码智能体配备——本服务记录它的每次尝试，并为它留下的树签发证书。设计依据见 [program-ledger](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md) 与 [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-program-external-implementer.md) 两篇 Agent Note。
 
 ## 配置
 
@@ -27,13 +27,13 @@
 | `branchPrefix`（必填） | 每个 worktree 的分支命名空间：`<branchPrefix>/<programId>/<key>`。为小写短横线格式的 git ref 段。 |
 | `evidenceMaxChars`（必填） | 每条已记录检查证据与每条指令细节的上限。请保持在验证域 `maxTextChars` 之内，超长文本会被它拒绝。 |
 
-该服务需要 `agents`、`agentDefaultModel`、`agentPresets`、`completionStandards`、`goals`、`sessions`、`sessionPersistence` 与 `shell`；当组合了 `readBarrier` 时，它会预留读屏障的运行目录。`verify-village-composition` 把组合本包的配置算作区（district）配置，因此该配置还必须带有设了上限的预算策略、一个会话持久化后端和检查点策略。
+该服务需要 `agents`、`agentDefaultModel`、`agentPresets`、`completionStandards`、`goals`、`sessions`、`sessionPersistence` 与 `shell`；当组合了 `readBarrier` 时，它会预留读屏障的运行目录；当程序委派其部门时，它读取 `subagents`。`verify-village-composition` 把组合本包的配置算作区（district）配置，因此该配置还必须带有设了上限的预算策略、一个会话持久化后端和检查点策略。
 
 ## 服务契约
 
 `ctx.programs.start(spec)` 校验并冻结规格、解析其预设，然后驱动该规格所标识的程序：会话尚不存在的程序被开启，会话已存在的程序被核对而不是分叉，账本已带有收尾记录的程序则原样报告。`ctx.programs.resume()` 会核对持久化根目录中每一个账本没有收尾记录的程序并把它继续下去；插件在 Loader 树稳定后运行一次，操作者或驱动器也可以再次调用。两个入口都走同一条队列，因此任何程序都不会被两趟处理同时驱动。
 
-`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制：目标描述、基线版本、token 上限、按 key 排序的目标（每个目标的依赖也已排序），以及整合的检查与门禁（按撰写顺序）。`signoff` 被排除在外——它指名的是程序签名所背书的产物，而不是程序运行的内容，因此同一组目标在两个产物上被签署仍是同一个程序。`program-<digest>` 既是程序 id，也是程序会话的 id，还是每个部门会话 id（`<programId>-<key>`）的前缀，正是这一点让"每个 key 只有一个会话"成为身份的性质，而不是某次查找的结果。
+`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制：目标描述、基线版本、token 上限、解析后的 `implementer`、按 key 排序的目标（每个目标的依赖也已排序），以及整合的检查与门禁（按撰写顺序）。`signoff` 被排除在外——它指名的是程序签名所背书的产物，而不是程序运行的内容，因此同一组目标在两个产物上被签署仍是同一个程序。`program-<digest>` 既是程序 id，也是程序会话的 id，还是每个部门会话 id（`<programId>-<key>`）的前缀，正是这一点让"每个 key 只有一个会话"成为身份的性质，而不是某次查找的结果。
 
 ### 两个签名
 
@@ -47,12 +47,13 @@
 
 | 事件 | 何时写入 | 载荷 |
 |---|---|---|
-| `program/start` | 在任何部门存在之前 | `programId`、`specSha256`、冻结的 `spec`、`baseRevision`，以及规格指名了产物时的 `signoff`——被背书的产物摘要 |
+| `program/start` | 在任何部门存在之前 | `programId`、`specSha256`、冻结的 `spec`、`baseRevision`、`implementer`，以及规格指名了产物时的 `signoff`——被背书的产物摘要 |
 | `program/goal` | 每次状态变化一次，在其所记录事实持久之后 | `programId`、`key`、`status`，以及该状态所携带的 `sessionId`、`workspace`、`revision` 或 `reason` |
 | `program/integration` | 合并 worktree 就绪时，以及它认证或失败时 | `programId`、`status`（`running`、`certified`、`failed`）、`mergedRevision`、`sessionId`、`reason` |
 | `program/resume` | 后续进程接手该程序时 | `programId` 以及对规格中每个目标核对后的各状态计数 |
 | `program/end` | 程序结束时 | `programId`、`outcome`（`released`、`failed`、`abandoned`），已发布者还带 `mergedRevision` |
 | `program/member` | 创建时，写在部门会话或整合会话中而不是账本里 | `programId` 与该会话所负责的 `key` |
+| `program/delegation` | 一次委派尝试的子代运行结束之后，写在部门会话中 | `goalKey`、`attempt`、`provider`、`runId`、`stopReason`，以及该次运行留下的 `structured` 结果或 `usage` |
 
 目标在还没有部门时是 `pending`，有部门在工作时是 `running`，等待操作者通过目标域恢复时是 `blocked`，自身日志已带证书时是 `certified`，其分支被已认证的整合覆盖后是 `merged`，没有证书就结束时是 `failed`，程序在它启动前就结束时是 `abandoned`。[持久化目录](../../../docs/persistence-catalog.md) 收录了每个载荷的声明。
 
@@ -62,6 +63,14 @@
 
 服务本身就是部门的验证方。它把目标描述作为一个用户回合投递，通过以该 worktree 为根的 shell 执行器运行标准中的检查，并记录该次运行；通过的运行会认证、完成目标，并以该证书所引用的分支 head 记录 `certified`。失败的运行会下达一条指令并再投递一个回合，最多 `maxGoalRounds` 次尝试；始终无法认证的部门被记为 `failed`，而目标进入阻塞阶段的部门——例如预算越限——则以阻塞代码记为 `blocked` 并留给操作者。服务从不写入部门的 worktree：分支 head 上的内容全部是部门自己提交的。
 
+## 两种实现者
+
+`spec.implementer` 决定由谁写代码。`{ kind: 'route' }` 是 `resolveProgramSpec` 具体化的默认值，即上文那个 harness agent：本服务经由 LLM 缝合面逐轮驱动它。`{ kind: 'subagent', provider, label? }` 则改为委派：部门的开启方式完全相同——worktree、会话、preset、`program/member`、`budget/caps`、目标、标准——随后每一次尝试都是一次 `ctx.subagents.start(provider, …)`，其 prompt 在第一次尝试时是目标的 objective，在之后各次是被驱动的部门本会收到的同一段检查失败文本。由于部门会话的 `cwd` 就是该 worktree，每个已交付的 provider 都从中推导子代的工作目录，程序无需传递路径。等待该次运行的结果后追加并冲刷 `program/delegation`，释放该次运行，随后部门的检查就在子代留下的树上运行。轮次上限约束委派尝试正如它约束轮次；而整合始终经由模型路由驱动：让合并后的 head 通过，是本 harness 自己的修复工作。
+
+当 `ctx.subagents` 未被组合、或没有该名字的 provider 时（`PROGRAM_IMPLEMENTER_UNAVAILABLE`，并指名该 provider），以及当目标声称高于 `none` 的隔离级别而 provider 在本进程之外运行其子代时（`PROGRAM_IMPLEMENTER_ISOLATION`），被委派的部门在其 worktree 存在之前就被拒绝。第二条规则正是该级别的含义：高于 `none` 的隔离是一项关于会话自身的读屏障普查对其执行器所证明之事的主张，而本进程的任何执行器都没有中介过另一进程中的子代。进程内 provider 加入父代既有的组合、保持同一份普查与角色，因此可以保留部署的隔离级别。两条拒绝都把该目标以对应原因记为 `failed`。
+
+**一份委派证书证明了什么：** 程序经由 shell 执行器、在部门 worktree 中、在外部智能体留下的树上运行了目标的检查，并把该次运行与证书记录在部门自己的会话里。这就是全部主张。它不证明关于这棵树如何产生的任何事：对进程外 provider 而言，本日志里不存在实现者的任何模型可见历史，部门的轨迹不含任何步骤，而 `usage` 只对本进程发布过、且其自身会话日志核算了 token 的子代才被记录。由于 `implementer` 处于摘要之内，同一组目标的两种配备方式就是两个程序——正是这一点让二者的比较成为关于树的证书之间的比较，而不是转录之间的比较。
+
 ## 整合与发布
 
 一旦每个目标都已认证，服务就在 `<workspaceRoot>/<programId>/@integration`——一个任何小写短横线目标 key 都无法占用的 key——从基线版本添加整合 worktree，记录 `program/integration { running }`，并按依赖顺序用 `git merge --no-ff` 合并各部门分支。随后它在该 worktree 上创建整合会话，其标准由 `integration.checks` 后接 `integration.gates` 中每一项对应的一条 `gate-<n>` 检查撰写而成，因此整合证书既覆盖检查也覆盖门禁。检查在任何模型回合之前运行，因此一次干净且通过的合并根本不需要模型回合；合并后不通过的 head 正是整合目标要处理的情况。证书会记录 `program/integration { certified, mergedRevision }`，每个目标转入 `merged`，随后是 `program/end { released, mergedRevision }`。合并失败与始终不通过的合并 head 都会记录 `program/integration { failed, reason }` 并让程序以 `failed` 结束。
@@ -69,6 +78,8 @@
 ## 恢复
 
 `resume()` 列出持久化的会话，加载每个有 `program/start` 而没有 `program/end` 的程序会话，并从各部门自己的日志与 worktree（而不是账本）出发核对每个目标：不存在部门会话的是 `pending`；worktree 已消失的是 `failed`，因为分支正是其证书所引用的证据；日志中带有证书的是 `certified`，其分支 head 从 worktree 读出；目标处于阻塞的是 `blocked`；其余为 `running`。核对发现的每一个状态都会被记录，账本从未记录过的目标也会在此补上声明，然后由 `program/resume` 陈述各状态计数。仍在运行的部门通过 `ctx.agents.resume` 与目标域自身的 resume 就地恢复；依赖已认证的待办目标则被启动。由于部门会话 id 由程序 id 与 key 推导而来，任何 key 都不会得到第二个会话。
+
+被委派部门的 `program/delegation` 记录是该日志的一部分，它们携带的最高 attempt 就是恢复后的一遍所要继续的起点，因此已经结束的尝试永不会被跑第二次。不变量伴生插件对每个部门会话维持同一关系：一条 `program/delegation` 跟在同一 key 的 `program/member` 之后，且携带的 attempt 严格大于该会话已记录的每一个 attempt。
 
 程序可选的 `spec.tokenCeiling` 会在每次启动部门时，从带有其 `program/member` 标记的所有会话的用量折叠得出。已耗尽上限的程序不再启动任何部门，把从未启动的目标记为 `abandoned`，并以 `abandoned` 结束。
 
@@ -78,11 +89,11 @@
 
 ## 模型体验
 
-无。账本记录的是各部门交付了什么，它自身不写入任何模型可见的输入；部门会话中一切面向模型的效果都归目标描述、标准与所组合的预设所有，任何 `program/*` 事件都不会进入模型请求。
+无。账本记录的是各部门交付了什么，它自身不写入任何模型可见的输入；部门会话中一切面向模型的效果都归目标描述、标准与所组合的预设所有，任何 `program/*` 事件都不会进入模型请求。被委派部门的 prompt 是同一段目标或检查失败文本，只是经由 subagent 缝合面投递给子代，而不是投递给部门自己的模型；那段文本记录在何处是子代的事，`program/delegation` 只记录该次运行的结果。
 
 #### KV 缓存影响
 
-按部门相互独立：每个部门与整合各自是一个会话、各有自己的请求历史，本包既不扩展也不改写其中任何一个。它投递的那个回合是追加在末尾的普通用户消息，因此部门自身的前缀在多次尝试之间保持可复用。
+按部门相互独立：每个部门与整合各自是一个会话、各有自己的请求历史，本包既不扩展也不改写其中任何一个。它投递的那个回合是追加在末尾的普通用户消息，因此部门自身的前缀在多次尝试之间保持可复用。被委派的部门根本不发出请求，因此它没有前缀；每次子代运行自身的缓存归该 provider 管。
 
 ## 已知限制与待办
 
@@ -93,3 +104,7 @@
 - **被阻塞的部门需要操作者** —— 账本记录阻塞代码后就停下；没有任何机制会重新武装被阻塞的目标，因此带有这种部门的程序会以 `failed` 结束，直到有人通过目标域恢复该目标并再次启动该程序。
 - **部门声明隔离级别却不落盘自己的检查** —— 运行目录被预留，以便屏障把该会话记为实现方，但检查脚本并不落盘到那里，因此声明高于 `none` 的隔离级别的目标会被验证域拒绝，除非该会话自身的普查能证明该声明。
 - **恢复后的部门保留已计入的轮次** —— 轮次上限是目标的属性，因此频繁重启的程序会更快耗尽各部门的上限；账本会以 `failed` 让这一点可见。
+- **被委派子代的花费在上限之外** —— `spec.tokenCeiling` 折叠的是携带 `program/member` 的会话，而被委派的子代要么是一个未打标记的独立会话，要么完全在另一个进程里。委派记录上的 `usage` 陈述本地发布的子代花了多少；没有任何东西约束外部智能体自己的账单。
+- **一次委派尝试只有一个 prompt 与一个结果** —— 没有任何机制在尝试中途引导子代，因此 `n` 的轮次上限买到的是 `n` 次机会而非 `n` 条消息；委派给外部智能体的程序会想要更小的上限与更大的单次尝试范围。
+- **进程外判定读取的是所宣告的能力** —— 隔离拒绝把不宣告任何启动期能力的 provider 视为在别处运行子代，而每一个已交付的进程外后端正是为此这样宣告。若将来有后端在另一进程中运行子代却宣告了某项能力，就会击穿该判定，规则届时必须迁移到缝合面上的显式标记。
+- **一个程序对所有目标使用同一个实现者** —— `implementer` 是程序级的，因此一个程序无法一个目标手工配备、另一个目标委派配备；比较两种配备方式就是比较两个程序 id。

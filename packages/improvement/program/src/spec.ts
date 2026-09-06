@@ -18,7 +18,14 @@ import { createHash } from 'node:crypto'
 import z from '@deepseek-ai/schemastery'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 import type { CertificateIsolation, CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types'
-import type { ProgramGoalSpec, ProgramId, ProgramSignoff, ProgramSpec } from './types.ts'
+import type {
+  FrozenProgramSpec,
+  ProgramGoalSpec,
+  ProgramId,
+  ProgramImplementer,
+  ProgramSignoff,
+  ProgramSpec,
+} from './types.ts'
 
 /** Prefix of every program id, so a session id names what it holds. */
 export const PROGRAM_ID_PREFIX = 'program-'
@@ -38,12 +45,14 @@ const RESERVED_GATE_CHECK = /^gate-[0-9]+$/
 /** Branch prefixes a deployment may configure; each component is one git ref segment. */
 export const PROGRAM_BRANCH_PREFIX = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/
 
-/** Stable error codes of a refused spec, configuration, or git operation. */
+/** Stable error codes of a refused spec, configuration, staffing, or git operation. */
 export type ProgramErrorCode =
   | 'PROGRAM_INVALID_CONFIG'
   | 'PROGRAM_INVALID_SPEC'
   | 'PROGRAM_SIGNOFF_REQUIRED'
   | 'PROGRAM_UNKNOWN_PRESET'
+  | 'PROGRAM_IMPLEMENTER_UNAVAILABLE'
+  | 'PROGRAM_IMPLEMENTER_ISOLATION'
   | 'PROGRAM_GIT_FAILED'
 
 /** Error returned by the program boundary. */
@@ -77,6 +86,20 @@ const checkSchema = z.object({
   run: z.string().required(),
 }) as z<StandardCheck>
 
+/**
+ * Schemastery validation of one implementer. Neither arm is defaulted here:
+ * the resolve step materializes the omitted field, so a caller that states
+ * nothing gets one implementer rather than an empty object.
+ */
+const implementerSchema = z.union([
+  z.object({ kind: z.const('route').required() }),
+  z.object({
+    kind: z.const('subagent').required(),
+    provider: z.string().required(),
+    label: z.string(),
+  }),
+]) as z<ProgramImplementer>
+
 /** Schemastery validation of one caller-supplied {@link ProgramSpec}. */
 export const ProgramSpecSchema: z<ProgramSpec> = z.object({
   objective: z.string().required(),
@@ -98,6 +121,7 @@ export const ProgramSpecSchema: z<ProgramSpec> = z.object({
     checks: z.array(checkSchema).required(),
     gates: z.array(z.string()).required(),
   }).required(),
+  implementer: implementerSchema,
   // Prevent Schemastery from materializing an omitted signoff as `{}`, whose
   // missing field would reject every program a deployment does not gate on one.
   signoff: z.object({
@@ -173,13 +197,18 @@ export function dependencyOrder(goals: readonly ProgramGoalSpec[]): string[] {
 
 /**
  * Validate one caller-supplied spec and freeze it.
+ *
+ * The staffing default is materialized here rather than read through a
+ * fallback at each use: a frozen spec states one implementer, the digest covers
+ * it, and the ledger stores it.
  * @param input - the spec as the caller supplied it.
- * @returns the validated spec, with every schema default materialized.
+ * @returns the validated spec, with every default materialized.
  * @throws {@link ProgramError} when a key, dependency, budget, or check
  *   inventory cannot support a program.
  */
-export function resolveProgramSpec(input: ProgramSpec): ProgramSpec {
-  const spec = ProgramSpecSchema(input)
+export function resolveProgramSpec(input: ProgramSpec): FrozenProgramSpec {
+  const validated = ProgramSpecSchema(input)
+  const spec: FrozenProgramSpec = { ...validated, implementer: validated.implementer ?? { kind: 'route' } }
   if (spec.goals.length === 0) {
     throw new ProgramError('a program declares at least one goal', 'PROGRAM_INVALID_SPEC')
   }
@@ -241,18 +270,27 @@ function canonicalCheck(check: StandardCheck): unknown {
   return { id: check.id, outcome: check.outcome, run: check.run }
 }
 
+/** One implementer as the digest reads it, with both arms stating every field. */
+function canonicalImplementer(implementer: ProgramImplementer): unknown {
+  return implementer.kind === 'route'
+    ? { kind: 'route', provider: null, label: null }
+    : { kind: 'subagent', provider: implementer.provider, label: implementer.label ?? null }
+}
+
 /**
  * Digest one frozen spec.
  *
  * Goals are sorted by key and each goal's dependencies are sorted, so the order
  * a caller listed them in never changes the identity; check and gate order is
- * kept, because it is the order a validator runs them in. `signoff` is excluded:
- * it names the artefact the program's signatures attest instead of stating what
- * the program runs.
+ * kept, because it is the order a validator runs them in. `implementer` is
+ * covered, because a deliverable staffed by the harness and the same one
+ * staffed by an external coding agent are two programs to compare rather than
+ * one program run twice. `signoff` is excluded: it names the artefact the
+ * program's signatures attest instead of stating what the program runs.
  * @param spec - the validated spec.
  * @returns the lowercase SHA-256 hex of its canonical form.
  */
-export function programSpecDigest(spec: ProgramSpec): string {
+export function programSpecDigest(spec: FrozenProgramSpec): string {
   const goals = [...spec.goals]
     .sort((left, right) => (left.key < right.key ? -1 : 1))
     .map(goal => ({
@@ -272,6 +310,7 @@ export function programSpecDigest(spec: ProgramSpec): string {
     objective: spec.objective,
     baseRevision: spec.baseRevision,
     tokenCeiling: spec.tokenCeiling ?? null,
+    implementer: canonicalImplementer(spec.implementer),
     goals,
     integration: {
       checks: spec.integration.checks.map(canonicalCheck),
