@@ -1235,7 +1235,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async leaderboard(filter: LeaderboardFilter = {}): Promise<ScoreboardBatch>',
-        description: 'Fold a scoreboard from persisted session logs, one row per model route, environment, isolation level, and held-out split. A session that cannot be read or folded is reported and the fold continues.',
+        description: 'Fold a scoreboard from persisted session logs, one row per model route, environment, isolation level, held-out split, and district. A session that cannot be read or folded is reported and the fold continues.',
         parameters: [{ name: 'filter', description: 'the sessions to fold and the group and held-out conditions a stamped session must meet.' }],
         returns: 'the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.',
       },
@@ -4262,7 +4262,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4366,11 +4366,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsEfficiency',
-    declaration: 'export interface SessionFactsEfficiency {\n    readonly turns: number;\n    readonly steps: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly cacheReadTokens: number;\n    readonly cacheWriteTokens: number;\n    readonly reasoningTokens: number;\n    readonly wallMs: number;\n}',
+    declaration: 'export interface SessionFactsEfficiency {\n    readonly turns: number;\n    readonly steps: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly cacheReadTokens: number;\n    readonly cacheWriteTokens: number;\n    readonly reasoningTokens: number;\n    readonly wallMs: number;\n    readonly pricedSteps: number;\n    readonly costEur?: number;\n    readonly pricingDigests: readonly string[];\n}',
   },
   {
     name: 'SessionFactsEnvironment',
-    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly isolation: CertificateIsolation;\n}',
+    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly isolation: CertificateIsolation;\n}',
   },
   {
     name: 'SessionFactsIdentity',

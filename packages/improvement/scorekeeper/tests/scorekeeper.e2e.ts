@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { pricingTableDigest } from '@deepseek-ai/dsh-budget-policy'
 import type { LeaderboardRow } from '@deepseek-ai/dsh-fleet'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
 import type { FactsExportReport, ScoreboardBatch, SessionFactsRecord } from '@deepseek-ai/dsh-scorekeeper'
@@ -9,6 +10,11 @@ import type { FactsExportReport, ScoreboardBatch, SessionFactsRecord } from '@de
 const binScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/scoreboard/driver.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/scoreboard/cordis.yml', import.meta.url))
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
+
+/** The `pricing` table the fixture's budget policy configures, restated so the digest can be recomputed here. */
+const FIXTURE_PRICING = {
+  'cli-mock/cli-mock': { inputEurPerMillionTokens: 1, outputEurPerMillionTokens: 2 },
+}
 
 interface DriverResult {
   type: string
@@ -84,10 +90,34 @@ describe('the scorekeeper through a real cordis.yml and headless process', () =>
     expect(facts.efficiency.outputTokens).toBeGreaterThan(0)
     expect(facts.tools.toolCalls).toBeGreaterThan(0)
 
+    // Every step of the priced mock route was recorded as a `usage/priced`
+    // event, so the log states the cost at the rates the fixture configured.
+    const efficiency = facts.efficiency
+    expect(efficiency.pricedSteps).toBeGreaterThan(0)
+    expect(efficiency.pricingDigests).toEqual([pricingTableDigest(FIXTURE_PRICING)])
+    const rates = FIXTURE_PRICING['cli-mock/cli-mock']
+    const billedTokens = efficiency.inputTokens + efficiency.cacheReadTokens + efficiency.cacheWriteTokens
+    expect(efficiency.costEur).toBeCloseTo(
+      (billedTokens * rates.inputEurPerMillionTokens + efficiency.outputTokens * rates.outputEurPerMillionTokens) / 1_000_000,
+      12,
+    )
+
     expect(result.exported).toMatchObject({ sessions: 4, exported: 4, skipped: [] })
     expect(lines).toHaveLength(4)
     const records = lines.map(line => JSON.parse(line) as SessionFactsRecord)
     expect(records.every(record => record.identity.environment?.group === 'scoreboard-e2e')).toBe(true)
     expect(records.filter(record => record.outcome.certified)).toHaveLength(2)
+
+    // The row's cost per certified session is the mean over exactly the
+    // certified sessions of that cell, as the exported records state them.
+    const certifiedRecords = records
+      .filter(record => record.outcome.certified && record.identity.environment?.environmentId === 'smoke:round-trip')
+    expect(certifiedRecords).toHaveLength(2)
+    const certifiedCosts = certifiedRecords.map(record => record.efficiency.costEur).filter(cost => cost !== undefined)
+    expect(certifiedCosts).toHaveLength(2)
+    expect(certifiedCosts.every(cost => cost > 0)).toBe(true)
+    const mean = certifiedCosts.reduce<number>((sum, cost) => sum + cost, 0) / certifiedCosts.length
+    expect(roundTrip?.pricingDigests).toEqual([pricingTableDigest(FIXTURE_PRICING)])
+    expect(roundTrip?.costEurPerCertified).toBeCloseTo(mean, 12)
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

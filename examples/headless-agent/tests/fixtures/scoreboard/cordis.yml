@@ -48,11 +48,17 @@
 
 # Village rule: a composition that runs unattended cells carries a session
 # budget. The caps are far out of reach of the mock route, so no cell breaches them.
+# The mock route is priced so every served step records a `usage/priced` event and
+# the scorekeeper can state a cost per session; the rates are fixture values.
 - id: budget-policy
   name: '@deepseek-ai/dsh-budget-policy'
   config:
     maxTotalTokens: 5000000
     maxWallMs: 600000
+    pricing:
+      cli-mock/cli-mock:
+        inputEurPerMillionTokens: 1
+        outputEurPerMillionTokens: 2
 
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'

@@ -1695,7 +1695,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/improvement/scorekeeper/src/index.ts:137`](../packages/improvement/scorekeeper/src/index.ts)
+来源：[`packages/improvement/scorekeeper/src/index.ts:141`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 

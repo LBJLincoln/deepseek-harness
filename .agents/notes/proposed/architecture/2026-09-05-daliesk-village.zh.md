@@ -96,7 +96,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 ## Rollout
 
-1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；组合门禁；预算策略携带价格表摘要的 `usage/priced` 事件；以及证书上的 executor（读取屏障切片 4）。仍需要：scorekeeper 将 `usage/priced` 折叠为每次会话的成本；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
+1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；组合门禁；预算策略携带价格表摘要的 `usage/priced` 事件；证书上的 executor（读取屏障切片 4）；scorekeeper 把 `usage/priced` 折叠为每次会话的成本与每个已认证会话的成本；以及 stamp 的 `district` 作为观测台据以扣留的 `ScoreboardRow` 键的一部分。仍需要：有人值班运行。
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
 3. **无人值守的班次。** 已在[班次笔记](2026-09-05-village-shifts.md)中设计：班次身份与 `shift/*` 账本、从 stamp 恢复且绝不重跑的 cell、按区的节奏，以及跨班次的 token 花费窗口；其切片落地后，主机级监督进程退为后备。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。

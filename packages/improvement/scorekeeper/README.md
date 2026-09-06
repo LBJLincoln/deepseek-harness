@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-The session log as the dataset. A `sessionFacts` projection unit folds one live session into four fact groups, and `ctx.scorekeeper` folds the same groups out of persisted logs: one record per session, a scoreboard grouped by model route, environment, isolation level, and held-out split, and a JSONL export. The service reads through the session persistence seam and writes no session event. The [scorekeeper Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) owns the design rationale.
+The session log as the dataset. A `sessionFacts` projection unit folds one live session into four fact groups, and `ctx.scorekeeper` folds the same groups out of persisted logs: one record per session, a scoreboard grouped by model route, environment, isolation level, held-out split, and district, and a JSONL export. The service reads through the session persistence seam and writes no session event. The [scorekeeper Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md) owns the design rationale.
 
 ## Config
 
@@ -27,7 +27,7 @@ The service requires a session persistence backend. It registers the `sessionFac
 
 `ctx.scorekeeper.facts(sessionId)` reads one persisted session through `ctx.sessionPersistence.inspect()` and returns its `SessionFactsRecord`; a session that cannot be read, or whose goal or verification stream is malformed, rejects.
 
-`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` folds each named session (or every persisted session when `sessions` is absent) and groups the stamped ones into rows. A session that cannot be read or folded is added to `skipped` with its reason and the fold continues; a session whose log carries no `environment/run` stamp is counted as `unstamped` because no row can name its cell; a stamped session the `group` or `heldOut` condition rejects is counted as `excluded`.
+`ctx.scorekeeper.leaderboard({ sessions?, group?, heldOut? })` folds each named session (or every persisted session when `sessions` is absent) and groups the stamped ones into one row per model route, environment, isolation level, held-out split, and district. A session that cannot be read or folded is added to `skipped` with its reason and the fold continues; a session whose log carries no `environment/run` stamp is counted as `unstamped` because no row can name its cell; a stamped session the `group` or `heldOut` condition rejects is counted as `excluded`.
 
 `ctx.scorekeeper.exportFacts({ sessions?, sink })` writes `JSON.stringify(record) + '\n'` per session to `sink.write()` and closes the sink exactly once, after the last write or after a failure. The sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
 
@@ -42,7 +42,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | Field | Source |
 |---|---|
 | `sessionId`, `createdAt` | The stored session header (`facts()` and `exportFacts()` only; a projection value is already addressed by its session) |
-| `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.contentSha256`, `.provider`, `.model`, `.isolation` | The `environment/run` stamp, absent for a session no runner stamped |
+| `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.district`, `.contentSha256`, `.provider`, `.model`, `.isolation` | The `environment/run` stamp, absent for a session no runner stamped |
 | `requestProvider`, `requestModel` | `config.provider` and `config.model` of the last `request/header` |
 
 ### Outcome
@@ -66,6 +66,11 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | `turns`, `steps` | `turn/start` and `step/start` events |
 | `inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`, `reasoningTokens` | `usage` of every `assistant/message`; the earlier `assistant/chunk` sample for the same step is deliberately not counted twice |
 | `wallMs` | The first and last event times of the log |
+| `pricedSteps` | `usage/priced` events (`@deepseek-ai/dsh-budget-policy`) |
+| `costEur` | The `costEur` those events state, summed |
+| `pricingDigests` | Their distinct `pricingDigest` values, in first-seen order |
+
+The fold takes no pricing table: cost is the sum the `usage/priced` records themselves carry, so a deployment that re-rates a route cannot change what an already-run session cost. `costEur` is present only when every `assistant/message` that reported usage has a `usage/priced` for its turn and step, so a session that ran an unpriced route states no cost at all rather than the lower cost of its priced steps; a session whose log carries no usage-bearing message costs `0`. Two or more `pricingDigests` mean the log was priced under more than one table version and `costEur` is a sum across them.
 
 ### Tool behavior
 
@@ -78,7 +83,9 @@ Every field folds from a named session event; nothing is inferred. Field names a
 
 ## Scoreboard rows
 
-A row is one model route on one environment at one isolation level and one side of the held-out split; a row never averages across isolation or the split. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
+A row is one model route on one environment at one isolation level, one side of the held-out split, and one district; a row never averages across isolation, the split, or districts, so a publication that withholds a district drops whole rows instead of blending them. `runs` counts the sessions that recorded at least one `verification/run` and `errors` the stamped sessions that recorded none, so a cell that ended without a run is a column rather than a missing row. `certificateRate` is `certified / runs` and `attemptsMean` the mean `runsRecorded` over the sessions with runs, both `0` without runs; the token sums cover every session of the row, the errored ones included.
+
+`costEurPerCertified` is the mean `costEur` over the row's certified sessions, and `pricingDigests` the distinct digests across every session of the row, errored and uncertified ones included. The mean is absent for a row that certified nothing and absent when any certified session of the row states no cost, so a published cost per certified session never counts an unpriced session as a free one.
 
 `stats` estimates difficulty from the repetition batches the row's sessions belong to: for each batch of `n` sessions of which `c` certified, pass@k is the unbiased `1 - C(n - c, k) / C(n, k)`, and the row's value is the mean over the batches holding at least `k` sessions. A session whose stamp carries no `group` joins no batch.
 
@@ -95,6 +102,6 @@ None; the service neither adds to nor changes any model request.
 - **The projection value changes on every event** — `wallMs` spans the log, so no committed event leaves the `sessionFacts` state reference untouched and a subscribed carrier is notified once per event.
 - **Field groups without a source event** — process quality, judge scores, safety and oversight, and training and data are named by the [four-goal-workflows note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md) but ship no field here: `signoff/recorded`, the composition manifest, the oversight monitor, the judge council, and the curator's consent and redaction events do not exist yet.
 - **Shell exit codes are not observable** — a bash result's exit code travels inside the tool's own model-facing output rather than a session-event field, so `shellNonzeroExits` is not a field; a tool-owned result event would be needed first.
-- **Cost is not a field** — pricing lives in `@deepseek-ai/dsh-budget-policy`'s configuration rather than in the log, so a facts record states tokens and names a breached cap but never a EUR amount.
+- **Cost covers priced routes only** — a route the deployment's pricing table did not name records no `usage/priced`, so a session that touched one states no `costEur` and every row holding it states no `costEurPerCertified`. A deployment that wants a cost for every session prices every route it runs.
 - **One standard per session** — the outcome group reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.
 - **Rows are not comparable across fleet runs** — a scoreboard folds whatever the filter selects; paired designs, confidence intervals, and cross-run comparison belong to the experiment plugin the four-goal note names.

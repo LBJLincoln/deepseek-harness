@@ -112,7 +112,7 @@ interface TrajectoryReward {
 
 ## 会话事实
 
-记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。记分板的一行就是这些记录按模型路由、环境、隔离级别与留出划分分组后的结果。
+记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -279,8 +279,8 @@ async facts(sessionId: SessionId): Promise<SessionFactsRecord>
 
 /**
  * Fold a scoreboard from persisted session logs, one row per model route,
- * environment, isolation level, and held-out split. A session that cannot be
- * read or folded is reported and the fold continues.
+ * environment, isolation level, held-out split, and district. A session that
+ * cannot be read or folded is reported and the fold continues.
  * @param filter - the sessions to fold and the group and held-out conditions a stamped session must meet.
  * @returns the rows with their pass@k statistics, the counts of excluded, unstamped, and skipped sessions, and the fold time.
  */
@@ -298,7 +298,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:166`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:170`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxtrajectories--trajectoryservice"></a>
 
