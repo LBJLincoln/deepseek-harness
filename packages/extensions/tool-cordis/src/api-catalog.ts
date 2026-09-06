@@ -941,6 +941,40 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'judge',
+    summary: 'The blind judge (`ctx.judge`): one lineage-free judge session per audited attempt.',
+    description: 'The blind judge (`ctx.judge`): one lineage-free judge session per audited attempt.',
+    methods: [
+      {
+        signature: 'readonly workspaceRoot: string',
+        description: 'The absolute directory judge workspaces are minted under.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly preset: string',
+        description: 'The preset every judge session composes, as Config.preset set it.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly systemPrompt: string',
+        description: 'The judge\'s standing instruction, as Config.systemPrompt set it.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly rationaleMaxChars: number',
+        description: 'Bound of a recorded rationale, as Config.rationaleMaxChars set it.',
+        parameters: [],
+      },
+      {
+        signature: 'async audit(request: JudgeRequest): Promise<JudgeAudit>',
+        description: 'Audit one recorded attempt and record the verdict.\n\nThe copy is made and checked BEFORE the session exists, so a judge is never created over a tree that is not the one the attempt was measured on. The session that follows has a fresh id, no parent, and no seed; its history is the standing instruction, the task, and the evidence, in that order; and its log carries the `judge/session` lineage assertion before the first turn and the `judge/verdict` after it settles.',
+        parameters: [{ name: 'request', description: 'the audited session and attempt, its workspace and digest, the task, the results, and any certificate.' }],
+        returns: 'the verdict, its rationale, and the judge session and workspace that produced them.',
+        throws: ['{@link JudgeError} with `JUDGE_TREE_HASH_MISMATCH` when the copy does not reproduce the attempt\'s digest.'],
+      },
+    ],
+  },
+  {
     key: 'llm',
     summary: 'The abstract `llm` service: an adapter registry plus a streaming model-call API, interceptable via the `llm/stream` waterfall.',
     description: 'The abstract `llm` service: an adapter registry plus a streaming model-call API, interceptable via the `llm/stream` waterfall.',
@@ -3857,6 +3891,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type JsonValue = null | boolean | number | string | JsonValue[] | {\n    [key: string]: JsonValue;\n};',
   },
   {
+    name: 'JudgeAudit',
+    declaration: 'export interface JudgeAudit extends JudgeVerdictRecord {\n    readonly judgeSessionId: SessionId;\n    readonly judgeWorkspace: string;\n    readonly treeHash: string;\n}',
+  },
+  {
+    name: 'JudgeRequest',
+    declaration: 'export interface JudgeRequest {\n    readonly auditedSessionId: SessionId;\n    readonly attempt: number;\n    readonly treeHash: string;\n    readonly workspace: string;\n    readonly taskPrompt: string;\n    readonly results: readonly CheckResult[];\n    readonly certificate?: VerificationCertificate;\n    readonly model?: {\n        readonly provider: string;\n        readonly model: string;\n    };\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'JudgeVerdict',
+    declaration: 'export type JudgeVerdict = \'upheld\' | \'overturned\' | \'inconclusive\';',
+  },
+  {
+    name: 'JudgeVerdictRecord',
+    declaration: 'export interface JudgeVerdictRecord {\n    readonly auditedSessionId: SessionId;\n    readonly attempt: number;\n    readonly verdict: JudgeVerdict;\n    readonly rationale: string;\n}',
+  },
+  {
     name: 'KnobState',
     declaration: 'export interface KnobState {\n    preset: string | null;\n    sandbox: SandboxMode | null;\n    approval: ApprovalPolicy | null;\n}',
   },
@@ -4226,7 +4276,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ReadBarrierRole',
-    declaration: 'export type ReadBarrierRole = \'implementer\' | \'validator\' | \'unrestricted\';',
+    declaration: 'export type ReadBarrierRole = \'implementer\' | \'judge\' | \'validator\' | \'unrestricted\';',
   },
   {
     name: 'ReadFileLine',

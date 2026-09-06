@@ -193,13 +193,16 @@ Types the read barrier decides from, declared by [`packages/verification/read-ba
 
 ```ts type-equiv
 /**
- * Authority a session holds against the barrier. `implementer` is denied every
- * directory the barrier owns; `validator` and `unrestricted` are denied
+ * Authority a session holds against the barrier. `implementer` and `judge` are
+ * denied every directory the barrier owns and every declared tool authority —
+ * the implementer so it cannot read the standard it is measured against, the
+ * judge so it cannot reach the audited session's log or the check instructions
+ * behind the evidence it was handed. `validator` and `unrestricted` are denied
  * nothing, and `unrestricted` is what a session holds without a reservation.
- * Which directories a role may read is a security invariant, never a
- * deployment choice.
+ * Which directories and authorities a role may hold is a security invariant,
+ * never a deployment choice.
  */
-type ReadBarrierRole = 'implementer' | 'validator' | 'unrestricted'
+type ReadBarrierRole = 'implementer' | 'judge' | 'validator' | 'unrestricted'
 ```
 
 ```ts type-equiv
@@ -253,6 +256,55 @@ interface ReadBarrierDenial {
   readonly displayPath: string
   /** The barrier root in force when the read was refused. */
   readonly root: string
+}
+```
+
+## The blind judge
+
+Types the oversight seam's judging Consumer records, declared by [`packages/verification/judge`](../../packages/verification/judge/README.md). A judge session is created with a fresh id, no `parentSessionId`, and no seed, so the two records below are the whole durable account of what it audited and what it decided; the two events are catalogued in [persistence-catalog.md](../persistence-catalog.md#judgesession--log-only). `ctx.judge.audit()` takes a `JudgeRequest` — the audited session and attempt, that attempt's workspace and digest, the task prompt, the results, and any certificate — and answers a `JudgeAudit`, which is the verdict record below plus the judge session and workspace that produced it.
+
+```ts type-equiv
+/**
+ * What one audit decided about the attempt it read.
+ *
+ * `upheld` means the evidence supports the outcome the attempt recorded,
+ * `overturned` that it contradicts it, and `inconclusive` that the evidence
+ * cannot decide — which is also what a reply naming no verdict records, because
+ * a judge that did not answer decided nothing.
+ */
+type JudgeVerdict = 'upheld' | 'overturned' | 'inconclusive'
+```
+
+```ts type-equiv
+/**
+ * One judge session's lineage assertion, as the `judge/session` event carries
+ * it. It is written into the judge's own log, which is where the invariant
+ * companion reads it: a verdict from a session with no such record, or from one
+ * whose header carries a parent or a seed, is refused.
+ */
+interface JudgeSessionRecord {
+  /** The judge session this record was appended to. */
+  readonly judgeSessionId: SessionId
+  /** Session whose attempt this judge audits. */
+  readonly auditedSessionId: SessionId
+  /** One-based attempt number under audit. */
+  readonly attempt: number
+  /** Workspace digest the judge's copy reproduced before the session was created. */
+  readonly treeHash: string
+}
+```
+
+```ts type-equiv
+/** One reached verdict, as the `judge/verdict` event carries it. */
+interface JudgeVerdictRecord {
+  /** Session whose attempt was audited. */
+  readonly auditedSessionId: SessionId
+  /** One-based attempt number that was audited. */
+  readonly attempt: number
+  /** What the judge decided. */
+  readonly verdict: JudgeVerdict
+  /** The judge's own reason, bounded by the deployment's `rationaleMaxChars`. */
+  readonly rationale: string
 }
 ```
 
@@ -357,7 +409,32 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 
 Types: [Agent](core.md)
 
-Source: [`packages/verification/verification/src/index.ts:277`](../../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:278`](../../packages/verification/verification/src/index.ts)
+
+<a id="ctxjudge--judgeservice"></a>
+
+### `ctx.judge` — `JudgeService`
+
+The blind judge (`ctx.judge`): one lineage-free judge session per audited attempt.
+
+```ts cordis-catalog
+/**
+ * Audit one recorded attempt and record the verdict.
+ *
+ * The copy is made and checked BEFORE the session exists, so a judge is never
+ * created over a tree that is not the one the attempt was measured on. The
+ * session that follows has a fresh id, no parent, and no seed; its history is
+ * the standing instruction, the task, and the evidence, in that order; and
+ * its log carries the `judge/session` lineage assertion before the first turn
+ * and the `judge/verdict` after it settles.
+ * @param request - the audited session and attempt, its workspace and digest, the task, the results, and any certificate.
+ * @returns the verdict, its rationale, and the judge session and workspace that produced them.
+ * @throws {@link JudgeError} with `JUDGE_TREE_HASH_MISMATCH` when the copy does not reproduce the attempt's digest.
+ */
+async audit(request: JudgeRequest): Promise<JudgeAudit>
+```
+
+Source: [`packages/verification/judge/src/index.ts:268`](../../packages/verification/judge/src/index.ts)
 
 <a id="ctxreadbarrier--readbarrierservice"></a>
 
@@ -493,5 +570,5 @@ recordDenial( session: Session, policy: ReadBarrierPolicy, capability: ReadBarri
 
 Types: [Agent](core.md) · [FsTarget](filesystem.md) · [Session](session.md)
 
-Source: [`packages/verification/read-barrier/src/index.ts:291`](../../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:308`](../../packages/verification/read-barrier/src/index.ts)
 <!-- END GENERATED cordis-surface -->

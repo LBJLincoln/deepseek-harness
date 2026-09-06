@@ -8,4 +8,5 @@
 |---|---|---|
 | [`verification/`](verification/README.md) | 完成标准状态、证书与指令 | `ctx.completionStandards` |
 | [`read-barrier/`](read-barrier/README.md) | 验证者所有的目录树、按运行预留，以及按会话作出的拒绝判定 | `ctx.readBarrier` |
+| [`judge/`](judge/README.md) | 评审一次已记录尝试并记录裁决的无血缘判官会话 | `ctx.judge` |
 | [`command-verification/`](command-verification/README.md) | 面向人的 `/verification` 证据台账 | — |

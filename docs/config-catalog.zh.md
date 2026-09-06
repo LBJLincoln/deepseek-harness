@@ -963,6 +963,41 @@ export interface Config {
 
 来源：[`packages/jobs/jobs-local/src/index.ts:31`](../packages/jobs/jobs-local/src/index.ts)
 
+<a id="deepseek-aidsh-judge"></a>
+
+## `@deepseek-ai/dsh-judge`
+
+需要：`agents` · `sessions` · `agentPresets`
+
+```ts config-catalog
+/** Deployment choices of the judge, validated from `cordis.yml`. */
+export interface Config {
+  /**
+   * Preset the judge session composes (default `judge`). It must be a
+   * `system`-trust preset declaring `role: judge`; the roster and the read
+   * barrier enforce that, not this field.
+   */
+  preset?: string
+  /**
+   * Directory judge workspaces are minted under, absolute or `~`-prefixed
+   * (default `<harness home>/judge`). Each audit gets `<root>/workspaces/<judge
+   * session id>/`, created owner-only.
+   */
+  workspaceRoot?: string
+  /**
+   * The judge's standing instruction, delivered as the first message of the
+   * judge session's derived history (default {@link DEFAULT_JUDGE_SYSTEM_PROMPT}).
+   * A deployment that rewrites it must keep the `verdict: <one of the three>`
+   * answer line, which is what the verdict is read back from.
+   */
+  systemPrompt?: string
+  /** Bound of the rationale recorded on the verdict (default 2000 characters). */
+  rationaleMaxChars?: number
+}
+```
+
+来源：[`packages/verification/judge/src/index.ts:133`](../packages/verification/judge/src/index.ts)
+
 <a id="deepseek-aidsh-llm-deepseek"></a>
 
 ## `@deepseek-ai/dsh-llm-deepseek`
@@ -1608,7 +1643,7 @@ export interface Config {
 export type ReadBarrierIsolationClaim = 'none' | 'process' | 'host'
 ```
 
-来源：[`packages/verification/read-barrier/src/index.ts:211`](../packages/verification/read-barrier/src/index.ts)
+来源：[`packages/verification/read-barrier/src/index.ts:228`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="deepseek-aidsh-repeat-tool-reminder"></a>
 
@@ -3144,7 +3179,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/verification/verification/src/index.ts:229`](../packages/verification/verification/src/index.ts)
+来源：[`packages/verification/verification/src/index.ts:230`](../packages/verification/verification/src/index.ts)
 
 <a id="deepseek-aidsh-web"></a>
 

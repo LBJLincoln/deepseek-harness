@@ -94,6 +94,20 @@ read barrier 的 `Config` 新增了第四个字段 `isolationClaim`。下文的�
 
 **单一授权下的盲评审者。** 面对一个标签会影响自身的评审者，跨提供方路由是第一个答案，而只有一份模型授权的部署拿不到它。第二条路线是文件系统与进程隔离，加上一个不持有实现者上下文的评审者会话，其含义是以下全部、且不得更弱。评审者会话通过 `ctx.agents.create` 以全新 `SessionId` 创建，没有 `parentSessionId`，也没有 resume 或 fork 种子，因此它的日志从自身创建处开始。它的 `meta.cwd` 是一个持有实现者目录树在被审计尝试的 `treeHash` 处副本的评审工作区，绝不是实现者的工作区。它的派生历史恰好包含评审者 preset 的系统提示词、环境的任务提示词，以及一条携带审计者所选证据的用户消息；被审计会话中的任何 `assistant/message`、`tool/result` 或 `verification/directive` 都不进入其中。它的 preset 是 `system` 信任级并声明 `role: validator`，因此组合期守卫仍然拒绝给它读日志的工具：能读被审计日志的评审者会重建实现者的推理，从而失去这套安排所提供的独立性。屏障追加一条 `judge/session` 事件，命名被审计的会话 id 并断言空谱系，而 invariant 拒绝来自 header 携带父级或种子的会话的裁定。
 
+##### 第 7 个切片记录的偏差
+
+评审者 preset 声明的是 `role: judge`，不是 `role: validator`。`validator` 是不被拒绝任何内容的角色，因此自称该角色的评审者 preset 可以毫无阻拦地组合一个读日志的工具——正是本节所禁止的那种组合。于是屏障的角色词表新增 `judge`，它被拒绝每一项已声明的工具权限以及屏障拥有的每个目录：实现者不得读取度量它的那份标准，评审者不得读取交给它的证据背后的检查指令。`DENIED_ROLES` 是判定被拒集合约束哪些角色的唯一处所，因此 `deniedAuthority`、`deniedReadRoots` 与拒绝 invariant 都遵循它，而 `authorityDenialMessage` 会指明它所拒绝的角色。`startRefusal` 仍只面向 implementer：进程外执行器在某个声明下可以做什么，是这道阶梯上属于实现者的那一级，而评审者 preset 根本不组合任何执行器。
+
+评审者的系统提示词作为评审者会话的第一条用户消息投递，而不是经由 `request/header.system`。`Session.deriveMessages()` 只投影 `user/message`、`assistant/message` 与 `tool/result`，因此系统提示词根本不属于派生历史，「恰好三条消息」也就无法在持久日志上被检查。该文案由 `@deepseek-ai/dsh-judge` 以其 `systemPrompt` 配置字段拥有；随附 preset 的 persona 是另一句独立的身份陈述，`complete: true` 使它成为完整的系统提示词，因此任何部署的提示词分节也都不会到达评审者。
+
+`judge/session` 携带本节所命名的四个字段，没有 `version`，这与屏障自己的三条记录不同。它的消费方是同一个包中的 invariant 伴生插件，后者读取会话 header 与派生历史，而不是载荷自身的词表。
+
+裁决词表是 `upheld | overturned | inconclusive`，在此选定是因为 [seam 笔记](2026-08-29-verification-improvement-oversight-seams.md)对此未作规定——它只命名了作为提示的 `oversight/flag`。三者皆未指明的回答记为 `inconclusive` 并携带该回答，因此没有作出判定的评审者不会被读成作出了 `upheld` 判定的评审者。
+
+评审者所重现的摘要是 `hashWorkspaceTree`，它从环境运行器移入 `@deepseek-ai/dsh-verification`，由两者共同引入。记录 `treeHash` 的执行器与从副本重新推导它的审计者不得在路径写法、排序或归一化上产生分歧，而同一摘要的两份实现终将产生分歧。
+
+评判 Consumer 位于 `packages/verification/judge/` 而不是 `oversight/` 组：它读取其证据所由构成的完成标准词表，以及其 preset 所声明的读取屏障角色，而监督 seam 的其他部分尚不存在，无从与它并列。
+
 ## The isolation ladder
 
 | 级别 | 它断言什么 | 所需强制执行 | 持久证据 |
@@ -141,7 +155,7 @@ read barrier 的 `Config` 新增了第四个字段 `isolationClaim`。下文的�
 4. **已落地。** 证书 invariant：`recordRun` 前置条件、伴生插件的规则、带 `agent-reported` 上限的 `VerificationCertificate.executor` 与 scorekeeper 的 `certificateExecutor` 事实、`read-barrier/attestation` 事件及其文件检验，以及 `CertificateIsolation` 的文档变更。`EnvironmentRunRequest.preset` 不在其中并已撤回：清单已经记录会话的角色，因此 `isolationProblem` 会拒绝未持有 `implementer` 的会话高于 `none` 的声明——该拒绝属于颁发证书的那次操作，而不属于运行请求上的第二个字段。`verification-domain` 的 `agent-reported` fixture 从 `process` 改为 `none`，这一直就是它的证据所支撑的级别。
 5. **已落地。** `SandboxPolicy` 与 `SandboxExecutionPolicy` 上的 `deniedReadRoots`、`dsh-sandbox-local` 各后端、`dsh-sandbox-policy` 从屏障的填充、`dsh-tool-fs-search` 中被约束的 ripgrep 启动，以及 workflow 引擎与进程外 subagent 提供方中的拒绝。这一切片才让 `process` 可被声明。
 6. **已落地。** 篡改：`dsh-environments` 中的 `task.immutable` 及其注册校验、运行器对检查所有路径的基线与逐尝试摘要、`verification/run` 上的 `verdict` 及 `recordRun` 的拒绝与伴生插件的规则、`dsh-trajectories` 中的 `tamper` 奖励依据，以及驱动运行器跑完一个环境（其 fixture 供给的测试正被实现者改写）的 `read-barrier-tamper` fixture 与快照。省略 `verdict` 的运行载荷按其结果解读，因为只有篡改无法由结果推出，因此未陈述裁定的手写日志会按其结果所描述的那次运行重放。
-7. 盲评审者：随附的 `system` 信任级评审者 preset、无谱系的创建路径、`judge/session` 事件，以及拒绝带种子评审者的 invariant。评审 Consumer 本身属于[seam 笔记](2026-08-29-verification-improvement-oversight-seams.md)的监督 seam。
+7. **已落地。** 盲评审者：随附的 `system` 信任级 `judge` preset（声明屏障新增的 `judge` 角色）、带无谱系创建路径与经摘要校验的工作区副本的 `@deepseek-ai/dsh-judge`、`judge/session` 与 `judge/verdict` 事件，以及拒绝来自这样一些会话的裁决的 invariant：携带父级、携带种子、没有 `judge/session`，或历史开头不是那三条消息。评判 Consumer 属于[seam 笔记](2026-08-29-verification-improvement-oversight-seams.md)的监督 seam；它随 `packages/verification/` 发布，缘由记于上文。`blind-judge` fixture 驱动它跑完一次真实的环境运行，同一组合的快照钉住评审者的指令与证据文案。
 
 ## Risks
 

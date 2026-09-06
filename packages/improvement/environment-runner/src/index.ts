@@ -11,8 +11,8 @@
  */
 
 import { createHash, randomUUID } from 'node:crypto'
-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
-import { dirname, isAbsolute, join, relative, sep } from 'node:path'
+import { cp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { dirname, isAbsolute, join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
@@ -28,7 +28,7 @@ import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
-import { caseChannelDigest, CHECK_CASE_CHANNELS, normalizeCaseBytes } from '@deepseek-ai/dsh-verification'
+import { caseChannelDigest, CHECK_CASE_CHANNELS, hashWorkspaceTree } from '@deepseek-ai/dsh-verification'
 import type {
   CaseExitClass,
   CertificateIsolation,
@@ -173,22 +173,6 @@ async function isDirectory(path: string): Promise<boolean> {
   }
 }
 
-/**
- * SHA-256 over every regular file under a directory: relative POSIX path, then
- * bytes, in sorted order. A case's `tree` channel passes its comparator's
- * normalizers, which are applied to each file's bytes before they are digested.
- */
-async function hashDirectory(root: string, normalizers: readonly CheckCaseNormalizer[] = []): Promise<string> {
-  const entries = await readdir(root, { recursive: true, withFileTypes: true })
-  const files = entries.filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name)).sort()
-  const hash = createHash('sha256')
-  for (const file of files) {
-    hash.update(relative(root, file).split(sep).join('/')).update('\0')
-      .update(normalizeCaseBytes(await readFile(file), normalizers)).update('\0')
-  }
-  return hash.digest('hex')
-}
-
 /** What one check-owned path digests to when nothing is there to read. */
 const ABSENT_DIGEST = 'absent'
 
@@ -200,7 +184,7 @@ const ABSENT_DIGEST = 'absent'
  * @returns the digest, or the absent marker.
  */
 async function hashCheckOwnedPath(path: string): Promise<string> {
-  if (await isDirectory(path)) return hashDirectory(path)
+  if (await isDirectory(path)) return hashWorkspaceTree(path)
   try {
     return createHash('sha256').update(await readFile(path)).digest('hex')
   } catch {
@@ -226,7 +210,7 @@ async function hashCheckOwned(
 ): Promise<string> {
   const hash = createHash('sha256')
   if (runDirectory !== undefined) {
-    hash.update(RESERVATION_KEY).update('\0').update(await hashDirectory(runDirectory)).update('\0')
+    hash.update(RESERVATION_KEY).update('\0').update(await hashWorkspaceTree(runDirectory)).update('\0')
   }
   for (const path of immutable) {
     hash.update(path).update('\0').update(await hashCheckOwnedPath(join(workspace, path))).update('\0')
@@ -248,7 +232,7 @@ async function prepareWorkspace(workspace: string, fixture: string | undefined):
     throw new EnvironmentRunError(`fixture "${fixture}" is not an existing absolute directory`, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
   }
   await cp(fixture, workspace, { recursive: true })
-  return hashDirectory(fixture)
+  return hashWorkspaceTree(fixture)
 }
 
 /**
@@ -260,7 +244,7 @@ async function prepareWorkspace(workspace: string, fixture: string | undefined):
  */
 async function restoreFixture(workspace: string, fixture: string | undefined): Promise<string> {
   if (fixture !== undefined) await cp(fixture, workspace, { recursive: true })
-  return hashDirectory(workspace)
+  return hashWorkspaceTree(workspace)
 }
 
 /**
@@ -422,7 +406,7 @@ async function caseMismatches(
         break
       case 'tree':
         // Authoring requires a treeScope for every check whose cases compare the tree.
-        if (await hashDirectory(scope as string, normalizers) !== body.expected.treeSha256) mismatched.add(channel)
+        if (await hashWorkspaceTree(scope as string, normalizers) !== body.expected.treeSha256) mismatched.add(channel)
         break
       /* v8 ignore next 2 -- CheckCaseChannel is closed and every member is handled above */
       default:
@@ -719,7 +703,7 @@ export class EnvironmentRunner extends Service {
       status: 'fail',
       evidence: bound(TAMPER_EVIDENCE, this.resolved.evidenceMaxChars),
     }))
-    const treeHash = await hashDirectory(workspace)
+    const treeHash = await hashWorkspaceTree(workspace)
     this.ctx.completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
       executor: 'runner',
       treeHash,

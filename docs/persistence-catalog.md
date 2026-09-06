@@ -529,6 +529,40 @@ Source: [`packages/hooks/hook-protocol/src/types.ts:19`](../packages/hooks/hook-
 
 Source: [`packages/hooks/hook-protocol/src/types.ts:31`](../packages/hooks/hook-protocol/src/types.ts)
 
+### `judge/*`
+
+<a id="judgesession--log-only"></a>
+
+#### `judge/session` — log-only
+
+```ts persistence-catalog
+/**
+ * The lineage assertion of one judge session: its own id, the session and
+ * attempt it audits, and the workspace digest its copy reproduced.
+ * Appended to the JUDGE's log before its first turn, so a verdict without
+ * one is a verdict from a session nothing established as a judge. Log-only
+ * — it never enters model history.
+ */
+'judge/session': JudgeSessionRecord
+```
+
+Source: [`packages/verification/judge/src/index.ts:62`](../packages/verification/judge/src/index.ts)
+
+<a id="judgeverdict--log-only"></a>
+
+#### `judge/verdict` — log-only
+
+```ts persistence-catalog
+/**
+ * One reached verdict: the audited session and attempt, what the judge
+ * decided, and the judge's own reason. Appended to the JUDGE's log after
+ * its turn settles. Log-only — it never enters model history.
+ */
+'judge/verdict': JudgeVerdictRecord
+```
+
+Source: [`packages/verification/judge/src/index.ts:68`](../packages/verification/judge/src/index.ts)
+
 ### `llm/*`
 
 <a id="llmretry--log-only"></a>
@@ -603,7 +637,7 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 'read-barrier/attestation': ReadBarrierAttestation
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:71`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:72`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="read-barrierdenied--log-only"></a>
 
@@ -618,7 +652,7 @@ Source: [`packages/verification/read-barrier/src/index.ts:71`](../packages/verif
 'read-barrier/denied': ReadBarrierDenial
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:57`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:58`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="read-barrierscope--log-only"></a>
 
@@ -635,7 +669,7 @@ Source: [`packages/verification/read-barrier/src/index.ts:57`](../packages/verif
 'read-barrier/scope': ReadBarrierScope
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:65`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:66`](../packages/verification/read-barrier/src/index.ts)
 
 ### `request/*`
 

@@ -1,6 +1,7 @@
 /**
  * The read barrier (`ctx.readBarrier`): the policy home for reads an
- * implementer session must not perform, in the role `dsh-sandbox-policy` plays
+ * `implementer` or `judge` session must not perform, in the role
+ * `dsh-sandbox-policy` plays
  * for sandbox mode and workspace root. It owns one validator-owned directory
  * tree, mints the per-run directory a validator writes its standard snapshot
  * and check scripts into, collects the directories other plugins register,
@@ -105,9 +106,23 @@ export const ENFORCED_CAPABILITY_SERVICES: Readonly<Record<ReadBarrierEnforcedCa
 }
 
 /**
+ * The roles the barrier denies, in the order the vocabulary declares them. A
+ * role outside this set holds every directory and every authority it was given.
+ */
+export const DENIED_ROLES: readonly ReadBarrierRole[] = ['implementer', 'judge']
+
+/** The article each role takes in the refusals that name it. */
+const ROLE_ARTICLE: Readonly<Record<ReadBarrierRole, string>> = {
+  implementer: 'an',
+  judge: 'a',
+  validator: 'a',
+  unrestricted: 'an',
+}
+
+/**
  * The first authority `role` may not hold, or `undefined` when it may hold
- * every one it was given. Every declared authority is denied to an
- * `implementer` and none to any other role: which authorities a role may hold
+ * every one it was given. Every declared authority is denied to a role in
+ * {@link DENIED_ROLES} and none to any other: which authorities a role may hold
  * is a security invariant rather than a deployment choice, and an authority
  * merged into `ToolAuthorityMap` later is denied by this same rule instead of
  * by being added to a list somewhere.
@@ -119,7 +134,7 @@ export function deniedAuthority(
   role: ReadBarrierRole,
   authority: readonly ToolAuthority[] | undefined,
 ): ToolAuthority | undefined {
-  if (role !== 'implementer') return undefined
+  if (!DENIED_ROLES.includes(role)) return undefined
   return authority?.[0]
 }
 
@@ -129,10 +144,11 @@ export function deniedAuthority(
  * at all.
  * @param tool - the tool name the call named.
  * @param authority - the denied authority its definition declares.
+ * @param role - the denied role the calling session holds.
  * @returns the exact guard-denial reason.
  */
-export function authorityDenialMessage(tool: string, authority: ToolAuthority): string {
-  return `"${tool}" carries the "${authority}" authority and is not callable in an implementer session`
+export function authorityDenialMessage(tool: string, authority: ToolAuthority, role: ReadBarrierRole): string {
+  return `"${tool}" carries the "${authority}" authority and is not callable in ${ROLE_ARTICLE[role]} ${role} session`
 }
 
 /**
@@ -162,14 +178,15 @@ function unclaimedRefusalReason(claim: ReadBarrierIsolationClaim): string {
 
 /**
  * The directories a resolved policy actually denies its holder: every denied
- * directory for an `implementer`, none for any other role. One place decides
- * which roles the denied set binds, so a process runner filling its own denial
- * and the in-process {@link ReadBarrierService.denies} test cannot disagree.
+ * directory for a role in {@link DENIED_ROLES}, none for any other. One place
+ * decides which roles the denied set binds, so a process runner filling its own
+ * denial and the in-process {@link ReadBarrierService.denies} test cannot
+ * disagree.
  * @param policy - the policy {@link ReadBarrierService.resolve} returned.
  * @returns the denied directories in force for that policy's role.
  */
 export function deniedReadRoots(policy: ReadBarrierPolicy): readonly string[] {
-  return policy.role === 'implementer' ? policy.denied : []
+  return DENIED_ROLES.includes(policy.role) ? policy.denied : []
 }
 
 /** The attestation file's decision inputs, read once per verification. */
@@ -643,8 +660,9 @@ export class ReadBarrierService extends Service {
   /** Deny one execution whose definition carries an authority this session's role forbids. */
   private guardExecution(agent: Agent, execution: Readonly<ToolExecution>): string | undefined {
     const definition = agent.ctx.get('tools')?.get(execution.name, agent)
-    const denied = deniedAuthority(this.roleOf(agent.session), definition?.authority)
-    return denied === undefined ? undefined : authorityDenialMessage(execution.name, denied)
+    const role = this.roleOf(agent.session)
+    const denied = deniedAuthority(role, definition?.authority)
+    return denied === undefined ? undefined : authorityDenialMessage(execution.name, denied, role)
   }
 
   /**

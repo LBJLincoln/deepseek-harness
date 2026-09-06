@@ -117,6 +117,8 @@ flowchart LR
   svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
   pkg_fs_read_barrier["fs-read-barrier"]
   pkg_environment_runner["environment-runner"]
+  pkg_judge["judge"]
+  svc_judge["ctx.judge<br/>Blind judge"]
   pkg_components["components"]
   svc_components["ctx.components<br/>Component registry"]
   pkg_components_tools["components-tools"]
@@ -261,6 +263,7 @@ flowchart LR
   pkg_invariants --> svc_invariants
   pkg_jobs --> svc_jobs
   pkg_jobs_local --> svc_jobs
+  pkg_judge --> svc_judge
   pkg_llm --> svc_llm
   pkg_llm_deepseek --> svc_llm
   pkg_llm_pi_ai --> svc_llm
@@ -506,6 +509,7 @@ flowchart LR
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | Owns one executable standard per goal, records certificates from fully passing runs, and denies uncertified goal completion inside the goal operation. |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | Owns the validator-owned directory tree, mints one run reservation per implementer session, and decides which directories that session may not read. |
+| `ctx.judge` | `core` | [`judge`](../packages/verification/judge) | - | - | - | Creates one lineage-free judge session per audited attempt over a verified copy of the implementer tree, and records the verdict it answers. |
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-tools`](../packages/components/components-tools), [`components-prompt`](../packages/components/components-prompt), [`components-presets`](../packages/components/components-presets), [`components-subagents`](../packages/components/components-subagents), [`components-manifest`](../packages/components/components-manifest), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it and the manifest writer records what one agent had in play. |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible; owns the environment/run stamp vocabulary. |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate. |

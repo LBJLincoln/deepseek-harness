@@ -74,6 +74,7 @@ export {
   normalizeCaseBytes,
   resolveAuthoredCases,
 } from './cases.ts'
+export { hashWorkspaceTree } from './tree.ts'
 export {
   applyVerificationEvent,
   decodeCertificateChange,

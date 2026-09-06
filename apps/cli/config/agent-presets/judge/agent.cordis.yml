@@ -1,0 +1,24 @@
+# The `judge` agent preset: the blind auditor of one recorded attempt.
+#
+# It composes exactly one row and no tool at all. A judge answers from the three
+# messages `@deepseek-ai/dsh-judge` puts in its session — its instruction, the
+# task, and the evidence — so any tool that opens a path, reads a session log,
+# or reports the live composition would let it reach the implementer's work and
+# lose the independence the arrangement exists for. `preset.yml` declares
+# `role: judge`, which is what makes the read barrier deny this session every
+# directory it owns and every tool authority, whatever else a deployment
+# happens to register globally.
+#
+# `complete: true` makes this persona the whole system prompt, so a deployment's
+# identity, tool guidance, and later prompt sections do not reach the judge;
+# `includeRuntimeContext: false` drops the runtime snapshots, whose workspace
+# and environment lines describe a copy the judge is not asked about.
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: >-
+      You are the judge of a blind audit. You did not run the task and cannot
+      reach the session that did: this conversation is the entire record
+      available to you, and there is nothing further to consult.
+    complete: true
+    includeRuntimeContext: false

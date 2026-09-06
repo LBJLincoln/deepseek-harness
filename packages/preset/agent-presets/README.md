@@ -80,9 +80,9 @@ role: implementer
 
 `id` is the directory name and `trust` comes from the root the preset was discovered under, so neither is writable here — otherwise a locally authored preset could name itself into the shipped set. It is a separate file because the composition is a top-level list of plugin rows: YAML cannot carry sibling keys beside it, and a fake metadata row would hand the Loader something to load.
 
-Every read failure degrades to no metadata — absent, malformed, wrongly typed, or blank all mean the same thing, and a picker falls back to the id. Presentation is not capability: a preset with a broken name still mounts. A `role` outside `implementer | validator | unrestricted` is no declaration, which leaves the composition exactly as unrestricted as it is without the key.
+Every read failure degrades to no metadata — absent, malformed, wrongly typed, or blank all mean the same thing, and a picker falls back to the id. Presentation is not capability: a preset with a broken name still mounts. A `role` outside `implementer | judge | validator | unrestricted` is no declaration, which leaves the composition exactly as unrestricted as it is without the key.
 
-`role` is the one authority claim the file carries, and it is what [`dsh-read-barrier`](../../verification/read-barrier/README.md) reads for every session composed from the preset. Absent means `unrestricted`, which is what every preset without the key declares and what leaves every shipped preset exactly as it is.
+`role` is the one authority claim the file carries, and it is what [`dsh-read-barrier`](../../verification/read-barrier/README.md) reads for every session composed from the preset. Absent means `unrestricted`, which is what every preset without the key declares and what leaves the four coding presets exactly as they are. The shipped `judge` preset is the one that declares a role: `judge`, whose sessions the barrier denies every directory it owns and every tool authority, and which composes one persona row and no tool at all ([`dsh-judge`](../../verification/judge/README.md) owns what a judge session is for).
 
 ## Config
 
@@ -135,9 +135,9 @@ The mounted subtree therefore overrides `write()` as a no-op. Nothing in this pa
 
 ## Trust
 
-Presets are compositions, so a preset is exactly as privileged as the plugins it names. A `user` preset — authored by a person or by an agent — carries the same trust as shell access; the `trust` field exists so consumers can present that difference, and for one field it also enforces it: a `user`-trust preset declaring `role: validator` is listed `broken` rather than mounted, because `validator` is the role the barrier denies nothing and a locally authored preset naming itself one would grant itself every read the barrier exists to refuse. `implementer` and `unrestricted` are accepted from any root, because neither adds reach.
+Presets are compositions, so a preset is exactly as privileged as the plugins it names. A `user` preset — authored by a person or by an agent — carries the same trust as shell access; the `trust` field exists so consumers can present that difference, and for one field it also enforces it: a `user`-trust preset declaring `role: validator` is listed `broken` rather than mounted, because `validator` is the role the barrier denies nothing and a locally authored preset naming itself one would grant itself every read the barrier exists to refuse. `implementer`, `judge`, and `unrestricted` are accepted from any root, because none of them adds reach.
 
-`mountPreset` audits the composition against the declared role after the subtree settles, beside the inactive-row check, and rejects the mount when an `implementer` preset composes a tool whose definition carries any [tool authority](../../core/tools/README.md). The audit reads the tool registry as the scope the preset mounted into resolves it, so it covers the preset's own rows and every inherited global row alike. The refusal names what to remove and is reported unwrapped rather than inside a "failed to mount" wrapper:
+`mountPreset` audits the composition against the declared role after the subtree settles, beside the inactive-row check, and rejects the mount when an `implementer` or `judge` preset composes a tool whose definition carries any [tool authority](../../core/tools/README.md). The audit reads the tool registry as the scope the preset mounted into resolves it, so it covers the preset's own rows and every inherited global row alike. The refusal names what to remove and is reported unwrapped rather than inside a "failed to mount" wrapper:
 
 ```markdown
 agent-presets: preset "<id>" declares role "<role>" but composes "<tool>", which carries the "<authority>" authority
