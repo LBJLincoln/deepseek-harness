@@ -89,6 +89,16 @@ interface DeepSeekDefaultsServer {
   close(): Promise<void>
 }
 
+// The keep-alive cadence and the fixture's `streamIdleTimeoutMs: 800` are one
+// mechanism: every comment must reach the adapter inside the idle window, and
+// the last one must land past it, so the completion arrives only because
+// comments reset the timer. `KEEP_ALIVE_INTERVAL_MS * KEEP_ALIVE_COUNT` exceeds
+// that window, while the interval itself leaves a stall budget many times the
+// nominal gap — a loaded host that delays one timer must not turn this into a
+// `TIMEOUT` the retry policy would answer with a second provider request.
+const KEEP_ALIVE_INTERVAL_MS = 50
+const KEEP_ALIVE_COUNT = 20
+
 /** Serve one deterministic DeepSeek-compatible response while retaining its request body. */
 async function deepseekDefaultsServer(): Promise<DeepSeekDefaultsServer> {
   const requests: JsonObject[] = []
@@ -99,11 +109,11 @@ async function deepseekDefaultsServer(): Promise<DeepSeekDefaultsServer> {
     request.on('end', () => {
       requests.push(JSON.parse(body) as JsonObject)
       response.writeHead(200, { 'content-type': 'text/event-stream' })
-      let keepAlives = 3
+      let keepAlives = KEEP_ALIVE_COUNT
       const write = (): void => {
         if (keepAlives-- > 0) {
           response.write(': keep-alive\n\n')
-          setTimeout(write, 60)
+          setTimeout(write, KEEP_ALIVE_INTERVAL_MS)
           return
         }
         response.end([
@@ -113,7 +123,7 @@ async function deepseekDefaultsServer(): Promise<DeepSeekDefaultsServer> {
           '',
         ].join('\n\n'))
       }
-      setTimeout(write, 60)
+      setTimeout(write, KEEP_ALIVE_INTERVAL_MS)
     })
   })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))

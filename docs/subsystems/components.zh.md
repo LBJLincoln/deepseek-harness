@@ -112,7 +112,7 @@ interface ComponentListOptions extends ComponentViewOptions {
 
 每个适配器跟随其 seam 自身的变更通知——`tools/change`、`system-prompt/change`、`agent/created` 与 `agent-preset/selected`、`skills/change`、`internal/status` 与 `loader/partial-dispose` 与 `cordis/dynamic-changed`、`subagent/provider-added` 与 `subagent/provider-removed`——因此上游释放的注册在下游随之消失，而释放适配器的 fiber 会移除它注册的全部组件。
 
-一个 skill 在其正文被加载后才算在用，而不是被列出后：`ctx.skills.list()` 返回摘要，因此 `components-skills` 从每次加载的记录注册——`skill` 工具已结算的 `tools/result`，以及用户显式 `/name` 注入的 `skill-invocation` 消息来源——并在 `skills/change` 上重放该次查找，为就地编辑的正文重新寻址。一个动态包在其某个版本运行后才算在用：`components-packages` 通过挂载它的 agent 自己的上下文注册它，并标记 `provenance: 'synthesized'`，因此指名它的清单可与人工筛选的组合区分开。
+一个 skill 在其正文被加载后才算在用，而不是被列出后：`ctx.skills.list()` 返回摘要，因此 `components-skills` 从每次加载的记录取出被加载的名称——`skill` 工具已结算的 `tools/result`，以及用户显式 `/name` 注入的 `skill-invocation` 消息来源——通过 `ctx.skills` 重新读取该正文以取得其地址，并在 `skills/change` 上重放同一次查找，为就地编辑的正文重新寻址。该地址从不随工具结果传递：code mode 会把输出声明渲染进系统提示词，因此那里的逐代摘要将成为模型可见内容，并在每次 skill 编辑时移动提示词的可重用前缀。一个动态包在其某个版本运行后才算在用：`components-packages` 通过挂载它的 agent 自己的上下文注册它，并标记 `provenance: 'synthesized'`，因此指名它的清单可与人工筛选的组合区分开。
 
 ## 组合清单
 
