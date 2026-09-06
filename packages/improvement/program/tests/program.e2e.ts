@@ -32,6 +32,7 @@ const RESTART_LABEL = 'restart'
 interface LedgerLine {
   sessionId: string
   events: { type: string; data: unknown }[]
+  signoffs: string[]
 }
 
 interface MemberLine {
@@ -115,7 +116,9 @@ describe('the program ledger through a real cordis.yml, killed and restarted', (
     expect(opened.programId).toBe(first.report.programId)
     expect(opened.specSha256).toBe(first.report.programId.replace('program-', ''))
     expect(opened.baseRevision).toBe('base')
-    expect(opened.signoff).toMatchObject({ principal: 'program-fixture' })
+    expect(opened.signoff).toEqual({ artefactSha256: 'f'.repeat(64) })
+    // Both signatures the deployment requires live in the program's own log.
+    expect(ledger.signoffs).toEqual(['spec-freeze', 'release'])
 
     // The dependent goal only ever runs after the goal it depends on certified.
     expect(statuses(ledger, 'api')).toEqual(['pending', 'running', 'certified', 'merged'])

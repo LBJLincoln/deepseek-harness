@@ -59,7 +59,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 ### 治理
 
-五个转换在没有指明主体与制品哈希的 `signoff/recorded` 事件之前绝不完成：规范冻结、放宽安全或合规检查、评审接受、发布，以及训练数据发布；每个客户区会话自创建起携带 `dataUse/terms`；导出器在没有脱敏配置时拒绝运行；发布原始摘录是一次签署的决定；欧盟 AI 法案的严重事件通道与失败博客分离并转交法务；任何可能接近系统性风险算力阈值的训练运行在 `ModelLineage` 及其阈值告警存在之前都不启动；在配对实验纪律与使之可验证的隔离证明到位之前，不出现任何对竞争对手模型的点名比较。
+五个转换在没有指明主体与制品哈希的 `signoff/recorded` 事件之前绝不完成：规范冻结、放宽安全或合规检查、评审接受、发布，以及训练数据发布；每个客户区会话自创建起携带 `dataUse/terms`。这两类记录已作为 `@deepseek-ai/dsh-signoff` 与 `@deepseek-ai/dsh-data-use` 落地（[可归属决定笔记](2026-09-06-attributable-decisions.md)），与之并列的还有 `approval/decided` 上的 `decidedBy` 与参数摘要，程序账本的规范冻结与发布也已依据已记录的签名把关；在身份提供方与导出器接入出现之前，签名只被记录而未被认证，条款也只被记录而未被执行。导出器在没有脱敏配置时拒绝运行；发布原始摘录是一次签署的决定；欧盟 AI 法案的严重事件通道与失败博客分离并转交法务；任何可能接近系统性风险算力阈值的训练运行在 `ModelLineage` 及其阈值告警存在之前都不启动；在配对实验纪律与使之可验证的隔离证明到位之前，不出现任何对竞争对手模型的点名比较。
 
 ## Council review
 
@@ -101,7 +101,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
 3. **无人值守的班次。** 已在[班次笔记](2026-09-05-village-shifts.md)中设计：班次身份与 `shift/*` 账本、从 stamp 恢复且绝不重跑的 cell、按区的节奏，以及跨班次的 token 花费窗口；其切片落地后，主机级监督进程退为后备。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。
-5. **公开的 Workshop 与摘录披露。** 需要 `signoff/recorded`、`dataUse/terms`、强制脱敏与信任档案导出。
+5. **公开的 Workshop 与摘录披露。** 已落地：覆盖五个转换的 `signoff/recorded`、在会话启动时钉定的 `dataUse/terms`，以及 `approval/decided` 上的 `decidedBy` 与参数摘要。仍需：强制脱敏、由导出器读取已钉定的条款，以及信任档案导出。
 6. **任何外联。** 需要 `external-communication` 权限与可拒绝的 monitor。
 7. **实时观测台。** 已落地：[`@deepseek-ai/dsh-observatory`](../../../../packages/improvement/observatory/README.md) 在全部持久化会话上折叠记分板，把配置的区与留出划分扣留在公开行之外并对两者计数，并渲染出一个自包含页面与一份 JSON 文档，携带诚实列集、超过阈值后取代全部数字的陈旧提示，以及它被折叠所依的批量刷新间隔。仍需要：作为带缓存会话投影的排行榜，它尚无 seam，因为 `ProjectionDefinition` 与投影缓存都以单个会话为键；[观测台 note](2026-09-06-observatory.md) 记录了这一选择。
 8. **供给 W3。** 已落地，见 [W3 feed-fields note](2026-09-06-w3-feed-fields.md)：`LlmCallConfig` 上的 `seed` 与 `topP`，DeepSeek 适配器序列化两者；`environment/run` stamp 上的 `policyVersion` 与 `seed`，由 fleet（基准种子加重复序号）、experiments 与 shifts 转发；以及注册表的近重复准入和供 curator 使用的 `nearestHeldOut`。仍然需要：轨迹折叠中被掩码的终止原因，好让被截断、被中止或供应商报错的会话不再被记为失败；以及设备槽位预算。

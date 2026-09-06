@@ -103,4 +103,39 @@ describe('approval invariants', () => {
     expect(() => session.append('approval/policy', { policy: 'always' as never }))
       .toThrow(/unknown policy/)
   })
+
+  it('rejects a decision that states other arguments than its question did', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create()
+    startTurn(session)
+    const digest = 'a'.repeat(64)
+    const asked = ApprovalRequestId('ask-digest')
+    session.append('approval/asked', { id: asked, toolName: 'bash', argumentsSha256: digest })
+    expect(() => session.append('approval/decided', { id: asked, outcome: 'allowed-once', argumentsSha256: 'b'.repeat(64) }))
+      .toThrow(/which its approval\/asked recorded as/)
+    expect(() => session.append('approval/decided', { id: asked, outcome: 'allowed-once' }))
+      .toThrow(/carries argumentsSha256 undefined/)
+    session.append('approval/decided', { id: asked, outcome: 'allowed-once', argumentsSha256: digest })
+
+    const bare = ApprovalRequestId('ask-bare')
+    session.append('approval/asked', { id: bare, toolName: 'bash' })
+    expect(() => session.append('approval/decided', { id: bare, outcome: 'rejected', argumentsSha256: digest }))
+      .toThrow(/recorded as undefined/)
+    session.append('approval/decided', { id: bare, outcome: 'rejected' })
+  })
+
+  it('rejects a principal a reader could not address', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create()
+    startTurn(session)
+    const id = ApprovalRequestId('ask-principal')
+    session.append('approval/asked', { id, toolName: 'bash' })
+    expect(() => session.append('approval/decided', {
+      id, outcome: 'rejected', decidedBy: { kind: 'daemon' as never, id: 'x' },
+    })).toThrow(/decidedBy kind "daemon"/)
+    expect(() => session.append('approval/decided', {
+      id, outcome: 'rejected', decidedBy: { kind: 'policy', id: '' },
+    })).toThrow(/empty decidedBy id/)
+    session.append('approval/decided', { id, outcome: 'rejected', decidedBy: { kind: 'human', id: 'operator-7' } })
+  })
 })

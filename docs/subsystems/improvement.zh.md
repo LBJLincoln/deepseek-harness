@@ -273,7 +273,7 @@ interface ProgramSpec {
   readonly goals: readonly ProgramGoalSpec[]
   /** What the merged head is certified against. */
   readonly integration: ProgramIntegrationSpec
-  /** The spec-freeze record; required by `requireSignoff`. */
+  /** The artefact the program's signatures attest; required by `requireSignoff`. */
   readonly signoff?: ProgramSignoff
   /** Input plus output tokens every session of the program may sum to. */
   readonly tokenCeiling?: number
@@ -494,8 +494,8 @@ Programs (`ctx.programs`): a durable, resumable ledger over one deliverable's go
  * ledger instead of forking a second one.
  * @param spec - the deliverable to run.
  * @returns the ledger this pass left behind.
- * @throws {@link ProgramError} when the spec, its presets, or the required
- *   signoff record cannot support a program.
+ * @throws {@link ProgramError} when the spec, its presets, or the spec-freeze
+ *   signature the program session must carry cannot support a program.
  */
 async start(spec: ProgramSpec): Promise<ProgramReport>
 
@@ -511,7 +511,7 @@ async start(spec: ProgramSpec): Promise<ProgramReport>
 async resume(): Promise<ProgramReport[]>
 ```
 
-Source: [`packages/improvement/program/src/index.ts:210`](../../packages/improvement/program/src/index.ts)
+Source: [`packages/improvement/program/src/index.ts:212`](../../packages/improvement/program/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 

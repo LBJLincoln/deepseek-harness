@@ -21,7 +21,7 @@ Programs: the durable ledger of one client deliverable decomposed into many goal
 | Field | Meaning |
 |---|---|
 | `workspaceRoot` (required) | The git repository the program delivers into. Every worktree is minted under it at `<workspaceRoot>/<programId>/<key>`, so the deployment points it at a checkout whose `baseRevision` the program's branches start from. It must be an absolute path the composed shell can carry unquoted, which the plugin checks at load. |
-| `requireSignoff` (required) | Whether a program without a `signoff` record may start departments or release. A client district sets it; both refusals carry `PROGRAM_SIGNOFF_REQUIRED`. |
+| `requireSignoff` (required) | Whether the program session must carry a `signoff/recorded` before departments start and before the program releases. A client district sets it; both refusals carry `PROGRAM_SIGNOFF_REQUIRED`. |
 | `maxConcurrentGoals` (required) | Departments of one program that run at the same time. Dependencies bound this further: a goal starts only once every goal it depends on has certified. |
 | `maxGoalRounds` (required) | The round cap every department and integration goal is created with, and the number of validation attempts this service drives before recording a department `failed`. |
 | `branchPrefix` (required) | Branch namespace of every worktree: `<branchPrefix>/<programId>/<key>`. Lower-kebab-case git ref components. |
@@ -33,7 +33,11 @@ The service requires `agents`, `agentDefaultModel`, `agentPresets`, `completionS
 
 `ctx.programs.start(spec)` validates and freezes the spec, resolves its presets, and drives the program the spec identifies: a program whose session does not exist yet is opened, one whose session exists is reconciled instead of forked, and one whose ledger already carries a closing record is reported unchanged. `ctx.programs.resume()` reconciles every program in the persistence root whose ledger has no closing record and carries it on; the plugin runs it once over the settled Loader tree, and an operator or driver may call it again. Both entry points run through one queue, so no program is ever driven by two passes at once.
 
-`programSpecDigest(spec)` is the SHA-256 hex over the canonical spec: the objective, the base revision, the token ceiling, the goals sorted by key with each goal's dependencies sorted, and the integration's checks and gates in authored order. `signoff` is excluded — it attests the spec rather than stating what the program runs, so the same goals signed by two principals are one program. `program-<digest>` is the program id, the program session's id, and the prefix of every department session id (`<programId>-<key>`), which is what makes "one session per key" a property of the identity rather than of a lookup.
+`programSpecDigest(spec)` is the SHA-256 hex over the canonical spec: the objective, the base revision, the token ceiling, the goals sorted by key with each goal's dependencies sorted, and the integration's checks and gates in authored order. `signoff` is excluded — it names the artefact the program's signatures attest rather than what the program runs, so the same goals signed over two artefacts are one program. `program-<digest>` is the program id, the program session's id, and the prefix of every department session id (`<programId>-<key>`), which is what makes "one session per key" a property of the identity rather than of a lookup.
+
+### The two signatures
+
+Under `requireSignoff: true`, opening a program reads `signoff/recorded { transition: 'spec-freeze' }` from the program session and releasing reads `signoff/recorded { transition: 'release' }` before `program/end { outcome: released }`; each must attest the digest `spec.signoff.artefactSha256` names, and this service never writes one. The caller records them through `ctx.signoffs` ([`@deepseek-ai/dsh-signoff`](../../governance/signoff/README.md)) on the session `programIdFor(programSpecDigest(resolveProgramSpec(spec)))` addresses — derivable before the program exists, because the program id is the spec digest. `start` continues that log rather than replacing it, so the signatures stay in the same session as the ledger. A program whose release signature is missing refuses at the closing edge and stays open: the next pass reconciles it from its departments and releases once the signature is recorded.
 
 `resolveProgramSpec(spec)` refuses a spec before anything runs: a key that is not lower-kebab-case or declared twice, a dependency on itself, on an unknown key, or stated twice, a dependency cycle, a budget field that is not a finite non-negative number, a goal with no check, a repeated check id, an integration that declares neither a check nor a gate, and an integration check claiming a `gate-<n>` id the gates own.
 
@@ -43,7 +47,7 @@ The service creates one session per program and appends to it, flushing at every
 
 | Event | Written when | Payload |
 |---|---|---|
-| `program/start` | Before any department exists | `programId`, `specSha256`, the frozen `spec`, `baseRevision`, and `signoff` when one was supplied |
+| `program/start` | Before any department exists | `programId`, `specSha256`, the frozen `spec`, `baseRevision`, and `signoff` — the attested artefact digest — when the spec named one |
 | `program/goal` | Once per status change, after the fact it records is durable | `programId`, `key`, `status`, and the `sessionId`, `workspace`, `revision`, or `reason` that status carries |
 | `program/integration` | When the merged worktree exists, then when it certifies or fails | `programId`, `status` (`running`, `certified`, `failed`), `mergedRevision`, `sessionId`, `reason` |
 | `program/resume` | When a later process picks the program up | `programId` and the reconciled count per status over every goal of the spec |
@@ -83,7 +87,8 @@ Independent per department: each department and the integration is its own sessi
 ## Known Limitations and Deferred Work
 
 - **The scorekeeper does not fold programs** — the `program/member` stamp is written for it, but no facts group reads it yet, so a program's spend and certification rates are read by hand from the ledger and the member sessions.
-- **The signoff is an assertion, not a proof** — `requireSignoff` gates on a caller-supplied record with no attributable principal. It becomes a proof when the governance rollout's `signoff/recorded` event exists.
+- **A signature is recorded, not authenticated** — `requireSignoff` gates on a `signoff/recorded` whose principal the deployment's identity provider supplied; nothing here or in `@deepseek-ai/dsh-signoff` verifies that the id names the person who signed.
+- **The release signature is read at the closing edge only** — a program whose spec freeze is signed but whose release is not runs every department and its integration before refusing, so the refused pass costs the whole program's work; nothing asks for the release signature earlier.
 - **One program at a time per process** — every pass runs through one queue, so two programs started concurrently are driven one after the other. Concurrency inside a program is what `maxConcurrentGoals` bounds.
 - **A blocked department needs an operator** — the ledger records the blocking code and stops; nothing re-arms a blocked goal, so a program with one ends `failed` until a person resumes that goal through the goal domain and starts the program again.
 - **Departments claim their isolation without staging their checks** — the run directory is reserved so the barrier records the session as an implementer, but check scripts are not staged there, so a goal declaring `isolation` above `none` is refused by the verification domain unless the session's own census proves the claim.

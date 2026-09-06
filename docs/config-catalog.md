@@ -606,6 +606,37 @@ export interface Config {
 
 Source: [`packages/credentials/credentials-local/src/index.ts:55`](../packages/credentials/credentials-local/src/index.ts)
 
+<a id="deepseek-aidsh-data-use"></a>
+
+## `@deepseek-ai/dsh-data-use`
+
+```ts config-catalog
+/** The deployment's default terms, validated from `cordis.yml`. */
+export interface Config {
+  /** The client every session of this deployment belongs to. */
+  clientId: string
+  /** The agreement the terms come from. */
+  agreementId: string
+  /** Non-empty subset of {@link DATA_USE_PURPOSES}, each named once. */
+  purposes: DataUsePurpose[]
+  /** Region the transcripts may live in. */
+  residency: string
+  /** Positive number of days a transcript is kept. */
+  retentionDays: number
+  /** Versioned redaction profile an export applies. */
+  redactionProfile: string
+}
+
+/**
+ * What a session's transcript may serve: `delivery` is the client work itself,
+ * `training` admits it to a training corpus, `evaluation` admits it to
+ * measurement. A session carries the subset its agreement grants.
+ */
+export type DataUsePurpose = 'delivery' | 'training' | 'evaluation'
+```
+
+Source: [`packages/governance/data-use/src/index.ts:50`](../packages/governance/data-use/src/index.ts)
+
 <a id="deepseek-aidsh-e2b"></a>
 
 ## `@deepseek-ai/dsh-e2b`
@@ -1627,7 +1658,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/program/src/index.ts:107`](../packages/improvement/program/src/index.ts)
+Source: [`packages/improvement/program/src/index.ts:109`](../packages/improvement/program/src/index.ts)
 
 <a id="deepseek-aidsh-pwsh-local"></a>
 
@@ -2247,6 +2278,22 @@ export interface ShiftSpendWindowConfig {
 Depends on: `EnvironmentRunModel` (`@deepseek-ai/dsh-environments/types`) · `FleetEnvironmentSelection` (`@deepseek-ai/dsh-fleet/types`)
 
 Source: [`packages/improvement/shifts/src/index.ts:87`](../packages/improvement/shifts/src/index.ts)
+
+<a id="deepseek-aidsh-signoff"></a>
+
+## `@deepseek-ai/dsh-signoff`
+
+```ts config-catalog
+/** Deployment bounds on one durable record, validated from `cordis.yml`. */
+export interface Config {
+  /** Positive maximum number of evidence pointers one record may carry. */
+  maxEvidence: number
+  /** Positive maximum length in characters of one evidence `kind` or `ref`. */
+  maxEvidenceRefChars: number
+}
+```
+
+Source: [`packages/governance/signoff/src/index.ts:58`](../packages/governance/signoff/src/index.ts)
 
 <a id="deepseek-aidsh-skill"></a>
 
@@ -3262,7 +3309,7 @@ export interface Config {
 export type ApprovalPolicy = 'ask' | 'never'
 ```
 
-Source: [`packages/interaction/user-approval/src/index.ts:177`](../packages/interaction/user-approval/src/index.ts)
+Source: [`packages/interaction/user-approval/src/index.ts:259`](../packages/interaction/user-approval/src/index.ts)
 
 <a id="deepseek-aidsh-verification"></a>
 

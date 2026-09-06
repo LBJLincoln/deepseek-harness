@@ -197,10 +197,10 @@ describe('programSpecDigest', () => {
     expect(uncapped).not.toBe(capped)
   })
 
-  it('is unchanged by the signoff record, which attests the spec rather than stating it', () => {
+  it('is unchanged by the attested artefact, which the signatures cover rather than the program', () => {
     const base = resolveProgramSpec(spec())
     const signed = resolveProgramSpec(spec([goal()], {
-      signoff: { principal: 'release-manager', artefactSha256: 'a'.repeat(64) },
+      signoff: { artefactSha256: 'a'.repeat(64) },
     }))
     expect(programSpecDigest(signed)).toBe(programSpecDigest(base))
   })

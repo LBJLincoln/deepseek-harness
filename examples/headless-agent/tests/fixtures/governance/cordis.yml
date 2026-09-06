@@ -1,0 +1,63 @@
+# Test-only composition: one client-district session under the governance
+# plugins — its data-use terms pinned before the first turn, its commands
+# decided through the approval seam, and its transitions signed into the same
+# log the model's turn writes.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+# The strict headless stance: every ask this composition raises is rejected by
+# the service itself, which is the one decision it attributes to a policy.
+- id: user-approval
+  name: '@deepseek-ai/dsh-user-approval'
+  config:
+    policy: never
+
+- id: approval-gate
+  name: './approval-gate.ts'
+
+- id: signoff
+  name: '@deepseek-ai/dsh-signoff'
+  config:
+    maxEvidence: 8
+    maxEvidenceRefChars: 512
+
+# The agreement this district works under. `training` is deliberately absent:
+# the driver's widening pin is refused against exactly these purposes.
+- id: data-use
+  name: '@deepseek-ai/dsh-data-use'
+  config:
+    clientId: acme-industrial
+    agreementId: msa-2026-11
+    purposes:
+      - delivery
+      - evaluation
+    residency: eu-west
+    retentionDays: 90
+    redactionProfile: client-v3
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    agents:
+      - id: main
+        provider: cli-mock
+        model: cli-mock
+        cwd: !!js process.cwd()
+    persona: 'Work one client task under this district''s data-use terms.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

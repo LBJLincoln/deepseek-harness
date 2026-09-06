@@ -4,7 +4,7 @@
  * @module @deepseek-ai/dsh-user-approval
  */
 
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { Agent } from '@deepseek-ai/dsh-agent'
@@ -21,13 +21,15 @@ declare module '@deepseek-ai/cordis' {
 
   interface Events {
     /**
-     * Ask composed answerers for one decision. Return an outcome to claim the
-     * request or call `next()`; failure yields the fail-closed default.
+     * Ask composed answerers for one decision. Return an outcome — bare, or as
+     * `{ outcome, decidedBy }` when the answerer knows which person or rule
+     * decided — to claim the request, or call `next()`; failure yields the
+     * fail-closed default.
      * Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
-     * @param req - the pending decision (agent, tool identity, reason, signal).
+     * @param req - the pending decision (agent, tool identity, arguments, reason, signal).
      * @mode waterfall
      */
-    'approval/request'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalOutcome>): Promise<ApprovalOutcome>
+    'approval/request'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalAnswer>): Promise<ApprovalAnswer>
   }
 }
 
@@ -39,22 +41,30 @@ declare module '@deepseek-ai/dsh-session/types' {
      * it with the `approval/decided` that always follows; `toolName` is the
      * tool the question is about, `callId` the exact tool call when the asker
      * had one, `reason` the asker's human-readable explanation (e.g. a hook's
-     * permission-decision reason).
+     * permission-decision reason), `argumentsSha256` the digest of the
+     * arguments the asker handed the seam, absent when it handed none.
      */
     'approval/asked': {
       id: ApprovalRequestId
       toolName: string
       callId?: CallId
       reason?: string
+      argumentsSha256?: string
     }
     /**
      * The outcome of a prior `approval/asked` (same `id`) — log-only audit.
      * Exactly one per ask, appended when the outcome is known: a decision, a
-     * cancellation, or the fail-closed `'unavailable'`.
+     * cancellation, or the fail-closed `'unavailable'`. `decidedBy` names the
+     * person or rule that reached the outcome, absent when nothing claimed it
+     * (a withdrawn request, an unavailable answerer, an unattributed answer);
+     * `argumentsSha256` repeats the digest of the ask, so a decision states
+     * what it decided on without a reader joining two events.
      */
     'approval/decided': {
       id: ApprovalRequestId
       outcome: ApprovalOutcome
+      decidedBy?: ApprovalPrincipal
+      argumentsSha256?: string
     }
     /**
      * The session's approval policy was switched — log-only, durable,
@@ -73,13 +83,78 @@ declare module '@deepseek-ai/dsh-session/types' {
 }
 
 import { ApprovalRequestId } from './types.ts'
-import type { ApprovalOutcome } from './types.ts'
+import type { ApprovalOutcome, ApprovalPrincipal } from './types.ts'
 
 export { ApprovalRequestId } from './types.ts'
-export type { ApprovalOutcome } from './types.ts'
+export type { ApprovalOutcome, ApprovalPrincipal } from './types.ts'
 
 /** Every {@link ApprovalOutcome}, for runtime normalization of answerer returns. */
 const OUTCOMES: readonly ApprovalOutcome[] = ['allowed-once', 'rejected', 'cancelled', 'unavailable']
+
+/** Every {@link ApprovalPrincipal} kind, for durable-record validation. */
+export const APPROVAL_PRINCIPAL_KINDS: readonly ApprovalPrincipal['kind'][] = ['human', 'policy']
+
+/** Principal the service records for the `'never'` policy's own deterministic rejection. */
+export const APPROVAL_POLICY_NEVER_PRINCIPAL: ApprovalPrincipal = { kind: 'policy', id: 'approval-policy:never' }
+
+/**
+ * One answerer's reply: the bare outcome, or the outcome together with the
+ * person or rule that reached it. Answerers that cannot name a principal keep
+ * returning the bare outcome.
+ */
+export type ApprovalAnswer =
+  | ApprovalOutcome
+  | { readonly outcome: ApprovalOutcome; readonly decidedBy: ApprovalPrincipal }
+
+/** One settled question as {@link ApprovalService.request} records it. */
+interface ApprovalDecision {
+  readonly outcome: ApprovalOutcome
+  readonly decidedBy?: ApprovalPrincipal
+}
+
+/**
+ * Read one answerer's reply as a decision. The parameter is `unknown` because
+ * an answerer is plugin code that can return anything the declared union
+ * forbids; every value outside the closed vocabulary — including an attributed
+ * answer whose outcome is not one — normalizes to the fail-closed outcome with
+ * no principal, instead of leaking into callers' closed-union switches.
+ * @param answer - whatever the waterfall returned.
+ * @returns the closed decision the audit pair records.
+ */
+function normalizeAnswer(answer: unknown): ApprovalDecision {
+  if (typeof answer === 'string') {
+    return { outcome: OUTCOMES.includes(answer as ApprovalOutcome) ? answer as ApprovalOutcome : 'unavailable' }
+  }
+  if (answer === null || typeof answer !== 'object') return { outcome: 'unavailable' }
+  const { outcome, decidedBy } = answer as { outcome?: unknown; decidedBy?: ApprovalPrincipal }
+  if (!OUTCOMES.includes(outcome as ApprovalOutcome)) return { outcome: 'unavailable' }
+  return {
+    outcome: outcome as ApprovalOutcome,
+    ...decidedBy === undefined ? {} : { decidedBy },
+  }
+}
+
+/** Recursively order object keys so two equal argument values encode identically. */
+function canonicalArguments(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalArguments)
+  if (typeof value !== 'object' || value === null) return value
+  const entries = value as Record<string, unknown>
+  const ordered: Record<string, unknown> = {}
+  for (const key of Object.keys(entries).sort()) ordered[key] = canonicalArguments(entries[key])
+  return ordered
+}
+
+/**
+ * The digest an audit pair records for one decided call's arguments: the
+ * lowercase SHA-256 hex over the JSON encoding of the arguments with every
+ * object's keys ordered, so a reader recomputing it from the same arguments
+ * gets the same digest regardless of the order the model emitted them in.
+ * @param args - the losslessly JSON-serializable arguments the asker supplied.
+ * @returns the 64-character lowercase hex digest.
+ */
+export function approvalArgumentsDigest(args: unknown): string {
+  return createHash('sha256').update(JSON.stringify({ arguments: canonicalArguments(args) }), 'utf8').digest('hex')
+}
 
 /**
  * A session's approval policy — what happens to an {@link ApprovalService}
@@ -164,6 +239,13 @@ export interface ApprovalRequest {
    * attach the prompt to the tool call it already streamed.
    */
   readonly callId?: CallId
+  /**
+   * The losslessly JSON-serializable arguments being decided, when the asker
+   * has them. The seam digests them into the audit pair so a decision states
+   * what it decided on; an asker whose subject is not a set of tool arguments
+   * — a sandbox escalation states its subject in `reason` — omits them.
+   */
+  readonly arguments?: unknown
   /** The asker's human-readable explanation of WHY it is asking. */
   readonly reason?: string
   /**
@@ -264,15 +346,26 @@ export class ApprovalService extends Service {
       )
     }
     const id = ApprovalRequestId(randomUUID())
+    // Digested once, before any answerer runs, and repeated on the decision:
+    // the pair then states one argument value that no later answerer could
+    // have changed under it.
+    const argumentsSha256 = req.arguments === undefined ? undefined : approvalArgumentsDigest(req.arguments)
+    const digested = argumentsSha256 === undefined ? {} : { argumentsSha256 }
     session.append('approval/asked', {
       id,
       toolName: req.toolName,
       ...req.callId !== undefined ? { callId: req.callId } : {},
       ...req.reason !== undefined ? { reason: req.reason } : {},
+      ...digested,
     })
-    const outcome = await this.decide(req, session)
-    session.append('approval/decided', { id, outcome })
-    return outcome
+    const decision = await this.decide(req, session)
+    session.append('approval/decided', {
+      id,
+      outcome: decision.outcome,
+      ...decision.decidedBy === undefined ? {} : { decidedBy: decision.decidedBy },
+      ...digested,
+    })
+    return decision.outcome
   }
 
   /**
@@ -299,46 +392,49 @@ export class ApprovalService extends Service {
    * Dispatch the waterfall, contained and raced against the request signal.
    * @param req - the borrowed public request.
    * @param session - the request agent's session used for policy lookup.
-   * @returns the normalized closed outcome.
+   * @returns the normalized closed outcome and, when one claimed it, the principal.
    */
-  private async decide(req: ApprovalRequest, session: Session): Promise<ApprovalOutcome> {
+  private async decide(req: ApprovalRequest, session: Session): Promise<ApprovalDecision> {
     const signal = req.signal
-    if (signal?.aborted) return 'cancelled'
+    if (signal?.aborted) return { outcome: 'cancelled' }
     // The 'never' policy is decided HERE, before any dispatch: a listener
     // registered with `prepend: true` after this service mounts would sit
     // ahead of any gate LISTENER, so a listener-shaped gate cannot keep the
     // documented promise that 'never' rejects deterministically regardless
-    // of registration order — only the service's own request path can.
-    if (this.effectivePolicy(session) === 'never') return 'rejected'
+    // of registration order — only the service's own request path can. It is
+    // also the one decision this service makes itself, so it attributes it.
+    if (this.effectivePolicy(session) === 'never') {
+      return { outcome: 'rejected', decidedBy: APPROVAL_POLICY_NEVER_PRINCIPAL }
+    }
     // Enter the promise chain BEFORE dispatching: a listener that throws
     // SYNCHRONOUSLY (before its first await) must land in the same rejection
     // path as an async one — `Promise.resolve(call())` would let it escape
     // the containment into the caller.
-    const answer: Promise<ApprovalOutcome> = Promise.resolve().then(
+    const answer: Promise<ApprovalDecision> = Promise.resolve().then(
       () => this.ctx.waterfall(
         scopeTarget(this, req.agent), 'approval/request', req,
-        () => Promise.resolve<ApprovalOutcome>('unavailable'),
+        () => Promise.resolve<ApprovalAnswer>('unavailable'),
       ),
     ).then(
       // Normalize a rogue (non-vocabulary) answerer return to the fail-closed
       // outcome instead of leaking it into callers' closed-union switches.
-      outcome => OUTCOMES.includes(outcome) ? outcome : 'unavailable',
+      normalizeAnswer,
       // A throwing answerer must fail the QUESTION closed, not the caller's
       // tool call open — the seam contains its callbacks.
-      () => 'unavailable',
+      () => ({ outcome: 'unavailable' } as const),
     )
     if (signal === undefined) return answer
-    return await new Promise<ApprovalOutcome>((resolve) => {
+    return await new Promise<ApprovalDecision>((resolve) => {
       const onAbort = () => {
         signal.removeEventListener('abort', onAbort)
-        resolve('cancelled')
+        resolve({ outcome: 'cancelled' })
       }
       signal.addEventListener('abort', onAbort, { once: true })
-      void answer.then((outcome) => {
+      void answer.then((decision) => {
         signal.removeEventListener('abort', onAbort)
         // After an abort won the race this resolve is a settled-promise no-op:
         // the late answer is discarded by construction.
-        resolve(outcome)
+        resolve(decision)
       })
     })
   }

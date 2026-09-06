@@ -50,7 +50,7 @@ Both policies contribute their complete current meaning to the cache-safe runtim
 
 ## Approval request
 
-`ApprovalRequest` identifies the agent and tool action closely enough to route and audit the question. It deliberately omits tool arguments: an answerer attaches the prompt to the already-streamed tool call through `callId` instead of rendering a second copy that could drift.
+`ApprovalRequest` identifies the agent and tool action closely enough to route and audit the question. It carries the arguments being decided so the seam can digest them into the audit pair, and the log keeps only that digest: an answerer attaches the prompt to the already-streamed tool call through `callId` instead of rendering a second copy that could drift.
 
 ```ts type-equiv
 /**
@@ -71,6 +71,13 @@ interface ApprovalRequest {
    * attach the prompt to the tool call it already streamed.
    */
   readonly callId?: CallId
+  /**
+   * The losslessly JSON-serializable arguments being decided, when the asker
+   * has them. The seam digests them into the audit pair so a decision states
+   * what it decided on; an asker whose subject is not a set of tool arguments
+   * — a sandbox escalation states its subject in `reason` — omits them.
+   */
+  readonly arguments?: unknown
   /** The asker's human-readable explanation of WHY it is asking. */
   readonly reason?: string
   /**
@@ -81,9 +88,43 @@ interface ApprovalRequest {
 }
 ```
 
+## Attribution
+
+`ApprovalPrincipal` names who reached one outcome. The seam records what an answerer states and authenticates nothing, so the id is only as attributable as whatever supplied it; the [attributable-decisions Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md) owns the rationale.
+
+```ts type-equiv
+/**
+ * Who decided one approval: a person the deployment's identity provider names,
+ * or a rule that reached the outcome without asking anyone. The seam records
+ * the principal an answerer states and never authenticates it, so `id` is only
+ * as attributable as whatever supplied it.
+ */
+interface ApprovalPrincipal {
+  /** `'human'` for a person's decision, `'policy'` for a rule's. */
+  readonly kind: 'human' | 'policy'
+  /** Non-empty identity of the person or the rule that decided. */
+  readonly id: string
+}
+```
+
+An answerer that knows the principal returns `ApprovalAnswer`'s attributed arm instead of a bare outcome; every existing answerer keeps returning the outcome alone, and a value outside the closed vocabulary normalizes to `unavailable` with no principal.
+
+```ts type-equiv
+/**
+ * One answerer's reply: the bare outcome, or the outcome together with the
+ * person or rule that reached it. Answerers that cannot name a principal keep
+ * returning the bare outcome.
+ */
+type ApprovalAnswer =
+  | ApprovalOutcome
+  | { readonly outcome: ApprovalOutcome; readonly decidedBy: ApprovalPrincipal }
+```
+
 ## Dispatch and audit
 
-`ctx.approval.request(req)` requires the requesting session to be inside an open turn. It appends `approval/asked`, obtains one outcome, appends the matching `approval/decided`, and resolves with that outcome. The `never` policy is enforced inside the service before waterfall dispatch, so even an answerer registered later with `prepend` cannot bypass it. Answerers return an outcome when they own the request or call `next()` to delegate; the first answer occupies the single decision slot.
+`ctx.approval.request(req)` requires the requesting session to be inside an open turn. It appends `approval/asked`, obtains one outcome, appends the matching `approval/decided`, and resolves with that outcome. The `never` policy is enforced inside the service before waterfall dispatch, so even an answerer registered later with `prepend` cannot bypass it — and it is the one decision the service makes itself, recorded as `decidedBy: { kind: 'policy', id: 'approval-policy:never' }`. Answerers return an outcome when they own the request or call `next()` to delegate; the first answer occupies the single decision slot.
+
+Both audit events carry `argumentsSha256` when the asker supplied arguments: one digest, computed by `approvalArgumentsDigest` before any answerer runs and repeated on the decision, so a reader of the decision alone learns what was granted. The [invariant companion](invariants.md) rejects a decision whose digest differs from its own question's, and a `decidedBy` with an unknown kind or an empty id.
 
 The audit events are log-only and do not enter the model transcript. Model-visible behavior is the caller's derived tool result plus the current runtime-context snapshot. Service disposal removes its context contribution; answerer listeners are independently effect-bound to their owning plugins.
 
@@ -141,7 +182,7 @@ overrideOf(session: Session): ApprovalPolicy | undefined
 
 Types: [Agent](core.md) · [Session](session.md)
 
-Source: [`packages/interaction/user-approval/src/index.ts:192`](../../packages/interaction/user-approval/src/index.ts)
+Source: [`packages/interaction/user-approval/src/index.ts:274`](../../packages/interaction/user-approval/src/index.ts)
 
 <a id="approval-events"></a>
 
@@ -151,20 +192,22 @@ Source: [`packages/interaction/user-approval/src/index.ts:192`](../../packages/i
 
 #### `approval/request` — waterfall
 
-Ask composed answerers for one decision. Return an outcome to claim the request or call `next()`; failure yields the fail-closed default. Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
+Ask composed answerers for one decision. Return an outcome — bare, or as `{ outcome, decidedBy }` when the answerer knows which person or rule decided — to claim the request, or call `next()`; failure yields the fail-closed default. Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
 
 ```ts cordis-catalog
 /**
- * Ask composed answerers for one decision. Return an outcome to claim the
- * request or call `next()`; failure yields the fail-closed default.
+ * Ask composed answerers for one decision. Return an outcome — bare, or as
+ * `{ outcome, decidedBy }` when the answerer knows which person or rule
+ * decided — to claim the request, or call `next()`; failure yields the
+ * fail-closed default.
  * Scope-filtered dispatch (`@deepseek-ai/dsh-scope`): agent-scoped listeners receive only that agent.
- * @param req - the pending decision (agent, tool identity, reason, signal).
+ * @param req - the pending decision (agent, tool identity, arguments, reason, signal).
  * @mode waterfall
  */
-'approval/request'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalOutcome>): Promise<ApprovalOutcome>
+'approval/request'(this: Scoped<ApprovalService>, req: ApprovalRequest, next: () => Promise<ApprovalAnswer>): Promise<ApprovalAnswer>
 ```
 
 Types: [Scoped](scope.md)
 
-Source: [`packages/interaction/user-approval/src/index.ts:30`](../../packages/interaction/user-approval/src/index.ts)
+Source: [`packages/interaction/user-approval/src/index.ts:32`](../../packages/interaction/user-approval/src/index.ts)
 <!-- END GENERATED cordis-surface -->

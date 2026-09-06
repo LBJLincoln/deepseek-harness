@@ -358,6 +358,21 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Folds revisioned objective state from the session log and keeps live continuation activation process-local.',
   },
   {
+    key: 'signoffs',
+    pkg: 'signoff',
+    title: 'Attributed human signatures',
+    mode: 'core',
+    consumers: ['program'],
+    note: 'Records one signoff/recorded per signed transition and folds the newest one back out of the log; the program ledger reads the fold rather than injecting the service.',
+  },
+  {
+    key: 'dataUse',
+    pkg: 'data-use',
+    title: 'Pinned data-use terms',
+    mode: 'core',
+    note: 'Pins the contract terms a session transcript is held under at session start and refuses a later pin that widens its purposes.',
+  },
+  {
     key: 'completionStandards',
     pkg: 'verification',
     title: 'Executable completion standards',

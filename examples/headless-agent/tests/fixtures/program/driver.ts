@@ -18,19 +18,29 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
+import type {} from '@deepseek-ai/dsh-agent'
+import type {} from '@deepseek-ai/dsh-agent-default-model'
+import { programIdFor, programSpecDigest, resolveProgramSpec } from '@deepseek-ai/dsh-program'
 import type { ProgramSpec } from '@deepseek-ai/dsh-program'
 import type {} from '@deepseek-ai/dsh-program'
+import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
+import type {} from '@deepseek-ai/dsh-signoff'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
 
 /** Exit code the kill switch leaves behind, distinct from every clean exit. */
 const KILLED = 9
 
+/** The artefact both of the program's signatures attest. */
+const ARTEFACT = 'f'.repeat(64)
+
 /** One program session's ledger as the e2e asserts on it. */
 interface LedgerLine {
   readonly sessionId: string
   readonly events: { readonly type: string; readonly data: unknown }[]
+  /** Transitions the same session was signed for, in log order. */
+  readonly signoffs: string[]
 }
 
 /** One member session's stamp as the e2e asserts on it. */
@@ -83,7 +93,7 @@ function programSpec(label: string): ProgramSpec {
   return {
     objective: `deliver the ${label} release`,
     baseRevision: 'base',
-    signoff: { principal: 'program-fixture', artefactSha256: 'f'.repeat(64) },
+    signoff: { artefactSha256: ARTEFACT },
     goals: [
       {
         key: 'api',
@@ -119,7 +129,11 @@ async function readRoot(persistence: SessionPersistence): Promise<{ ledgers: Led
     const { events } = await persistence.inspect(stored.id)
     const programEvents = events.filter((event: SessionEvent) => event.type.startsWith('program/') && event.type !== 'program/member')
     if (programEvents.length > 0) {
-      ledgers.push({ sessionId: stored.id, events: programEvents.map(event => ({ type: event.type, data: event.data })) })
+      ledgers.push({
+        sessionId: stored.id,
+        events: programEvents.map(event => ({ type: event.type, data: event.data })),
+        signoffs: events.flatMap(event => (event.type === 'signoff/recorded' ? [event.data.transition] : [])),
+      })
     }
     for (const event of events) {
       if (event.type !== 'program/member') continue
@@ -133,6 +147,39 @@ async function readRoot(persistence: SessionPersistence): Promise<{ ledgers: Led
     }
   }
   return { ledgers, members }
+}
+
+/**
+ * Record the spec-freeze and release signatures on the program session, the way
+ * a client district's signer would before the program starts. A session that
+ * already carries them is left alone, so a resumed phase signs nothing twice.
+ */
+async function sign(ctx: Awaited<ReturnType<typeof boot>>, spec: ProgramSpec, cwd: string): Promise<void> {
+  const sessionId = SessionId(programIdFor(programSpecDigest(resolveProgramSpec(spec))))
+  const signoffs = ctx.get('signoffs')
+  const agents = ctx.get('agents')
+  if (signoffs === undefined || agents === undefined) throw new Error('program driver requires the signoffs and agents services')
+  if ((await ctx.get('sessionPersistence')?.list() ?? []).some(stored => stored.id === sessionId)) return
+  const model = ctx.get('agentDefaultModel')?.currentSelection()
+  if (model === undefined) throw new Error('program driver requires the default-model service')
+  const handle = await agents.create({
+    sessionId,
+    meta: { cwd },
+    agentOptions: { provider: model.provider, model: model.model },
+  })
+  try {
+    for (const transition of ['spec-freeze', 'release'] as const) {
+      signoffs.record(handle.agent, {
+        transition,
+        principal: { kind: 'human', id: 'program-fixture', displayName: 'Program Fixture' },
+        artefactSha256: ARTEFACT,
+        evidence: [{ kind: 'spec', ref: 'the frozen program spec' }],
+      })
+    }
+    await ctx.sessions.flush(handle.agent.session)
+  } finally {
+    await handle.dispose()
+  }
 }
 
 // The repository has to exist before the program plugin validates its
@@ -152,7 +199,12 @@ try {
       if (event.type === 'program/goal' && event.data.status === 'certified') process.exit(KILLED)
     })
   }
-  const report = await programs.start(programSpec(process.env.DSH_TEST_PROGRAM_LABEL ?? 'first'))
+  const spec = programSpec(process.env.DSH_TEST_PROGRAM_LABEL ?? 'first')
+  // The program id is the spec digest, so the two signatures the deployment
+  // requires are recorded on that session before the program opens it. A second
+  // phase resuming the same root finds them already there.
+  await sign(ctx, spec, repository)
+  const report = await programs.start(spec)
   const observed = await readRoot(persistence)
   process.stdout.write(`${JSON.stringify({ type: 'result', report, ...observed })}\n`)
 } finally {

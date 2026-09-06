@@ -150,19 +150,21 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
  * it with the `approval/decided` that always follows; `toolName` is the
  * tool the question is about, `callId` the exact tool call when the asker
  * had one, `reason` the asker's human-readable explanation (e.g. a hook's
- * permission-decision reason).
+ * permission-decision reason), `argumentsSha256` the digest of the
+ * arguments the asker handed the seam, absent when it handed none.
  */
 'approval/asked': {
   id: ApprovalRequestId
   toolName: string
   callId?: CallId
   reason?: string
+  argumentsSha256?: string
 }
 ```
 
 类型：[CallId](subsystems/core.md)
 
-来源：[`packages/interaction/user-approval/src/index.ts:44`](../packages/interaction/user-approval/src/index.ts)
+来源：[`packages/interaction/user-approval/src/index.ts:47`](../packages/interaction/user-approval/src/index.ts)
 
 <a id="approvaldecided--log-only"></a>
 
@@ -172,15 +174,21 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 /**
  * The outcome of a prior `approval/asked` (same `id`) — log-only audit.
  * Exactly one per ask, appended when the outcome is known: a decision, a
- * cancellation, or the fail-closed `'unavailable'`.
+ * cancellation, or the fail-closed `'unavailable'`. `decidedBy` names the
+ * person or rule that reached the outcome, absent when nothing claimed it
+ * (a withdrawn request, an unavailable answerer, an unattributed answer);
+ * `argumentsSha256` repeats the digest of the ask, so a decision states
+ * what it decided on without a reader joining two events.
  */
 'approval/decided': {
   id: ApprovalRequestId
   outcome: ApprovalOutcome
+  decidedBy?: ApprovalPrincipal
+  argumentsSha256?: string
 }
 ```
 
-来源：[`packages/interaction/user-approval/src/index.ts:55`](../packages/interaction/user-approval/src/index.ts)
+来源：[`packages/interaction/user-approval/src/index.ts:63`](../packages/interaction/user-approval/src/index.ts)
 
 <a id="approvalpolicy--log-only"></a>
 
@@ -202,7 +210,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 }
 ```
 
-来源：[`packages/interaction/user-approval/src/index.ts:67`](../packages/interaction/user-approval/src/index.ts)
+来源：[`packages/interaction/user-approval/src/index.ts:77`](../packages/interaction/user-approval/src/index.ts)
 
 ### `assistant/*`
 
@@ -450,6 +458,26 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 ```
 
 来源：[`packages/components/components-manifest/src/types.ts:64`](../packages/components/components-manifest/src/types.ts)
+
+### `dataUse/*`
+
+<a id="datauseterms--log-only"></a>
+
+#### `dataUse/terms` — log-only
+
+```ts persistence-catalog
+/**
+ * The contract terms this session's transcript is held under: the client
+ * and agreement it belongs to, what it may be used for, where it may live,
+ * how long it is kept, and which redaction profile an export applies.
+ * Appended once at session start, and again for every later pin that
+ * narrows the terms; the newest record is the one consumers read. Log-only
+ * and never part of a model request.
+ */
+'dataUse/terms': DataUseTerms
+```
+
+来源：[`packages/governance/data-use/src/types.ts:19`](../packages/governance/data-use/src/types.ts)
 
 ### `environment/*`
 
@@ -733,9 +761,9 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 /**
  * Opening record of one program: the identity its frozen spec digests to,
  * the spec verbatim, the revision every worktree is created from, and the
- * caller-supplied signoff when one was required. Appended once, before the
- * first department exists, and the only event that tells a later process a
- * program exists to reconcile.
+ * attested artefact when the deployment required one. Appended once, before
+ * the first department exists, and the only event that tells a later
+ * process a program exists to reconcile.
  */
 'program/start': ProgramStart
 ```
@@ -1005,6 +1033,25 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 ```
 
 来源：[`packages/improvement/shifts/src/types.ts:21`](../packages/improvement/shifts/src/types.ts)
+
+### `signoff/*`
+
+<a id="signoffrecorded--log-only"></a>
+
+#### `signoff/recorded` — log-only
+
+```ts persistence-catalog
+/**
+ * One attributed human decision: which transition it closes, who the
+ * deployment says signed it, the digest of the artefact signed, and the
+ * pointers to what the signer had in view. Appended once per signature,
+ * log-only and never part of a model request; a transition may be signed
+ * again, and the newest record of a transition is the one consumers read.
+ */
+'signoff/recorded': SignoffRecord
+```
+
+来源：[`packages/governance/signoff/src/types.ts:18`](../packages/governance/signoff/src/types.ts)
 
 ### `step/*`
 

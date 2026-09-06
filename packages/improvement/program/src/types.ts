@@ -61,14 +61,14 @@ export interface ProgramIntegrationSpec {
 }
 
 /**
- * The spec-freeze record a caller supplies while `signoff/recorded` does not
- * exist. It attests the spec rather than describing it, so it stays out of the
- * program's digest: the same goals signed by two principals are one program.
+ * The artefact a program's signatures attest. It names what was signed rather
+ * than describing what the program runs, so it stays out of the program's
+ * digest: the same goals signed over two artefacts are one program. Who signed
+ * comes from the `signoff/recorded` events of the program session, never from
+ * here.
  */
 export interface ProgramSignoff {
-  /** Who froze the spec. */
-  readonly principal: string
-  /** Lowercase SHA-256 hex of the artefact that was signed off. */
+  /** Lowercase SHA-256 hex every `signoff/recorded` of this program must carry. */
   readonly artefactSha256: string
 }
 
@@ -82,7 +82,7 @@ export interface ProgramSpec {
   readonly goals: readonly ProgramGoalSpec[]
   /** What the merged head is certified against. */
   readonly integration: ProgramIntegrationSpec
-  /** The spec-freeze record; required by `requireSignoff`. */
+  /** The artefact the program's signatures attest; required by `requireSignoff`. */
   readonly signoff?: ProgramSignoff
   /** Input plus output tokens every session of the program may sum to. */
   readonly tokenCeiling?: number
@@ -122,7 +122,7 @@ export interface ProgramStart {
   readonly spec: ProgramSpec
   /** Git revision every worktree is created from; the spec's own value, copied for readers of this event alone. */
   readonly baseRevision: string
-  /** The spec-freeze record the caller supplied, absent when the deployment does not require one. */
+  /** The artefact the program's signatures attest, absent when the deployment does not require one. */
   readonly signoff?: ProgramSignoff
 }
 
@@ -192,9 +192,9 @@ declare module '@deepseek-ai/dsh-session/types' {
     /**
      * Opening record of one program: the identity its frozen spec digests to,
      * the spec verbatim, the revision every worktree is created from, and the
-     * caller-supplied signoff when one was required. Appended once, before the
-     * first department exists, and the only event that tells a later process a
-     * program exists to reconcile.
+     * attested artefact when the deployment required one. Appended once, before
+     * the first department exists, and the only event that tells a later
+     * process a program exists to reconcile.
      */
     'program/start': ProgramStart
     /**

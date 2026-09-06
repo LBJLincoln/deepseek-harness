@@ -23,6 +23,10 @@ import { implementerPreset, programHarness, stubAgent, type ProgramHarness, type
 const harnesses: ProgramHarness[] = []
 const roots: string[] = []
 
+/** The artefact digest a signed spec names, and one that is not it. */
+const ARTEFACT = 'a'.repeat(64)
+const OTHER_ARTEFACT = 'b'.repeat(64)
+
 afterEach(async () => {
   for (const harness of harnesses.splice(0)) await harness.dispose()
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
@@ -118,18 +122,52 @@ describe('starting a program', () => {
       .rejects.toThrow('baseRevision "main@{yesterday}" is not a revision the composed shell can carry unquoted')
   })
 
-  it('refuses a start and a release without a signoff record when one is required', async () => {
+  it('refuses a start whose program session carries no matching spec-freeze signature', async () => {
     const harness = await mount({ requireSignoff: true }, { script: passing })
     await expect(harness.programs.start(spec())).rejects.toThrow(
       expect.objectContaining<Partial<ProgramError>>({ code: 'PROGRAM_SIGNOFF_REQUIRED' }),
     )
     await expect(harness.programs.start(spec())).rejects.toThrow(
-      'this deployment requires a signoff record before a program may start',
+      'the spec names no artefact for one to attest',
     )
-    // A program frozen with a record starts; the release check is the same
-    // record, read again at the closing edge.
-    const signed = spec([goal()], { signoff: { principal: 'release-manager', artefactSha256: 'a'.repeat(64) } })
-    await expect(harness.programs.start(signed)).resolves.toMatchObject({ outcome: 'released' })
+    const unsigned = spec([goal()], { signoff: { artefactSha256: ARTEFACT } })
+    await expect(harness.programs.start(unsigned)).rejects.toThrow(
+      'this deployment requires a "spec-freeze" signoff/recorded on the program session before a program may start',
+    )
+  })
+
+  it('refuses a start whose spec-freeze signature attests another artefact', async () => {
+    const harness = await mount({ requireSignoff: true }, { script: passing })
+    const signed = spec([goal()], { signoff: { artefactSha256: ARTEFACT } })
+    await harness.sign(signed, [{ transition: 'spec-freeze', artefactSha256: OTHER_ARTEFACT }])
+    await expect(harness.programs.start(signed)).rejects.toThrow(
+      `the "spec-freeze" signoff/recorded attests artefact ${OTHER_ARTEFACT}, which is not the spec's ${ARTEFACT}`,
+    )
+  })
+
+  it('runs a signed program to release and keeps the caller-signed session log', async () => {
+    const harness = await mount({ requireSignoff: true }, { script: passing })
+    const signed = spec([goal()], { signoff: { artefactSha256: ARTEFACT } })
+    await harness.sign(signed, [
+      { transition: 'spec-freeze', artefactSha256: ARTEFACT },
+      { transition: 'release', artefactSha256: ARTEFACT },
+    ])
+    const report = await harness.programs.start(signed)
+    expect(report.outcome).toBe('released')
+    // The program continued the caller's session rather than replacing it: both
+    // signatures still precede the ledger the program wrote into the same log.
+    const types = await ledgerTypes(harness, report.sessionId)
+    expect(types.filter(type => type === 'signoff/recorded')).toHaveLength(2)
+    expect(types.indexOf('program/start')).toBeGreaterThan(types.lastIndexOf('signoff/recorded'))
+  })
+
+  it('refuses a release whose program session carries no release signature', async () => {
+    const harness = await mount({ requireSignoff: true }, { script: passing })
+    const signed = spec([goal()], { signoff: { artefactSha256: ARTEFACT } })
+    await harness.sign(signed, [{ transition: 'spec-freeze', artefactSha256: ARTEFACT }])
+    await expect(harness.programs.start(signed)).rejects.toThrow(
+      'this deployment requires a "release" signoff/recorded on the program session before a program may release',
+    )
   })
 
   it('refuses a preset the roster does not supply or does not compose as an implementer', async () => {
@@ -518,7 +556,7 @@ describe('reconciling a program a process left open', () => {
       loader: { await: () => new Promise<void>(() => {}) },
     })
     await expect(strict.programs.resume()).rejects.toThrow(
-      'this deployment requires a signoff record before a program may release',
+      'this deployment requires a signoff record before a program may release, and the spec names no artefact for one to attest',
     )
   })
 

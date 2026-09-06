@@ -111,6 +111,11 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
+  pkg_signoff["signoff"]
+  svc_signoffs["ctx.signoffs<br/>Attributed human signatures"]
+  pkg_program["program"]
+  pkg_data_use["data-use"]
+  svc_dataUse["ctx.dataUse<br/>Pinned data-use terms"]
   pkg_verification["verification"]
   svc_completionStandards["ctx.completionStandards<br/>Executable completion standards"]
   pkg_command_verification["command-verification"]
@@ -138,7 +143,6 @@ flowchart LR
   pkg_experiments["experiments"]
   pkg_shifts["shifts"]
   svc_shifts["ctx.shifts<br/>Durable shift driver"]
-  pkg_program["program"]
   svc_programs["ctx.programs<br/>Program ledger"]
   svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
@@ -253,6 +257,7 @@ flowchart LR
   pkg_cordis_host_runner --> svc_dynamicCordisRunner
   pkg_credentials --> svc_credentials
   pkg_credentials_local --> svc_credentials
+  pkg_data_use --> svc_dataUse
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
   pkg_directory_picker_native --> svc_directoryPicker
@@ -307,6 +312,7 @@ flowchart LR
   pkg_shell --> svc_shell
   pkg_shell_env --> svc_shellEnv
   pkg_shifts --> svc_shifts
+  pkg_signoff --> svc_signoffs
   pkg_skill --> svc_skills
   pkg_skill_badge --> svc_skills
   pkg_skill_filesystem --> svc_skills
@@ -436,6 +442,7 @@ flowchart LR
   svc_shellEnv --> pkg_tool_bash
   svc_shellEnv --> pkg_tool_pwsh
   svc_shifts --> pkg_headless_agent
+  svc_signoffs --> pkg_program
   svc_skills --> pkg_tool_skill
   svc_spillStore --> pkg_spill_policy
   svc_storage --> pkg_storage_domain
@@ -518,6 +525,8 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | 通过 settings 分层默认 `ModelSelection`，让直接入口与 Host 支撑的 Agent 入口共享同一个状态所有者。 |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | 唯一的具体循环插件；扩展包依赖 dsh-agent 的事件和服务，而不依赖此包。 |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
+| `ctx.signoffs` | `core` | [`signoff`](../packages/governance/signoff) | - | [`program`](../packages/improvement/program) | - | 每次签署的转变记录一条 signoff/recorded，并把最新的一条从日志折叠回来；程序账本读取该折叠结果，而不是注入本服务。 |
+| `ctx.dataUse` | `core` | [`data-use`](../packages/governance/data-use) | - | - | - | 在会话启动时钉定该会话转录所处的合同条款，并拒绝此后任何拓宽其用途的钉定。 |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | 每个 goal 拥有一份可执行标准，从完全通过的运行记录证书，并在 goal 操作内部拒绝未认证的 goal 完成。 |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | 拥有验证者所有的目录树，为每个实现者会话铸造一份运行预留，并判定该会话不得读取哪些目录。 |
 | `ctx.judge` | `core` | [`judge`](../packages/verification/judge) | - | - | - | 在实现者目录树的已校验副本上，为每次被审尝试创建一个无谱系的判官会话，并记录它所给出的裁决。 |
