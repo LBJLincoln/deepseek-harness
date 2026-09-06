@@ -10,6 +10,8 @@ Status: proposed
 
 ## Proposal
 
+推进项 1 与 2 期间敲定了三处细节。`ctx.fleet.run` 增加了一个从计划自身枚举中挑选的可选 `cells` 选择，因为 `FleetPlan` 是一个笛卡尔积而被恢复的班次的待运行集合不是——没有它，被恢复的 cell 会以重复序号零运行，并在其 group 中被重复计数。一个区的计划点名自己的模型路由，而不是回落到组合的默认路由，因为驱动器要枚举自己的 cell 才能算出待运行集合并为计划取摘要，而一个会随另一个插件当前选择而移动的摘要什么也冻结不了。驱动器通过 `ctx.get('environments')` 读取环境注册表而非声明它，从而把 Loader 依赖保持在 `fleet`、`sessions` 与 `sessionPersistence`；够不到注册表的时段以 `SHIFT_INVALID_PLAN` 被拒绝。
+
 一个位于 `packages/improvement/shifts` 的 `@deepseek-ai/dsh-shifts` 插件，提供 `ctx.shifts`：一个建立在 fleet 之上的持久循环，冻结每个班次的身份，把班次记录在它自己的会话日志里，通过只运行从未启动的 cell 来恢复被中断的班次，并拒绝会超出其所在区花费窗口的班次。会话事件日志仍是唯一权威：班次账本是班次会话中的一组 `shift/*` 事件，cell 从其会话本已携带的 `environment/run` stamp 恢复，驱动器不在内存中持有任何重启所需的东西。
 
 ### 班次身份
@@ -55,10 +57,10 @@ Config：`workspaceRoot`；`districts`，一个 `{ district, plan, cadence: { in
 
 ## Rollout
 
-1. Fleet：只读观察的 `fleet/cell` 事件及其单元与 e2e 断言。
-2. `dsh-shifts`：摘要、班次会话与 `shift/*` 事件、按账本与 stamp 扫描的恢复、节奏、花费窗口、不变量伴随件、带杀死与重启的 Loader 启动 e2e、README 对、重新生成的持久化目录。
+1. 已落地。Fleet：只读观察的 `fleet/cell` 事件及其单元与 e2e 断言，外加推进项 2 通过 `ctx.fleet.run` 运行一个计划的子集所需的 `cells` 选择。
+2. 已落地。`dsh-shifts`：摘要、班次会话与 `shift/*` 事件、按账本与 stamp 扫描的恢复、节奏、花费窗口、不变量伴随件、带杀死与重启的 Loader 启动 e2e、README 对、重新生成的持久化目录。README 还承载推进项 4 的单元文件、容器示例与值守手册，因此运维人员在门禁消息存在之前就能从该包读到它们。
 3. Scorekeeper：`shiftFacts`（从账本得到的每班次一行）与 `ScoreboardRow` 的 `district` 列，关闭 Village 笔记的 TODO。
-4. 监督：单元文件与容器示例、值守手册，以及班次组合缺少持久化时点名驱动器的 `verify-village-composition` 消息。
+4. 监督：班次组合缺少持久化时点名驱动器的 `verify-village-composition` 消息；单元文件、容器示例与值守手册已随推进项 2 落地。
 5. 之后，四目标笔记的日志式工作流引擎承载该循环；账本事件不变。
 
 ## Risks

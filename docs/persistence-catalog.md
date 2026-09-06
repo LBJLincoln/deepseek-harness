@@ -748,6 +748,87 @@ Types: [SessionTitleLlmRequestEventData](subsystems/session-title.md)
 
 Source: [`packages/session/session-title-llm/src/index.ts:43`](../packages/session/session-title-llm/src/index.ts)
 
+### `shift/*`
+
+<a id="shiftcell--log-only"></a>
+
+#### `shift/cell` — log-only
+
+```ts persistence-catalog
+/**
+ * One cell of the shift settled: the cell's coordinates, the session the
+ * runner created for it when one exists, and its outcome. Appended once
+ * per cell, after the cell's own session is durable — including for an
+ * orphan a later process found stamped but unrecorded, which it records as
+ * `interrupted` and never runs again.
+ */
+'shift/cell': ShiftCellRecord
+```
+
+Source: [`packages/improvement/shifts/src/types.ts:29`](../packages/improvement/shifts/src/types.ts)
+
+<a id="shiftend--log-only"></a>
+
+#### `shift/end` — log-only
+
+```ts persistence-catalog
+/**
+ * Closing record of one shift: how it ended, the tokens this process's
+ * cells spent, and the cell counts per outcome. Its presence is what marks
+ * the shift finished, so a session with `shift/start` and no `shift/end`
+ * is exactly what a later process resumes.
+ */
+'shift/end': ShiftEnd
+```
+
+Source: [`packages/improvement/shifts/src/types.ts:48`](../packages/improvement/shifts/src/types.ts)
+
+<a id="shiftresume--log-only"></a>
+
+#### `shift/resume` — log-only
+
+```ts persistence-catalog
+/**
+ * A later process picked this shift up: the cells already settled and the
+ * cells this process runs. Appended after the orphans of the interrupted
+ * process are recorded and before the pending cells start.
+ */
+'shift/resume': ShiftResume
+```
+
+Source: [`packages/improvement/shifts/src/types.ts:35`](../packages/improvement/shifts/src/types.ts)
+
+<a id="shiftskipped--log-only"></a>
+
+#### `shift/skipped` — log-only
+
+```ts persistence-catalog
+/**
+ * The slot was refused and no shift started: the plan digest and slot time
+ * that were refused, and why. It is the only event of its session, so a
+ * refused slot is as durable as a run one.
+ */
+'shift/skipped': ShiftSkipped
+```
+
+Source: [`packages/improvement/shifts/src/types.ts:41`](../packages/improvement/shifts/src/types.ts)
+
+<a id="shiftstart--log-only"></a>
+
+#### `shift/start` — log-only
+
+```ts persistence-catalog
+/**
+ * Opening record of one shift: the identity the slot froze, the digest its
+ * plan hashes to, the frozen plan verbatim, and the slot time the cadence
+ * computed. Appended once, before the shift's first cell starts, and the
+ * only event that tells a later process a shift exists to resume.
+ */
+'shift/start': ShiftStart
+```
+
+Source: [`packages/improvement/shifts/src/types.ts:21`](../packages/improvement/shifts/src/types.ts)
+
 ### `step/*`
 
 <a id="stepend--log-only"></a>

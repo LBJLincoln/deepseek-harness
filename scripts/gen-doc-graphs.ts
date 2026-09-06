@@ -402,8 +402,16 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'fleet',
     title: 'Fleet runs',
     mode: 'core',
-    consumers: ['headless-agent', 'experiments'],
+    consumers: ['headless-agent', 'experiments', 'shifts'],
     note: 'Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split.',
+  },
+  {
+    key: 'shifts',
+    pkg: 'shifts',
+    title: 'Durable shift driver',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Opens a slot per district cadence, freezes what it runs into a digest, and records the shift as shift/* events in its own session so a restart resumes exactly the cells that never started.',
   },
   {
     key: 'experiments',

@@ -128,6 +128,8 @@ flowchart LR
   pkg_headless_agent["headless-agent"]
   svc_fleet["ctx.fleet<br/>Fleet runs"]
   pkg_experiments["experiments"]
+  pkg_shifts["shifts"]
+  svc_shifts["ctx.shifts<br/>Durable shift driver"]
   svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
@@ -289,6 +291,7 @@ flowchart LR
   pkg_settings_file --> svc_settings
   pkg_shell --> svc_shell
   pkg_shell_env --> svc_shellEnv
+  pkg_shifts --> svc_shifts
   pkg_skill --> svc_skills
   pkg_skill_badge --> svc_skills
   pkg_skill_filesystem --> svc_skills
@@ -359,6 +362,7 @@ flowchart LR
   svc_experiments --> pkg_headless_agent
   svc_fleet --> pkg_experiments
   svc_fleet --> pkg_headless_agent
+  svc_fleet --> pkg_shifts
   svc_fs --> pkg_tool_fs
   svc_invariants --> pkg_agent
   svc_invariants --> pkg_agent_loop
@@ -409,6 +413,7 @@ flowchart LR
   svc_shell --> pkg_tool_pwsh
   svc_shellEnv --> pkg_tool_bash
   svc_shellEnv --> pkg_tool_pwsh
+  svc_shifts --> pkg_headless_agent
   svc_skills --> pkg_tool_skill
   svc_spillStore --> pkg_spill_policy
   svc_storage --> pkg_storage_domain
@@ -496,7 +501,8 @@ flowchart LR
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it. |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible; owns the environment/run stamp vocabulary. |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate. |
-| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`, [`experiments`](../packages/improvement/experiments) | - | Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split. |
+| `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`, [`experiments`](../packages/improvement/experiments), [`shifts`](../packages/improvement/shifts) | - | Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split. |
+| `ctx.shifts` | `core` | [`shifts`](../packages/improvement/shifts) | - | `headless-agent` | - | Opens a slot per district cadence, freezes what it runs into a digest, and records the shift as shift/* events in its own session so a restart resumes exactly the cells that never started. |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | Freezes a plan by a content digest, runs both arms through the fleet at paired repetition indexes under digest-derived stamp groups, and folds the certificate-rate delta with a bootstrap interval and a verdict. |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`, [`scorekeeper`](../packages/improvement/scorekeeper) | - | Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event. |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export. |

@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs'
 import { mkdtemp, readdir, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
@@ -10,8 +11,8 @@ import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as Environ
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
-import FleetService, { FleetError, leaderboardMarkdown, resolveConfig } from '@deepseek-ai/dsh-fleet'
-import type { Config, FleetPlan, LeaderboardRow, WorkspaceRetention } from '@deepseek-ai/dsh-fleet'
+import FleetService, { FleetError, fleetCellKey, leaderboardMarkdown, resolveConfig } from '@deepseek-ai/dsh-fleet'
+import type { Config, FleetCellEvent, FleetPlan, LeaderboardRow, WorkspaceRetention } from '@deepseek-ai/dsh-fleet'
 import * as invariantCompanion from '@deepseek-ai/dsh-fleet/invariant'
 
 declare module '@deepseek-ai/dsh-environments/types' {
@@ -153,6 +154,8 @@ function row(overrides: Partial<LeaderboardRow> & Pick<LeaderboardRow, 'model' |
 interface Harness {
   ctx: Context
   root: string
+  /** Every `fleet/cell` payload this harness observed, in emit order. */
+  announced: FleetCellEvent[]
   /** A complete plan over both training environments; `group` is `batch-1` unless the second argument is `null`. */
   plan: (overrides?: Partial<FleetPlan>, group?: string | null) => FleetPlan
 }
@@ -161,6 +164,10 @@ async function harness(config: Partial<Config> = {}): Promise<Harness> {
   const ctx = new Context()
   for (const stub of [StubEnvironments, StubDefaultModel, StubRuns]) await ctx.plugin(stub)
   await ctx.plugin(FleetService, { workspaceRetention: 'keep', ...config } satisfies Config)
+  const announced: FleetCellEvent[] = []
+  ctx.on('fleet/cell', (payload) => {
+    announced.push(payload)
+  })
   const root = await mkdtemp(join(tmpdir(), 'fleet-'))
   const plan = (overrides: Partial<FleetPlan> = {}, group: string | null = 'batch-1'): FleetPlan => ({
     environments: { ids: [ROUND_TRIP, UNSATISFIABLE] },
@@ -170,7 +177,7 @@ async function harness(config: Partial<Config> = {}): Promise<Harness> {
     ...group === null ? {} : { group },
     ...overrides,
   })
-  return { ctx, root, plan }
+  return { ctx, root, announced, plan }
 }
 
 describe('FleetService', () => {
@@ -302,6 +309,76 @@ describe('FleetService', () => {
     const result = await ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 2, district: 'workshop' }))
     expect(StubRuns.current.requests.map(request => request.district)).toEqual(['workshop', 'workshop'])
     expect(result.cells.every(outcome => 'report' in outcome)).toBe(true)
+  })
+
+  it('runs only the named cells, in plan order, and refuses a selection the plan does not enumerate', async () => {
+    const { ctx, plan } = await harness()
+    const result = await ctx.fleet.run(plan({
+      repetitions: 2,
+      cells: [
+        { environment: UNSATISFIABLE, model: MODEL_B, repetition: 1 },
+        { environment: ROUND_TRIP, model: MODEL_A, repetition: 1 },
+      ],
+    }))
+    expect(result.cells.map(outcome => [outcome.cell.environment, outcome.cell.model.model, outcome.cell.repetition])).toEqual([
+      [ROUND_TRIP, 'a', 1], [UNSATISFIABLE, 'b', 1],
+    ])
+    expect(StubRuns.current.requests.map(request => [request.environment, request.model?.model, request.repetition])).toEqual([
+      [ROUND_TRIP, 'a', 1], [UNSATISFIABLE, 'b', 1],
+    ])
+    expect(fleetCellKey({ environment: ROUND_TRIP, model: MODEL_A, repetition: 1 })).toBe('smoke:round-trip mock/a 1')
+
+    await expect(ctx.fleet.run(plan({ cells: [] }))).rejects.toMatchObject({
+      code: 'FLEET_INVALID_PLAN',
+      message: 'the plan names no cell to run',
+    })
+    const beyond = ctx.fleet.run(plan({ repetitions: 1, cells: [{ environment: ROUND_TRIP, model: MODEL_A, repetition: 4 }] }))
+    await expect(beyond).rejects.toMatchObject({
+      code: 'FLEET_INVALID_PLAN',
+      message: 'cell "smoke:round-trip mock/a 4" is not one this plan enumerates',
+    })
+  })
+
+  it('announces every settled cell once, in settle order, after its workspace is reaped', async () => {
+    const { ctx, root, announced, plan } = await harness({ workspaceRetention: 'remove-all' })
+    StubRuns.current.script = request => report(request, { certified: true, usage: { inputTokens: 7, outputTokens: 3 } })
+    // Reading the root as the cell is announced proves retention already ran:
+    // a `cell-*` directory still on disk here would fail the note's ordering.
+    const kept: string[][] = []
+    ctx.on('fleet/cell', () => {
+      kept.push(readdirSync(root))
+    })
+    const result = await ctx.fleet.run(plan({ models: [MODEL_A], repetitions: 2, district: 'workshop', tokenCeiling: 10 }))
+    expect(kept).toEqual([[], [], [], []])
+
+    expect(announced).toHaveLength(result.cells.length)
+    expect(announced.map(payload => [payload.cell.environment, payload.cell.repetition])).toEqual([
+      [ROUND_TRIP, 0], [ROUND_TRIP, 1], [UNSATISFIABLE, 0], [UNSATISFIABLE, 1],
+    ])
+    expect(announced.every(payload => payload.group === 'batch-1' && payload.district === 'workshop')).toBe(true)
+    expect(announced[0]).toEqual({
+      group: 'batch-1',
+      district: 'workshop',
+      cell: { environment: ROUND_TRIP, model: MODEL_A, repetition: 0 },
+      outcome: { kind: 'reported', sessionId: 'session-smoke:round-trip-0-a', certified: true },
+    })
+    expect(announced.map(payload => payload.outcome)).toEqual([
+      { kind: 'reported', sessionId: 'session-smoke:round-trip-0-a', certified: true },
+      { kind: 'error', code: 'FLEET_TOKEN_CEILING_REACHED', message: "the plan's token ceiling of 10 was reached at 10 tokens" },
+      { kind: 'error', code: 'FLEET_TOKEN_CEILING_REACHED', message: "the plan's token ceiling of 10 was reached at 10 tokens" },
+      { kind: 'error', code: 'FLEET_TOKEN_CEILING_REACHED', message: "the plan's token ceiling of 10 was reached at 10 tokens" },
+    ])
+  })
+
+  it('leaves the district off an undistricted plan and keeps an uncoded failure uncoded', async () => {
+    const { ctx, announced, plan } = await harness()
+    StubRuns.current.script = () => {
+      throw new Error('workspace vanished')
+    }
+    await ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 1 }))
+    expect(announced).toHaveLength(1)
+    expect(announced[0]).not.toHaveProperty('district')
+    expect(announced[0]?.outcome).toEqual({ kind: 'error', message: 'workspace vanished' })
   })
 
   it('stops scheduling a route once it errors consecutively, keeping the plan order and the row counts', async () => {
