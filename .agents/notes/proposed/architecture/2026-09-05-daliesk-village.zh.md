@@ -97,9 +97,9 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 ## Rollout
 
-1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；组合门禁；预算策略携带价格表摘要的 `usage/priced` 事件；证书上的 executor（读取屏障切片 4）；scorekeeper 把 `usage/priced` 折叠为每次会话的成本与每个已认证会话的成本；以及 stamp 的 `district` 作为观测台据以扣留的 `ScoreboardRow` 键的一部分。仍需要：有人值班运行。
+1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；组合门禁；预算策略携带价格表摘要的 `usage/priced` 事件；证书上的 executor（读取屏障切片 4）；scorekeeper 把 `usage/priced` 折叠为每次会话的成本与每个已认证会话的成本；以及 stamp 的 `district` 作为观测台据以扣留的 `ScoreboardRow` 键的一部分。此后又落地：[外部实现者](2026-09-06-external-implementer.md)，使 subagent 接缝上注册的任何编码 agent 都能在 `isolation: none` 下、在 runner 自己的标准、检查与证书之下实现一个 cell，stamp、事实与观测台的行都带上 `implementer`，program 的部门也以同样方式委托（[program 外部实现者](2026-09-06-program-external-implementer.md)）；以操作者自己的 Claude Code 安装为实现者的第一次运行记录在 [`data/proving-ground/`](../../../../data/proving-ground/README.md) 下；还有一个实时区 fixture（`village-live`），以该实现者按三十分钟的节奏运行四个程序任务。仍需要：有人值班运行。
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
-3. **无人值守的班次。** 已在[班次笔记](2026-09-05-village-shifts.md)中设计：班次身份与 `shift/*` 账本、从 stamp 恢复且绝不重跑的 cell、按区的节奏，以及跨班次的 token 花费窗口；其切片落地后，主机级监督进程退为后备。
+3. **无人值守的班次。** 已从[班次笔记](2026-09-05-village-shifts.md)落地：班次身份与 `shift/*` 账本、从 stamp 恢复且绝不重跑的 cell、按区的节奏、跨班次的 token 花费窗口，以及冻结进班次摘要的 `plan.implementer`；主机级监督进程为后备。仍需要：scorekeeper 中的 `shiftFacts` 与点名驱动器的门禁。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。
 5. **公开的 Workshop 与摘录披露。** 已落地：覆盖五个转换的 `signoff/recorded`、在会话启动时钉定的 `dataUse/terms`、`approval/decided` 上的 `decidedBy` 与参数摘要，以及 [curator](2026-09-06-curator.md)——其导出在没有脱敏配置时拒绝运行，扣留条款不接纳本次导出用途的每一个会话，在记录到达 sink 之前对其脱敏，并写出一份把留出、区与条款扣留分开记账的 `ExportManifest`。仍需：信任档案导出。
 6. **任何外联。** 需要 `external-communication` 权限与可拒绝的 monitor。

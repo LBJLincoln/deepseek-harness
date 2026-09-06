@@ -1,0 +1,161 @@
+# The live Proving Ground: one district running on its cadence with the real
+# Claude Code product as the implementer of every cell, over four small program
+# tasks whose own test suites are the standard (register-environments.ts).
+#
+# The route below is never sampled: a delegated cell drives no turn of its own
+# model. It is composed because the runner still creates one cell agent per
+# cell, and that agent's session is where the stamp, the standard, the
+# delegation records, and the certificate live.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor and for the product CLI the
+# Claude Code provider spawns.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: './register-environments.ts'
+
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: subagents
+  name: '@deepseek-ai/dsh-subagent'
+
+# No `env` overlay: the child resolves the host's own `claude` installation and
+# runs on the account and settings that installation already holds. Unattended
+# program tasks need those settings to allow file edits and `node` commands
+# without a prompt; the provider registers its read-barrier refusal, which the
+# `isolation: none` runner below asks nothing of.
+- id: subagent-claude-code
+  name: '@deepseek-ai/dsh-subagent-claude-code'
+
+# `isolation: none` is the only claim an out-of-process implementer can serve:
+# the read-barrier census cannot confine a foreign agent, and the runner refuses
+# a higher claim over one.
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    evidenceMaxChars: 1024
+
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 2
+    workspaceRetention: keep
+
+# Village rule: unattended cells carry a session budget. The caps bound the cell
+# agent's own session, which a delegated cell barely uses; the external
+# implementer's spend is outside every limit this harness enforces.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 1800000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run registered environments as validated sessions.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The terms every session of this district is pinned with at creation; they
+# admit evaluation and never training, which is what the curator gates on.
+- id: data-use
+  name: '@deepseek-ai/dsh-data-use'
+  config:
+    clientId: daliesk-lab
+    agreementId: village-live
+    purposes:
+      - delivery
+      - evaluation
+    residency: eu-west
+    retentionDays: 90
+    redactionProfile: village-v1
+
+- id: session-projection
+  name: '@deepseek-ai/dsh-session-projection'
+
+- id: scorekeeper
+  name: '@deepseek-ai/dsh-scorekeeper'
+  config:
+    passAtK:
+      - 1
+
+- id: observatory
+  name: '@deepseek-ai/dsh-observatory'
+  config:
+    withhold:
+      districts:
+        - workshop
+      heldOut: true
+    staleAfterMs: 3600000
+    refreshIntervalMs: 900000
+
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'
+
+- id: curator
+  name: '@deepseek-ai/dsh-curator'
+  config:
+    defaultProfile: village-v1
+    profiles:
+      village-v1:
+        shipped: true
+
+# One district, one slot every thirty minutes from process start; the held-out
+# environment never enters the plan, and the implementer is frozen into the
+# shift digest.
+- id: shifts
+  name: '@deepseek-ai/dsh-shifts'
+  config:
+    workspaceRoot: !!js process.cwd()
+    startImmediately: true
+    districts:
+      - district: proving-ground
+        plan:
+          environments:
+            filter:
+              heldOut: false
+          models:
+            - provider: cli-mock
+              model: cli-mock
+          implementer:
+            kind: subagent
+            provider: claude-code
+            label: external
+          repetitions: 1
+        cadence:
+          intervalMs: 1800000
