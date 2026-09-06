@@ -306,6 +306,7 @@ describe('task admission and package contracts', () => {
         depthLimit: false,
         toolFilter: false,
         persona: false,
+        harnessTools: true,
       },
       inheritsParentContext: false,
     })
@@ -342,6 +343,8 @@ describe('task admission and package contracts', () => {
         HOME: '/private/tmp/dsh-claude-code-unit-home',
       },
       disposeGraceMs: 29,
+      permissionMode: 'acceptEdits',
+      allowedTools: ['Read'],
     })
 
     await expect(ctx.subagents.start('claude-code', {
@@ -377,6 +380,9 @@ describe('task admission and package contracts', () => {
     )
     expect(queryMock.mock.calls[0]?.[0].options.pathToClaudeCodeExecutable)
       .toBe('/native/claude')
+    // The deployment's product-permission policy reaches the black-box query.
+    expect(queryMock.mock.calls[0]?.[0].options.permissionMode).toBe('acceptEdits')
+    expect(queryMock.mock.calls[0]?.[0].options.allowedTools).toEqual(['Read'])
     expect(spawn).toHaveBeenCalledWith(expect.objectContaining({
       cwd: process.cwd(),
       graceMs: 29,
@@ -574,6 +580,10 @@ describe('query options and result mapping', () => {
     ]) {
       expect(options).not.toHaveProperty(omitted)
     }
+    // Absent config leaves the product's own permission default and allowlist.
+    expect(options).not.toHaveProperty('permissionMode')
+    expect(options).not.toHaveProperty('allowedTools')
+    expect(options).not.toHaveProperty('allowDangerouslySkipPermissions')
 
     const spawned = options.spawnClaudeCodeProcess!(sdkSpawnOptions())
     expect(spawned).toBeInstanceOf(ManagedClaudeCodeProcess)
@@ -583,6 +593,31 @@ describe('query options and result mapping', () => {
       cwd: '/workspace',
       graceMs: 17,
     }))
+  })
+
+  it('carries the configured permission mode and allowlist to the product', () => {
+    const child = fakeChild()
+    const base: ClaudeCodeRunSpec = {
+      cwd: '/workspace',
+      executable: '/native/claude',
+      env: {},
+      disposeGraceMs: 17,
+      spawn: () => child.handle,
+    }
+    const build = (spec: ClaudeCodeRunSpec) => claudeQueryOptions(spec, new AbortController(), () => {})
+
+    const accepted = build({ ...base, permissionMode: 'acceptEdits', allowedTools: ['Read', 'Write'] })
+    expect(accepted.permissionMode).toBe('acceptEdits')
+    expect(accepted.allowedTools).toEqual(['Read', 'Write'])
+    expect(accepted).not.toHaveProperty('allowDangerouslySkipPermissions')
+
+    // The SDK refuses the bypass without the acknowledgement, so the provider
+    // pairs them rather than letting the configured mode fail silently.
+    const bypass = build({ ...base, permissionMode: 'bypassPermissions' })
+    expect(bypass.allowDangerouslySkipPermissions).toBe(true)
+
+    // An empty list is the product's default, not "auto-approve nothing".
+    expect(build({ ...base, allowedTools: [] })).not.toHaveProperty('allowedTools')
   })
 
   it('accepts only a non-error success with a non-blank final result', () => {

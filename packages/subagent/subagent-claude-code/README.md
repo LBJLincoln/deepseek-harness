@@ -14,15 +14,51 @@ Local cancellation wins the result race and maps to `aborted`. `dispose()` is id
 
 Before anything is spawned, `start()` asks the composed [read barrier](../../verification/read-barrier/README.md) whether this out-of-process child may run at all. An implementer session under a deployment claiming `process` or `host` isolation is refused with `SubagentError` `READ_BARRIER_REFUSED`, because a foreign agent brings its own tool stack and no fence this process installs reaches its reads; under a claim of `none` nothing is refused. The provider registers that refusal with the barrier, so the scope census reports `subagent`.
 
+The refusal applies to both modes, bridge mode included. Bridge mode is what makes relaxing it conceivable — under it every read the external model performs is a harness tool call through this process's executor, where the barrier already denies — but it is not sufficient: the CLI process itself is unconfined, so it can open a denied path with its own runtime rather than through an MCP call. Confining that process is separate work against the sandbox seam.
+
 ## Native settings and interaction
 
-The provider deliberately omits the SDK `settingSources` option. The official SDK therefore reads the host's normal user, project, and local Claude settings relative to the parent Session cwd, including native account state and product configuration. The provider neither copies nor filters those files and does not create or modify login state.
+Outside bridge mode the provider deliberately omits the SDK `settingSources` option. The official SDK therefore reads the host's normal user, project, and local Claude settings relative to the parent Session cwd, including native account state and product configuration. The provider neither copies nor filters those files and does not create or modify login state. Bridge mode passes `settingSources: []` instead, because a workspace setting that added a tool or a hook would reopen the surface bridge mode exists to close; authentication is unaffected, since the SDK resolves the account independently of that option.
 
-Each query sets `persistSession: false` and disables `AskUserQuestion`. It supplies no `canUseTool`, elicitation, or dialog callback, so unattended interactions fail through the SDK instead of waiting for a user interface this provider does not own.
+Each query sets `persistSession: false` and disables `AskUserQuestion`. It supplies no elicitation or dialog callback, so unattended interactions fail through the SDK instead of waiting for a user interface this provider does not own. The only `canUseTool` the provider ever supplies is bridge mode's own tool fence, which asks nobody anything: it decides from the tool name alone.
+
+## Bridge mode: the harness tool set, and nothing else
+
+A request carrying `harnessTools: { only: true }` runs the same product against a completely different tool surface. The provider creates a child harness agent under the parent's lineage — the parent's cwd, its preset composition, its delegated sandbox and approval policy, the resolved delegation depth — serves that agent's tool registry through [`dsh-mcp-tool-server`](../../mcp/mcp-tool-server/README.md) as the SDK server named `dsh`, and pins the external model to it:
+
+| SDK option | Value | Why |
+|---|---|---|
+| `tools` | `[]` | No built-in tool of the product's own. |
+| `mcpServers` | `{ dsh: <in-process instance> }` | The harness registry, in this process. |
+| `allowedTools` | `['mcp__dsh__*']` | Harness tools run without a product-side permission prompt. |
+| `canUseTool` | denies every name outside `mcp__dsh__` | The fence. `allowedTools` decides what is auto-approved, not what may be called. |
+| `strictMcpConfig` | `true` | No MCP server from the workspace, user settings, or plugins. |
+| `settingSources` | `[]` | No project settings, hooks, CLAUDE.md, or agent frontmatter. |
+| `maxTurns` | `agentOptions.maxTurns` when set | The caller's turn ceiling reaches the external loop. |
+
+Every tool call the external model makes is therefore an ordinary harness execution on the child agent: authorized by the approval seam, filtered by the registry guards, bounded by the tool-call timeout, and recorded as the usual `tool/call`/`tool/result` pair. The final answer still returns through the shared result contract, and `SubagentRun.localAgent` is the published child, whose id is the run id.
+
+The pinned SDK warns that a bare `allowedTools` entry auto-approves before `canUseTool` runs. That is the intended split: the served harness tools need no product-side prompt, while every other name falls through to the callback and is denied there.
+
+### What the child session records
+
+`src/types.ts` declares three log-only events, none of which enters any harness model's context:
+
+| Event | Payload | When |
+|---|---|---|
+| `bridge/start` | `provider`, `tools` (the names as the external model sees them) | Once, after the server is attached. |
+| `bridge/assistant` | `text`, optional `usage` | Per assistant message with text. Tool calls are absent: the executor already logged each as the durable pair. |
+| `bridge/end` | `stopReason`, optional `usage` | Once, when the run settles or is released. |
+
+The whole run is one turn of that child session, because the durable tool pair is step-scoped; [`dsh-mcp-tool-server`](../../mcp/mcp-tool-server/README.md) owns that turn and closes it on disposal.
+
+The log does NOT hold the external model's hidden reasoning, its assembled system prompt, or its own context: none of it is observable from this process. A reader of the child log sees what the external agent said and did, never why.
 
 ## Capabilities and context
 
-The provider advertises no optional start-time capabilities and reports `inheritsParentContext: false`. Claude Code receives the standalone text task and the parent Session cwd, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. Every run has an independent SDK query, cancellation controller, CLI process, and non-persisted product session.
+The provider advertises `harnessTools` and no other optional start-time capability, and reports `inheritsParentContext: false`. `harnessTools` is the one start-time feature an out-of-process child can honor, because the harness composes the child agent whose tools it serves rather than asking the product to enforce anything. `outputSchema`, `maxDepth`, `toolFilter`, and `persona` are still rejected by the shared service for this provider, in both modes.
+
+Without `harnessTools`, Claude Code receives the standalone text task and the parent Session cwd, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. Every run has an independent SDK query, cancellation controller, CLI process, and non-persisted product session.
 
 ## Configuration
 
@@ -30,6 +66,10 @@ The provider advertises no optional start-time capabilities and reports `inherit
 |---|---|---|
 | `env` | `{}` | Explicit SDK/CLI environment layered over the shared credential-scrubbed parent environment. |
 | `disposeGraceMs` | `3000` | Positive finite grace in milliseconds, no greater than [`MAX_TIMER_DELAY_MS`](../../util/timeout/README.md), between the shared process-tree owner's termination tiers; disposal then waits for whole-tree exit. |
+| `permissionMode` | absent | The product's own permission mode for both modes, one of the pinned SDK's values (`default`, `acceptEdits`, `bypassPermissions`, `plan`, `dontAsk`, `auto`); any other value is refused at load. Absent leaves the product's default. |
+| `allowedTools` | `[]` | Tool names the product auto-approves in the BLACK-BOX mode only; empty leaves the product's default. Bridge mode ignores it and keeps its own allowlist and denial callback. |
+
+Under the host's native settings the product's default permission mode prompts before a file write, so an unattended black-box child reports that it lacks permission rather than doing the work. An unattended implementer at `isolation: none` therefore needs `acceptEdits` (file edits) or `bypassPermissions` (everything, and the provider pairs it with the SDK's required `allowDangerouslySkipPermissions`). Both hand the product's own confinement away — which is exactly what bridge mode replaces: there the harness authorizes each call at its own executor, so no product-side permission decision is involved at all.
 
 Production resolves `claude` from the subprocess execution world's credential-scrubbed `PATH`, with explicit `env` entries applied, and passes the resulting path to the SDK as `pathToClaudeCodeExecutable`. On Windows, a resolved `.cmd` or `.bat` path is carried as a quoted, per-spawn environment value that `cmd.exe /v:off` expands once, so valid path metacharacters remain data. The pinned SDK's fixed flags then occupy cmd's command tail and contain no cmd metacharacters; they are not ordinary Windows argv. Native settings and authentication remain authoritative. The plugin does not install another CLI, select a model, create a product home, log in, or probe an account. Credential-shaped ambient variables are removed before the explicit `env` overlay is applied, so an API key or token intended for the child must be supplied there. Non-credential endpoint variables such as `ANTHROPIC_BASE_URL`, along with ordinary ambient values such as `PATH` and `HOME`, remain inherited unless overridden.
 
@@ -64,7 +104,7 @@ The project owner's identity-scoped distribution authorization covers the offici
 
 #### What the model sees
 
-The Claude Code child receives the standalone text task as one fresh SDK query. Its workspace is the parent Session cwd, while its model, system instructions, tools, permissions, and authentication come from the host's native Claude settings and product installation.
+The Claude Code child receives the standalone text task as one fresh SDK query. Its workspace is the parent Session cwd, while its model, system instructions, tools, permissions, and authentication come from the host's native Claude settings and product installation. Under `harnessTools: { only: true }` the tools instead come from the child harness agent's registry, and the host's settings, hooks, project files, and MCP servers are excluded — only the model and the authentication remain the product's.
 
 #### Token effect
 
@@ -95,6 +135,8 @@ Append-only: the new tool result follows the reusable parent request prefix.
 - **Product installation and account state remain native** — a missing or incompatible `claude`, configuration error, or authentication failure is surfaced as a startup or run error; the plugin provides no installer or login flow.
 - **The SDK platform CLI remains in the install closure** — production ignores it in favor of the host `claude`, but the current SDK optional dependency is still installed and supplies the keyless compatibility fixture. Removing that payload belongs to the separate product installation-closure follow-up.
 - **No human interaction path** — `AskUserQuestion` is disabled and other interactive callbacks are absent, so tasks requiring new approval or input fail instead of suspending.
-- **Final text only** — reasoning, intermediate messages, tool traffic, usage, stderr, and workspace diffs remain product-local.
-- **No optional shared capabilities** — output schemas, child personas, tool filtering, and harness depth enforcement are rejected by the shared service for this provider.
+- **Final text only outside bridge mode** — without `harnessTools`, reasoning, intermediate messages, tool traffic, usage, stderr, and workspace diffs remain product-local. Bridge mode records the tool traffic, the assistant text, and the usage; the reasoning and the product's own prompt stay unobservable in both.
+- **No optional shared capabilities besides `harnessTools`** — output schemas, child personas, tool filtering, and harness depth enforcement are rejected by the shared service for this provider. `toolFilter` is meaningful in bridge mode and refused there too: capability flags are per provider rather than per mode, so advertising it would accept it in the black-box mode as well, where it would be silently ignored.
+- **Bridge mode needs the tool server composed** — a deployment that requests `harnessTools` without [`dsh-mcp-tool-server`](../../mcp/mcp-tool-server/README.md) is refused at start with `SubagentError` `BRIDGE_UNAVAILABLE`, because the provider cannot serve a registry that is not there.
+- **The bridged process is unconfined** — bridge mode fences the tools the external model is given, not the process it runs in.
 - **No wall-clock timeout or side-effect rollback** — the caller cancels long work, and files or external systems changed before cancellation are not restored.

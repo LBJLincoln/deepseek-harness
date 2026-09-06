@@ -475,6 +475,10 @@ How a tool wants its call shown in a UI (an editor tool-call card, a CLI log lin
 
 The full presentation field docs live in [`packages/core/tools/src/presentation.ts`](../../packages/core/tools/src/presentation.ts). The `bash` schema and executor are on [shell.md](shell.md); generic background controls are on [jobs.md](jobs.md).
 
+## Serving one agent's registry to an external agent
+
+`ctx.mcpToolServer` ([`dsh-mcp-tool-server`](../../packages/mcp/mcp-tool-server/README.md)) is the registry's outward face: it publishes ONE agent's visible tools as an MCP server and routes every `tools/call` back through `ctx.tools.execute()` on that agent, so a model running outside this process reaches the same pipeline — approval, guards, `tools/execute` wrappers, definition-owned content — that a harness model reaches. Its handle owns one turn of the served agent's session, because the `tool/call`/`tool/result` pair it appends is step-scoped. `ctx.tools` itself is unchanged by it: the server is a consumer of the registry, not a second registry.
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -482,6 +486,37 @@ The full presentation field docs live in [`packages/core/tools/src/presentation.
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — this section is byte-identical in both language sides of the page. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxmcptoolserver--mcptoolserverservice"></a>
+
+### `ctx.mcpToolServer` — `McpToolServerService`
+
+The MCP tool server service. One instance serves any number of agents; each `instance()` call owns one run, and one agent may hold only one live run.
+
+```ts cordis-catalog
+/**
+ * Resolve one request against the deployment's configuration. Defaulting
+ * happens here and nowhere else, so a caller reading a resolved spec sees
+ * exactly what the run uses.
+ * @param request - the caller's optional namespace override.
+ * @returns the resolved server inputs.
+ */
+resolve(request: McpToolServerRequest): McpToolServerSpec
+
+/**
+ * Serve one agent's tools as an in-process MCP server and open the turn its
+ * calls are recorded in.
+ * @param agent - the agent whose registry view is served and whose session records the run.
+ * @param request - optional namespace override for this run.
+ * @returns the handle carrying the SDK configuration, the served names, and disposal.
+ * @throws when that agent already holds a live run, or when its session has a turn open.
+ */
+instance(agent: Agent, request: McpToolServerRequest = {}): McpToolServerHandle
+```
+
+Types: [Agent](core.md)
+
+Source: [`packages/mcp/mcp-tool-server/src/index.ts:97`](../../packages/mcp/mcp-tool-server/src/index.ts)
 
 <a id="ctxtools--toolruntime"></a>
 

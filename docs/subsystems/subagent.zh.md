@@ -29,12 +29,26 @@ interface SubagentCapabilities {
   readonly depthLimit: boolean
   readonly toolFilter: boolean
   readonly persona: boolean
+  readonly harnessTools: boolean
+}
+```
+
+```ts type-equiv
+/**
+ * How the child's tool surface is decided. `only: true` is the whole option
+ * rather than a flag: the child model sees the harness tool set of a child
+ * harness agent the provider creates under the parent's lineage, AND NOTHING
+ * ELSE — no tool of the backend's own. Written as an object so a later
+ * non-exclusive member widens the option instead of redefining a boolean.
+ */
+interface SubagentHarnessTools {
+  readonly only: true
 }
 ```
 
 ## 单次启动请求
 
-工具层根据模型输入和自身配置构建此请求；服务在 `start` 之前针对指定提供方进行校验。必填的 `parent` 提供会话 cwd、谱系与委派深度。可选的 output schema、depth、工具过滤器和 persona 需要对应的能力 flag 匹配。不支持的 schema 在启动时即失败；进程内后端将 filter 和 persona 的作用域限定在子 agent 创建阶段，并通过强制 capture 工具实现所支持的 object-rooted schema。
+工具层根据模型输入和自身配置构建此请求；服务在 `start` 之前针对指定提供方进行校验。必填的 `parent` 提供会话 cwd、谱系与委派深度。可选的 output schema、depth、工具过滤器、persona 和 harness 工具需要对应的能力 flag 匹配。不支持的 schema 在启动时即失败；进程内后端将 filter 和 persona 的作用域限定在子 agent 创建阶段，并通过强制 capture 工具实现所支持的 object-rooted schema。`harnessTools` 是进程外后端唯一能够持有的一个：提供方在父级血统下创建一个子本仓库智能体，通过 [`dsh-mcp-tool-server`](../../packages/mcp/mcp-tool-server/README.md) 把该智能体的注册表提供给它的外来模型，并把该模型发出的每一次调用都通过该智能体上的本仓库执行器运行，这正是子会话成为该次运行持久记录的原因（见 [external-agent bridge Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md)）。
 
 ```ts type-equiv
 /**
@@ -93,6 +107,16 @@ interface SubagentStartRequest {
    * persona (strict `{{…}}` interpolation against the registered variables).
    */
   readonly persona?: string
+  /**
+   * Optional replacement of the child's whole tool surface with the harness's
+   * own. Requires {@link SubagentCapabilities.harnessTools}; rejected at start
+   * otherwise. An out-of-process backend that supports it creates a child
+   * harness agent under the parent's lineage, serves that agent's registry view
+   * to the foreign model, and executes every call the model makes through the
+   * harness executor on that agent — which is what makes the child's session
+   * the durable record of the run.
+   */
+  readonly harnessTools?: SubagentHarnessTools
 }
 ```
 
@@ -648,7 +672,7 @@ async start(name: string, request: SubagentStartRequest): Promise<SubagentRun>
 
 Types: [Agent](core.md) · [ContentBlock](llm-streaming.md) · [MessageId](llm-streaming.md) · [SessionId](core.md)
 
-Source: [`packages/subagent/subagent/src/index.ts:176`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:177`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagent-events"></a>
 
@@ -674,7 +698,7 @@ A published child settled. Scope-filtered dispatch uses the same delegating pare
 
 Types: [Scoped](scope.md)
 
-Source: [`packages/subagent/subagent/src/index.ts:171`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:172`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagentprovider-added--emit"></a>
 
@@ -691,7 +715,7 @@ A provider became resolvable in the registry.
 'subagent/provider-added'(provider: SubagentProvider): void
 ```
 
-Source: [`packages/subagent/subagent/src/index.ts:145`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:146`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagentprovider-removed--emit"></a>
 
@@ -708,7 +732,7 @@ A provider left the registry. Accepted runs remain holder-owned.
 'subagent/provider-removed'(name: string): void
 ```
 
-Source: [`packages/subagent/subagent/src/index.ts:151`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:152`](../../packages/subagent/subagent/src/index.ts)
 
 <a id="subagentstart--emit"></a>
 
@@ -732,5 +756,5 @@ A provider established a published child. For in-process providers, `ctx.agents.
 
 Types: [Scoped](scope.md)
 
-Source: [`packages/subagent/subagent/src/index.ts:162`](../../packages/subagent/subagent/src/index.ts)
+Source: [`packages/subagent/subagent/src/index.ts:163`](../../packages/subagent/subagent/src/index.ts)
 <!-- END GENERATED cordis-surface -->

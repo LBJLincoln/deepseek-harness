@@ -10,6 +10,7 @@ import { randomUUID } from 'node:crypto'
 import {
   query as officialQuery,
   type Options,
+  type PermissionMode,
   type Query,
   type SDKMessage,
   type SDKResultMessage,
@@ -34,9 +35,16 @@ import {
   claudeSpawnSpec,
   ManagedClaudeCodeProcess,
 } from './process.ts'
+import type { BridgedRun } from './bridge.ts'
 
 /** Default POSIX grace between subprocess termination tiers. */
 export const DEFAULT_DISPOSE_GRACE_MS = 3_000
+
+/**
+ * The pinned SDK's permission-mode vocabulary, restated as values so the config
+ * schema can reject anything else at load. Protocol constant, not a tunable.
+ */
+export const PERMISSION_MODES = ['default', 'acceptEdits', 'bypassPermissions', 'plan', 'dontAsk', 'auto'] as const satisfies readonly PermissionMode[]
 
 /* jscpd:ignore-start -- sibling providers intentionally keep product-private
  * run inputs and error normalization instead of adding a shared lifecycle owner. */
@@ -54,6 +62,20 @@ export interface ClaudeCodeRunSpec {
   readonly spawn: (spec: SubprocessSpawnSpec) => SubprocessHandle
   /** Diagnostic sink for a post-publication error flattened into a result. */
   readonly onError?: (error: Error, stopReason: SubagentStopReason) => void
+  /** Product permission mode for this run; absent leaves the product's default. */
+  readonly permissionMode?: PermissionMode
+  /**
+   * Tool names the product auto-approves, for the black-box mode. Empty or
+   * absent leaves the product's default; bridge mode supplies its own.
+   */
+  readonly allowedTools?: readonly string[]
+  /**
+   * The live bridge when the caller requested `harnessTools`, absent in the
+   * black-box mode. Its presence is what replaces the product's own tool
+   * surface, publishes the child harness agent as the run's local agent, and
+   * records the run in that child's session.
+   */
+  readonly bridge?: BridgedRun
 }
 
 function thrown(value: unknown): Error {
@@ -107,13 +129,16 @@ export function successfulResult(message: SDKResultMessage): string {
  * Consume the complete SDK stream and require one strict success plus normal
  * iterator completion.
  * @param query - published official SDK query.
+ * @param observe - the bridge's fold into the child session, absent in black-box mode.
  * @returns the completed shared result.
  */
 export async function consumeClaudeQuery(
   query: AsyncIterable<SDKMessage>,
+  observe?: (message: SDKMessage) => void,
 ): Promise<SubagentResult> {
   let answer: string | undefined
   for await (const message of query) {
+    observe?.(message)
     if (message.type !== 'result') continue
     answer = successfulResult(message)
   }
@@ -191,6 +216,18 @@ export function claudeQueryOptions(
       capture(child)
       return new ManagedClaudeCodeProcess(child)
     },
+    ...spec.permissionMode === undefined ? {} : {
+      permissionMode: spec.permissionMode,
+      // The SDK refuses `bypassPermissions` without this acknowledgement; the
+      // deployment that configured that mode is the intent it asks for.
+      ...spec.permissionMode === 'bypassPermissions' ? { allowDangerouslySkipPermissions: true } : {},
+    },
+    ...spec.allowedTools === undefined || spec.allowedTools.length === 0
+      ? {}
+      : { allowedTools: [...spec.allowedTools] },
+    // Last, so the bridge's closed tool surface cannot be widened by anything
+    // above it.
+    ...spec.bridge?.options,
   }
 }
 
@@ -267,24 +304,34 @@ export async function startClaudeCodeRun(
 
   const publishedQuery = query
   const publishedChild = child
+  const bridge = spec.bridge
   const result = settleRunResult({
-    attempt: () => consumeClaudeQuery(publishedQuery),
+    attempt: () => consumeClaudeQuery(publishedQuery, bridge?.observe.bind(bridge)),
     collectOutput: () => [],
     cancelled: () => controller.signal.aborted,
     onError: spec.onError,
     signal: request.signal,
     onAbort,
+  }).then((settled) => {
+    bridge?.settle(settled.stopReason)
+    return settled
   })
 
   return subprocessRunHandle({
-    id: SessionId(randomUUID()),
+    id: bridge?.id ?? SessionId(randomUUID()),
+    ...bridge === undefined ? {} : { localAgent: bridge.agent },
     result,
     signal: request.signal,
     onAbort,
     requestCancel,
-    teardown: () => disposeClaudeCodeChild(
-      publishedQuery,
-      publishedChild,
-    ),
+    teardown: async () => {
+      try {
+        await disposeClaudeCodeChild(publishedQuery, publishedChild)
+      } finally {
+        // The child agent and its served turn are released even when the CLI's
+        // own teardown failed: the run's durable record must still close.
+        await bridge?.release()
+      }
+    },
   })
 }

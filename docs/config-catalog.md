@@ -1540,6 +1540,25 @@ export interface ReconnectConfig {
 
 Source: [`packages/mcp/mcp-client/src/index.ts:98`](../packages/mcp/mcp-client/src/index.ts)
 
+<a id="deepseek-aidsh-mcp-tool-server"></a>
+
+## `@deepseek-ai/dsh-mcp-tool-server`
+
+Requires: `tools`
+
+```ts config-catalog
+/** Deployment-owned MCP identity of the served registry. */
+export interface Config {
+  /**
+   * MCP namespace a served run answers under when its request omits one
+   * (default `dsh`). Matches `[A-Za-z0-9_-]{1,32}`.
+   */
+  serverName?: string
+}
+```
+
+Source: [`packages/mcp/mcp-tool-server/src/index.ts:85`](../packages/mcp/mcp-tool-server/src/index.ts)
+
 <a id="deepseek-aidsh-message-feedback"></a>
 
 ## `@deepseek-ai/dsh-message-feedback`
@@ -2578,7 +2597,7 @@ Source: [`packages/subagent/subagent-acp/src/index.ts:28`](../packages/subagent/
 Requires: `subagents` · `subprocess`
 
 ```ts config-catalog
-/** Deployment-owned environment and process-release bound. */
+/** Deployment-owned environment, process-release bound, and product permission policy. */
 export interface Config {
   /**
    * Explicit environment entries layered over the subprocess seam's
@@ -2587,10 +2606,26 @@ export interface Config {
   env?: Record<string, string>
   /** Grace in milliseconds for Claude Code process-tree termination. */
   disposeGraceMs?: number
+  /**
+   * Permission mode the product runs its own tools under, in both modes.
+   * Omitted leaves the product's own default, which prompts for operations
+   * like a file write and therefore fails an unattended run. `bypassPermissions`
+   * additionally sets the SDK's `allowDangerouslySkipPermissions`, because the
+   * deployment naming it here IS the intentional bypass that flag guards.
+   */
+  permissionMode?: PermissionMode
+  /**
+   * Tool names the product auto-approves without a permission prompt, in the
+   * BLACK-BOX mode only: bridge mode serves the harness registry and keeps its
+   * own fixed allowlist and denial callback. Empty leaves the product's default.
+   */
+  allowedTools?: string[]
 }
 ```
 
-Source: [`packages/subagent/subagent-claude-code/src/index.ts:34`](../packages/subagent/subagent-claude-code/src/index.ts)
+Depends on: `PermissionMode` (`@anthropic-ai/claude-agent-sdk`)
+
+Source: [`packages/subagent/subagent-claude-code/src/index.ts:48`](../packages/subagent/subagent-claude-code/src/index.ts)
 
 <a id="deepseek-aidsh-subagent-codex"></a>
 

@@ -38,7 +38,10 @@ subagent seam 允许一个 agent（智能体）通过具名提供方把工作委
 - `outputSchema`：强制执行结构化最终结果；
 - `depthLimit`：强制执行 `maxDepth`；
 - `toolFilter`：应用请求的子 agent 工具限制；
-- `persona`：应用每个子 agent 独立的 persona。
+- `persona`：应用每个子 agent 独立的 persona；
+- `harnessTools`：兑现 `harnessTools: { only: true }`。
+
+`harnessTools` 是进程外后端唯一能够持有的能力。请求它意味着子模型的工具面**就是**提供方在父级血统下创建的一个子本仓库智能体的工具集，除此之外别无他物：后端把该智能体的注册表提供给它的外来模型，把该模型发出的每一次调用都通过该智能体上的本仓库执行器执行，而子会话成为这次运行的持久记录。它是对象而非布尔值，因为 `only` 是语义而不是开关 —— 日后新增的非排他成员是加宽该选项，而不是重新定义它。
 
 每个进程内子 agent 都通过一次 `applyChildComposition(childCtx, parent, composition)` 调用完成组装：先加入父级的 agent-preset 组合，再应用子 agent 自己的 persona 和工具限制。加入父级组合正是子 agent 获得能力的途径：所有面向模型的行都位于 agent 平面，完全没有加入任何组合的子 agent 抵达模型时会看到空的工具注册表（见 [`dsh-agent-presets`](../../preset/agent-presets/README.md)）。将父级作为参数是刻意设计：这让“组装子 agent 却不做该加入”在各调用点无法表达，而这正是这一次调用所要杜绝的缺陷。未组装 preset roster 的部署不加入任何组合、也不需要加入；其面向模型的行位于宿主组合中，子 agent 已能通过工具注册表的全局层解析到它们。
 

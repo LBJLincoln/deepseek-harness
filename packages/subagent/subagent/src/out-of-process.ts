@@ -19,14 +19,18 @@ import type { SubagentCapabilities, SubagentResult, SubagentRun, SubagentStopRea
 /**
  * The capability advertisement of an out-of-process backend: NONE. A child in
  * another process cannot honor parent-enforced start features
- * (`outputSchema`/`maxDepth`/`toolFilter`/`persona`), so the service rejects a
- * request needing any of them before `start` runs — never accepted-then-ignored.
+ * (`outputSchema`/`maxDepth`/`toolFilter`/`persona`/`harnessTools`), so the
+ * service rejects a request needing any of them before `start` runs — never
+ * accepted-then-ignored. A backend that bridges the harness tool set into the
+ * foreign model declares `harnessTools` itself instead of taking this
+ * advertisement.
  */
 export const NO_START_CAPABILITIES: SubagentCapabilities = Object.freeze({
   outputSchema: false,
   depthLimit: false,
   toolFilter: false,
   persona: false,
+  harnessTools: false,
 })
 
 /**
@@ -193,6 +197,12 @@ export async function settleRunResult(parts: RunResultSettlement): Promise<Subag
 export interface SubprocessRunHandleParts {
   /** The parent-scoped run id. */
   id: SubagentRun['id']
+  /**
+   * The published in-process child a bridging backend created to authorize the
+   * foreign agent's tool calls, or absent when the child exists only in the
+   * other process. Its id MUST be {@link id}.
+   */
+  localAgent?: SubagentRun['localAgent']
   /** The flattened, never-rejecting result (the seam contract). */
   result: Promise<SubagentResult>
   /** The request's cancellation signal (the listener is removed on dispose). */
@@ -211,13 +221,13 @@ export interface SubprocessRunHandleParts {
  * local cancellation — there is no assumption the child cooperates — and then
  * awaits the backend's teardown to actual exit.
  * @param parts - the run identity, result, cancellation wiring, and teardown.
- * @returns the seam run handle (`localAgent` is `undefined` for remote runs).
+ * @returns the seam run handle (`localAgent` is `undefined` unless the backend published one).
  */
 export function subprocessRunHandle(parts: SubprocessRunHandleParts): SubagentRun {
   let disposal: Promise<void> | undefined
   return {
     id: parts.id,
-    localAgent: undefined,
+    localAgent: parts.localAgent,
     result: parts.result,
     dispose(): Promise<void> {
       if (disposal !== undefined) return disposal

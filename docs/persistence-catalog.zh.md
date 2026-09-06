@@ -245,6 +245,48 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 来源：[`packages/core/session/src/types.ts:273`](../packages/core/session/src/types.ts)
 
+### `bridge/*`
+
+<a id="bridgeassistant--log-only"></a>
+
+#### `bridge/assistant` — log-only
+
+```ts persistence-catalog
+/**
+ * One assistant message from the external model. Log-only, for the same
+ * reason: the child session is the run's record, not its context.
+ */
+'bridge/assistant': BridgeAssistantData
+```
+
+来源：[`packages/subagent/subagent-claude-code/src/types.ts:64`](../packages/subagent/subagent-claude-code/src/types.ts)
+
+<a id="bridgeend--log-only"></a>
+
+#### `bridge/end` — log-only
+
+```ts persistence-catalog
+/** Closes one bridged run with its terminal reason. Log-only. */
+'bridge/end': BridgeEndData
+```
+
+来源：[`packages/subagent/subagent-claude-code/src/types.ts:66`](../packages/subagent/subagent-claude-code/src/types.ts)
+
+<a id="bridgestart--log-only"></a>
+
+#### `bridge/start` — log-only
+
+```ts persistence-catalog
+/**
+ * Opens one bridged external-agent run in the child harness session that
+ * authorizes it. Log-only: `deriveMessages()` ignores it, so nothing here
+ * re-enters a harness model's context.
+ */
+'bridge/start': BridgeStartData
+```
+
+来源：[`packages/subagent/subagent-claude-code/src/types.ts:59`](../packages/subagent/subagent-claude-code/src/types.ts)
+
 ### `budget/*`
 
 <a id="budgetbreach--log-only"></a>
