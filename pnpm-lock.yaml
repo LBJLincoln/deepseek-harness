@@ -512,6 +512,9 @@ importers:
       '@deepseek-ai/dsh-credentials-local':
         specifier: workspace:*
         version: link:../packages/credentials/credentials-local
+      '@deepseek-ai/dsh-curator':
+        specifier: workspace:*
+        version: link:../packages/governance/curator
       '@deepseek-ai/dsh-data-use':
         specifier: workspace:*
         version: link:../packages/governance/data-use
@@ -4875,6 +4878,34 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: workspace:^
         version: link:../../core/tools
+
+  packages/governance/curator:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-data-use':
+        specifier: workspace:^
+        version: link:../data-use
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@deepseek-ai/dsh-session-persistence':
+        specifier: workspace:^
+        version: link:../../session/session-persistence
+      '@deepseek-ai/dsh-trajectories':
+        specifier: workspace:^
+        version: link:../../improvement/trajectories
 
   packages/governance/data-use:
     dependencies:

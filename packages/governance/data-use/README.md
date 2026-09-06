@@ -67,7 +67,7 @@ Independent: the request surface is neither extended nor rewritten, so an alread
 
 ## Known Limitations and Deferred Work
 
-- **Terms are recorded, not enforced** — no exporter reads them yet, so a `training`-ineligible session is not withheld from a training export by anything in this repository; the pin is a durable claim until the exporter integration and the shipped redaction rules land beside it.
+- **One export path enforces the terms** — [`@deepseek-ai/dsh-curator`](../curator/README.md) withholds every session whose terms do not admit its export's purpose, and a session carrying no terms at all is withheld for every purpose. `ctx.trajectories.export()` remains callable directly and reads no terms, so the pin binds the curated path rather than the data.
 - **`purposes` is the only monotone field** — residency, retention, and the redaction profile may be re-pinned in any direction, because only widening purposes turns a transcript recorded under one agreement into material for another.
 - **One set of terms per deployment** — the configured defaults are deployment-wide, so a process serving two clients pins both their sessions with the first client's terms unless every session is re-pinned by hand; per-agreement composition is the deployment's job.
 - **No authority over who may pin** — as with `budget/caps`, any writer of a session's log can record terms; the companion bounds what a later record may say, it does not decide who may write one.

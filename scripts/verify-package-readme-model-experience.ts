@@ -178,6 +178,7 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/improvement/program': { kind: 'none', reason: 'The ledger records what departments delivered and writes no model-visible input of its own; the goal objective, the standard, and the composed preset own every model-facing effect of a department session.' },
   'packages/governance/signoff': { kind: 'none', reason: 'A signature is a durable record for humans and supervising processes; no prompt section, tool schema, or surface event carries it.' },
   'packages/governance/data-use': { kind: 'none', reason: 'The pinned terms are a durable record for exports, curators, and auditors; no prompt section, tool schema, or surface event carries them.' },
+  'packages/governance/curator': { kind: 'none', reason: 'A curated export reads persisted logs and writes files for trainers and auditors; it registers no prompt or schema and appends no session event.' },
   'packages/web/web': { kind: 'indirect', reason: 'The provider registry delegates model rendering to dsh-tool-web.' },
   'packages/web/web-fetch-http': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },
   'packages/web/web-search-exa': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },

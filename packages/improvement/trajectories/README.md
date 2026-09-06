@@ -64,7 +64,7 @@ None; the service neither adds to nor changes any model request.
 ## Known Limitations and Deferred Work
 
 - **Off-policy text** — a trainer re-tokenizes exported text through its chat template, which suits supervised and rejection-sampled training; strict on-policy reinforcement learning needs an inference proxy in front of the harness.
-- **No redaction** — tool results may carry credentials or private data; the sink is where a deployment applies a filter, and the telemetry redaction rules are the precedent.
+- **This service redacts nothing** — tool results may carry credentials or private data, and `export()` writes them as folded. [`@deepseek-ai/dsh-curator`](../../governance/curator/README.md) is the export path that applies a redaction profile and the session's data-use terms; a deployment calling this service directly gets the unredacted lines.
 - **District withholding reads the stamp** — a session no runner stamped, or one stamped before its district was configured, carries no district and no configured withholding reaches it; an export that names districts writes only stamped sessions.
 - **One standard per session** — the reward reads the session's verification fold, which holds one completion standard; a session measuring several goals is scored by the standard in force.
 - **No rejection-sampling export** — lines carry the environment stamp, so a consumer can group by environment, repetition, and group, but the exporter does not yet select the best of N per environment or emit per-environment statistics.
