@@ -96,6 +96,55 @@ interface ComponentListOptions extends ComponentViewOptions {
 }
 ```
 
+## 组合期适配器
+
+每个 seam 一个适配器，各自把自身上下文作用域可见的内容镜像进该上下文的层，并在自己的 `ComponentKindMap` 声明旁拥有本类别的规范值。挂载在宿主行上时，适配器镜像全局层；通过 agent 预设的组合挂载时，它把该 agent 的视图镜像进那个 agent 的层。
+
+| 类别 | 适配器 | 规范值 | 依据 |
+|---|---|---|---|
+| `tool` | [`components-tools`](../../packages/components/components-tools/README.md) | 完全按 `ctx.tools.schemas(scope)` 投影的模型可见 `ToolSchema` | content |
+| `prompt-section` | [`components-prompt`](../../packages/components/components-prompt/README.md) | `[name, order, complete === true, text]`，由装配求值的文本记为 `null` | content，否则 registration |
+| `preset` | [`components-presets`](../../packages/components/components-presets/README.md) | 完成 `include` 解析后的组合上的 `[id, trust, rows]` | content |
+| `agent-provider` | [`components-subagents`](../../packages/components/components-subagents/README.md) | `[provider]` | registration |
+
+每个适配器跟随其 seam 自身的变更通知——`tools/change`、`system-prompt/change`、`agent/created` 与 `agent-preset/selected`、`subagent/provider-added` 与 `subagent/provider-removed`——因此上游释放的注册在下游随之消失，而释放适配器的 fiber 会移除它注册的全部组件。
+
+## 组合清单
+
+[`components-manifest`](../../packages/components/components-manifest/README.md) 把某个 agent 当前在用的内容记录为持久的 `composition/manifest` [会话事件](../persistence-catalog.md#compositionmanifest--log-only)。在 `agent/pre-step` 上，它调用 `next()`，重新计算 `ctx.components.list({ scope: agent })`，仅当其 `compositionSha256` 与该会话日志中最后一条不同时才追加清单；去重由日志导出，因此稳定的组合恰好记录一条事件，恢复的会话不会重新发出任何事件。
+
+```ts type-equiv
+/** One component in play, as the manifest records it. */
+interface CompositionManifestEntry {
+  /** Stable component identity; with {@link digest} it forms the `id@digest` address. */
+  readonly id: ComponentId
+  /** Content address of the generation in play. */
+  readonly digest: ComponentDigest
+  /** The component's declared kind. */
+  readonly kind: ComponentKind
+  /** Whether the digest covers the component's own bytes or only its registration. */
+  readonly digestBasis: ComponentDigestBasis
+  /** Whether people curated the component or an agent synthesized it. */
+  readonly provenance: ComponentProvenance
+  /** Component this generation derived from, absent for roots. */
+  readonly lineage?: ComponentId
+  /** Registry layer the winning registration sat in for the recording agent. */
+  readonly layer: ComponentLayer
+}
+```
+
+```ts type-equiv
+/** The durable record of every component one agent had in play at one step. */
+interface CompositionManifest {
+  /** Payload version, so a later field addition is readable against a stated shape. */
+  readonly version: typeof COMPOSITION_MANIFEST_VERSION
+  /** Every component in play, ordered by `id@digest` address. */
+  readonly components: readonly CompositionManifestEntry[]
+  /** Lowercase SHA-256 hex over the ordered addresses joined by newlines. */
+  readonly compositionSha256: string
+}
+```
+
 ## 可调用路径
 
 invoke 指针命名一个已有工具以及组件固定的参数；其余参数由模型提供。注册表不执行任何东西。

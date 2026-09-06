@@ -119,7 +119,11 @@ flowchart LR
   pkg_environment_runner["environment-runner"]
   pkg_components["components"]
   svc_components["ctx.components<br/>Component registry"]
+  pkg_components_tools["components-tools"]
+  pkg_components_prompt["components-prompt"]
+  pkg_components_presets["components-presets"]
   pkg_components_subagents["components-subagents"]
+  pkg_components_manifest["components-manifest"]
   pkg_command_components["command-components"]
   pkg_environments["environments"]
   svc_environments["ctx.environments<br/>Environment registry"]
@@ -346,7 +350,11 @@ flowchart LR
   svc_completionStandards --> pkg_command_verification
   svc_completionStandards --> pkg_trajectories
   svc_components --> pkg_command_components
+  svc_components --> pkg_components_manifest
+  svc_components --> pkg_components_presets
+  svc_components --> pkg_components_prompt
   svc_components --> pkg_components_subagents
+  svc_components --> pkg_components_tools
   svc_cordisInspect --> pkg_tool_cordis
   svc_credentials --> pkg_apiproxy
   svc_credentials --> pkg_llm_deepseek
@@ -498,7 +506,7 @@ flowchart LR
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | Owns one executable standard per goal, records certificates from fully passing runs, and denies uncertified goal completion inside the goal operation. |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | Owns the validator-owned directory tree, mints one run reservation per implementer session, and decides which directories that session may not read. |
-| `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-subagents`](../packages/components/components-subagents), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it. |
+| `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-tools`](../packages/components/components-tools), [`components-prompt`](../packages/components/components-prompt), [`components-presets`](../packages/components/components-presets), [`components-subagents`](../packages/components/components-subagents), [`components-manifest`](../packages/components/components-manifest), [`command-components`](../packages/components/command-components) | - | Composition-time inventory of every addressable unit with kind, content address, provenance, lineage, membership, and callable route, layered global-then-agent; adapters mirror live seams into it and the manifest writer records what one agent had in play. |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | Composition-time inventory of tasks with executable checks in the completion-standard vocabulary, held out or training-eligible; owns the environment/run stamp vocabulary. |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate. |
 | `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`, [`experiments`](../packages/improvement/experiments), [`shifts`](../packages/improvement/shifts) | - | Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split. |

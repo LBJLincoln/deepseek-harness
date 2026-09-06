@@ -390,6 +390,20 @@ export class SystemPrompt extends Service {
   }
 
   /**
+   * The prompt sections one scope resolves, in the order {@link assemble}
+   * renders them. Scoped registrations shadow globals under the same name, and
+   * sections that declare the same order keep their registration order. The
+   * registered `text` is returned as it stands, so a provider is a function
+   * here and only an assembly evaluates it.
+   * @param scope - the viewing scope (the agent); omitted = the global view.
+   * @returns the resolved sections, ascending by {@link PromptSection.order}.
+   */
+  sections(scope?: ScopeKey): PromptSection[] {
+    return [...this.layers.merge(scope, layer => layer.sections).values()]
+      .sort((a, b) => a.order - b.order)
+  }
+
+  /**
    * Register ordered dynamic context in the calling context's scope. Scoped
    * entries shadow global entries with the same name.
    * @param context - the context contribution to register.

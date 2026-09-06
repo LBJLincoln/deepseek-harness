@@ -78,6 +78,25 @@ describe('scoped sections', () => {
     expect(scopedText).toHaveBeenCalledOnce()
   })
 
+  it('reads the resolved registrations in assembly order without evaluating a provider', async () => {
+    const ctx = await mount({ includeHarnessIdentity: false, persona: 'You are the deployment.' })
+    const scope = await mintScope(ctx, 'child')
+    const scopedText = vi.fn(() => 'scoped text')
+    ctx.systemPrompt.section({ name: 'late', order: 50, text: 'late guidance' })
+    scope.ctx.systemPrompt.section({ name: 'deployment:persona', order: 0, text: scopedText })
+    scope.ctx.systemPrompt.section({ name: 'child:first', order: -10, text: 'first' })
+
+    expect(ctx.systemPrompt.sections().map(section => section.name)).toEqual(['deployment:persona', 'late'])
+    const scoped = ctx.systemPrompt.sections(scopeKeyOf(scope))
+    expect(scoped.map(section => section.name)).toEqual(['child:first', 'deployment:persona', 'late'])
+    // The registration is returned as it stands, so only an assembly renders it.
+    expect(scoped.find(section => section.name === 'deployment:persona')?.text).toBe(scopedText)
+    expect(scopedText).not.toHaveBeenCalled()
+
+    await scope.dispose()
+    expect(ctx.systemPrompt.sections(scopeKeyOf(scope)).map(section => section.name))
+      .toEqual(['deployment:persona', 'late'])
+  })
 })
 
 describe('scoped variables', () => {

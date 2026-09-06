@@ -7,5 +7,9 @@
 | 包 | 职责 | ctx 键 |
 |---|---|---|
 | [`components/`](components/README.md) | 组件注册表：描述符、类别、谱系、可调用路径 | `ctx.components` |
+| [`components-tools/`](components-tools/README.md) | 把可见工具镜像为 `tool` 组件 | — |
+| [`components-prompt/`](components-prompt/README.md) | 把 system-prompt section 镜像为 `prompt-section` 组件 | — |
+| [`components-presets/`](components-presets/README.md) | 把常驻 agent 预设挂载镜像为 `preset` 组件 | — |
 | [`components-subagents/`](components-subagents/README.md) | 把 subagent 提供方镜像为 `agent-provider` 组件 | — |
+| [`components-manifest/`](components-manifest/README.md) | 把在用组合记录为 `composition/manifest` 事件 | — |
 | [`command-components/`](command-components/README.md) | 面向人的 `/components` 库存 | — |

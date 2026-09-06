@@ -23,7 +23,7 @@ import { scopeOf, scopeParentOf, type ScopeKey } from '@deepseek-ai/dsh-scope'
 import { deniedAuthority } from '@deepseek-ai/dsh-read-barrier'
 import type { ReadBarrierRole } from '@deepseek-ai/dsh-read-barrier/types'
 import type {} from '@deepseek-ai/dsh-tools'
-import { PresetMountError, PresetRoleError, type AgentPreset } from './preset.ts'
+import { PresetMountError, PresetRoleError, type AgentPreset, type PresetTrust } from './preset.ts'
 
 /** What one mounted subtree publishes about itself for the audit to read. */
 interface MountedTree {
@@ -118,8 +118,19 @@ class PresetTree extends Include {
 export interface PresetMount {
   /** The preset the subtree was composed from. */
   readonly presetId: string
+  /** Trust recorded on the root that preset was discovered under. */
+  readonly trust: PresetTrust
+  /** Absolute path of the composition file the subtree was mounted from. */
+  readonly path: string
   /** The mounted subtree's fiber. */
   readonly fiber: Fiber
+  /**
+   * The mounted subtree, whose `entries()` are the composition after `include`
+   * resolution. Held so a consumer can address what a mount actually composed
+   * rather than the file it was read from; the tree is the loader's live model
+   * and must not be mutated through this record.
+   */
+  readonly tree: EntryTree
   /** The standing scope key agents are parented to (undefined only in torn-down records). */
   readonly key: ScopeKey | undefined
   /**
@@ -405,7 +416,7 @@ export async function mountPreset(agentCtx: Context, preset: AgentPreset): Promi
     const refusal = roleAudit(agentCtx, preset)
     if (refusal !== undefined) throw refusal
     mounts.add({
-      presetId: preset.id, fiber, key: scopeOf(agentCtx),
+      presetId: preset.id, trust: preset.trust, path: preset.path, fiber, tree, key: scopeOf(agentCtx),
       ...preset.role === undefined ? {} : { role: preset.role },
     })
   } catch (error) {

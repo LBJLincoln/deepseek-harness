@@ -1,0 +1,9 @@
+# The composition one session adds to the host's registries: its own prompt
+# section, plus the prompt adapter mounted here rather than on the host, so the
+# sections this session resolves are filed in its own layer and the manifest
+# records them as `agent` beside the host's `global` tool and preset addresses.
+- id: preset-section
+  name: './section.ts'
+
+- id: components-prompt
+  name: '@deepseek-ai/dsh-components-prompt'

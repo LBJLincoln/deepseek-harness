@@ -1,0 +1,57 @@
+# Test-only composition: the three composition-time adapters plus the manifest
+# writer over a preset-composed session, so one persisted log carries a tool
+# address, a prompt-section address, and a preset address.
+- id: manifest-mock-llm
+  name: './mock-llm.ts'
+
+# The roster's roots are absolute: the smoke runs in an isolated temporary cwd,
+# so the preset beside this file is reachable only through the path it exports.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: manifest
+    roots:
+      - path: !!js process.env.DSH_COMPOSITION_MANIFEST_PRESETS
+        trust: system
+    includeUserRoot: false
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+- id: components
+  name: '@deepseek-ai/dsh-components'
+
+- id: components-tools
+  name: '@deepseek-ai/dsh-components-tools'
+
+# The prompt adapter is mounted by the preset instead, so the sections a session
+# resolves land in that session's own layer.
+- id: components-presets
+  name: '@deepseek-ai/dsh-components-presets'
+
+- id: components-manifest
+  name: '@deepseek-ai/dsh-components-manifest'
+
+# The driver creates the one agent from the named preset; the spine composes
+# none of its own, and its bundled model-facing tools stay out so the visible
+# set is exactly what this fixture registers.
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Record what this composition contains.'
+    workspaceContext: false
+    toolBash: false
+    toolJobs: false
+    skills:
+      enabled: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

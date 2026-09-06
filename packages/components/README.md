@@ -7,5 +7,9 @@ One registry for what a composition contains and how a model reaches each part: 
 | Package | Role | ctx key |
 |---|---|---|
 | [`components/`](components/README.md) | Component registry: descriptors, kinds, lineage, callable routes | `ctx.components` |
+| [`components-tools/`](components-tools/README.md) | Mirrors visible tools as `tool` components | — |
+| [`components-prompt/`](components-prompt/README.md) | Mirrors system-prompt sections as `prompt-section` components | — |
+| [`components-presets/`](components-presets/README.md) | Mirrors standing agent-preset mounts as `preset` components | — |
 | [`components-subagents/`](components-subagents/README.md) | Mirrors subagent providers as `agent-provider` components | — |
+| [`components-manifest/`](components-manifest/README.md) | Records the composition in play as a `composition/manifest` event | — |
 | [`command-components/`](command-components/README.md) | Human-facing `/components` inventory | — |
