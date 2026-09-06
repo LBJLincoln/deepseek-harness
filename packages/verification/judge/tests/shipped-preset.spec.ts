@@ -20,8 +20,11 @@ describe('the shipped judge preset', () => {
 
     expect(judge).toMatchObject({ id: 'judge', trust: 'system', role: 'judge' })
     expect(judge?.broken).toBeUndefined()
-    // It is the only shipped preset that claims a role at all.
-    expect(presets.filter(preset => preset.role !== undefined).map(preset => preset.id)).toEqual(['judge'])
+    // The two shipped presets that claim a role at all are the two sides of
+    // the wall: the judge that audits an attempt and the validator that
+    // authors what the attempt is measured by.
+    expect(presets.filter(preset => preset.role !== undefined).map(preset => preset.id))
+      .toEqual(['judge', 'validator'])
   })
 
   it('composes one persona row and no tool', async () => {

@@ -410,6 +410,19 @@ export class ReadBarrierService extends Service {
   }
 
   /**
+   * The run directory one session already holds, without minting one. Every
+   * consumer that reads a reservation asks here rather than through
+   * {@link reserve}: reserving is what makes an unmarked session the
+   * implementer, so a reader that reserved to find out would demote the very
+   * session it was reading for.
+   * @param agent - the agent whose session the reservation would belong to.
+   * @returns the reserved directory, or `undefined` when the session holds none.
+   */
+  reservation(agent: Agent): string | undefined {
+    return this.reservations.get(agent.id)
+  }
+
+  /**
    * Deny one more directory for as long as the registration lives, so a plugin
    * that owns a directory contributes it as an effect instead of a deployment
    * repeating it in configuration.

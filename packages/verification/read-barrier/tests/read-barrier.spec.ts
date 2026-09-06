@@ -108,6 +108,20 @@ describe('reservations and roles', () => {
     if (process.platform !== 'win32') expect(statSync(directory).mode & 0o077).toBe(0)
   })
 
+  it('reads back a held reservation without minting one', async () => {
+    const root = tempRoot('dsh-read-barrier-read-')
+    const ctx = await setup({ root })
+    const holder = agentWithSession('holder')
+    const other = agentWithSession('reader')
+
+    expect(ctx.readBarrier.reservation(holder)).toBeUndefined()
+    const directory = ctx.readBarrier.reserve(holder)
+    expect(ctx.readBarrier.reservation(holder)).toBe(directory)
+    // Reading for a session that holds none neither mints one nor demotes it.
+    expect(ctx.readBarrier.reservation(other)).toBeUndefined()
+    expect(ctx.readBarrier.resolve({ session: other.session }).role).toBe('unrestricted')
+  })
+
   it('makes a reserved session the implementer and leaves every other session unrestricted', async () => {
     const root = tempRoot('dsh-read-barrier-role-')
     const ctx = await setup({ root })

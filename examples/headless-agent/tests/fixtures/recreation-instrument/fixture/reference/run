@@ -1,0 +1,9 @@
+# The reference program of the `smoke:tally` recreation task, sourced by the
+# instrument and by every candidate check. `-t` is deliberately unstable: it
+# prints the shell that ran it, so recording it as a case is refused.
+case "$1" in
+  -c) printf '%s\n' "${#2}" ;;
+  -t) printf '%s\n' "$$" ;;
+  '') printf 'usage: run [-c WORD] WORD\n' >&2; exit 2 ;;
+  *) printf '%s\n' "$1" ;;
+esac

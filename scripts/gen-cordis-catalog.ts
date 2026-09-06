@@ -576,6 +576,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   EnvironmentDefinition: 'environment registry vocabulary is owned by packages/improvement/environments/README.md',
   EnvironmentFilter: 'environment registry vocabulary is owned by packages/improvement/environments/README.md',
   EnvironmentIdType: 'environment registry vocabulary is owned by packages/improvement/environments/README.md',
+  EnvironmentId: 'environment registry vocabulary is owned by packages/improvement/environments/README.md',
   EnvironmentRunReport: 'environment run contract is owned by packages/improvement/environment-runner/README.md',
   EnvironmentRunRequest: 'environment run contract is owned by packages/improvement/environment-runner/README.md',
   NearestEnvironment: 'near-duplicate admission vocabulary is owned by packages/improvement/environments/README.md',

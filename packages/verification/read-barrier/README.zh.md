@@ -30,6 +30,8 @@
 
 `ctx.readBarrier.reserve(agent)` 以仅所有者可访问的方式铸造 `<root>/runs/<sessionId>/`，把该会话记录为 `implementer`，并返回绝对路径；再次为同一会话预留将返回同一目录。它是同步的，因此调用方返回的那一刻角色即已生效。验证者在其中写入其检查所执行的内容——标准快照、每项检查一个脚本、以及任何留出夹具——因此实现者在进程列表中能观察到的命令行指向的是一个它无法读取内容的文件。agent 被释放时预留随之丢弃。
 
+`ctx.readBarrier.reservation(agent)` 读回某个会话已持有的目录，而不创建新的。每个只需要找到预留目录的消费方都在这里询问——例如定位自己所采样的参考程序的[仪器](../tool-standard-author/README.md)：创建预留正是让未标注角色的会话成为实现者的动作，因此一个为了查询而创建预留的读取方会降级它正在读取的那个会话。
+
 `ctx.readBarrier.protect(path)` 在登记存续期间再拒绝一个目录并返回其 disposer，因此拥有某个目录的插件把它作为 effect 贡献出来，而不是由部署在配置中重复一遍。同一路径的两次登记同时成立；最后一次被释放时该目录才离开被拒集合。
 
 `ctx.readBarrier.enforce(capability)` 记录某个开放路径的能力——`fs`、`shell`、`subprocess`、`terminal`、`subagent` 或 `workflow`——在开放路径的那次操作中拒绝屏障的目录，在登记存续期间有效，并返回其 disposer。被组合却没有登记的能力在普查中记为 `unenforced`，只要还存在这样一条记录，高于 `none` 的隔离声明就会被拒绝。每个消费沙箱的执行器都通过 [`enforceReadBarrier`](../../sandbox/sandbox-policy/README.md) 发起这次调用，因此没有能力会主张其后端从不施加的强制执行。
@@ -52,7 +54,7 @@
 
 `ctx.readBarrier.recordDenial(session, policy, capability, target)` 追加仅记录日志的 `read-barrier/denied` 事件——`{ version, role, capability, displayPath, root }`，其中 `capability` 指出拒绝的那个 seam——并返回它所追加的载荷。写入由屏障拥有，因此每个拒绝的 seam 都产生同样的证据；该路径本就存在于日志中模型自己的 `tool/call` 参数里，所以这条记录只增加证据，不带来新的泄露。
 
-`deniedAuthority(role, authority)` 给出某个角色不得持有的第一项权限。[`ToolDefinition`](../../core/tools/README.md) 声明的每一项权限对 `DENIED_ROLES` 中的角色都被拒绝，对其他任何角色都不拒绝，因此日后并入 `ToolAuthorityMap` 的权限由这条同样的规则拒绝，而不是靠一份会过期的名单。`authorityDenialMessage(tool, authority, role)` 拥有守卫返回的那段文案，并在其中指明它所拒绝的角色。
+已声明的权限为 `session-log`、`plugin-mount`、`runtime-introspection` 与 `standard-author`，最后一项由运行 recreation 任务参考程序并写入标准用例体的工具持有。`deniedAuthority(role, authority)` 给出某个角色不得持有的第一项权限。[`ToolDefinition`](../../core/tools/README.md) 声明的每一项权限对 `DENIED_ROLES` 中的角色都被拒绝，对其他任何角色都不拒绝，因此日后并入 `ToolAuthorityMap` 的权限由这条同样的规则拒绝，而不是靠一份会过期的名单。`authorityDenialMessage(tool, authority, role)` 拥有守卫返回的那段文案，并在其中指明它所拒绝的角色。
 
 ### 组合普查
 

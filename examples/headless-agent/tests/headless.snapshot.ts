@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { delimiter, dirname, join } from 'node:path'
@@ -57,6 +57,12 @@ const judgeBinScript = fileURLToPath(new URL('./fixtures/blind-judge/driver.ts',
 const instrumentScenarioDir = join(snapshotsDir, 'instrument-cases')
 const instrumentConfigPath = fileURLToPath(new URL('../instrument-cases.cordis.snapshot.yml', import.meta.url))
 const instrumentBinScript = fileURLToPath(new URL('./fixtures/instrument-cases/driver.ts', import.meta.url))
+const recreationScenarioDir = join(snapshotsDir, 'recreation-instrument')
+// The scenario's two model routes are a committed scripted adapter rather than
+// a recorded script, so the fixture composition IS the keyless one and needs no
+// replay counterpart.
+const recreationConfigPath = fileURLToPath(new URL('./fixtures/recreation-instrument/cordis.yml', import.meta.url))
+const recreationBinScript = fileURLToPath(new URL('./fixtures/recreation-instrument/driver.ts', import.meta.url))
 const ralphScenarioDir = join(snapshotsDir, 'ralph-loop')
 const ralphConfigPath = fileURLToPath(new URL('../ralph.cordis.snapshot.yml', import.meta.url))
 const settlementScenarioDir = join(snapshotsDir, 'subagent-settlement')
@@ -889,6 +895,54 @@ describe('headless stream-json snapshots', () => {
     )
     expect(normalized).toContain(
       'solve.sh prints its argument reversed and reports nothing on stderr: 1 of 5 cases failed (weight 5 of 15); mismatching channels: exit, stderr; the program exited non-zero',
+    )
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins what the instrument answers a validator deriving a standard from a reference program', async () => {
+    const streamExpected = join(recreationScenarioDir, 'stream-json.expected.jsonl')
+    let runCwd = ''
+    const result = await runLoaderSmoke({
+      label: 'recreation instrument headless stream-json snapshot',
+      tempDirPrefix: 'headless-snapshot-recreation-instrument-',
+      binScript: recreationBinScript,
+      libBinScript: recreationBinScript,
+      configPath: recreationConfigPath,
+      binArgs: [recreationConfigPath],
+      tsconfigPath,
+      env: {
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      prepare: (cwd) => { runCwd = cwd },
+      inspect: async (cwd) => {
+        // The fixture overlays its whole fixture directory; the reference tree
+        // is the one part the implementer's workspace never receives.
+        await expect(stat(join(cwd, 'workspace', 'reference'))).rejects.toThrow()
+        const logs = await persistedLogs(cwd)
+        const implementer = logs.filter(log => String(log.header.id).startsWith('environment-'))
+        expect(implementer).toHaveLength(1)
+        const records = parseJsonl(implementer[0]?.content ?? '')
+        expect(records.filter(record => record.type === 'verification/run')).toHaveLength(2)
+        expect(records.filter(record => record.type === 'verification/certificate')).toEqual([])
+        // The census the barrier appended before the implementer's first
+        // request lists no tool carrying the instrument's authority.
+        const census = records.find(record => record.type === 'read-barrier/scope')?.data as
+          { role?: string; census?: { name: string; authority: string[] }[] } | undefined
+        expect(census?.role).toBe('implementer')
+        expect(census?.census?.flatMap(entry => entry.authority)).toEqual([])
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    const normalized = normalizeRunnerStream(result.stdout, runCwd)
+    if (refreshing) await writeFile(streamExpected, normalized)
+    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+    // The instrument's refusal of an unstable case, and the standard it froze,
+    // are the two model-visible texts this slice adds.
+    expect(normalized).toContain(
+      'the reference did not produce the same stdout twice for case \\"run-token\\"',
+    )
+    expect(normalized).toContain(
+      'Froze 1 check(s) carrying 3 case(s) of total weight 11.',
     )
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 

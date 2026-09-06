@@ -41,6 +41,16 @@ export interface EnvironmentTask {
    * own directory and records a run that changed them as tampered.
    */
   readonly immutable?: readonly string[]
+  /**
+   * Fixture-relative directory holding the reference program a validator may
+   * execute and an implementer may never read. It is a `/`-separated relative
+   * path without `.` or `..` segments, naming a directory inside `fixture`;
+   * the runner copies it beneath the barrier root at reservation time and
+   * removes it from every workspace overlay, so the reference reaches the
+   * validator's reservation and never the implementer's tree. A `recreation`
+   * environment must declare one; every other kind may.
+   */
+  readonly reference?: string
 }
 
 /** One task with its verifiers, as the registry stores it. */
@@ -101,7 +111,11 @@ export interface EnvironmentContentHashes {
    * so changing one case changes the decontamination key.
    */
   readonly checksSha256: string
-  /** SHA-256 hex over every fixture file (relative path and bytes, sorted). */
+  /**
+   * SHA-256 hex over every fixture file (relative path and bytes, sorted),
+   * the reference tree under `task.reference` included, so changing the
+   * reference program changes the decontamination key.
+   */
   readonly fixtureSha256?: string
   /** SHA-256 hex over the three hashes above; the decontamination key. */
   readonly contentSha256: string

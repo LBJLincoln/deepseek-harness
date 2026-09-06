@@ -19,7 +19,13 @@ import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentSampling } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentDefinition, EnvironmentRunModel, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
+import type {
+  EnvironmentDefinition,
+  EnvironmentId,
+  EnvironmentRunModel,
+  EnvironmentRunStamp,
+  EnvironmentTask,
+} from '@deepseek-ai/dsh-environments/types'
 import type {} from '@deepseek-ai/dsh-goal'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 import { assertNever, createUserMessage, HarnessError } from '@deepseek-ai/dsh-llm'
@@ -34,6 +40,9 @@ import type {
   CertificateIsolation,
   CheckCase,
   CheckCaseChannel,
+  CheckCaseComparator,
+  CheckCaseExpectation,
+  CheckCaseInput,
   CheckCaseNormalizer,
   CheckResult,
   DirectiveCluster,
@@ -63,6 +72,8 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'
   | 'ENVIRONMENT_RUN_GOAL_REPLACED'
   | 'ENVIRONMENT_RUN_STANDARD_LOST'
+  | 'ENVIRONMENT_RUN_NO_REFERENCE'
+  | 'ENVIRONMENT_RUN_NO_RESERVATION'
 
 /** Error returned by the environment runner boundary. */
 export class EnvironmentRunError extends HarnessError {
@@ -150,6 +161,22 @@ const STANDARD_FILE = 'standard.json'
 /** Reservation subdirectory holding a held-out environment's fixture. */
 const FIXTURE_DIR = 'fixture'
 
+/**
+ * Reservation subdirectory holding the reference program of an environment
+ * that declares `task.reference`. It sits inside the reservation, so the
+ * check-owned digest already covers it and an implementer is denied it by the
+ * same rule that denies the check scripts beside it.
+ */
+export const REFERENCE_DIR = 'reference'
+
+/**
+ * File inside {@link REFERENCE_DIR} the validator's instrument sources to run
+ * the reference, mirroring the `run` file of a reserved check. A fixed name
+ * rather than a configured one: it is the convention an environment author and
+ * the instrument agree on, not a deployment choice.
+ */
+export const REFERENCE_ENTRY = 'run'
+
 /** A check id usable as one path segment of its reserved directory. */
 const SAFE_CHECK_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
 
@@ -229,19 +256,46 @@ async function hashCheckOwned(
 }
 
 /**
+ * Copy the task's reference tree beneath one reservation, so the validator
+ * runs the reference from a directory the barrier denies every implementer.
+ * @param task - the task, supplying the fixture and its reference directory.
+ * @param runDirectory - the reservation to stock.
+ */
+async function copyReference(task: EnvironmentTask, runDirectory: string): Promise<void> {
+  // A registered reference always resolves inside its task's fixture.
+  if (task.reference === undefined) return
+  await cp(join(task.fixture as string, task.reference), join(runDirectory, REFERENCE_DIR), { recursive: true })
+}
+
+/**
+ * Overlay the task fixture and drop the reference tree from the copy. The
+ * reference belongs to the validator: it lives under the fixture so the
+ * environment's content hashes cover it, and it is removed here so no overlay
+ * ever leaves it where the implementer works.
+ * @param workspace - the run's workspace directory.
+ * @param task - the task, supplying the fixture and any reference.
+ */
+async function overlayFixture(workspace: string, task: EnvironmentTask): Promise<void> {
+  if (task.fixture === undefined) return
+  await cp(task.fixture, workspace, { recursive: true })
+  if (task.reference !== undefined) await rm(join(workspace, task.reference), { recursive: true, force: true })
+}
+
+/**
  * Reject a workspace or fixture that is not an existing absolute directory,
  * then overlay the fixture and return its digest.
  * @returns the fixture digest, or `undefined` for a task without a fixture.
  */
-async function prepareWorkspace(workspace: string, fixture: string | undefined): Promise<string | undefined> {
+async function prepareWorkspace(workspace: string, task: EnvironmentTask): Promise<string | undefined> {
   if (!isAbsolute(workspace) || !await isDirectory(workspace)) {
     throw new EnvironmentRunError(`workspace "${workspace}" is not an existing absolute directory`, 'ENVIRONMENT_RUN_INVALID_WORKSPACE')
   }
+  const fixture = task.fixture
   if (fixture === undefined) return undefined
   if (!isAbsolute(fixture) || !await isDirectory(fixture)) {
     throw new EnvironmentRunError(`fixture "${fixture}" is not an existing absolute directory`, 'ENVIRONMENT_RUN_INVALID_FIXTURE')
   }
-  await cp(fixture, workspace, { recursive: true })
+  await overlayFixture(workspace, task)
   return hashWorkspaceTree(fixture)
 }
 
@@ -249,11 +303,11 @@ async function prepareWorkspace(workspace: string, fixture: string | undefined):
  * Overlay the fixture again so implementer edits to validator-owned files do
  * not reach the checks, then digest the workspace the validation will read.
  * @param workspace - the run's workspace directory.
- * @param fixture - the task fixture, absent for a task without one.
+ * @param task - the task, supplying the fixture and any reference.
  * @returns the workspace digest as the validation begins.
  */
-async function restoreFixture(workspace: string, fixture: string | undefined): Promise<string> {
-  if (fixture !== undefined) await cp(fixture, workspace, { recursive: true })
+async function restoreFixture(workspace: string, task: EnvironmentTask): Promise<string> {
+  await overlayFixture(workspace, task)
   return hashWorkspaceTree(workspace)
 }
 
@@ -426,6 +480,109 @@ async function caseMismatches(
   return CHECK_CASE_CHANNELS.filter(channel => mismatched.has(channel))
 }
 
+/** How one case's command is resolved before it runs, shared by every executor of a case. */
+export interface CaseExecution {
+  /** Absolute directory the case runs in and stages its files under. */
+  readonly workspace: string
+  /** Command the case's `argv` words are appended to. */
+  readonly command: string
+  /** What the case feeds the candidate or the reference. */
+  readonly input: CheckCaseInput
+  /** Normalized workspace-relative directory the `tree` channel digests, absent for a case that compares none. */
+  readonly treeScope?: string
+  /** Per-case timeout handed to the executor, absent to apply the executor default. */
+  readonly timeoutMs?: number
+  /** Cancellation of the enclosing run. */
+  readonly signal?: AbortSignal
+}
+
+/** What one executed case left behind on the four comparable channels. */
+export interface CaseCapture {
+  /** Exit, signal, timeout, and the captured `stdout` and `stderr` of the command. */
+  readonly result: ShellRunResult
+  /** Absolute `treeScope` directory as the case left it, absent for a case that compares no tree. */
+  readonly scope?: string
+}
+
+/**
+ * Run one case and capture all four channels: empty the case's `treeScope`,
+ * stage its files, append its `argv` to the command, and feed its `stdin`.
+ * Both executors of a case go through here — the runner measuring a candidate
+ * and the instrument recording a reference — so what a case means is one
+ * procedure rather than two that can drift.
+ * @param shell - the composed shell executor.
+ * @param execution - the resolved command, workspace, input, and bounds.
+ * @returns the command's result and the tree scope it left.
+ */
+export async function captureCase(shell: Context['shell'], execution: CaseExecution): Promise<CaseCapture> {
+  const scope = execution.treeScope === undefined ? undefined : join(execution.workspace, execution.treeScope)
+  if (scope !== undefined) {
+    await rm(scope, { recursive: true, force: true })
+    await mkdir(scope, { recursive: true })
+  }
+  for (const [path, content] of Object.entries(execution.input.files ?? {})) {
+    const staged = join(execution.workspace, path)
+    await mkdir(dirname(staged), { recursive: true })
+    await writeFile(staged, content)
+  }
+  const stdin = execution.input.stdin
+  const result = await shell.run(shell.resolve({
+    command: [execution.command, ...execution.input.argv].join(' '),
+    workdir: execution.workspace,
+    timeoutMs: execution.timeoutMs,
+    signal: execution.signal,
+    ...stdin === undefined ? {} : { stdin },
+  }))
+  return { result, ...scope === undefined ? {} : { scope } }
+}
+
+/**
+ * The expected digests one capture establishes for a comparator's configured
+ * channels, which is what {@link caseMismatches} later compares a candidate
+ * against. A truncated compared stream yields no digest for that channel: the
+ * executor dropped bytes the digest would cover, so nothing could ever match it.
+ * @param capture - what the reference produced for the case.
+ * @param comparator - the channels compared and the normalizers applied first.
+ * @returns the expectation, holding one value per configured channel that could be digested.
+ */
+export async function caseExpectation(
+  capture: CaseCapture,
+  comparator: CheckCaseComparator,
+): Promise<CheckCaseExpectation> {
+  const { normalizers } = comparator
+  const { result } = capture
+  const digest = (stream: ShellRunResult['stdout']): Record<string, never> | { sha256: string } => (
+    stream.truncated ? {} : { sha256: caseChannelDigest(Buffer.from(stream.text, 'utf8'), normalizers) }
+  )
+  let expectation: CheckCaseExpectation = {}
+  for (const channel of comparator.channels) {
+    switch (channel) {
+      case 'exit':
+        expectation = { ...expectation, ...result.exitCode === null ? {} : { exitCode: result.exitCode } }
+        break
+      case 'stdout': {
+        const value = digest(result.stdout)
+        expectation = { ...expectation, ...'sha256' in value ? { stdoutSha256: value.sha256 } : {} }
+        break
+      }
+      case 'stderr': {
+        const value = digest(result.stderr)
+        expectation = { ...expectation, ...'sha256' in value ? { stderrSha256: value.sha256 } : {} }
+        break
+      }
+      case 'tree':
+        // Only a comparator naming `tree` reaches here, and such a case is
+        // executed with the scope its check declares.
+        expectation = { ...expectation, treeSha256: await hashWorkspaceTree(capture.scope as string, normalizers) }
+        break
+      /* v8 ignore next 2 -- CheckCaseChannel is closed and every member is handled above */
+      default:
+        return assertNever(channel)
+    }
+  }
+  return expectation
+}
+
 /** One rendered cluster with the check facts its line names. */
 interface RenderedCluster extends DirectiveCluster {
   readonly outcome: string
@@ -580,7 +737,7 @@ export class EnvironmentRunner extends Service {
     if (request.seed !== undefined && !isSeed(request.seed)) {
       throw new EnvironmentRunError(`seed must be a non-negative integer, got ${String(request.seed)}`, 'ENVIRONMENT_RUN_INVALID_SEED')
     }
-    const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task.fixture)
+    const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const model = request.model ?? this.defaultModel()
     const stamp: EnvironmentRunStamp = {
       kind: 'environment/run',
@@ -669,7 +826,7 @@ export class EnvironmentRunner extends Service {
           attempts.push(await this.recordTamper(agent, standard, ref, request.workspace, attempt))
           break
         }
-        const treeHash = await restoreFixture(request.workspace, definition.task.fixture)
+        const treeHash = await restoreFixture(request.workspace, definition.task)
         const scripts = await materializeChecks(runDirectory, standard, bodies)
         // The validator just rewrote its own directory, so the set it now owns
         // is the baseline the next attempt must still find.
@@ -764,7 +921,7 @@ export class EnvironmentRunner extends Service {
    * from it. Without a composed barrier there is no reservation and the checks
    * run their instructions inline, exactly as the run's declared isolation says.
    * @param agent - the implementer agent this run drives.
-   * @param definition - the environment being run, supplying the held-out fixture.
+   * @param definition - the environment being run, supplying the held-out fixture and the reference.
    * @returns the reservation, or `undefined` when no barrier is composed.
    */
   private async reserve(agent: Agent, definition: EnvironmentDefinition): Promise<string | undefined> {
@@ -777,6 +934,37 @@ export class EnvironmentRunner extends Service {
     if (definition.heldOut && definition.task.fixture !== undefined) {
       await cp(definition.task.fixture, join(runDirectory, FIXTURE_DIR), { recursive: true })
     }
+    await copyReference(definition.task, runDirectory)
+    return runDirectory
+  }
+
+  /**
+   * Mint one agent's reservation and copy the environment's reference program
+   * beneath it, for a validator that derives the standard from that reference
+   * before an implementer is ever driven. The copy lands in the same
+   * {@link REFERENCE_DIR} the runner stocks for its own implementer, so the
+   * instrument finds the reference at one path whichever session holds it, and
+   * the whole reservation stays inside the check-owned digest.
+   * @param agent - the agent whose session the reservation belongs to.
+   * @param environment - the environment supplying the reference tree.
+   * @returns the reservation the reference was staged in.
+   * @throws {@link EnvironmentRunError} when the environment is unknown, it
+   *   declares no reference, or no read barrier is composed to reserve from.
+   */
+  async stageReference(agent: Agent, environment: EnvironmentId): Promise<string> {
+    const definition = this.ctx.environments.get(environment)
+    if (definition === undefined) {
+      throw new EnvironmentRunError(`environment "${environment}" is not registered`, 'ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT')
+    }
+    if (definition.task.reference === undefined) {
+      throw new EnvironmentRunError(`environment "${environment}" declares no task reference to stage`, 'ENVIRONMENT_RUN_NO_REFERENCE')
+    }
+    const barrier = this.ctx.get('readBarrier')
+    if (barrier === undefined) {
+      throw new EnvironmentRunError('staging a reference requires a composed read barrier to reserve from', 'ENVIRONMENT_RUN_NO_RESERVATION')
+    }
+    const runDirectory = barrier.reserve(agent)
+    await copyReference(definition.task, runDirectory)
     return runDirectory
   }
 
@@ -798,7 +986,7 @@ export class EnvironmentRunner extends Service {
       const command = script === undefined ? check.run : `. ${script}`
       const cases = bodies.get(check.id)
       if (cases === undefined) {
-        const result = await this.ctx.shell.run(this.caseSpec(command, request))
+        const result = await this.ctx.shell.run(this.checkSpec(command, request))
         results.push({
           checkId: check.id,
           status: passed(result) ? 'pass' : 'fail',
@@ -831,21 +1019,19 @@ export class EnvironmentRunner extends Service {
     return results
   }
 
-  /** Resolve one check or case command against the workspace and the run's cancellation. */
-  private caseSpec(command: string, request: EnvironmentRunRequest, stdin?: string): ShellExecSpec {
+  /** Resolve one caseless check's command against the workspace and the run's cancellation. */
+  private checkSpec(command: string, request: EnvironmentRunRequest): ShellExecSpec {
     return this.ctx.shell.resolve({
       command,
       workdir: request.workspace,
       timeoutMs: this.resolved.checkTimeoutMs,
       signal: request.signal,
-      ...stdin === undefined ? {} : { stdin },
     })
   }
 
   /**
-   * Run one cased check case by case: empty the check's `treeScope`, stage the
-   * case's files, append its `argv` to the check's command, feed its `stdin`,
-   * then compare every configured channel against the case's digest.
+   * Run one cased check case by case through {@link captureCase}, then compare
+   * every configured channel against the case's digest.
    */
   private async executeCases(
     check: StandardCheck,
@@ -857,19 +1043,14 @@ export class EnvironmentRunner extends Service {
     let passedCases = 0
     let weightPassed = 0
     for (const body of cases) {
-      const scope = check.treeScope === undefined ? undefined : join(request.workspace, check.treeScope)
-      if (scope !== undefined) {
-        await rm(scope, { recursive: true, force: true })
-        await mkdir(scope, { recursive: true })
-      }
-      for (const [path, content] of Object.entries(body.input.files ?? {})) {
-        const staged = join(request.workspace, path)
-        await mkdir(dirname(staged), { recursive: true })
-        await writeFile(staged, content)
-      }
-      const result = await this.ctx.shell.run(
-        this.caseSpec([command, ...body.input.argv].join(' '), request, body.input.stdin),
-      )
+      const { result, scope } = await captureCase(this.ctx.shell, {
+        workspace: request.workspace,
+        command,
+        input: body.input,
+        ...check.treeScope === undefined ? {} : { treeScope: check.treeScope },
+        ...this.resolved.checkTimeoutMs === undefined ? {} : { timeoutMs: this.resolved.checkTimeoutMs },
+        ...request.signal === undefined ? {} : { signal: request.signal },
+      })
       const channels = await caseMismatches(body, result, scope)
       if (channels.length === 0) {
         passedCases += 1

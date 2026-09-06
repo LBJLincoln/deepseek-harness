@@ -27,6 +27,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-fs-search` | `glob`, `grep` | `ctx.tools`, `ctx.subprocess`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | glob and grep are unconditional discovery tools that spawn the packaged ripgrep binary (`@vscode/ripgrep`) through ctx.subprocess as ordinary foreground calls (never background jobs) — no host `rg` install and no shell layer. The catalog uses `sampleOverCapGlobResults: true`; deployments must choose that behavior explicitly. Capped results save the complete formatted list through the optional ctx.spillStore backend; returned locators are follow-up-readable/searchable when the backend exposes local paths in co-located deployments. |
 | `@deepseek-ai/dsh-tool-terminal` | `terminal_close`, `terminal_list`, `terminal_open`, `terminal_read`, `terminal_send`, `terminal_signal` | `ctx.tools`, `ctx.terminals`, `ctx.systemPrompt`, `ctx.jobs at call time for run_in_background` | `tool/call`, `tool/result` | - | The six terminal tools are opt-in and complement one-shot shell/filesystem tools. `terminal_send(run_in_background: true)` registers with `ctx.jobs`; TUI, named key sequences, BEL, resize, auto-start, and cross-agent sharing are absent from the schema. |
 | `@deepseek-ai/dsh-tool-goal` | `create_goal`, `get_goal`, `update_goal` | `ctx.tools`, `ctx.agents`, `ctx.goals`, `ctx.systemPrompt`, `a calling Agent in an authorized open turn` | `tool/call`, `goal/change for mutations`, `tool/result` | - | create, edit, pause, and resume require direct-human root authority; complete and blocked also accept the exact current goal round. The default blocked lower bound is three admitted rounds. |
+| `@deepseek-ai/dsh-tool-standard-author` | `standard_author` | `ctx.tools`, `ctx.shell`, `ctx.readBarrier`, `ctx.goals`, `ctx.completionStandards`, `ctx.systemPrompt` | `tool/call`, `verification/standard on a freeze`, `tool/result` | - | standard_author is the validator-only instrument: it carries the `standard-author` tool authority the read barrier denies every implementer and judge session, samples the reference program under the calling session's reservation, and freezes the recorded cases into the session's completion standard. |
 | `@deepseek-ai/dsh-schedule` | `schedule_create`, `schedule_delete`, `schedule_list` | `ctx.tools`, `ctx.sessions`, `Session persistence`, `a future live root Agent` | `tool/call`, `schedule/change create or delete`, `tool/result` | - | Registered only inside live root Agent scopes created after the opt-in Schedule plugin loads. Version 1 accepts after_seconds, explicit absolute at, and bounded fixed-rate every_seconds, and discloses session-local delivery; management reads and mutations require the shared Session persistence barrier. |
 | `@deepseek-ai/dsh-tool-lsp` | `lsp` | `ctx.tools`, `ctx.lsp`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | The lsp tool keeps provider selection and language-server subprocesses behind ctx.lsp, so its model-visible schema stays stable across providers. Requires a registered provider (e.g. `@deepseek-ai/dsh-lsp-stdio`) at runtime; without one, a query returns the structured `LSP_UNAVAILABLE` error rather than changing the schema. |
 | `@deepseek-ai/dsh-tool-ralph` | `ralph` | `ctx.tools`, `ctx.workflowEngine`, `ctx.subagents`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents every fresh round)` | `tool/call`, `tool/result`, `workflow and child session events during execution` | - | A fixed foreground workflow starts one fresh structured child per round; the model selects only the immutable objective and an optional round cap. |
@@ -1031,6 +1032,145 @@ Update the exact current goal revision. edit, pause, and resume require a direct
 Source: [`packages/goal/tool-goal/src/index.ts`](../packages/goal/tool-goal/src/index.ts)
 
 create, edit, pause, and resume require direct-human root authority; complete and blocked also accept the exact current goal round. The default blocked lower bound is three admitted rounds.
+
+<a id="deepseek-aidsh-tool-standard-author"></a>
+
+## `@deepseek-ai/dsh-tool-standard-author`
+
+### `standard_author`
+
+Derive the completion standard for this task from the reference program you were given. `record_case` runs the reference on one input and keeps what it produced as the expected result of a new weighted case; it runs the reference twice and refuses inputs whose result changes between runs. `weigh` restates a recorded case's weight. `freeze` turns the recorded cases into the standard the implementer will be measured by; nothing you record counts until you freeze it. You never see the implementer's work, and the implementer never sees the reference, the cases, or this tool.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "What to do: `record_case`, `weigh`, or `freeze`.",
+      "enum": [
+        "record_case",
+        "weigh",
+        "freeze"
+      ]
+    },
+    "checkId": {
+      "type": "string",
+      "description": "Required for `record_case` and `weigh`: lower-kebab-case name of the check the case belongs to."
+    },
+    "caseId": {
+      "type": "string",
+      "description": "Required for `record_case` and `weigh`: lower-kebab-case name of the case, unique inside its check."
+    },
+    "weight": {
+      "type": "integer",
+      "description": "Required for `record_case` and `weigh`: whole share of the check this case carries, by how much a user would miss the behaviour."
+    },
+    "argv": {
+      "type": "array",
+      "description": "Command words appended to the program under test. Each word must need no shell quoting.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stdin": {
+      "type": "string",
+      "description": "Bytes written to the program's standard input, which is then closed."
+    },
+    "files": {
+      "type": "array",
+      "description": "Files staged in the working directory before the case runs.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Workspace-relative path, `/`-separated, without `.` or `..` segments."
+          },
+          "content": {
+            "type": "string",
+            "description": "UTF-8 contents of the staged file."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    },
+    "channels": {
+      "type": "array",
+      "description": "Required for `record_case`: what the case compares. `tree` compares the files left under `treeScope`.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "exit",
+          "stdout",
+          "stderr",
+          "tree"
+        ]
+      }
+    },
+    "normalizers": {
+      "type": "array",
+      "description": "Differences to ignore when comparing, applied in this order. Every one of them widens what counts as correct.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "crlf",
+          "trailing-whitespace",
+          "blank-lines",
+          "iso8601-timestamps",
+          "temp-paths",
+          "json-canonical"
+        ]
+      }
+    },
+    "treeScope": {
+      "type": "string",
+      "description": "Workspace-relative directory the `tree` channel compares; it is emptied before each case runs."
+    },
+    "checks": {
+      "type": "array",
+      "description": "Required for `freeze`: the checks to add to the standard, each carrying the cases recorded under its id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Check whose recorded cases to freeze."
+          },
+          "outcome": {
+            "type": "string",
+            "description": "What the task must establish, stated without saying how."
+          },
+          "run": {
+            "type": "string",
+            "description": "How to run the candidate; defaults to `. ./run`."
+          },
+          "treeScope": {
+            "type": "string",
+            "description": "Restates the tree scope the cases were recorded against."
+          }
+        },
+        "required": [
+          "id",
+          "outcome"
+        ]
+      }
+    }
+  },
+  "required": [
+    "action"
+  ]
+}
+```
+
+Source: [`packages/verification/tool-standard-author/src/index.ts`](../packages/verification/tool-standard-author/src/index.ts)
+
+standard_author is the validator-only instrument: it carries the `standard-author` tool authority the read barrier denies every implementer and judge session, samples the reference program under the calling session's reservation, and freezes the recorded cases into the session's completion standard.
 
 <a id="deepseek-aidsh-schedule"></a>
 

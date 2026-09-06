@@ -29,6 +29,7 @@
 | `@deepseek-ai/dsh-tool-fs-search` | `glob`、`grep` | `ctx.tools`、`ctx.subprocess`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | glob 和 grep 是无条件可用的发现工具，通过 ctx.subprocess spawn 随包提供的 ripgrep 二进制文件（`@vscode/ripgrep`），并作为普通前台调用运行，绝不作为后台任务；无需在宿主机安装 `rg`，也不经过 shell 层。本目录使用 `sampleOverCapGlobResults: true`；部署必须显式选择该行为。结果超过上限时，会通过可选的 ctx.spillStore 后端保存完整的格式化列表；在共置部署中，如果后端公开本地路径，返回的定位信息可供后续读取／搜索。 |
 | `@deepseek-ai/dsh-tool-terminal` | `terminal_close`、`terminal_list`、`terminal_open`、`terminal_read`、`terminal_send`、`terminal_signal` | `ctx.tools`、`ctx.terminals`、`ctx.systemPrompt`、`ctx.jobs at call time for run_in_background` | `tool/call`、`tool/result` | - | 这 6 个终端工具需要选择启用，用于补充一次性 bash／文件系统工具。`terminal_send(run_in_background: true)` 会注册到 `ctx.jobs`；schema 不包含 TUI、具名按键序列、BEL、调整尺寸、自动启动和跨 agent 共享。 |
 | `@deepseek-ai/dsh-tool-goal` | `create_goal`、`get_goal`、`update_goal` | `ctx.tools`、`ctx.agents`、`ctx.goals`、`ctx.systemPrompt`、`a calling Agent in an authorized open turn` | `tool/call`、`goal/change for mutations`、`tool/result` | - | create、edit、pause 和 resume 要求直接来自人类的根权限；complete 和 blocked 也接受确切的当前 Goal Round。blocked 的默认下限是 3 个获准的 Round。 |
+| `@deepseek-ai/dsh-tool-standard-author` | `standard_author` | `ctx.tools`、`ctx.shell`、`ctx.readBarrier`、`ctx.goals`、`ctx.completionStandards`、`ctx.systemPrompt` | `tool/call`、`verification/standard on a freeze`、`tool/result` | - | standard_author 是仅供校验方使用的仪器：它携带读取屏障对每个实现者会话与判官会话拒绝的 `standard-author` 工具权限，在调用会话的预留目录下采样参考程序，并把已记录的用例冻结为该会话的完成标准。 |
 | `@deepseek-ai/dsh-schedule` | `schedule_create`、`schedule_delete`、`schedule_list` | `ctx.tools`、`ctx.sessions`、Session 持久化、未来创建的 live 根 Agent | `tool/call`、`schedule/change create or delete`、`tool/result` | - | 仅在选择启用的 Schedule 插件加载后创建的 live 根 Agent scope 内注册。版本 1 接受 after_seconds、显式绝对 at 和有界固定速率 every_seconds，并披露 session-local 交付；管理读取与变更必须通过共享的 Session 持久化 barrier。 |
 | `@deepseek-ai/dsh-tool-lsp` | `lsp` | `ctx.tools`、`ctx.lsp`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | lsp 工具将提供方选择和语言服务器子进程置于 ctx.lsp 之后，因此其模型可见 schema 在更换提供方时保持稳定。运行时要求已注册提供方，例如 `@deepseek-ai/dsh-lsp-stdio`；如果没有提供方，查询会返回结构化 `LSP_UNAVAILABLE` 错误，而不会改变 schema。 |
 | `@deepseek-ai/dsh-tool-ralph` | `ralph` | `ctx.tools`、`ctx.workflowEngine`、`ctx.subagents`、`ctx.systemPrompt`、`a calling Agent (exec.agent parents every fresh round)` | `tool/call`、`tool/result`、`workflow and child session events during execution` | - | 固定的前台工作流会在每个 Round 启动一个全新的结构化子级；模型只能选择不可变目标和可选的 Round 上限。 |
@@ -1035,6 +1036,145 @@ glob 和 grep 是无条件可用的发现工具，通过 ctx.subprocess spawn �
 来源：[`packages/goal/tool-goal/src/index.ts`](../packages/goal/tool-goal/src/index.ts)
 
 create、edit、pause 和 resume 要求直接来自人类的根权限；complete 和 blocked 也接受确切的当前 Goal Round。blocked 的默认下限是 3 个获准的 Round。
+
+<a id="deepseek-aidsh-tool-standard-author"></a>
+
+## `@deepseek-ai/dsh-tool-standard-author`
+
+### `standard_author`
+
+从交给你的参考程序推导出本任务的完成标准。`record_case` 用一个输入运行参考程序，并把它产生的结果保留为一个新的带权重用例的期望结果；它会运行参考程序两次，并拒绝结果在两次运行之间发生变化的输入。`weigh` 重新表述某个已记录用例的权重。`freeze` 把已记录的用例变成实现者将被衡量的标准；在冻结之前，你记录的任何内容都不作数。你永远看不到实现者的工作，实现者也永远看不到参考程序、用例或这个工具。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "What to do: `record_case`, `weigh`, or `freeze`.",
+      "enum": [
+        "record_case",
+        "weigh",
+        "freeze"
+      ]
+    },
+    "checkId": {
+      "type": "string",
+      "description": "Required for `record_case` and `weigh`: lower-kebab-case name of the check the case belongs to."
+    },
+    "caseId": {
+      "type": "string",
+      "description": "Required for `record_case` and `weigh`: lower-kebab-case name of the case, unique inside its check."
+    },
+    "weight": {
+      "type": "integer",
+      "description": "Required for `record_case` and `weigh`: whole share of the check this case carries, by how much a user would miss the behaviour."
+    },
+    "argv": {
+      "type": "array",
+      "description": "Command words appended to the program under test. Each word must need no shell quoting.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stdin": {
+      "type": "string",
+      "description": "Bytes written to the program's standard input, which is then closed."
+    },
+    "files": {
+      "type": "array",
+      "description": "Files staged in the working directory before the case runs.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Workspace-relative path, `/`-separated, without `.` or `..` segments."
+          },
+          "content": {
+            "type": "string",
+            "description": "UTF-8 contents of the staged file."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    },
+    "channels": {
+      "type": "array",
+      "description": "Required for `record_case`: what the case compares. `tree` compares the files left under `treeScope`.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "exit",
+          "stdout",
+          "stderr",
+          "tree"
+        ]
+      }
+    },
+    "normalizers": {
+      "type": "array",
+      "description": "Differences to ignore when comparing, applied in this order. Every one of them widens what counts as correct.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "crlf",
+          "trailing-whitespace",
+          "blank-lines",
+          "iso8601-timestamps",
+          "temp-paths",
+          "json-canonical"
+        ]
+      }
+    },
+    "treeScope": {
+      "type": "string",
+      "description": "Workspace-relative directory the `tree` channel compares; it is emptied before each case runs."
+    },
+    "checks": {
+      "type": "array",
+      "description": "Required for `freeze`: the checks to add to the standard, each carrying the cases recorded under its id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Check whose recorded cases to freeze."
+          },
+          "outcome": {
+            "type": "string",
+            "description": "What the task must establish, stated without saying how."
+          },
+          "run": {
+            "type": "string",
+            "description": "How to run the candidate; defaults to `. ./run`."
+          },
+          "treeScope": {
+            "type": "string",
+            "description": "Restates the tree scope the cases were recorded against."
+          }
+        },
+        "required": [
+          "id",
+          "outcome"
+        ]
+      }
+    }
+  },
+  "required": [
+    "action"
+  ]
+}
+```
+
+来源：[`packages/verification/tool-standard-author/src/index.ts`](../packages/verification/tool-standard-author/src/index.ts)
+
+standard_author 是仅供校验方使用的仪器：它携带读取屏障对每个实现者会话与判官会话拒绝的 `standard-author` 工具权限，在调用会话的预留目录下采样参考程序，并把已记录的用例冻结为该会话的完成标准。
 
 <a id="deepseek-aidsh-schedule"></a>
 

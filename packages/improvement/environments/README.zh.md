@@ -22,9 +22,9 @@
 
 ## Service contract
 
-`ctx.environments.register(definition)` 存储一个 `EnvironmentDefinition`，并返回恰好移除该次注册、且不会移除同一 id 下后续注册的 disposer。对已注册的 id 抛出代码为 `ENVIRONMENT_DUPLICATE_ID` 的 `EnvironmentError`，对空检查列表抛出 `ENVIRONMENT_NO_CHECKS`，对两个检查共用一个 id 抛出 `ENVIRONMENT_DUPLICATE_CHECK`，对既非工作区相对路径也未规范化的不可变路径抛出 `ENVIRONMENT_INVALID_IMMUTABLE`，对被[已配置阈值](#near-duplicate-admission)拒绝的 prompt 抛出 `ENVIRONMENT_NEAR_DUPLICATE`。注册是 effect：生产方把 disposer 保存在自己的 fiber 下，释放即移除该环境。`get(id)` 与 `list(filter?)` 按注册顺序返回分离副本；`filter` 按 `kind` 与 `heldOut` 选择，调用方无法通过返回值改动已存储的检查列表或不可变集合。
+`ctx.environments.register(definition)` 存储一个 `EnvironmentDefinition`，并返回恰好移除该次注册、且不会移除同一 id 下后续注册的 disposer。对已注册的 id 抛出代码为 `ENVIRONMENT_DUPLICATE_ID` 的 `EnvironmentError`，对空检查列表抛出 `ENVIRONMENT_NO_CHECKS`，对两个检查共用一个 id 抛出 `ENVIRONMENT_DUPLICATE_CHECK`，对既非工作区相对路径也未规范化的不可变路径抛出 `ENVIRONMENT_INVALID_IMMUTABLE`，对缺失、无处锚定或并非 fixture 内目录的[任务参考](#the-reference-directory)抛出 `ENVIRONMENT_INVALID_REFERENCE`，对被[已配置阈值](#near-duplicate-admission)拒绝的 prompt 抛出 `ENVIRONMENT_NEAR_DUPLICATE`。注册是 effect：生产方把 disposer 保存在自己的 fiber 下，释放即移除该环境。`get(id)` 与 `list(filter?)` 按注册顺序返回分离副本；`filter` 按 `kind` 与 `heldOut` 选择，调用方无法通过返回值改动已存储的检查列表或不可变集合。
 
-一个定义携带带品牌的 `EnvironmentId`、来自可合并扩展的 `EnvironmentKindMap` 的 `kind`（每个生产方通过在 `@deepseek-ai/dsh-environments/types` 上做声明合并来声明其 kind 与 detail 类型；本包不声明任何 kind）、`name`、`description`、`task`（`prompt`、可选的工作区 `fixture` 与可选的 `immutable` 集合）、验证者据以编写任务完成标准的 `checks`、`heldOut` 标志、所属包、`provenance`（`curated` 或 `synthesized`）、可选的 `lineage` 父 id，以及特定于 kind 的 `detail`。
+一个定义携带带品牌的 `EnvironmentId`、来自可合并扩展的 `EnvironmentKindMap` 的 `kind`（每个生产方通过在 `@deepseek-ai/dsh-environments/types` 上做声明合并来声明其 kind 与 detail 类型；本包不声明任何 kind）、`name`、`description`、`task`（`prompt`、可选的工作区 `fixture`、可选的 `immutable` 集合与可选的 `reference` 目录）、验证者据以编写任务完成标准的 `checks`、`heldOut` 标志、所属包、`provenance`（`curated` 或 `synthesized`）、可选的 `lineage` 父 id，以及特定于 kind 的 `detail`。
 
 ## Near-duplicate admission
 
@@ -35,6 +35,14 @@
 ## The immutable set
 
 `task.immutable` 列出 fixture 提供、实现者不得撰写的工作区相对路径——测试、参考输出，以及任何覆盖上去的检查脚本。每一项都是以 `/` 分隔的相对路径，不含空段、`.` 段或 `..` 段，不含反斜杠与盘符前缀，指向一个文件或一棵目录树；重复项与其他任何形式都在注册时被拒绝，因为检查方拥有的集合决定一次运行是否算数，注册表无法解析的路径绝不能进入本应度量它的那次运行。[环境运行器](../environment-runner/README.md)在第一个轮次之前以及每次验证时，都会连同验证者自己的目录一起对这些路径求摘要，并把改动了它们的尝试记录为 `tampered`。
+
+## The reference directory
+
+`task.reference` 点名持有参考程序的、相对 fixture 的目录：校验方可以执行它，实现者永远不得读取它。它是以 `/` 分隔的相对路径，不含空段、`.` 段或 `..` 段，不含反斜杠与盘符前缀，并且必须解析到 `task.fixture` 内一个已存在的目录；没有 fixture 的任务上的 reference，以及注册表无法解析的 reference，都在注册时以 `ENVIRONMENT_INVALID_REFERENCE` 被拒绝，而不是留到那次无法隐藏它的运行。
+
+`recreation` 环境必须声明一个：它的完成标准由[仪器](../../verification/tool-standard-author/README.md)从参考程序推导，而非由人手写，因此没有 reference 的 `recreation` 注册无从推导。注册表持有该 kind 的名称是因为它执行这条规则；kind 本身由生产此类环境的包声明。
+
+参考程序位于 fixture 之下，因此 `fixtureSha256`——以及经由它的去污染键——覆盖参考树：更改参考程序就更改了环境所度量的内容。[环境运行器](../environment-runner/README.md)在预留时把它复制到 barrier 根目录之下，并把它从每一次工作区覆盖中移除。
 
 ## 加权用例
 

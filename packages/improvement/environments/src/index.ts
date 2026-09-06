@@ -9,6 +9,8 @@
  */
 
 import { createHash } from 'node:crypto'
+import { statSync } from 'node:fs'
+import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
@@ -203,6 +205,7 @@ export type EnvironmentErrorCode =
   | 'ENVIRONMENT_NO_CHECKS'
   | 'ENVIRONMENT_DUPLICATE_CHECK'
   | 'ENVIRONMENT_INVALID_IMMUTABLE'
+  | 'ENVIRONMENT_INVALID_REFERENCE'
   | 'ENVIRONMENT_NEAR_DUPLICATE'
 
 /** Error returned by the environment registry boundary. */
@@ -303,6 +306,54 @@ function assertImmutable(definition: EnvironmentDefinition): void {
   }
 }
 
+/**
+ * The kind whose completion standard a validator derives from the reference
+ * program under `task.reference` rather than from checks written by hand. The
+ * registry holds the literal because it enforces the kind's registration rule;
+ * the kind itself is declared by the package that produces such environments.
+ */
+export const RECREATION_KIND = 'recreation'
+
+/**
+ * Reject a reference the runner could not stage beneath the barrier root: a
+ * `recreation` environment without one, a reference on a task with no fixture,
+ * a path that is not a normalized fixture-relative one, or a path that is not
+ * an existing directory inside the fixture. Failing here rather than at the run
+ * keeps a task whose reference cannot be hidden from ever being scheduled.
+ */
+function assertReference(definition: EnvironmentDefinition): void {
+  const { fixture, reference } = definition.task
+  const reject = (reason: string): never => {
+    throw new EnvironmentError(`environment "${definition.id}" ${reason}`, 'ENVIRONMENT_INVALID_REFERENCE')
+  }
+  if (reference === undefined) {
+    if (definition.kind === RECREATION_KIND) reject(`is a "${RECREATION_KIND}" environment without a task reference`)
+    return
+  }
+  if (fixture === undefined) reject(`declares reference "${reference}" without a fixture to resolve it against`)
+  if (reference === '') reject('declares an empty task reference')
+  if (reference.startsWith('/') || DRIVE_LETTER.test(reference)) reject(`declares reference "${reference}" that is not fixture-relative`)
+  if (reference.includes('\\')) reject(`declares reference "${reference}" that uses a backslash; fixture-relative paths separate segments with "/"`)
+  for (const segment of reference.split('/')) {
+    if (segment === '') reject(`declares reference "${reference}" that is not normalized: it holds an empty segment`)
+    if (segment === '.' || segment === '..') reject(`declares reference "${reference}" that is not normalized: it holds a "${segment}" segment`)
+  }
+  if (!isDirectory(join(fixture as string, reference))) {
+    reject(`declares reference "${reference}", which is not a directory inside its fixture`)
+  }
+}
+
+/** Directory test that treats a missing or unreadable path as no directory. */
+function isDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory()
+  } catch {
+    // statSync throws for a missing or unreadable path; both mean the
+    // registration named no directory the runner could copy.
+    return false
+  }
+}
+
 /** Reject a definition whose verifiers cannot author a completion standard. */
 function assertChecks(definition: EnvironmentDefinition): void {
   if (definition.checks.length === 0) {
@@ -343,8 +394,10 @@ export class EnvironmentRegistry extends Service {
    * @returns the exact disposer that removes this registration and no later one under the same id.
    * @throws {@link EnvironmentError} when the id is already registered, the
    *   definition declares no checks, two checks share an id, an immutable
-   *   path is not a normalized workspace-relative path, or a configured
-   *   near-duplicate threshold refuses the prompt against the opposite split.
+   *   path is not a normalized workspace-relative path, the task reference is
+   *   missing on a `recreation` environment or is not a directory inside the
+   *   fixture, or a configured near-duplicate threshold refuses the prompt
+   *   against the opposite split.
    */
   register(definition: EnvironmentDefinition): () => void {
     if (this.environments.has(definition.id)) {
@@ -352,6 +405,7 @@ export class EnvironmentRegistry extends Service {
     }
     assertChecks(definition)
     assertImmutable(definition)
+    assertReference(definition)
     this.assertNotNearDuplicate(definition)
     const stored = detach(definition)
     this.environments.set(stored.id, stored)

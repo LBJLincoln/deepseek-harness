@@ -685,6 +685,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the stamp, the attempts, the certificate when one run passed, and the accumulated usage.',
         throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
       },
+      {
+        signature: 'async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>',
+        description: 'Mint one agent\'s reservation and copy the environment\'s reference program beneath it, for a validator that derives the standard from that reference before an implementer is ever driven. The copy lands in the same REFERENCE_DIR the runner stocks for its own implementer, so the instrument finds the reference at one path whichever session holds it, and the whole reservation stays inside the check-owned digest.',
+        parameters: [{ name: 'agent', description: 'the agent whose session the reservation belongs to.' }, { name: 'environment', description: 'the environment supplying the reference tree.' }],
+        returns: 'the reservation the reference was staged in.',
+        throws: ['{@link EnvironmentRunError} when the environment is unknown, it declares no reference, or no read barrier is composed to reserve from.'],
+      },
     ],
   },
   {
@@ -697,7 +704,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Register one environment. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the entry.',
         parameters: [{ name: 'definition', description: 'complete environment definition.' }],
         returns: 'the exact disposer that removes this registration and no later one under the same id.',
-        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, two checks share an id, an immutable path is not a normalized workspace-relative path, or a configured near-duplicate threshold refuses the prompt against the opposite split.'],
+        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, two checks share an id, an immutable path is not a normalized workspace-relative path, the task reference is missing on a `recreation` environment or is not a directory inside the fixture, or a configured near-duplicate threshold refuses the prompt against the opposite split.'],
       },
       {
         signature: 'nearestHeldOut(prompt: string): NearestEnvironment | undefined',
@@ -1247,6 +1254,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Mint the run directory for one agent\'s session and record that session as the implementer. The validator writes its standard snapshot, one script per check, and any held-out fixture there, so the command line the implementer can observe in a process listing names a file whose content it cannot read. Reserving the same session twice returns the same directory.\n\nSynchronous so the role is in force the moment the caller returns: an awaited reservation would leave a window in which the session\'s own reads are still unrestricted.',
         parameters: [{ name: 'agent', description: 'the implementer agent whose session the run belongs to.' }],
         returns: 'the absolute run directory, created owner-only.',
+      },
+      {
+        signature: 'reservation(agent: Agent): string | undefined',
+        description: 'The run directory one session already holds, without minting one. Every consumer that reads a reservation asks here rather than through reserve: reserving is what makes an unmarked session the implementer, so a reader that reserved to find out would demote the very session it was reading for.',
+        parameters: [{ name: 'agent', description: 'the agent whose session the reservation would belong to.' }],
+        returns: 'the reserved directory, or `undefined` when the session holds none.',
       },
       {
         signature: 'protect(path: string): () => void',
@@ -3697,7 +3710,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentTask',
-    declaration: 'export interface EnvironmentTask {\n    readonly prompt: string;\n    readonly fixture?: string;\n    readonly immutable?: readonly string[];\n}',
+    declaration: 'export interface EnvironmentTask {\n    readonly prompt: string;\n    readonly fixture?: string;\n    readonly immutable?: readonly string[];\n    readonly reference?: string;\n}',
   },
   {
     name: 'EpochHeader',

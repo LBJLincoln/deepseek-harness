@@ -187,13 +187,13 @@ describe('the shipped Web composition', () => {
   it('supplies the shipped presets, and only those, from the system root', async () => {
     const listed = await ctx.agentPresets.list()
 
-    expect(listed.map(preset => preset.id).sort()).toEqual(['code', 'cordis', 'judge', 'minimal', 'standard'])
+    expect(listed.map(preset => preset.id).sort()).toEqual(['code', 'cordis', 'judge', 'minimal', 'standard', 'validator'])
     expect(listed.every(preset => preset.trust === 'system')).toBe(true)
     expect(listed.every(preset => preset.broken === undefined)).toBe(true)
-    // The judge is the one shipped preset that claims a role, and `system`
-    // trust is what lets it claim one the barrier acts on.
+    // The judge and the validator are the shipped presets that claim a role,
+    // and `system` trust is what lets them claim one the barrier acts on.
     expect(listed.filter(preset => preset.role !== undefined).map(preset => [preset.id, preset.role]))
-      .toEqual([['judge', 'judge']])
+      .toEqual([['judge', 'judge'], ['validator', 'validator']])
     expect(ctx.agentPresets.defaultId).toBe('standard')
   })
 
@@ -207,6 +207,12 @@ describe('the shipped Web composition', () => {
     } finally {
       await handle.dispose()
     }
+  })
+
+  it('ships the sampling skill inside the validator preset directory', async () => {
+    const skill = join(CONFIG_DIR, 'agent-presets', 'validator', 'skills', 'standard-sampling', 'SKILL.md')
+
+    expect((await readFile(skill, 'utf8')).startsWith('---\nname: standard-sampling')).toBe(true)
   })
 
   it('composes the full agent from `standard`', async () => {
@@ -839,6 +845,67 @@ describe('a session keeps the preset it was created with', () => {
       // session runs, so naming anything else is a caller error rather than a
       // switch. Its history was produced under `minimal`'s two tools.
       expect(handle.agent.session.header.agentPreset).toBe('minimal')
+    } finally {
+      await handle.dispose()
+    }
+  })
+})
+
+describe('the validator preset over a composed verification seam', () => {
+  let validatorCtx: Context
+  let root: string
+
+  beforeAll(async () => {
+    root = await mkdtemp(join(tmpdir(), 'dsh-web-validator-'))
+    const settingsFile = join(root, 'settings.yaml')
+    await writeFile(settingsFile, '{}\n')
+    // The shipped Web composition holds neither the completion-standard service
+    // nor the read barrier, and the validator preset composes the one tool that
+    // needs both. They are inserted here rather than added to the bundle: what
+    // this file asserts is the preset's own composition, not which deployments
+    // run validators.
+    validatorCtx = await bootWeb(settingsFile, [{
+      insert: [
+        { id: 'verification', name: '@deepseek-ai/dsh-verification' },
+        // Pinned away from the harness home: the barrier creates its root at
+        // load, and the default one is the developer's own `~/.dsh`.
+        { id: 'read-barrier', name: '@deepseek-ai/dsh-read-barrier', config: { root: join(root, 'verification') } },
+      ],
+    }])
+  }, 120_000)
+
+  afterAll(async () => {
+    await validatorCtx.fiber.dispose()
+  })
+
+  it('composes the instrument, a shell, and the skill loader, and nothing that reaches a workspace', async () => {
+    const handle = await validatorCtx.agents.create({
+      sessionId: SessionId('preset-validator'),
+      setup: agentCtx => validatorCtx.agentPresets.mount(agentCtx, 'validator').then(() => undefined),
+    })
+    try {
+      // The EXACT catalog: a validator authors the standard and probes the
+      // reference, and reaches nothing on the implementer's side of the wall —
+      // no filesystem tool, no search, no delegation, no session query.
+      expect(toolNames(validatorCtx, handle.agent)).toEqual(['bash', 'skill', 'standard_author'])
+      expect(validatorCtx.tools.get('standard_author', handle.agent)?.authority).toEqual(['standard-author'])
+      // The declared role is what let a preset compose an authority-bearing
+      // tool at all; the mount audit refuses one that does not.
+      expect((await validatorCtx.agentPresets.list()).find(preset => preset.id === 'validator')?.role)
+        .toBe('validator')
+    } finally {
+      await handle.dispose()
+    }
+  })
+
+  it('offers the sampling skill to the session it composed', async () => {
+    const handle = await validatorCtx.agents.create({
+      sessionId: SessionId(`preset-validator-skills-${randomUUID()}`),
+      setup: agentCtx => validatorCtx.agentPresets.mount(agentCtx, 'validator').then(() => undefined),
+    })
+    try {
+      expect((await validatorCtx.skills.list({ scope: handle.agent })).map(skill => skill.name))
+        .toContain('standard-sampling')
     } finally {
       await handle.dispose()
     }
