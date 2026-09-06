@@ -25,6 +25,20 @@ export interface LlmCallConfig {
   model: string
   reasoningEffort?: ReasoningEffortId
   temperature?: number
+  /**
+   * Nucleus-sampling mass between 0 and 1. Adapters whose wire carries no
+   * equivalent field drop it, so a value here never guarantees that the
+   * provider applied it.
+   */
+  topP?: number
+  /**
+   * Sampling seed, a safe non-negative integer. A provider that honours it
+   * samples reproducibly for one identical request; providers are free to
+   * ignore it, and none of them promise reproducibility across model or
+   * infrastructure versions, so the logged value states what was asked for
+   * rather than what a replay will reproduce.
+   */
+  seed?: number
   maxTokens?: number
   stop?: string[]
 }
@@ -52,6 +66,8 @@ export function callConfigEquals(a: LlmCallConfig, b: LlmCallConfig): boolean {
     || a.model !== b.model
     || a.reasoningEffort !== b.reasoningEffort
     || a.temperature !== b.temperature
+    || a.topP !== b.topP
+    || a.seed !== b.seed
     || a.maxTokens !== b.maxTokens
   ) return false
   if (a.stop === undefined || b.stop === undefined) return a.stop === b.stop

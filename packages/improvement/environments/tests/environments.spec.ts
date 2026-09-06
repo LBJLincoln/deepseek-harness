@@ -10,8 +10,9 @@ import EnvironmentRegistry, {
   environmentContentHashes,
   EnvironmentError,
   EnvironmentId,
+  isSeed,
 } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments'
+import type { Config, EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments'
 import * as invariantCompanion from '@deepseek-ai/dsh-environments/invariant'
 
 declare module '@deepseek-ai/dsh-environments/types' {
@@ -21,9 +22,9 @@ declare module '@deepseek-ai/dsh-environments/types' {
   }
 }
 
-async function harness(): Promise<Context> {
+async function harness(config: Config = {}): Promise<Context> {
   const ctx = new Context()
-  await ctx.plugin(EnvironmentRegistry)
+  await ctx.plugin(EnvironmentRegistry, config)
   return ctx
 }
 
@@ -164,6 +165,89 @@ describe('EnvironmentRegistry', () => {
   })
 })
 
+describe('near-duplicate admission', () => {
+  /** 13 words, so the prompt shingles into exactly nine word 5-grams. */
+  const HELD_OUT_PROMPT = 'Fix the failing unit test in the parser module and make it pass.'
+  /** The same 13 words with the last one replaced: one shingle differs, so the similarity is 8/10. */
+  const RESTATED_PROMPT = 'Fix the failing unit test in the parser module and make it green.'
+
+  function task(id: string, prompt: string, heldOut: boolean): EnvironmentDefinition<'swe-task'> {
+    return sweTask(id, { task: { prompt }, heldOut })
+  }
+
+  it('registers a pair just below the threshold and refuses it at the threshold', async () => {
+    const admitting = await harness({ nearDuplicate: { threshold: 0.81 } })
+    admitting.environments.register(task('swe-task:held-out', HELD_OUT_PROMPT, true))
+    admitting.environments.register(task('swe-task:restated', RESTATED_PROMPT, false))
+    expect(admitting.environments.list()).toHaveLength(2)
+
+    const refusing = await harness({ nearDuplicate: { threshold: 0.8 } })
+    refusing.environments.register(task('swe-task:held-out', HELD_OUT_PROMPT, true))
+    expect(() => refusing.environments.register(task('swe-task:restated', RESTATED_PROMPT, false)))
+      .toThrow(expect.objectContaining({
+        code: 'ENVIRONMENT_NEAR_DUPLICATE',
+        message: 'environment "swe-task:restated" near-duplicates held-out environment "swe-task:held-out": word 5-gram Jaccard similarity 0.8 reaches the 0.8 admission threshold',
+      }))
+    expect(refusing.environments.get(EnvironmentId('swe-task:restated'))).toBeUndefined()
+  })
+
+  it('refuses a held-out environment that restates a registered training-eligible one', async () => {
+    const ctx = await harness({ nearDuplicate: { threshold: 0.8 } })
+    ctx.environments.register(task('swe-task:training', HELD_OUT_PROMPT, false))
+    expect(() => ctx.environments.register(task('swe-task:late-held-out', RESTATED_PROMPT, true)))
+      .toThrow(expect.objectContaining({
+        code: 'ENVIRONMENT_NEAR_DUPLICATE',
+        message: 'environment "swe-task:late-held-out" near-duplicates training-eligible environment "swe-task:training": word 5-gram Jaccard similarity 0.8 reaches the 0.8 admission threshold',
+      }))
+  })
+
+  it('admits an unrelated prompt, and admits everything when no threshold is configured', async () => {
+    const ctx = await harness({ nearDuplicate: { threshold: 0.8 } })
+    ctx.environments.register(task('swe-task:held-out', HELD_OUT_PROMPT, true))
+    ctx.environments.register(task('swe-task:unrelated', 'Package the release notes for the next tag.', false))
+    // Nothing is registered on the opposite side of the first held-out entry.
+    ctx.environments.register(task('swe-task:second-held-out', 'Profile the allocator and cut its peak resident set.', true))
+    expect(ctx.environments.list()).toHaveLength(3)
+
+    const open = await harness()
+    open.environments.register(task('swe-task:held-out', HELD_OUT_PROMPT, true))
+    open.environments.register(task('swe-task:restated', RESTATED_PROMPT, false))
+    expect(open.environments.list()).toHaveLength(2)
+  })
+
+  it('normalizes case and punctuation, and treats a sub-shingle prompt as one shingle', async () => {
+    const ctx = await harness({ nearDuplicate: { threshold: 1 } })
+    ctx.environments.register(task('swe-task:held-out', HELD_OUT_PROMPT, true))
+    expect(() => ctx.environments.register(task('swe-task:respaced', '  FIX -- the failing, unit test; in the parser module (and) make it pass!  ', false)))
+      .toThrow(expect.objectContaining({ code: 'ENVIRONMENT_NEAR_DUPLICATE', message: expect.stringContaining('similarity 1 ') as unknown as string }))
+
+    const short = await harness({ nearDuplicate: { threshold: 1 } })
+    short.environments.register(task('swe-task:short-held-out', 'Ship it.', true))
+    short.environments.register(task('swe-task:short-other', 'Ship them.', false))
+    expect(() => short.environments.register(task('swe-task:short-same', 'ship IT!', false)))
+      .toThrow(expect.objectContaining({ code: 'ENVIRONMENT_NEAR_DUPLICATE' }))
+
+    // Two promptless environments are identical rather than incomparable.
+    const empty = await harness({ nearDuplicate: { threshold: 1 } })
+    empty.environments.register(task('swe-task:empty-held-out', '', true))
+    expect(() => empty.environments.register(task('swe-task:empty-other', '   ', false)))
+      .toThrow(expect.objectContaining({ code: 'ENVIRONMENT_NEAR_DUPLICATE' }))
+  })
+
+  it('reports the nearest held-out environment for a curator, threshold or not', async () => {
+    const ctx = await harness()
+    expect(ctx.environments.nearestHeldOut(HELD_OUT_PROMPT)).toBeUndefined()
+    ctx.environments.register(task('swe-task:far', 'Package the release notes for the next tag.', true))
+    ctx.environments.register(task('swe-task:near', HELD_OUT_PROMPT, true))
+    ctx.environments.register(task('swe-task:training', RESTATED_PROMPT, false))
+    expect(ctx.environments.nearestHeldOut(RESTATED_PROMPT))
+      .toEqual({ environment: 'swe-task:near', similarity: 0.8 })
+    // Registration order does not decide the answer; the highest similarity does.
+    expect(ctx.environments.nearestHeldOut('Package the release notes for the next tag.'))
+      .toEqual({ environment: 'swe-task:far', similarity: 1 })
+  })
+})
+
 describe('environment run stamps', () => {
   const HEX = 'a'.repeat(64)
   function stamp(rest: Record<string, unknown> = {}): Record<string, unknown> {
@@ -265,7 +349,10 @@ describe('environment run stamps', () => {
   })
 
   it('decodes a complete stamp, leaves unrelated values alone, and keeps optional fields exact', () => {
-    const decoded = decodeEnvironmentRun(stamp({ fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3 }))
+    const decoded = decodeEnvironmentRun(stamp({
+      fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3,
+      policyVersion: 'policy-2026-09', seed: 0,
+    }))
     expect(decoded).toEqual<EnvironmentRunStamp>({
       kind: 'environment/run',
       version: 1,
@@ -279,15 +366,29 @@ describe('environment run stamps', () => {
       repetition: 3,
       group: 'batch-7',
       district: 'workshop',
+      policyVersion: 'policy-2026-09',
+      seed: 0,
       model: { provider: 'cli-mock', model: 'cli-mock' },
       isolation: 'none',
     })
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('fixtureSha256')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('group')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('district')
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('policyVersion')
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('seed')
     expect(decodeEnvironmentRun({ kind: 'goal/change' })).toBeUndefined()
     expect(decodeEnvironmentRun('environment/run')).toBeUndefined()
     expect(decodeEnvironmentRun([stamp()])).toBeUndefined()
+  })
+
+  it('accepts a seed a provider could have been asked for and rejects every other value', () => {
+    expect(isSeed(0)).toBe(true)
+    expect(isSeed(Number.MAX_SAFE_INTEGER)).toBe(true)
+    expect(isSeed(-1)).toBe(false)
+    expect(isSeed(1.5)).toBe(false)
+    expect(isSeed(Number.MAX_SAFE_INTEGER + 2)).toBe(false)
+    expect(isSeed(Number.NaN)).toBe(false)
+    expect(isSeed('7')).toBe(false)
   })
 
   it('fails replay loudly on a malformed stamp', () => {
@@ -304,6 +405,9 @@ describe('environment run stamps', () => {
       [stamp({ fixtureSha256: 12 }), 'fixtureSha256 must be a non-empty string'],
       [stamp({ group: '' }), 'group must be a non-empty string'],
       [stamp({ district: 7 }), 'district must be a non-empty string'],
+      [stamp({ policyVersion: '' }), 'policyVersion must be a non-empty string'],
+      [stamp({ seed: -1 }), 'seed must be a non-negative integer'],
+      [stamp({ seed: '7' }), 'seed must be a non-negative integer'],
     ]
     for (const [value, message] of cases) {
       expect(() => decodeEnvironmentRun(value), message).toThrow(message)

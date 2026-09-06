@@ -37,7 +37,11 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 
 ## Service contract
 
-`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、`models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
+`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、`models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的 `policyVersion`、可选的基准 `seed`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、`seed` 不是安全的非负整数、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
+
+## Policy version and the base seed
+
+`policyVersion` 点名该计划的路由所服务的检查点或策略；每个 cell 的运行 stamp 都原样携带它，因此 fold 可以按它给测得的难度建键。`seed` 是该计划的**基准**种子，每个 cell 以 `seed + repetition` 运行，因此同一个重复序号在该计划的每条路由和每个环境上都意味着同一个种子——这正是让配对设计比较同类的原因。基准值只在计划边界校验一次，因为这个算术是 fleet 做的：运行器会拒绝的基准值不该表现为每个 cell 各自失败。种子记录的是一次运行请求了什么，绝不是提供方拿它做了什么；[运行器 README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) 拥有 replay 能与不能复现什么。
 
 cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举，并通过 `ctx.environmentRuns.run` 运行，同时在途至多 `maxConcurrent` 个。点名了 `cells` 的计划只运行这些 cell，且仍按计划顺序，因此恢复一个只跑了一半的计划的驱动器能保住每个 cell 的环境、路由与重复序号，而不必把它们改写成一个重复序号又从零开始的更小计划。`fleetCellKey(cell)` 是消费方为 cell 建立索引所用的身份，无论是在它自己维护的台账里，还是对照会话日志中已有的运行 stamp。每个 cell 在 `workspaceRoot` 下获得一个全新的 `cell-*` 目录，并把计划的 `group`（或铸造的 `fleet-<uuid>`）、其重复序号与计划的 `district` 带入运行 stamp，因此该批次的每个会话都在自己的日志中被持久地归组。运行抛出的 cell 保留为 `{ cell, error }`，错误带有 harness 错误码时一并保留；fleet 运行本身绝不因某一个 cell 而失败。
 

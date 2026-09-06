@@ -52,12 +52,34 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly group?: string
   /** District the run belongs to; exports withhold the districts a deployment configures by it, absent for a run outside every district. */
   readonly district?: string
+  /**
+   * Checkpoint or policy the implementer route served, as the deployment names
+   * it. Free-form: the harness never resolves it, and a fold that keys measured
+   * difficulty by policy version compares the strings it finds. Absent for a
+   * route the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Sampling seed every request of the run asked for, absent for a run that
+   * pinned none. It states what was asked for, not what a replay reproduces:
+   * providers may ignore a seed and none of them promise identical tokens
+   * across model or infrastructure versions.
+   */
+  readonly seed?: number
   /** Model route the implementer ran on. */
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
 }
 ```
+
+### Policy version, seeds, and what a replay reproduces
+
+`policyVersion` is free-form text naming the checkpoint or policy a route served; the harness writes it into the stamp verbatim and never resolves it, so a fold keying measured difficulty by policy version compares the strings its logs carry. A fleet plan, an experiment plan, and a shift district each name one, and every cell of the plan is stamped with it.
+
+`seed` on a plan is a **base**: each cell asks for `seed + repetition`, so one repetition index means one seed across every route and environment of the plan, which is what lets a paired experiment compare like with like. The runner pins the cell's seed and the deployment's `topP` on the agent's model selection, so every request of the cell samples the same way and each request is reconstructable from that session's `request/header` events. The stamp carries `seed` alone, because `topP` is constant across the deployment and the header already records it.
+
+A seed records what a run **asked for**, never what the provider did. An adapter whose wire has no `seed` field drops it, a provider that accepts one may still ignore it, and none promise identical tokens across model or infrastructure versions. What a session log reproduces is its own transcript — the prompt, the tools, the header, and the recorded turns — not a fresh sample from the model.
 
 ## Leaderboard row
 
@@ -189,7 +211,7 @@ interface FleetCellEvent {
 
 ## Shift ledger
 
-A shift is one durable pass of the fleet over a district's plan. Its identity is frozen before any cell runs — `shift-<digest>-<scheduledAt>`, over the district, the sorted environment ids, the routes in listing order, the repetitions, and the token ceiling — and that id is the `group` on every cell's run stamp. The shift's own session log carries the ledger: `shift/start`, one `shift/cell` per settled cell, `shift/resume` when a later process picks the shift up, `shift/skipped` for a refused slot, and `shift/end`; [the persistence catalog](../persistence-catalog.md) carries each payload's declaration and [the package README](../../packages/improvement/shifts/README.md) owns the cadence and the resume rule.
+A shift is one durable pass of the fleet over a district's plan. Its identity is frozen before any cell runs — `shift-<digest>-<scheduledAt>`, over the district, the sorted environment ids, the routes in listing order, the repetitions, the policy version and base seed, and the token ceiling — and that id is the `group` on every cell's run stamp. The shift's own session log carries the ledger: `shift/start`, one `shift/cell` per settled cell, `shift/resume` when a later process picks the shift up, `shift/skipped` for a refused slot, and `shift/end`; [the persistence catalog](../persistence-catalog.md) carries each payload's declaration and [the package README](../../packages/improvement/shifts/README.md) owns the cadence and the resume rule.
 
 ```ts type-equiv
 /**
@@ -207,6 +229,16 @@ interface ShiftPlan {
   readonly models: readonly EnvironmentRunModel[]
   /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
   readonly repetitions: number
+  /**
+   * Checkpoint or policy the district's routes serve, written into every
+   * cell's run stamp verbatim; absent for routes the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Base sampling seed of the district; each cell samples with
+   * `seed + repetition`. Absent leaves the cells' sampling to the composition.
+   */
+  readonly seed?: number
   /** Positive integer bound on the input plus output tokens the shift's reported cells may sum to. */
   readonly tokenCeiling?: number
 }
@@ -309,15 +341,17 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 ```ts cordis-catalog
 /**
  * Run one environment as one fresh session and validate it.
- * @param request - environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.
+ * @param request - environment id, absolute workspace directory, optional
+ *   model route, repetition, group, district, policy version, sampling seed, and abort signal.
  * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
- * @throws {@link EnvironmentRunError} for an unknown environment, an unusable
- *   workspace or fixture, an implementer that replaced the goal, or a lost standard.
+ * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
+ *   is not a safe non-negative integer, an unusable workspace or fixture, an
+ *   implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 ```
 
-Source: [`packages/improvement/environment-runner/src/index.ts:543`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:562`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -332,10 +366,21 @@ Environment registry (`ctx.environments`): tasks with verifiers, held at composi
  * @param definition - complete environment definition.
  * @returns the exact disposer that removes this registration and no later one under the same id.
  * @throws {@link EnvironmentError} when the id is already registered, the
- *   definition declares no checks, two checks share an id, or an immutable
- *   path is not a normalized workspace-relative path.
+ *   definition declares no checks, two checks share an id, an immutable
+ *   path is not a normalized workspace-relative path, or a configured
+ *   near-duplicate threshold refuses the prompt against the opposite split.
  */
 register(definition: EnvironmentDefinition): () => void
+
+/**
+ * The registered held-out environment whose task prompt is closest to one
+ * candidate prompt, so a curator can score a proposal before paying for a
+ * run. It reads the same normalization and similarity the admission rule
+ * applies, and answers whether or not a threshold is configured.
+ * @param prompt - candidate task statement.
+ * @returns the nearest held-out environment and its similarity, or `undefined` when none is registered.
+ */
+nearestHeldOut(prompt: string): NearestEnvironment | undefined
 
 /**
  * Read one environment.
@@ -352,7 +397,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:241`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:321`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -367,12 +412,14 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  * first cell runs; a cell the fleet kept as an error leaves its repetition
  * unpaired instead of failing the experiment.
  * @param plan - environments, repetitions, the two arm routes, the workspace
- *   root, and an optional frozen digest, abort signal, and result sink.
+ *   root, and an optional policy version, base seed, frozen digest, abort
+ *   signal, and result sink.
  * @returns the digest, both arms with their stamp groups, one cell per
  *   environment, the pooled delta with its interval, the spend, and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
- *   unregistered environment, asks for no repetition, declares a digest its
- *   content does not freeze to, or projects more tokens than the budget.
+ *   unregistered environment, asks for no repetition, sets a seed that is not
+ *   a safe non-negative integer, declares a digest its content does not
+ *   freeze to, or projects more tokens than the budget.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
@@ -392,11 +439,13 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
  * @param plan - environments, model routes, repetitions, an optional exact
- *   cell selection, workspace root, group, district, token ceiling, and abort signal.
+ *   cell selection, workspace root, group, district, policy version, base
+ *   seed, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
- *   no repetition, names no or an unenumerated cell, or sets a token ceiling
- *   that is not a positive integer.
+ *   no repetition, names no or an unenumerated cell, sets a token ceiling
+ *   that is not a positive integer, or sets a seed that is not a safe
+ *   non-negative integer.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```

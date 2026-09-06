@@ -282,6 +282,10 @@ describe('FleetService', () => {
     await expect(ctx.fleet.run(plan({ tokenCeiling: 0 }))).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN' })
     const fractional = ctx.fleet.run(plan({ tokenCeiling: 2.5 }))
     await expect(fractional).rejects.toMatchObject({ message: 'tokenCeiling must be a positive integer, got 2.5' })
+    await expect(ctx.fleet.run(plan({ seed: -1 }))).rejects.toMatchObject({
+      code: 'FLEET_INVALID_PLAN', message: 'seed must be a non-negative integer, got -1',
+    })
+    await expect(ctx.fleet.run(plan({ seed: 1.5 }))).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN' })
     const unknown = ctx.fleet.run(plan({ environments: { ids: [EnvironmentId('smoke:missing')] } }))
     await expect(unknown).rejects.toBeInstanceOf(FleetError)
     await expect(unknown).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN', message: 'environment "smoke:missing" is not registered' })
@@ -309,6 +313,29 @@ describe('FleetService', () => {
     const result = await ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 2, district: 'workshop' }))
     expect(StubRuns.current.requests.map(request => request.district)).toEqual(['workshop', 'workshop'])
     expect(result.cells.every(outcome => 'report' in outcome)).toBe(true)
+  })
+
+  it('carries the policy version verbatim and offsets the base seed by each cell repetition', async () => {
+    const { ctx, plan } = await harness()
+    await ctx.fleet.run(plan({
+      models: [MODEL_A, MODEL_B], repetitions: 3, policyVersion: 'policy-2026-09', seed: 100,
+    }))
+    const coordinates = StubRuns.current.requests
+      .map(request => [request.environment, request.model?.model, request.repetition, request.seed])
+    expect(coordinates).toEqual([
+      [ROUND_TRIP, 'a', 0, 100], [ROUND_TRIP, 'a', 1, 101], [ROUND_TRIP, 'a', 2, 102],
+      [ROUND_TRIP, 'b', 0, 100], [ROUND_TRIP, 'b', 1, 101], [ROUND_TRIP, 'b', 2, 102],
+      [UNSATISFIABLE, 'a', 0, 100], [UNSATISFIABLE, 'a', 1, 101], [UNSATISFIABLE, 'a', 2, 102],
+      [UNSATISFIABLE, 'b', 0, 100], [UNSATISFIABLE, 'b', 1, 101], [UNSATISFIABLE, 'b', 2, 102],
+    ])
+    expect(StubRuns.current.requests.every(request => request.policyVersion === 'policy-2026-09')).toBe(true)
+  })
+
+  it('leaves the policy version and the seed off a plan that pins neither', async () => {
+    const { ctx, plan } = await harness()
+    await ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 1 }))
+    expect(StubRuns.current.requests[0]).not.toHaveProperty('policyVersion')
+    expect(StubRuns.current.requests[0]).not.toHaveProperty('seed')
   })
 
   it('runs only the named cells, in plan order, and refuses a selection the plan does not enumerate', async () => {

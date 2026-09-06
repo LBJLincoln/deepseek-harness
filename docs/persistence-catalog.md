@@ -464,7 +464,7 @@ Source: [`packages/components/components-manifest/src/types.ts:64`](../packages/
 'environment/run': EnvironmentRunStamp
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:35`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:36`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 

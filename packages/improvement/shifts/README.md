@@ -26,6 +26,8 @@ Shifts: the durable driver of an unattended fleet. Each district opens a slot on
             - provider: <provider>
               model: <model>
           repetitions: 4
+          policyVersion: policy-2026-09
+          seed: 100
           tokenCeiling: 4000000
         cadence:
           intervalMs: 21600000
@@ -41,6 +43,8 @@ Shifts: the durable driver of an unattended fleet. Each district opens a slot on
 | `districts[].plan.environments` | `{ ids: [...] }` in the given order, or `{ filter: { kind, heldOut } }` resolved against the registry when the slot freezes. |
 | `districts[].plan.models` | At least one model route. The driver enumerates its own cells to compute a pending set and to digest the plan, so the routes are named here instead of taken from whatever default the composition currently selects. |
 | `districts[].plan.repetitions` | Positive repetitions per environment and route; repetition indexes start at `0`. |
+| `districts[].plan.policyVersion` (optional) | Checkpoint or policy the district's routes serve. Every cell's run stamp carries it verbatim. |
+| `districts[].plan.seed` (optional) | Base sampling seed of the district; each cell samples with `seed + repetition`, as the [fleet README](../fleet/README.md#policy-version-and-the-base-seed) states. |
 | `districts[].plan.tokenCeiling` (optional) | Positive input-plus-output token ceiling of one shift. A resumed shift runs under this ceiling minus what its own sessions already spent. |
 | `districts[].cadence.intervalMs` (required) | Positive milliseconds between consecutive slots of the district. |
 | `districts[].spendWindow` (optional) | `windowMs` and `maxTokens`: the trailing window across slots. Absent runs every slot the cadence opens. |
@@ -52,7 +56,7 @@ The service requires `fleet`, `sessions`, and `sessionPersistence`, and reads th
 
 `ctx.shifts.start()` resumes every interrupted shift, then opens each district's due slot and arms its cadence timer. The loop runs once per process: the plugin starts it over the settled Loader tree and a second call joins the same run, so a driver can await the first slot without racing the plugin. `ctx.shifts.stop()` disarms every timer, cancels the fleet run in flight through its signal, and waits for the slots that are settling; plugin disposal calls it.
 
-`shiftDigest(plan)` is the SHA-256 hex over the district, the environment ids sorted by code unit after a filter is resolved against the registry, the model routes in listing order, the repetition count, and the token ceiling. The workspace root, the cadence, and the spend window are deployment choices and stay out of it: they decide what a deployment pays for, not what the shift runs. `shiftId(digest, scheduledAt)` is `shift-<digest>-<scheduledAt>`, the slot time in epoch milliseconds — so two processes computing the same slot compute the same identity without counting anything. That id is the shift session's id and the `group` on every cell's run stamp, which is how the sessions of one shift stay grouped durably.
+`shiftDigest(plan)` is the SHA-256 hex over the district, the environment ids sorted by code unit after a filter is resolved against the registry, the model routes in listing order, the repetition count, the policy version and base seed the cells sample under, and the token ceiling. A district that changes its policy version or its seed therefore opens a new shift identity rather than resuming the old one, which is correct: its cells measure a different thing. The workspace root, the cadence, and the spend window are deployment choices and stay out of it: they decide what a deployment pays for, not what the shift runs. `shiftId(digest, scheduledAt)` is `shift-<digest>-<scheduledAt>`, the slot time in epoch milliseconds — so two processes computing the same slot compute the same identity without counting anything. That id is the shift session's id and the `group` on every cell's run stamp, which is how the sessions of one shift stay grouped durably.
 
 ## The ledger
 

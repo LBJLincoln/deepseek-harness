@@ -16,9 +16,9 @@ import { dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
-import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { Agent, AgentSampling } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
-import { ENVIRONMENT_RUN_VERSION, environmentContentHashes } from '@deepseek-ai/dsh-environments'
+import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentRunModel, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type {} from '@deepseek-ai/dsh-goal'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
@@ -57,6 +57,7 @@ declare module '@deepseek-ai/cordis' {
 /** Stable error codes of a refused or broken run. */
 export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT'
+  | 'ENVIRONMENT_RUN_INVALID_SEED'
   | 'ENVIRONMENT_RUN_INVALID_WORKSPACE'
   | 'ENVIRONMENT_RUN_INVALID_FIXTURE'
   | 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'
@@ -90,6 +91,13 @@ export interface Config {
   evidenceMaxChars?: number
   /** Maximum failed cases one check result lists; the rest are counted and not named. */
   maxFailedCases?: number
+  /**
+   * Nucleus-sampling mass between 0 and 1 every request of every run asks for.
+   * It is a deployment choice rather than a per-run one: a suite compares runs
+   * only while every cell samples the same way. Absent leaves the
+   * composition's own sampling in place.
+   */
+  topP?: number
 }
 
 /** The runner's choices with every default applied. */
@@ -100,6 +108,7 @@ export interface ResolvedConfig {
   readonly checkTimeoutMs: number | undefined
   readonly evidenceMaxChars: number
   readonly maxFailedCases: number
+  readonly topP: number | undefined
 }
 
 /**
@@ -115,6 +124,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
     checkTimeoutMs: config.checkTimeoutMs,
     evidenceMaxChars: config.evidenceMaxChars ?? 2000,
     maxFailedCases: config.maxFailedCases ?? 20,
+    topP: config.topP,
   }
 }
 
@@ -519,6 +529,15 @@ function followupText(directive: DirectiveRequest): string {
   return `<validation_failed>\n${directive.rootCause}\n${directive.detail}\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>`
 }
 
+/** The sampling one run pins on its agent, absent when the run pins neither scalar. */
+function pinnedSampling(seed: number | undefined, topP: number | undefined): AgentSampling | undefined {
+  if (seed === undefined && topP === undefined) return undefined
+  return {
+    ...seed === undefined ? {} : { seed },
+    ...topP === undefined ? {} : { topP },
+  }
+}
+
 /** Sum the usage of every assistant message in a session log. */
 function totalUsage(events: readonly SessionEvent[]): TokenUsage | undefined {
   const steps = events.flatMap(event => (
@@ -550,6 +569,7 @@ export class EnvironmentRunner extends Service {
     checkTimeoutMs: z.natural().min(1),
     evidenceMaxChars: z.natural().min(1).default(2000),
     maxFailedCases: z.natural().min(1).default(20),
+    topP: z.number().min(0).max(1),
   })
 
   private readonly resolved: ResolvedConfig
@@ -561,15 +581,20 @@ export class EnvironmentRunner extends Service {
 
   /**
    * Run one environment as one fresh session and validate it.
-   * @param request - environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.
+   * @param request - environment id, absolute workspace directory, optional
+   *   model route, repetition, group, district, policy version, sampling seed, and abort signal.
    * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
-   * @throws {@link EnvironmentRunError} for an unknown environment, an unusable
-   *   workspace or fixture, an implementer that replaced the goal, or a lost standard.
+   * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
+   *   is not a safe non-negative integer, an unusable workspace or fixture, an
+   *   implementer that replaced the goal, or a lost standard.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
     if (definition === undefined) {
       throw new EnvironmentRunError(`environment "${request.environment}" is not registered`, 'ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT')
+    }
+    if (request.seed !== undefined && !isSeed(request.seed)) {
+      throw new EnvironmentRunError(`seed must be a non-negative integer, got ${String(request.seed)}`, 'ENVIRONMENT_RUN_INVALID_SEED')
     }
     const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task.fixture)
     const model = request.model ?? this.defaultModel()
@@ -583,16 +608,27 @@ export class EnvironmentRunner extends Service {
       repetition: request.repetition ?? 0,
       ...request.group === undefined ? {} : { group: request.group },
       ...request.district === undefined ? {} : { district: request.district },
+      ...request.policyVersion === undefined ? {} : { policyVersion: request.policyVersion },
+      ...request.seed === undefined ? {} : { seed: request.seed },
       model,
       isolation: this.resolved.isolation,
     }
+    // The seed is per cell and topP is the deployment's; both are pinned for
+    // the whole session, so every request of the run samples identically and
+    // the logged request header states what was asked for. A run that pins
+    // neither leaves the composition's own sampling alone.
+    const sampling = pinnedSampling(request.seed, this.resolved.topP)
     const handle = await this.ctx.agents.create({
       sessionId: SessionId(`environment-${randomUUID()}`),
       meta: { cwd: request.workspace },
       agentOptions: { provider: model.provider, model: model.model },
       ...request.signal === undefined ? {} : { signal: request.signal },
       setup: (agentCtx) => {
-        installModelSelection(agentCtx, { current: { provider: model.provider, model: model.model }, assembled: undefined })
+        installModelSelection(agentCtx, {
+          current: { provider: model.provider, model: model.model },
+          assembled: undefined,
+          ...sampling === undefined ? {} : { sampling },
+        })
       },
     })
     try {

@@ -290,6 +290,24 @@ describe('ExperimentService', () => {
     expect(result.cells.every(cell => cell.pairs === 0 && cell.unpaired === 2)).toBe(true)
   })
 
+  it('forwards the policy version and the base seed to both arms and freezes both into the digest', async () => {
+    const { ctx, plan } = await harness()
+    const versioned = plan({ policyVersion: 'policy-2026-09', seed: 100 })
+    const result = await ctx.experiments.run(versioned)
+    expect(StubFleet.current.plans.map(fleet => [fleet.policyVersion, fleet.seed]))
+      .toEqual([['policy-2026-09', 100], ['policy-2026-09', 100]])
+
+    // Two comparisons that differ only in policy version or seed are two experiments.
+    expect(result.digest).not.toBe(planDigest(plan(), result.thresholds))
+    expect(result.digest).not.toBe(planDigest(plan({ policyVersion: 'policy-2026-09', seed: 101 }), result.thresholds))
+    expect(result.digest).toBe(planDigest(versioned, result.thresholds))
+
+    const bare = await ctx.experiments.run(plan())
+    expect(StubFleet.current.plans[2]).not.toHaveProperty('policyVersion')
+    expect(StubFleet.current.plans[2]).not.toHaveProperty('seed')
+    expect(bare.digest).toBe(planDigest(plan(), bare.thresholds))
+  })
+
   it('accepts a digest the caller froze earlier and refuses one the plan no longer freezes to', async () => {
     const { ctx, plan } = await harness()
     const frozen = planDigest(plan(), resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds)
@@ -309,6 +327,8 @@ describe('ExperimentService', () => {
       [plan({ environments: [] }), 'EXPERIMENT_INVALID_PLAN'],
       [plan({ environments: [ROUND_TRIP, ROUND_TRIP] }), 'EXPERIMENT_INVALID_PLAN'],
       [plan({ environments: [EnvironmentId('smoke:missing')] }), 'EXPERIMENT_INVALID_PLAN'],
+      [plan({ seed: -1 }), 'EXPERIMENT_INVALID_PLAN'],
+      [plan({ seed: 1.5 }), 'EXPERIMENT_INVALID_PLAN'],
       [plan(), 'EXPERIMENT_OVER_BUDGET'],
     ]
     for (const [refused, code] of refusals) await expect(ctx.experiments.run(refused)).rejects.toMatchObject({ code })

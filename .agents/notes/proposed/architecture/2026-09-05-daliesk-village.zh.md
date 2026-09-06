@@ -104,7 +104,7 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 5. **公开的 Workshop 与摘录披露。** 需要 `signoff/recorded`、`dataUse/terms`、强制脱敏与信任档案导出。
 6. **任何外联。** 需要 `external-communication` 权限与可拒绝的 monitor。
 7. **实时观测台。** 需要作为带缓存会话投影的排行榜；在此之前页面注明其批量刷新间隔。
-8. **供给 W3。** 需要 stamp 上的 `policyVersion` 与 `seed`、轨迹折叠中被掩码的终止原因、近重复准入与设备槽位预算。
+8. **供给 W3。** 已落地，见 [W3 feed-fields note](2026-09-06-w3-feed-fields.md)：`LlmCallConfig` 上的 `seed` 与 `topP`，DeepSeek 适配器序列化两者；`environment/run` stamp 上的 `policyVersion` 与 `seed`，由 fleet（基准种子加重复序号）、experiments 与 shifts 转发；以及注册表的近重复准入和供 curator 使用的 `nearestHeldOut`。仍然需要：轨迹折叠中被掩码的终止原因，好让被截断、被中止或供应商报错的会话不再被记为失败；以及设备槽位预算。
 
 ## Risks
 

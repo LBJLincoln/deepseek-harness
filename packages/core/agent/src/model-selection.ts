@@ -16,12 +16,47 @@ export interface ModelSelection {
   reasoningEffort?: ReasoningEffortId
 }
 
+/**
+ * Sampling scalars an entry point pins for every request of one Agent. They
+ * are deliberately not part of {@link ModelSelection}: a person picking a model
+ * picks a route and an effort, while these are chosen by whatever composed the
+ * Agent — an evaluation cell that must sample identically on every request, for
+ * instance.
+ */
+export interface AgentSampling {
+  /**
+   * Sampling seed, a safe non-negative integer. A provider that honours it
+   * samples reproducibly for one identical request; it promises nothing across
+   * model or infrastructure versions.
+   */
+  readonly seed?: number
+  /** Nucleus-sampling mass between 0 and 1. */
+  readonly topP?: number
+}
+
 /** Mutable model selection plus the value captured for the current step. */
 export interface ModelSelectionRef {
   /** Model selected for the next step that enters prompt assembly. */
   current: ModelSelection | undefined
   /** Selection captured when the current step entered prompt assembly. */
   assembled: ModelSelection | undefined
+  /**
+   * Sampling scalars every request of this Agent carries, absent to leave the
+   * proposed configuration's own sampling in place. Unlike {@link current} it
+   * is read as each request is built rather than at prompt assembly, because
+   * nothing about it varies per step.
+   */
+  sampling?: AgentSampling
+}
+
+/** Overlay the pinned sampling scalars, leaving a configuration alone when none are pinned. */
+function withSampling(config: LlmCallConfig, sampling: AgentSampling | undefined): LlmCallConfig {
+  if (sampling === undefined) return config
+  return {
+    ...config,
+    ...sampling.seed === undefined ? {} : { seed: sampling.seed },
+    ...sampling.topP === undefined ? {} : { topP: sampling.topP },
+  }
 }
 
 /**
@@ -30,10 +65,12 @@ export interface ModelSelectionRef {
  * its provider/model pair and effort to request config so a
  * concurrent switch takes effect on a later step instead of splitting the two
  * surfaces. An absent selected effort clears any inherited effort, restoring
- * the selected model's provider/default behavior.
+ * the selected model's provider/default behavior. Pinned
+ * {@link ModelSelectionRef.sampling} is applied to every request, whether or
+ * not a model is selected.
  *
  * @param agentCtx - The selected Agent's scoped context.
- * @param selection - Mutable selection owned by the calling entry point.
+ * @param selection - Mutable selection and pinned sampling owned by the calling entry point.
  * @returns Disposer for both scoped waterfall listeners.
  */
 export function installModelSelection(agentCtx: Context, selection: ModelSelectionRef): () => void {
@@ -54,10 +91,10 @@ export function installModelSelection(agentCtx: Context, selection: ModelSelecti
   const disposeRequest = agentCtx.on(
     'agent/request',
     async (_payload, next): Promise<LlmCallConfig> => {
-      const resolved = await next()
+      const sampled = withSampling(await next(), selection.sampling)
       const selected = selection.assembled
-      if (selected === undefined) return resolved
-      const { reasoningEffort: _inheritedEffort, ...withoutInheritedEffort } = resolved
+      if (selected === undefined) return sampled
+      const { reasoningEffort: _inheritedEffort, ...withoutInheritedEffort } = sampled
       return {
         ...withoutInheritedEffort,
         provider: selected.provider,

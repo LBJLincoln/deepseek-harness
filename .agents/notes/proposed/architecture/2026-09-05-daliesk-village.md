@@ -104,7 +104,7 @@ Six judges reviewed the first draft with the AI Village sources and the harness 
 5. **Workshop in public and excerpt disclosure.** Needs `signoff/recorded`, `dataUse/terms`, mandatory redaction, and the trust-dossier export.
 6. **Any outreach.** Needs the `external-communication` authority and the deny-capable monitor.
 7. **A live observatory.** Needs the leaderboard as a cached session projection; until then the page states its batch refresh interval.
-8. **Feeding W3.** Needs `policyVersion` and `seed` on the stamp, masked terminal reasons in the trajectory fold, near-duplicate admission, and the device-slot budget.
+8. **Feeding W3.** Landed, in the [W3 feed-fields note](2026-09-06-w3-feed-fields.md): `seed` and `topP` on `LlmCallConfig` with the DeepSeek adapter serializing both, `policyVersion` and `seed` on the `environment/run` stamp forwarded by the fleet (base seed plus repetition), experiments, and shifts, and the registry's near-duplicate admission with `nearestHeldOut` for the curator. Still needed: masked terminal reasons in the trajectory fold, so a truncated, aborted, or provider-error session stops scoring as a failure, and the device-slot budget.
 
 ## Risks
 

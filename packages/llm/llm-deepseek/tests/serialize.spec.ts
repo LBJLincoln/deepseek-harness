@@ -178,10 +178,21 @@ describe('serializeRequest', () => {
   })
 
   it('maps sampling params and stop sequences', () => {
-    const wire = serializeRequest(request({ messages: history, temperature: 0.2, maxTokens: 100, stop: ['END'] }))
+    const wire = serializeRequest(request({
+      messages: history, temperature: 0.2, topP: 0.9, seed: 41, maxTokens: 100, stop: ['END'],
+    }))
     expect(wire.temperature).toBe(0.2)
+    expect(wire.top_p).toBe(0.9)
+    expect(wire.seed).toBe(41)
     expect(wire.max_tokens).toBe(100)
     expect(wire.stop).toEqual(['END'])
+  })
+
+  it('omits top_p and seed when the request pins neither, and keeps a zero seed', () => {
+    const bare = serializeRequest(request({ messages: history }))
+    expect(bare).not.toHaveProperty('top_p')
+    expect(bare).not.toHaveProperty('seed')
+    expect(serializeRequest(request({ messages: history, seed: 0, topP: 0 }))).toMatchObject({ seed: 0, top_p: 0 })
   })
 
   it('maps tools to the wire function shape', () => {

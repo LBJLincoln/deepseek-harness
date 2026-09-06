@@ -337,6 +337,26 @@ describe('ShiftService slots', () => {
     expect(fleetPlan?.workspaceRoot).toBeDefined()
   })
 
+  it('freezes the district policy version and seed into the plan and forwards both to the fleet', async () => {
+    const versioned = district({
+      plan: {
+        environments: { filter: { heldOut: false } },
+        models: [ROUTE],
+        repetitions: 1,
+        policyVersion: 'policy-2026-09',
+        seed: 100,
+      },
+    })
+    const { ctx } = await harness({ districts: [versioned] }, { loader: true })
+    await ctx.shifts.start()
+
+    const shift = await shiftSessionOf(ctx)
+    const start = (await ledgerOf(ctx, shift))[0]?.data as ShiftStart
+    expect(start.plan).toMatchObject({ policyVersion: 'policy-2026-09', seed: 100 })
+    expect(start.digest).toBe(shiftDigest(start.plan))
+    expect(StubFleet.current.plans[0]).toMatchObject({ policyVersion: 'policy-2026-09', seed: 100 })
+  })
+
   it('keeps a refused cell as an error row and closes on the ceiling it reports', async () => {
     const capped = district({
       plan: { environments: { filter: { heldOut: false } }, models: [ROUTE], repetitions: 1, tokenCeiling: 500 },

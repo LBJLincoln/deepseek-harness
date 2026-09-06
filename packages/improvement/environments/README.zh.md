@@ -9,15 +9,28 @@
 ```yaml
 - id: environments
   name: '@deepseek-ai/dsh-environments'
+  config:
+    nearDuplicate:
+      threshold: 0.8
 ```
 
-该服务不接受配置；生产方与消费方在其旁边组合。
+| 字段 | 含义 |
+|---|---|
+| `nearDuplicate.threshold`（可选） | 词 5-gram Jaccard 相似度，取值 0 到 1；达到该值时，注册会因与 held-out 划分另一侧冲突而被拒绝。不配置则生产方声明什么就注册什么。 |
+
+生产方与消费方在服务旁边组合。
 
 ## Service contract
 
-`ctx.environments.register(definition)` 存储一个 `EnvironmentDefinition`，并返回恰好移除该次注册、且不会移除同一 id 下后续注册的 disposer。对已注册的 id 抛出代码为 `ENVIRONMENT_DUPLICATE_ID` 的 `EnvironmentError`，对空检查列表抛出 `ENVIRONMENT_NO_CHECKS`，对两个检查共用一个 id 抛出 `ENVIRONMENT_DUPLICATE_CHECK`，对既非工作区相对路径也未规范化的不可变路径抛出 `ENVIRONMENT_INVALID_IMMUTABLE`。注册是 effect：生产方把 disposer 保存在自己的 fiber 下，释放即移除该环境。`get(id)` 与 `list(filter?)` 按注册顺序返回分离副本；`filter` 按 `kind` 与 `heldOut` 选择，调用方无法通过返回值改动已存储的检查列表或不可变集合。
+`ctx.environments.register(definition)` 存储一个 `EnvironmentDefinition`，并返回恰好移除该次注册、且不会移除同一 id 下后续注册的 disposer。对已注册的 id 抛出代码为 `ENVIRONMENT_DUPLICATE_ID` 的 `EnvironmentError`，对空检查列表抛出 `ENVIRONMENT_NO_CHECKS`，对两个检查共用一个 id 抛出 `ENVIRONMENT_DUPLICATE_CHECK`，对既非工作区相对路径也未规范化的不可变路径抛出 `ENVIRONMENT_INVALID_IMMUTABLE`，对被[已配置阈值](#near-duplicate-admission)拒绝的 prompt 抛出 `ENVIRONMENT_NEAR_DUPLICATE`。注册是 effect：生产方把 disposer 保存在自己的 fiber 下，释放即移除该环境。`get(id)` 与 `list(filter?)` 按注册顺序返回分离副本；`filter` 按 `kind` 与 `heldOut` 选择，调用方无法通过返回值改动已存储的检查列表或不可变集合。
 
 一个定义携带带品牌的 `EnvironmentId`、来自可合并扩展的 `EnvironmentKindMap` 的 `kind`（每个生产方通过在 `@deepseek-ai/dsh-environments/types` 上做声明合并来声明其 kind 与 detail 类型；本包不声明任何 kind）、`name`、`description`、`task`（`prompt`、可选的工作区 `fixture` 与可选的 `immutable` 集合）、验证者据以编写任务完成标准的 `checks`、`heldOut` 标志、所属包、`provenance`（`curated` 或 `synthesized`）、可选的 `lineage` 父 id，以及特定于 kind 的 `detail`。
+
+## Near-duplicate admission
+
+配置 `nearDuplicate.threshold` 之后，注册一个 prompt 相对任一已注册 held-out 环境达到该阈值的可训练环境会被拒绝；一个相对某个已注册可训练环境达到该值的 held-out 环境同样被拒绝：污染是对称的，哪一侧后注册只是组装顺序的偶然。相似度是词 5-gram shingle 的 Jaccard 系数，prompt 先转小写、每一段非字母数字字符读作一个分隔符、由此产生的空白再折叠；不足五个词的 prompt 以它的整个词表作为一个 shingle。拒绝信息点名两个环境 id、相似度和阈值。不配置则不做任何比较，保持今天的行为。
+
+`nearestHeldOut(prompt)` 为最接近的已注册 held-out 环境返回 `{ environment, similarity }`，一个都没有时返回 `undefined`。无论是否配置阈值它都作答，好让 curator 在为一次运行付费之前先给提案打分；它是下限而非独立性的证明，因为 shingle 抓得住复述、抓不住改写。
 
 ## The immutable set
 
@@ -29,7 +42,7 @@
 
 ## Run stamp
 
-`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、该次运行所属的可选 `district`、模型路由，以及部署方声明的隔离级别。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；`checksSha256` 覆盖每个检查的树作用域、用例引用与用例正文，因此改动一个用例就会改变合并摘要，而合并摘要正是策展者用来与留出环境比对的去污染键。不带用例的检查恰好对每个检查一直携带的三个字段求摘要。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
+`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、该次运行所属的可选 `district`、点名路由所服务检查点的可选 `policyVersion` 与该次运行的请求所要求的可选 `seed`、模型路由，以及部署方声明的隔离级别。种子记录的是请求而非结果：提供方可以忽略它，也没有任何一家承诺跨模型或基础设施版本产出相同的 token，因此 replay 复现的是会话日志而不是一次新的采样。`isSeed(value)` 是每个种子生产方共用的导出判定。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；`checksSha256` 覆盖每个检查的树作用域、用例引用与用例正文，因此改动一个用例就会改变合并摘要，而合并摘要正是策展者用来与留出环境比对的去污染键。不带用例的检查恰好对每个检查一直携带的三个字段求摘要。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
 
 ## Extension points
 

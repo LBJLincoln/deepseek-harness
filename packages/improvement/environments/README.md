@@ -9,15 +9,28 @@ Environment registry: the composition-time inventory of tasks with executable ve
 ```yaml
 - id: environments
   name: '@deepseek-ai/dsh-environments'
+  config:
+    nearDuplicate:
+      threshold: 0.8
 ```
 
-The service takes no configuration; producers and consumers compose beside it.
+| Field | Meaning |
+|---|---|
+| `nearDuplicate.threshold` (optional) | Word 5-gram Jaccard similarity, between 0 and 1, at which a registration is refused against the opposite side of the held-out split. Absent registers whatever a producer declares. |
+
+Producers and consumers compose beside the service.
 
 ## Service contract
 
-`ctx.environments.register(definition)` stores one `EnvironmentDefinition` and returns the exact disposer that removes that registration and no later one under the same id. It throws `EnvironmentError` with code `ENVIRONMENT_DUPLICATE_ID` for a registered id, `ENVIRONMENT_NO_CHECKS` for an empty check list, `ENVIRONMENT_DUPLICATE_CHECK` when two checks share an id, and `ENVIRONMENT_INVALID_IMMUTABLE` for a declared immutable path that is not workspace-relative and normalized. Registrations are effects: a producer keeps the disposer under its own fiber so disposal removes the environment. `get(id)` and `list(filter?)` return detached copies in registration order; `filter` selects by `kind` and by `heldOut`, and a caller cannot mutate stored check lists or immutable sets through the returned values.
+`ctx.environments.register(definition)` stores one `EnvironmentDefinition` and returns the exact disposer that removes that registration and no later one under the same id. It throws `EnvironmentError` with code `ENVIRONMENT_DUPLICATE_ID` for a registered id, `ENVIRONMENT_NO_CHECKS` for an empty check list, `ENVIRONMENT_DUPLICATE_CHECK` when two checks share an id, `ENVIRONMENT_INVALID_IMMUTABLE` for a declared immutable path that is not workspace-relative and normalized, and `ENVIRONMENT_NEAR_DUPLICATE` for a prompt a [configured threshold](#near-duplicate-admission) refuses. Registrations are effects: a producer keeps the disposer under its own fiber so disposal removes the environment. `get(id)` and `list(filter?)` return detached copies in registration order; `filter` selects by `kind` and by `heldOut`, and a caller cannot mutate stored check lists or immutable sets through the returned values.
 
 A definition carries a branded `EnvironmentId`, a `kind` from the merge-extensible `EnvironmentKindMap` (each producer declares its kind and detail type by declaration merging on `@deepseek-ai/dsh-environments/types`; this package declares none), `name`, `description`, the `task` (`prompt`, an optional workspace `fixture`, and an optional `immutable` set), the `checks` a validator authors the task's completion standard from, the `heldOut` flag, the owning package, `provenance` (`curated` or `synthesized`), an optional `lineage` parent id, and kind-specific `detail`.
+
+## Near-duplicate admission
+
+With `nearDuplicate.threshold` configured, registering a training-eligible environment whose prompt reaches the threshold against any registered held-out environment is refused, and so is a held-out environment that reaches it against a registered training-eligible one: contamination is symmetric, and which side is registered second is an accident of composition order. Similarity is the Jaccard coefficient of word 5-gram shingles over a prompt lower-cased, with each run of non-alphanumeric characters read as one separator and the resulting whitespace collapsed; a prompt shorter than five words contributes its whole word list as one shingle. The refusal names both environment ids, the similarity, and the threshold. Without the config nothing is compared and today's behaviour stands.
+
+`nearestHeldOut(prompt)` returns `{ environment, similarity }` for the closest registered held-out environment, or `undefined` when none is registered. It answers whether or not a threshold is configured, so a curator can score a proposal before paying for a run; it is a floor rather than proof of independence, because shingles catch restatement and miss paraphrase.
 
 ## The immutable set
 
@@ -29,7 +42,7 @@ A check may sample the candidate's behaviour instead of reducing to one exit cod
 
 ## Run stamp
 
-The `environment/run` session event is the durable link from a session to the environment it ran. The runner appends one `EnvironmentRunStamp` before the run's first turn: the environment id and kind, the `heldOut` flag, the content hashes, the zero-based `repetition` and optional `group` of the run inside its batch, the optional `district` the run belongs to, the model route, and the isolation the deployment declared. `environmentContentHashes(environment, fixtureSha256?)` computes the prompt, check-inventory, and combined `contentSha256` digests deterministically; `checksSha256` covers each check's tree scope, case reference, and case bodies, so changing one case changes the combined digest, which is the decontamination key a curator compares against held-out environments. A check without cases digests exactly the three fields every check has always carried. `decodeEnvironmentRun(value)` validates a durable payload at the log boundary: unrelated values return `undefined`, a malformed stamp throws, so a fold never reads a partial stamp.
+The `environment/run` session event is the durable link from a session to the environment it ran. The runner appends one `EnvironmentRunStamp` before the run's first turn: the environment id and kind, the `heldOut` flag, the content hashes, the zero-based `repetition` and optional `group` of the run inside its batch, the optional `district` the run belongs to, the optional `policyVersion` naming the checkpoint the route served and the optional `seed` the run's requests asked for, the model route, and the isolation the deployment declared. A seed records the request, not the outcome: providers may ignore it and none promise identical tokens across model or infrastructure versions, so a replay reproduces the session log rather than a fresh sample. `isSeed(value)` is the exported test every producer of a seed shares. `environmentContentHashes(environment, fixtureSha256?)` computes the prompt, check-inventory, and combined `contentSha256` digests deterministically; `checksSha256` covers each check's tree scope, case reference, and case bodies, so changing one case changes the combined digest, which is the decontamination key a curator compares against held-out environments. A check without cases digests exactly the three fields every check has always carried. `decodeEnvironmentRun(value)` validates a durable payload at the log boundary: unrelated values return `undefined`, a malformed stamp throws, so a fold never reads a partial stamp.
 
 ## Extension points
 

@@ -334,6 +334,18 @@ export interface GenerateOptions {
   /** Tool schemas (adapters map to the provider's `tools` field). */
   tools?: ToolSchema[]
   temperature?: number
+  /**
+   * Nucleus-sampling mass between 0 and 1 (adapters map to the provider's
+   * `top_p` field). An adapter whose wire has no equivalent drops it.
+   */
+  topP?: number
+  /**
+   * Sampling seed, a safe non-negative integer (adapters map to the provider's
+   * `seed` field). An adapter whose wire has no equivalent drops it, and a
+   * provider that accepts one promises nothing across model or infrastructure
+   * versions.
+   */
+  seed?: number
   maxTokens?: number
   /**
    * Stop sequences: generation halts as soon as the model produces any one of

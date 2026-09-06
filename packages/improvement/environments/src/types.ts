@@ -128,6 +128,20 @@ export interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly group?: string
   /** District the run belongs to; exports withhold the districts a deployment configures by it, absent for a run outside every district. */
   readonly district?: string
+  /**
+   * Checkpoint or policy the implementer route served, as the deployment names
+   * it. Free-form: the harness never resolves it, and a fold that keys measured
+   * difficulty by policy version compares the strings it finds. Absent for a
+   * route the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Sampling seed every request of the run asked for, absent for a run that
+   * pinned none. It states what was asked for, not what a replay reproduces:
+   * providers may ignore a seed and none of them promise identical tokens
+   * across model or infrastructure versions.
+   */
+  readonly seed?: number
   /** Model route the implementer ran on. */
   readonly model: EnvironmentRunModel
   /** Isolation the deployment declared for the run's checks. */

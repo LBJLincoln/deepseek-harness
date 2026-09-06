@@ -141,6 +141,8 @@ export class ShiftService extends Service {
           model: z.string().required(),
         })).required(),
         repetitions: z.natural().min(1).required(),
+        policyVersion: z.string(),
+        seed: z.natural(),
         tokenCeiling: z.natural().min(1),
       }).required(),
       cadence: z.object({
@@ -400,6 +402,8 @@ export class ShiftService extends Service {
         workspaceRoot: this.config.workspaceRoot,
         group: id,
         district: plan.district,
+        ...plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion },
+        ...plan.seed === undefined ? {} : { seed: plan.seed },
         ...remaining === undefined ? {} : { tokenCeiling: remaining },
         signal: controller.signal,
       })
@@ -461,6 +465,8 @@ export class ShiftService extends Service {
       environments,
       models: district.plan.models,
       repetitions: district.plan.repetitions,
+      ...district.plan.policyVersion === undefined ? {} : { policyVersion: district.plan.policyVersion },
+      ...district.plan.seed === undefined ? {} : { seed: district.plan.seed },
       ...district.plan.tokenCeiling === undefined ? {} : { tokenCeiling: district.plan.tokenCeiling },
     }
   }

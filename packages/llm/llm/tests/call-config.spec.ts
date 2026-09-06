@@ -21,6 +21,11 @@ describe('callConfigEquals', () => {
       { ...base, reasoningEffort: ReasoningEffortId('high') },
     )).toBe(true)
     expect(callConfigEquals({ ...base, temperature: 0.5 }, base)).toBe(false)
+    expect(callConfigEquals({ ...base, topP: 0.9 }, base)).toBe(false)
+    expect(callConfigEquals({ ...base, topP: 0.9 }, { ...base, topP: 0.9 })).toBe(true)
+    expect(callConfigEquals({ ...base, seed: 7 }, base)).toBe(false)
+    expect(callConfigEquals({ ...base, seed: 7 }, { ...base, seed: 8 })).toBe(false)
+    expect(callConfigEquals({ ...base, seed: 0 }, { ...base, seed: 0 })).toBe(true)
     expect(callConfigEquals({ ...base, maxTokens: 1 }, { ...base, maxTokens: 2 })).toBe(false)
     expect(callConfigEquals({ ...base, stop: ['a'] }, base)).toBe(false)
     expect(callConfigEquals({ ...base, stop: ['a'] }, { ...base, stop: ['a', 'b'] })).toBe(false)

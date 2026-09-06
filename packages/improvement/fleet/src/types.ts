@@ -39,6 +39,19 @@ export interface FleetPlan {
   /** District written into every cell's run stamp; absent leaves the cells outside every district. */
   readonly district?: string
   /**
+   * Checkpoint or policy the routes serve, written into every cell's run stamp
+   * verbatim; absent for routes the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Base sampling seed of the plan, a safe non-negative integer. Each cell
+   * samples with `seed + repetition`, so one repetition index means one seed
+   * across every route and every environment of the plan and a paired design
+   * compares like with like; absent leaves the cells' sampling to the
+   * composition.
+   */
+  readonly seed?: number
+  /**
    * Positive integer bound on the input plus output tokens the reported cells
    * may sum to. Once the reports in hand cross it, every cell that has not
    * started is recorded as a `FLEET_TOKEN_CEILING_REACHED` error and the cells

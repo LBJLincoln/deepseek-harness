@@ -181,6 +181,8 @@ export function serializeRequest(
       : {},
     ...tools !== undefined && tools.length > 0 ? { tools } : {},
     ...options.temperature !== undefined ? { temperature: options.temperature } : {},
+    ...options.topP !== undefined ? { top_p: options.topP } : {},
+    ...options.seed !== undefined ? { seed: options.seed } : {},
     ...options.maxTokens === undefined ? {} : { max_tokens: options.maxTokens },
     ...options.stop !== undefined ? { stop: options.stop } : {},
   }

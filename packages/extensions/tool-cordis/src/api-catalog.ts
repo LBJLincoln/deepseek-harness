@@ -653,9 +653,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
         description: 'Run one environment as one fresh session and validate it.',
-        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional model route, repetition, group, district, and abort signal.' }],
+        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional model route, repetition, group, district, policy version, sampling seed, and abort signal.' }],
         returns: 'the stamp, the attempts, the certificate when one run passed, and the accumulated usage.',
-        throws: ['{@link EnvironmentRunError} for an unknown environment, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
       },
     ],
   },
@@ -669,7 +669,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Register one environment. Registrations are effects: the producer keeps the returned disposer under its own fiber so disposal removes the entry.',
         parameters: [{ name: 'definition', description: 'complete environment definition.' }],
         returns: 'the exact disposer that removes this registration and no later one under the same id.',
-        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, two checks share an id, or an immutable path is not a normalized workspace-relative path.'],
+        throws: ['{@link EnvironmentError} when the id is already registered, the definition declares no checks, two checks share an id, an immutable path is not a normalized workspace-relative path, or a configured near-duplicate threshold refuses the prompt against the opposite split.'],
+      },
+      {
+        signature: 'nearestHeldOut(prompt: string): NearestEnvironment | undefined',
+        description: 'The registered held-out environment whose task prompt is closest to one candidate prompt, so a curator can score a proposal before paying for a run. It reads the same normalization and similarity the admission rule applies, and answers whether or not a threshold is configured.',
+        parameters: [{ name: 'prompt', description: 'candidate task statement.' }],
+        returns: 'the nearest held-out environment and its similarity, or `undefined` when none is registered.',
       },
       {
         signature: 'get(id: EnvironmentIdType): EnvironmentDefinition | undefined',
@@ -693,9 +699,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
         description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
-        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arm routes, the workspace root, and an optional frozen digest, abort signal, and result sink.' }],
+        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arm routes, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
         returns: 'the digest, both arms with their stamp groups, one cell per environment, the pooled delta with its interval, the spend, and the verdict.',
-        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
+        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
       },
     ],
   },
@@ -707,9 +713,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
         description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
-        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, an optional exact cell selection, workspace root, group, district, token ceiling, and abort signal.' }],
+        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
-        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, or sets a token ceiling that is not a positive integer.'],
+        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, or sets a seed that is not a safe non-negative integer.'],
       },
     ],
   },
@@ -3554,11 +3560,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunRequest',
-    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'EnvironmentRunStamp',
-    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
+    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
   },
   {
     name: 'EnvironmentStats',
@@ -3586,7 +3592,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentPlan',
-    declaration: 'export interface ExperimentPlan {\n    readonly environments: readonly EnvironmentId[];\n    readonly repetitions: number;\n    readonly baseline: EnvironmentRunModel;\n    readonly candidate: EnvironmentRunModel;\n    readonly workspaceRoot: string;\n    readonly digest?: string;\n    readonly signal?: AbortSignal;\n    readonly sink?: TrajectorySink;\n}',
+    declaration: 'export interface ExperimentPlan {\n    readonly environments: readonly EnvironmentId[];\n    readonly repetitions: number;\n    readonly baseline: EnvironmentRunModel;\n    readonly candidate: EnvironmentRunModel;\n    readonly workspaceRoot: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly digest?: string;\n    readonly signal?: AbortSignal;\n    readonly sink?: TrajectorySink;\n}',
   },
   {
     name: 'ExperimentResult',
@@ -3658,7 +3664,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'FleetPlan',
-    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'FleetRunReport',
@@ -3722,7 +3728,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'GenerateOptions',
-    declaration: 'export interface GenerateOptions {\n    provider: string;\n    model: string;\n    reasoningEffort?: ReasoningEffortId;\n    messages: Message[];\n    system?: string;\n    tools?: ToolSchema[];\n    temperature?: number;\n    maxTokens?: number;\n    stop?: string[];\n    signal?: AbortSignal;\n    sessionId?: Branded<\'SessionId\'>;\n    purpose?: \'compaction\' | \'session-title\';\n}',
+    declaration: 'export interface GenerateOptions {\n    provider: string;\n    model: string;\n    reasoningEffort?: ReasoningEffortId;\n    messages: Message[];\n    system?: string;\n    tools?: ToolSchema[];\n    temperature?: number;\n    topP?: number;\n    seed?: number;\n    maxTokens?: number;\n    stop?: string[];\n    signal?: AbortSignal;\n    sessionId?: Branded<\'SessionId\'>;\n    purpose?: \'compaction\' | \'session-title\';\n}',
   },
   {
     name: 'GenericCallView',
@@ -3910,7 +3916,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmCallConfig',
-    declaration: 'export interface LlmCallConfig {\n    provider: string;\n    model: string;\n    reasoningEffort?: ReasoningEffortId;\n    temperature?: number;\n    maxTokens?: number;\n    stop?: string[];\n}',
+    declaration: 'export interface LlmCallConfig {\n    provider: string;\n    model: string;\n    reasoningEffort?: ReasoningEffortId;\n    temperature?: number;\n    topP?: number;\n    seed?: number;\n    maxTokens?: number;\n    stop?: string[];\n}',
   },
   {
     name: 'LlmCallConfigAdapterDefaults',
@@ -4107,6 +4113,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ModelModalityMap',
     declaration: 'export interface ModelModalityMap {\n    text: \'text\';\n    image: \'image\';\n}',
+  },
+  {
+    name: 'NearestEnvironment',
+    declaration: 'export interface NearestEnvironment {\n    readonly environment: EnvironmentIdType;\n    readonly similarity: number;\n}',
   },
   {
     name: 'ObjectJsonSchema',

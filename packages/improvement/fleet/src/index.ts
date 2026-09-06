@@ -17,7 +17,7 @@ import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import type {} from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
-import type {} from '@deepseek-ai/dsh-environments'
+import { isSeed } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import { assertNever, HarnessError } from '@deepseek-ai/dsh-llm'
 import type {
@@ -323,11 +323,13 @@ export class FleetService extends Service {
    * token ceiling refused to start; the fleet run itself rejects only for a
    * plan it cannot start.
    * @param plan - environments, model routes, repetitions, an optional exact
-   *   cell selection, workspace root, group, district, token ceiling, and abort signal.
+   *   cell selection, workspace root, group, district, policy version, base
+   *   seed, token ceiling, and abort signal.
    * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
    * @throws {@link FleetError} when the plan selects no environment, asks for
-   *   no repetition, names no or an unenumerated cell, or sets a token ceiling
-   *   that is not a positive integer.
+   *   no repetition, names no or an unenumerated cell, sets a token ceiling
+   *   that is not a positive integer, or sets a seed that is not a safe
+   *   non-negative integer.
    */
   async run(plan: FleetPlan): Promise<FleetRunReport> {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
@@ -335,6 +337,11 @@ export class FleetService extends Service {
     }
     if (plan.tokenCeiling !== undefined && (!Number.isInteger(plan.tokenCeiling) || plan.tokenCeiling < 1)) {
       throw new FleetError(`tokenCeiling must be a positive integer, got ${String(plan.tokenCeiling)}`, 'FLEET_INVALID_PLAN')
+    }
+    // The base seed is refused here rather than per cell: it is arithmetic the
+    // fleet performs, so a bad base would otherwise surface as every cell failing.
+    if (plan.seed !== undefined && !isSeed(plan.seed)) {
+      throw new FleetError(`seed must be a non-negative integer, got ${String(plan.seed)}`, 'FLEET_INVALID_PLAN')
     }
     const definitions = this.select(plan)
     if (definitions.size === 0) throw new FleetError('the plan selects no environment', 'FLEET_EMPTY_PLAN')
@@ -429,6 +436,8 @@ export class FleetService extends Service {
         repetition: cell.repetition,
         group,
         ...plan.district === undefined ? {} : { district: plan.district },
+        ...plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion },
+        ...plan.seed === undefined ? {} : { seed: plan.seed + cell.repetition },
         ...plan.signal === undefined ? {} : { signal: plan.signal },
       })
       return { outcome: { cell, report }, workspace }

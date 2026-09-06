@@ -21,6 +21,9 @@ describe('shiftDigest', () => {
     expect(shiftDigest(plan({ models: [ROUTE, ROUTE_B] }))).not.toBe(digest)
     expect(shiftDigest(plan({ tokenCeiling: 10 }))).not.toBe(digest)
     expect(shiftDigest(plan({ tokenCeiling: 11 }))).not.toBe(shiftDigest(plan({ tokenCeiling: 10 })))
+    expect(shiftDigest(plan({ policyVersion: 'policy-2026-09' }))).not.toBe(digest)
+    expect(shiftDigest(plan({ seed: 0 }))).not.toBe(digest)
+    expect(shiftDigest(plan({ seed: 1 }))).not.toBe(shiftDigest(plan({ seed: 0 })))
   })
 
   it('keeps the routes in listing order, because the cells run in it', () => {

@@ -54,6 +54,14 @@ describe('fleet runs through a real cordis.yml and headless process', () => {
     expect(result.markdown.startsWith('Fleet run `fleet-e2e`\n')).toBe(true)
     expect(result.markdown).toContain('| cli-mock/cli-mock | smoke:round-trip | no | none | 2 | 0 | 2 | 1.00 | 1.00 |')
 
+    // Every cell of the plan is stamped with the plan's policy version, and its
+    // seed is the plan's base offset by the cell's repetition index.
+    expect(report.cells.map(outcome => (
+      'report' in outcome ? [outcome.report.stamp.policyVersion, outcome.report.stamp.seed] : ['error', -1]
+    ))).toEqual([
+      ['policy-2026-09', 100], ['policy-2026-09', 101], ['policy-2026-09', 100], ['policy-2026-09', 101],
+    ])
+
     expect(report.spend.inputTokens).toBe(report.leaderboard.reduce((sum, row) => sum + row.inputTokens, 0))
     expect(result.exported).toEqual({ sessions: 4, exported: 4, rewarded: 2, filtered: 0, heldOut: 0, withheld: 0, skipped: [] })
     expect(lines).toHaveLength(4)

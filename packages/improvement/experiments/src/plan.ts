@@ -16,7 +16,7 @@ import type { ExperimentArmRole, ExperimentPlan, ExperimentThresholds } from './
 export const EXPERIMENT_GROUP_PREFIX = 'experiment-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const EXPERIMENT_PLAN_VERSION = 1
+const EXPERIMENT_PLAN_VERSION = 2
 
 /** Arm roles in the order the digest and the runs take them. */
 export const EXPERIMENT_ARM_ROLES: readonly ExperimentArmRole[] = ['baseline', 'candidate']
@@ -26,10 +26,14 @@ const GROUP_PATTERN = new RegExp(`^${EXPERIMENT_GROUP_PREFIX}([0-9a-f]{64})-(${E
 /**
  * Content digest of the fields that decide what an experiment measures: the
  * two arm routes in role order, the environment ids sorted so a caller's
- * listing order cannot change the identity, the repetition count, and the
- * thresholds. The deployment's token budget is deliberately absent: it bounds
- * what a deployment pays for, not what the comparison measures.
- * @param plan - the arms, environments, and repetitions to freeze.
+ * listing order cannot change the identity, the repetition count, the policy
+ * version and base seed both arms ran under, and the thresholds. The
+ * deployment's token budget is deliberately absent: it bounds what a
+ * deployment pays for, not what the comparison measures. The policy version
+ * and the seed are present because both arms' sessions are found in the logs
+ * by the groups this digest mints, so two comparisons that differ in either
+ * must not collide on one group.
+ * @param plan - the arms, environments, repetitions, policy version, and seed to freeze.
  * @param thresholds - the resolved statistical choices to freeze with them.
  * @returns the SHA-256 hex digest; identical inputs give identical digests.
  */
@@ -39,6 +43,8 @@ export function planDigest(plan: ExperimentPlan, thresholds: ExperimentThreshold
     arms: EXPERIMENT_ARM_ROLES.map(role => [role, plan[role].provider, plan[role].model]),
     environments: [...plan.environments].sort(),
     repetitions: plan.repetitions,
+    policyVersion: plan.policyVersion ?? null,
+    seed: plan.seed ?? null,
     thresholds: [
       thresholds.bootstrapResamples,
       thresholds.confidenceLevel,

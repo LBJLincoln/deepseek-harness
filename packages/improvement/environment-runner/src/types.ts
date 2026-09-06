@@ -24,6 +24,18 @@ export interface EnvironmentRunRequest {
   readonly group?: string
   /** District the run belongs to, written into the stamp so exports can withhold it; absent for a run outside every district. */
   readonly district?: string
+  /**
+   * Checkpoint or policy the implementer route serves, as the deployment names
+   * it, written into the stamp verbatim; absent for a route the deployment did
+   * not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Sampling seed every request of the run asks for, a safe non-negative
+   * integer written into the stamp; absent leaves the composition's own
+   * sampling in place.
+   */
+  readonly seed?: number
   /** Aborts the implementer's turns and the check commands when it fires. */
   readonly signal?: AbortSignal
 }

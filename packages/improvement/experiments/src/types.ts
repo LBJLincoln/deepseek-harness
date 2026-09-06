@@ -44,6 +44,17 @@ export interface ExperimentPlan {
   readonly candidate: EnvironmentRunModel
   /** Existing absolute directory under which every cell gets its own fresh workspace directory. */
   readonly workspaceRoot: string
+  /**
+   * Checkpoint or policy both arms' routes serve, written into every cell's
+   * run stamp verbatim; absent for routes the deployment did not version.
+   */
+  readonly policyVersion?: string
+  /**
+   * Base sampling seed both arms share, a safe non-negative integer. Each cell
+   * samples with `seed + repetition`, so the paired repetitions of the two arms
+   * differ only in the route; absent leaves sampling to the composition.
+   */
+  readonly seed?: number
   /** Digest the caller froze earlier; a value the recomputed digest does not equal is refused. */
   readonly digest?: string
   /** Aborts the remaining cells when it fires; started cells abort through the runner. */
