@@ -446,7 +446,7 @@ Source: [`packages/components/components-manifest/src/types.ts:64`](../packages/
 'environment/run': EnvironmentRunStamp
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:33`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:35`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 
@@ -1153,7 +1153,7 @@ Source: [`packages/core/session/src/types.ts:264`](../packages/core/session/src/
 'verification/certificate': CertificateChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:106`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:116`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationdirective--log-only"></a>
 
@@ -1166,7 +1166,7 @@ Source: [`packages/verification/verification/src/domain.ts:106`](../packages/ver
 'verification/directive': DirectiveChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:110`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:120`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrelaxation--log-only"></a>
 
@@ -1179,7 +1179,7 @@ Source: [`packages/verification/verification/src/domain.ts:110`](../packages/ver
 'verification/relaxation': RelaxationChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:98`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:108`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrun--log-only"></a>
 
@@ -1192,7 +1192,7 @@ Source: [`packages/verification/verification/src/domain.ts:98`](../packages/veri
 'verification/run': VerificationRunChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:102`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:112`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationstandard--log-only"></a>
 
@@ -1205,7 +1205,7 @@ Source: [`packages/verification/verification/src/domain.ts:102`](../packages/ver
 'verification/standard': StandardChangeMeta
 ```
 
-Source: [`packages/verification/verification/src/domain.ts:94`](../packages/verification/verification/src/domain.ts)
+Source: [`packages/verification/verification/src/domain.ts:104`](../packages/verification/verification/src/domain.ts)
 
 ### `web/*`
 

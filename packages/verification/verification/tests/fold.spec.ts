@@ -476,3 +476,186 @@ describe('verification fold transitions', () => {
     expect(rejection(events)).toContain(message)
   })
 })
+
+const CASES_REF = { count: 2, weightTotal: 3, sha256: 'f'.repeat(64) }
+
+/** A cased check `a` beside the caseless check `b`, as a standard snapshot carries them. */
+function casedSnapshot(checkRest: Raw = {}, rest: Raw = {}): Raw {
+  return snapshot({ checks: [check('a', { cases: CASES_REF, ...checkRest }), check('b')], ...rest })
+}
+
+function casedAuthor(checkRest: Raw = {}): SessionEvent[] {
+  return [event('verification/standard', author({ standard: casedSnapshot(checkRest) }))]
+}
+
+function plainAuthor(): SessionEvent[] {
+  return [event('verification/standard', author())]
+}
+
+/** A run result carrying a case tally, defaulting to a fully passing one. */
+function casedResult(rest: Raw = {}): Raw {
+  return result('a', { cases: { passed: 2, total: 2, weightPassed: 3, weightTotal: 3, failed: [], ...rest } })
+}
+
+const FAILED_CASE = { id: 'sample-0', weight: 1, channels: ['stdout'], exitClass: 'nonzero' }
+
+/** A run result whose tally reports one failing case, with the status that tally requires. */
+function failingCasedResult(): Raw {
+  return result('a', {
+    status: 'fail',
+    cases: { passed: 1, total: 2, weightPassed: 1, weightTotal: 3, failed: [FAILED_CASE] },
+  })
+}
+
+describe('verification case decoders', () => {
+  it('round-trips a cased check, a case tally, a parity, and a directive cluster', () => {
+    const decoded = decodeStandardChange(author({ standard: casedSnapshot({ treeScope: 'out' }) }))
+    expect(decoded?.standard.checks[0]).toEqual({
+      id: 'a',
+      outcome: 'outcome a',
+      run: 'run a',
+      cases: CASES_REF,
+      treeScope: 'out',
+    })
+    const decodedRun = decodeRunChange(run({
+      results: [failingCasedResult(), result('b')],
+      parity: { weightPassed: 1, weightTotal: 3 },
+    }))
+    expect(decodedRun?.results[0]).toMatchObject({
+      status: 'fail',
+      cases: { passed: 1, total: 2, weightPassed: 1, weightTotal: 3, failed: [FAILED_CASE] },
+    })
+    expect(decodedRun?.parity).toEqual({ weightPassed: 1, weightTotal: 3 })
+    expect(decodeDirectiveChange(directive({ clusters: [{ checkId: 'a', channels: ['stderr', 'stdout'], count: 2, weight: 3 }] }))?.clusters)
+      .toEqual([{ checkId: 'a', channels: ['stdout', 'stderr'], count: 2, weight: 3 }])
+  })
+
+  it.each<[string, unknown, string]>([
+    ['a cases reference that is not a record', author({ standard: casedSnapshot({ cases: 'nope' }) }), 'standard.checks[0].cases must be a record'],
+    ['a cases reference with extra fields', author({ standard: casedSnapshot({ cases: { ...CASES_REF, extra: 1 } }) }), 'must have exactly count,sha256,weightTotal fields'],
+    ['a cases count of zero', author({ standard: casedSnapshot({ cases: { ...CASES_REF, count: 0 } }) }), 'cases.count must be a positive safe integer'],
+    ['a cases weightTotal of zero', author({ standard: casedSnapshot({ cases: { ...CASES_REF, weightTotal: 0 } }) }), 'cases.weightTotal must be a positive safe integer'],
+    ['a cases digest that is not hex', author({ standard: casedSnapshot({ cases: { ...CASES_REF, sha256: 'ZZ' } }) }), 'cases.sha256 must be a lowercase hex digest'],
+    ['a treeScope without cases', author({ standard: snapshot({ checks: [check('a', { treeScope: 'out' }), check('b')] }) }), 'treeScope requires cases'],
+  ])('rejects %s', (_name, payload, message) => {
+    expect(() => decodeStandardChange(payload)).toThrow(message)
+  })
+
+  it.each<[string, unknown, string]>([
+    ['a tally that is not a record', run({ results: [result('a', { cases: 3 }), result('b')] }), 'results[0].cases must be a record'],
+    ['a tally with extra fields', run({ results: [casedResult({ extra: 1 }), result('b')] }), 'must have exactly failed,passed,total,weightPassed,weightTotal fields'],
+    ['a tally whose failed list is not an array', run({ results: [casedResult({ failed: 'none' }), result('b')] }), 'cases.failed must be an array'],
+    ['more passing cases than total', run({ results: [casedResult({ passed: 3 }), result('b')] }), 'cases.passed cannot exceed total'],
+    ['more passing weight than total', run({ results: [casedResult({ weightPassed: 4 }), result('b')] }), 'cases.weightPassed cannot exceed weightTotal'],
+    ['more failed cases than failures', run({ results: [casedResult({ failed: [FAILED_CASE] }), result('b')] }), 'cases.failed lists more cases than failed'],
+    ['a status that does not follow its cases', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [FAILED_CASE] }), result('b')], parity: { weightPassed: 1, weightTotal: 3 } }), 'results[0].status must follow its cases'],
+    ['a failed case that is not a record', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [7] }), result('b')] }), 'failed[0] must be a record'],
+    ['a failed case id that is not kebab-case', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [{ ...FAILED_CASE, id: 'Sample' }] }), result('b')] }), 'failed[0].id must be lower-kebab-case'],
+    ['a failed case weight of zero', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [{ ...FAILED_CASE, weight: 0 }] }), result('b')] }), 'failed[0].weight must be a positive safe integer'],
+    ['an unknown exit class', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [{ ...FAILED_CASE, exitClass: 'crashed' }] }), result('b')] }), 'failed[0].exitClass is invalid'],
+    ['an empty channel list', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [{ ...FAILED_CASE, channels: [] }] }), result('b')] }), 'failed[0].channels must be a non-empty array'],
+    ['an unknown channel', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [{ ...FAILED_CASE, channels: ['fd3'] }] }), result('b')] }), 'names unknown channel "fd3"'],
+    ['a repeated channel', run({ results: [casedResult({ passed: 1, weightPassed: 1, failed: [{ ...FAILED_CASE, channels: ['stdout', 'stdout'] }] }), result('b')] }), 'repeats channel "stdout"'],
+    ['a parity that is not a record', run({ results: [casedResult(), result('b')], parity: 'high' }), 'run.parity must be a record'],
+    ['a parity with extra fields', run({ results: [casedResult(), result('b')], parity: { weightPassed: 1, weightTotal: 3, extra: 0 } }), 'must have exactly weightPassed,weightTotal fields'],
+    ['a parity weightTotal of zero', run({ results: [casedResult(), result('b')], parity: { weightPassed: 0, weightTotal: 0 } }), 'run.parity.weightTotal must be a positive safe integer'],
+    ['a parity passing more weight than it holds', run({ results: [casedResult(), result('b')], parity: { weightPassed: 9, weightTotal: 3 } }), 'run.parity.weightPassed cannot exceed weightTotal'],
+  ])('rejects %s', (_name, payload, message) => {
+    expect(() => decodeRunChange(payload)).toThrow(message)
+  })
+
+  it.each<[string, unknown, string]>([
+    ['an empty cluster list', directive({ clusters: [] }), 'directive.clusters must be a non-empty array'],
+    ['a cluster list that is not an array', directive({ clusters: 'none' }), 'directive.clusters must be a non-empty array'],
+    ['a cluster that is not a record', directive({ clusters: [5] }), 'clusters[0] must be a record'],
+    ['a cluster with extra fields', directive({ clusters: [{ checkId: 'a', channels: ['stdout'], count: 1, weight: 1, extra: 0 }] }), 'must have exactly channels,checkId,count,weight fields'],
+    ['a cluster check id that is not kebab-case', directive({ clusters: [{ checkId: 'A', channels: ['stdout'], count: 1, weight: 1 }] }), 'clusters[0].checkId must be lower-kebab-case'],
+    ['a cluster count of zero', directive({ clusters: [{ checkId: 'a', channels: ['stdout'], count: 0, weight: 1 }] }), 'clusters[0].count must be a positive safe integer'],
+    ['a cluster weight of zero', directive({ clusters: [{ checkId: 'a', channels: ['stdout'], count: 1, weight: 0 }] }), 'clusters[0].weight must be a positive safe integer'],
+  ])('rejects %s', (_name, payload, message) => {
+    expect(() => decodeDirectiveChange(payload)).toThrow(message)
+  })
+})
+
+describe('verification case relations', () => {
+  it.each<[string, readonly SessionEvent[], string]>([
+    ['a tally for a check that references no cases', [
+      ...plainAuthor(),
+      event('verification/run', run({ results: [casedResult(), result('b')], parity: { weightPassed: 3, weightTotal: 3 } }), 1),
+    ], 'reports cases for check "a", which references none'],
+    ['a tally whose count disagrees with the reference', [
+      ...casedAuthor(),
+      event('verification/run', run({ results: [casedResult({ total: 5, passed: 5 }), result('b')], parity: { weightPassed: 3, weightTotal: 3 } }), 1),
+    ], 'case tally of check "a" disagrees with its cases reference'],
+    ['a tally whose weight disagrees with the reference', [
+      ...casedAuthor(),
+      event('verification/run', run({ results: [casedResult({ weightTotal: 9, weightPassed: 9 }), result('b')], parity: { weightPassed: 9, weightTotal: 9 } }), 1),
+    ], 'case tally of check "a" disagrees with its cases reference'],
+    ['a cased run without parity', [
+      ...casedAuthor(),
+      event('verification/run', run({ results: [casedResult(), result('b')] }), 1),
+    ], 'run with a cased result must record parity'],
+    ['a caseless run carrying parity', [
+      ...plainAuthor(),
+      event('verification/run', run({ parity: { weightPassed: 1, weightTotal: 2 } }), 1),
+    ], 'run records parity without a cased result'],
+    ['a parity that does not sum its results', [
+      ...casedAuthor(),
+      event('verification/run', run({ results: [casedResult(), result('b')], parity: { weightPassed: 1, weightTotal: 3 } }), 1),
+    ], 'run parity must sum its results\' case weights'],
+    ['a certificate over a run with a failing case', [
+      ...casedAuthor(),
+      event('verification/run', run({
+        results: [failingCasedResult(), result('b')],
+        parity: { weightPassed: 1, weightTotal: 3 },
+      }), 1),
+      event('verification/certificate', certificate({}, { results: [casedResult({ passed: 1, weightPassed: 1, failed: [FAILED_CASE] }), result('b')] }), 2),
+    ], 'certificate.results[0].status must follow its cases'],
+    ['a certificate carrying a failing cased result', [
+      ...casedAuthor(),
+      event('verification/run', run({
+        results: [failingCasedResult(), result('b')],
+        parity: { weightPassed: 1, weightTotal: 3 },
+      }), 1),
+      event('verification/certificate', certificate({}, { results: [failingCasedResult(), result('b')] }), 2),
+    ], 'certificate.results[0].status must be "pass" inside a certificate'],
+    ['a directive clustering a caseless check', [
+      ...casedAuthor(),
+      event('verification/directive', directive({ clusters: [{ checkId: 'b', channels: ['stdout'], count: 1, weight: 1 }] }), 1),
+    ], 'directive clusters unknown or caseless check "b"'],
+    ['a directive cluster larger than the reference', [
+      ...casedAuthor(),
+      event('verification/directive', directive({ clusters: [{ checkId: 'a', channels: ['stdout'], count: 9, weight: 1 }] }), 1),
+    ], 'directive cluster of check "a" exceeds its cases reference'],
+    ['a directive cluster heavier than the reference', [
+      ...casedAuthor(),
+      event('verification/directive', directive({ clusters: [{ checkId: 'a', channels: ['stdout'], count: 1, weight: 9 }] }), 1),
+    ], 'directive cluster of check "a" exceeds its cases reference'],
+    ['an extension that rewrites a case reference', [
+      ...casedAuthor(),
+      event('verification/standard', author({
+        operation: 'extend',
+        standard: casedSnapshot({ cases: { ...CASES_REF, count: 3 } }, { revision: 2, checks: [check('a', { cases: { ...CASES_REF, count: 3 } }), check('b'), check('c')] }),
+        updatedAt: 11,
+      }), 1),
+    ], 'must preserve the existing check "a"'],
+    ['an extension that adds a tree scope to an existing check', [
+      ...casedAuthor(),
+      event('verification/standard', author({
+        operation: 'extend',
+        standard: snapshot({ revision: 2, checks: [check('a', { cases: CASES_REF, treeScope: 'out' }), check('b'), check('c')] }),
+        updatedAt: 11,
+      }), 1),
+    ], 'must preserve the existing check "a"'],
+  ])('rejects %s', (_name, events, message) => {
+    expect(rejection(events)).toContain(message)
+  })
+
+  it('accepts a run whose cases pass and the certificate that follows it', () => {
+    expect(rejection([
+      ...casedAuthor(),
+      event('verification/run', run({ results: [casedResult(), result('b')], parity: { weightPassed: 3, weightTotal: 3 } }), 1),
+      event('verification/certificate', certificate({}, { results: [casedResult(), result('b')] }), 2),
+    ])).toBeUndefined()
+  })
+})

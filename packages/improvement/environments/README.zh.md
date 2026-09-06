@@ -23,9 +23,13 @@
 
 `task.immutable` 列出 fixture 提供、实现者不得撰写的工作区相对路径——测试、参考输出，以及任何覆盖上去的检查脚本。每一项都是以 `/` 分隔的相对路径，不含空段、`.` 段或 `..` 段，不含反斜杠与盘符前缀，指向一个文件或一棵目录树；重复项与其他任何形式都在注册时被拒绝，因为检查方拥有的集合决定一次运行是否算数，注册表无法解析的路径绝不能进入本应度量它的那次运行。[环境运行器](../environment-runner/README.md)在第一个轮次之前以及每次验证时，都会连同验证者自己的目录一起对这些路径求摘要，并把改动了它们的尝试记录为 `tampered`。
 
+## 加权用例
+
+一个检查可以采样候选程序的行为，而不是归结为一个退出码。这样的检查携带日志所记录的 [`cases` 引用](../../verification/verification/README.md#weighted-cases)，并在其旁携带该引用所摘要的 `caseBodies`；注册表存储并游离化两者，[环境运行器](../environment-runner/README.md#weighted-cases-and-the-reservation)把正文写入验证者的预留目录，并按每个用例运行一次候选程序。注册按定义当时的样子求哈希，不对正文作任何校验：撰写才是判定用例是否可用的操作，因此与其正文不符的引用会在 `completionStandards.author()` 处、在实现者的第一个轮次之前使本次运行失败。
+
 ## Run stamp
 
-`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、该次运行所属的可选 `district`、模型路由，以及部署方声明的隔离级别。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；合并摘要是策展者用来与留出环境比对的去污染键。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
+`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、该次运行所属的可选 `district`、模型路由，以及部署方声明的隔离级别。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；`checksSha256` 覆盖每个检查的树作用域、用例引用与用例正文，因此改动一个用例就会改变合并摘要，而合并摘要正是策展者用来与留出环境比对的去污染键。不带用例的检查恰好对每个检查一直携带的三个字段求摘要。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
 
 ## Extension points
 

@@ -6,7 +6,7 @@
  */
 
 import type { Branded } from '@deepseek-ai/dsh-brand'
-import type { CertificateIsolation, StandardCheck } from '@deepseek-ai/dsh-verification/types'
+import type { AuthoredCheck, CertificateIsolation } from '@deepseek-ai/dsh-verification/types'
 
 /** Identifies one environment across compositions; derived from its producer's stable name, never from mount order. */
 export type EnvironmentId = Branded<'EnvironmentId'>
@@ -56,11 +56,13 @@ export interface EnvironmentDefinition<K extends EnvironmentKind = EnvironmentKi
   /** The task statement and its fixture. */
   readonly task: EnvironmentTask
   /**
-   * Executable checks in the completion-standard vocabulary. A validator
-   * authors the task's completion standard from exactly these checks, so
-   * evaluation and production measure the same outcomes.
+   * Executable checks in the completion-standard vocabulary, each cased check
+   * carrying the bodies its `cases` reference digests. A validator authors the
+   * task's completion standard from exactly these checks, so evaluation and
+   * production measure the same outcomes; authorship validates the bodies and
+   * keeps only the reference in the log.
    */
-  readonly checks: readonly StandardCheck[]
+  readonly checks: readonly AuthoredCheck[]
   /** Reserved for evaluation: never exported as training data and never shown to an implementer outside a run. */
   readonly heldOut: boolean
   /** Package that produced the registration. */
@@ -93,7 +95,11 @@ export interface EnvironmentRunModel {
 export interface EnvironmentContentHashes {
   /** SHA-256 hex of the task prompt. */
   readonly promptSha256: string
-  /** SHA-256 hex of the check inventory (ids, outcomes, run instructions in authored order). */
+  /**
+   * SHA-256 hex of the check inventory in authored order: ids, outcomes, run
+   * instructions, tree scopes, case references, and the case bodies themselves,
+   * so changing one case changes the decontamination key.
+   */
   readonly checksSha256: string
   /** SHA-256 hex over every fixture file (relative path and bytes, sorted). */
   readonly fixtureSha256?: string

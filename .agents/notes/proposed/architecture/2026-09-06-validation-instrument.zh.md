@@ -28,6 +28,18 @@ Status: proposed
 
 `recreation` 环境种类声明 `task.reference`：夹具之下的一个目录，在保留时复制到屏障根目录之下并列为不可变，存放验证者可以执行而实现者绝不能读取的参考程序。一个验证者角色的 preset 组合一个携带新的 `standard-author` 工具权限的 `standard_author` 工具，挂载审计与按 agent 的守卫像今天拒绝 `session-log` 那样对 `implementer` 会话拒绝它。该工具提供三个动词：`record_case` 在同样的四通道捕获下运行参考程序并为给定输入存储期望摘要，`weigh` 设置用例权重，`freeze` 写出用例文件并通过 `ctx.completionStandards` 编写或扩展标准。行为采样仍是验证者 agent 的语义工作，受 `maxCases` 限界并由一个 skill 引导；执行器、摘要与墙是确定性的。`% resolved`（证书）与 `parity`（加权通过率）以各自的名字作为两个指标报告，遵循 ProgramBench 作者所作的区分。
 
+### 切片 1 与切片 2 落地时记录的偏离
+
+定义把用例体携带在检查自身上：`AuthoredCheck extends StandardCheck` 增加 `caseBodies`，`author()` 与 `extend()` 用它校验 `cases` 引用后即将其丢弃，因此日志只保留引用，也不会有第二张按键映射去指名一个并不存在的检查。注册把用例体哈希进 `checksSha256`，但不对其作任何校验，因为撰写才是判定用例是否可用的操作。
+
+检查脚本移至 `checks/<checkId>/run`，好让 `checks/<checkId>` 成为在其旁存放 `cases.jsonl` 的目录。
+
+`CheckResult.cases.failed` 为每个失败用例携带一条记录——`{ id, weight, channels, exitClass }`——而不是一个裸的用例 id：指令按通道与退出码类别聚类，而运行结果是这些事实唯一存在的地方。运行器的 `maxFailedCases` 限制该列表长度；统计仍然计入并加权每一个失败。
+
+`tree` 通道对用例留下的 `treeScope` 下每个常规文件求摘要，且运行器在声明了该目录的检查的每个用例之前清空它，这正是让该摘要成为逐用例增量的原因。
+
+`describeFailures` 只对带用例的检查作聚类，对不带用例的检查保留其证据行不变，因此墙恰好在有用例的地方关上；环境通过给某个检查配上用例来为它关上这堵墙。
+
 ## Alternatives considered
 
 **把用例放进 `verification/standard` 事件。** 否决：一个重建任务携带数百个用例，而日志是每次回放都要读取的记录；保留目录已经存放检查体，篡改摘要已经覆盖它，事件携带把两者绑定的摘要。
@@ -52,8 +64,8 @@ Status: proposed
 
 ## Rollout
 
-1. 检查上的用例：`cases` 引用、`CheckCase`、归一化器集合、`maxCases`、运行器中的四通道执行、`CheckResult.cases` 与 `verification/run.parity`、不变量规则、重新生成的目录。
-2. 关上的墙：带 `verification/directive` 上 `clusters` 的聚类指令、哨兵测试、快照。
+1. 已落地。检查上的用例：`cases` 引用、`CheckCase`、归一化器集合、`maxCases`、运行器中的四通道执行、`CheckResult.cases` 与 `verification/run.parity`、不变量规则、重新生成的目录。
+2. 已落地。关上的墙：带 `verification/directive` 上 `clusters` 的聚类指令、哨兵测试，以及基于 Loader 启动夹具的 `instrument-cases` 快照。
 3. 下游的 parity：scorekeeper 的事实与列、轨迹记录、Village 笔记中的发布规则。
 4. 仪器：带 `task.reference` 的 `recreation` 种类、`standard-author` 权限、`standard_author` 工具、验证者 preset、采样 skill、`recreation-instrument` 夹具。
 5. 套件准入：重建环境通过四目标笔记的策展者准入，两个指标都在 stamp 上。

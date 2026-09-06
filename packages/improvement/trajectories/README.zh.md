@@ -36,6 +36,8 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 
 `foldTrajectoryReward(events)` 由日志中的 goal 与验证事件决定奖励。最后一条记录的 [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) 携带 `verdict: 'tampered'` 的会话，无论日志里还有什么，都以 `tamper` 依据记为 `outcome: 0`：一次发现用于度量该任务的文件已被改动的运行，说明这次度量作废——检查失败只说明工作尚未完成，把两者合并会让检查已不再描述任务的工作区拿到部分学分。其余情形下，只要存在标准就由验证者决定，未认证的完成属于未决，没有 goal 的日志则未被度量。
 
+`outcome` 仍以证书为依据。一次[加权用例](../../verification/verification/README.md#parity-and-what-it-does-not-decide)运行会把其加权通过率作为 `parity` 记录在 `verification/run` 事件上，而导出记录不携带它：通过率会被这样的候选者钻空子——它只把被展示的失败过拟合掉，其余弃之不顾——因此通过了标准大部分用例的会话与一个用例也没通过的会话，在证书覆盖该修订之前都导出为 `outcome: 0`。
+
 ## Record format `dsh-trajectory/1`
 
 | 字段 | 内容 |

@@ -1,0 +1,32 @@
+[
+  {
+    "kind": "chunks",
+    "chunks": [
+      {"type":"block-start","index":0,"blockType":"tool-call"},
+      {"type":"tool-call-delta","index":0,"id":"solver-call","name":"bash","argumentsDelta":"{\"command\":\"cat > solve.sh <<'SH'\\ncase \\\"$1\\\" in\\n  ab) printf 'ba\\\\n' ;;\\n  abc) printf 'cba\\\\n' ;;\\n  xy) printf 'xy\\\\n' ;;\\n  bad) printf 'oops\\\\n' >&2; exit 3 ;;\\nesac\\nSH\",\"description\":\"Write the solver script.\"}"},
+      {"type":"block-end","index":0,"block":{"type":"tool-call","id":"solver-call","name":"bash","arguments":"{\"command\":\"cat > solve.sh <<'SH'\\ncase \\\"$1\\\" in\\n  ab) printf 'ba\\\\n' ;;\\n  abc) printf 'cba\\\\n' ;;\\n  xy) printf 'xy\\\\n' ;;\\n  bad) printf 'oops\\\\n' >&2; exit 3 ;;\\nesac\\nSH\",\"description\":\"Write the solver script.\"}"}},
+      {"type":"usage","usage":{"inputTokens":17,"outputTokens":9}},
+      {"type":"finish","reason":{"kind":"tool-calls"}}
+    ]
+  },
+  {
+    "kind": "chunks",
+    "chunks": [
+      {"type":"block-start","index":0,"blockType":"text"},
+      {"type":"text-delta","index":0,"text":"TASK COMPLETE"},
+      {"type":"block-end","index":0,"block":{"type":"text","text":"TASK COMPLETE"}},
+      {"type":"usage","usage":{"inputTokens":23,"outputTokens":2}},
+      {"type":"finish","reason":{"kind":"stop"}}
+    ]
+  },
+  {
+    "kind": "chunks",
+    "chunks": [
+      {"type":"block-start","index":0,"blockType":"text"},
+      {"type":"text-delta","index":0,"text":"STOPPED"},
+      {"type":"block-end","index":0,"block":{"type":"text","text":"STOPPED"}},
+      {"type":"usage","usage":{"inputTokens":41,"outputTokens":2}},
+      {"type":"finish","reason":{"kind":"stop"}}
+    ]
+  }
+]

@@ -13,6 +13,8 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 // Type-only: the durable event vocabulary this package augments.
 import type {} from '@deepseek-ai/dsh-session'
+import { caseBodiesSha256 } from '@deepseek-ai/dsh-verification'
+import type { AuthoredCheck } from '@deepseek-ai/dsh-verification/types'
 import type {
   EnvironmentContentHashes,
   EnvironmentDefinition,
@@ -48,8 +50,26 @@ function sha256(text: string): string {
 }
 
 /**
+ * Field-ordered tuple of one check, so the inventory digest does not depend on
+ * the author's object key order. A check without cases digests exactly the
+ * three fields every check has always carried.
+ */
+function checkTuple(check: AuthoredCheck): unknown[] {
+  const head = [check.id, check.outcome, check.run]
+  const { cases, caseBodies, treeScope } = check
+  if (cases === undefined && caseBodies === undefined && treeScope === undefined) return head
+  return [
+    ...head,
+    treeScope ?? null,
+    cases === undefined ? null : [cases.count, cases.weightTotal, cases.sha256],
+    caseBodies === undefined ? null : caseBodiesSha256(caseBodies),
+  ]
+}
+
+/**
  * Content hashes of one environment: the prompt, the check inventory in
- * authored order, the caller-computed fixture digest, and the combined key.
+ * authored order (case bodies included), the caller-computed fixture digest,
+ * and the combined key.
  * @param environment - the task and checks to hash.
  * @param fixtureSha256 - digest of the fixture files, absent for a task without a fixture.
  * @returns the four digests; identical inputs give identical digests.
@@ -59,7 +79,7 @@ export function environmentContentHashes(
   fixtureSha256?: string,
 ): EnvironmentContentHashes {
   const promptSha256 = sha256(environment.task.prompt)
-  const checksSha256 = sha256(JSON.stringify(environment.checks.map(check => [check.id, check.outcome, check.run])))
+  const checksSha256 = sha256(JSON.stringify(environment.checks.map(checkTuple)))
   const contentSha256 = sha256([promptSha256, fixtureSha256 ?? '', checksSha256].join('\n'))
   return { promptSha256, checksSha256, ...fixtureSha256 === undefined ? {} : { fixtureSha256 }, contentSha256 }
 }
@@ -162,13 +182,16 @@ export function EnvironmentId(id: string): EnvironmentIdType {
   return id as EnvironmentIdType
 }
 
-/** Copy a definition so callers never share the registry's stored check list or immutable set. */
+/** Copy a definition so callers never share the registry's stored check list, case bodies, or immutable set. */
 function detach(definition: EnvironmentDefinition): EnvironmentDefinition {
   const immutable = definition.task.immutable
   return {
     ...definition,
     task: { ...definition.task, ...immutable === undefined ? {} : { immutable: [...immutable] } },
-    checks: definition.checks.map(check => ({ ...check })),
+    checks: definition.checks.map(check => ({
+      ...check,
+      ...check.caseBodies === undefined ? {} : { caseBodies: [...check.caseBodies] },
+    })),
   }
 }
 

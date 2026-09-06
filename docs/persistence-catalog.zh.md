@@ -448,7 +448,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'environment/run': EnvironmentRunStamp
 ```
 
-来源：[`packages/improvement/environments/src/index.ts:33`](../packages/improvement/environments/src/index.ts)
+来源：[`packages/improvement/environments/src/index.ts:35`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 
@@ -1155,7 +1155,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/certificate': CertificateChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:106`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:116`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationdirective--log-only"></a>
 
@@ -1168,7 +1168,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/directive': DirectiveChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:110`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:120`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrelaxation--log-only"></a>
 
@@ -1181,7 +1181,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/relaxation': RelaxationChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:98`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:108`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrun--log-only"></a>
 
@@ -1194,7 +1194,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/run': VerificationRunChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:102`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:112`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationstandard--log-only"></a>
 
@@ -1207,7 +1207,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/standard': StandardChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:94`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:104`](../packages/verification/verification/src/domain.ts)
 
 ### `web/*`
 

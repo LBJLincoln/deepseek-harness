@@ -36,6 +36,8 @@ The sink is closed exactly once, after the last write or after a failure. The re
 
 `foldTrajectoryReward(events)` decides the reward from the log's goal and verification events. A session whose last recorded [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) carries `verdict: 'tampered'` scores `outcome: 0` on the `tamper` basis whatever else the log holds, because a run that found the files it measures the task with changed says the measurement is void — a failed check means the work is incomplete, so folding the two would let a workspace whose checks no longer describe the task earn partial credit. Otherwise the verifier decides whenever a standard exists, an uncertified completion is undecided, and a log without a goal is unmeasured.
 
+`outcome` stays certificate-based. A run of [weighted cases](../../verification/verification/README.md#parity-and-what-it-does-not-decide) records its weighted pass rate as `parity` on the `verification/run` event, and the exported record does not carry it: a pass rate is gameable by a candidate that overfits the failures it was shown and abandons the rest, so a session that passed most of a standard's cases and one that passed none both export `outcome: 0` until a certificate covers the revision.
+
 ## Record format `dsh-trajectory/1`
 
 | Field | Content |

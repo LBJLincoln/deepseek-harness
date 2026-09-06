@@ -7,10 +7,12 @@ import InvariantRegistry, { InvariantError } from '@deepseek-ai/dsh-invariants'
 import type {} from '@deepseek-ai/dsh-read-barrier'
 import type { ReadBarrierScope } from '@deepseek-ai/dsh-read-barrier/types'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import { CheckId, StandardId, VERIFICATION_CHANGE_VERSION } from '@deepseek-ai/dsh-verification'
+import { CheckCaseId, CheckId, StandardId, VERIFICATION_CHANGE_VERSION } from '@deepseek-ai/dsh-verification'
 import type {
   CertificateChangeMeta,
+  CheckResult,
   StandardChangeMeta,
+  StandardCheck,
   VerificationRunChangeMeta,
 } from '@deepseek-ai/dsh-verification'
 import * as VerificationInvariantCompanion from '@deepseek-ai/dsh-verification/invariant'
@@ -63,6 +65,38 @@ function executed(status: 'pass' | 'fail' = 'pass', attempt = 1): VerificationRu
     verdict: status === 'pass' ? 'passed' : 'failed',
     results: [{ checkId: CheckId('build-passes'), status, evidence: `exit ${status === 'pass' ? 0 : 1}` }],
     recordedAt: 6,
+  }
+}
+
+const CASES_REF = { count: 2, weightTotal: 3, sha256: 'a'.repeat(64) }
+
+/** The same standard with its one check carrying two weighted cases. */
+function casedStandard(): StandardChangeMeta {
+  const base = authored()
+  return {
+    ...base,
+    standard: { ...base.standard, checks: [{ ...base.standard.checks[0] as StandardCheck, cases: CASES_REF }] },
+  }
+}
+
+/** One run of the cased standard, with `weightPassed` of the check's three weight units passing. */
+function casedRun(weightPassed: number, weightTotal: number): VerificationRunChangeMeta {
+  const passed = weightPassed === weightTotal ? 2 : 1
+  return {
+    ...executed(passed === 2 ? 'pass' : 'fail'),
+    results: [{
+      checkId: CheckId('build-passes'),
+      status: passed === 2 ? 'pass' : 'fail',
+      evidence: `cases: ${passed} of 2 passed`,
+      cases: {
+        passed,
+        total: 2,
+        weightPassed,
+        weightTotal: 3,
+        failed: passed === 2 ? [] : [{ id: CheckCaseId('sample-1'), weight: 2, channels: ['stdout'], exitClass: 'zero' }],
+      },
+    }],
+    parity: { weightPassed, weightTotal },
   }
 }
 
@@ -182,6 +216,38 @@ describe('verification stream invariants', () => {
     expect(() => {
       session.append('verification/certificate', certified())
     }).toThrow(/certifies standard "standard-invariant" revision 1 over a verification\/run whose verdict is "tampered"/)
+  })
+
+  it('rejects a run whose parity outruns its weight, a tally its reference denies, and a certificate over a failing case', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-cases'))
+    session.append('verification/standard', casedStandard())
+    const reject = (run: VerificationRunChangeMeta, message: RegExp) => {
+      expect(() => session.append('verification/run', run)).toThrow(message)
+      expect(session.seq).toBe(1)
+    }
+    reject(
+      { ...casedRun(1, 3), parity: { weightPassed: 9, weightTotal: 3 } },
+      /run\.parity\.weightPassed cannot exceed weightTotal/,
+    )
+    const wrongTally = casedRun(3, 3)
+    reject(
+      {
+        ...wrongTally,
+        results: [{
+          ...wrongTally.results[0] as CheckResult,
+          cases: { passed: 5, total: 5, weightPassed: 6, weightTotal: 6, failed: [] },
+        }],
+        parity: { weightPassed: 6, weightTotal: 6 },
+      },
+      /case tally of check "build-passes" disagrees with its cases reference/,
+    )
+    session.append('verification/run', casedRun(1, 3))
+    expect(() => {
+      session.append('verification/certificate', certified({
+        results: [{ checkId: CheckId('build-passes'), status: 'pass', evidence: 'cases: 1 of 2 passed' }],
+      }))
+    }).toThrow(/without a preceding fully passing verification\/run/)
   })
 
   it('rejects a certificate whose executor differs from the run it cites', async () => {

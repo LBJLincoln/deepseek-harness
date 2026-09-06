@@ -9,10 +9,24 @@ import type {} from '@deepseek-ai/dsh-read-barrier'
 import type { ReadBarrierScope } from '@deepseek-ai/dsh-read-barrier/types'
 import { Session as SessionClass, SessionId } from '@deepseek-ai/dsh-session'
 import CompletionStandardService, {
+  CheckCaseId,
+  checkCasesRef,
   CheckId,
   VerificationError,
 } from '@deepseek-ai/dsh-verification'
-import type { Config, RunEvidence, StandardCheck, StandardRef } from '@deepseek-ai/dsh-verification'
+import type {
+  AuthoredCheck,
+  CheckCase,
+  CheckCaseResults,
+  CheckCasesRef,
+  CheckResult,
+  Config,
+  DirectiveCluster,
+  FailedCheckCase,
+  RunEvidence,
+  StandardCheck,
+  StandardRef,
+} from '@deepseek-ai/dsh-verification'
 
 interface StubAgent {
   agent: Agent
@@ -499,5 +513,178 @@ describe('CompletionStandardService certificate-gated goal completion', () => {
     ctx.completionStandards.author(agent, { goalId: created.id, checks: [check('build-passes')] })
     await fiber.dispose()
     expect(ctx.goals.complete(agent, { id: created.id, revision: created.revision }).phase).toBe('complete')
+  })
+})
+
+const caseBody: CheckCase = {
+  id: CheckCaseId('reverse-empty'),
+  weight: 2,
+  input: { argv: [] },
+  expected: { stdoutSha256: 'a'.repeat(64) },
+  comparator: { channels: ['stdout'], normalizers: ['crlf'] },
+}
+
+/** A cased check with `count` cases of ascending weight, plus the reference that describes them. */
+function cased(id: string, count: number): AuthoredCheck {
+  const caseBodies = Array.from({ length: count }, (_unused, index) => ({
+    ...caseBody,
+    id: CheckCaseId(`sample-${index}`),
+    weight: index + 1,
+  }))
+  return { ...check(id), cases: checkCasesRef(caseBodies), caseBodies }
+}
+
+/** The tally one run of a cased check reports, with the named cases failing. */
+function tally(authored: AuthoredCheck, failed: readonly FailedCheckCase[] = []): CheckCaseResults {
+  const bodies = authored.caseBodies as readonly CheckCase[]
+  const failedIds = new Set<string>(failed.map(entry => entry.id))
+  const passing = bodies.filter(body => !failedIds.has(body.id))
+  return {
+    passed: passing.length,
+    total: bodies.length,
+    weightPassed: passing.reduce((sum, body) => sum + body.weight, 0),
+    weightTotal: bodies.reduce((sum, body) => sum + body.weight, 0),
+    failed,
+  }
+}
+
+const failedCase = (id: string, weight: number): FailedCheckCase => ({
+  id: CheckCaseId(id),
+  weight,
+  channels: ['stdout'],
+  exitClass: 'zero',
+})
+
+describe('CompletionStandardService weighted cases', () => {
+  it('stores the case reference and never the bodies, and bounds a standard by maxCases', async () => {
+    const { ctx, agent, session } = await harness({ maxCases: 5 })
+    const authored = cased('reverses-lines', 3)
+    const view = ctx.completionStandards.author(agent, { goalId: goal, checks: [authored] })
+    expect(view.checks[0]).toEqual({
+      id: 'reverses-lines',
+      outcome: 'outcome of reverses-lines',
+      run: 'run reverses-lines',
+      cases: authored.cases,
+    })
+    expect(JSON.stringify(session.events)).not.toContain('reverse-empty')
+    expect(() => ctx.completionStandards.extend(agent, { id: view.id, revision: 1 }, [cased('sorts-lines', 3)]))
+      .toThrow(expect.objectContaining({ code: 'VERIFICATION_INVALID_CASE' }))
+    expect(ctx.completionStandards.extend(agent, { id: view.id, revision: 1 }, [cased('sorts-lines', 1)]).revision).toBe(2)
+  })
+
+  it('carries a tree scope into the stored check', async () => {
+    const { ctx, agent } = await harness()
+    const caseBodies: CheckCase[] = [{
+      ...caseBody,
+      expected: { treeSha256: 'c'.repeat(64) },
+      comparator: { channels: ['tree'], normalizers: [] },
+    }]
+    const view = ctx.completionStandards.author(agent, {
+      goalId: goal,
+      checks: [{ ...check('writes-output'), cases: checkCasesRef(caseBodies), caseBodies, treeScope: 'out' }],
+    })
+    expect(view.checks[0]).toMatchObject({ treeScope: 'out', cases: { count: 1, weightTotal: 2 } })
+  })
+
+  it('refuses an author whose case bodies do not match the reference it hands in', async () => {
+    const { ctx, agent } = await harness()
+    const authored = cased('reverses-lines', 2)
+    expect(() => ctx.completionStandards.author(agent, {
+      goalId: goal,
+      checks: [{ ...authored, cases: { ...authored.cases as CheckCasesRef, sha256: 'b'.repeat(64) } }],
+    })).toThrow(expect.objectContaining({ code: 'VERIFICATION_INVALID_CASE' }))
+  })
+
+  it('derives a cased check status from its cases and records the run parity', async () => {
+    const { ctx, agent, session } = await harness()
+    const first = cased('reverses-lines', 3)
+    const second = cased('sorts-lines', 2)
+    const view = ctx.completionStandards.author(agent, { goalId: goal, checks: [first, second, check('builds')] })
+    const outcome = ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'none', [
+      // The reported status claims a pass the cases do not support.
+      { checkId: CheckId('reverses-lines'), status: 'pass', evidence: 'cases: 2 of 3 passed', cases: tally(first, [failedCase('sample-2', 3)]) },
+      { checkId: CheckId('sorts-lines'), status: 'pass', evidence: 'cases: 2 of 2 passed', cases: tally(second) },
+      { checkId: CheckId('builds'), status: 'pass', evidence: 'exit 0' },
+    ], reported)
+
+    expect(outcome.certified).toBe(false)
+    const run = session.events.find(event => event.type === 'verification/run')?.data
+    expect(run).toMatchObject({ verdict: 'failed', parity: { weightPassed: 6, weightTotal: 9 } })
+    expect((run as { results: readonly CheckResult[] }).results.map(result => result.status))
+      .toEqual(['fail', 'pass', 'pass'])
+    expect(session.events.filter(event => event.type === 'verification/certificate')).toEqual([])
+  })
+
+  it('certifies a run whose every case passed and omits parity from a run without cases', async () => {
+    const { ctx, agent, session } = await harness()
+    const first = cased('reverses-lines', 2)
+    const view = ctx.completionStandards.author(agent, { goalId: goal, checks: [first] })
+    const outcome = ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'none', [
+      { checkId: CheckId('reverses-lines'), status: 'fail', evidence: 'cases: 2 of 2 passed', cases: tally(first) },
+    ], reported)
+    expect(outcome.certified).toBe(true)
+    expect(session.events.find(event => event.type === 'verification/run')?.data)
+      .toMatchObject({ verdict: 'passed', parity: { weightPassed: 3, weightTotal: 3 } })
+
+    const plain = await harness()
+    const plainView = plain.ctx.completionStandards.author(plain.agent, { goalId: goal, checks: [check('builds')] })
+    plain.ctx.completionStandards.recordRun(plain.agent, { id: plainView.id, revision: 1 }, 'none', passes(['builds']), reported)
+    expect(plain.session.events.find(event => event.type === 'verification/run')?.data).not.toHaveProperty('parity')
+  })
+
+  it('refuses a tally that disagrees with the check reference and cases for a caseless check', async () => {
+    const { ctx, agent } = await harness()
+    const first = cased('reverses-lines', 2)
+    const view = ctx.completionStandards.author(agent, { goalId: goal, checks: [first, check('builds')] })
+    const ref = { id: view.id, revision: 1 }
+    const record = (cases: CheckCaseResults, target: 'reverses-lines' | 'builds' = 'reverses-lines') => () =>
+      ctx.completionStandards.recordRun(agent, ref, 'none', [
+        { checkId: CheckId('reverses-lines'), status: 'pass', evidence: 'ok', cases: target === 'reverses-lines' ? cases : tally(first) },
+        { checkId: CheckId('builds'), status: 'pass', evidence: 'ok', ...target === 'builds' ? { cases } : {} },
+      ], reported)
+
+    expect(record({ ...tally(first), total: 3 })).toThrow(/against a reference of 2 of weight 3/)
+    expect(record({ ...tally(first), weightTotal: 9, weightPassed: 9 })).toThrow(/of weight 9 against a reference/)
+    expect(record({ ...tally(first), passed: 5 })).toThrow(/reports 5 of 2 cases passing/)
+    expect(record({ ...tally(first), weightPassed: 9 })).toThrow(/reports passing weight 9 of 3/)
+    expect(record({ ...tally(first), failed: [failedCase('sample-0', 1)] })).toThrow(/lists 1 failed cases while 0 failed/)
+    expect(record(tally(first), 'builds')).toThrow(/reports cases for a check that references none/)
+  })
+
+  it('keeps a caseless result of a cased check, which is how a tampered attempt records one', async () => {
+    const { ctx, agent, session } = await harness()
+    const view = ctx.completionStandards.author(agent, { goalId: goal, checks: [cased('reverses-lines', 2)] })
+    ctx.completionStandards.recordRun(agent, { id: view.id, revision: 1 }, 'none', [
+      { checkId: CheckId('reverses-lines'), status: 'fail', evidence: 'not executed' },
+    ], { executor: 'agent-reported', tampered: true })
+    const run = session.events.find(event => event.type === 'verification/run')?.data
+    expect(run).toMatchObject({ verdict: 'tampered' })
+    expect(run).not.toHaveProperty('parity')
+  })
+
+  it('records directive clusters and refuses one the standard does not support', async () => {
+    const { ctx, agent, session } = await harness()
+    const view = ctx.completionStandards.author(agent, { goalId: goal, checks: [cased('reverses-lines', 3), check('builds')] })
+    const ref = { id: view.id, revision: 1 }
+    const issue = (clusters?: readonly DirectiveCluster[]) => () => {
+      ctx.completionStandards.issueDirective(agent, ref, {
+        rootCause: 'one failed',
+        detail: 'detail',
+        ...clusters === undefined ? {} : { clusters },
+      })
+    }
+
+    issue([{ checkId: CheckId('reverses-lines'), channels: ['stdout'], count: 2, weight: 5 }])()
+    expect(session.events.find(event => event.type === 'verification/directive')?.data)
+      .toMatchObject({ clusters: [{ checkId: 'reverses-lines', channels: ['stdout'], count: 2, weight: 5 }] })
+    expect(issue([])).toThrow(/clusters must be a non-empty list/)
+    expect(issue([{ checkId: CheckId('builds'), channels: ['exit'], count: 1, weight: 1 }]))
+      .toThrow(/cluster names unknown or caseless check "builds"/)
+    expect(issue([{ checkId: CheckId('reverses-lines'), channels: ['stdout'], count: 9, weight: 1 }]))
+      .toThrow(/exceeds its cases reference/)
+    expect(issue([{ checkId: CheckId('reverses-lines'), channels: ['stdout'], count: 1, weight: 99 }]))
+      .toThrow(/exceeds its cases reference/)
+    issue()()
+    expect(session.events.filter(event => event.type === 'verification/directive')).toHaveLength(2)
   })
 })

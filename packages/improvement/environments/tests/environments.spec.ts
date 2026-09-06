@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import SessionStore from '@deepseek-ai/dsh-session'
-import { CheckId } from '@deepseek-ai/dsh-verification'
+import { CheckCaseId, checkCasesRef, CheckId } from '@deepseek-ai/dsh-verification'
+import type { AuthoredCheck, CheckCase } from '@deepseek-ai/dsh-verification'
 import EnvironmentRegistry, {
   decodeEnvironmentRun,
   ENVIRONMENT_RUN_VERSION,
@@ -197,6 +198,70 @@ describe('environment run stamps', () => {
       checks: [{ id: CheckId('tests-pass'), outcome: 'the suite passes', run: 'pnpm test -- --changed' }],
     }))
     expect(otherChecks.checksSha256).not.toBe(bare.checksSha256)
+  })
+
+  it('covers case bodies and tree scopes, so changing one case changes the key', () => {
+    const caseBodies: CheckCase[] = [{
+      id: CheckCaseId('reverse-empty'),
+      weight: 2,
+      input: { argv: [] },
+      expected: { stdoutSha256: 'a'.repeat(64) },
+      comparator: { channels: ['stdout'], normalizers: ['crlf'] },
+    }]
+    const cased = (bodies: readonly CheckCase[], rest: Partial<AuthoredCheck> = {}): EnvironmentDefinition<'swe-task'> =>
+      sweTask('swe-task:alpha', {
+        checks: [{
+          id: CheckId('tests-pass'),
+          outcome: 'the suite passes',
+          run: 'pnpm test',
+          cases: checkCasesRef(bodies),
+          caseBodies: bodies,
+          ...rest,
+        }],
+      })
+    const caseless = environmentContentHashes(sweTask('swe-task:alpha', {
+      checks: [{ id: CheckId('tests-pass'), outcome: 'the suite passes', run: 'pnpm test' }],
+    }))
+    const withCases = environmentContentHashes(cased(caseBodies))
+    expect(withCases.checksSha256).not.toBe(caseless.checksSha256)
+    expect(withCases.checksSha256).toBe(environmentContentHashes(cased(caseBodies)).checksSha256)
+    const changed = environmentContentHashes(cased([{ ...caseBodies[0] as CheckCase, weight: 3 }]))
+    expect(changed.checksSha256).not.toBe(withCases.checksSha256)
+    // A registry entry is hashed as it stands; authorship, not registration,
+    // is where a reference without bodies is refused.
+    const referenceOnly = environmentContentHashes(sweTask('swe-task:alpha', {
+      checks: [{ id: CheckId('tests-pass'), outcome: 'the suite passes', run: 'pnpm test', cases: checkCasesRef(caseBodies) }],
+    }))
+    expect(referenceOnly.checksSha256).not.toBe(withCases.checksSha256)
+    const bodiesOnly = environmentContentHashes(sweTask('swe-task:alpha', {
+      checks: [{ id: CheckId('tests-pass'), outcome: 'the suite passes', run: 'pnpm test', caseBodies }],
+    }))
+    expect(bodiesOnly.checksSha256).not.toBe(referenceOnly.checksSha256)
+    expect(environmentContentHashes(cased(caseBodies, { treeScope: 'out' })).checksSha256)
+      .not.toBe(withCases.checksSha256)
+  })
+
+  it('detaches the case bodies it stores', async () => {
+    const ctx = await harness()
+    const caseBodies: CheckCase[] = [{
+      id: CheckCaseId('reverse-empty'),
+      weight: 1,
+      input: { argv: [] },
+      expected: { exitCode: 0 },
+      comparator: { channels: ['exit'], normalizers: [] },
+    }]
+    ctx.environments.register(sweTask('swe-task:cased', {
+      checks: [{
+        id: CheckId('tests-pass'),
+        outcome: 'the suite passes',
+        run: 'pnpm test',
+        cases: checkCasesRef(caseBodies),
+        caseBodies,
+      }],
+    }))
+    const stored = ctx.environments.get(EnvironmentId('swe-task:cased'))
+    expect(stored?.checks[0]?.caseBodies).toEqual(caseBodies)
+    expect(stored?.checks[0]?.caseBodies).not.toBe(caseBodies)
   })
 
   it('decodes a complete stamp, leaves unrelated values alone, and keeps optional fields exact', () => {

@@ -11,8 +11,8 @@
  */
 
 import { createHash, randomUUID } from 'node:crypto'
-import { cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
-import { isAbsolute, join, relative, sep } from 'node:path'
+import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
@@ -22,17 +22,23 @@ import { ENVIRONMENT_RUN_VERSION, environmentContentHashes } from '@deepseek-ai/
 import type { EnvironmentDefinition, EnvironmentRunModel, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type {} from '@deepseek-ai/dsh-goal'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
-import { createUserMessage, HarnessError } from '@deepseek-ai/dsh-llm'
+import { assertNever, createUserMessage, HarnessError } from '@deepseek-ai/dsh-llm'
 import type { TokenUsage } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
-import type { ShellRunResult } from '@deepseek-ai/dsh-shell'
-import type {} from '@deepseek-ai/dsh-verification'
+import type { ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
+import { caseChannelDigest, CHECK_CASE_CHANNELS, normalizeCaseBytes } from '@deepseek-ai/dsh-verification'
 import type {
+  CaseExitClass,
   CertificateIsolation,
+  CheckCase,
+  CheckCaseChannel,
+  CheckCaseNormalizer,
   CheckResult,
+  DirectiveCluster,
   DirectiveRequest,
+  FailedCheckCase,
   StandardCheck,
   StandardRef,
   StandardView,
@@ -78,10 +84,12 @@ export interface Config {
   maxAttempts?: number
   /** Round cap handed to goal creation; absent applies the goal service default. */
   maxGoalRounds?: number
-  /** Timeout override for each check command, capped by the executor; absent applies the executor default. */
+  /** Timeout override for each check command and each case, capped by the executor; absent applies the executor default. */
   checkTimeoutMs?: number
   /** Bound of each evidence string and of the directive detail. */
   evidenceMaxChars?: number
+  /** Maximum failed cases one check result lists; the rest are counted and not named. */
+  maxFailedCases?: number
 }
 
 /** The runner's choices with every default applied. */
@@ -91,12 +99,13 @@ export interface ResolvedConfig {
   readonly maxGoalRounds: number | undefined
   readonly checkTimeoutMs: number | undefined
   readonly evidenceMaxChars: number
+  readonly maxFailedCases: number
 }
 
 /**
  * Apply the runner's defaults to a validated config.
  * @param config - validated deployment config.
- * @returns the resolved choices: one attempt and 2000 evidence characters unless configured.
+ * @returns the resolved choices: one attempt, 2000 evidence characters, and 20 listed failed cases unless configured.
  */
 export function resolveConfig(config: Config): ResolvedConfig {
   return {
@@ -105,6 +114,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
     maxGoalRounds: config.maxGoalRounds,
     checkTimeoutMs: config.checkTimeoutMs,
     evidenceMaxChars: config.evidenceMaxChars ?? 2000,
+    maxFailedCases: config.maxFailedCases ?? 20,
   }
 }
 
@@ -119,33 +129,38 @@ const UNQUOTED_COMMAND_WORD = /^[A-Za-z0-9_@%+=:,./\\-]+$/
 /** Key the check-owned digest records the reservation's tree under. */
 const RESERVATION_KEY = '<reservation>'
 
-/** Subdirectory of a reservation holding one script per check. */
+/** Subdirectory of a reservation holding one directory per check. */
 const CHECKS_DIR = 'checks'
+/** File inside a check's reserved directory holding its run instruction. */
+const RUN_FILE = 'run'
+/** File inside a check's reserved directory holding one case body per line. */
+const CASES_FILE = 'cases.jsonl'
 /** Reservation file holding the standard the current attempt measures. */
 const STANDARD_FILE = 'standard.json'
 /** Reservation subdirectory holding a held-out environment's fixture. */
 const FIXTURE_DIR = 'fixture'
 
-/** A check id usable as one path segment of its reserved script. */
+/** A check id usable as one path segment of its reserved directory. */
 const SAFE_CHECK_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
 
 /**
- * Absolute path of one check's reserved script, refusing a check id that is not
- * a single path segment or a path the check command line cannot carry unquoted.
+ * Absolute path of one check's reserved directory, which holds its run script
+ * and its case bodies. A check id that is not a single path segment, and a
+ * script path the check command line cannot carry unquoted, are both refused.
  * @param runDirectory - the reservation the barrier minted for this run.
- * @param checkId - the check's id, used verbatim as the script's file name.
- * @returns the absolute script path.
+ * @param checkId - the check's id, used verbatim as the directory's name.
+ * @returns the absolute check directory.
  * @throws {@link EnvironmentRunError} when the id or the resulting path is unusable.
  */
-function scriptPath(runDirectory: string, checkId: string): string {
+function checkDirectory(runDirectory: string, checkId: string): string {
   if (!SAFE_CHECK_SEGMENT.test(checkId)) {
     throw new EnvironmentRunError(`check "${checkId}" cannot name a reserved script file`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT')
   }
-  const script = join(runDirectory, CHECKS_DIR, checkId)
-  if (!UNQUOTED_COMMAND_WORD.test(script)) {
-    throw new EnvironmentRunError(`reserved check script "${script}" contains characters the check command line cannot carry unquoted`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT')
+  const directory = join(runDirectory, CHECKS_DIR, checkId)
+  if (!UNQUOTED_COMMAND_WORD.test(join(directory, RUN_FILE))) {
+    throw new EnvironmentRunError(`reserved check script "${join(directory, RUN_FILE)}" contains characters the check command line cannot carry unquoted`, 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT')
   }
-  return script
+  return directory
 }
 
 /** Directory test that treats a missing or unreadable path as no directory. */
@@ -158,13 +173,18 @@ async function isDirectory(path: string): Promise<boolean> {
   }
 }
 
-/** SHA-256 over every regular file under a directory: relative POSIX path, then bytes, in sorted order. */
-async function hashDirectory(root: string): Promise<string> {
+/**
+ * SHA-256 over every regular file under a directory: relative POSIX path, then
+ * bytes, in sorted order. A case's `tree` channel passes its comparator's
+ * normalizers, which are applied to each file's bytes before they are digested.
+ */
+async function hashDirectory(root: string, normalizers: readonly CheckCaseNormalizer[] = []): Promise<string> {
   const entries = await readdir(root, { recursive: true, withFileTypes: true })
   const files = entries.filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name)).sort()
   const hash = createHash('sha256')
   for (const file of files) {
-    hash.update(relative(root, file).split(sep).join('/')).update('\0').update(await readFile(file)).update('\0')
+    hash.update(relative(root, file).split(sep).join('/')).update('\0')
+      .update(normalizeCaseBytes(await readFile(file), normalizers)).update('\0')
   }
   return hash.digest('hex')
 }
@@ -244,22 +264,39 @@ async function restoreFixture(workspace: string, fixture: string | undefined): P
 }
 
 /**
- * Write the attempt's standard snapshot and one script per active check into
- * the reservation, so what the checks execute lives where the implementer
- * cannot read it.
+ * Write the attempt's standard snapshot, one run script per active check, and
+ * each cased check's bodies into the reservation, so what the checks execute
+ * and what they measure live where the implementer cannot read them. The whole
+ * reservation is inside the check-owned digest, which is what covers the case
+ * bodies against tampering.
  * @param runDirectory - the reservation, absent when no barrier is composed.
  * @param standard - the standard this attempt measures.
+ * @param bodies - case bodies per check id, from the environment definition.
  * @returns the script path per check id; empty without a reservation.
  * @throws {@link EnvironmentRunError} when a check id cannot name a script file.
  */
-async function materializeChecks(runDirectory: string | undefined, standard: StandardView): Promise<Map<string, string>> {
+async function materializeChecks(
+  runDirectory: string | undefined,
+  standard: StandardView,
+  bodies: ReadonlyMap<string, readonly CheckCase[]>,
+): Promise<Map<string, string>> {
   const scripts = new Map<string, string>()
   if (runDirectory === undefined) return scripts
   await mkdir(join(runDirectory, CHECKS_DIR), { recursive: true, mode: 0o700 })
   await writeFile(join(runDirectory, STANDARD_FILE), `${JSON.stringify(standard, null, 2)}\n`, { mode: 0o600 })
   for (const check of standard.checks) {
-    const script = scriptPath(runDirectory, check.id)
+    const directory = checkDirectory(runDirectory, check.id)
+    await mkdir(directory, { recursive: true, mode: 0o700 })
+    const script = join(directory, RUN_FILE)
     await writeFile(script, `${check.run}\n`, { mode: 0o600 })
+    const cases = bodies.get(check.id)
+    if (cases !== undefined) {
+      await writeFile(
+        join(directory, CASES_FILE),
+        cases.map(body => `${JSON.stringify(body)}\n`).join(''),
+        { mode: 0o600 },
+      )
+    }
     scripts.set(check.id, script)
   }
   return scripts
@@ -281,21 +318,184 @@ function bound(text: string, maxChars: number): string {
   return `${head}${marker}${text.slice(-tailBudget)}`
 }
 
-/** Render one executed check's evidence: the exit fact, then the bounded output tails. */
-function evidenceOf(result: ShellRunResult, maxChars: number): string {
+/** How one command ended, as the evidence states it. */
+function exitLine(result: ShellRunResult): string {
   const exit = result.exitCode === null ? `terminated by ${result.signal ?? 'an unknown signal'}` : `exit ${result.exitCode}`
   const cause = result.timedOut ? ` after the ${result.timeoutMs}ms timeout` : result.aborted ? ' after the run was aborted' : ''
-  const lines = [`${exit}${cause}`]
+  return `${exit}${cause}`
+}
+
+/** The captured output tails of one command, omitting an empty stream. */
+function outputLines(result: ShellRunResult): string[] {
+  const lines: string[] = []
   if (result.stdout.text !== '') lines.push(`stdout: ${result.stdout.text.trimEnd()}`)
   if (result.stderr.text !== '') lines.push(`stderr: ${result.stderr.text.trimEnd()}`)
+  return lines
+}
+
+/** Render one executed check's evidence: the exit fact, then the bounded output tails. */
+function evidenceOf(result: ShellRunResult, maxChars: number): string {
+  return bound([exitLine(result), ...outputLines(result)].join('\n'), maxChars)
+}
+
+/** How the candidate ended one case, as the directive clusters it. */
+function exitClassOf(result: ShellRunResult): CaseExitClass {
+  if (result.timedOut) return 'timeout'
+  if (result.exitCode === null) return 'signal'
+  return result.exitCode === 0 ? 'zero' : 'nonzero'
+}
+
+/** How each exit class reads in a cluster line. */
+const EXIT_PHRASE: Readonly<Record<CaseExitClass, string>> = {
+  zero: 'the program exited 0',
+  nonzero: 'the program exited non-zero',
+  signal: 'the program was terminated by a signal',
+  timeout: 'the program exceeded the case timeout',
+}
+
+/** One executed case that did not match, with the command output only the log keeps. */
+interface CaseFailure {
+  readonly id: FailedCheckCase['id']
+  readonly weight: number
+  readonly channels: readonly CheckCaseChannel[]
+  readonly exitClass: CaseExitClass
+  readonly result: ShellRunResult
+}
+
+/** One check executed case by case: its tally and the failures behind it. */
+interface CasedCheckRun {
+  readonly passed: number
+  readonly total: number
+  readonly weightPassed: number
+  readonly weightTotal: number
+  readonly failures: readonly CaseFailure[]
+}
+
+/** Render one cased check's evidence: the tally, then each named failed case with its captured output. */
+function casedEvidenceOf(run: CasedCheckRun, named: readonly CaseFailure[], maxChars: number): string {
+  const lines = [`cases: ${run.passed} of ${run.total} passed (weight ${run.weightPassed} of ${run.weightTotal})`]
+  for (const failure of named) {
+    lines.push(`case "${failure.id}" differed on ${failure.channels.join(', ')}; ${exitLine(failure.result)}`)
+    lines.push(...outputLines(failure.result))
+  }
   return bound(lines.join('\n'), maxChars)
 }
 
-/** One directive per failed run: the count as root cause, the evidence as detail, never the checks themselves. */
-function describeFailures(failures: readonly CheckResult[], maxChars: number): DirectiveRequest {
+/**
+ * Whether one captured stream disagrees with its expected digest. A truncated
+ * stream disagrees whatever it holds: the executor dropped bytes the digest
+ * covers, so the comparison cannot be made.
+ */
+function streamMismatch(
+  stream: ShellRunResult['stdout'],
+  expected: string | undefined,
+  normalizers: readonly CheckCaseNormalizer[],
+): boolean {
+  return stream.truncated || caseChannelDigest(Buffer.from(stream.text, 'utf8'), normalizers) !== expected
+}
+
+/**
+ * The configured channels of one case whose observed value disagrees with the
+ * case's expected digest, in the canonical channel order the log records.
+ * @param body - the case that ran.
+ * @param result - what the candidate produced.
+ * @param scope - the absolute `treeScope` directory, absent for a check that declares none.
+ * @returns the mismatching channels; empty when the case passed.
+ */
+async function caseMismatches(
+  body: CheckCase,
+  result: ShellRunResult,
+  scope: string | undefined,
+): Promise<CheckCaseChannel[]> {
+  const { normalizers } = body.comparator
+  const mismatched = new Set<CheckCaseChannel>()
+  for (const channel of body.comparator.channels) {
+    switch (channel) {
+      case 'exit':
+        if (result.exitCode !== body.expected.exitCode) mismatched.add(channel)
+        break
+      case 'stdout':
+        if (streamMismatch(result.stdout, body.expected.stdoutSha256, normalizers)) mismatched.add(channel)
+        break
+      case 'stderr':
+        if (streamMismatch(result.stderr, body.expected.stderrSha256, normalizers)) mismatched.add(channel)
+        break
+      case 'tree':
+        // Authoring requires a treeScope for every check whose cases compare the tree.
+        if (await hashDirectory(scope as string, normalizers) !== body.expected.treeSha256) mismatched.add(channel)
+        break
+      /* v8 ignore next 2 -- CheckCaseChannel is closed and every member is handled above */
+      default:
+        return assertNever(channel)
+    }
+  }
+  return CHECK_CASE_CHANNELS.filter(channel => mismatched.has(channel))
+}
+
+/** One rendered cluster with the check facts its line names. */
+interface RenderedCluster extends DirectiveCluster {
+  readonly outcome: string
+  readonly total: number
+  readonly weightTotal: number
+  readonly exitClass: CaseExitClass
+}
+
+/** Group one cased check's failed cases by the channels that disagreed and how the candidate ended. */
+function clustersOf(check: StandardCheck, result: CheckResult): RenderedCluster[] {
+  const cases = result.cases
+  /* v8 ignore next -- only a cased result reaches here, and a cased result carries its tally */
+  if (cases === undefined) return []
+  const clusters = new Map<string, RenderedCluster>()
+  for (const failed of cases.failed) {
+    const key = `${failed.exitClass}|${failed.channels.join(',')}`
+    const existing = clusters.get(key)
+    clusters.set(key, {
+      checkId: result.checkId,
+      channels: failed.channels,
+      count: (existing?.count ?? 0) + 1,
+      weight: (existing?.weight ?? 0) + failed.weight,
+      outcome: check.outcome,
+      total: cases.total,
+      weightTotal: cases.weightTotal,
+      exitClass: failed.exitClass,
+    })
+  }
+  return [...clusters.values()]
+}
+
+/**
+ * One directive per failed run. A cased check contributes one line per failure
+ * cluster, naming its authored outcome, the cluster's count and weight, the
+ * channels that disagreed, and how the candidate ended — never a case body, an
+ * expected digest, or a byte of captured output. A check without cases
+ * contributes its recorded evidence line.
+ * @param failures - the run's failing results, in check order.
+ * @param checks - the standard's active checks, supplying each outcome text.
+ * @param maxChars - bound of the rendered detail.
+ * @returns the directive, carrying `clusters` when a cased check failed.
+ */
+function describeFailures(
+  failures: readonly CheckResult[],
+  checks: readonly StandardCheck[],
+  maxChars: number,
+): DirectiveRequest {
+  const lines: string[] = []
+  const clusters: DirectiveCluster[] = []
+  for (const failure of failures) {
+    const check = checks.find(candidate => candidate.id === failure.checkId)
+    if (check === undefined || failure.cases === undefined) {
+      lines.push(failure.evidence)
+      continue
+    }
+    for (const cluster of clustersOf(check, failure)) {
+      clusters.push({ checkId: cluster.checkId, channels: cluster.channels, count: cluster.count, weight: cluster.weight })
+      lines.push(`${cluster.outcome}: ${cluster.count} of ${cluster.total} cases failed (weight ${cluster.weight} of ${cluster.weightTotal}); mismatching channels: ${cluster.channels.join(', ')}; ${EXIT_PHRASE[cluster.exitClass]}`)
+    }
+  }
   return {
     rootCause: `${failures.length} of the standard's checks failed`,
-    detail: bound(failures.map((failure, index) => `${index + 1}. ${failure.evidence}`).join('\n'), maxChars),
+    detail: bound(lines.map((line, index) => `${index + 1}. ${line}`).join('\n'), maxChars),
+    ...clusters.length === 0 ? {} : { clusters },
   }
 }
 
@@ -349,6 +549,7 @@ export class EnvironmentRunner extends Service {
     maxGoalRounds: z.natural().min(1),
     checkTimeoutMs: z.natural().min(1),
     evidenceMaxChars: z.natural().min(1).default(2000),
+    maxFailedCases: z.natural().min(1).default(20),
   })
 
   private readonly resolved: ResolvedConfig
@@ -424,11 +625,17 @@ export class EnvironmentRunner extends Service {
     })
     goals.disarm(agent)
     const authored = completionStandards.author(agent, { goalId: goal.id, checks: definition.checks })
+    // Authorship validated every case against the reference it carries and kept
+    // the reference alone; the bodies stay here, for the reservation and the
+    // per-case execution.
+    const bodies = new Map(definition.checks.flatMap(check => (
+      check.caseBodies === undefined ? [] : [[check.id, check.caseBodies] as const]
+    )))
     const immutable = definition.task.immutable ?? []
     // Stock the reservation and digest the check-owned set before the
     // implementer's first turn: that digest is what every later attempt is
     // compared against.
-    await materializeChecks(runDirectory, authored)
+    await materializeChecks(runDirectory, authored, bodies)
     let checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
     const attempts: EnvironmentRunAttempt[] = []
     let certificate: VerificationCertificate | undefined
@@ -443,11 +650,11 @@ export class EnvironmentRunner extends Service {
           break
         }
         const treeHash = await restoreFixture(request.workspace, definition.task.fixture)
-        const scripts = await materializeChecks(runDirectory, standard)
+        const scripts = await materializeChecks(runDirectory, standard, bodies)
         // The validator just rewrote its own directory, so the set it now owns
         // is the baseline the next attempt must still find.
         checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
-        const results = await this.execute(standard.checks, request, scripts)
+        const results = await this.execute(standard.checks, request, scripts, bodies)
         const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
           executor: 'runner',
           treeHash,
@@ -462,7 +669,7 @@ export class EnvironmentRunner extends Service {
           goals.complete(agent, { id: current.id, revision: current.revision })
           break
         }
-        const directive = describeFailures(outcome.failures, this.resolved.evidenceMaxChars)
+        const directive = describeFailures(outcome.failures, standard.checks, this.resolved.evidenceMaxChars)
         completionStandards.issueDirective(agent, ref, directive)
         prompt = followupText(directive)
       }
@@ -556,30 +763,108 @@ export class EnvironmentRunner extends Service {
   /**
    * Run every active check in order through the shell executor rooted at the
    * workspace. A reserved check runs its script; an unreserved one runs its
-   * instruction inline.
+   * instruction inline. A check that carries cases runs once per case and its
+   * verdict follows the cases; every other check's verdict is its exit code.
    */
   private async execute(
     checks: readonly StandardCheck[],
     request: EnvironmentRunRequest,
     scripts: ReadonlyMap<string, string>,
+    bodies: ReadonlyMap<string, readonly CheckCase[]>,
   ): Promise<CheckResult[]> {
     const results: CheckResult[] = []
     for (const check of checks) {
       const script = scripts.get(check.id)
-      const spec = this.ctx.shell.resolve({
-        command: script === undefined ? check.run : `. ${script}`,
-        workdir: request.workspace,
-        timeoutMs: this.resolved.checkTimeoutMs,
-        signal: request.signal,
-      })
-      const result = await this.ctx.shell.run(spec)
+      const command = script === undefined ? check.run : `. ${script}`
+      const cases = bodies.get(check.id)
+      if (cases === undefined) {
+        const result = await this.ctx.shell.run(this.caseSpec(command, request))
+        results.push({
+          checkId: check.id,
+          status: passed(result) ? 'pass' : 'fail',
+          evidence: evidenceOf(result, this.resolved.evidenceMaxChars),
+        })
+        continue
+      }
+      const run = await this.executeCases(check, cases, command, request)
+      // One bounded list of named failures serves both the durable tally and
+      // the evidence, so a run of hundreds of cases names the same subset twice.
+      const named = run.failures.slice(0, this.resolved.maxFailedCases)
       results.push({
         checkId: check.id,
-        status: passed(result) ? 'pass' : 'fail',
-        evidence: evidenceOf(result, this.resolved.evidenceMaxChars),
+        status: run.passed === run.total ? 'pass' : 'fail',
+        evidence: casedEvidenceOf(run, named, this.resolved.evidenceMaxChars),
+        cases: {
+          passed: run.passed,
+          total: run.total,
+          weightPassed: run.weightPassed,
+          weightTotal: run.weightTotal,
+          failed: named.map(failure => ({
+            id: failure.id,
+            weight: failure.weight,
+            channels: failure.channels,
+            exitClass: failure.exitClass,
+          })),
+        },
       })
     }
     return results
+  }
+
+  /** Resolve one check or case command against the workspace and the run's cancellation. */
+  private caseSpec(command: string, request: EnvironmentRunRequest, stdin?: string): ShellExecSpec {
+    return this.ctx.shell.resolve({
+      command,
+      workdir: request.workspace,
+      timeoutMs: this.resolved.checkTimeoutMs,
+      signal: request.signal,
+      ...stdin === undefined ? {} : { stdin },
+    })
+  }
+
+  /**
+   * Run one cased check case by case: empty the check's `treeScope`, stage the
+   * case's files, append its `argv` to the check's command, feed its `stdin`,
+   * then compare every configured channel against the case's digest.
+   */
+  private async executeCases(
+    check: StandardCheck,
+    cases: readonly CheckCase[],
+    command: string,
+    request: EnvironmentRunRequest,
+  ): Promise<CasedCheckRun> {
+    const failures: CaseFailure[] = []
+    let passedCases = 0
+    let weightPassed = 0
+    for (const body of cases) {
+      const scope = check.treeScope === undefined ? undefined : join(request.workspace, check.treeScope)
+      if (scope !== undefined) {
+        await rm(scope, { recursive: true, force: true })
+        await mkdir(scope, { recursive: true })
+      }
+      for (const [path, content] of Object.entries(body.input.files ?? {})) {
+        const staged = join(request.workspace, path)
+        await mkdir(dirname(staged), { recursive: true })
+        await writeFile(staged, content)
+      }
+      const result = await this.ctx.shell.run(
+        this.caseSpec([command, ...body.input.argv].join(' '), request, body.input.stdin),
+      )
+      const channels = await caseMismatches(body, result, scope)
+      if (channels.length === 0) {
+        passedCases += 1
+        weightPassed += body.weight
+        continue
+      }
+      failures.push({ id: body.id, weight: body.weight, channels, exitClass: exitClassOf(result), result })
+    }
+    return {
+      passed: passedCases,
+      total: cases.length,
+      weightPassed,
+      weightTotal: cases.reduce((sum, body) => sum + body.weight, 0),
+      failures,
+    }
   }
 }
 

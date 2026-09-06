@@ -1,0 +1,65 @@
+# Test-only composition: one environment whose single check carries five
+# weighted cases, run by an implementer whose program satisfies two of them.
+- id: instrument-mock-llm
+  name: './instrument-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environment
+  name: './register-environment.ts'
+
+# The runner creates its own agent per run from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: instrument-mock
+    model: instrument-mock
+
+# Two attempts, so the clustered directive of the first validation is delivered
+# to the implementer as a user turn the transcript can pin.
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run the registered environment as a validated session.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'

@@ -1,7 +1,11 @@
 /** Runtime constructors and protocol constants for the completion-standard domain. */
 
 import { HarnessError } from '@deepseek-ai/dsh-llm'
-import type { CheckId as CheckIdType, StandardId as StandardIdType } from './types.ts'
+import type {
+  CheckCaseId as CheckCaseIdType,
+  CheckId as CheckIdType,
+  StandardId as StandardIdType,
+} from './types.ts'
 import type { VerificationErrorCode } from './domain.ts'
 
 /** Version of every durable verification change payload. */
@@ -34,6 +38,15 @@ export function StandardId(id: string): StandardIdType {
  */
 export function CheckId(id: string): CheckIdType {
   return id as CheckIdType
+}
+
+/**
+ * Brand a string as a check-case id.
+ * @param id - raw case identifier.
+ * @returns the same string with the compile-time brand.
+ */
+export function CheckCaseId(id: string): CheckCaseIdType {
+  return id as CheckCaseIdType
 }
 
 /** Error returned by the completion-standard domain boundary. */

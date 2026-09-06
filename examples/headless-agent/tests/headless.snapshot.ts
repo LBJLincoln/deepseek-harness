@@ -48,6 +48,9 @@ const readBarrierConfigPath = fileURLToPath(new URL('../read-barrier.cordis.snap
 const tamperScenarioDir = join(snapshotsDir, 'read-barrier-tamper')
 const tamperConfigPath = fileURLToPath(new URL('../read-barrier-tamper.cordis.snapshot.yml', import.meta.url))
 const tamperBinScript = fileURLToPath(new URL('./fixtures/read-barrier-tamper/driver.ts', import.meta.url))
+const instrumentScenarioDir = join(snapshotsDir, 'instrument-cases')
+const instrumentConfigPath = fileURLToPath(new URL('../instrument-cases.cordis.snapshot.yml', import.meta.url))
+const instrumentBinScript = fileURLToPath(new URL('./fixtures/instrument-cases/driver.ts', import.meta.url))
 const ralphScenarioDir = join(snapshotsDir, 'ralph-loop')
 const ralphConfigPath = fileURLToPath(new URL('../ralph.cordis.snapshot.yml', import.meta.url))
 const settlementScenarioDir = join(snapshotsDir, 'subagent-settlement')
@@ -788,6 +791,53 @@ describe('headless stream-json snapshots', () => {
     const normalized = normalizeRunnerStream(result.stdout, runCwd)
     if (refreshing) await writeFile(streamExpected, normalized)
     expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins the instrument-cases clustered directive an implementer sees after failing part of a weighted case set', async () => {
+    const streamExpected = join(instrumentScenarioDir, 'stream-json.expected.jsonl')
+    let runCwd = ''
+    const result = await runLoaderSmoke({
+      label: 'instrument cases headless stream-json snapshot',
+      tempDirPrefix: 'headless-snapshot-instrument-cases-',
+      binScript: instrumentBinScript,
+      libBinScript: instrumentBinScript,
+      configPath: instrumentConfigPath,
+      binArgs: [instrumentConfigPath],
+      tsconfigPath,
+      env: {
+        DSH_SNAPSHOT: 'replay',
+        DSH_SNAPSHOT_FILE: join(instrumentScenarioDir, 'session.jsonl'),
+        DSH_SNAPSHOT_OVERRIDE: join(instrumentScenarioDir, 'replay.override.json'),
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      prepare: (cwd) => { runCwd = cwd },
+      inspect: async (cwd) => {
+        const logs = await persistedLogs(cwd)
+        expect(logs).toHaveLength(1)
+        const records = parseJsonl(logs[0]?.content ?? '')
+        const runs = records.filter(record => record.type === 'verification/run')
+        expect(runs).toHaveLength(2)
+        expect(runs[0]?.data).toMatchObject({
+          verdict: 'failed',
+          executor: 'runner',
+          parity: { weightPassed: 3, weightTotal: 15 },
+        })
+        expect(records.filter(record => record.type === 'verification/certificate')).toEqual([])
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    const normalized = normalizeRunnerStream(result.stdout, runCwd)
+    if (refreshing) await writeFile(streamExpected, normalized)
+    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+    // The clustered directive names outcomes, counts, weights, and channels;
+    // the candidate's own bytes stay in the run evidence the log keeps.
+    expect(normalized).toContain(
+      'solve.sh prints its argument reversed and reports nothing on stderr: 2 of 5 cases failed (weight 7 of 15); mismatching channels: stdout; the program exited 0',
+    )
+    expect(normalized).toContain(
+      'solve.sh prints its argument reversed and reports nothing on stderr: 1 of 5 cases failed (weight 5 of 15); mismatching channels: exit, stderr; the program exited non-zero',
+    )
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('replays two fresh Ralph rounds through the one-shot app', async () => {

@@ -2,14 +2,22 @@
 
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { GoalId } from '@deepseek-ai/dsh-goal'
-import { CheckId, isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION } from './runtime.ts'
+import { CHECK_CASE_CHANNELS } from './cases.ts'
+import { CheckCaseId, CheckId, isKebabCase, StandardId, VERIFICATION_CHANGE_VERSION } from './runtime.ts'
 import type {
+  CaseExitClass,
   CertificateIsolation,
+  CheckCaseChannel,
+  CheckCaseResults,
+  CheckCasesRef,
   CheckResult,
   CheckStatus,
   CompletionStandardSnapshot,
+  DirectiveCluster,
+  FailedCheckCase,
   RelaxedCheck,
   RunExecutor,
+  RunParity,
   RunVerdict,
   StandardCheck,
   StandardRef,
@@ -33,6 +41,8 @@ const CERTIFIED_STATUSES: ReadonlySet<CheckStatus> = new Set(['pass'])
 const RUN_STATUSES: ReadonlySet<CheckStatus> = new Set(['pass', 'fail'])
 const RUN_KEYS = ['attempt', 'executor', 'isolation', 'kind', 'recordedAt', 'results', 'standard', 'version']
 const HEX_DIGEST = /^[0-9a-f]+$/
+const EXIT_CLASSES: ReadonlySet<CaseExitClass> = new Set(['zero', 'nonzero', 'signal', 'timeout'])
+const CHANNELS: ReadonlySet<string> = new Set(CHECK_CASE_CHANNELS)
 
 /** Mutable accumulator kept private to the pure fold. */
 export interface VerificationFoldState {
@@ -127,18 +137,130 @@ function requireKeys(value: Record<string, unknown>, expected: readonly string[]
   }
 }
 
+/** Decode and validate one check's durable case reference. */
+function decodeCasesRef(value: unknown, subject: string): CheckCasesRef {
+  if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
+  requireKeys(value, ['count', 'sha256', 'weightTotal'], subject)
+  return {
+    count: positiveInteger(value['count'], `${subject}.count`),
+    weightTotal: positiveInteger(value['weightTotal'], `${subject}.weightTotal`),
+    sha256: hexDigest(value['sha256'], `${subject}.sha256`),
+  }
+}
+
 /** Decode and validate one check. */
 function decodeCheck(value: unknown, subject: string): StandardCheck {
   if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
-  requireKeys(value, ['id', 'outcome', 'run'], subject)
+  const cases = value['cases']
+  const treeScope = value['treeScope']
+  requireKeys(value, [
+    'id',
+    'outcome',
+    'run',
+    ...cases === undefined ? [] : ['cases'],
+    ...treeScope === undefined ? [] : ['treeScope'],
+  ], subject)
   const rawId = value['id']
   if (typeof rawId !== 'string' || !isKebabCase(rawId)) {
     throw new Error(`verification change ${subject}.id must be lower-kebab-case`)
+  }
+  if (treeScope !== undefined && cases === undefined) {
+    throw new Error(`verification change ${subject}.treeScope requires cases`)
   }
   return {
     id: CheckId(rawId),
     outcome: normalizedText(value['outcome'], `${subject}.outcome`),
     run: normalizedText(value['run'], `${subject}.run`),
+    ...cases === undefined ? {} : { cases: decodeCasesRef(cases, `${subject}.cases`) },
+    ...treeScope === undefined ? {} : { treeScope: normalizedText(treeScope, `${subject}.treeScope`) },
+  }
+}
+
+/** Decode one channel list: non-empty, without repeats, in the fixed channel order. */
+function decodeChannels(value: unknown, subject: string): readonly CheckCaseChannel[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`verification change ${subject} must be a non-empty array`)
+  }
+  const seen = new Set<string>()
+  for (const channel of value) {
+    if (typeof channel !== 'string' || !CHANNELS.has(channel)) {
+      throw new Error(`verification change ${subject} names unknown channel ${JSON.stringify(channel)}`)
+    }
+    if (seen.has(channel)) throw new Error(`verification change ${subject} repeats channel "${channel}"`)
+    seen.add(channel)
+  }
+  return CHECK_CASE_CHANNELS.filter(channel => seen.has(channel))
+}
+
+/** Decode one failed case of a run result. */
+function decodeFailedCase(value: unknown, subject: string): FailedCheckCase {
+  if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
+  requireKeys(value, ['channels', 'exitClass', 'id', 'weight'], subject)
+  const rawId = value['id']
+  if (typeof rawId !== 'string' || !isKebabCase(rawId)) {
+    throw new Error(`verification change ${subject}.id must be lower-kebab-case`)
+  }
+  const exitClass = value['exitClass']
+  if (typeof exitClass !== 'string' || !EXIT_CLASSES.has(exitClass as CaseExitClass)) {
+    throw new Error(`verification change ${subject}.exitClass is invalid`)
+  }
+  return {
+    id: CheckCaseId(rawId),
+    weight: positiveInteger(value['weight'], `${subject}.weight`),
+    channels: decodeChannels(value['channels'], `${subject}.channels`),
+    exitClass: exitClass as CaseExitClass,
+  }
+}
+
+/** Decode one result's case tally, rejecting counts and weights that cannot describe a run. */
+function decodeCaseResults(value: unknown, subject: string): CheckCaseResults {
+  if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
+  requireKeys(value, ['failed', 'passed', 'total', 'weightPassed', 'weightTotal'], subject)
+  if (!Array.isArray(value['failed'])) throw new Error(`verification change ${subject}.failed must be an array`)
+  const results: CheckCaseResults = {
+    passed: nonNegativeInteger(value['passed'], `${subject}.passed`),
+    total: positiveInteger(value['total'], `${subject}.total`),
+    weightPassed: nonNegativeInteger(value['weightPassed'], `${subject}.weightPassed`),
+    weightTotal: positiveInteger(value['weightTotal'], `${subject}.weightTotal`),
+    failed: value['failed'].map((failed, index) => decodeFailedCase(failed, `${subject}.failed[${index}]`)),
+  }
+  if (results.passed > results.total) throw new Error(`verification change ${subject}.passed cannot exceed total`)
+  if (results.weightPassed > results.weightTotal) {
+    throw new Error(`verification change ${subject}.weightPassed cannot exceed weightTotal`)
+  }
+  if (results.failed.length > results.total - results.passed) {
+    throw new Error(`verification change ${subject}.failed lists more cases than failed`)
+  }
+  return results
+}
+
+/** Decode one run's weighted pass rate. */
+function decodeParity(value: unknown, subject: string): RunParity {
+  if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
+  requireKeys(value, ['weightPassed', 'weightTotal'], subject)
+  const parity: RunParity = {
+    weightPassed: nonNegativeInteger(value['weightPassed'], `${subject}.weightPassed`),
+    weightTotal: positiveInteger(value['weightTotal'], `${subject}.weightTotal`),
+  }
+  if (parity.weightPassed > parity.weightTotal) {
+    throw new Error(`verification change ${subject}.weightPassed cannot exceed weightTotal`)
+  }
+  return parity
+}
+
+/** Decode one directive failure cluster. */
+function decodeCluster(value: unknown, subject: string): DirectiveCluster {
+  if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
+  requireKeys(value, ['channels', 'checkId', 'count', 'weight'], subject)
+  const rawCheckId = value['checkId']
+  if (typeof rawCheckId !== 'string' || !isKebabCase(rawCheckId)) {
+    throw new Error(`verification change ${subject}.checkId must be lower-kebab-case`)
+  }
+  return {
+    checkId: CheckId(rawCheckId),
+    channels: decodeChannels(value['channels'], `${subject}.channels`),
+    count: positiveInteger(value['count'], `${subject}.count`),
+    weight: positiveInteger(value['weight'], `${subject}.weight`),
   }
 }
 
@@ -204,7 +326,8 @@ function decodeResult(
   requirement: string,
 ): CheckResult {
   if (!isRecord(value)) throw new Error(`verification change ${subject} must be a record`)
-  requireKeys(value, ['checkId', 'evidence', 'status'], subject)
+  const cases = value['cases']
+  requireKeys(value, ['checkId', 'evidence', 'status', ...cases === undefined ? [] : ['cases']], subject)
   const rawCheckId = value['checkId']
   if (typeof rawCheckId !== 'string' || !isKebabCase(rawCheckId)) {
     throw new Error(`verification change ${subject}.checkId must be lower-kebab-case`)
@@ -213,10 +336,15 @@ function decodeResult(
   if (!admitted.has(status)) {
     throw new Error(`verification change ${subject}.status must be ${requirement}`)
   }
+  const decoded = cases === undefined ? undefined : decodeCaseResults(cases, `${subject}.cases`)
+  if (decoded !== undefined && (decoded.passed === decoded.total) !== (status === 'pass')) {
+    throw new Error(`verification change ${subject}.status must follow its cases`)
+  }
   return {
     checkId: CheckId(rawCheckId),
     status,
     evidence: normalizedText(value['evidence'], `${subject}.evidence`),
+    ...decoded === undefined ? {} : { cases: decoded },
   }
 }
 
@@ -318,9 +446,11 @@ export function decodeRunChange(value: unknown): VerificationRunChangeMeta | und
   if (!isRecord(value) || value['kind'] !== 'verification/run') return undefined
   requireVersion(value)
   const treeHash = value['treeHash']
+  const parity = value['parity']
   const optional = [
     ...treeHash === undefined ? [] : ['treeHash'],
     ...value['verdict'] === undefined ? [] : ['verdict'],
+    ...parity === undefined ? [] : ['parity'],
   ]
   requireKeys(value, [...RUN_KEYS, ...optional], 'run')
   if (typeof value['isolation'] !== 'string' || !ISOLATIONS.has(value['isolation'] as CertificateIsolation)) {
@@ -342,6 +472,7 @@ export function decodeRunChange(value: unknown): VerificationRunChangeMeta | und
     executor: value['executor'] as RunExecutor,
     verdict: decodeVerdict(value['verdict'], results),
     results,
+    ...parity === undefined ? {} : { parity: decodeParity(parity, 'run.parity') },
     ...treeHash === undefined ? {} : { treeHash: hexDigest(treeHash, 'run.treeHash') },
     recordedAt: nonNegativeInteger(value['recordedAt'], 'run.recordedAt'),
   }
@@ -397,20 +528,42 @@ export function decodeCertificateChange(value: unknown): CertificateChangeMeta |
 export function decodeDirectiveChange(value: unknown): DirectiveChangeMeta | undefined {
   if (!isRecord(value) || value['kind'] !== 'verification/directive') return undefined
   requireVersion(value)
-  requireKeys(value, ['detail', 'issuedAt', 'kind', 'rootCause', 'standard', 'version'], 'directive')
+  const clusters = value['clusters']
+  requireKeys(value, [
+    'detail',
+    'issuedAt',
+    'kind',
+    'rootCause',
+    'standard',
+    'version',
+    ...clusters === undefined ? [] : ['clusters'],
+  ], 'directive')
+  if (clusters !== undefined && (!Array.isArray(clusters) || clusters.length === 0)) {
+    throw new Error('verification change directive.clusters must be a non-empty array')
+  }
   return {
     kind: 'verification/directive',
     version: VERIFICATION_CHANGE_VERSION,
     standard: decodeRef(value['standard'], 'directive.standard'),
     rootCause: normalizedText(value['rootCause'], 'directive.rootCause'),
     detail: normalizedText(value['detail'], 'directive.detail'),
+    ...clusters === undefined
+      ? {}
+      : { clusters: (clusters as unknown[]).map((cluster, index) => decodeCluster(cluster, `directive.clusters[${index}]`)) },
     issuedAt: nonNegativeInteger(value['issuedAt'], 'issuedAt'),
   }
 }
 
+/** Whether two checks reference the same case bodies, absence included. */
+function sameCasesRef(previous: CheckCasesRef | undefined, next: CheckCasesRef | undefined): boolean {
+  if (previous === undefined || next === undefined) return previous === next
+  return previous.count === next.count && previous.weightTotal === next.weightTotal && previous.sha256 === next.sha256
+}
+
 /** Require two checks to be identical field-for-field. */
 function requireSameCheck(previous: StandardCheck, next: StandardCheck, subject: string): void {
-  if (previous.id !== next.id || previous.outcome !== next.outcome || previous.run !== next.run) {
+  if (previous.id !== next.id || previous.outcome !== next.outcome || previous.run !== next.run
+    || previous.treeScope !== next.treeScope || !sameCasesRef(previous.cases, next.cases)) {
     throw new Error(`verification change ${subject} must preserve the existing check "${previous.id}"`)
   }
 }
@@ -515,7 +668,7 @@ function applyRelaxationChange(state: VerificationFoldState, change: RelaxationC
   state.lastRef = { id: next.id, revision: next.revision }
 }
 
-/** Require one result per active check, in the standard's check order. */
+/** Require one result per active check, in the standard's check order, with case tallies its checks admit. */
 function requireResultsCover(
   current: CompletionStandardSnapshot,
   results: readonly CheckResult[],
@@ -525,9 +678,35 @@ function requireResultsCover(
     throw new Error(`verification ${subject} must carry one result per active check`)
   }
   for (const [index, check] of current.checks.entries()) {
-    if (results[index]?.checkId !== check.id) {
+    const result = results[index]
+    if (result?.checkId !== check.id) {
       throw new Error(`verification ${subject} result ${index} must answer check "${check.id}"`)
     }
+    const cases = result.cases
+    if (cases === undefined) continue
+    if (check.cases === undefined) {
+      throw new Error(`verification ${subject} reports cases for check "${check.id}", which references none`)
+    }
+    if (cases.total !== check.cases.count || cases.weightTotal !== check.cases.weightTotal) {
+      throw new Error(`verification ${subject} case tally of check "${check.id}" disagrees with its cases reference`)
+    }
+  }
+}
+
+/** Require the run's parity to be exactly the sum over the results that carry cases. */
+function requireParity(change: VerificationRunChangeMeta): void {
+  const cased = change.results.flatMap(result => result.cases === undefined ? [] : [result.cases])
+  if (cased.length === 0) {
+    if (change.parity !== undefined) throw new Error('verification run records parity without a cased result')
+    return
+  }
+  const expected = {
+    weightPassed: cased.reduce((sum, cases) => sum + cases.weightPassed, 0),
+    weightTotal: cased.reduce((sum, cases) => sum + cases.weightTotal, 0),
+  }
+  if (change.parity === undefined) throw new Error('verification run with a cased result must record parity')
+  if (change.parity.weightPassed !== expected.weightPassed || change.parity.weightTotal !== expected.weightTotal) {
+    throw new Error('verification run parity must sum its results\' case weights')
   }
 }
 
@@ -539,6 +718,7 @@ function applyRunChange(state: VerificationFoldState, change: VerificationRunCha
     throw new Error('verification run must cover the exact current standard revision')
   }
   requireResultsCover(current, change.results, 'run')
+  requireParity(change)
   const allPassed = change.results.every(result => result.status === 'pass')
   if (change.verdict === 'passed' && !allPassed) {
     throw new Error('verification run cannot record verdict "passed" with a failing result')
@@ -583,6 +763,15 @@ function applyDirectiveChange(state: VerificationFoldState, change: DirectiveCha
   if (current === undefined) throw new Error('verification directive requires a current standard')
   if (change.standard.id !== current.id || change.standard.revision !== current.revision) {
     throw new Error('verification directive must reference the exact current standard revision')
+  }
+  for (const cluster of change.clusters ?? []) {
+    const check = current.checks.find(candidate => candidate.id === cluster.checkId)
+    if (check?.cases === undefined) {
+      throw new Error(`verification directive clusters unknown or caseless check "${cluster.checkId}"`)
+    }
+    if (cluster.count > check.cases.count || cluster.weight > check.cases.weightTotal) {
+      throw new Error(`verification directive cluster of check "${cluster.checkId}" exceeds its cases reference`)
+    }
   }
   /* v8 ignore next -- a current standard established by this fold always has a createdAt */
   if (state.createdAt === undefined) throw new Error('current standard fold lacks createdAt')

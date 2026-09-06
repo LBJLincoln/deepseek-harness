@@ -11,7 +11,9 @@ import type {
   CheckId,
   CheckResult,
   CompletionStandardSnapshot,
+  DirectiveCluster,
   RunExecutor,
+  RunParity,
   RunVerdict,
   StandardRef,
   VerificationCertificate,
@@ -62,6 +64,12 @@ export interface VerificationRunChangeMeta {
   readonly verdict: RunVerdict
   /** Every result of the run, passing or failing, in the standard's check order. */
   readonly results: readonly CheckResult[]
+  /**
+   * Weighted pass rate summed over the run's cased checks, absent when no check
+   * carries cases. It records how much of the measured behaviour the candidate
+   * reached and certifies nothing.
+   */
+  readonly parity?: RunParity
   /** Hex digest of the workspace tree the run covered, absent when the caller has none. */
   readonly treeHash?: string
   /** Epoch milliseconds of the run commit. */
@@ -83,6 +91,8 @@ export interface DirectiveChangeMeta {
   readonly standard: StandardRef
   readonly rootCause: string
   readonly detail: string
+  /** Failure clusters the detail was built from, absent when no cased check failed. */
+  readonly clusters?: readonly DirectiveCluster[]
   readonly issuedAt: number
 }
 
@@ -138,6 +148,7 @@ export type VerificationErrorCode =
   | 'VERIFICATION_STANDARD_EXISTS'
   | 'VERIFICATION_STALE_REVISION'
   | 'VERIFICATION_INVALID_CHECK'
+  | 'VERIFICATION_INVALID_CASE'
   | 'VERIFICATION_INVALID_RELAXATION'
   | 'VERIFICATION_INVALID_RESULTS'
   | 'VERIFICATION_INVALID_DIRECTIVE'
