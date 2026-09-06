@@ -60,6 +60,7 @@ function executed(status: 'pass' | 'fail' = 'pass', attempt = 1): VerificationRu
     attempt,
     isolation: 'none',
     executor: 'runner',
+    verdict: status === 'pass' ? 'passed' : 'failed',
     results: [{ checkId: CheckId('build-passes'), status, evidence: `exit ${status === 'pass' ? 0 : 1}` }],
     recordedAt: 6,
   }
@@ -171,6 +172,16 @@ describe('verification stream invariants', () => {
     expect(() => {
       failed.append('verification/certificate', certified())
     }).not.toThrow()
+  })
+
+  it('rejects a certificate over a tampered run whose results all passed', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('verification-invariant-tampered'))
+    session.append('verification/standard', authored())
+    session.append('verification/run', { ...executed(), verdict: 'tampered' })
+    expect(() => {
+      session.append('verification/certificate', certified())
+    }).toThrow(/certifies standard "standard-invariant" revision 1 over a verification\/run whose verdict is "tampered"/)
   })
 
   it('rejects a certificate whose executor differs from the run it cites', async () => {

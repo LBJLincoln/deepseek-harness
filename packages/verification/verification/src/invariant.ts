@@ -50,6 +50,12 @@ function checkCertifiedRunExecuted(state: VerificationFoldState, event: SessionE
   const run = state.lastRun
   if (run !== undefined && run.standard.id === covered.id && run.standard.revision === covered.revision
     && run.results.every(result => result.status === 'pass')) {
+    // A tampered run can carry passing results: the digest, not the checks,
+    // decided that the workspace stopped describing the task.
+    if (run.verdict !== 'passed') {
+      fail(`session event ${event.seq} certifies standard "${covered.id}" revision ${covered.revision} over a verification/run whose verdict is ${JSON.stringify(run.verdict)}`)
+      return
+    }
     if (run.executor !== change.certificate.executor) {
       fail(`session event ${event.seq} certifies executor ${JSON.stringify(change.certificate.executor)} while the run it cites recorded ${JSON.stringify(run.executor)}`)
     }

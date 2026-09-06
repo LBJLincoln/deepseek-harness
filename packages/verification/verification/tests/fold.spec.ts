@@ -140,6 +140,7 @@ describe('verification decoders', () => {
       attempt: 1,
       isolation: 'process',
       executor: 'runner',
+      verdict: 'passed',
       results: [
         { checkId: 'a', status: 'pass', evidence: 'ok a' },
         { checkId: 'b', status: 'pass', evidence: 'ok b' },
@@ -153,8 +154,17 @@ describe('verification decoders', () => {
     }))).toMatchObject({
       executor: 'agent-reported',
       treeHash: '0f1e2d',
+      verdict: 'failed',
       results: [{ checkId: 'a', status: 'pass' }, { checkId: 'b', status: 'fail', evidence: 'red' }],
     })
+  })
+
+  it('keeps a recorded verdict the results cannot state', () => {
+    expect(decodeRunChange(run({
+      verdict: 'tampered',
+      results: [result('a', { status: 'fail', evidence: 'not executed' }), result('b', { status: 'fail', evidence: 'not executed' })],
+    }))).toMatchObject({ verdict: 'tampered' })
+    expect(decodeRunChange(run({ verdict: 'passed', treeHash: 'beef' }))).toMatchObject({ verdict: 'passed', treeHash: 'beef' })
   })
 
   it.each<[string, () => unknown, string]>([
@@ -219,6 +229,8 @@ describe('verification decoders', () => {
     ['run ref', () => decodeRunChange(run({ standard: { id: 'standard-1' } })), 'run.standard must have exactly'],
     ['run attempt', () => decodeRunChange(run({ attempt: 0 })), 'run.attempt must be a positive safe integer'],
     ['run recorded at', () => decodeRunChange(run({ recordedAt: -1 })), 'run.recordedAt must be a non-negative safe integer'],
+    ['run verdict type', () => decodeRunChange(run({ verdict: 7 })), 'run.verdict is invalid'],
+    ['run verdict value', () => decodeRunChange(run({ verdict: 'pass' })), 'run.verdict is invalid'],
     ['run tree hash type', () => decodeRunChange(run({ treeHash: 7 })), 'run.treeHash must be a lowercase hex digest'],
     ['run tree hash characters', () => decodeRunChange(run({ treeHash: 'BEEF' })), 'run.treeHash must be a lowercase hex digest'],
     ['directive keys', () => decodeDirectiveChange(directive({ extra: 1 })), 'directive must have exactly'],
@@ -434,6 +446,14 @@ describe('verification fold transitions', () => {
       ...authored(),
       event('verification/run', run({ recordedAt: 9 }), 1),
     ], 'run cannot precede the current standard update'],
+    ['run claiming a verdict its results deny', [
+      ...authored(),
+      event('verification/run', run({ verdict: 'passed', results: [result('a'), result('b', { status: 'fail' })] }), 1),
+    ], 'cannot record verdict "passed" with a failing result'],
+    ['run failing on passing results', [
+      ...authored(),
+      event('verification/run', run({ verdict: 'failed' }), 1),
+    ], 'cannot record verdict "failed" with every result passing'],
     ['run repeating an attempt number', [
       ...authored(),
       event('verification/run', run(), 1),

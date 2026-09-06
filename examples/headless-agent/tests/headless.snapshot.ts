@@ -45,6 +45,9 @@ const credentialsConfigPath = fileURLToPath(new URL('../credentials.cordis.snaps
 const invalidCredentialScenarioDir = join(snapshotsDir, 'invalid-credential')
 const readBarrierScenarioDir = join(snapshotsDir, 'read-barrier-denied')
 const readBarrierConfigPath = fileURLToPath(new URL('../read-barrier.cordis.snapshot.yml', import.meta.url))
+const tamperScenarioDir = join(snapshotsDir, 'read-barrier-tamper')
+const tamperConfigPath = fileURLToPath(new URL('../read-barrier-tamper.cordis.snapshot.yml', import.meta.url))
+const tamperBinScript = fileURLToPath(new URL('./fixtures/read-barrier-tamper/driver.ts', import.meta.url))
 const ralphScenarioDir = join(snapshotsDir, 'ralph-loop')
 const ralphConfigPath = fileURLToPath(new URL('../ralph.cordis.snapshot.yml', import.meta.url))
 const settlementScenarioDir = join(snapshotsDir, 'subagent-settlement')
@@ -156,28 +159,42 @@ function normalizeHeadlessStream(rawStdout: string, cwd: string): string {
   return normalizeStdout(`${normalizedRecords.map(record => JSON.stringify(record)).join('\n')}\n`, context)
 }
 
-/** Zero durable goal timestamps inside both metadata records and rendered XML JSON. */
-function normalizeGoalTimestamps(value: unknown): unknown {
+const GOAL_TIMESTAMPS = ['createdAt', 'updatedAt', 'clearedAt']
+// An environment run also stamps its standard, its recorded runs, and its
+// directives; the goal and standard ids those services mint are UUIDs, which
+// the shared scrubber already tokenizes.
+const RUN_TIMESTAMPS = ['createdAt', 'updatedAt', 'recordedAt', 'issuedAt']
+
+/** Zero the named durable timestamps inside both metadata records and rendered XML JSON. */
+function zeroTimestamps(value: unknown, keys: readonly string[]): unknown {
   if (typeof value === 'string') {
-    return value.replace(/("(?:createdAt|updatedAt|clearedAt)":)\d+/g, '$10')
+    return value.replace(new RegExp(`("(?:${keys.join('|')})":)\\d+`, 'g'), '$10')
   }
-  if (Array.isArray(value)) return value.map(normalizeGoalTimestamps)
+  if (Array.isArray(value)) return value.map(item => zeroTimestamps(item, keys))
   if (value !== null && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([key, item]) => [
       key,
-      ['createdAt', 'updatedAt', 'clearedAt'].includes(key) && typeof item === 'number'
-        ? 0
-        : normalizeGoalTimestamps(item),
+      keys.includes(key) && typeof item === 'number' ? 0 : zeroTimestamps(item, keys),
     ]))
   }
   return value
 }
 
+/** Apply the shared scrubbers, then zero the named durable timestamps. */
+function normalizeTimestampedStream(rawStdout: string, cwd: string, keys: readonly string[]): string {
+  return parseJsonl(normalizeHeadlessStream(rawStdout, cwd))
+    .map(record => JSON.stringify(zeroTimestamps(record, keys)))
+    .join('\n') + '\n'
+}
+
 /** Normalize the stream's durable goal timestamps after the shared scrubbers. */
 function normalizeGoalStream(rawStdout: string, cwd: string): string {
-  return parseJsonl(normalizeHeadlessStream(rawStdout, cwd))
-    .map(record => JSON.stringify(normalizeGoalTimestamps(record)))
-    .join('\n') + '\n'
+  return normalizeTimestampedStream(rawStdout, cwd, GOAL_TIMESTAMPS)
+}
+
+/** Normalize an environment run's stream: its goal, standard, run, and directive timestamps. */
+function normalizeRunnerStream(rawStdout: string, cwd: string): string {
+  return normalizeTimestampedStream(rawStdout, cwd, RUN_TIMESTAMPS)
 }
 
 async function scenarioPrompt(dir: string, label: string): Promise<string> {
@@ -734,6 +751,41 @@ describe('headless stream-json snapshots', () => {
 
     expect(result.stderr).toBe('')
     const normalized = normalizeHeadlessStream(result.stdout, runCwd)
+    if (refreshing) await writeFile(streamExpected, normalized)
+    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins the read-barrier tamper directive an implementer sees after rewriting its own test', async () => {
+    const streamExpected = join(tamperScenarioDir, 'stream-json.expected.jsonl')
+    let runCwd = ''
+    const result = await runLoaderSmoke({
+      label: 'read-barrier tamper headless stream-json snapshot',
+      tempDirPrefix: 'headless-snapshot-read-barrier-tamper-',
+      binScript: tamperBinScript,
+      libBinScript: tamperBinScript,
+      configPath: tamperConfigPath,
+      binArgs: [tamperConfigPath],
+      tsconfigPath,
+      env: {
+        DSH_SNAPSHOT: 'replay',
+        DSH_SNAPSHOT_FILE: join(tamperScenarioDir, 'session.jsonl'),
+        DSH_SNAPSHOT_OVERRIDE: join(tamperScenarioDir, 'replay.override.json'),
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      prepare: (cwd) => { runCwd = cwd },
+      inspect: async (cwd) => {
+        const logs = await persistedLogs(cwd)
+        expect(logs).toHaveLength(1)
+        const records = parseJsonl(logs[0]?.content ?? '')
+        const runs = records.filter(record => record.type === 'verification/run')
+        expect(runs).toHaveLength(1)
+        expect(runs[0]?.data).toMatchObject({ verdict: 'tampered', executor: 'runner' })
+        expect(records.filter(record => record.type === 'verification/certificate')).toEqual([])
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    const normalized = normalizeRunnerStream(result.stdout, runCwd)
     if (refreshing) await writeFile(streamExpected, normalized)
     expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)

@@ -1051,7 +1051,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/certificate': CertificateChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:99`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:106`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationdirective--log-only"></a>
 
@@ -1064,7 +1064,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/directive': DirectiveChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:103`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:110`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrelaxation--log-only"></a>
 
@@ -1077,7 +1077,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/relaxation': RelaxationChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:91`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:98`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationrun--log-only"></a>
 
@@ -1090,7 +1090,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/run': VerificationRunChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:95`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:102`](../packages/verification/verification/src/domain.ts)
 
 <a id="verificationstandard--log-only"></a>
 
@@ -1103,7 +1103,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'verification/standard': StandardChangeMeta
 ```
 
-来源：[`packages/verification/verification/src/domain.ts:87`](../packages/verification/verification/src/domain.ts)
+来源：[`packages/verification/verification/src/domain.ts:94`](../packages/verification/verification/src/domain.ts)
 
 ### `web/*`
 

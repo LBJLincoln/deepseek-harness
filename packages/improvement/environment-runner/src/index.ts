@@ -34,6 +34,7 @@ import type {
   CheckResult,
   DirectiveRequest,
   StandardCheck,
+  StandardRef,
   StandardView,
   VerificationCertificate,
 } from '@deepseek-ai/dsh-verification/types'
@@ -115,6 +116,9 @@ export function resolveConfig(config: Config): ResolvedConfig {
  */
 const UNQUOTED_COMMAND_WORD = /^[A-Za-z0-9_@%+=:,./\\-]+$/
 
+/** Key the check-owned digest records the reservation's tree under. */
+const RESERVATION_KEY = '<reservation>'
+
 /** Subdirectory of a reservation holding one script per check. */
 const CHECKS_DIR = 'checks'
 /** Reservation file holding the standard the current attempt measures. */
@@ -161,6 +165,51 @@ async function hashDirectory(root: string): Promise<string> {
   const hash = createHash('sha256')
   for (const file of files) {
     hash.update(relative(root, file).split(sep).join('/')).update('\0').update(await readFile(file)).update('\0')
+  }
+  return hash.digest('hex')
+}
+
+/** What one check-owned path digests to when nothing is there to read. */
+const ABSENT_DIGEST = 'absent'
+
+/**
+ * SHA-256 over one check-owned path: its tree when a directory, its bytes when
+ * a file, and {@link ABSENT_DIGEST} when it is gone. Deleting a declared path
+ * is as much a change to the check-owned set as rewriting it.
+ * @param path - absolute path to digest.
+ * @returns the digest, or the absent marker.
+ */
+async function hashCheckOwnedPath(path: string): Promise<string> {
+  if (await isDirectory(path)) return hashDirectory(path)
+  try {
+    return createHash('sha256').update(await readFile(path)).digest('hex')
+  } catch {
+    // readFile rejects for a missing or unreadable path; either way the run
+    // cannot read what the fixture supplied, which is the change to record.
+    return ABSENT_DIGEST
+  }
+}
+
+/**
+ * SHA-256 over the whole check-owned set: the validator's reserved directory,
+ * when a barrier minted one, and every path the environment declared immutable,
+ * each keyed by the name it is declared under.
+ * @param workspace - the run's workspace directory, which immutable paths are relative to.
+ * @param runDirectory - the reservation, absent when no barrier is composed.
+ * @param immutable - the environment's declared immutable paths.
+ * @returns one digest over the whole set.
+ */
+async function hashCheckOwned(
+  workspace: string,
+  runDirectory: string | undefined,
+  immutable: readonly string[],
+): Promise<string> {
+  const hash = createHash('sha256')
+  if (runDirectory !== undefined) {
+    hash.update(RESERVATION_KEY).update('\0').update(await hashDirectory(runDirectory)).update('\0')
+  }
+  for (const path of immutable) {
+    hash.update(path).update('\0').update(await hashCheckOwnedPath(join(workspace, path))).update('\0')
   }
   return hash.digest('hex')
 }
@@ -249,6 +298,21 @@ function describeFailures(failures: readonly CheckResult[], maxChars: number): D
     detail: bound(failures.map((failure, index) => `${index + 1}. ${failure.evidence}`).join('\n'), maxChars),
   }
 }
+
+/**
+ * The one directive a tampered attempt issues. A digest comparison knows that
+ * the check-owned set changed and nothing else, so the text names neither a
+ * path nor a check: it states that the measurement is void and that the run is
+ * over. Pinned verbatim by the runner README and the `read-barrier-tamper`
+ * snapshot.
+ */
+const TAMPER_DIRECTIVE: DirectiveRequest = {
+  rootCause: 'the files this task is measured with were modified during the attempt',
+  detail: 'Those files belong to the validator: the task is to make them pass, never to change them. This run is void and no certificate can follow it.',
+}
+
+/** The evidence every check of a tampered attempt records, since none of them ran. */
+const TAMPER_EVIDENCE = 'not executed: the files this task is measured with were modified during the attempt'
 
 /** The validator's follow-up turn after a failed run; the text is pinned by the runner README and its e2e. */
 function followupText(directive: DirectiveRequest): string {
@@ -359,24 +423,36 @@ export class EnvironmentRunner extends Service {
       ...this.resolved.maxGoalRounds === undefined ? {} : { maxGoalRounds: this.resolved.maxGoalRounds },
     })
     goals.disarm(agent)
-    completionStandards.author(agent, { goalId: goal.id, checks: definition.checks })
+    const authored = completionStandards.author(agent, { goalId: goal.id, checks: definition.checks })
+    const immutable = definition.task.immutable ?? []
+    // Stock the reservation and digest the check-owned set before the
+    // implementer's first turn: that digest is what every later attempt is
+    // compared against.
+    await materializeChecks(runDirectory, authored)
+    let checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
     const attempts: EnvironmentRunAttempt[] = []
     let certificate: VerificationCertificate | undefined
     let prompt = definition.task.prompt
     try {
       for (let attempt = 1; attempt <= this.resolved.maxAttempts; attempt += 1) {
-        agent.followup(createUserMessage({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } }))
-        await agent.whenIdle()
+        await this.deliver(agent, prompt)
         const standard = this.currentStandard(agent, goal.id)
+        const ref = { id: standard.id, revision: standard.revision }
+        if (await hashCheckOwned(request.workspace, runDirectory, immutable) !== checkOwned) {
+          attempts.push(await this.recordTamper(agent, standard, ref, request.workspace, attempt))
+          break
+        }
         const treeHash = await restoreFixture(request.workspace, definition.task.fixture)
         const scripts = await materializeChecks(runDirectory, standard)
+        // The validator just rewrote its own directory, so the set it now owns
+        // is the baseline the next attempt must still find.
+        checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
         const results = await this.execute(standard.checks, request, scripts)
-        attempts.push({ attempt, results, treeHash })
-        const ref = { id: standard.id, revision: standard.revision }
         const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
           executor: 'runner',
           treeHash,
         })
+        attempts.push({ attempt, results, treeHash })
         if (outcome.certified) {
           certificate = outcome.certificate
           const current = goals.get(agent)
@@ -403,6 +479,48 @@ export class EnvironmentRunner extends Service {
       ...certificate === undefined ? {} : { certificate },
       ...usage === undefined ? {} : { usage },
     }
+  }
+
+  /** Send one user turn to the implementer and wait for the whole agent to go idle. */
+  private async deliver(agent: Agent, text: string): Promise<void> {
+    agent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
+    await agent.whenIdle()
+  }
+
+  /**
+   * Record one attempt whose check-owned set changed under the validator. The
+   * checks are not executed — the workspace no longer measures the task — so
+   * every result records that, the run is recorded as `tampered` and certifies
+   * nothing, and the implementer receives the tamper directive as its last
+   * validation follow-up before the attempt loop ends.
+   * @param agent - the implementer whose attempt this is.
+   * @param standard - the standard the attempt would have measured.
+   * @param ref - that standard's exact revision.
+   * @param workspace - the run's workspace, digested as the attempt left it.
+   * @param attempt - one-based attempt number.
+   * @returns the attempt the report carries.
+   */
+  private async recordTamper(
+    agent: Agent,
+    standard: StandardView,
+    ref: StandardRef,
+    workspace: string,
+    attempt: number,
+  ): Promise<EnvironmentRunAttempt> {
+    const results: CheckResult[] = standard.checks.map(check => ({
+      checkId: check.id,
+      status: 'fail',
+      evidence: bound(TAMPER_EVIDENCE, this.resolved.evidenceMaxChars),
+    }))
+    const treeHash = await hashDirectory(workspace)
+    this.ctx.completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
+      executor: 'runner',
+      treeHash,
+      tampered: true,
+    })
+    this.ctx.completionStandards.issueDirective(agent, ref, TAMPER_DIRECTIVE)
+    await this.deliver(agent, followupText(TAMPER_DIRECTIVE))
+    return { attempt, results, treeHash }
   }
 
   /** The standard the run measures; the implementer cannot mutate it, so another goal's standard or none is an anomaly. */

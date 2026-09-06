@@ -58,7 +58,7 @@ interface VerificationCertificate {
 }
 ```
 
-五个持久事件（`verification/standard`、`verification/relaxation`、`verification/run`、`verification/certificate`、`verification/directive`）编目于 [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only)；每次执行的运行都会被记录，而证书只覆盖结果全部通过的运行。`verification` 会话投影提供当前标准及其覆盖证书。
+五个持久事件（`verification/standard`、`verification/relaxation`、`verification/run`、`verification/certificate`、`verification/directive`）编目于 [persistence-catalog.md](../persistence-catalog.md#verificationstandard--log-only)；每次执行的运行都会被记录，并带上由其结果与调用方的篡改报告决定的裁定，而证书只覆盖裁定为 `passed` 的运行。`verification` 会话投影提供当前标准及其覆盖证书。
 
 ## 读取屏障
 
@@ -185,15 +185,15 @@ relax(agent: Agent, ref: StandardRef, checkId: CheckId, evidence: string): Stand
 
 /**
  * Record one complete run of the current standard. Every run appends a
- * durable `verification/run` event carrying all of its results; a fully
- * passing run then commits a certificate, while any failure returns the
- * failing subset the validator aggregates into a {@link issueDirective}
- * directive.
+ * durable `verification/run` event carrying all of its results and the
+ * verdict they and `evidence.tampered` decide; only a `passed` verdict
+ * commits a certificate, while any other returns the failing subset the
+ * validator aggregates into a {@link issueDirective} directive.
  * @param agent - owning live agent.
  * @param ref - expected current revision.
  * @param isolation - isolation level the run executed under.
  * @param results - exactly one result per active check, any order.
- * @param evidence - executor of the checks and the workspace digest it covered.
+ * @param evidence - executor of the checks, the workspace digest it covered, and whether the check-owned files were tampered with.
  * @returns the certificate, or the failing results.
  * @throws {@link VerificationError} with `VERIFICATION_ISOLATION_UNPROVEN`
  *   when the session's durable record does not support the claimed isolation.
@@ -230,7 +230,7 @@ assertCertified(agent: Agent, goalId: GoalId): VerificationCertificate
 
 Types: [Agent](core.md)
 
-Source: [`packages/verification/verification/src/index.ts:214`](../../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:215`](../../packages/verification/verification/src/index.ts)
 
 <a id="ctxreadbarrier--readbarrierservice"></a>
 

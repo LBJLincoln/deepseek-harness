@@ -648,7 +648,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:73`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:74`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -3054,7 +3054,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/verification/verification/src/index.ts:184`](../packages/verification/verification/src/index.ts)
+Source: [`packages/verification/verification/src/index.ts:185`](../packages/verification/verification/src/index.ts)
 
 <a id="deepseek-aidsh-web"></a>
 

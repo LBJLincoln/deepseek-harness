@@ -650,7 +650,7 @@ export interface Config {
 
 依赖：`CertificateIsolation`（`@deepseek-ai/dsh-verification/types`）
 
-来源：[`packages/improvement/environment-runner/src/index.ts:73`](../packages/improvement/environment-runner/src/index.ts)
+来源：[`packages/improvement/environment-runner/src/index.ts:74`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -3056,7 +3056,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/verification/verification/src/index.ts:184`](../packages/verification/verification/src/index.ts)
+来源：[`packages/verification/verification/src/index.ts:185`](../packages/verification/verification/src/index.ts)
 
 <a id="deepseek-aidsh-web"></a>
 

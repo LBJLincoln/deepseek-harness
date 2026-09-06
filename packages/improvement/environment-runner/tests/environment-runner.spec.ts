@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -536,6 +536,90 @@ describe('EnvironmentRunner', () => {
       .toEqual([report.attempts[0]?.treeHash, report.attempts[0]?.treeHash])
     expect(StubStandards.current.runs.map(run => run.evidence.treeHash))
       .toEqual([report.attempts[0]?.treeHash, report.attempts[0]?.treeHash])
+  })
+
+  it('records a tampered attempt, runs no check, issues the tamper directive, and ends the run', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-fixture-'))
+    await mkdir(join(fixture, 'tests'))
+    await writeFile(join(fixture, 'tests', 'suite.sh'), 'exit 1\n')
+    await writeFile(join(fixture, 'reference.txt'), 'expected\n')
+    let workspace = ''
+    const built = await harness({
+      config: { maxAttempts: 2 },
+      definition: environment({
+        task: { prompt: 'Make the suite pass.', fixture, immutable: ['tests', 'reference.txt'] },
+      }),
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        if (turn === 1) writeFileSync(join(workspace, 'tests', 'suite.sh'), 'exit 0\n')
+      },
+    })
+    workspace = built.workspace
+    // No scripted shell result: a tampered attempt must execute no check at all.
+    const report = await built.run()
+
+    expect(report.certified).toBe(false)
+    expect(report.attempts).toEqual([{
+      attempt: 1,
+      results: [{
+        checkId: 'marker',
+        status: 'fail',
+        evidence: 'not executed: the files this task is measured with were modified during the attempt',
+      }],
+      treeHash: expect.stringMatching(/^[0-9a-f]{64}$/) as unknown as string,
+    }])
+    expect(StubShell.current.requests).toEqual([])
+    expect(StubStandards.current.runs[0]?.evidence)
+      .toEqual({ executor: 'runner', treeHash: report.attempts[0]?.treeHash, tampered: true })
+    expect(StubStandards.current.directives).toEqual([{
+      rootCause: 'the files this task is measured with were modified during the attempt',
+      detail: 'Those files belong to the validator: the task is to make them pass, never to change them. This run is void and no certificate can follow it.',
+    }])
+    expect(StubAgents.current.agent.turns[1]).toBe(
+      '<validation_failed>\nthe files this task is measured with were modified during the attempt\nThose files belong to the validator: the task is to make them pass, never to change them. This run is void and no certificate can follow it.\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>',
+    )
+    expect(StubGoals.current.completed).toEqual([])
+    expect(StubSessions.current.flushed).toBe(1)
+    expect(StubAgents.current.disposed).toBe(1)
+  })
+
+  it('reads a deleted immutable path and a rewritten reservation as tamper, and an untouched set as no tamper', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-fixture-'))
+    await writeFile(join(fixture, 'reference.txt'), 'expected\n')
+    const definition = environment({
+      task: { prompt: 'Leave the reference alone.', fixture, immutable: ['reference.txt'] },
+    })
+
+    let workspace = ''
+    const deleted = await harness({
+      definition,
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        if (turn === 1) rmSync(join(workspace, 'reference.txt'))
+      },
+    })
+    workspace = deleted.workspace
+    await deleted.run()
+    expect(StubStandards.current.runs.map(run => run.evidence.tampered)).toEqual([true])
+
+    let reservation = ''
+    const rewritten = await harness({
+      barrierPrefix: 'environment-runner-tamper-barrier-',
+      definition,
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        if (turn === 1) writeFileSync(join(reservation, 'checks', 'marker'), 'exit 0\n')
+      },
+    })
+    reservation = join(rewritten.barrierRoot ?? '', 'runs', 'environment-test')
+    await rewritten.run()
+    expect(StubStandards.current.runs.map(run => run.evidence.tampered)).toEqual([true])
+
+    const untouched = await harness({ definition })
+    StubShell.current.script(MARKER, shellResult())
+    const report = await untouched.run()
+    expect(StubStandards.current.runs.map(run => run.evidence.tampered)).toEqual([undefined])
+    expect(report.certified).toBe(true)
   })
 
   it('rejects an unknown environment and an unusable workspace or fixture before any agent exists', async () => {

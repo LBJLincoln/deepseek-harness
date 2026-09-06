@@ -15,6 +15,14 @@ interface EnvironmentTask {
   readonly prompt: string
   /** Workspace fixture the runner mounts before the task starts, absent for a task that needs no files. */
   readonly fixture?: string
+  /**
+   * Workspace-relative paths the fixture supplies and the implementer must not
+   * author — the tests, the reference outputs, and any overlaid check script.
+   * Each is a `/`-separated relative path without `.` or `..` segments, naming
+   * a file or a directory tree; the runner digests them beside the validator's
+   * own directory and records a run that changed them as tampered.
+   */
+  readonly immutable?: readonly string[]
 }
 ```
 
@@ -87,7 +95,7 @@ interface LeaderboardRow {
 
 ## 轨迹奖励
 
-奖励携带其依据：当 goal 存在完成标准时为 `certificate`（由验证器决定，有覆盖证书为 `1`，没有为 `0`），当 goal 在从未编写标准的情况下完成时为 `uncertified-completion`，当日志中没有 goal 时为 `none`。
+奖励携带其依据：当最后记录的运行发现检查方拥有的文件已被改动时为 `tamper`（无论日志里还有什么，均为 `0`），当 goal 存在完成标准时为 `certificate`（由验证器决定，有覆盖证书为 `1`，没有为 `0`），当 goal 在从未编写标准的情况下完成时为 `uncertified-completion`，当日志中没有 goal 时为 `none`。
 
 ```ts type-equiv
 /** The reward with its basis and the evidence behind it. */
@@ -179,7 +187,7 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 ```
 
-Source: [`packages/improvement/environment-runner/src/index.ts:279`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:343`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -194,7 +202,8 @@ Environment registry (`ctx.environments`): tasks with verifiers, held at composi
  * @param definition - complete environment definition.
  * @returns the exact disposer that removes this registration and no later one under the same id.
  * @throws {@link EnvironmentError} when the id is already registered, the
- *   definition declares no checks, or two checks share an id.
+ *   definition declares no checks, two checks share an id, or an immutable
+ *   path is not a normalized workspace-relative path.
  */
 register(definition: EnvironmentDefinition): () => void
 
@@ -213,7 +222,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:182`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:218`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
