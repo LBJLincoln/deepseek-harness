@@ -257,12 +257,13 @@ function checkInstaller(
       }
     }
   }
-  const installer = initializer === undefined ? undefined : installerFunction(initializer)
-  if (installer === undefined) {
+  const installer = initializer === undefined ? undefined : resolveCheckedFunction(initializer, sourceFile)
+  const body = installer?.body
+  if (installer === undefined || body === undefined) {
     addViolation(violations, owner.sourcePath, 'must declare a local install function for package-owned checks')
     return
   }
-  if (ts.isBlock(installer.body) && installer.body.statements.length === 0) {
+  if (ts.isBlock(body) && body.statements.length === 0) {
     const declarationText = declarationStatement === undefined
       ? ''
       : sourceText.slice(declarationStatement.getFullStart(), declarationStatement.getEnd())
@@ -275,12 +276,15 @@ function checkInstaller(
     }
     return
   }
-  const reporter = installer.parameters[1]?.name
+  // The failure reporter is always the checked function's last parameter:
+  // `(ctx, fail)` for a direct installer, `(prior, event, fail)` for the
+  // per-event check a sessionEventValidator call delegates to.
+  const reporter = installer.parameters.at(-1)?.name
   if (reporter === undefined || !ts.isIdentifier(reporter)) {
-    addViolation(violations, owner.sourcePath, 'install function must accept the bound failure reporter as its second parameter')
+    addViolation(violations, owner.sourcePath, 'install function must accept the bound failure reporter as its last parameter')
     return
   }
-  if (!usesIdentifier(installer.body, reporter.text)) {
+  if (!usesIdentifier(body, reporter.text)) {
     addViolation(violations, owner.sourcePath, 'install function must use its bound failure reporter')
   }
 }
@@ -290,19 +294,61 @@ function usesIdentifier(node: ts.Node, name: string): boolean {
     || node.getChildren().some(child => usesIdentifier(child, name))
 }
 
-function installerFunction(
+/**
+ * Resolve `install`'s initializer to the function whose body the remaining
+ * checks walk. Recognizes a direct installer `(ctx, fail) => ...`, the same
+ * wrapped in `Object.assign(fn, { inject })`, and a call to
+ * `sessionEventValidator` imported from `@deepseek-ai/dsh-invariants` — whose
+ * first argument is the per-event `(prior, event, fail) => ...` check, given
+ * either inline or by a local named-function reference.
+ */
+function resolveCheckedFunction(
   initializer: ts.Expression,
-): ts.ArrowFunction | ts.FunctionExpression | undefined {
+  sourceFile: ts.SourceFile,
+): ts.ArrowFunction | ts.FunctionExpression | ts.FunctionDeclaration | undefined {
   if (ts.isArrowFunction(initializer) || ts.isFunctionExpression(initializer)) return initializer
-  if (ts.isCallExpression(initializer)
-    && ts.isPropertyAccessExpression(initializer.expression)
-    && ts.isIdentifier(initializer.expression.expression)
-    && initializer.expression.expression.text === 'Object'
-    && initializer.expression.name.text === 'assign') {
+  if (!ts.isCallExpression(initializer)) return undefined
+  if (isObjectAssign(initializer.expression)) {
     const target = initializer.arguments[0]
-    if (target !== undefined && (ts.isArrowFunction(target) || ts.isFunctionExpression(target))) return target
+    return target !== undefined && (ts.isArrowFunction(target) || ts.isFunctionExpression(target)) ? target : undefined
+  }
+  if (ts.isIdentifier(initializer.expression)
+    && initializer.expression.text === 'sessionEventValidator'
+    && importsSessionEventValidator(sourceFile)) {
+    const validateArg = initializer.arguments[0]
+    return validateArg === undefined ? undefined : resolveNamedFunction(validateArg, sourceFile)
   }
   return undefined
+}
+
+function isObjectAssign(expression: ts.LeftHandSideExpression): boolean {
+  return ts.isPropertyAccessExpression(expression)
+    && ts.isIdentifier(expression.expression)
+    && expression.expression.text === 'Object'
+    && expression.name.text === 'assign'
+}
+
+/** Whether the source file imports `sessionEventValidator` from the shared invariants package. */
+function importsSessionEventValidator(sourceFile: ts.SourceFile): boolean {
+  return sourceFile.statements.some((statement) => {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) return false
+    if (statement.moduleSpecifier.text !== '@deepseek-ai/dsh-invariants') return false
+    const bindings = statement.importClause?.namedBindings
+    return bindings !== undefined
+      && ts.isNamedImports(bindings)
+      && bindings.elements.some(element => (element.propertyName ?? element.name).text === 'sessionEventValidator')
+  })
+}
+
+/** Resolve an inline function expression, or an identifier to its top-level function declaration in the same file. */
+function resolveNamedFunction(
+  expression: ts.Expression,
+  sourceFile: ts.SourceFile,
+): ts.ArrowFunction | ts.FunctionExpression | ts.FunctionDeclaration | undefined {
+  if (ts.isArrowFunction(expression) || ts.isFunctionExpression(expression)) return expression
+  if (!ts.isIdentifier(expression)) return undefined
+  return sourceFile.statements.find((statement): statement is ts.FunctionDeclaration =>
+    ts.isFunctionDeclaration(statement) && statement.name?.text === expression.text)
 }
 
 function topLevelStringConstants(sourceFile: ts.SourceFile): ReadonlyMap<string, string> {

@@ -137,7 +137,7 @@ export const apply = (ctx: { invariants: { register(name: string, install: typeo
 `,
     })
     expect(collectPackageInvariantViolations(reporterFree).map(violation => violation.message))
-      .toContain('install function must accept the bound failure reporter as its second parameter')
+      .toContain('install function must accept the bound failure reporter as its last parameter')
 
     const unused = fixture({
       source: `
@@ -150,6 +150,61 @@ export const apply = (ctx: { invariants: { register(name: string, install: typeo
     })
     expect(collectPackageInvariantViolations(unused).map(violation => violation.message))
       .toContain('install function must use its bound failure reporter')
+  })
+
+  it('accepts a sessionEventValidator installer built from a named local function', () => {
+    const source = `
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
+export const name = 'probe-invariant'
+export const inject = ['invariants']
+function validateEvent(_prior: unknown, _event: unknown, fail: (message: string) => never): void { fail('probe') }
+const install = sessionEventValidator(validateEvent, (ctx: { sessions: { list(): unknown[] } }) => ctx.sessions.list())
+export const apply = (ctx: { invariants: { register(name: string, install: typeof install): () => void } }) =>
+  Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-probe', install))
+`
+    expect(collectPackageInvariantViolations(fixture({ source }))).toEqual([])
+  })
+
+  it('accepts a sessionEventValidator installer built from an inline per-event check', () => {
+    const source = `
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
+export const name = 'probe-invariant'
+export const inject = ['invariants']
+const install = sessionEventValidator(
+  (_prior: unknown, _event: unknown, fail: (message: string) => never) => { fail('probe') },
+  (ctx: { sessions: { list(): unknown[] } }) => ctx.sessions.list(),
+)
+export const apply = (ctx: { invariants: { register(name: string, install: typeof install): () => void } }) =>
+  Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-probe', install))
+`
+    expect(collectPackageInvariantViolations(fixture({ source }))).toEqual([])
+  })
+
+  it('rejects a sessionEventValidator installer whose named check ignores its bound failure reporter', () => {
+    const source = `
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
+export const name = 'probe-invariant'
+export const inject = ['invariants']
+function validateEvent(_prior: unknown, _event: unknown, _fail: (message: string) => never): void { void 0 }
+const install = sessionEventValidator(validateEvent, (ctx: { sessions: { list(): unknown[] } }) => ctx.sessions.list())
+export const apply = (ctx: { invariants: { register(name: string, install: typeof install): () => void } }) =>
+  Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-probe', install))
+`
+    expect(collectPackageInvariantViolations(fixture({ source })).map(violation => violation.message))
+      .toContain('install function must use its bound failure reporter')
+  })
+
+  it('rejects a call to an unrelated same-named sessionEventValidator that this package did not import', () => {
+    const source = `
+function sessionEventValidator(check: unknown): unknown { return check }
+export const name = 'probe-invariant'
+export const inject = ['invariants']
+const install = sessionEventValidator((_prior: unknown, _event: unknown, fail: (message: string) => never) => { fail('probe') })
+export const apply = (ctx: { invariants: { register(name: string, install: typeof install): () => void } }) =>
+  Promise.resolve(ctx.invariants.register('@deepseek-ai/dsh-probe', install))
+`
+    expect(collectPackageInvariantViolations(fixture({ source })).map(violation => violation.message))
+      .toContain('must declare a local install function for package-owned checks')
   })
 
   it('rejects registering a different installer than the checked local function', () => {

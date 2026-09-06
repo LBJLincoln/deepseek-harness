@@ -23,7 +23,7 @@ Status: implemented
 
 空形式是明确的架构结论，不是生成占位符。如果后续包变更引入可变状态或事件协议，就必须用相应检查替换该说明。
 
-中央 `dsh-invariants` 服务只负责配置、注册唯一性、子 fiber 生命周期、回滚、dispose（资源释放）和归属到包的失败。它不暴露通用插件形状、服务形状或启动断言 helper，也不导入产品包。
+中央 `dsh-invariants` 服务只负责配置、注册唯一性、子 fiber 生命周期、回滚、dispose（资源释放）和归属到包的失败。它不暴露插件形状、服务形状或启动断言 helper，也不导入产品包，也不拥有任何 companion 的实际关系检查。唯一的例外是 `sessionEventValidator`——一个与产品无关的工厂函数，用于多个 companion 共享的"先检查每个已提交的会话事件、再在 Session 发布候选事件前检查每个未来事件"这一固定 wiring（参见[共享的会话事件校验器接线](2026-09-06-shared-session-event-validator-plumbing.md)）；它运行的检查依然是调用方提供的函数，而非该服务自身的。
 
 ### 已实施的检查
 

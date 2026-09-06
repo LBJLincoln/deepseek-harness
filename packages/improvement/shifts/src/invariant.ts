@@ -15,8 +15,9 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { fleetCellKey } from '@deepseek-ai/dsh-fleet'
+import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
-import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { shiftDigest } from './plan.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-shifts'
@@ -54,19 +55,7 @@ export function checkLedgerEvent(prior: readonly SessionEvent[], event: SessionE
 }
 
 /** Check existing sessions and every candidate event before Session publishes it. */
-const install: InvariantInstaller = Object.assign((ctx: Context, fail: InvariantFailure) => {
-  for (const session of ctx.sessions.list()) {
-    session.events.forEach((event, index) => {
-      checkLedgerEvent(session.events.slice(0, index), event, fail)
-    })
-  }
-  /* jscpd:ignore-start -- package companions share dispatch and registration plumbing */
-  ctx.on('internal/dispatch', (_mode, eventName, args) => {
-    if (eventName !== 'session/event') return
-    const [session, event] = args as [Session, SessionEvent]
-    checkLedgerEvent(session.events, event, fail)
-  }, { global: true })
-}, { inject: ['sessions'] })
+const install: InvariantInstaller = sessionEventValidator(checkLedgerEvent, ctx => ctx.sessions.list())
 
 /**
  * Register the shift-ledger invariant companion.
@@ -75,4 +64,3 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
  */
 export const apply = (ctx: Context): Promise<() => void> =>
   Promise.resolve(ctx.invariants.register(PACKAGE_NAME, install))
-/* jscpd:ignore-end */

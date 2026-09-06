@@ -26,6 +26,24 @@ The service owns every registration fiber, while the returned disposer also belo
 
 Session itself owns immutable, surface-valid log storage in every composition: it takes one lossless JSON snapshot of each candidate, validates complete cited source-event coverage and positional replacement, restricts `tool/result` replacement to one current result's `content`, deep-freezes the accepted record, and exposes the log through immutable array snapshots. The `dsh-session` invariant companion checks the remaining cross-record rules that Session does not own.
 
+## Helper: `sessionEventValidator`
+
+```ts
+import type { Context } from '@deepseek-ai/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
+
+declare function sessionEventValidator<TEvent>(
+  validate: (prior: readonly TEvent[], event: TEvent, fail: InvariantFailure) => void,
+  sessions: (ctx: Context) => Iterable<{ readonly events: readonly TEvent[] }>,
+): InvariantInstaller
+```
+
+Builds the installer for a companion whose check is "validate every event already committed to each tracked session, then keep validating every future one at the exact point Session dispatches it, before deciding whether to publish it." `validate` is the package-owned relation check, called with the events that precede the candidate in the same session (oldest first) as `prior`, the candidate itself, and the bound failure reporter. `sessions` reads every currently tracked session from the calling package's own session service; every current caller passes `ctx => ctx.sessions.list()`.
+
+The returned installer first calls `validate` for every event already committed to each session `sessions` returns, threading the events preceding each one as `prior`, then subscribes to `internal/dispatch` and calls `validate` again for every future `session/event` dispatch, passing the dispatching session's currently committed events as `prior`. It injects the `sessions` service. The helper is generic over the caller's own session and event types rather than importing `Session`/`SessionEvent` from `@deepseek-ai/dsh-session`, which itself depends on this package for its own `./invariant` companion — an import running the other way would form a circular package reference.
+
+`dsh-budget-policy`, `dsh-goal-round-driver`, `dsh-scorekeeper`, `dsh-shifts`, `dsh-experiments`, and `dsh-tool-todo` build their companion this way. `pnpm run verify-package-invariants` recognizes a `sessionEventValidator(validate, sessions)` call the same way it recognizes a direct `(ctx, fail) => …` installer: it resolves `validate` — inline or a local named-function reference — and checks that function's own last parameter for the same accept-and-use-the-reporter rule.
+
 ## Package companions
 
 Publication and registration are exhaustive; runtime assertions are deliberately not synthetic. A companion installs a check only when its package owns an observable event relationship or relevant mutable-data relationship. Confirming a required method, plugin name, injection, effect, or fixed pure-function result is a type, load, or unit-test concern rather than a runtime invariant.
