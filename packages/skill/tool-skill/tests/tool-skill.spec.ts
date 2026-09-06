@@ -774,17 +774,12 @@ describe('dsh-tool-skill', () => {
 
     expect(result.isError).toBe(false)
     if (result.isError) throw new Error('expected skill success')
+    // The loaded generation is addressed log-side, never here: the canonical
+    // value is rendered into the code-mode system prompt, so it carries only
+    // what the model needs to act on the skill.
     expect(result.value).toEqual({
       name: 'project-skill',
       provider: 'filesystem',
-      digest: skillDigest({
-        name: 'project-skill',
-        description: 'Project skill',
-        invocation: { modelInvocable: true, userInvocable: true },
-        source: 'project-dsh',
-        provider: 'filesystem',
-        content: 'Project instructions.',
-      }),
       resourceBase: { kind: 'directory', path: join(project, '.dsh/skills/project-skill') },
       content: 'Project instructions.',
     })

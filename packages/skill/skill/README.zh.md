@@ -47,7 +47,7 @@
 
 ### 单代的内容地址
 
-`skillDigest(definition)` 是对已加载定义取 `[name, description, whenToUse ?? null, invocation.modelInvocable, invocation.userInvocable, metadata ?? null, content]` 的[组件](../../components/components/README.md)摘要。消费方据以决策的知识与路由元数据都在其中，因此正文或描述改动一个字节就会移动地址；发现来源 `source`、所属 `provider`、绝对路径 `path` 与 `resourceBase` 目录都在其外，因此在不同根目录下发现同一 skill 的两台主机——以及经由不同提供方重新注册的同一正文——地址相同。无法通过无损 JSON 边界的 `metadata` 值贡献 `null`，与缺失时完全一致。注册表自身从不计算摘要：`skill` 工具结果、用户显式注入以及 [`dsh-components-skills`](../../components/components-skills/README.md) 都调用该函数。
+`skillDigest(definition)` 是对已加载定义取 `[name, description, whenToUse ?? null, invocation.modelInvocable, invocation.userInvocable, metadata ?? null, content]` 的[组件](../../components/components/README.md)摘要。消费方据以决策的知识与路由元数据都在其中，因此正文或描述改动一个字节就会移动地址；发现来源 `source`、所属 `provider`、绝对路径 `path` 与 `resourceBase` 目录都在其外，因此在不同根目录下发现同一 skill 的两台主机——以及经由不同提供方重新注册的同一正文——地址相同。无法通过无损 JSON 边界的 `metadata` 值贡献 `null`，与缺失时完全一致。注册表自身从不计算摘要：用户显式注入与 [`dsh-components-skills`](../../components/components-skills/README.md) 调用该函数，而没有任何地址抵达模型——`skill` 工具结果不携带地址。
 
 ## 提供方约定
 

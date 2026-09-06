@@ -92,7 +92,6 @@ export function apply(ctx: Context, config: Config = {}): void {
         properties: {
           name: { type: 'string', required: true },
           provider: { type: 'string', required: true },
-          digest: { type: 'string', required: true },
           resourceBase: {
             oneOf: [
               {
@@ -147,13 +146,14 @@ export function apply(ctx: Context, config: Config = {}): void {
       if (!isModelInvocable(skill)) {
         throw new Error(`skill "${args.name}" is not available for model invocation`)
       }
-      // The digest addresses the generation this call loaded. It is absent from
-      // `renderSkillContent`, so the model-facing text is unchanged, and the
-      // component adapter reads it from the settled `tools/result` value.
+      // The generation this call loaded is addressed log-side: code mode renders
+      // this output declaration into the system prompt, so a per-generation
+      // digest here would be model-visible task-irrelevant text and would break
+      // the prompt's cache prefix on every skill edit. `dsh-components-skills`
+      // re-reads the loaded body through the registry instead.
       return {
         name: skill.name,
         provider: skill.provider,
-        digest: skillDigest(skill),
         ...skill.resourceBase !== undefined ? {
           resourceBase: { ...skill.resourceBase },
         } : {},

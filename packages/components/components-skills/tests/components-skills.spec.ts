@@ -16,7 +16,10 @@ import * as invariantCompanion from '@deepseek-ai/dsh-components-skills/invarian
 
 const signal = new AbortController().signal
 
-/** The `skill` tool under test: the load record the adapter reads is its canonical value. */
+/**
+ * The `skill` tool under test, carrying the shipped tool's model-visible value:
+ * the name of the loaded skill and no address.
+ */
 function skillTool(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'skill',
@@ -28,7 +31,6 @@ function skillTool(ctx: Context): void {
         additionalProperties: false,
         properties: {
           name: { type: 'string', required: true },
-          digest: { type: 'string', required: true },
           content: { type: 'string', required: true },
         },
       },
@@ -37,7 +39,7 @@ function skillTool(ctx: Context): void {
     async execute(args, exec) {
       const skill = await ctx.skills.get(args.name, { scope: exec.agent })
       if (skill === undefined) throw new Error(`skill "${args.name}" is unknown`)
-      return { name: skill.name, digest: skillDigest(skill), content: skill.content }
+      return { name: skill.name, content: skill.content }
     },
   }))
 }
@@ -66,7 +68,11 @@ function definition(name: string, content: string): SkillDefinition {
   }
 }
 
-/** Load one skill through the tool, which is what puts a generation in play. */
+/**
+ * Load one skill through the tool, which is what puts a generation in play. The
+ * adapter reads the loaded body back through the registry, so the registration
+ * settles after the call returns rather than inside it.
+ */
 async function load(ctx: Context, name: string, callId: string, agent?: Agent): Promise<void> {
   const result = await ctx.tools.execute({
     signal,
@@ -76,6 +82,7 @@ async function load(ctx: Context, name: string, callId: string, agent?: Agent): 
     ...agent === undefined ? {} : { agent },
   })
   if (result.isError) throw new Error(`expected the skill load to succeed: ${result.error.message}`)
+  await settle()
 }
 
 describe('@deepseek-ai/dsh-components-skills', () => {
@@ -113,6 +120,7 @@ describe('@deepseek-ai/dsh-components-skills', () => {
       signal, callId: CallId('c1'), name: 'skill', arguments: { name: 'absent-skill' },
     })
     expect(failed.isError).toBe(true)
+    ctx.skills.register(definition('forged-skill', 'Forged body.'))
     await ctx.plugin(Object.assign((inner: Context) => {
       inner.tools.register(defineTool({
         name: 'other_tool',
@@ -122,14 +130,15 @@ describe('@deepseek-ai/dsh-components-skills', () => {
           schema: { type: 'object', additionalProperties: true, properties: {} },
           render: () => [{ type: 'text', text: 'ok' }],
         },
-        execute: () => Promise.resolve({ name: 'forged-skill', digest: 'a'.repeat(64) }),
+        execute: () => Promise.resolve({ name: 'forged-skill' }),
       }))
     }, { inject: ['tools'] }))
     await ctx.tools.execute({ signal, callId: CallId('c2'), name: 'other_tool', arguments: {} })
+    await settle()
     expect(ctx.components.list({ kind: 'skill' })).toEqual([])
   })
 
-  it('refuses a load record whose name or digest cannot address a generation', async () => {
+  it('refuses a load record that names no skill, and a name the registry cannot resolve', async () => {
     const ctx = new Context()
     await ctx.plugin(SystemPrompt, {})
     await ctx.plugin(SessionStore)
@@ -148,37 +157,76 @@ describe('@deepseek-ai/dsh-components-skills', () => {
           render: () => [{ type: 'text', text: 'ok' }],
         },
         execute: args => Promise.resolve(args.name === 'no-name'
-          ? { digest: 'b'.repeat(64) }
-          : { name: 'truncated-skill', digest: 'b'.repeat(16) }),
+          ? { provider: 'runtime' }
+          : { name: args.name === 'blank-name' ? '' : 'unregistered-skill' }),
       }))
     }, { inject: ['tools'] }))
-    await ctx.tools.execute({ signal, callId: CallId('c1'), name: 'skill', arguments: { name: 'no-name' } })
-    await ctx.tools.execute({ signal, callId: CallId('c2'), name: 'skill', arguments: { name: 'short-digest' } })
+    for (const [index, name] of ['no-name', 'blank-name', 'unregistered'].entries()) {
+      await ctx.tools.execute({ signal, callId: CallId(`c${index}`), name: 'skill', arguments: { name } })
+    }
+    await settle()
     expect(ctx.components.list({ kind: 'skill' })).toEqual([])
   })
 
   it('records a user-explicit invocation from its durable message source', async () => {
     const { ctx } = await harness()
+    ctx.skills.register(definition('invoked-skill', 'Invoked body.'))
     const session = ctx.sessions.create(SessionId('invocation-session'), { meta: { cwd: '/workspace' } })
-    const digest = skillDigest(definition('invoked-skill', 'Invoked body.'))
     appendUserMessage(session, createUserMessage({
       content: [{ type: 'text', text: '<skill_content name="invoked-skill"></skill_content>' }],
-      source: { kind: 'skill-invocation', name: 'invoked-skill', digest, form: 'instructions' },
+      // The address on the record is stale by construction: the adapter reads
+      // the generation back through the registry, so this digest never wins.
+      source: {
+        kind: 'skill-invocation',
+        name: 'invoked-skill',
+        digest: 'a'.repeat(64) as ComponentDigest,
+        form: 'instructions',
+      },
     }))
-    expect(ctx.components.get(skillComponentId('invoked-skill'))?.digest).toBe(digest)
+    await settle()
+    expect(ctx.components.get(skillComponentId('invoked-skill'))?.digest)
+      .toBe(skillDigest(definition('invoked-skill', 'Invoked body.')))
 
-    // A message of another source, and a durable source carrying no address,
-    // leave the inventory alone.
+    // A message of another source, and a durable source naming no skill, leave
+    // the inventory alone.
     appendUserMessage(session, createUserMessage({
       content: [{ type: 'text', text: 'plain prose' }],
       source: { kind: 'user' },
     }))
     appendUserMessage(session, createUserMessage({
       content: [{ type: 'text', text: 'seeded' }],
-      source: { kind: 'skill-invocation', name: 'seeded-skill', form: 'instructions' } as never,
+      source: { kind: 'skill-invocation', form: 'instructions' } as never,
     }))
     session.append('step/start', { turn: 1, step: 1 })
+    await settle()
     expect(ctx.components.list({ kind: 'skill' })).toHaveLength(1)
+  })
+
+  it('keeps the address of the later read when an earlier one settles after it', async () => {
+    const { ctx } = await harness()
+    const first = deferred<SkillDefinition>()
+    const second = deferred<SkillDefinition>()
+    const reads = [first.promise, second.promise]
+    let index = 0
+    ctx.skills.get = () => reads[index++] as Promise<SkillDefinition>
+    const sessions = ['race-a', 'race-b'].map(id => ctx.sessions.create(SessionId(id), { meta: { cwd: `/${id}` } }))
+    for (const session of sessions) {
+      appendUserMessage(session, createUserMessage({
+        content: [{ type: 'text', text: '<skill_content name="raced-skill"></skill_content>' }],
+        source: {
+          kind: 'skill-invocation',
+          name: 'raced-skill',
+          digest: 'a'.repeat(64) as ComponentDigest,
+          form: 'instructions',
+        },
+      }))
+    }
+    second.resolve(definition('raced-skill', 'Second body.'))
+    await settle()
+    first.resolve(definition('raced-skill', 'First body.'))
+    await settle()
+    expect(ctx.components.get(skillComponentId('raced-skill'))?.digest)
+      .toBe(skillDigest(definition('raced-skill', 'Second body.')))
   })
 
   it('re-addresses a body edited in place and drops a skill the registry lost', async () => {
@@ -286,9 +334,16 @@ function appendUserMessage(session: Session, message: UserMessage): void {
   session.append('user/message', message, { surfaceOp: 'append' })
 }
 
-/** Let every queued reload of a `skills/change` replay settle. */
+/** Let every queued registry read of a load or a `skills/change` replay settle. */
 async function settle(): Promise<void> {
   for (let turn = 0; turn < 8; turn += 1) await Promise.resolve()
+}
+
+/** One registry read the test settles by hand, to fix the order two reads finish in. */
+function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((settleWith) => { resolve = settleWith })
+  return { promise, resolve }
 }
 
 /** Mint a scope whose key doubles as a minimal Agent-like object. */
@@ -307,6 +362,3 @@ async function mintAgentScope(ctx: Context, id: string): Promise<{ scope: Scope;
   ))
   return { scope, key }
 }
-
-/** The digest brand only ever crosses this file as a value the seam produced. */
-export type { ComponentDigest }

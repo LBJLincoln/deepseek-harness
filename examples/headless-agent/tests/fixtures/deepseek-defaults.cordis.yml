@@ -7,7 +7,11 @@
         config:
           baseURL: !!js process.env.DSH_SNAPSHOT_BASE_URL
           thinking: disabled
-          streamIdleTimeoutMs: 150
+          # Paired with the snapshot server's keep-alive cadence: comments arrive
+          # far inside this window and the completion lands past it, so the run
+          # proves comments reset the idle timer. Widening both together is what
+          # keeps a delayed timer on a loaded host from reading as a `TIMEOUT`.
+          streamIdleTimeoutMs: 800
       - id: agent-spine
         config:
           agents:
