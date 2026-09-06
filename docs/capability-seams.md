@@ -134,6 +134,8 @@ flowchart LR
   pkg_experiments["experiments"]
   pkg_shifts["shifts"]
   svc_shifts["ctx.shifts<br/>Durable shift driver"]
+  pkg_program["program"]
+  svc_programs["ctx.programs<br/>Program ledger"]
   svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
@@ -271,6 +273,7 @@ flowchart LR
   pkg_modules --> svc_clientModules
   pkg_permission_presets --> svc_permissionPresets
   pkg_plan_mode --> svc_planMode
+  pkg_program --> svc_programs
   pkg_pwsh_local --> svc_shell
   pkg_read_barrier --> svc_readBarrier
   pkg_sandbox --> svc_sandbox
@@ -383,6 +386,7 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_programs --> pkg_headless_agent
   svc_readBarrier --> pkg_environment_runner
   svc_readBarrier --> pkg_fs_read_barrier
   svc_sandbox --> pkg_bash_sandbox
@@ -511,6 +515,7 @@ flowchart LR
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | Runs one environment as one fresh stamped session, authors the standard from its checks, executes them as the validator, and completes the goal only under a certificate. |
 | `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`, [`experiments`](../packages/improvement/experiments), [`shifts`](../packages/improvement/shifts) | - | Runs a plan of environment × model × repetition cells through the runner, keeps every cell outcome, and folds a leaderboard partitioned by isolation and held-out split. |
 | `ctx.shifts` | `core` | [`shifts`](../packages/improvement/shifts) | - | `headless-agent` | - | Opens a slot per district cadence, freezes what it runs into a digest, and records the shift as shift/* events in its own session so a restart resumes exactly the cells that never started. |
+| `ctx.programs` | `core` | [`program`](../packages/improvement/program) | - | `headless-agent` | - | Decomposes one deliverable into department goals, each on its own worktree, session, preset, and caps, records every status as program/* events in the program's own session, and releases only on a certificate of the merged head. |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | Freezes a plan by a content digest, runs both arms through the fleet at paired repetition indexes under digest-derived stamp groups, and folds the certificate-rate delta with a bootstrap interval and a verdict. |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`, [`scorekeeper`](../packages/improvement/scorekeeper) | - | Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event. |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | Registers the sessionFacts projection unit and folds persisted logs into facts records, a scoreboard partitioned by route, environment, isolation, and held-out split, and a JSONL export. |

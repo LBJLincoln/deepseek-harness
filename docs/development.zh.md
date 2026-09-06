@@ -122,7 +122,7 @@ keyless [CI 工作流](../.github/workflows/ci.yml) 将独立门禁分组到若�
 
 ### 组合门禁
 
-有两个门禁读取仓库中的每一份 Cordis Loader 配置。`verify-cordis-config` 负责 Loader 条目元数据与插件包解析。`verify-village-composition` 负责 [Daliesk Village note](../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md) 中的区规则：组合了 `@deepseek-ai/dsh-environment-runner`、`@deepseek-ai/dsh-fleet` 或 `@deepseek-ai/dsh-experiments` 的配置会运行无人看管的会话，因此还必须组合至少设置一个生效上限的 `@deepseek-ai/dsh-budget-policy`、一个会话持久化后端和 `@deepseek-ai/dsh-session-checkpoint-policy`，并且 fleet 条目必须设置 `workspaceRetention`。
+有两个门禁读取仓库中的每一份 Cordis Loader 配置。`verify-cordis-config` 负责 Loader 条目元数据与插件包解析。`verify-village-composition` 负责 [Daliesk Village note](../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md) 中的区规则：组合了 `@deepseek-ai/dsh-environment-runner`、`@deepseek-ai/dsh-fleet`、`@deepseek-ai/dsh-experiments` 或 `@deepseek-ai/dsh-program` 的配置会运行无人看管的会话，因此还必须组合至少设置一个生效上限的 `@deepseek-ai/dsh-budget-policy`、一个会话持久化后端和 `@deepseek-ai/dsh-session-checkpoint-policy`，并且 fleet 条目必须设置 `workspaceRetention`。
 
 声明 `isolation: process` 或 `host` 的运行器只报告警告而不失败：该声明会进入证书，而仅凭组合本身无法证明它，因为证明是该次运行的读取屏障 census 把每个会打开路径的能力都记录为在其执行器处被拒，这由 `recordRun` 逐次运行检查，并取决于宿主实际能运行的沙箱后端。`--strict` 让这些警告同样导致失败。两个门禁都在 `pnpm run hygiene` 与 CI 静态 lane 中运行，每条诊断都会指明配置文件、条目 id 与规则。
 

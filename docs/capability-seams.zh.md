@@ -136,6 +136,8 @@ flowchart LR
   pkg_experiments["experiments"]
   pkg_shifts["shifts"]
   svc_shifts["ctx.shifts<br/>Durable shift driver"]
+  pkg_program["program"]
+  svc_programs["ctx.programs<br/>Program ledger"]
   svc_experiments["ctx.experiments<br/>Paired experiments"]
   svc_trajectories["ctx.trajectories<br/>Trajectory export"]
   pkg_scorekeeper["scorekeeper"]
@@ -273,6 +275,7 @@ flowchart LR
   pkg_modules --> svc_clientModules
   pkg_permission_presets --> svc_permissionPresets
   pkg_plan_mode --> svc_planMode
+  pkg_program --> svc_programs
   pkg_pwsh_local --> svc_shell
   pkg_read_barrier --> svc_readBarrier
   pkg_sandbox --> svc_sandbox
@@ -385,6 +388,7 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_programs --> pkg_headless_agent
   svc_readBarrier --> pkg_environment_runner
   svc_readBarrier --> pkg_fs_read_barrier
   svc_sandbox --> pkg_bash_sandbox
@@ -513,6 +517,7 @@ flowchart LR
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | 把一个环境作为一个全新的、已盖章的会话运行，由其检查编写标准，作为验证者执行检查，并且只在有证书时才完成 goal。 |
 | `ctx.fleet` | `core` | [`fleet`](../packages/improvement/fleet) | - | `headless-agent`、[`experiments`](../packages/improvement/experiments)、[`shifts`](../packages/improvement/shifts) | - | 把环境 × 模型 × 重复的 cell 计划通过运行器运行，保留每个 cell 的结果，并折叠出按隔离级别与留出划分分区的排行榜。 |
 | `ctx.shifts` | `core` | [`shifts`](../packages/improvement/shifts) | - | `headless-agent` | - | 按每个区的节拍开启一个班次时槽，把该时槽运行的内容冻结为摘要，并把整个班次以 shift/* 事件记入它自己的会话，因此重启只会恢复那些从未开始过的 cell。 |
+| `ctx.programs` | `core` | [`program`](../packages/improvement/program) | - | `headless-agent` | - | 把一份交付物分解为部门目标，每个目标都有自己的工作树、会话、预设与配额，把每一次状态变化以 program/* 事件记入该程序自己的会话，并且只在合并后 head 的证书之上发布。 |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | 以内容摘要冻结一份计划，让两个 arm 都经 fleet 以配对的重复索引、在由摘要派生的 stamp group 之下运行，并连同 bootstrap 区间与判定一起折叠出证书率 delta。 |
 | `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`、[`scorekeeper`](../packages/improvement/scorekeeper) | - | 将已持久化会话折叠为带证书判定奖励与组件来源的 dsh-trajectory/1 记录；不写入任何会话事件。 |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent` | - | 注册 sessionFacts 投影单元，并把已持久化日志折叠为事实记录、按路由、环境、隔离级别与留出划分分区的记分板，以及 JSONL 导出。 |

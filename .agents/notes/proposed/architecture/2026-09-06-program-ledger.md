@@ -36,6 +36,19 @@ When every goal is `certified`, the program creates the integration worktree fro
 
 The plugin requires `agents`, `sessions`, `sessionPersistence`, `goals`, `completionStandards`, `shell`, and `agentPresets`; it reads `readBarrier` optionally. `verify-village-composition` counts a composition of `dsh-program` as a district composition, so it must carry the budget policy, persistence, and the checkpoint policy. Config: `workspaceRoot`, `requireSignoff`, `maxConcurrentGoals`, `maxGoalRounds`, `branchPrefix`.
 
+### What slices 1 to 3 landed differently
+
+- **A goal starts on `certified` dependencies, not `merged` ones.** `merged` follows the single integration pass, which needs every goal certified, so requiring it to start a dependent deadlocks every program that has one. `merged` stays what a certified integration records.
+- **The program is its departments' validator and drives their attempts.** It creates each goal, disarms it the way the environment runner does, delivers the objective, runs the standard's checks through the shell, records the run, and issues a directive between attempts; `maxGoalRounds` is both the goal's cap and the attempt bound. A resumed department takes the goal domain's own resume edge — the durable record that this process took it back over — before the service disarms it again, so the composed goal-round driver stays the path an operator's own resume takes.
+- **Two composition facts the note did not list.** `agentDefaultModel` is a required injection, because a department session needs a model route; and `Config.evidenceMaxChars` bounds recorded evidence, because the verification domain refuses text longer than its own `maxTextChars`.
+- **`workspaceRoot` is the repository.** The note named a directory worktrees are minted under but no repository holding `baseRevision`; the landed field is the git repository the program delivers into, with `<workspaceRoot>/<programId>/<key>` under it.
+- **The integration is a key, and its gates are checks.** The integration worktree and session use `@integration`, which no lower-kebab-case goal key can claim; each entry of `integration.gates` becomes one `gate-<n>` check of the integration standard, so the certificate covers the gates, and an integration check claiming such an id is refused at spec validation. The integration session mounts the roster's default preset and claims `none` isolation.
+- **The digest excludes `signoff`.** It attests the spec rather than stating what the program runs, so the same goals signed by two principals are one program.
+- **The ledger declares before it reports.** `program/start` is followed by one `pending` record per goal, and a reconciliation declares any goal the ledger never recorded, so the first record of a key is always `pending` and the companion can check every later transition against it. `program/integration` may enter at `failed` when its worktree could not be created at all.
+- **A department session id is derived** as `<programId>-<key>`, which makes "never a second session for a key" a property of the identity rather than of a lookup.
+- **The barrier reservation stages nothing.** The run directory is reserved so the barrier records the department as an implementer, but check scripts are not written into it, so a goal declaring isolation above `none` is refused by the verification domain unless the session's own census proves the claim.
+- **`abandoned` has a producer.** A program that reaches its `tokenCeiling`, or that ends before a pending goal started, records those goals `abandoned`; a ceiling stop ends the program `abandoned` rather than `failed`.
+
 ## Alternatives considered
 
 **A workflow-engine script as the orchestrator.** Rejected for now: the worker-thread engine journals nothing, so a program dies with its process; the journaling engine of the four-goal note's item 11 can host this loop later without changing the ledger events.
@@ -59,10 +72,10 @@ The plugin requires `agents`, `sessions`, `sessionPersistence`, `goals`, `comple
 
 ## Rollout
 
-1. `dsh-program`: the spec digest, the program session and `program/*` events, departments with worktrees and `program/member`, resume, the invariant companion, the two-goal e2e with kill and restart, the README pair, catalogs regenerated.
-2. `budget/caps` in the budget policy: the event, the tightening fold, the companion rule, and the program writing it.
-3. Integration: the merge in dependency order, the integration session, `program/integration`, release.
-4. Downstream: the scorekeeper's `program` facts group from `program/member`, the `verify-village-composition` rule, the shift driver able to schedule programs as slots.
+1. Landed. `dsh-program`: the spec digest, the program session and `program/*` events, departments with worktrees and `program/member`, resume, the invariant companion, the two-goal e2e with kill and restart, the README pair, catalogs regenerated.
+2. Landed. `budget/caps` in the budget policy: the event, the tightening fold, the companion rule, and the program writing it.
+3. Landed. Integration: the merge in dependency order, the integration session, `program/integration`, release. The `verify-village-composition` rule of item 4 landed with it, because a program composition without a capped budget policy is exactly what the ceiling and the per-department caps rely on.
+4. Downstream: the scorekeeper's `program` facts group from `program/member`, the shift driver able to schedule programs as slots.
 5. Governance: `signoff/recorded` replaces the caller-supplied record at start and release; the validation instrument's `standard_author` authors a program's checks from the frozen spec.
 6. Later, the journaling workflow engine hosts the loop; the ledger events do not change.
 

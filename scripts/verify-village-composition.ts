@@ -1,11 +1,11 @@
 /**
  * Village composition rules for Daliesk Village district configurations.
  *
- * A configuration composing the environment runner, the fleet, or the
- * experiment driver runs sessions nobody watches: they spend tokens, and the
- * durable log — not the workspace — is the record. Such a file must therefore
- * also compose the session budget policy with at least one enforced cap, a
- * session persistence backend, and the checkpoint policy. A fleet entry must
+ * A configuration composing the environment runner, the fleet, the experiment
+ * driver, or the program ledger runs sessions nobody watches: they spend
+ * tokens, and the durable log — not the workspace — is the record. Such a file
+ * must therefore also compose the session budget policy with at least one
+ * enforced cap, a session persistence backend, and the checkpoint policy. A fleet entry must
  * set `workspaceRetention`, which the fleet schema requires: the gate names it
  * as a village rule so the diagnostic states why an unattended shift cannot
  * leave the decision to a default.
@@ -42,6 +42,7 @@ const DISTRICT_PACKAGES: readonly string[] = [
   RUNNER_PACKAGE,
   FLEET_PACKAGE,
   '@deepseek-ai/dsh-experiments',
+  '@deepseek-ai/dsh-program',
 ]
 
 /** The `Config` keys of `@deepseek-ai/dsh-budget-policy` that set an enforced cap. */

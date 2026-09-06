@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次则是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)与[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 与 [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/1` 记录，其奖励由证书决定；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；而一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)与[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 与 [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -224,6 +224,72 @@ type ShiftCellOutcome =
   | { readonly kind: 'interrupted' }
 ```
 
+## 程序台账
+
+一个程序是一份被拆解为多个目标的客户交付物，并在其中任何一个目标启动之前就被冻结。`programSpecDigest(spec)` 是对规范化规格取的 SHA-256 十六进制——目标按 key 排序、每个目标的依赖也排序、检查与门禁保持撰写顺序、`signoff` 被排除在外——而 `program-<digest>` 既是程序 id，也是程序会话的 id。该会话承载台账：`program/start`、每次状态变化一条 `program/goal`、`program/integration`、后续进程接手该程序时的 `program/resume`，以及 `program/end`；每个部门会话与整合会话各携带一条 `program/member` 标记。[持久化目录](../persistence-catalog.md) 收录了每个载荷的声明，[包 README](../../packages/improvement/program/README.md) 承载部门、合并顺序与恢复规则。
+
+```ts type-equiv
+/** One client deliverable, frozen before its first department starts. */
+interface ProgramSpec {
+  /** What the whole program delivers, stated for a reader of the ledger. */
+  readonly objective: string
+  /** Git revision every worktree of the program is created from. */
+  readonly baseRevision: string
+  /** The goals the deliverable decomposes into, at least one. */
+  readonly goals: readonly ProgramGoalSpec[]
+  /** What the merged head is certified against. */
+  readonly integration: ProgramIntegrationSpec
+  /** The spec-freeze record; required by `requireSignoff`. */
+  readonly signoff?: ProgramSignoff
+  /** Input plus output tokens every session of the program may sum to. */
+  readonly tokenCeiling?: number
+}
+```
+
+一个目标就是一个部门：它有自己的 git worktree（位于 `<branchPrefix>/<programId>/<key>`）、由 `preset` 组合出的自有会话、自有的 `budget/caps`，以及由 `checks` 撰写的自有标准。`dependsOn` 是程序内 key 上的有向无环图，只有当某目标依赖的每个目标都已认证，它才会启动。
+
+```ts type-equiv
+/** One goal of a program: what one department delivers, and what certifies it. */
+interface ProgramGoalSpec {
+  /** Lower-kebab-case identity, unique in the program; it names the branch and the worktree. */
+  readonly key: string
+  /** The objective the department's goal is created with. */
+  readonly objective: string
+  /** Id of a shipped preset declaring the `implementer` role, mounted into the department session. */
+  readonly preset: string
+  /** Isolation the department's certified run claims. */
+  readonly isolation: CertificateIsolation
+  /** Caps recorded on the department session before its first turn. */
+  readonly budget: ProgramGoalBudget
+  /** Keys of the goals this one is delivered after; a directed acyclic graph over the program's keys. */
+  readonly dependsOn: readonly string[]
+  /** The standard the department is certified against, compiled before any department starts. */
+  readonly checks: readonly StandardCheck[]
+}
+```
+
+目标的状态可以从各部门自身持有的事实推导出来，这正是重启时所核对的内容：`certified` 跟随部门自身日志中的 `verification/certificate`，`blocked` 跟随其目标进入阻塞阶段，`merged` 跟随覆盖其分支的已认证整合，`failed` 跟随没有证书就结束或丢失了 worktree 的部门，`abandoned` 则跟随在该目标启动之前就结束的程序。
+
+```ts type-equiv
+/**
+ * Status of one goal in its program's ledger.
+ *
+ * `pending` has no department yet, `running` has one working, `blocked` waits
+ * for an operator's resume through the goal domain, `certified` holds a
+ * certificate over its own branch head, `merged` has that branch inside a
+ * certified integration, `failed` ended without a certificate, and `abandoned`
+ * never started because the program ended first.
+ */
+type ProgramGoalStatus =
+  | 'pending'
+  | 'running'
+  | 'blocked'
+  | 'certified'
+  | 'failed'
+  | 'merged'
+  | 'abandoned'
+```
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -334,6 +400,40 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
 Source: [`packages/improvement/fleet/src/index.ts:300`](../../packages/improvement/fleet/src/index.ts)
+
+<a id="ctxprograms--programservice"></a>
+
+### `ctx.programs` — `ProgramService`
+
+Programs (`ctx.programs`): a durable, resumable ledger over one deliverable's goals.
+
+```ts cordis-catalog
+/**
+ * Start one program, or resume the program its spec already identifies.
+ *
+ * The spec is frozen into a digest before anything runs, so starting the same
+ * spec twice addresses one program: the second call reconciles the existing
+ * ledger instead of forking a second one.
+ * @param spec - the deliverable to run.
+ * @returns the ledger this pass left behind.
+ * @throws {@link ProgramError} when the spec, its presets, or the required
+ *   signoff record cannot support a program.
+ */
+async start(spec: ProgramSpec): Promise<ProgramReport>
+
+/**
+ * Reconcile every unfinished program in the persistence root and carry it on.
+ *
+ * Each program's goals are read from their own department sessions and
+ * worktrees rather than from the ledger, so a process that died between a
+ * durable fact and its ledger record records the fact rather than repeating
+ * the work.
+ * @returns one report per program this pass reconciled, in scan order.
+ */
+async resume(): Promise<ProgramReport[]>
+```
+
+Source: [`packages/improvement/program/src/index.ts:210`](../../packages/improvement/program/src/index.ts)
 
 <a id="ctxscorekeeper--scorekeeperservice"></a>
 

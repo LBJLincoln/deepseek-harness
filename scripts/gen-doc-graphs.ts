@@ -414,6 +414,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Opens a slot per district cadence, freezes what it runs into a digest, and records the shift as shift/* events in its own session so a restart resumes exactly the cells that never started.',
   },
   {
+    key: 'programs',
+    pkg: 'program',
+    title: 'Program ledger',
+    mode: 'core',
+    consumers: ['headless-agent'],
+    note: 'Decomposes one deliverable into department goals, each on its own worktree, session, preset, and caps, records every status as program/* events in the program\'s own session, and releases only on a certificate of the merged head.',
+  },
+  {
     key: 'experiments',
     pkg: 'experiments',
     title: 'Paired experiments',

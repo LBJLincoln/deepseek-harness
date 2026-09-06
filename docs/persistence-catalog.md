@@ -252,7 +252,25 @@ Source: [`packages/core/session/src/types.ts:273`](../packages/core/session/src/
 'budget/breach': BudgetBreach
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:99`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:125`](../packages/guard/budget-policy/src/types.ts)
+
+<a id="budgetcaps--log-only"></a>
+
+#### `budget/caps` — log-only
+
+```ts persistence-catalog
+/**
+ * Ceilings this one session runs under, recorded by whoever created it for
+ * a narrower purpose than the deployment's own configuration. The caps the
+ * policy enforces are the configured caps tightened by the latest record in
+ * the log: a cap only this record carries applies as written, and a cap
+ * both carry applies at the smaller of the two, so a record can never buy a
+ * session more budget than its deployment configured.
+ */
+'budget/caps': BudgetCaps
+```
+
+Source: [`packages/guard/budget-policy/src/types.ts:117`](../packages/guard/budget-policy/src/types.ts)
 
 ### `command/*`
 
@@ -587,6 +605,106 @@ Source: [`packages/interaction/permission-presets/src/index.ts:50`](../packages/
 ```
 
 Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/src/index.ts)
+
+### `program/*`
+
+<a id="programend--log-only"></a>
+
+#### `program/end` — log-only
+
+```ts persistence-catalog
+/**
+ * Closing record of one program: how it ended and, for a released one, the
+ * certified merged head it delivered. Its presence is what marks the
+ * program finished, so a session with `program/start` and no `program/end`
+ * is exactly what a later process reconciles.
+ */
+'program/end': ProgramEnd
+```
+
+Source: [`packages/improvement/program/src/types.ts:228`](../packages/improvement/program/src/types.ts)
+
+<a id="programgoal--log-only"></a>
+
+#### `program/goal` — log-only
+
+```ts persistence-catalog
+/**
+ * One goal of the program changed status: the key, the new status, and the
+ * department session, worktree, branch head, or reason that status carries.
+ * Appended after the fact it records is durable — the worktree exists, the
+ * department session is flushed, the certificate is in the department's own
+ * log — so the ledger never claims a state the departments cannot show.
+ */
+'program/goal': ProgramGoalRecord
+```
+
+Source: [`packages/improvement/program/src/types.ts:207`](../packages/improvement/program/src/types.ts)
+
+<a id="programintegration--log-only"></a>
+
+#### `program/integration` — log-only
+
+```ts persistence-catalog
+/**
+ * The integration of the program: `running` once the merged worktree
+ * exists, then `certified` with the merged head its certificate covers, or
+ * `failed` with the reason. Departments move to `merged` only after the
+ * `certified` record.
+ */
+'program/integration': ProgramIntegrationRecord
+```
+
+Source: [`packages/improvement/program/src/types.ts:214`](../packages/improvement/program/src/types.ts)
+
+<a id="programmember--log-only"></a>
+
+#### `program/member` — log-only
+
+```ts persistence-catalog
+/**
+ * This session belongs to one program: the program and the key it works.
+ * Appended once at creation, to the department or integration session
+ * rather than to the program's own, so a reader folding sessions can group
+ * a program's work without the ledger.
+ */
+'program/member': ProgramMember
+```
+
+Source: [`packages/improvement/program/src/types.ts:235`](../packages/improvement/program/src/types.ts)
+
+<a id="programresume--log-only"></a>
+
+#### `program/resume` — log-only
+
+```ts persistence-catalog
+/**
+ * A later process picked this program up: the count per status over every
+ * goal of the spec, as reconciled from the department logs and worktrees.
+ * Appended after the status changes that reconciliation discovered and
+ * before any department is resumed or started.
+ */
+'program/resume': ProgramResume
+```
+
+Source: [`packages/improvement/program/src/types.ts:221`](../packages/improvement/program/src/types.ts)
+
+<a id="programstart--log-only"></a>
+
+#### `program/start` — log-only
+
+```ts persistence-catalog
+/**
+ * Opening record of one program: the identity its frozen spec digests to,
+ * the spec verbatim, the revision every worktree is created from, and the
+ * caller-supplied signoff when one was required. Appended once, before the
+ * first department exists, and the only event that tells a later process a
+ * program exists to reconcile.
+ */
+'program/start': ProgramStart
+```
+
+Source: [`packages/improvement/program/src/types.ts:199`](../packages/improvement/program/src/types.ts)
 
 ### `read-barrier/*`
 
@@ -1119,7 +1237,7 @@ Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/
 'usage/priced': UsagePriced
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:109`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:135`](../packages/guard/budget-policy/src/types.ts)
 
 ### `user/*`
 

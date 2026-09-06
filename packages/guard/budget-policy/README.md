@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-A durable spend ceiling for one session: configured token, wall-clock, and cost caps are measured against the session log before every proposed step, and the first cap the log exceeds records a `budget/breach` event, blocks the session's goal, and rejects the step so no further model request is made. Every step a priced route served also records a `usage/priced` event, so what a session cost is a durable fact rather than an in-memory total. Nothing is measured in memory — the caps read the same durable events a replay reads, so a recorded breach or price is reproducible by anyone holding the log. Decision record: [the budget-policy Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-budget-policy.md).
+A durable spend ceiling for one session: configured token, wall-clock, and cost caps, tightened by whatever caps the session's own log records, are measured against that log before every proposed step, and the first cap the log exceeds records a `budget/breach` event, blocks the session's goal, and rejects the step so no further model request is made. Every step a priced route served also records a `usage/priced` event, so what a session cost is a durable fact rather than an in-memory total. Nothing is measured in memory — the caps read the same durable events a replay reads, so a recorded breach or price is reproducible by anyone holding the log. Decision record: [the budget-policy Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-budget-policy.md).
 
 ## Config
 
@@ -33,13 +33,19 @@ A function/namespace plugin (`name` / `inject` / `Config` / `apply`), not a serv
 
 The pre-step listener is prepended so the budget decision precedes every listener that would build request context or reserve continuation work for a step that cannot run. On a breach it does not call `next()`: the chain short-circuits and the loop closes the turn with reason `blocked`, having opened no step.
 
-`foldBudgetSpend(events, pricing)`, `measuredFor(spend, cap)`, `unpricedUsage(events, pricing)`, and `pricingTableDigest(pricing)` are exported so a supervisor can recompute any recorded measurement or price from the log.
+`foldBudgetSpend(events, pricing)`, `measuredFor(spend, cap)`, `unpricedUsage(events, pricing)`, `foldSessionCaps(events)`, `tightenedCaps(configured, session)`, `BUDGET_CAP_ORDER`, and `pricingTableDigest(pricing)` are exported so a supervisor can recompute any recorded measurement, price, or enforced cap from the log.
 
 ### Measuring spend from the log
 
 `assistant/message` is the single usage source: it carries a step's final provider accounting, so the earlier `assistant/chunk` usage sample for the same step is deliberately ignored rather than counted twice. A message without `usage` contributes nothing. Billed input is the disjoint sum of `inputTokens`, `cacheReadTokens`, and `cacheWriteTokens`; output is `outputTokens` as the provider reported it. Each message prices against its own `provider/model` provenance, so a route switch mid-session bills each step at the rate configured for the route that served it.
 
 `maxWallMs` measures the span between the log's first and last event times. It therefore counts idle gaps between events, including the gap across a process restart, but not time elapsed since the newest event — which is what makes the measurement a function of the log rather than of the clock at read time.
+
+### Per-session caps
+
+A session created for a narrower purpose than the whole deployment records its own ceilings as a `budget/caps` event carrying any subset of the five cap fields. The caps enforced for that session are the configured caps tightened by the latest `budget/caps` in its log: a cap only the record carries applies as written, a cap both carry applies at the smaller of the two, and a cap neither carries stays uncapped. A record can therefore only ever narrow what the deployment configured, which is what lets an orchestrator hand one session a slice of the deployment's budget without being able to grant it more.
+
+The caps are folded from the log like the spend they bound, so a resumed session enforces exactly the caps its own log records and the model sees nothing: `budget/caps` reaches no model request. A `maxCostEur` recorded on a session whose routes the `pricing` table does not name measures against a cost of zero and therefore never trips, exactly as a configured cost cap does over an unpriced route.
 
 ### What a breach does
 
@@ -60,6 +66,8 @@ A turn that ends by error or abort reaches neither point, so its last message st
 ### Invariant companion
 
 `@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable record independently. A breach's recorded `measured` must exceed `limit`, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record; `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation. A price must cite an earlier `assistant/message` with the same turn and step whose billed tokens and route it reproduces exactly, its `costEur` must equal its own rates applied to its own tokens, and no earlier `usage/priced` may carry the same turn and step.
+
+A `budget/caps` record may only tighten. The deployment's configured caps are not in the log, so the companion compares each cap against the caps the same session's earlier `budget/caps` records already fold to: raising one of those, or dropping it so the cap disappears, is rejected at append. Widening a cap the deployment configured is outside what the log can show and is refused by the enforcing fold instead, which never takes a recorded value above the configured one.
 
 ## Model Experience
 
@@ -84,4 +92,5 @@ Independent: the request surface is neither extended nor rewritten, so an alread
 - **A turn that ends by error or abort leaves its last step unpriced** — pricing happens at the next pre-step or at the normal stop boundary, and neither is reached when a turn fails or is cancelled. The record lands at the session's next pre-step or stop; a session abandoned right after such a turn keeps one unpriced step.
 - **One input rate per route** — the table prices billed input with a single number, so a provider that discounts cache reads against cache misses is priced at the uncached rate.
 - **No warning before the stop** — the policy has no advisory threshold that tells the model to wrap up before the cap trips; the first model-visible consequence of an exhausted budget is that the turn ends.
-- **Raising a cap needs a reload** — caps are load-time configuration, so an exhausted session resumes only after the deployment is reconfigured and reloaded; there is no runtime grant.
+- **Raising a cap needs a reload** — configured caps are load-time configuration, so an exhausted session resumes only after the deployment is reconfigured and reloaded; a `budget/caps` record can only tighten, so there is no runtime grant either.
+- **No session-cap authority** — any writer of a session's log can record `budget/caps`, and the record is honoured because it can only narrow. Nothing states which orchestrator owns a session's caps, so two writers on one session simply compose by last-wins-then-tighten.

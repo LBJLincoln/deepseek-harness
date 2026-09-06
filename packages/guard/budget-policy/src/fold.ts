@@ -11,7 +11,21 @@
 import { assertNever } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { billedInputTokens, costEurFor, routeKey } from './pricing.ts'
-import type { AccountedMessage, BudgetCapId, BudgetRoutePricing, BudgetSpend } from './types.ts'
+import type { AccountedMessage, BudgetCapId, BudgetCaps, BudgetRoutePricing, BudgetSpend } from './types.ts'
+
+/**
+ * Evaluation order of the caps. The first cap the log exceeds is the one
+ * recorded, so this order decides which breach a session that overruns two
+ * caps in the same step reports, and it is the order every enforced cap list
+ * is rendered in.
+ */
+export const BUDGET_CAP_ORDER: readonly BudgetCapId[] = [
+  'maxInputTokens',
+  'maxOutputTokens',
+  'maxTotalTokens',
+  'maxWallMs',
+  'maxCostEur',
+]
 
 /** The key one step is identified by within its own session log. */
 function stepKey(turn: number, step: number): string {
@@ -97,6 +111,52 @@ export function unpricedUsage(
     pending.push(event)
   }
   return pending
+}
+
+/**
+ * Read the ceilings one session's own log records for itself.
+ *
+ * Last-wins: a session that records its caps twice runs under the newest
+ * record alone, which is what makes the caps a function of the log rather than
+ * of the order a reader happens to visit the events in.
+ *
+ * @param events - the session events to read, oldest first.
+ * @returns the latest recorded caps, empty when the log records none.
+ */
+export function foldSessionCaps(events: readonly SessionEvent[]): BudgetCaps {
+  let caps: BudgetCaps = {}
+  for (const event of events) {
+    if (event.type === 'budget/caps') caps = event.data
+  }
+  return caps
+}
+
+/**
+ * Tighten the deployment's enforced caps by the ceilings one session recorded.
+ *
+ * A cap only the session records applies as written, and a cap both carry
+ * applies at the smaller of the two, so a recorded ceiling can only ever narrow
+ * what the deployment configured.
+ *
+ * @param configured - the deployment's enforced caps, in {@link BUDGET_CAP_ORDER}.
+ * @param session - the caps the session's log records for itself.
+ * @returns the caps to measure this session against, in {@link BUDGET_CAP_ORDER}.
+ */
+export function tightenedCaps(
+  configured: readonly (readonly [BudgetCapId, number])[],
+  session: BudgetCaps,
+): readonly (readonly [BudgetCapId, number])[] {
+  const byCap = new Map<BudgetCapId, number>(configured)
+  for (const cap of BUDGET_CAP_ORDER) {
+    const recorded = session[cap]
+    if (recorded === undefined) continue
+    const current = byCap.get(cap)
+    byCap.set(cap, current === undefined ? recorded : Math.min(current, recorded))
+  }
+  return BUDGET_CAP_ORDER.flatMap((cap) => {
+    const value = byCap.get(cap)
+    return value === undefined ? [] : [[cap, value] as const]
+  })
 }
 
 /**

@@ -1,9 +1,10 @@
 /**
  * The package companion's owned relations: a durable `budget/breach` states a
- * measurement its own durable prefix reproduces, and a durable `usage/priced`
+ * measurement its own durable prefix reproduces, a durable `usage/priced`
  * states a price its own cited assistant message and its own recorded rates
- * reproduce, once per step. Seeded sessions exercise the startup scan; live
- * appends exercise the pre-publication check.
+ * reproduce, once per step, and a durable `budget/caps` only ever tightens the
+ * caps the same log already carries. Seeded sessions exercise the startup scan;
+ * live appends exercise the pre-publication check.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -138,6 +139,49 @@ describe('budget breach invariants', () => {
       session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
     }).not.toThrow()
     expect(session.seq).toBe(2)
+  })
+})
+
+describe('session cap invariants', () => {
+  it('accepts a stored record that tightens the caps the log already carries', async () => {
+    await expect(setup([
+      { type: 'budget/caps', seq: 0, time: 1_000, data: { maxTotalTokens: 100, maxWallMs: 900 } },
+      { type: 'budget/caps', seq: 1, time: 1_100, data: { maxTotalTokens: 40, maxWallMs: 900 } },
+    ])).resolves.toBeDefined()
+  })
+
+  it('accepts the first record of a session, whose log caps nothing yet', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('caps-first'))
+    expect(() => {
+      session.append('budget/caps', { maxTotalTokens: 1_000_000 })
+    }).not.toThrow()
+    expect(session.seq).toBe(1)
+  })
+
+  it('rejects a record that raises a cap its own log already set', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('caps-widened'))
+    session.append('budget/caps', { maxTotalTokens: 40 })
+    expect(() => {
+      session.append('budget/caps', { maxTotalTokens: 41 })
+    }).toThrow(expect.objectContaining<Partial<InvariantError>>({
+      code: 'INVARIANT',
+      packageName: '@deepseek-ai/dsh-budget-policy',
+    }))
+    expect(() => {
+      session.append('budget/caps', { maxTotalTokens: 41 })
+    }).toThrow("budget/caps raises maxTotalTokens to 41, which this session's own log caps at 40")
+    expect(session.seq).toBe(1)
+  })
+
+  it('rejects a record that drops a cap its own log already set', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('caps-dropped'))
+    session.append('budget/caps', { maxTotalTokens: 40, maxWallMs: 900 })
+    expect(() => {
+      session.append('budget/caps', { maxTotalTokens: 40 })
+    }).toThrow("budget/caps drops maxWallMs, which this session's own log caps at 900")
   })
 })
 

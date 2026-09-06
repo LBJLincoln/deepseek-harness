@@ -108,6 +108,15 @@ describe('district requirements', () => {
     expect(rules(config(experiments, PERSISTENCE, CHECKPOINT))).toEqual(['budget-policy'])
   })
 
+  it('rejects a program composition that carries none of the required plugins, naming the program', () => {
+    const program = row('program', '@deepseek-ai/dsh-program', ['requireSignoff: true'])
+    expect(rules(program)).toEqual(['budget-policy', 'session-persistence', 'session-checkpoint-policy'])
+    const diagnostic = only(config(program, BUDGET, PERSISTENCE))
+    expect(formatVillageDiagnostic(diagnostic)).toContain('[entry "program"]')
+    expect(diagnostic.detail).toContain('composing @deepseek-ai/dsh-program requires')
+    expect(rules(config(program, BUDGET, PERSISTENCE, CHECKPOINT))).toEqual([])
+  })
+
   it('rejects a budget policy that sets no cap', () => {
     const uncapped = row('budget-policy', '@deepseek-ai/dsh-budget-policy', ['pricing: {}'])
     const diagnostic = only(config(RUNNER, uncapped, PERSISTENCE, CHECKPOINT))
