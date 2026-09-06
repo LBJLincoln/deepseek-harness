@@ -51,6 +51,7 @@
 |---|---|
 | `reward`、`rewardBasis` | 轨迹奖励折叠，读取 `goal/change` 与各 `verification/*` 事件 |
 | `certified`、`certificateRevision`、`certificateExecutor` | 验证折叠中覆盖当前标准修订的证书，以及它所引运行的执行者 |
+| `parity` | 最后一条 `verification/run` 的 `parity`；该次运行没有度量用例时不存在 |
 | `runsRecorded` | `verification/run` 事件，无论通过与否 |
 | `attempts` | 最后一条 `verification/run` 的 `attempt`；每编写一个标准便从一重新开始 |
 | `directives` | `verification/directive` 事件 |
@@ -84,6 +85,8 @@
 ## Scoreboard rows
 
 一行是一个模型路由在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨隔离级别、该划分或跨区求平均，因此按区扣留的发布是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而不是缺失的行。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；token 求和覆盖该行的每个会话，含出错的会话。
+
+`certificateRate` 与 `parity` 是两列，并且始终是两列。证书度量——`certified`、`certificateRate` 以及建立在它之上的 `stats` 估计——说的是每个活动检查的每个用例都通过了。`parity` 是该行度量了用例的会话上 `weightPassed / weightTotal` 的均值，没有任何这样的会话的行没有它；无论一个会话被多少用例采样，它都只计一次。本包渲染的任何东西都不把二者合并成一个分数，也不跨它们排名：达到了标准大部分用例权重的行与取得证书的行，是关于这份工作的两个不同事实，做排名的消费方只读其中一列。[ProgramBench 的区分](../../../.agents/notes/proposed/architecture/2026-09-06-competitive-baselines.md)正是同一个。
 
 `costEurPerCertified` 是该行取得证书的会话上 `costEur` 的均值，`pricingDigests` 是该行每个会话（含出错的与未取得证书的）互不相同的摘要。没有任何会话取得证书的行没有该均值；该行只要有一个取得证书的会话不陈述成本，也没有该均值——这样发布出去的每证书成本，绝不会把一个未定价的会话当作免费会话计入。
 

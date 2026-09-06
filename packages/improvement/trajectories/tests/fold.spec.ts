@@ -96,6 +96,40 @@ function runRecord(attempt: number, status: 'pass' | 'fail'): Raw {
   }
 }
 
+/** The weighted case set the first check references; the bodies live outside the log. */
+const CASE_SET = { count: 4, weightTotal: 10, sha256: 'a'.repeat(64) }
+
+/** The same standard with its first check sampled case by case. */
+function casedStandard(): Raw {
+  return {
+    ...standard(),
+    standard: {
+      id: 'standard-1',
+      revision: 1,
+      goalId: 'goal-1',
+      checks: [{ ...checks[0], cases: CASE_SET }, checks[1]],
+      relaxed: [],
+    },
+  }
+}
+
+/** One run of that standard whose cased check passed part of its weight. */
+function casedRun(attempt: number, weightPassed: number): Raw {
+  return {
+    ...runRecord(attempt, 'fail'),
+    results: [
+      {
+        checkId: checks[0]?.id,
+        status: 'fail',
+        evidence: 'part of the sampled behaviour',
+        cases: { passed: 2, total: CASE_SET.count, weightPassed, weightTotal: CASE_SET.weightTotal, failed: [] },
+      },
+      { checkId: checks[1]?.id, status: 'fail', evidence: 'fail answer' },
+    ],
+    parity: { weightPassed, weightTotal: CASE_SET.weightTotal },
+  }
+}
+
 function requestHeader(): Raw {
   return {
     header: {
@@ -227,6 +261,20 @@ describe('foldTrajectory', () => {
     })
     expect(trajectory.provenance).toEqual({ components: ['model-provider:cli-mock'], toolNames: [] })
     expect(trajectory.steps).toEqual([{ turn: 1, step: 1 }])
+  })
+
+  it('carries the last run weighted pass rate beside a reward the certificate alone decides', () => {
+    const log = new Log()
+    log.push('goal/change', goalChange('create', 'active', 1))
+    log.push('verification/standard', casedStandard())
+    log.push('verification/run', casedRun(1, 3))
+    log.push('verification/run', casedRun(2, 7))
+    const trajectory = foldTrajectory(header, log.events)
+    expect(trajectory.parity).toEqual({ weightPassed: 7, weightTotal: 10 })
+    // Seven of ten weights passed and no certificate covers the revision, so
+    // the exported outcome is the same zero a session that passed none exports.
+    expect(trajectory.reward).toMatchObject({ outcome: 0, basis: 'certificate', attempts: 2 })
+    expect(foldTrajectory(header, certifiedLog().events)).not.toHaveProperty('parity')
   })
 
   it('scores a session whose last run was tampered as zero on the tamper basis', () => {

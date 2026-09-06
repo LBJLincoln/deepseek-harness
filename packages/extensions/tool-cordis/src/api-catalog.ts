@@ -4401,6 +4401,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type RunOutcome = {\n    readonly certified: true;\n    readonly certificate: VerificationCertificate;\n} | {\n    readonly certified: false;\n    readonly failures: readonly CheckResult[];\n};',
   },
   {
+    name: 'RunParity',
+    declaration: 'export interface RunParity {\n    readonly weightPassed: number;\n    readonly weightTotal: number;\n}',
+  },
+  {
     name: 'SandboxEnforcement',
     declaration: 'export type SandboxEnforcement = \'full\' | \'partial\';',
   },
@@ -4450,7 +4454,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4566,7 +4570,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsOutcome',
-    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
+    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly parity?: RunParity;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
   },
   {
     name: 'SessionFactsRecord',

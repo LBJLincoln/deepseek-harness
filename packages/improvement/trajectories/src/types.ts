@@ -10,7 +10,7 @@ import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { GoalId, GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { CallId, ContentBlock, LlmCallConfig, TokenUsage, ToolSchema } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { CertificateIsolation, VerificationCertificate } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, RunParity, VerificationCertificate } from '@deepseek-ai/dsh-verification/types'
 
 /** The record format tag every exported line carries. */
 export type TrajectoryFormat = 'dsh-trajectory/1'
@@ -134,6 +134,14 @@ export interface Trajectory {
   /** Model calls in log order. */
   readonly steps: readonly TrajectoryStep[]
   readonly reward: TrajectoryReward
+  /**
+   * Weighted pass rate of the last recorded run, absent when that run measured
+   * no cases. It is an auxiliary signal a training run may shape with and never
+   * a replacement for the certificate-based {@link TrajectoryReward.outcome}: a
+   * pass rate is gameable by a candidate that overfits the failures it was
+   * shown and abandons the rest.
+   */
+  readonly parity?: RunParity
   readonly provenance: TrajectoryProvenance
 }
 

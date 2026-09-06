@@ -150,6 +150,21 @@ describe('foldSessionFacts', () => {
     })
   })
 
+  it('carries the weighted pass rate of the last recorded run and none for a run that measured no cases', () => {
+    const log = new Log()
+    log.push('environment/run', stamp())
+    log.push('goal/change', goalChange('create', 'active', 1))
+    log.push('verification/standard', standard(true))
+    log.push('verification/run', runRecord(1, 'fail', 'none', 1))
+    log.push('verification/run', runRecord(2, 'fail', 'none', 4))
+    const cased = foldSessionFacts(header('cased'), log.events).outcome
+    expect(cased.parity).toEqual({ weightPassed: 4, weightTotal: 6 })
+    // The certificate is the completion measure; a partial weight earns none.
+    expect(cased).toMatchObject({ reward: 0, certified: false, runsRecorded: 2 })
+    const caseless = foldSessionFacts(header('caseless'), cellLog({ certified: false, runs: 1 })).outcome
+    expect(caseless.parity).toBeUndefined()
+  })
+
   it('records the cap of the last budget breach', () => {
     const log = new Log()
     log.push('budget/breach', { cap: 'maxTotalTokens', measured: 9, limit: 4 })

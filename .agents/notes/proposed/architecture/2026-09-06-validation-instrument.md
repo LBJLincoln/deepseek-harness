@@ -40,6 +40,14 @@ The `tree` channel digests every regular file under `treeScope` as the case left
 
 `describeFailures` clusters a cased check and leaves a caseless check's evidence line as it was, so the wall closes exactly where cases exist; an environment closes it for a check by giving that check cases.
 
+### Deviations recorded while slice 3 landed
+
+The `dsh-trajectory/1` record carries `parity` at its top level beside `reward` rather than inside the reward group beside `outcome`: everything inside `reward` is what the certificate decided, and a weighted pass rate placed among those fields reads as part of the reward it must never become.
+
+The scorekeeper fact and the exported field are both the parity of the last recorded run, absent when that run measured no cases, rather than the last parity any run of the session carried. `certified` and `attempts` already describe the last run, so a rate left over from a standard revision whose cased checks were relaxed away would publish two standards' measurements in one row. The scorekeeper's invariant companion recomputes the fact from the log's last `verification/run` and rejects a record that states another.
+
+`ScoreboardRow.parity` is the mean of each session's `weightPassed / weightTotal` rather than the pooled ratio of the row's weights, so a session sampled by more cases does not weigh more than its siblings in the cell the row names.
+
 ## Alternatives considered
 
 **Cases inside the `verification/standard` event.** Rejected: a recreation task carries hundreds of cases and the log is the record every replay reads; the reservation already holds the check bodies, the tamper digest already covers it, and the event carries the digest that binds the two.
@@ -66,7 +74,7 @@ The `tree` channel digests every regular file under `treeScope` as the case left
 
 1. Landed. Cases on checks: the `cases` reference, `CheckCase`, the normalizer set, `maxCases`, four-channel execution in the runner, `CheckResult.cases` and `verification/run.parity`, the invariant rules, catalogs regenerated.
 2. Landed. The wall closed: clustered directives with `clusters` on `verification/directive`, the sentinel test, and the `instrument-cases` snapshot over a Loader-booted fixture.
-3. Parity downstream: scorekeeper facts and columns, the trajectory record, publication rules in the Village note.
+3. Landed. Parity downstream: `SessionFactsOutcome.parity` and the `ScoreboardRow.parity` column, `parity` on the `dsh-trajectory/1` record, and the publication rule in the Village note.
 4. The instrument: the `recreation` kind with `task.reference`, the `standard-author` authority, the `standard_author` tool, the validator preset, the sampling skill, the `recreation-instrument` fixture.
 5. Suite admission: recreation environments admitted through the curator of the four-goal note with both metrics on the stamp.
 

@@ -1741,7 +1741,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:141`](../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:145`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 

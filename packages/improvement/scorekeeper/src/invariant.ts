@@ -1,9 +1,10 @@
 /**
- * Package-owned invariant: a facts record states what its own log says. Three
+ * Package-owned invariant: a facts record states what its own log says. Four
  * relations are recomputed from the durable events on every stamp, goal, or
  * verification change — `runsRecorded` equals the number of `verification/run`
- * events, `certified` agrees with the reward the trajectory fold decided, and
- * a certificate's isolation equals the isolation its `environment/run` stamp
+ * events, `certified` agrees with the reward the trajectory fold decided,
+ * `parity` is the weighted pass rate of the last of those runs, and a
+ * certificate's isolation equals the isolation its `environment/run` stamp
  * declared, so a scoreboard row keyed by the stamp can never blend a
  * certificate earned under a different isolation level.
  *
@@ -15,6 +16,7 @@ import { sessionEventValidator } from '@deepseek-ai/dsh-invariants'
 import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { foldVerification } from '@deepseek-ai/dsh-verification'
+import type { RunParity } from '@deepseek-ai/dsh-verification/types'
 import { foldSessionFactsState } from './fold.ts'
 import type { SessionFacts } from './types.ts'
 
@@ -36,6 +38,18 @@ const DECIDING_EVENT_TYPES: ReadonlySet<string> = new Set([
   'verification/directive',
 ])
 
+/** The weighted pass rate the log's last `verification/run` carries, from the events alone. */
+function lastRunParity(events: readonly SessionEvent[]): RunParity | undefined {
+  let parity: RunParity | undefined
+  for (const event of events) if (event.type === 'verification/run') parity = event.data.parity
+  return parity
+}
+
+/** One parity as a diagnostic states it, naming an absent one rather than omitting it. */
+function parityText(parity: RunParity | undefined): string {
+  return parity === undefined ? 'none' : `${parity.weightPassed}/${parity.weightTotal}`
+}
+
 /**
  * Recompute every checked relation of one facts record against its log.
  * @param facts - the facts folded from `events`.
@@ -51,6 +65,10 @@ export function factsDisagreements(facts: SessionFacts, events: readonly Session
   }
   if (outcome.certified !== (outcome.reward === 1)) {
     messages.push(`records certified ${String(outcome.certified)} while the reward fold decided ${String(outcome.reward)}`)
+  }
+  const recorded = lastRunParity(events)
+  if (parityText(outcome.parity) !== parityText(recorded)) {
+    messages.push(`records parity ${parityText(outcome.parity)} while the last recorded run carries ${parityText(recorded)}`)
   }
   const certificate = foldVerification(events).certificate
   const stamp = facts.identity.environment

@@ -11,7 +11,7 @@ import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
 import type { GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { TrajectoryRewardBasis, TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
-import type { CertificateIsolation, RunExecutor } from '@deepseek-ai/dsh-verification/types'
+import type { CertificateIsolation, RunExecutor, RunParity } from '@deepseek-ai/dsh-verification/types'
 
 /**
  * The fields of the `environment/run` stamp the facts keep: the cell identity
@@ -74,6 +74,13 @@ export interface SessionFactsOutcome {
    * implementer's own account of its checks and can only claim `none`.
    */
   readonly certificateExecutor?: RunExecutor
+  /**
+   * Weighted pass rate of the last recorded run, absent when that run measured
+   * no cases. It states how much of the measured behaviour the session reached
+   * and certifies nothing; {@link certified} remains the only completion
+   * measure, and the two are separate facts that are never merged.
+   */
+  readonly parity?: RunParity
   /** `verification/run` events recorded across the session, passing or failing. */
   readonly runsRecorded: number
   /** Attempt number the last recorded run carried; it restarts at one for each authored standard. */
@@ -216,6 +223,13 @@ export interface ScoreboardRow {
   readonly certified: number
   /** `certified / runs`, `0` without runs. */
   readonly certificateRate: number
+  /**
+   * Mean `weightPassed / weightTotal` over the row's sessions that carry a
+   * parity, absent when none does; every such session counts once, so a
+   * session sampled by more cases does not weigh more. It is a column beside
+   * {@link certificateRate}, never merged with it and never ranked against it.
+   */
+  readonly parity?: number
   /** Mean `runsRecorded` over the sessions with runs, `0` without runs. */
   readonly attemptsMean: number
   /** Input tokens summed over every session of the row, the errored ones included. */
