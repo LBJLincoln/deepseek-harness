@@ -1,0 +1,262 @@
+{
+  "type": "result",
+  "report": {
+    "group": "village-claude-implementer",
+    "cells": [
+      {
+        "cell": {
+          "environment": "smoke:round-trip",
+          "model": {
+            "provider": "cli-mock",
+            "model": "cli-mock"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "smoke:round-trip",
+          "sessionId": "environment-f43c08a3-a569-49fe-859e-8bd9196b81d2",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "smoke:round-trip",
+            "environmentKind": "smoke",
+            "heldOut": false,
+            "promptSha256": "68d042fe0fd681df6a47848ee4bdbba5f221d9b9220824f390dcde63e94af69a",
+            "checksSha256": "6965deacc3e6fcab818c0b356a81b764b6337f7c12d229b8412ad5badcee984b",
+            "contentSha256": "6ca739d242786ff572d527a48d8e1df4ba5c196302e74fc0a922c435879a1af5",
+            "repetition": 0,
+            "group": "village-claude-implementer",
+            "district": "proving-ground",
+            "model": {
+              "provider": "cli-mock",
+              "model": "cli-mock"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "round-trip-prints",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: CLI_TOOL_ROUND_TRIP"
+                }
+              ],
+              "treeHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-f7c09c3a-81f1-4105-8754-c52116d10832",
+              "revision": 1
+            },
+            "goalId": "goal-ca04b64c-c7bb-4e4f-bd5b-fcf44077edd0",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "round-trip-prints",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: CLI_TOOL_ROUND_TRIP"
+              }
+            ],
+            "recordedAt": 1788728475873
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "smoke:unsatisfiable",
+          "model": {
+            "provider": "cli-mock",
+            "model": "cli-mock"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "smoke:unsatisfiable",
+          "sessionId": "environment-a1cd23b6-7144-4ce1-9880-59c681a24a98",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "smoke:unsatisfiable",
+            "environmentKind": "smoke",
+            "heldOut": false,
+            "promptSha256": "68d042fe0fd681df6a47848ee4bdbba5f221d9b9220824f390dcde63e94af69a",
+            "checksSha256": "2b37ae4027d31f90f986794c29a3dfcd0bc4b2178f476b141a3e6e438ec9a951",
+            "contentSha256": "28f051b3ba5b970f2765dd6572c271b41bb7d715560d7e936183b404e13be931",
+            "repetition": 0,
+            "group": "village-claude-implementer",
+            "district": "proving-ground",
+            "model": {
+              "provider": "cli-mock",
+              "model": "cli-mock"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "marker-file",
+                  "status": "fail",
+                  "evidence": "exit 1"
+                }
+              ],
+              "treeHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "attempt": 2,
+              "results": [
+                {
+                  "checkId": "marker-file",
+                  "status": "fail",
+                  "evidence": "exit 1"
+                }
+              ],
+              "treeHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "certified": false
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "cli-mock",
+        "model": "cli-mock",
+        "environmentId": "smoke:round-trip",
+        "environmentKind": "smoke",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      },
+      {
+        "provider": "cli-mock",
+        "model": "cli-mock",
+        "environmentId": "smoke:unsatisfiable",
+        "environmentKind": "smoke",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 0,
+        "certificateRate": 0,
+        "attemptsMean": 2,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      }
+    ],
+    "spend": {
+      "inputTokens": 0,
+      "outputTokens": 0
+    }
+  },
+  "delegations": {
+    "smoke:round-trip": [
+      {
+        "attempt": 1,
+        "provider": "claude-code",
+        "runId": "94fa8be9-3c15-43d3-bfa4-ad0821b87b9b",
+        "stopReason": "completed"
+      }
+    ],
+    "smoke:unsatisfiable": [
+      {
+        "attempt": 1,
+        "provider": "claude-code",
+        "runId": "d89e0118-2cff-4cdc-8b6c-5909aeccf9cd",
+        "stopReason": "completed"
+      },
+      {
+        "attempt": 2,
+        "provider": "claude-code",
+        "runId": "3c13ff47-4ec8-4ed5-90c6-c1556004239f",
+        "stopReason": "completed"
+      }
+    ]
+  },
+  "facts": {
+    "sessions": 2,
+    "exported": 2,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 2,
+    "exported": 2,
+    "rewarded": 1,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  },
+  "document": {
+    "version": 1,
+    "stale": false,
+    "foldedAt": 1788728805782,
+    "newestSessionAt": 1788728475886,
+    "refreshIntervalMs": 900000,
+    "staleAfterMs": 3600000,
+    "rows": [
+      {
+        "provider": "cli-mock",
+        "model": "cli-mock",
+        "environmentId": "smoke:round-trip",
+        "environmentKind": "smoke",
+        "district": "proving-ground",
+        "heldOut": false,
+        "isolation": "none",
+        "implementer": "claude-code",
+        "certificateExecutors": [
+          "runner"
+        ],
+        "tamper": "none",
+        "tampered": 0,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "resolved": 1
+      },
+      {
+        "provider": "cli-mock",
+        "model": "cli-mock",
+        "environmentId": "smoke:unsatisfiable",
+        "environmentKind": "smoke",
+        "district": "proving-ground",
+        "heldOut": false,
+        "isolation": "none",
+        "implementer": "claude-code",
+        "certificateExecutors": [],
+        "tamper": "none",
+        "tampered": 0,
+        "runs": 1,
+        "errors": 0,
+        "certified": 0,
+        "resolved": 0
+      }
+    ],
+    "withheld": {
+      "districts": [
+        "workshop"
+      ],
+      "districtRows": 0,
+      "districtSessions": 0,
+      "heldOutRows": 0,
+      "heldOutSessions": 0
+    },
+    "rankings": []
+  }
+}
