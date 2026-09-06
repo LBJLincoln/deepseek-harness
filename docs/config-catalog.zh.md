@@ -732,7 +732,7 @@ export interface Config {
 
 依赖：`CertificateIsolation`（`@deepseek-ai/dsh-verification/types`）
 
-来源：[`packages/improvement/environment-runner/src/index.ts:92`](../packages/improvement/environment-runner/src/index.ts)
+来源：[`packages/improvement/environment-runner/src/index.ts:102`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -755,7 +755,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-来源：[`packages/improvement/environments/src/index.ts:189`](../packages/improvement/environments/src/index.ts)
+来源：[`packages/improvement/environments/src/index.ts:199`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -2290,6 +2290,13 @@ export interface ShiftPlanConfig {
    * rather than taken from whatever default the composition currently selects.
    */
   models: EnvironmentRunModel[]
+  /**
+   * Who implements every cell of the district's slots — the cells' own model
+   * route, or one registered subagent provider. The shift digest freezes it,
+   * so a district that changes implementer opens a new shift identity instead
+   * of resuming the old one.
+   */
+  implementer?: EnvironmentRunImplementer
   /** Positive number of repetitions per environment and route. */
   repetitions: number
   /**
@@ -2319,9 +2326,9 @@ export interface ShiftSpendWindowConfig {
 }
 ```
 
-依赖：`EnvironmentRunModel`（`@deepseek-ai/dsh-environments/types`） · `FleetEnvironmentSelection`（`@deepseek-ai/dsh-fleet/types`）
+依赖：`EnvironmentRunImplementer`（`@deepseek-ai/dsh-environment-runner/types`） · `EnvironmentRunModel`（`@deepseek-ai/dsh-environments/types`） · `FleetEnvironmentSelection`（`@deepseek-ai/dsh-fleet/types`）
 
-来源：[`packages/improvement/shifts/src/index.ts:87`](../packages/improvement/shifts/src/index.ts)
+来源：[`packages/improvement/shifts/src/index.ts:88`](../packages/improvement/shifts/src/index.ts)
 
 <a id="deepseek-aidsh-signoff"></a>
 

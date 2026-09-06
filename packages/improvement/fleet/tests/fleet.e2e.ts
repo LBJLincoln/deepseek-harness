@@ -52,7 +52,7 @@ describe('fleet runs through a real cordis.yml and headless process', () => {
     })
     expect(report.leaderboard[0]?.inputTokens).toBeGreaterThan(0)
     expect(result.markdown.startsWith('Fleet run `fleet-e2e`\n')).toBe(true)
-    expect(result.markdown).toContain('| cli-mock/cli-mock | smoke:round-trip | no | none | 2 | 0 | 2 | 1.00 | 1.00 |')
+    expect(result.markdown).toContain('| cli-mock/cli-mock | route | smoke:round-trip | no | none | 2 | 0 | 2 | 1.00 | 1.00 |')
 
     // Every cell of the plan is stamped with the plan's policy version, and its
     // seed is the plan's base offset by the cell's repetition index.

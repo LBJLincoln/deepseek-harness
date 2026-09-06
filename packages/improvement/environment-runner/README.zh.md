@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，逐轮驱动实现者，在每轮之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器 Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md) 承载设计理由。
+环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)与[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md) Agent Note 承载设计理由。
 
 ## Config
 
@@ -36,21 +36,31 @@
 | `maxFailedCases`（默认 `20`） | 一条检查结果列名的失败用例数量。其余失败用例仍计入统计与权重，只是不再逐条列名，这正是让数百用例的运行不撑满日志的手段。 |
 | `topP`（可选） | 每次运行的每一次请求所要求的核采样质量，取值 0 到 1。它是部署选择而非逐次运行的选择：只有在每个 cell 都以同样方式采样时套件才可比。不配置则保持组合自身的采样。 |
 
-该服务需要 `environments`、`agents`、`agentDefaultModel`、`goals`、`completionStandards`、`shell` 与 `sessions`。当组合提供 [`ctx.readBarrier`](../../verification/read-barrier/README.md) 时它也会使用；没有它时本次运行不预留任何目录，检查就地执行其指令，这正是 `isolation: none` 声明已经表达的含义。
+该服务需要 `environments`、`agents`、`agentDefaultModel`、`goals`、`completionStandards`、`shell` 与 `sessions`。当组合提供 [`ctx.readBarrier`](../../verification/read-barrier/README.md) 时它也会使用；没有它时本次运行不预留任何目录，检查就地执行其指令，这正是 `isolation: none` 声明已经表达的含义。命名了 subagent 实现者的运行还会使用 [`ctx.subagents`](../../subagent/subagent/README.md)。
 
 ## Service contract
 
-`ctx.environmentRuns.run({ environment, workspace, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由，以及配置的隔离级别。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
+`ctx.environmentRuns.run({ environment, workspace, implementer?, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由、配置的隔离级别，以及 `implementer` 名称。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
 
 组合了屏障时，本次运行在写入 stamp 之前预留 `<barrier root>/runs/<sessionId>/`，把留出环境的夹具复制到其中的 `fixture/`、把任何[已声明的参考程序](#the-staged-reference)复制到其中的 `reference/`，并把每次尝试的检查命令改写为 source 该预留目录中的一个脚本。预留目录在实现者的第一个轮次之前以及每次尝试时都会被写入 `standard.json` 以及每个活动检查一个 `checks/<checkId>/` 目录，其中存放该检查的 `run` 脚本，若该检查携带用例，还存放这些用例所在的 `cases.jsonl`——因此实现者看到的命令行指向一个屏障拒绝它读取内容的文件。检查 id 不是单个路径段，或预留路径无法被检查命令行以不加引号的方式承载时，本次运行都会以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。
 
-每次尝试把提示词作为用户轮次发送，等待整个 agent 空闲，[对检查方拥有的集合求摘要](#tamper-on-check-owned-paths)，再次把 `task.fixture` 覆盖到工作区，使实现者对验证者所有文件的改动绝不会到达检查，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查。不带用例的检查只运行一次：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。带用例的检查[每个用例运行一次](#weighted-cases-and-the-reservation)。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件，任一检查带用例时携带 `parity`——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 [directive](#the-clustered-directive)，在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带它。
+每次尝试把提示词交给实现者并等待其工作结束，随后[对检查方拥有的集合求摘要](#tamper-on-check-owned-paths)，再次把 `task.fixture` 覆盖到工作区，使实现者对验证者所有文件的改动绝不会到达检查，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查。不带用例的检查只运行一次：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。带用例的检查[每个用例运行一次](#weighted-cases-and-the-reservation)。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件，任一检查带用例时携带 `parity`——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 [directive](#the-clustered-directive)，在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带它。
 
 报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果与工作区摘要、`certified`、某次运行通过时的证书，以及对会话全部 assistant 消息求和的模型用量。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
 
-`EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写；`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 拒绝环境或组合无法支持的参考程序预置。`resolveConfig(config)` 是导出的默认值解析步骤。
+`EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE`、`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写；`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 拒绝环境或组合无法支持的参考程序预置。`resolveConfig(config)` 是导出的默认值解析步骤。
 
 只在已稳定的组合上调用 `run()`：运行器通过 agent loop 注册的注册表工厂创建 agent。持久记录是会话日志；轨迹导出器把它折叠为一行 `dsh-trajectory/1`，其 `environment` 字段就是该 stamp，并据此扣留留出会话。
+
+## The two implementers
+
+`implementer` 说明每次尝试的工作由谁完成，`resolveImplementer(request)` 是导出的定默认步骤：请求未命名时答 `{ kind: 'route' }`。`route` 把该次尝试的提示词作为一轮用户消息发给 cell agent 并等待整个 agent 空闲，这就是 harness 对自身所测量的那种运行。`{ kind: 'subagent', provider, label? }` 改为在该已注册的 [`ctx.subagents`](../../subagent/subagent/README.md) provider 上每次尝试启动一次子运行——`ctx.subagents.start(provider, { prompt, parent: cellAgent, signal, label })`——等待其结果，并在校验之前向 cell 会话追加一条 `environment/delegation { attempt, provider, runId, stopReason, structured?, usage? }`。提示词在第一次尝试是任务陈述，在此后每次是 route 实现者同样会收到的那个 `<validation_failed>` 跟进块；子进程的工作目录就是 cell 工作区，因为每个 provider 都从委派父会话的 `cwd` 推导它。
+
+运行器仍然创建 cell agent、其会话、stamp、goal、标准与预留目录，也仍然亲自执行每一项检查，因此被委派 cell 的证书就是同一张证书：它陈述运行器在外部 agent 留下的树上跑了标准的检查，且是在把 fixture 覆盖回去之后、在确认 check-owned 集合未被改动之后跑的。它不陈述工作是怎么做的。外部实现者的模型可见历史没有一点进入日志，所以被委派 cell 的会话不含任何 assistant 轮次，导出的轨迹不含任何 step，该次运行也不报告属于自己的 `usage`；委派事件上的 `usage` 只对进程内子进程存在，因为那些 token 花在本进程拥有的路由上。拒绝、报错或被取消的子进程与完成的子进程一样被记录、被校验，因为运行的裁决取决于这棵树是什么。
+
+被命名的 provider 在任何 agent 存在之前就被解析。`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE` 在 `ctx.subagents` 未组合时、以及其中没有同名 provider 时点名该 provider。`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED` 拒绝在本进程之外运行其子进程的 provider——即那四个[不声明任何启动期能力](../../subagent/subagent/README.md)的进程外后端——只要配置的 `isolation` 高于 `none`：读取屏障的普查无法约束一个自带工具栈的外来 agent。进程内 provider 不被拒绝任何东西，因为它的子 agent 加入父方既有的组合，保留部署自身的隔离级别。在 `isolation: none` 的部署下，组合了进程外 provider 的会话在其 scope 普查中把 `subagent` 记为 `unenforced`，这正是屏障本就为它写下的状态；点名跑了哪个 provider 的是 stamp。
+
+被篡改的委派尝试记录其指令并结束本次运行，不再启动另一个子进程：该 cell 没有属于自己的转录去承载跟进，而且没有任何证书能跟在一次无效尝试之后。
 
 ## Sampling and what a replay reproduces
 
@@ -92,7 +102,7 @@
 
 #### What the model sees
 
-环境的 `task.prompt` 作为新会话的第一条用户消息到达，伴随组合的普通系统提示与工具；检查从不出现。验证失败后，在仍有尝试余额时，下一条用户消息就是下面的块，其中 `<rootCause>` 为 `N of the standard's checks failed`，`<detail>` 为带用例检查的每个失败聚类编号一行——该检查撰写的 outcome、该聚类的数量与权重、不符的通道，以及候选程序如何结束——并为每个失败的不带用例检查给出一行证据（退出事实、stdout 与 stderr 尾部），以 `evidenceMaxChars` 为界。被篡改的尝试发送同一个块，携带下面这段固定的篡改 directive，然后终止本次运行；那段文本既不指名路径也不指名检查，因为摘要比较只知道检查方拥有的集合变了，不知道别的。
+对 route 实现的运行，环境的 `task.prompt` 作为新会话的第一条用户消息到达，伴随组合的普通系统提示与工具；检查从不出现。被委派的运行改为把同样的文本发给子进程，由它在自己产品的提示与工具之下读取。验证失败后，在仍有尝试余额时，下一条用户消息就是下面的块，其中 `<rootCause>` 为 `N of the standard's checks failed`，`<detail>` 为带用例检查的每个失败聚类编号一行——该检查撰写的 outcome、该聚类的数量与权重、不符的通道，以及候选程序如何结束——并为每个失败的不带用例检查给出一行证据（退出事实、stdout 与 stderr 尾部），以 `evidenceMaxChars` 为界。被篡改的尝试发送同一个块，携带下面这段固定的篡改 directive，然后终止本次运行；那段文本既不指名路径也不指名检查，因为摘要比较只知道检查方拥有的集合变了，不知道别的。
 
 ##### Validation follow-up
 
@@ -125,6 +135,7 @@ Continue working on the task; the validator runs again when you stop.
 ## Known Limitations and Deferred Work
 
 - **屏障只覆盖文件系统读取**——组合了日志读取工具的实现者 preset，或运行检查的 bash 执行器，仍能通过屏障未设围栏的 seam 触及标准；本运行器的证书强度等于配置的 `isolation` 声明，而此处没有任何环节去验证它。
+- **外部实现者只被点名，不被刻画**——stamp 记录 provider，不记录产品版本、设置或其背后的账户，因此跑着同一 provider 的两台主机并不是同一个实现者，哪怕它们的行读起来一样。它自己的工具栈、权限与花费在本 harness 所强制的每一项限额之外，计划的 token 上限也包括在内。
 - **被预留的检查以 source 方式运行**——命令行是 `. <script>`，POSIX shell 执行器运行它的方式与运行原来的内联指令完全一致；组合的 PowerShell 执行器无法 source 无扩展名文件，因此这类部署不使用屏障。
 - **只有 fixture 覆盖这一种还原**——每次验证都会还原验证者所有的 fixture 文件，但实现者在 fixture 之外新增的文件会留在工作区并到达检查。
 - **篡改检测是一次摘要比较**——它只报告检查方拥有的集合发生了变化，从不报告是谁改的或怎么改的，因此一个正当的构建步骤若改写了不可变集合内的文件，就会作废其所在的那次运行；环境作者应把该集合声明得足够窄，误判的代价是一次运行，而不是一张错误的证书。

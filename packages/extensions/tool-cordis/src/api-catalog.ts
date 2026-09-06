@@ -681,9 +681,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
         description: 'Run one environment as one fresh session and validate it.',
-        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional model route, repetition, group, district, policy version, sampling seed, and abort signal.' }],
+        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, model route, repetition, group, district, policy version, sampling seed, and abort signal.' }],
         returns: 'the stamp, the attempts, the certificate when one run passed, and the accumulated usage.',
-        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an implementer provider the composition does not hold or cannot confine, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
       },
       {
         signature: 'async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>',
@@ -748,7 +748,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
         description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
-        parameters: [{ name: 'plan', description: 'environments, model routes, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
+        parameters: [{ name: 'plan', description: 'environments, model routes, an optional implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
         throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, or sets a seed that is not a safe non-negative integer.'],
       },
@@ -3689,6 +3689,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface EnvironmentRunAttempt {\n    readonly attempt: number;\n    readonly results: readonly CheckResult[];\n    readonly treeHash: string;\n}',
   },
   {
+    name: 'EnvironmentRunImplementer',
+    declaration: 'export type EnvironmentRunImplementer = {\n    readonly kind: \'route\';\n} | {\n    readonly kind: \'subagent\';\n    readonly provider: string;\n    readonly label?: string;\n};',
+  },
+  {
     name: 'EnvironmentRunModel',
     declaration: 'export interface EnvironmentRunModel {\n    readonly provider: string;\n    readonly model: string;\n}',
   },
@@ -3698,11 +3702,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunRequest',
-    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'EnvironmentRunStamp',
-    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n}',
+    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly isolation: CertificateIsolation;\n    readonly implementer?: string;\n}',
   },
   {
     name: 'EnvironmentStats',
@@ -3810,7 +3814,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'FleetPlan',
-    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'FleetRunReport',
@@ -4070,7 +4074,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LeaderboardRow',
-    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
+    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly implementer?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
   {
     name: 'LlmAdapter',
@@ -4294,7 +4298,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ObservatoryPublishedRow',
-    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
+    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
   },
   {
     name: 'ObservatoryRanking',
@@ -4662,7 +4666,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4770,7 +4774,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsEnvironment',
-    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly isolation: CertificateIsolation;\n}',
+    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n}',
   },
   {
     name: 'SessionFactsIdentity',

@@ -17,7 +17,7 @@ import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import type {} from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
-import { isSeed } from '@deepseek-ai/dsh-environments'
+import { isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import { assertNever, HarnessError } from '@deepseek-ai/dsh-llm'
 import type {
@@ -273,6 +273,7 @@ function withReport(row: LeaderboardRow, report: EnvironmentRunReport): Leaderbo
   return {
     ...row,
     isolation: report.stamp.isolation,
+    implementer: report.stamp.implementer ?? ROUTE_IMPLEMENTER,
     runs,
     certified,
     certificateRate: certified / runs,
@@ -288,10 +289,10 @@ function withReport(row: LeaderboardRow, report: EnvironmentRunReport): Leaderbo
  * @returns one table with a header row and one row per leaderboard entry.
  */
 export function leaderboardMarkdown(report: FleetRunReport): string {
-  const header = '| Model | Environment | Held out | Isolation | Runs | Errors | Certified | Rate | Attempts | Tokens in / out |'
-  const rule = '|---|---|---|---|---|---|---|---|---|---|'
+  const header = '| Model | Implementer | Environment | Held out | Isolation | Runs | Errors | Certified | Rate | Attempts | Tokens in / out |'
+  const rule = '|---|---|---|---|---|---|---|---|---|---|---|'
   const lines = report.leaderboard.map(row => (
-    `| ${row.provider}/${row.model} | ${row.environmentId} | ${row.heldOut ? 'yes' : 'no'} | ${row.isolation ?? '-'} | ${row.runs} | ${row.errors} | ${row.certified} | ${row.certificateRate.toFixed(2)} | ${row.attemptsMean.toFixed(2)} | ${row.inputTokens} / ${row.outputTokens} |`
+    `| ${row.provider}/${row.model} | ${row.implementer ?? '-'} | ${row.environmentId} | ${row.heldOut ? 'yes' : 'no'} | ${row.isolation ?? '-'} | ${row.runs} | ${row.errors} | ${row.certified} | ${row.certificateRate.toFixed(2)} | ${row.attemptsMean.toFixed(2)} | ${row.inputTokens} / ${row.outputTokens} |`
   ))
   return [`Fleet run \`${report.group}\``, '', header, rule, ...lines].join('\n') + '\n'
 }
@@ -322,9 +323,9 @@ export class FleetService extends Service {
    * throws is kept as an error outcome, as is a cell the route breaker or the
    * token ceiling refused to start; the fleet run itself rejects only for a
    * plan it cannot start.
-   * @param plan - environments, model routes, repetitions, an optional exact
-   *   cell selection, workspace root, group, district, policy version, base
-   *   seed, token ceiling, and abort signal.
+   * @param plan - environments, model routes, an optional implementer,
+   *   repetitions, an optional exact cell selection, workspace root, group,
+   *   district, policy version, base seed, token ceiling, and abort signal.
    * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
    * @throws {@link FleetError} when the plan selects no environment, asks for
    *   no repetition, names no or an unenumerated cell, sets a token ceiling
@@ -433,6 +434,7 @@ export class FleetService extends Service {
         environment: cell.environment,
         workspace,
         model: cell.model,
+        ...plan.implementer === undefined ? {} : { implementer: plan.implementer },
         repetition: cell.repetition,
         group,
         ...plan.district === undefined ? {} : { district: plan.district },

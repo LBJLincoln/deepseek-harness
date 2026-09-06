@@ -30,6 +30,21 @@ export const NO_START_CAPABILITIES: SubagentCapabilities = Object.freeze({
 })
 
 /**
+ * Whether a provider's advertisement is the out-of-process one. A caller that
+ * must know where a NAMED provider runs its child asks here instead of matching
+ * provider names: the four start-time features are all parent-enforced, so an
+ * in-process driver — which composes the child itself — supports at least one
+ * of them, and a backend that launches a foreign agent supports none. The test
+ * fails closed, which is what a caller needs it for: an unknown backend that
+ * advertises nothing is treated as one this process cannot fence.
+ * @param capabilities - the provider's {@link SubagentCapabilities} advertisement.
+ * @returns true when the provider advertises no start-time capability.
+ */
+export function runsOutOfProcess(capabilities: SubagentCapabilities): boolean {
+  return !Object.values(capabilities).some(supported => supported)
+}
+
+/**
  * Assert a configured timing bound is a positive finite number (it bounds a
  * teardown or shutdown wait; zero, negative, or NaN would skip or wedge it).
  * @param prefix - the consuming plugin's diagnostic prefix (e.g. `subagent-acp`).

@@ -65,6 +65,12 @@ describe('renderHtml', () => {
     expect(html).toContain('<td>none</td>')
   })
 
+  it('names the implementer of every row, so an external coding agent is visible as one', () => {
+    expect(page({ rows: [row()] })).toContain('<th scope="col">Implementer</th>')
+    expect(page({ rows: [row()] })).toContain('<td>route</td>')
+    expect(page({ rows: [row({ implementer: 'claude-code' })] })).toContain('<td>claude-code</td>')
+  })
+
   it('prints pending where no composition digest covers the row and the digest where one does', () => {
     expect(page({ rows: [row()] })).toContain('<td>pending</td>')
     expect(page({ rows: [row({ compositionSha256: COMPOSITION })] })).toContain(`<td>${COMPOSITION}</td>`)

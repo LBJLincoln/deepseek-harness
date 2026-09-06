@@ -2,11 +2,13 @@
  * Environment runner: the automated validator that runs one registered
  * environment as one fresh session. It stamps the session with the
  * environment it runs, authors the completion standard from the environment's
- * checks, drives the implementer turn by turn, restores the fixture and
- * executes the checks through the shell executor after each turn, records the
- * run, and completes the goal only under a certificate. The
- * [environment-runner Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)
- * owns the design rationale.
+ * checks, has each attempt implemented either by the session's own model route
+ * or by an out-of-band coding agent started through the subagent seam, restores
+ * the fixture and executes the checks through the shell executor after each
+ * attempt, records the run, and completes the goal only under a certificate. The
+ * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)
+ * and [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)
+ * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-environment-runner
  */
 
@@ -18,7 +20,7 @@ import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentSampling } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
-import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed } from '@deepseek-ai/dsh-environments'
+import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import type {
   EnvironmentDefinition,
   EnvironmentId,
@@ -34,6 +36,8 @@ import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
+import { runsOutOfProcess } from '@deepseek-ai/dsh-subagent'
+import type { SubagentRuntime } from '@deepseek-ai/dsh-subagent'
 import { caseChannelDigest, CHECK_CASE_CHANNELS, hashWorkspaceTree } from '@deepseek-ai/dsh-verification'
 import type {
   CaseExitClass,
@@ -53,7 +57,12 @@ import type {
   StandardView,
   VerificationCertificate,
 } from '@deepseek-ai/dsh-verification/types'
-import type { EnvironmentRunAttempt, EnvironmentRunReport, EnvironmentRunRequest } from './types.ts'
+import type {
+  EnvironmentRunAttempt,
+  EnvironmentRunImplementer,
+  EnvironmentRunReport,
+  EnvironmentRunRequest,
+} from './types.ts'
 
 export type * from './types.ts'
 
@@ -74,6 +83,8 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_STANDARD_LOST'
   | 'ENVIRONMENT_RUN_NO_REFERENCE'
   | 'ENVIRONMENT_RUN_NO_RESERVATION'
+  | 'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE'
+  | 'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED'
 
 /** Error returned by the environment runner boundary. */
 export class EnvironmentRunError extends HarnessError {
@@ -138,6 +149,42 @@ export function resolveConfig(config: Config): ResolvedConfig {
     topP: config.topP,
   }
 }
+
+/**
+ * Apply the request's implementer default.
+ * @param request - the run request as its caller wrote it.
+ * @returns the implementer of every attempt: the session's own model route unless the request named a subagent provider.
+ */
+export function resolveImplementer(request: EnvironmentRunRequest): EnvironmentRunImplementer {
+  return request.implementer ?? { kind: 'route' }
+}
+
+/**
+ * The name one implementer is stamped and folded under.
+ * @param implementer - the resolved implementer.
+ * @returns {@link ROUTE_IMPLEMENTER} for the session's own route, else the provider name.
+ */
+export function implementerName(implementer: EnvironmentRunImplementer): string {
+  switch (implementer.kind) {
+    case 'route':
+      return ROUTE_IMPLEMENTER
+    case 'subagent':
+      return implementer.provider
+    /* v8 ignore next 2 -- EnvironmentRunImplementer is closed and every member is handled above */
+    default:
+      return assertNever(implementer, 'run implementer')
+  }
+}
+
+/** One run's implementer with the service a delegated one starts its children on already resolved. */
+type RunImplementer =
+  | { readonly kind: 'route' }
+  | {
+    readonly kind: 'subagent'
+    readonly provider: string
+    readonly label?: string
+    readonly subagents: SubagentRuntime
+  }
 
 /**
  * Characters a reserved check script's path may contain. The script is sourced
@@ -723,11 +770,13 @@ export class EnvironmentRunner extends Service {
   /**
    * Run one environment as one fresh session and validate it.
    * @param request - environment id, absolute workspace directory, optional
-   *   model route, repetition, group, district, policy version, sampling seed, and abort signal.
+   *   implementer, model route, repetition, group, district, policy version,
+   *   sampling seed, and abort signal.
    * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
    * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
-   *   is not a safe non-negative integer, an unusable workspace or fixture, an
-   *   implementer that replaced the goal, or a lost standard.
+   *   is not a safe non-negative integer, an implementer provider the
+   *   composition does not hold or cannot confine, an unusable workspace or
+   *   fixture, an implementer that replaced the goal, or a lost standard.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
@@ -737,6 +786,8 @@ export class EnvironmentRunner extends Service {
     if (request.seed !== undefined && !isSeed(request.seed)) {
       throw new EnvironmentRunError(`seed must be a non-negative integer, got ${String(request.seed)}`, 'ENVIRONMENT_RUN_INVALID_SEED')
     }
+    const requested = resolveImplementer(request)
+    const implementer = this.requireImplementer(requested)
     const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const model = request.model ?? this.defaultModel()
     const stamp: EnvironmentRunStamp = {
@@ -753,6 +804,7 @@ export class EnvironmentRunner extends Service {
       ...request.seed === undefined ? {} : { seed: request.seed },
       model,
       isolation: this.resolved.isolation,
+      implementer: implementerName(requested),
     }
     // The seed is per cell and topP is the deployment's; both are pinned for
     // the whole session, so every request of the run samples identically and
@@ -773,7 +825,7 @@ export class EnvironmentRunner extends Service {
       },
     })
     try {
-      return await this.drive(handle.agent, definition, stamp, request)
+      return await this.drive(handle.agent, definition, stamp, request, implementer)
     } finally {
       await handle.dispose()
     }
@@ -785,12 +837,42 @@ export class EnvironmentRunner extends Service {
     return { provider: selection.provider, model: selection.model }
   }
 
+  /**
+   * Resolve the subagent runtime a delegated run starts its children on, before
+   * any agent exists. A provider the composition does not hold, and one whose
+   * child this process cannot fence under a claim above `none`, both fail here
+   * rather than at the first attempt, when a stamped session would already
+   * exist for a run that can never certify.
+   * @param implementer - the implementer the request resolved to.
+   * @returns the run implementer with its service resolved.
+   * @throws {@link EnvironmentRunError} when the named provider is not composed
+   *   or runs outside this process under an isolation above `none`.
+   */
+  private requireImplementer(implementer: EnvironmentRunImplementer): RunImplementer {
+    if (implementer.kind === 'route') return implementer
+    const { provider: name, label } = implementer
+    const subagents = this.ctx.get('subagents')
+    if (subagents === undefined) {
+      throw new EnvironmentRunError(`implementer provider "${name}" is unavailable: this composition has no subagent service`, 'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE')
+    }
+    const provider = subagents.getProvider(name)
+    if (provider === undefined) {
+      throw new EnvironmentRunError(`implementer provider "${name}" is unavailable: no subagent provider is registered under that name`, 'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE')
+    }
+    const isolation = this.resolved.isolation
+    if (runsOutOfProcess(provider.capabilities) && isolation !== 'none') {
+      throw new EnvironmentRunError(`implementer provider "${name}" runs outside this process, where the read-barrier census cannot confine it, so it cannot implement a run declaring "${isolation}" isolation`, 'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED')
+    }
+    return { kind: 'subagent', provider: name, ...label === undefined ? {} : { label }, subagents }
+  }
+
   /** Stamp, goal, standard, then the attempt loop; the session is flushed on every path. */
   private async drive(
     agent: Agent,
     definition: EnvironmentDefinition,
     stamp: EnvironmentRunStamp,
     request: EnvironmentRunRequest,
+    implementer: RunImplementer,
   ): Promise<EnvironmentRunReport> {
     const { goals, completionStandards, sessions } = this.ctx
     await agent.whenIdle()
@@ -819,11 +901,11 @@ export class EnvironmentRunner extends Service {
     let prompt = definition.task.prompt
     try {
       for (let attempt = 1; attempt <= this.resolved.maxAttempts; attempt += 1) {
-        await this.deliver(agent, prompt)
+        await this.implement(agent, implementer, prompt, attempt, request.signal)
         const standard = this.currentStandard(agent, goal.id)
         const ref = { id: standard.id, revision: standard.revision }
         if (await hashCheckOwned(request.workspace, runDirectory, immutable) !== checkOwned) {
-          attempts.push(await this.recordTamper(agent, standard, ref, request.workspace, attempt))
+          attempts.push(await this.recordTamper(agent, implementer, standard, ref, request.workspace, attempt))
           break
         }
         const treeHash = await restoreFixture(request.workspace, definition.task)
@@ -865,6 +947,31 @@ export class EnvironmentRunner extends Service {
     }
   }
 
+  /**
+   * Hand one attempt's text to the implementer and wait for its work to end:
+   * one user turn on the cell agent for a route run, one child run on the
+   * named provider for a delegated one.
+   */
+  private async implement(
+    agent: Agent,
+    implementer: RunImplementer,
+    text: string,
+    attempt: number,
+    signal: AbortSignal | undefined,
+  ): Promise<void> {
+    switch (implementer.kind) {
+      case 'route':
+        await this.deliver(agent, text)
+        return
+      case 'subagent':
+        await this.delegate(agent, implementer, text, attempt, signal)
+        return
+      /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
+      default:
+        return assertNever(implementer, 'run implementer')
+    }
+  }
+
   /** Send one user turn to the implementer and wait for the whole agent to go idle. */
   private async deliver(agent: Agent, text: string): Promise<void> {
     agent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
@@ -872,12 +979,57 @@ export class EnvironmentRunner extends Service {
   }
 
   /**
+   * Run one attempt as one child of the named subagent provider, rooted in the
+   * cell workspace because every provider derives the child's working
+   * directory from the delegating parent session's `cwd`. The run's outcome is
+   * recorded rather than judged: whatever the child reports, the checks decide
+   * what the tree it left is worth, so a refusal or a transport failure ends
+   * the attempt exactly where a completed one does — at the validation.
+   * @param agent - the cell agent, which is the delegating parent and holds the durable record.
+   * @param implementer - the provider, its optional label, and the resolved subagent service.
+   * @param text - the task prompt on the first attempt, the directive follow-up on later ones.
+   * @param attempt - one-based attempt number, recorded on the delegation event.
+   * @param signal - the run's cancellation; a run that carries none delegates under one that never fires.
+   */
+  private async delegate(
+    agent: Agent,
+    implementer: Extract<RunImplementer, { kind: 'subagent' }>,
+    text: string,
+    attempt: number,
+    signal: AbortSignal | undefined,
+  ): Promise<void> {
+    const run = await implementer.subagents.start(implementer.provider, {
+      prompt: [{ type: 'text', text }],
+      parent: agent,
+      signal: signal ?? new AbortController().signal,
+      ...implementer.label === undefined ? {} : { label: implementer.label },
+    })
+    try {
+      const result = await run.result
+      // Only an in-process child's tokens were spent on a route this process
+      // owns; an out-of-process one leaves no log here to sum.
+      const usage = run.localAgent === undefined ? undefined : totalUsage(run.localAgent.session.events)
+      agent.session.append('environment/delegation', {
+        attempt,
+        provider: implementer.provider,
+        runId: run.id,
+        stopReason: result.stopReason,
+        ...result.structured === undefined ? {} : { structured: result.structured },
+        ...usage === undefined ? {} : { usage },
+      })
+    } finally {
+      await run.dispose()
+    }
+  }
+
+  /**
    * Record one attempt whose check-owned set changed under the validator. The
    * checks are not executed — the workspace no longer measures the task — so
    * every result records that, the run is recorded as `tampered` and certifies
-   * nothing, and the implementer receives the tamper directive as its last
+   * nothing, and a route implementer receives the tamper directive as its last
    * validation follow-up before the attempt loop ends.
-   * @param agent - the implementer whose attempt this is.
+   * @param agent - the cell agent whose attempt this is.
+   * @param implementer - who did the work, which decides whether a follow-up turn is delivered at all.
    * @param standard - the standard the attempt would have measured.
    * @param ref - that standard's exact revision.
    * @param workspace - the run's workspace, digested as the attempt left it.
@@ -886,6 +1038,7 @@ export class EnvironmentRunner extends Service {
    */
   private async recordTamper(
     agent: Agent,
+    implementer: RunImplementer,
     standard: StandardView,
     ref: StandardRef,
     workspace: string,
@@ -903,7 +1056,10 @@ export class EnvironmentRunner extends Service {
       tampered: true,
     })
     this.ctx.completionStandards.issueDirective(agent, ref, TAMPER_DIRECTIVE)
-    await this.deliver(agent, followupText(TAMPER_DIRECTIVE))
+    // A delegated cell has no transcript of its own to carry the directive, and
+    // starting one more external run over a void attempt would buy work no
+    // certificate can follow; the recorded directive is the whole record there.
+    if (implementer.kind === 'route') await this.deliver(agent, followupText(TAMPER_DIRECTIVE))
     return { attempt, results, treeHash }
   }
 

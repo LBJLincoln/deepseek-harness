@@ -24,6 +24,9 @@ describe('shiftDigest', () => {
     expect(shiftDigest(plan({ policyVersion: 'policy-2026-09' }))).not.toBe(digest)
     expect(shiftDigest(plan({ seed: 0 }))).not.toBe(digest)
     expect(shiftDigest(plan({ seed: 1 }))).not.toBe(shiftDigest(plan({ seed: 0 })))
+    expect(shiftDigest(plan({ implementer: { kind: 'route' } }))).not.toBe(digest)
+    expect(shiftDigest(plan({ implementer: { kind: 'subagent', provider: 'claude-code' } })))
+      .not.toBe(shiftDigest(plan({ implementer: { kind: 'subagent', provider: 'codex' } })))
   })
 
   it('keeps the routes in listing order, because the cells run in it', () => {

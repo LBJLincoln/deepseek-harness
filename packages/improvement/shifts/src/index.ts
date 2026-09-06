@@ -18,6 +18,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 import z from '@deepseek-ai/schemastery'
 import { foldBudgetSpend } from '@deepseek-ai/dsh-budget-policy'
+import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
 // Type-only: resolves ctx.environments, which the fleet's own injection composes.
 import type {} from '@deepseek-ai/dsh-environments'
 import type { EnvironmentFilter, EnvironmentId } from '@deepseek-ai/dsh-environments/types'
@@ -140,6 +141,17 @@ export class ShiftService extends Service {
           provider: z.string().required(),
           model: z.string().required(),
         })).required(),
+        // The runner rejects a provider this composition does not hold when
+        // the cell starts; the schema decides only that a delegated
+        // implementer names one.
+        implementer: (z.union([
+          z.object({ kind: z.const('route' as const).required() }),
+          z.object({
+            kind: z.const('subagent' as const).required(),
+            provider: z.string().required(),
+            label: z.string(),
+          }),
+        ]) as unknown as z<EnvironmentRunImplementer>).default(undefined as unknown as EnvironmentRunImplementer),
         repetitions: z.natural().min(1).required(),
         policyVersion: z.string(),
         seed: z.natural(),
@@ -397,6 +409,7 @@ export class ShiftService extends Service {
       report = await this.ctx.fleet.run({
         environments: { ids: plan.environments },
         models: plan.models,
+        ...plan.implementer === undefined ? {} : { implementer: plan.implementer },
         repetitions: plan.repetitions,
         cells: pending,
         workspaceRoot: this.config.workspaceRoot,
@@ -464,6 +477,7 @@ export class ShiftService extends Service {
       district: district.district,
       environments,
       models: district.plan.models,
+      ...district.plan.implementer === undefined ? {} : { implementer: district.plan.implementer },
       repetitions: district.plan.repetitions,
       ...district.plan.policyVersion === undefined ? {} : { policyVersion: district.plan.policyVersion },
       ...district.plan.seed === undefined ? {} : { seed: district.plan.seed },

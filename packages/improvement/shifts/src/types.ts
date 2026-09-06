@@ -6,6 +6,7 @@
  * @module @deepseek-ai/dsh-shifts/types
  */
 
+import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { FleetCell, FleetEnvironmentSelection } from '@deepseek-ai/dsh-fleet/types'
 import type { SessionId } from '@deepseek-ai/dsh-session'
@@ -62,6 +63,8 @@ export interface ShiftPlan {
   readonly environments: readonly EnvironmentId[]
   /** Model routes in listing order, at least one; the fleet enumerates cells in it. */
   readonly models: readonly EnvironmentRunModel[]
+  /** Who implements every cell of the shift; absent runs each cell's own model route. */
+  readonly implementer?: EnvironmentRunImplementer
   /** Positive number of repetitions per environment and route; repetition indexes start at zero. */
   readonly repetitions: number
   /**
@@ -166,6 +169,13 @@ export interface ShiftPlanConfig {
    * rather than taken from whatever default the composition currently selects.
    */
   models: EnvironmentRunModel[]
+  /**
+   * Who implements every cell of the district's slots — the cells' own model
+   * route, or one registered subagent provider. The shift digest freezes it,
+   * so a district that changes implementer opens a new shift identity instead
+   * of resuming the old one.
+   */
+  implementer?: EnvironmentRunImplementer
   /** Positive number of repetitions per environment and route. */
   repetitions: number
   /**

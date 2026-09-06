@@ -357,6 +357,28 @@ describe('ShiftService slots', () => {
     expect(StubFleet.current.plans[0]).toMatchObject({ policyVersion: 'policy-2026-09', seed: 100 })
   })
 
+  it('freezes the district implementer into the plan and forwards it to the fleet', async () => {
+    const implementer = { kind: 'subagent', provider: 'claude-code', label: 'external' } as const
+    const delegated = district({
+      plan: { environments: { filter: { heldOut: false } }, models: [ROUTE], repetitions: 1, implementer },
+    })
+    const { ctx } = await harness({ districts: [delegated] }, { loader: true })
+    await ctx.shifts.start()
+
+    const shift = await shiftSessionOf(ctx)
+    const start = (await ledgerOf(ctx, shift))[0]?.data as ShiftStart
+    expect(start.plan.implementer).toEqual(implementer)
+    expect(start.digest).toBe(shiftDigest(start.plan))
+    expect(StubFleet.current.plans[0]?.implementer).toEqual(implementer)
+
+    // A district that names none leaves the plan and the fleet run without one.
+    const { ctx: plain } = await harness({ districts: [district()] }, { loader: true })
+    await plain.shifts.start()
+    const plainStart = (await ledgerOf(plain, await shiftSessionOf(plain)))[0]?.data as ShiftStart
+    expect(plainStart.plan).not.toHaveProperty('implementer')
+    expect(StubFleet.current.plans[0]).not.toHaveProperty('implementer')
+  })
+
   it('keeps a refused cell as an error row and closes on the ceiling it reports', async () => {
     const capped = district({
       plan: { environments: { filter: { heldOut: false } }, models: [ROUTE], repetitions: 1, tokenCeiling: 500 },

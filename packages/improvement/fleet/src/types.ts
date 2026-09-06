@@ -5,7 +5,7 @@
  * @module @deepseek-ai/dsh-fleet/types
  */
 
-import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
+import type { EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentFilter, EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type { CertificateIsolation } from '@deepseek-ai/dsh-verification/types'
@@ -21,6 +21,12 @@ export interface FleetPlan {
   readonly environments: FleetEnvironmentSelection
   /** Model routes; an empty list runs the composition's default route. */
   readonly models: readonly EnvironmentRunModel[]
+  /**
+   * Who implements every cell of the plan; absent runs each cell's own model
+   * route. One plan runs one implementer, so a leaderboard row folded from it
+   * never mixes two.
+   */
+  readonly implementer?: EnvironmentRunImplementer
   /** Positive number of repetitions per environment and model; repetition indexes start at zero. */
   readonly repetitions: number
   /**
@@ -105,6 +111,11 @@ export interface LeaderboardRow {
   readonly heldOut: boolean
   /** Isolation the runs declared, absent when every cell of the row failed before a run. */
   readonly isolation?: CertificateIsolation
+  /**
+   * Implementer the runs were stamped with — `route` or the subagent provider
+   * name — absent when every cell of the row failed before a run.
+   */
+  readonly implementer?: string
   /** Cells that produced a report. */
   readonly runs: number
   /** Cells that produced no report. */

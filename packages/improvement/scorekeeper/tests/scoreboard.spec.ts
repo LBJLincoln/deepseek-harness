@@ -36,6 +36,7 @@ function cell(id: string, options: {
   readonly heldOut?: boolean
   readonly environmentId?: string
   readonly isolation?: string
+  readonly implementer?: string
   readonly district?: string
   readonly verdict?: RunVerdict
   readonly weightPassed?: number
@@ -49,6 +50,7 @@ function cell(id: string, options: {
     ...options.heldOut === undefined ? {} : { heldOut: options.heldOut },
     ...options.environmentId === undefined ? {} : { environmentId: options.environmentId },
     ...options.isolation === undefined ? {} : { isolation: options.isolation },
+    ...options.implementer === undefined ? {} : { implementer: options.implementer },
     ...options.district === undefined ? {} : { district: options.district },
   }
   return foldSessionFacts(header(id), cellLog({
@@ -129,6 +131,14 @@ describe('foldScoreboard', () => {
       cell('reserved', { certified: true, runs: 1, heldOut: true }),
     ], {}, [1])
     expect(fold.rows.map(row => [row.isolation, row.heldOut])).toEqual([['none', false], ['host', false], ['none', true]])
+  })
+
+  it('splits rows by implementer, so an external coding agent never averages with the route', () => {
+    const fold = foldScoreboard([
+      cell('routed', { certified: true, runs: 1 }),
+      cell('delegated', { certified: false, runs: 1, implementer: 'claude-code' }),
+    ], {}, [1])
+    expect(fold.rows.map(row => [row.implementer, row.certified])).toEqual([['route', 1], ['claude-code', 0]])
   })
 
   it('splits rows by district and never merges two districts of the same cell', () => {

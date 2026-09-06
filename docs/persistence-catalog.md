@@ -479,6 +479,24 @@ Source: [`packages/governance/data-use/src/types.ts:19`](../packages/governance/
 
 ### `environment/*`
 
+<a id="environmentdelegation--log-only"></a>
+
+#### `environment/delegation` — log-only
+
+```ts persistence-catalog
+/**
+ * One attempt of a delegated cell, appended after the child run settled
+ * and before the runner validates the tree it left: which provider ran it,
+ * the run's parent-scoped id, how it ended, the structured result it
+ * returned, and the model usage this process can account for. Log-only —
+ * it never enters model history, and it is the cell session's only record
+ * of an implementer whose own transcript stays in its product.
+ */
+'environment/delegation': EnvironmentDelegation
+```
+
+Source: [`packages/improvement/environment-runner/src/types.ts:25`](../packages/improvement/environment-runner/src/types.ts)
+
 <a id="environmentrun--log-only"></a>
 
 #### `environment/run` — log-only
@@ -968,7 +986,7 @@ Source: [`packages/session/session-title-llm/src/index.ts:43`](../packages/sessi
 'shift/cell': ShiftCellRecord
 ```
 
-Source: [`packages/improvement/shifts/src/types.ts:29`](../packages/improvement/shifts/src/types.ts)
+Source: [`packages/improvement/shifts/src/types.ts:30`](../packages/improvement/shifts/src/types.ts)
 
 <a id="shiftend--log-only"></a>
 
@@ -984,7 +1002,7 @@ Source: [`packages/improvement/shifts/src/types.ts:29`](../packages/improvement/
 'shift/end': ShiftEnd
 ```
 
-Source: [`packages/improvement/shifts/src/types.ts:48`](../packages/improvement/shifts/src/types.ts)
+Source: [`packages/improvement/shifts/src/types.ts:49`](../packages/improvement/shifts/src/types.ts)
 
 <a id="shiftresume--log-only"></a>
 
@@ -999,7 +1017,7 @@ Source: [`packages/improvement/shifts/src/types.ts:48`](../packages/improvement/
 'shift/resume': ShiftResume
 ```
 
-Source: [`packages/improvement/shifts/src/types.ts:35`](../packages/improvement/shifts/src/types.ts)
+Source: [`packages/improvement/shifts/src/types.ts:36`](../packages/improvement/shifts/src/types.ts)
 
 <a id="shiftskipped--log-only"></a>
 
@@ -1014,7 +1032,7 @@ Source: [`packages/improvement/shifts/src/types.ts:35`](../packages/improvement/
 'shift/skipped': ShiftSkipped
 ```
 
-Source: [`packages/improvement/shifts/src/types.ts:41`](../packages/improvement/shifts/src/types.ts)
+Source: [`packages/improvement/shifts/src/types.ts:42`](../packages/improvement/shifts/src/types.ts)
 
 <a id="shiftstart--log-only"></a>
 
@@ -1030,7 +1048,7 @@ Source: [`packages/improvement/shifts/src/types.ts:41`](../packages/improvement/
 'shift/start': ShiftStart
 ```
 
-Source: [`packages/improvement/shifts/src/types.ts:21`](../packages/improvement/shifts/src/types.ts)
+Source: [`packages/improvement/shifts/src/types.ts:22`](../packages/improvement/shifts/src/types.ts)
 
 ### `signoff/*`
 

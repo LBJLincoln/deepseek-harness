@@ -25,6 +25,9 @@ Shifts: the durable driver of an unattended fleet. Each district opens a slot on
           models:
             - provider: <provider>
               model: <model>
+          implementer:
+            kind: subagent
+            provider: claude-code
           repetitions: 4
           policyVersion: policy-2026-09
           seed: 100
@@ -42,6 +45,7 @@ Shifts: the durable driver of an unattended fleet. Each district opens a slot on
 | `districts` (required) | At least one district, each named once. The name reaches every cell's run stamp, so an export or a scoreboard can partition by it. |
 | `districts[].plan.environments` | `{ ids: [...] }` in the given order, or `{ filter: { kind, heldOut } }` resolved against the registry when the slot freezes. |
 | `districts[].plan.models` | At least one model route. The driver enumerates its own cells to compute a pending set and to digest the plan, so the routes are named here instead of taken from whatever default the composition currently selects. |
+| `districts[].plan.implementer` (optional) | Who implements every cell of the district: `{ kind: route }`, or `{ kind: subagent, provider, label? }` to delegate each attempt to a registered subagent provider ([what that certifies](../environment-runner/README.md#the-two-implementers)). The shift digest freezes it, so a district that changes implementer opens a new shift identity instead of resuming the old one. |
 | `districts[].plan.repetitions` | Positive repetitions per environment and route; repetition indexes start at `0`. |
 | `districts[].plan.policyVersion` (optional) | Checkpoint or policy the district's routes serve. Every cell's run stamp carries it verbatim. |
 | `districts[].plan.seed` (optional) | Base sampling seed of the district; each cell samples with `seed + repetition`, as the [fleet README](../fleet/README.md#policy-version-and-the-base-seed) states. |
@@ -56,7 +60,7 @@ The service requires `fleet`, `sessions`, and `sessionPersistence`, and reads th
 
 `ctx.shifts.start()` resumes every interrupted shift, then opens each district's due slot and arms its cadence timer. The loop runs once per process: the plugin starts it over the settled Loader tree and a second call joins the same run, so a driver can await the first slot without racing the plugin. `ctx.shifts.stop()` disarms every timer, cancels the fleet run in flight through its signal, and waits for the slots that are settling; plugin disposal calls it.
 
-`shiftDigest(plan)` is the SHA-256 hex over the district, the environment ids sorted by code unit after a filter is resolved against the registry, the model routes in listing order, the repetition count, the policy version and base seed the cells sample under, and the token ceiling. A district that changes its policy version or its seed therefore opens a new shift identity rather than resuming the old one, which is correct: its cells measure a different thing. The workspace root, the cadence, and the spend window are deployment choices and stay out of it: they decide what a deployment pays for, not what the shift runs. `shiftId(digest, scheduledAt)` is `shift-<digest>-<scheduledAt>`, the slot time in epoch milliseconds — so two processes computing the same slot compute the same identity without counting anything. That id is the shift session's id and the `group` on every cell's run stamp, which is how the sessions of one shift stay grouped durably.
+`shiftDigest(plan)` is the SHA-256 hex over the district, the environment ids sorted by code unit after a filter is resolved against the registry, the model routes in listing order, the implementer, the repetition count, the policy version and base seed the cells sample under, and the token ceiling. A district that changes its implementer, its policy version, or its seed therefore opens a new shift identity rather than resuming the old one, which is correct: its cells measure a different thing. The workspace root, the cadence, and the spend window are deployment choices and stay out of it: they decide what a deployment pays for, not what the shift runs. `shiftId(digest, scheduledAt)` is `shift-<digest>-<scheduledAt>`, the slot time in epoch milliseconds — so two processes computing the same slot compute the same identity without counting anything. That id is the shift session's id and the `group` on every cell's run stamp, which is how the sessions of one shift stay grouped durably.
 
 ## The ledger
 

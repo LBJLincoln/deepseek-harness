@@ -62,6 +62,8 @@ subagent seam 允许一个 agent（智能体）通过具名提供方把工作委
 
 进程内驱动不做这两次调用。通过 `composeFrom()` 加入父级现有组合的子 agent 继承同一份普查、同一作用域层和同一角色，因此父级自身的执行器已经对它执行拒绝。
 
+`runsOutOfProcess(capabilities)` 回答一个被命名的 provider 在哪里运行它的子进程，供必须在启动之前作出判断的调用方使用——[环境运行器](../../improvement/environment-runner/README.md#the-two-implementers)据此拒绝一个它无法约束的被委派 cell。四项启动期特性全部由父方强制，因此进程外后端声明 `NO_START_CAPABILITIES`，而自己组装子 agent 的进程内驱动至少支持其中一项。该判断失败关闭：什么都不声明的后端一律按本进程无法为其设围栏来处理。
+
 ## 委派策略
 
 两条进程内委派路径都会通过共享的子 agent 辅助函数，在委派边界固定子 agent 的权限范围。`captureDelegatedPolicyOverrides(parent)` 会为父会话的显式沙箱覆盖项（`sandboxPolicy.overrideOf()`）创建快照，并在审批能力已组合时将子 agent 的审批策略固定为 `'never'`，无论父级自身采用何种策略。这样，被委派的子 agent 只能在继承的沙箱范围内行动，每次审批请求（例如 `sandbox_permissions` 升权）都会被确定性拒绝，而不会等待无人处理的提示（这两个服务都是可选的 `ctx.get` 消费方）。`appendDelegatedPolicyOverrides()` 则在未发布的设置阶段、在任何 fork 种子之后，把每个值作为一条 `source: 'delegation'` 的 `sandbox/mode` 或 `approval/policy` 事件写入子 agent 自己的日志。因此，新捕获的策略会覆盖种子中的陈旧状态，而子 agent 的生效策略始终可以仅凭其日志重建。沙箱的部署默认值绝不复制：未切换的父级不会记录 `sandbox/mode`，其子 agent 会动态跟随部署默认值。可继续启动会在第一次 await 前捕获策略，并且只为全新物化写入这些委派事件；冷恢复只会重放已持久化的委派事件，不会重新捕获父级策略，因此创建之后的父级切换绝不会追溯性地改变持久化子 agent。每个进程内子 agent 还会收到一条作用域内的运行时上下文声明（`subagent:delegation`），告知其权限范围已固定，需要更宽访问的任务应以上报限制收尾，而不是重试。参见[一次性](../../../.agents/notes/implemented/feature/2026-07-25-subagent-policy-inheritance.md)与[可继续](../../../.agents/notes/implemented/feature/2026-08-10-continuable-subagent-policy-inheritance.md)两篇委派策略 Agent Note。
