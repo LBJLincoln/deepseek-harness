@@ -373,6 +373,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Pins the contract terms a session transcript is held under at session start and refuses a later pin that widens its purposes.',
   },
   {
+    key: 'curator',
+    pkg: 'curator',
+    title: 'Curated trajectory export',
+    mode: 'core',
+    consumers: ['trajectories'],
+    note: 'Refuses an export without a redaction profile, withholds every session whose pinned terms do not admit the purpose, redacts each record before the sink, and writes the export manifest.',
+  },
+  {
     key: 'completionStandards',
     pkg: 'verification',
     title: 'Executable completion standards',

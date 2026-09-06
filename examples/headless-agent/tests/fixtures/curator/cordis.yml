@@ -1,0 +1,88 @@
+# Test-only composition: run two registered environments through the runner, then export them through the curator.
+- id: curator-mock-llm
+  name: './mock-llm.ts'
+
+# Managed child-process groups for the bash executor the runner executes checks through.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../environment-run/register-environments.ts'
+
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run registered environments as validated sessions.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The terms every session of this district is pinned with at creation. They
+# admit evaluation and never training, which is what the curator gates on.
+- id: data-use
+  name: '@deepseek-ai/dsh-data-use'
+  config:
+    clientId: daliesk-lab
+    agreementId: village-shift-zero
+    purposes:
+      - delivery
+      - evaluation
+    residency: eu-west
+    retentionDays: 90
+    redactionProfile: village-v1
+
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'
+
+- id: curator
+  name: '@deepseek-ai/dsh-curator'
+  config:
+    defaultProfile: village-v1
+    profiles:
+      village-v1:
+        shipped: true

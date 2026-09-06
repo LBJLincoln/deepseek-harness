@@ -2,9 +2,9 @@
 
 English | [中文](governance.zh.md)
 
-Two records a client auditor reads from the session log itself. [dsh-signoff](../../packages/governance/signoff) (`ctx.signoffs`) records one attributed human decision per signed transition; [dsh-data-use](../../packages/governance/data-use) (`ctx.dataUse`) pins the contract terms one session's transcript is held under at creation. Both are log-first: nothing holds state a replay does not reproduce, nothing authenticates anything, and nothing reaches a model request. The [attributable-decisions Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md) owns the design rationale, and the [Village note](../../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md) owns why these two records gate the client district.
+Two records a client auditor reads from the session log itself, and the export path that acts on them. [dsh-signoff](../../packages/governance/signoff) (`ctx.signoffs`) records one attributed human decision per signed transition; [dsh-data-use](../../packages/governance/data-use) (`ctx.dataUse`) pins the contract terms one session's transcript is held under at creation; [dsh-curator](../../packages/governance/curator) (`ctx.curator`) exports transcripts only under a redaction profile and only for a purpose their terms admit. The two records are log-first: nothing holds state a replay does not reproduce, nothing authenticates anything, and nothing reaches a model request. The [attributable-decisions Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md) and the [curator Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-curator.md) own the design rationale, and the [Village note](../../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md) owns why they gate the client district.
 
-Source: [`packages/governance/signoff/src/index.ts`](../../packages/governance/signoff/src/index.ts), [`packages/governance/data-use/src/index.ts`](../../packages/governance/data-use/src/index.ts)
+Source: [`packages/governance/signoff/src/index.ts`](../../packages/governance/signoff/src/index.ts), [`packages/governance/data-use/src/index.ts`](../../packages/governance/data-use/src/index.ts), [`packages/governance/curator/src/index.ts`](../../packages/governance/curator/src/index.ts)
 
 ## Signed transitions
 
@@ -101,6 +101,88 @@ interface DataUseTerms {
 
 The service appends the deployment's configured terms at `agent/session-start` to any session carrying none, so a session states its terms before its first turn and a resumed session keeps the terms it was created under. `pin(agent, terms)` records narrower terms; a pin admitting a purpose the standing terms do not is refused with `DATA_USE_TERMS_PINNED` and appends nothing, because widening after the fact turns a delivery transcript into training material. Every other field may be re-pinned in any direction. `termsOf(events)` is the fold consumers read.
 
+## Curated export
+
+A curated export is the only path that redacts. `CuratedExportRequest` states which purpose the export serves, which profile it runs under, and where the lines and the manifest go; the exporter's own `rewardedOnly`, `includeHeldOut`, and `districts` filters pass through unchanged.
+
+```ts type-equiv
+/** What to export, under which terms, and where. */
+interface CuratedExportRequest {
+  /** Purpose the export serves; a session whose terms do not list it is withheld. */
+  readonly purpose: DataUsePurpose
+  /** Profile to apply; absent uses the configured `defaultProfile`, and an export with neither is refused. */
+  readonly profile?: string
+  /** Sessions to consider; absent considers every persisted session. */
+  readonly sessions?: readonly SessionId[]
+  /** Destination of the curated lines; closed exactly once by the wrapped exporter. */
+  readonly sink: TrajectorySink
+  /** Where the manifest is written; absent returns it in the report only. */
+  readonly manifestPath?: string
+  /** Write only trajectories whose reward outcome is `1`. */
+  readonly rewardedOnly?: boolean
+  /** Also write sessions whose environment is held out. */
+  readonly includeHeldOut?: boolean
+  /** Districts to export; absent applies the exporter's configured `withheldDistricts`. */
+  readonly districts?: readonly string[]
+}
+```
+
+A session is admitted only when its newest `dataUse/terms` lists the export's purpose, and a session carrying no terms at all is withheld by the same rule. Admitted sessions alone reach the exporter, so a withheld transcript is never folded, serialized, or written. An export that names no profile over a deployment with no `defaultProfile` is refused with `CURATOR_PROFILE_REQUIRED`; there is no configuration that exports unredacted.
+
+Each written line is the `dsh-trajectory/1` record plus a `curation` block naming the profile that ran, the digest of its effective rules, the replacements this record received, and the residency its terms name. Every string in the record is redacted except the identifiers, the discriminants a reader switches on, and registered tool names; the [package README](../../packages/governance/curator/README.md) enumerates both sides.
+
+```ts type-equiv
+/** The block the curator adds to every record it exports. */
+interface TrajectoryCuration {
+  /** Always `true`: a record without a `curation` block was written by the unredacted exporter. */
+  readonly redactionApplied: true
+  /** The profile that ran and what it replaced in this record. */
+  readonly redaction: TrajectoryRedaction
+  /** Region the session's pinned terms name, so a sink can partition by it without reading the logs again. */
+  readonly residency: string
+}
+```
+
+The manifest is the export's durable artefact. An export spans many sessions and belongs to none, so it is a file rather than a session event.
+
+```ts type-equiv
+/** The durable record of one curated export, written beside its lines. */
+interface ExportManifest {
+  /** Manifest format tag. */
+  readonly version: string
+  /** Epoch milliseconds the export finished at. */
+  readonly exportedAt: number
+  /** Purpose the export serves, which every written session's terms admit. */
+  readonly purpose: DataUsePurpose
+  /** Profile id the export ran under. */
+  readonly profile: string
+  /** Lowercase SHA-256 hex over that profile's effective rules in order. */
+  readonly profileSha256: string
+  /** Lines written. */
+  readonly records: number
+  /** Sessions withheld, by reason. */
+  readonly withheld: ExportWithheld
+  /** Replacements over the whole export, per rule id; every rule of the profile is listed, including those that matched nothing. */
+  readonly ruleHits: Readonly<Record<string, number>>
+  /** Lowercase SHA-256 hex over the written lines in order, which is the digest of the sink's bytes. */
+  readonly recordsSha256: string
+  /** Record format of every written line. */
+  readonly trajectoryFormat: TrajectoryFormat
+}
+```
+
+```ts type-equiv
+/** Sessions one export did not write, by the reason each was withheld. */
+interface ExportWithheld {
+  /** Withheld because their environment is held out. */
+  readonly heldOut: number
+  /** Withheld because their stamp's district is not one this export writes. */
+  readonly districts: number
+  /** Withheld because their pinned terms do not admit the export's purpose, or because they carry none. */
+  readonly terms: number
+}
+```
+
 ## What the log can and cannot show
 
 The [invariant companions](invariants.md) own the two relations the log carries: a session never signs one transition over two artefacts, and never widens the purposes it already carries. Every field is checked for a form a reader can act on — a known transition, a lowercase 64-hex digest, a person with a non-empty id, evidence pointers that name something, a non-empty set of known purposes each named once, a positive whole-day retention.
@@ -114,6 +196,29 @@ Nothing outside the log is checkable here, and neither companion claims it: that
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — this section is byte-identical in both language sides of the page. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxcurator--curatorservice"></a>
+
+### `ctx.curator` — `CuratorService`
+
+Curated export (`ctx.curator`): redacted, terms-gated trajectory export with a manifest.
+
+```ts cordis-catalog
+/**
+ * Export the sessions whose pinned terms admit the purpose, redacted under
+ * one profile, and write the manifest that accounts for every session the
+ * request considered.
+ * @param request - the purpose, the profile, the sessions, the sink, and the exporter's own filters.
+ * @returns the manifest with the counts behind it, including the sessions withheld by terms and the ones that could not be read.
+ * @throws {@link CuratorError} `CURATOR_PROFILE_REQUIRED` when neither the
+ *   request nor the configuration names a profile, and `CURATOR_PROFILE_UNKNOWN`
+ *   when the request names one this deployment did not configure. Nothing is
+ *   written and the sink is not touched in either case.
+ */
+async export(request: CuratedExportRequest): Promise<CuratedExportReport>
+```
+
+Source: [`packages/governance/curator/src/index.ts:70`](../../packages/governance/curator/src/index.ts)
 
 <a id="ctxdatause--datauseservice"></a>
 

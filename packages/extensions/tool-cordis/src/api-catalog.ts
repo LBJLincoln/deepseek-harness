@@ -609,6 +609,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'curator',
+    summary: 'Curated export (`ctx.curator`): redacted, terms-gated trajectory export with a manifest.',
+    description: 'Curated export (`ctx.curator`): redacted, terms-gated trajectory export with a manifest.',
+    methods: [
+      {
+        signature: 'async export(request: CuratedExportRequest): Promise<CuratedExportReport>',
+        description: 'Export the sessions whose pinned terms admit the purpose, redacted under one profile, and write the manifest that accounts for every session the request considered.',
+        parameters: [{ name: 'request', description: 'the purpose, the profile, the sessions, the sink, and the exporter\'s own filters.' }],
+        returns: 'the manifest with the counts behind it, including the sessions withheld by terms and the ones that could not be read.',
+        throws: ['{@link CuratorError} `CURATOR_PROFILE_REQUIRED` when neither the request nor the configuration names a profile, and `CURATOR_PROFILE_UNKNOWN` when the request names one this deployment did not configure. Nothing is written and the sink is not touched in either case.'],
+      },
+    ],
+  },
+  {
     key: 'dataUse',
     summary: 'Data use (`ctx.dataUse`): the contract terms every session log states about itself.',
     description: 'Data use (`ctx.dataUse`): the contract terms every session log states about itself.',
@@ -3498,6 +3512,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type CredentialRef = Branded<\'CredentialRef\'>;',
   },
   {
+    name: 'CuratedExportReport',
+    declaration: 'export interface CuratedExportReport {\n    readonly manifest: ExportManifest;\n    readonly sessions: number;\n    readonly exported: number;\n    readonly rewarded: number;\n    readonly filtered: number;\n    readonly heldOut: number;\n    readonly withheldByDistrict: number;\n    readonly withheldByTerms: number;\n    readonly skipped: readonly TrajectoryExportSkip[];\n}',
+  },
+  {
+    name: 'CuratedExportRequest',
+    declaration: 'export interface CuratedExportRequest {\n    readonly purpose: DataUsePurpose;\n    readonly profile?: string;\n    readonly sessions?: readonly SessionId[];\n    readonly sink: TrajectorySink;\n    readonly manifestPath?: string;\n    readonly rewardedOnly?: boolean;\n    readonly includeHeldOut?: boolean;\n    readonly districts?: readonly string[];\n}',
+  },
+  {
     name: 'DataUsePurpose',
     declaration: 'export type DataUsePurpose = \'delivery\' | \'training\' | \'evaluation\';',
   },
@@ -3712,6 +3734,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ExperimentVerdict',
     declaration: 'export type ExperimentVerdict = \'promote\' | \'reject\' | \'inconclusive\';',
+  },
+  {
+    name: 'ExportManifest',
+    declaration: 'export interface ExportManifest {\n    readonly version: string;\n    readonly exportedAt: number;\n    readonly purpose: DataUsePurpose;\n    readonly profile: string;\n    readonly profileSha256: string;\n    readonly records: number;\n    readonly withheld: ExportWithheld;\n    readonly ruleHits: Readonly<Record<string, number>>;\n    readonly recordsSha256: string;\n    readonly trajectoryFormat: TrajectoryFormat;\n}',
+  },
+  {
+    name: 'ExportWithheld',
+    declaration: 'export interface ExportWithheld {\n    readonly heldOut: number;\n    readonly districts: number;\n    readonly terms: number;\n}',
   },
   {
     name: 'FactsExportReport',
@@ -5460,6 +5490,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TrajectoryExportSkip',
     declaration: 'export interface TrajectoryExportSkip {\n    readonly sessionId: SessionId;\n    readonly reason: string;\n}',
+  },
+  {
+    name: 'TrajectoryFormat',
+    declaration: 'export type TrajectoryFormat = \'dsh-trajectory/1\';',
   },
   {
     name: 'TrajectoryRewardBasis',

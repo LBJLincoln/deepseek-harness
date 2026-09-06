@@ -2,9 +2,9 @@
 
 [English](governance.md) | 中文
 
-客户审计员可以直接从会话日志读取的两类记录。[dsh-signoff](../../packages/governance/signoff)（`ctx.signoffs`）为每一次签署的转变记录一项具名的人类决定；[dsh-data-use](../../packages/governance/data-use)（`ctx.dataUse`）在创建时钉定单个会话的转录所处的合同条款。两者都以日志为先：没有任何东西持有重放无法复现的状态，没有任何东西做认证，也没有任何东西进入模型请求。设计理由由[可归属决定的 Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md)负责，而这两类记录为何约束客户区，由 [Village 笔记](../../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md)负责。
+客户审计员可以直接从会话日志读取的两类记录，以及据其行事的导出路径。[dsh-signoff](../../packages/governance/signoff)（`ctx.signoffs`）为每一次签署的转变记录一项具名的人类决定；[dsh-data-use](../../packages/governance/data-use)（`ctx.dataUse`）在创建时钉定单个会话的转录所处的合同条款；[dsh-curator](../../packages/governance/curator)（`ctx.curator`）只在脱敏配置下、且只为其条款所接纳的用途导出转录。这两类记录都以日志为先：没有任何东西持有重放无法复现的状态，没有任何东西做认证，也没有任何东西进入模型请求。设计理由由[可归属决定的 Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md)与 [curator Agent Note](../../.agents/notes/proposed/architecture/2026-09-06-curator.md)负责，而它们为何约束客户区，由 [Village 笔记](../../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md)负责。
 
-来源：[`packages/governance/signoff/src/index.ts`](../../packages/governance/signoff/src/index.ts)、[`packages/governance/data-use/src/index.ts`](../../packages/governance/data-use/src/index.ts)
+来源：[`packages/governance/signoff/src/index.ts`](../../packages/governance/signoff/src/index.ts)、[`packages/governance/data-use/src/index.ts`](../../packages/governance/data-use/src/index.ts)、[`packages/governance/curator/src/index.ts`](../../packages/governance/curator/src/index.ts)
 
 ## 已签署的转变
 
@@ -101,6 +101,88 @@ interface DataUseTerms {
 
 服务在 `agent/session-start` 时向任何尚未携带条款的会话追加部署配置的条款，于是会话在第一个回合之前就陈述了自己的条款，而被恢复的会话保留它创建时所处的条款。`pin(agent, terms)` 记录更窄的条款；一次允许了现有条款所不允许之用途的钉定会以 `DATA_USE_TERMS_PINNED` 被拒绝且不追加任何内容，因为事后拓宽会把交付转录变成训练材料。其余字段可以朝任意方向重新钉定。`termsOf(events)` 是消费方读取的折叠函数。
 
+## 策展导出
+
+策展导出是唯一做脱敏的路径。`CuratedExportRequest` 陈述本次导出服务于哪个用途、在哪个配置下运行，以及行与 manifest 的去向；导出器自身的 `rewardedOnly`、`includeHeldOut` 与 `districts` 过滤器原样透传。
+
+```ts type-equiv
+/** What to export, under which terms, and where. */
+interface CuratedExportRequest {
+  /** Purpose the export serves; a session whose terms do not list it is withheld. */
+  readonly purpose: DataUsePurpose
+  /** Profile to apply; absent uses the configured `defaultProfile`, and an export with neither is refused. */
+  readonly profile?: string
+  /** Sessions to consider; absent considers every persisted session. */
+  readonly sessions?: readonly SessionId[]
+  /** Destination of the curated lines; closed exactly once by the wrapped exporter. */
+  readonly sink: TrajectorySink
+  /** Where the manifest is written; absent returns it in the report only. */
+  readonly manifestPath?: string
+  /** Write only trajectories whose reward outcome is `1`. */
+  readonly rewardedOnly?: boolean
+  /** Also write sessions whose environment is held out. */
+  readonly includeHeldOut?: boolean
+  /** Districts to export; absent applies the exporter's configured `withheldDistricts`. */
+  readonly districts?: readonly string[]
+}
+```
+
+只有当会话最新的 `dataUse/terms` 列出了本次导出的用途时它才被接纳，完全不携带条款的会话按同一条规则被扣留。只有被接纳的会话才到达导出器，因此被扣留的转录从不被折叠、序列化或写出。在没有 `defaultProfile` 的部署上，未指名配置的导出以 `CURATOR_PROFILE_REQUIRED` 被拒绝；不存在任何能绕过脱敏进行导出的配置。
+
+每一行写出的内容都是 `dsh-trajectory/1` 记录加上一个 `curation` 块，其中指名运行过的配置、其有效规则的摘要、本条记录收到的替换次数，以及其条款所指名的驻留地。记录里的每个字符串都会被脱敏，除了标识符、读者据以分支的判别式，以及已注册的工具名；[包 README](../../packages/governance/curator/README.md) 枚举了两侧。
+
+```ts type-equiv
+/** The block the curator adds to every record it exports. */
+interface TrajectoryCuration {
+  /** Always `true`: a record without a `curation` block was written by the unredacted exporter. */
+  readonly redactionApplied: true
+  /** The profile that ran and what it replaced in this record. */
+  readonly redaction: TrajectoryRedaction
+  /** Region the session's pinned terms name, so a sink can partition by it without reading the logs again. */
+  readonly residency: string
+}
+```
+
+manifest 是这次导出的持久产物。一次导出跨越许多会话且不属于其中任何一个，因此它是文件而不是会话事件。
+
+```ts type-equiv
+/** The durable record of one curated export, written beside its lines. */
+interface ExportManifest {
+  /** Manifest format tag. */
+  readonly version: string
+  /** Epoch milliseconds the export finished at. */
+  readonly exportedAt: number
+  /** Purpose the export serves, which every written session's terms admit. */
+  readonly purpose: DataUsePurpose
+  /** Profile id the export ran under. */
+  readonly profile: string
+  /** Lowercase SHA-256 hex over that profile's effective rules in order. */
+  readonly profileSha256: string
+  /** Lines written. */
+  readonly records: number
+  /** Sessions withheld, by reason. */
+  readonly withheld: ExportWithheld
+  /** Replacements over the whole export, per rule id; every rule of the profile is listed, including those that matched nothing. */
+  readonly ruleHits: Readonly<Record<string, number>>
+  /** Lowercase SHA-256 hex over the written lines in order, which is the digest of the sink's bytes. */
+  readonly recordsSha256: string
+  /** Record format of every written line. */
+  readonly trajectoryFormat: TrajectoryFormat
+}
+```
+
+```ts type-equiv
+/** Sessions one export did not write, by the reason each was withheld. */
+interface ExportWithheld {
+  /** Withheld because their environment is held out. */
+  readonly heldOut: number
+  /** Withheld because their stamp's district is not one this export writes. */
+  readonly districts: number
+  /** Withheld because their pinned terms do not admit the export's purpose, or because they carry none. */
+  readonly terms: number
+}
+```
+
 ## 日志能证明与不能证明什么
 
 [不变量伴随插件](invariants.md)负责日志所承载的两项关系：一个会话绝不会为同一转变签署两个产物，也绝不会拓宽它已经携带的用途。每个字段都会被检查是否具有读者可据以行动的形态——已知的转变、小写 64 位十六进制摘要、具有非空 id 的人、指名了东西的证据指针、每项只列一次的已知用途非空集合、正整数天的保留期。
@@ -114,6 +196,29 @@ interface DataUseTerms {
 ## Cordis API
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — this section is byte-identical in both language sides of the page. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxcurator--curatorservice"></a>
+
+### `ctx.curator` — `CuratorService`
+
+Curated export (`ctx.curator`): redacted, terms-gated trajectory export with a manifest.
+
+```ts cordis-catalog
+/**
+ * Export the sessions whose pinned terms admit the purpose, redacted under
+ * one profile, and write the manifest that accounts for every session the
+ * request considered.
+ * @param request - the purpose, the profile, the sessions, the sink, and the exporter's own filters.
+ * @returns the manifest with the counts behind it, including the sessions withheld by terms and the ones that could not be read.
+ * @throws {@link CuratorError} `CURATOR_PROFILE_REQUIRED` when neither the
+ *   request nor the configuration names a profile, and `CURATOR_PROFILE_UNKNOWN`
+ *   when the request names one this deployment did not configure. Nothing is
+ *   written and the sink is not touched in either case.
+ */
+async export(request: CuratedExportRequest): Promise<CuratedExportReport>
+```
+
+Source: [`packages/governance/curator/src/index.ts:70`](../../packages/governance/curator/src/index.ts)
 
 <a id="ctxdatause--datauseservice"></a>
 

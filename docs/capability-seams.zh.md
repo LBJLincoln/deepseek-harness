@@ -116,10 +116,12 @@ flowchart LR
   pkg_program["program"]
   pkg_data_use["data-use"]
   svc_dataUse["ctx.dataUse<br/>Pinned data-use terms"]
+  pkg_curator["curator"]
+  svc_curator["ctx.curator<br/>Curated trajectory export"]
+  pkg_trajectories["trajectories"]
   pkg_verification["verification"]
   svc_completionStandards["ctx.completionStandards<br/>Executable completion standards"]
   pkg_command_verification["command-verification"]
-  pkg_trajectories["trajectories"]
   pkg_read_barrier["read-barrier"]
   svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
   pkg_fs_read_barrier["fs-read-barrier"]
@@ -257,6 +259,7 @@ flowchart LR
   pkg_cordis_host_runner --> svc_dynamicCordisRunner
   pkg_credentials --> svc_credentials
   pkg_credentials_local --> svc_credentials
+  pkg_curator --> svc_curator
   pkg_data_use --> svc_dataUse
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
@@ -376,6 +379,7 @@ flowchart LR
   svc_credentials --> pkg_apiproxy
   svc_credentials --> pkg_llm_deepseek
   svc_credentials --> pkg_llm_pi_ai
+  svc_curator --> pkg_trajectories
   svc_directoryPicker --> pkg_apiproxy
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_e2b --> pkg_fs_e2b
@@ -527,6 +531,7 @@ flowchart LR
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
 | `ctx.signoffs` | `core` | [`signoff`](../packages/governance/signoff) | - | [`program`](../packages/improvement/program) | - | 每次签署的转变记录一条 signoff/recorded，并把最新的一条从日志折叠回来；程序账本读取该折叠结果，而不是注入本服务。 |
 | `ctx.dataUse` | `core` | [`data-use`](../packages/governance/data-use) | - | - | - | 在会话启动时钉定该会话转录所处的合同条款，并拒绝此后任何拓宽其用途的钉定。 |
+| `ctx.curator` | `core` | [`curator`](../packages/governance/curator) | - | [`trajectories`](../packages/improvement/trajectories) | - | 在没有脱敏配置时拒绝导出，扣留其被钉定条款不接纳该用途的每一个会话，在记录到达 sink 之前对其脱敏，并写出导出 manifest。 |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | 每个 goal 拥有一份可执行标准，从完全通过的运行记录证书，并在 goal 操作内部拒绝未认证的 goal 完成。 |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | 拥有验证者所有的目录树，为每个实现者会话铸造一份运行预留，并判定该会话不得读取哪些目录。 |
 | `ctx.judge` | `core` | [`judge`](../packages/verification/judge) | - | - | - | 在实现者目录树的已校验副本上，为每次被审尝试创建一个无谱系的判官会话，并记录它所给出的裁决。 |

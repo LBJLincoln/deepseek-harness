@@ -55,13 +55,13 @@ The invariant companion rejects an `approval/decided` whose `argumentsSha256` di
 ## Rollout
 
 1. This slice: `dsh-signoff`, `dsh-data-use`, `decidedBy` and `argumentsSha256` on the approval pair, the program gate switch, and the governance e2e.
-2. The exporter integration: `dataUse/terms` decides which sessions a trajectory or facts export may emit, beside the held-out and district withholding it already applies, and the redaction profile the terms name becomes the export's own.
+2. Landed as [`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) ([note](2026-09-06-curator.md)): the curated export reads `dataUse/terms` and writes only the sessions whose terms admit its purpose, beside the held-out and district withholding the trajectory exporter already applies, and refuses to run without a redaction profile. The profile is the export's own rather than the one each session's terms name, because one export manifest states one profile.
 3. The remaining `SignoffRecord` fields of the four-goal note — `role`, `method`, and `scope` — once a stage vocabulary and an identity provider exist to fill them.
 4. Attributing answerers: a UI or ACP answerer that carries the deciding person's identity records `kind: 'human'`.
 
 ## Risks
 
 - **A record is only as good as its principal.** Nothing authenticates the id, so a deployment whose identity provider is a configuration string has an audit trail that names a role rather than a person; the companion cannot tell the difference and the README says so.
-- **Terms pinned at creation, enforced nowhere yet.** Until the exporter reads them, `dataUse/terms` is a durable claim rather than a barrier, and a composition that omits `dsh-data-use` produces sessions with no terms at all.
+- **Terms pinned at creation, enforced on the curated export path.** The curator reads them and withholds by them; `ctx.trajectories.export()` is still callable directly, and a composition that omits `dsh-data-use` produces sessions with no terms at all, which the curator withholds for every purpose.
 - **`purposes` is the only monotone field.** Residency, retention, and the redaction profile can be re-pinned freely; only widening `purposes` is refused, because it is the field whose widening turns a delivery transcript into training data.
 - **Two writers on one session.** As with `budget/caps`, nothing states which orchestrator owns a session's terms or signatures; the companions bound what a second writer can do, they do not decide who may write.

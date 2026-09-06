@@ -606,6 +606,48 @@ export interface Config {
 
 Source: [`packages/credentials/credentials-local/src/index.ts:55`](../packages/credentials/credentials-local/src/index.ts)
 
+<a id="deepseek-aidsh-curator"></a>
+
+## `@deepseek-ai/dsh-curator`
+
+Requires: `trajectories` · `sessionPersistence` · `dataUse`
+
+```ts config-catalog
+/** Deployment choices of the curated export, validated from `cordis.yml`. */
+export interface Config {
+  /**
+   * Redaction profiles by id, at least one. Redaction is not optional: there is
+   * no configuration under which a curated export runs without a profile, so a
+   * deployment states here which profiles it can export under.
+   */
+  profiles: Record<string, RedactionProfileConfig>
+  /** Profile an export that names none applies; an export with neither is refused. */
+  defaultProfile?: string
+}
+
+/** One configured profile: the rules an export applies, in the order they run. */
+export interface RedactionProfileConfig {
+  /** Whether the rule set this package ships runs ahead of `rules`. */
+  shipped: boolean
+  /** Deployment-owned rules, applied after the shipped ones. */
+  rules?: RedactionRule[]
+}
+
+/** One configured redaction rule, as `cordis.yml` states it. */
+export interface RedactionRule {
+  /** Non-empty identity, unique inside its profile; the key hit counts are reported under. */
+  id: string
+  /** JavaScript regular expression source, compiled at load. */
+  pattern: string
+  /** Regular expression flags; the global flag is added whether or not it is listed, and the sticky flag is refused. */
+  flags?: string
+  /** Literal text every match becomes; `$`-sequences are written verbatim, never expanded. */
+  replacement: string
+}
+```
+
+Source: [`packages/governance/curator/src/index.ts:58`](../packages/governance/curator/src/index.ts)
+
 <a id="deepseek-aidsh-data-use"></a>
 
 ## `@deepseek-ai/dsh-data-use`

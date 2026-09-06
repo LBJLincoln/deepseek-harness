@@ -114,10 +114,12 @@ flowchart LR
   pkg_program["program"]
   pkg_data_use["data-use"]
   svc_dataUse["ctx.dataUse<br/>Pinned data-use terms"]
+  pkg_curator["curator"]
+  svc_curator["ctx.curator<br/>Curated trajectory export"]
+  pkg_trajectories["trajectories"]
   pkg_verification["verification"]
   svc_completionStandards["ctx.completionStandards<br/>Executable completion standards"]
   pkg_command_verification["command-verification"]
-  pkg_trajectories["trajectories"]
   pkg_read_barrier["read-barrier"]
   svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
   pkg_fs_read_barrier["fs-read-barrier"]
@@ -255,6 +257,7 @@ flowchart LR
   pkg_cordis_host_runner --> svc_dynamicCordisRunner
   pkg_credentials --> svc_credentials
   pkg_credentials_local --> svc_credentials
+  pkg_curator --> svc_curator
   pkg_data_use --> svc_dataUse
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
@@ -374,6 +377,7 @@ flowchart LR
   svc_credentials --> pkg_apiproxy
   svc_credentials --> pkg_llm_deepseek
   svc_credentials --> pkg_llm_pi_ai
+  svc_curator --> pkg_trajectories
   svc_directoryPicker --> pkg_apiproxy
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_e2b --> pkg_fs_e2b
@@ -525,6 +529,7 @@ flowchart LR
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
 | `ctx.signoffs` | `core` | [`signoff`](../packages/governance/signoff) | - | [`program`](../packages/improvement/program) | - | Records one signoff/recorded per signed transition and folds the newest one back out of the log; the program ledger reads the fold rather than injecting the service. |
 | `ctx.dataUse` | `core` | [`data-use`](../packages/governance/data-use) | - | - | - | Pins the contract terms a session transcript is held under at session start and refuses a later pin that widens its purposes. |
+| `ctx.curator` | `core` | [`curator`](../packages/governance/curator) | - | [`trajectories`](../packages/improvement/trajectories) | - | Refuses an export without a redaction profile, withholds every session whose pinned terms do not admit the purpose, redacts each record before the sink, and writes the export manifest. |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | Owns one executable standard per goal, records certificates from fully passing runs, and denies uncertified goal completion inside the goal operation. |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | Owns the validator-owned directory tree, mints one run reservation per implementer session, and decides which directories that session may not read. |
 | `ctx.judge` | `core` | [`judge`](../packages/verification/judge) | - | - | - | Creates one lineage-free judge session per audited attempt over a verified copy of the implementer tree, and records the verdict it answers. |

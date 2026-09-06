@@ -17,7 +17,7 @@ Groups hold `packages/<group>/<pkg>/`; names stay `@deepseek-ai/dsh-<pkg>`. **Gr
 | [`verification/`](verification/README.md) | Executable completion standards whose certificates gate goal completion | Product — stable API |
 | [`components/`](components/README.md) | Component registry: every addressable unit of a composition with kind, provenance, lineage, and callable route, plus seam adapters | Product — stable API |
 | [`improvement/`](improvement/README.md) | Improvement seam: environments with verifiers and trajectory export with certificate-decided rewards | Product — stable API |
-| [`governance/`](governance/README.md) | Signed transitions and data-use terms | Product — stable API |
+| [`governance/`](governance/README.md) | Signed transitions, terms, curated export | Product — stable API |
 | [`schedule/`](schedule/README.md) | Session-local scheduled follow-ups | Product — stable API |
 | [`feedback/`](feedback/README.md) | Human feedback | Product — stable API |
 | [`identity/`](identity/README.md) | Shared anonymous identity | Product — stable API |
