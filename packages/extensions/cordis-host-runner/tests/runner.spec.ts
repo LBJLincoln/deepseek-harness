@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { Context } from '@deepseek-ai/cordis'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { ApprovalRequestId } from '../src/index.ts'
 import type {
   ApprovalRequestId as ApprovalRequestIdType, CordisDynamicPluginId,
@@ -574,5 +576,44 @@ describe('render failure reports', () => {
     // describe something that is no longer there.
     await runner.run(AGENT_A, pluginId, packageId, 'run')
     expect(runner.snapshot(AGENT_A)[0]?.activeRun?.renderFailure).toBeUndefined()
+  })
+})
+
+describe('cordis/dynamic-changed', () => {
+  /** Attach an agent registry that resolves only the session owning these definitions. */
+  function withAgents(ctx: Context): void {
+    ctx.reflect.provide('agents', { get: (id: SessionId) => id === AGENT_A.id ? AGENT_A : undefined })
+  }
+
+  it('notifies at every lifecycle edge of one session own packages', async () => {
+    const { ctx, runner } = await setup()
+    withAgents(ctx)
+    const changed: string[] = []
+    ctx.on('cordis/dynamic-changed', (agent, pluginId) => { changed.push(`${agent.id}:${pluginId}`) })
+
+    const { pluginId, packageId } = define(runner, {
+      sessionId: AGENT_A.id, name: 'doubler', purpose: 'p', host: HOST_CODE,
+    })
+    expect(changed).toEqual([`${AGENT_A.id}:${pluginId}`])
+
+    const started = await runner.run(AGENT_A, pluginId, packageId, 'run')
+    if (!started.ok) throw new Error(started.message)
+    expect(changed).toHaveLength(2)
+
+    await runner.stop(AGENT_A, pluginId)
+    expect(changed).toHaveLength(3)
+
+    // Removing a stopped Plugin withdraws no activation and still deletes it.
+    await expect(runner.undefine(AGENT_A, pluginId)).resolves.toEqual({ ok: true, wasRunning: false })
+    expect(changed).toEqual(Array.from({ length: 4 }, () => `${AGENT_A.id}:${pluginId}`))
+  })
+
+  it('notifies nobody for a session whose agent is already gone', async () => {
+    const { ctx, runner } = await setup()
+    withAgents(ctx)
+    const changed: string[] = []
+    ctx.on('cordis/dynamic-changed', (_agent, pluginId) => { changed.push(pluginId) })
+    define(runner, { sessionId: AGENT_B.id, name: 'orphan', purpose: 'p', host: HOST_CODE })
+    expect(changed).toEqual([])
   })
 })

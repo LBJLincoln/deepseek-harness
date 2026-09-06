@@ -9,7 +9,7 @@ import { Session, SessionId, type SessionEvent, type UserMessage } from '@deepse
 import SystemPrompt, { renderPrompt } from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime, { defineContentToolFixture } from '@deepseek-ai/dsh-tools'
 import AgentRegistry, { agentEvents, Inbox, type Agent, type PreStepDecision } from '@deepseek-ai/dsh-agent'
-import SkillRegistry from '@deepseek-ai/dsh-skill'
+import SkillRegistry, { skillDigest } from '@deepseek-ai/dsh-skill'
 import * as SkillFileSystem from '@deepseek-ai/dsh-skill-filesystem'
 import * as toolSkill from '@deepseek-ai/dsh-tool-skill'
 
@@ -777,6 +777,14 @@ describe('dsh-tool-skill', () => {
     expect(result.value).toEqual({
       name: 'project-skill',
       provider: 'filesystem',
+      digest: skillDigest({
+        name: 'project-skill',
+        description: 'Project skill',
+        invocation: { modelInvocable: true, userInvocable: true },
+        source: 'project-dsh',
+        provider: 'filesystem',
+        content: 'Project instructions.',
+      }),
       resourceBase: { kind: 'directory', path: join(project, '.dsh/skills/project-skill') },
       content: 'Project instructions.',
     })
@@ -988,7 +996,14 @@ describe('user-explicit invocation injection', () => {
     expect(kinds.at(-1)).toBe('skill-invocation')
     expect(kinds.indexOf('skill-catalog')).toBeLessThan(kinds.indexOf('skill-invocation'))
     const injection = decision.messages.at(-1)!
-    expect(injection.source).toMatchObject({ kind: 'skill-invocation', name: 'hidden-demo', form: 'instructions' })
+    // The injection records which generation it put in play, so the durable
+    // log names the body without re-parsing the rendered block.
+    expect(injection.source).toEqual({
+      kind: 'skill-invocation',
+      name: 'hidden-demo',
+      digest: skillDigest((await ctx.skills.get('hidden-demo', { cwd: agent.session.header.cwd }))!),
+      form: 'instructions',
+    })
     const block = injection.content[0]
     if (block?.type !== 'text') throw new Error('expected text injection')
     expect(block.text).toContain('<skill_content name="hidden-demo">')

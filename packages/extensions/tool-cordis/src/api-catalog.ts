@@ -2589,6 +2589,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [],
   },
   {
+    name: 'cordis/dynamic-changed',
+    mode: 'emit',
+    signature: '\'cordis/dynamic-changed\'(agent: Agent, pluginId: CordisDynamicPluginId): void',
+    summary: 'The dynamic Packages one Session owns changed: a Package was defined, an activation went live or was withdrawn, or a Plugin and its Packages were removed.',
+    description: 'The dynamic Packages one Session owns changed: a Package was defined, an activation went live or was withdrawn, or a Plugin and its Packages were removed. An UNFILTERED invalidation carrying no diff, deliberately not scope-filtered dispatch and never forwarded to a browser: `agent` is a live Host handle, and a consumer reads the current inventory through it with `listPlugins` and `inspectPackage`. One lifecycle change may notify more than once — removing a running Plugin withdraws its activation and then deletes it — so a consumer reconciles rather than counting.',
+    parameters: [{ name: 'agent', description: 'the Session that owns the changed Plugin, live at emit time.' }, { name: 'pluginId', description: 'the stable Plugin identity whose state changed.' }],
+  },
+  {
     name: 'cordis/dynamic-package',
     mode: 'emit',
     signature: '\'cordis/dynamic-package\'(pkg: DynamicCordisPackage): void',

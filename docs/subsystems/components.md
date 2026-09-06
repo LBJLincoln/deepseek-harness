@@ -105,9 +105,14 @@ One adapter per seam, each mirroring what its own context's scope sees into that
 | `tool` | [`components-tools`](../../packages/components/components-tools/README.md) | the model-facing `ToolSchema` as `ctx.tools.schemas(scope)` projects it | content |
 | `prompt-section` | [`components-prompt`](../../packages/components/components-prompt/README.md) | `[name, order, complete === true, text]`, with `null` for a text the assembly evaluates | content, else registration |
 | `preset` | [`components-presets`](../../packages/components/components-presets/README.md) | `[id, trust, rows]` over the composition after `include` resolution | content |
+| `skill` | [`components-skills`](../../packages/components/components-skills/README.md) | `[name, description, whenToUse ?? null, invocation.modelInvocable, invocation.userInvocable, metadata ?? null, content]` over the loaded definition, from `skillDigest()` in [`dsh-skill`](../../packages/skill/skill/README.md) | content |
+| `plugin` | [`components-packages`](../../packages/components/components-packages/README.md) | `[specifier, config]` over the mounted Loader row | registration |
+| `dynamic-package` | [`components-packages`](../../packages/components/components-packages/README.md) | `[pluginId, packageId, hostSource, clientSource]` from the dynamic runner's package inspection | content |
 | `agent-provider` | [`components-subagents`](../../packages/components/components-subagents/README.md) | `[provider]` | registration |
 
-Each adapter follows its seam's own change notification — `tools/change`, `system-prompt/change`, `agent/created` and `agent-preset/selected`, `subagent/provider-added` and `subagent/provider-removed` — so a registration disposed upstream disappears downstream, and disposing an adapter's fiber removes every component it registered.
+Each adapter follows its seam's own change notification — `tools/change`, `system-prompt/change`, `agent/created` and `agent-preset/selected`, `skills/change`, `internal/status` and `loader/partial-dispose` and `cordis/dynamic-changed`, `subagent/provider-added` and `subagent/provider-removed` — so a registration disposed upstream disappears downstream, and disposing an adapter's fiber removes every component it registered.
+
+A skill is in play once its body is loaded, not once it is listed: `ctx.skills.list()` returns summaries, so `components-skills` registers from the record of each load — the settled `tools/result` of the `skill` tool, and the `skill-invocation` message source of a user-explicit `/name` injection — and replays that lookup on `skills/change` to re-address a body edited in place. A dynamic package is in play once one of its versions is running: `components-packages` registers it through the mounting agent's own context, with `provenance: 'synthesized'`, so a manifest that names one is distinguishable from a curated composition.
 
 ## The composition manifest
 

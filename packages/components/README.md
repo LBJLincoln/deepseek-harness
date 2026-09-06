@@ -10,6 +10,8 @@ One registry for what a composition contains and how a model reaches each part: 
 | [`components-tools/`](components-tools/README.md) | Mirrors visible tools as `tool` components | — |
 | [`components-prompt/`](components-prompt/README.md) | Mirrors system-prompt sections as `prompt-section` components | — |
 | [`components-presets/`](components-presets/README.md) | Mirrors standing agent-preset mounts as `preset` components | — |
+| [`components-skills/`](components-skills/README.md) | Mirrors loaded skill bodies as `skill` components | — |
+| [`components-packages/`](components-packages/README.md) | Mirrors Loader entries and runtime-written packages as `plugin` and `dynamic-package` components | — |
 | [`components-subagents/`](components-subagents/README.md) | Mirrors subagent providers as `agent-provider` components | — |
 | [`components-manifest/`](components-manifest/README.md) | Records the composition in play as a `composition/manifest` event | — |
 | [`command-components/`](command-components/README.md) | Human-facing `/components` inventory | — |

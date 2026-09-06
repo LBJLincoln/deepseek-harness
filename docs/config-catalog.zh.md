@@ -586,7 +586,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/extensions/cordis-host-runner/src/index.ts:88`](../packages/extensions/cordis-host-runner/src/index.ts)
+来源：[`packages/extensions/cordis-host-runner/src/index.ts:105`](../packages/extensions/cordis-host-runner/src/index.ts)
 
 <a id="deepseek-aidsh-credentials-local"></a>
 
@@ -2120,7 +2120,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/skill/skill/src/index.ts:279`](../packages/skill/skill/src/index.ts)
+来源：[`packages/skill/skill/src/index.ts:314`](../packages/skill/skill/src/index.ts)
 
 <a id="deepseek-aidsh-skill-filesystem"></a>
 
@@ -2830,7 +2830,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/skill/tool-skill/src/index.ts:61`](../packages/skill/tool-skill/src/index.ts)
+来源：[`packages/skill/tool-skill/src/index.ts:62`](../packages/skill/tool-skill/src/index.ts)
 
 <a id="deepseek-aidsh-tool-str-replace-editor"></a>
 
@@ -3367,8 +3367,10 @@ export interface Config {
 - `@deepseek-ai/dsh-commands`（[`packages/interaction/commands/src/index.ts`](../packages/interaction/commands/src/index.ts)）
 - `@deepseek-ai/dsh-components`（[`packages/components/components/src/index.ts`](../packages/components/components/src/index.ts)）
 - `@deepseek-ai/dsh-components-manifest` — 需要 `agents` · `components`（[`packages/components/components-manifest/src/index.ts`](../packages/components/components-manifest/src/index.ts)）
+- `@deepseek-ai/dsh-components-packages` — 需要 `components` · `loader`（[`packages/components/components-packages/src/index.ts`](../packages/components/components-packages/src/index.ts)）
 - `@deepseek-ai/dsh-components-presets` — 需要 `components` · `agentPresets`（[`packages/components/components-presets/src/index.ts`](../packages/components/components-presets/src/index.ts)）
 - `@deepseek-ai/dsh-components-prompt` — 需要 `components` · `systemPrompt`（[`packages/components/components-prompt/src/index.ts`](../packages/components/components-prompt/src/index.ts)）
+- `@deepseek-ai/dsh-components-skills` — 需要 `agents` · `components` · `skills` · `tools`（[`packages/components/components-skills/src/index.ts`](../packages/components/components-skills/src/index.ts)）
 - `@deepseek-ai/dsh-components-subagents` — 需要 `components` · `subagents`（[`packages/components/components-subagents/src/index.ts`](../packages/components/components-subagents/src/index.ts)）
 - `@deepseek-ai/dsh-components-tools` — 需要 `components` · `tools`（[`packages/components/components-tools/src/index.ts`](../packages/components/components-tools/src/index.ts)）
 - `@deepseek-ai/dsh-cordis-client-runner`（[`packages/extensions/cordis-client-runner/src/index.ts`](../packages/extensions/cordis-client-runner/src/index.ts)）

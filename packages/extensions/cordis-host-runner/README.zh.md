@@ -23,6 +23,8 @@
 
 本功能拥有四条转发事件，由本包在其 client-safe 的 [`./types`](src/types.ts) 子路径上声明，并由 [`@deepseek-ai/dsh-api-remotes`](../../api/remotes/README.md) 的白名单准许投递——正是这一点让浏览器能经 `ctx.remote.$on` 收到它们：`cordis/request-run`（`{requestId, agentId, id, name, purpose}`——只有元数据，绝无代码）、`cordis/request-run-resolved`（`{requestId, outcome}`）、`dynamicCordisRunner/package`（`{id, name, rev}`），以及 `dynamicCordisRunner/retract`（`{id, rev}`）。后两者是对称的一对运行状态播报：每次全新启动与每次停止都播，与该包有没有浏览器半无关。
 
+第五条事件只留在本进程内：`cordis/dynamic-changed(agent, pluginId)` 在某个会话的定义或运行状态发生变化时触发——记录了一个定义、一次激活上线或被撤回、一个定义连同其各版本被移除。它声明在包根而非 `./types` 上，且不被转发，因为它携带的是消费方据以读取当前库存的存活 `Agent`。它是不带差异的无过滤失效通知，且一次生命周期变化可能通知不止一次（移除正在运行的定义会先撤回其激活、再删除它），因此消费方应做对账而不是计数。agent 已经消失的会话不会通知任何人：它的库存随持有它的作用域一同离开。
+
 ## 存储立场
 
 注册表就是进程内存，也是唯一真源。会话日志只承载一次 define 调用的元数据，绝不承载它的代码：因此进程重启后确实没有任何定义，这是合理的；而 id 已无法解析的卡片会如实说明这一点，不会假装自己还能运行。本包不向磁盘写任何东西，也不会自动恢复任何定义；刷新过的页面手上什么都没有，直到有人再次运行某个包——正是这一步让它绑定存活的 host 半并重新取回浏览器半。

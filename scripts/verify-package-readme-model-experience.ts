@@ -166,6 +166,8 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/components/components-prompt': { kind: 'none', reason: 'The adapter registers component metadata only; the mirrored sections reach the model through the prompt assembly exactly as before.' },
   'packages/components/components-presets': { kind: 'none', reason: 'The adapter registers component metadata only; a preset\'s rows own every model-visible effect of the composition they install.' },
   'packages/components/components-manifest': { kind: 'none', reason: 'The manifest is log-only; it names what produced the model\'s inputs and adds nothing to any request.' },
+  'packages/components/components-skills': { kind: 'none', reason: 'The adapter registers component metadata only; a loaded skill body reaches the model through the skill tool result and the user-explicit injection exactly as before.' },
+  'packages/components/components-packages': { kind: 'none', reason: 'The adapter registers component metadata only; each mirrored package owns every model-visible effect of what it registers.' },
   'packages/improvement/environments': { kind: 'none', reason: 'The registry holds composition-time task definitions and registers nothing model-facing; the environment runner owns every model-visible effect.' },
   'packages/improvement/fleet': { kind: 'none', reason: 'The fleet schedules environment runs; the environment runner owns every model-visible effect of each cell.' },
   'packages/improvement/trajectories': { kind: 'none', reason: 'Export reads persisted logs and writes files; it adds nothing to any model request.' },

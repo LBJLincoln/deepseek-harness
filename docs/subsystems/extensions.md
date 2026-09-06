@@ -254,11 +254,38 @@ inspectPackage( agent: Agent, pluginId: CordisDynamicPluginId, packageId: Cordis
 
 Types: [Agent](core.md)
 
-Source: [`packages/extensions/cordis-host-runner/src/index.ts:124`](../../packages/extensions/cordis-host-runner/src/index.ts)
+Source: [`packages/extensions/cordis-host-runner/src/index.ts:141`](../../packages/extensions/cordis-host-runner/src/index.ts)
 
 <a id="cordis-events"></a>
 
 ### `cordis/*` events
+
+<a id="cordisdynamic-changed--emit"></a>
+
+#### `cordis/dynamic-changed` — emit
+
+The dynamic Packages one Session owns changed: a Package was defined, an activation went live or was withdrawn, or a Plugin and its Packages were removed. An UNFILTERED invalidation carrying no diff, deliberately not scope-filtered dispatch and never forwarded to a browser: `agent` is a live Host handle, and a consumer reads the current inventory through it with `listPlugins` and `inspectPackage`. One lifecycle change may notify more than once — removing a running Plugin withdraws its activation and then deletes it — so a consumer reconciles rather than counting.
+
+```ts cordis-catalog
+/**
+ * The dynamic Packages one Session owns changed: a Package was defined, an
+ * activation went live or was withdrawn, or a Plugin and its Packages were
+ * removed. An UNFILTERED invalidation carrying no diff, deliberately not
+ * scope-filtered dispatch and never forwarded to a browser: `agent` is a
+ * live Host handle, and a consumer reads the current inventory through it
+ * with `listPlugins` and `inspectPackage`. One lifecycle change may notify
+ * more than once — removing a running Plugin withdraws its activation and
+ * then deletes it — so a consumer reconciles rather than counting.
+ * @param agent - the Session that owns the changed Plugin, live at emit time.
+ * @param pluginId - the stable Plugin identity whose state changed.
+ * @mode emit
+ */
+'cordis/dynamic-changed'(agent: Agent, pluginId: CordisDynamicPluginId): void
+```
+
+Types: [Agent](core.md)
+
+Source: [`packages/extensions/cordis-host-runner/src/index.ts:100`](../../packages/extensions/cordis-host-runner/src/index.ts)
 
 <a id="cordisdynamic-package--emit"></a>
 

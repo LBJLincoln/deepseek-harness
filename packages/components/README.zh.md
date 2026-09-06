@@ -10,6 +10,8 @@
 | [`components-tools/`](components-tools/README.md) | 把可见工具镜像为 `tool` 组件 | — |
 | [`components-prompt/`](components-prompt/README.md) | 把 system-prompt section 镜像为 `prompt-section` 组件 | — |
 | [`components-presets/`](components-presets/README.md) | 把常驻 agent 预设挂载镜像为 `preset` 组件 | — |
+| [`components-skills/`](components-skills/README.md) | 把已加载的 skill 正文镜像为 `skill` 组件 | — |
+| [`components-packages/`](components-packages/README.md) | 把 Loader 条目与运行期编写的包镜像为 `plugin` 与 `dynamic-package` 组件 | — |
 | [`components-subagents/`](components-subagents/README.md) | 把 subagent 提供方镜像为 `agent-provider` 组件 | — |
 | [`components-manifest/`](components-manifest/README.md) | 把在用组合记录为 `composition/manifest` 事件 | — |
 | [`command-components/`](command-components/README.md) | 面向人的 `/components` 库存 | — |

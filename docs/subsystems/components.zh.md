@@ -105,9 +105,14 @@ interface ComponentListOptions extends ComponentViewOptions {
 | `tool` | [`components-tools`](../../packages/components/components-tools/README.md) | 完全按 `ctx.tools.schemas(scope)` 投影的模型可见 `ToolSchema` | content |
 | `prompt-section` | [`components-prompt`](../../packages/components/components-prompt/README.md) | `[name, order, complete === true, text]`，由装配求值的文本记为 `null` | content，否则 registration |
 | `preset` | [`components-presets`](../../packages/components/components-presets/README.md) | 完成 `include` 解析后的组合上的 `[id, trust, rows]` | content |
+| `skill` | [`components-skills`](../../packages/components/components-skills/README.md) | 已加载定义上的 `[name, description, whenToUse ?? null, invocation.modelInvocable, invocation.userInvocable, metadata ?? null, content]`，来自 [`dsh-skill`](../../packages/skill/skill/README.md) 的 `skillDigest()` | content |
+| `plugin` | [`components-packages`](../../packages/components/components-packages/README.md) | 已挂载 Loader 行上的 `[specifier, config]` | registration |
+| `dynamic-package` | [`components-packages`](../../packages/components/components-packages/README.md) | 来自动态运行器包检视的 `[pluginId, packageId, hostSource, clientSource]` | content |
 | `agent-provider` | [`components-subagents`](../../packages/components/components-subagents/README.md) | `[provider]` | registration |
 
-每个适配器跟随其 seam 自身的变更通知——`tools/change`、`system-prompt/change`、`agent/created` 与 `agent-preset/selected`、`subagent/provider-added` 与 `subagent/provider-removed`——因此上游释放的注册在下游随之消失，而释放适配器的 fiber 会移除它注册的全部组件。
+每个适配器跟随其 seam 自身的变更通知——`tools/change`、`system-prompt/change`、`agent/created` 与 `agent-preset/selected`、`skills/change`、`internal/status` 与 `loader/partial-dispose` 与 `cordis/dynamic-changed`、`subagent/provider-added` 与 `subagent/provider-removed`——因此上游释放的注册在下游随之消失，而释放适配器的 fiber 会移除它注册的全部组件。
+
+一个 skill 在其正文被加载后才算在用，而不是被列出后：`ctx.skills.list()` 返回摘要，因此 `components-skills` 从每次加载的记录注册——`skill` 工具已结算的 `tools/result`，以及用户显式 `/name` 注入的 `skill-invocation` 消息来源——并在 `skills/change` 上重放该次查找，为就地编辑的正文重新寻址。一个动态包在其某个版本运行后才算在用：`components-packages` 通过挂载它的 agent 自己的上下文注册它，并标记 `provenance: 'synthesized'`，因此指名它的清单可与人工筛选的组合区分开。
 
 ## 组合清单
 

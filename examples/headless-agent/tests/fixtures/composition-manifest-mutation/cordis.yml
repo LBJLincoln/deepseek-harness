@@ -1,0 +1,42 @@
+# Test-only composition: the skills adapter beside the tools adapter and the
+# manifest writer, over a project-local skill the driver edits between turns, so
+# one persisted log carries two generations of one skill address.
+- id: mutation-mock-llm
+  name: './mock-llm.ts'
+
+- id: components
+  name: '@deepseek-ai/dsh-components'
+
+- id: components-tools
+  name: '@deepseek-ai/dsh-components-tools'
+
+- id: components-skills
+  name: '@deepseek-ai/dsh-components-skills'
+
+- id: components-manifest
+  name: '@deepseek-ai/dsh-components-manifest'
+
+# The spine composes the skill registry, the filesystem provider, and the
+# model-facing `skill` tool. The watcher stays off: the driver invalidates the
+# catalog itself, so the edit lands at a point the assertions can name.
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Load the named skill before answering.'
+    workspaceContext: false
+    toolBash: false
+    toolJobs: false
+    skills:
+      enabled: true
+      filesystem:
+        watch: false
+        includeDefaultRoots: true
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

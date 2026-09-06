@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
+import { componentDigest } from '@deepseek-ai/dsh-components'
 import { bindScopeParent, createScope, scopeOf } from '@deepseek-ai/dsh-scope'
 import SkillRegistry, {
   isModelInvocable,
   isUserInvocable,
   renderSkillContent,
+  skillDigest,
   type SkillCandidate,
   type SkillDefinition,
   type SkillInvocationPolicy,
@@ -1040,6 +1042,50 @@ describe('SkillRegistry registry', () => {
     expect((await ctx.skills.get('same-skill'))?.description).toBe('First')
     disposeFirst()
     expect(await ctx.skills.get('same-skill')).toBeUndefined()
+  })
+})
+
+describe('skillDigest', () => {
+  function loaded(overrides: Partial<SkillDefinition> = {}): SkillDefinition {
+    return {
+      name: 'demo-skill',
+      description: 'Demo skill',
+      invocation: { modelInvocable: true, userInvocable: true },
+      source: 'project-dsh',
+      provider: 'filesystem',
+      content: 'Demo instructions.',
+      ...overrides,
+    }
+  }
+
+  it('addresses the kind and the canonical value the skill component owns', () => {
+    expect(skillDigest(loaded())).toBe(componentDigest('skill', [
+      'demo-skill', 'Demo skill', null, true, true, null, 'Demo instructions.',
+    ]))
+    expect(skillDigest(loaded())).toMatch(/^[0-9a-f]{64}$/)
+  })
+
+  it('moves the address for every field inside the canonical value', () => {
+    const base = skillDigest(loaded())
+    expect(skillDigest(loaded({ content: 'Demo instructions!' }))).not.toBe(base)
+    expect(skillDigest(loaded({ description: 'Other' }))).not.toBe(base)
+    expect(skillDigest(loaded({ name: 'other-skill' }))).not.toBe(base)
+    expect(skillDigest(loaded({ whenToUse: 'Sometimes.' }))).not.toBe(base)
+    expect(skillDigest(loaded({ metadata: { tier: 2 } }))).not.toBe(base)
+    expect(skillDigest(loaded({ invocation: { modelInvocable: false, userInvocable: true } }))).not.toBe(base)
+    expect(skillDigest(loaded({ invocation: { modelInvocable: true, userInvocable: false } }))).not.toBe(base)
+  })
+
+  it('keeps the address for the discovery facts two hosts disagree on', () => {
+    const base = skillDigest(loaded())
+    expect(skillDigest(loaded({ source: 'user-agents' }))).toBe(base)
+    expect(skillDigest(loaded({ provider: 'other-provider' }))).toBe(base)
+    expect(skillDigest(loaded({ path: '/elsewhere/SKILL.md' }))).toBe(base)
+    expect(skillDigest(loaded({ resourceBase: { kind: 'directory', path: '/elsewhere' } }))).toBe(base)
+  })
+
+  it('records a metadata value no JSON encoding preserves exactly as an absent one', () => {
+    expect(skillDigest(loaded({ metadata: { when: () => 'now' } }))).toBe(skillDigest(loaded()))
   })
 })
 
