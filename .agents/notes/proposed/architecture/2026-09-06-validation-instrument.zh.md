@@ -48,6 +48,26 @@ scorekeeper 的事实与导出字段都是最后记录的那次运行的 parity�
 
 `ScoreboardRow.parity` 是各会话 `weightPassed / weightTotal` 的均值，而不是该行各权重的合并比值，因此被更多用例采样的会话，不会比该行所指单元格中的同侪权重更大。
 
+### 切片 4 落地时记录的偏离
+
+`task.reference` 是 `task.fixture` **内部**的一个目录，而不是它的同级目录，因此环境的 `fixtureSha256` 已经覆盖参考树，参考程序变化时去污染键随之变化。为此运行器在每一次覆盖之后——第一次覆盖以及每次验证之前的那次——从工作区删除它，而不是依赖一次从未携带过它的覆盖。
+
+参考程序因位于预留目录之内而属于检查方所有，而 `hashCheckOwned` 已经对整个预留目录求摘要：在校验方之下改写参考程序会作废本次尝试，与改写一个检查脚本完全一样，无需再维护第二份需要同步的清单。
+
+注册表持有字面量 `recreation`，是因为它执行该种类的注册规则——`recreation` 环境必须携带 reference——而该种类本身由 `@deepseek-ai/dsh-tool-standard-author` 通过 `EnvironmentKindMap` 声明。在注册表中声明它会让每个读取注册表类型的程序（包括完全不注册任何种类的那些）的 `EnvironmentKind` 收窄。
+
+仪器通过新增的 `ReadBarrierService.reservation(agent)` 而非 `reserve(agent)` 读取自己会话的预留目录：创建预留正是让未标注角色的会话成为实现者的动作，因此一个为了查询而创建预留的读取方会降级它正在读取的那个会话。为验证者创建预留并把参考程序复制到其下的是 `EnvironmentRunner.stageReference(agent, environment)`，夹具也正是用它在运行器驱动实现者之前先驱动验证者。
+
+四通道捕获以 `captureCase` 与 `caseExpectation` 的形式从运行器导出，而没有迁入 `dsh-verification`：捕获需要 shell seam，而 verification 包并不读取它，且工具包在依赖图中本就位于运行器之上。
+
+`freeze` 为每个检查接受 `run`，并把它默认为 `. ./run`——参考程序自身入口在工作区中的对应物——因为 recreation 任务要求的正是参考程序在同一入口处的行为。冻结时重述的 `treeScope` 必须等于该检查用例被记录时所针对的那个；由用例决定它。
+
+面向模型的 schema 以 `{ path, content }` 条目而非键控映射携带 `files`，因为参数 DSL 无法为后者定型；工具把它们原样折叠进 `CheckCaseInput.files`。
+
+仪器写入的是**调用**会话的标准，因此夹具自行注册推导出的环境：运行器没有验证者阶段，为它增加一个是套件准入切片的工作。因此 recreation 环境以其作者手写的检查注册——候选程序存在这一准入检查——并获得验证者冻结的那些带权重检查。
+
+preset 不组合任何执行器，因此 `validator` preset 无法约束自己的 shell：它组合 shell 工具、不组合任何触及工作区的工具，约束它的是部署自身的文件沙箱与会话的工作目录。随产品发布的 Web 与 CLI 组合既不含 `completionStandards` 也不含 `readBarrier`，因此随产品发布的 `validator` preset 在那里不会激活；运行验证者的部署需要组合这两个宿主行。
+
 ## Alternatives considered
 
 **把用例放进 `verification/standard` 事件。** 否决：一个重建任务携带数百个用例，而日志是每次回放都要读取的记录；保留目录已经存放检查体，篡改摘要已经覆盖它，事件携带把两者绑定的摘要。
@@ -75,7 +95,7 @@ scorekeeper 的事实与导出字段都是最后记录的那次运行的 parity�
 1. 已落地。检查上的用例：`cases` 引用、`CheckCase`、归一化器集合、`maxCases`、运行器中的四通道执行、`CheckResult.cases` 与 `verification/run.parity`、不变量规则、重新生成的目录。
 2. 已落地。关上的墙：带 `verification/directive` 上 `clusters` 的聚类指令、哨兵测试，以及基于 Loader 启动夹具的 `instrument-cases` 快照。
 3. 已落地。下游的 parity：`SessionFactsOutcome.parity` 与 `ScoreboardRow.parity` 列、`dsh-trajectory/1` 记录上的 `parity`，以及 Village 笔记中的发布规则。
-4. 仪器：带 `task.reference` 的 `recreation` 种类、`standard-author` 权限、`standard_author` 工具、验证者 preset、采样 skill、`recreation-instrument` 夹具。
+4. 已落地。仪器：带 `task.reference` 的 `recreation` 种类、`standard-author` 权限、`standard_author` 工具、验证者 preset、采样 skill、`recreation-instrument` 夹具。
 5. 套件准入：重建环境通过四目标笔记的策展者准入，两个指标都在 stamp 上。
 
 ## Risks

@@ -688,7 +688,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:81`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:92`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -711,7 +711,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:187`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:189`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -3018,6 +3018,27 @@ export interface Config {
 ```
 
 Source: [`packages/skill/tool-skill/src/index.ts:62`](../packages/skill/tool-skill/src/index.ts)
+
+<a id="deepseek-aidsh-tool-standard-author"></a>
+
+## `@deepseek-ai/dsh-tool-standard-author`
+
+Requires: `tools` · `shell` · `readBarrier` · `goals` · `completionStandards`
+
+```ts config-catalog
+/** Deployment choices of the instrument, validated from `cordis.yml`. */
+export interface Config {
+  /**
+   * Timeout of each reference execution in milliseconds, capped by the
+   * executor; absent applies the executor default. A reference that overruns it
+   * records no case, so the bound is the deployment's statement of how long one
+   * behavioural sample may take.
+   */
+  referenceTimeoutMs?: number
+}
+```
+
+Source: [`packages/verification/tool-standard-author/src/index.ts:131`](../packages/verification/tool-standard-author/src/index.ts)
 
 <a id="deepseek-aidsh-tool-str-replace-editor"></a>
 

@@ -42,13 +42,13 @@
 
 `ctx.environmentRuns.run({ environment, workspace, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由，以及配置的隔离级别。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
 
-组合了屏障时，本次运行在写入 stamp 之前预留 `<barrier root>/runs/<sessionId>/`，把留出环境的夹具复制到其中的 `fixture/`，并把每次尝试的检查命令改写为 source 该预留目录中的一个脚本。预留目录在实现者的第一个轮次之前以及每次尝试时都会被写入 `standard.json` 以及每个活动检查一个 `checks/<checkId>/` 目录，其中存放该检查的 `run` 脚本，若该检查携带用例，还存放这些用例所在的 `cases.jsonl`——因此实现者看到的命令行指向一个屏障拒绝它读取内容的文件。检查 id 不是单个路径段，或预留路径无法被检查命令行以不加引号的方式承载时，本次运行都会以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。
+组合了屏障时，本次运行在写入 stamp 之前预留 `<barrier root>/runs/<sessionId>/`，把留出环境的夹具复制到其中的 `fixture/`、把任何[已声明的参考程序](#the-staged-reference)复制到其中的 `reference/`，并把每次尝试的检查命令改写为 source 该预留目录中的一个脚本。预留目录在实现者的第一个轮次之前以及每次尝试时都会被写入 `standard.json` 以及每个活动检查一个 `checks/<checkId>/` 目录，其中存放该检查的 `run` 脚本，若该检查携带用例，还存放这些用例所在的 `cases.jsonl`——因此实现者看到的命令行指向一个屏障拒绝它读取内容的文件。检查 id 不是单个路径段，或预留路径无法被检查命令行以不加引号的方式承载时，本次运行都会以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。
 
 每次尝试把提示词作为用户轮次发送，等待整个 agent 空闲，[对检查方拥有的集合求摘要](#tamper-on-check-owned-paths)，再次把 `task.fixture` 覆盖到工作区，使实现者对验证者所有文件的改动绝不会到达检查，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查。不带用例的检查只运行一次：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。带用例的检查[每个用例运行一次](#weighted-cases-and-the-reservation)。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件，任一检查带用例时携带 `parity`——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 [directive](#the-clustered-directive)，在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带它。
 
 报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果与工作区摘要、`certified`、某次运行通过时的证书，以及对会话全部 assistant 消息求和的模型用量。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
 
-`EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写。`resolveConfig(config)` 是导出的默认值解析步骤。
+`EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写；`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 拒绝环境或组合无法支持的参考程序预置。`resolveConfig(config)` 是导出的默认值解析步骤。
 
 只在已稳定的组合上调用 `run()`：运行器通过 agent loop 注册的注册表工厂创建 agent。持久记录是会话日志；轨迹导出器把它折叠为一行 `dsh-trajectory/1`，其 `environment` 字段就是该 stamp，并据此扣留留出会话。
 
@@ -71,6 +71,14 @@
 失败的运行发出一条 directive。`rootCause` 给出失败检查的数量。`detail` 为每个条目一行带编号的文本：带用例的检查每个失败聚类贡献一行——它的失败用例按不符的通道与退出类别分组——列明该检查由验证者撰写的 `outcome`、该聚类相对该检查总量的数量与权重、通道，以及候选程序如何结束；不带用例的检查贡献它记录的证据行。该事件还为观测台携带 `clusters: [{ checkId, channels, count, weight }]`，而 `detail` 仍以 `evidenceMaxChars` 为界。
 
 聚类行不列出任何用例 id、任何期望摘要、任何捕获输出的字节：隐藏用例期望的内容就是该用例本身，因此一堵在文件系统上守住、却从 directive 漏出的墙什么也没守住。不带用例的检查继续转发它的证据行，这是环境通过给检查配上用例来迁移离开的旧渲染。
+
+## The staged reference
+
+声明了 [`task.reference`](../environments/README.md#the-reference-directory) 的环境会把 fixture 中的一个目录对实现者隐藏，并把它交给校验方。每一次 fixture 覆盖——第一次覆盖以及每次验证之前的那次——在覆盖之后都会从工作区删除该目录，因此实现者的工作树永远不持有它；预留目录在 `reference/` 处收到一份副本，barrier 在那里拒绝实现者的一切读取。参考程序位于预留目录之内，因此[检查方拥有的摘要](#tamper-on-check-owned-paths)已经覆盖它：在校验方之下改写参考程序会作废本次尝试，与改写一个检查脚本完全一样。
+
+`ctx.environmentRuns.stageReference(agent, environmentId)` 为某个 agent 创建预留目录，并把该环境的参考程序放进去，供在任何实现者运行之前推导标准的校验方使用。它把参考程序解析到与运行器自身预留目录相同的 `reference/run` 入口，因此无论由哪个会话持有，[仪器](../../verification/tool-standard-author/README.md)都在同一条路径上找到它。未知环境、未声明 reference 的环境，以及没有 read barrier 的组合，分别以 `ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 被拒绝。
+
+`captureCase(shell, execution)` 与 `caseExpectation(capture, comparator)` 出于同一理由被导出：运行器用它们衡量候选程序，仪器用它们记录参考程序，因此一个用例的含义是一套流程，而不是两套可能各自漂移的流程。`captureCase` 清空 `treeScope`、暂存用例的文件、追加它的 `argv` 并喂入它的 `stdin`；`caseExpectation` 对比较器点名的通道求摘要，并略去本次运行无法给出取值的通道——被信号终止的退出、被执行器截断的流。
 
 ## Tamper on check-owned paths
 

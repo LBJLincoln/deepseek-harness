@@ -6,8 +6,9 @@
  * `.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.md`.
  */
 
-import { globSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, resolve } from 'node:path'
+import { globSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { basename, join, resolve } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import type { ToolSchema } from '@deepseek-ai/dsh-llm'
 import AgentRegistry from '@deepseek-ai/dsh-agent'
@@ -63,6 +64,9 @@ import * as ToolWeb from '@deepseek-ai/dsh-tool-web'
 import VmWorkflowEngine from '@deepseek-ai/dsh-workflow-worker-thread'
 import * as ToolRalph from '@deepseek-ai/dsh-tool-ralph'
 import * as ToolWorkflow from '@deepseek-ai/dsh-tool-workflow'
+import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
+import CompletionStandardService from '@deepseek-ai/dsh-verification'
+import * as ToolStandardAuthor from '@deepseek-ai/dsh-tool-standard-author'
 import { githubSlug } from './verify-md-links.ts'
 
 /** Attachment seam marker that makes the attachments-conditional `read_image` schema harvestable. */
@@ -354,6 +358,27 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'create, edit, pause, and resume require direct-human root authority; complete and blocked also accept the exact current goal round. The default blocked lower bound is three admitted rounds.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-tool-standard-author',
+    dir: 'tool-standard-author',
+    source: 'packages/verification/tool-standard-author/src/index.ts',
+    requires: ['ctx.tools', 'ctx.shell', 'ctx.readBarrier', 'ctx.goals', 'ctx.completionStandards', 'ctx.systemPrompt'],
+    writes: ['tool/call', 'verification/standard on a freeze', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(AgentRegistry)
+      await ctx.plugin(LocalSubprocessRuntime)
+      await ctx.plugin(LocalBashExecutor)
+      await ctx.plugin(LocalFileSystem, { cwd: process.cwd() })
+      // A temporary root: the barrier creates and locks down its directory at
+      // load, and the default one is the developer's own harness home.
+      await ctx.plugin(ReadBarrierService, { root: mkdtempSync(join(tmpdir(), 'tool-catalog-barrier-')) })
+      await ctx.plugin(GoalService)
+      await ctx.plugin(CompletionStandardService)
+      await ctx.plugin(ToolStandardAuthor)
+    },
+    note:
+      'standard_author is the validator-only instrument: it carries the `standard-author` tool authority the read barrier denies every implementer and judge session, samples the reference program under the calling session\'s reservation, and freezes the recorded cases into the session\'s completion standard.',
   },
   {
     pkg: '@deepseek-ai/dsh-schedule',

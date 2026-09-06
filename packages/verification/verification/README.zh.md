@@ -25,7 +25,7 @@
 
 ### 加权用例
 
-一个检查可以携带 `cases`：`{ count, weightTotal, sha256 }`，即验证者为它撰写的用例正文的持久引用。正文从不进入日志——`author()` 与 `extend()` 在 `AuthoredCheck` 上把它们与引用一并接收，而只存储引用，因此日志保持标准本身的体量，而[验证者的预留目录](../../improvement/environment-runner/README.md#weighted-cases-and-the-reservation)持有用例的内容。`resolveAuthoredCases()` 是两个动词在提交任何内容之前施加的导出校验；它以 `VERIFICATION_INVALID_CASE` 拒绝：有引用而无正文或有正文而无引用、与所交正文不符的引用、不是小写连字符形式或与他者重名的用例 id、不是正安全整数的权重、需要 shell 引号的 `argv` 词、不是规范化工作区相对路径的暂存文件路径、未知或重复的通道、已配置却没有期望值的通道、未知的规范化器 id，以及没有任何用例比较的 `treeScope` 或比较 `tree` 却没有 `treeScope` 的用例。`maxCases` 限制一个标准的用例，正如 `maxChecks` 限制它的检查。
+一个检查可以携带 `cases`：`{ count, weightTotal, sha256 }`，即验证者为它撰写的用例正文的持久引用。正文从不进入日志——`author()` 与 `extend()` 在 `AuthoredCheck` 上把它们与引用一并接收，而只存储引用，因此日志保持标准本身的体量，而[验证者的预留目录](../../improvement/environment-runner/README.md#weighted-cases-and-the-reservation)持有用例的内容。验证者交出的正文通常由[仪器](../tool-standard-author/README.md)记录，它从参考程序推导这些正文并写入该预留目录。`resolveAuthoredCases()` 是两个动词在提交任何内容之前施加的导出校验；它以 `VERIFICATION_INVALID_CASE` 拒绝：有引用而无正文或有正文而无引用、与所交正文不符的引用、不是小写连字符形式或与他者重名的用例 id、不是正安全整数的权重、需要 shell 引号的 `argv` 词、不是规范化工作区相对路径的暂存文件路径、未知或重复的通道、已配置却没有期望值的通道、未知的规范化器 id，以及没有任何用例比较的 `treeScope` 或比较 `tree` 却没有 `treeScope` 的用例。`maxCases` 限制一个标准的用例，正如 `maxChecks` 限制它的检查。
 
 一个用例列明它比较的通道——`exit`、`stdout`、`stderr` 与 `tree`（检查所声明 `treeScope` 下的工作目录树）——只有每一个通道都与其期望摘要相符时才通过。每个字节通道先按下述封闭集合中的有序列表规范化：
 

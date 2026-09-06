@@ -23,6 +23,16 @@ interface EnvironmentTask {
    * own directory and records a run that changed them as tampered.
    */
   readonly immutable?: readonly string[]
+  /**
+   * Fixture-relative directory holding the reference program a validator may
+   * execute and an implementer may never read. It is a `/`-separated relative
+   * path without `.` or `..` segments, naming a directory inside `fixture`;
+   * the runner copies it beneath the barrier root at reservation time and
+   * removes it from every workspace overlay, so the reference reaches the
+   * validator's reservation and never the implementer's tree. A `recreation`
+   * environment must declare one; every other kind may.
+   */
+  readonly reference?: string
 }
 ```
 
@@ -420,9 +430,26 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
  *   implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
+
+/**
+ * Mint one agent's reservation and copy the environment's reference program
+ * beneath it, for a validator that derives the standard from that reference
+ * before an implementer is ever driven. The copy lands in the same
+ * {@link REFERENCE_DIR} the runner stocks for its own implementer, so the
+ * instrument finds the reference at one path whichever session holds it, and
+ * the whole reservation stays inside the check-owned digest.
+ * @param agent - the agent whose session the reservation belongs to.
+ * @param environment - the environment supplying the reference tree.
+ * @returns the reservation the reference was staged in.
+ * @throws {@link EnvironmentRunError} when the environment is unknown, it
+ *   declares no reference, or no read barrier is composed to reserve from.
+ */
+async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 ```
 
-Source: [`packages/improvement/environment-runner/src/index.ts:546`](../../packages/improvement/environment-runner/src/index.ts)
+Types: [Agent](core.md)
+
+Source: [`packages/improvement/environment-runner/src/index.ts:703`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -438,8 +465,10 @@ Environment registry (`ctx.environments`): tasks with verifiers, held at composi
  * @returns the exact disposer that removes this registration and no later one under the same id.
  * @throws {@link EnvironmentError} when the id is already registered, the
  *   definition declares no checks, two checks share an id, an immutable
- *   path is not a normalized workspace-relative path, or a configured
- *   near-duplicate threshold refuses the prompt against the opposite split.
+ *   path is not a normalized workspace-relative path, the task reference is
+ *   missing on a `recreation` environment or is not a directory inside the
+ *   fixture, or a configured near-duplicate threshold refuses the prompt
+ *   against the opposite split.
  */
 register(definition: EnvironmentDefinition): () => void
 
@@ -468,7 +497,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:321`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:372`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 

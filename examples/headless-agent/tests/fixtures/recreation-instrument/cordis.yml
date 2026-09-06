@@ -1,0 +1,111 @@
+# Test-only composition: one `recreation` environment whose standard a validator
+# derives from the reference program, then one implementer measured by it.
+#
+# The validator session composes the SHIPPED `validator` preset, so the tool
+# authority, the declared role, and the sampling skill are the ones a deployment
+# installs rather than a fixture copy. The implementer has no preset: the runner
+# mints its session over whatever this file registers globally, which is what
+# gives it bash and the filesystem tools — and is why the read it attempts under
+# the barrier root is refused by role rather than by composition.
+- id: instrument-mock-llm
+  name: './instrument-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+- id: fs-observation-policy
+  name: '@deepseek-ai/dsh-fs-observation-policy'
+
+# The root defaults to <harness home>/verification, which the smoke isolates per
+# run. It is what makes the runner's session the implementer, what holds the
+# validator's reservation, and what the reference program is copied beneath.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+# The skill REGISTRY is host-plane, exactly as it is in the shipped CLI: the
+# validator preset contributes its own local provider and loader tool into it,
+# and the spine's own skill stack stays off so no second `skill` tool exists.
+- id: skills
+  name: '@deepseek-ai/dsh-skill'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environment
+  name: './register-environment.ts'
+
+# The SHIPPED preset roster, so the validator session composes the same
+# `validator` preset a deployment installs. The driver exports the absolute path
+# before boot; the smoke runs in a temporary cwd, so no relative root reaches it.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: validator
+    roots:
+      - path: !!js process.env.DSH_RECREATION_PRESETS
+        trust: system
+    includeUserRoot: false
+
+# The runner creates the implementer agent from this selection; the driver names
+# the validator's own route explicitly.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: implementer-mock
+    model: implementer-mock
+
+# Two attempts, so the clustered directive of the first validation is delivered
+# to the implementer as a user turn the transcript can pin.
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 2
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the scripted routes, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run the registered environment as a validated session.'
+    workspaceContext: false
+    toolJobs: false
+    skills:
+      enabled: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

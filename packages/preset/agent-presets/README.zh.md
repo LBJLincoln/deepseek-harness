@@ -82,7 +82,7 @@ role: implementer
 
 任何读取失败都退化为「没有元信息」——缺失、格式错误、类型不对、内容为空，含义相同，选择器回退到 id。展示不是能力：名字坏掉的 preset 依然能挂载。`implementer | judge | validator | unrestricted` 之外的 `role` 不构成声明，这让组合与没有该键时同样不受限制。
 
-`role` 是该文件承载的唯一一项权限声明，也是 [`dsh-read-barrier`](../../verification/read-barrier/README.md) 为每个由该 preset 组合出的会话读取的内容。缺省即 `unrestricted`，这正是所有不含该键的 preset 所声明的，也让四个编码 preset 保持原样。随附的 `judge` preset 是唯一声明了角色的那个：`judge`，屏障对其会话拒绝它拥有的每个目录与每一项工具权限，而该 preset 只组合一行 persona、不组合任何工具（判官会话的用途由 [`dsh-judge`](../../verification/judge/README.md) 拥有）。
+`role` 是该文件承载的唯一一项权限声明，也是 [`dsh-read-barrier`](../../verification/read-barrier/README.md) 为每个由该 preset 组合出的会话读取的内容。缺省即 `unrestricted`，这正是所有不含该键的 preset 所声明的，也让四个编码 preset 保持原样。随附的 preset 中有两个声明了角色。`judge` 声明 `judge`，屏障对其会话拒绝它拥有的每个目录与每一项工具权限，而该 preset 只组合一行 persona、不组合任何工具（判官会话的用途由 [`dsh-judge`](../../verification/judge/README.md) 拥有）。`validator` 声明 `validator`——屏障对该角色不拒绝任何东西：其会话可以触及自己的预留目录，并可持有 `standard-author` 权限；它组合仪器、一个用于探查参考程序的 shell，以及随 preset 目录一同分发的 `standard-sampling` skill——不组合任何触及实现者工作区的工具（校验方会话的用途由 [`dsh-tool-standard-author`](../../verification/tool-standard-author/README.md) 拥有）。它只在部署组合了 `completionStandards` 与 `readBarrier` 的地方激活。
 
 ## 配置
 

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -16,7 +16,7 @@ import type { UserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
-import { caseChannelDigest, CheckCaseId, checkCasesRef, CheckId, StandardId } from '@deepseek-ai/dsh-verification'
+import { caseChannelDigest, CheckCaseId, checkCasesRef, CheckId, hashWorkspaceTree, StandardId } from '@deepseek-ai/dsh-verification'
 import type {
   AuthoredCheck,
   AuthorStandardRequest,
@@ -30,7 +30,7 @@ import type {
   StandardRef,
   StandardView,
 } from '@deepseek-ai/dsh-verification'
-import EnvironmentRunner, { EnvironmentRunError, resolveConfig } from '@deepseek-ai/dsh-environment-runner'
+import EnvironmentRunner, { caseExpectation, EnvironmentRunError, resolveConfig } from '@deepseek-ai/dsh-environment-runner'
 import type { Config, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner'
 import * as invariantCompanion from '@deepseek-ai/dsh-environment-runner/invariant'
 
@@ -410,6 +410,68 @@ describe('EnvironmentRunner', () => {
     expect(await readFile(join(barrierRoot ?? '', 'runs', 'environment-test', 'fixture', 'expected.txt'), 'utf8')).toBe('reference\n')
   })
 
+  it('stages the reference beneath the reservation and keeps it out of every workspace overlay', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-runner-reference-'))
+    await mkdir(join(fixture, 'reference'), { recursive: true })
+    await writeFile(join(fixture, 'reference', 'run'), 'printf reference\n')
+    await writeFile(join(fixture, 'README.txt'), 'the task\n')
+    const { run, barrierRoot, workspace } = await harness({
+      barrierPrefix: 'environment-runner-reference-barrier-',
+      definition: environment({
+        task: { prompt: 'Create a file named MARKER in the workspace.', fixture, reference: 'reference' },
+      }),
+    })
+    const reservation = join(barrierRoot ?? '', 'runs', 'environment-test')
+    const script = join(reservation, 'checks', 'marker', 'run')
+    StubShell.current.script(`. ${script}`, shellResult())
+    const report = await run()
+
+    expect(await readFile(join(reservation, 'reference', 'run'), 'utf8')).toBe('printf reference\n')
+    // The rest of the fixture reaches the workspace; the reference never does,
+    // on the first overlay or on the one before each validation.
+    expect(await readFile(join(workspace, 'README.txt'), 'utf8')).toBe('the task\n')
+    await expect(stat(join(workspace, 'reference'))).rejects.toThrow()
+    // The fixture digest still covers the reference tree it was hashed from.
+    expect(report.stamp.fixtureSha256).toBe(await hashWorkspaceTree(fixture))
+  })
+
+  it('stages one agent\'s reference on request, and refuses what it cannot stage', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-runner-stage-'))
+    await mkdir(join(fixture, 'reference'), { recursive: true })
+    await writeFile(join(fixture, 'reference', 'run'), 'printf reference\n')
+    const referencing = environment({
+      id: EnvironmentId('smoke:referencing'),
+      task: { prompt: 'Create a file named MARKER in the workspace.', fixture, reference: 'reference' },
+    })
+    const { ctx, barrierRoot } = await harness({ barrierPrefix: 'environment-runner-stage-barrier-' })
+    StubEnvironments.current.definitions.set(referencing.id, referencing)
+    const agent = asAgent(new FakeAgent('validator-test', () => {}))
+    const reservation = await ctx.environmentRuns.stageReference(agent, referencing.id)
+
+    expect(reservation).toBe(join(barrierRoot ?? '', 'runs', 'validator-test'))
+    expect(await readFile(join(reservation, 'reference', 'run'), 'utf8')).toBe('printf reference\n')
+
+    await expect(ctx.environmentRuns.stageReference(agent, EnvironmentId('smoke:absent')))
+      .rejects.toThrow(new EnvironmentRunError('environment "smoke:absent" is not registered', 'ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT'))
+    await expect(ctx.environmentRuns.stageReference(agent, EnvironmentId('smoke:marker')))
+      .rejects.toThrow(new EnvironmentRunError('environment "smoke:marker" declares no task reference to stage', 'ENVIRONMENT_RUN_NO_REFERENCE'))
+  })
+
+  it('refuses to stage a reference without a composed barrier to reserve from', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'environment-runner-unreserved-'))
+    await mkdir(join(fixture, 'reference'), { recursive: true })
+    const referencing = environment({
+      id: EnvironmentId('smoke:referencing'),
+      task: { prompt: 'Create a file named MARKER in the workspace.', fixture, reference: 'reference' },
+    })
+    const { ctx } = await harness()
+    StubEnvironments.current.definitions.set(referencing.id, referencing)
+    const agent = asAgent(new FakeAgent('validator-test', () => {}))
+
+    await expect(ctx.environmentRuns.stageReference(agent, referencing.id))
+      .rejects.toThrow(new EnvironmentRunError('staging a reference requires a composed read barrier to reserve from', 'ENVIRONMENT_RUN_NO_RESERVATION'))
+  })
+
   it('refuses a check id that cannot name a reserved script file', async () => {
     const { run } = await harness({
       barrierPrefix: 'environment-runner-badid-',
@@ -754,6 +816,53 @@ function casedEnvironment(bodies: readonly CheckCase[], rest: Partial<AuthoredCh
     }],
   })
 }
+
+describe('the shared four-channel capture', () => {
+  it('carries the run\'s per-case timeout and cancellation into every case command', async () => {
+    const bodies: CheckCase[] = [sample('crlf-ok')]
+    const { run } = await harness({
+      config: { checkTimeoutMs: 250 },
+      definition: casedEnvironment(bodies),
+    })
+    StubShell.current.script(`${REVERSE} --crlf-ok`, shellResult({ stdout: 'expected\n' }))
+    const signal = new AbortController().signal
+    await run({ signal })
+
+    expect(StubShell.current.requests.at(-1))
+      .toMatchObject({ command: `${REVERSE} --crlf-ok`, timeoutMs: 250, signal })
+  })
+
+  it('records an expected value only for a channel the reference could put one on', async () => {
+    const scope = await mkdtemp(join(tmpdir(), 'environment-runner-expectation-'))
+    const clean = await caseExpectation(
+      { result: shellResult({ exitCode: 3, stdout: 'out\r\n', stderr: 'err\n' }), scope },
+      { channels: ['exit', 'stdout', 'stderr', 'tree'], normalizers: ['crlf'] },
+    )
+
+    expect(clean).toEqual({
+      exitCode: 3,
+      stdoutSha256: digest('out\n'),
+      stderrSha256: digest('err\n'),
+      treeSha256: await hashWorkspaceTree(scope, ['crlf']),
+    })
+
+    // A signalled exit and a truncated stream leave their channels unrecorded,
+    // which is what the instrument refuses a case over.
+    const unusable = await caseExpectation(
+      {
+        result: {
+          ...shellResult(),
+          exitCode: null,
+          stdout: { text: 'clipped', truncated: true },
+          stderr: { text: 'also clipped', truncated: true },
+        },
+      },
+      { channels: ['exit', 'stdout', 'stderr'], normalizers: [] },
+    )
+
+    expect(unusable).toEqual({})
+  })
+})
 
 describe('EnvironmentRunner weighted cases', () => {
   it('runs one case per sample, compares four channels, and tallies the weights', async () => {

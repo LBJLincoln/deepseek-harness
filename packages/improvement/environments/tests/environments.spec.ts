@@ -1,3 +1,6 @@
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
@@ -11,6 +14,7 @@ import EnvironmentRegistry, {
   EnvironmentError,
   EnvironmentId,
   isSeed,
+  RECREATION_KIND,
 } from '@deepseek-ai/dsh-environments'
 import type { Config, EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments'
 import * as invariantCompanion from '@deepseek-ai/dsh-environments/invariant'
@@ -121,6 +125,55 @@ describe('EnvironmentRegistry', () => {
         .toThrow(expect.objectContaining({ code: 'ENVIRONMENT_INVALID_IMMUTABLE', message: expect.stringContaining(reason) as unknown as string }))
     }
     expect(ctx.environments.get(EnvironmentId('swe-task:rejected'))).toBeUndefined()
+  })
+
+  it('accepts a reference directory inside the fixture and rejects every other form', async () => {
+    const ctx = await harness()
+    const fixture = await mkdtemp(join(tmpdir(), 'environments-reference-'))
+    await mkdir(join(fixture, 'reference'), { recursive: true })
+    await writeFile(join(fixture, 'reference', 'run'), 'printf hello\n')
+    await writeFile(join(fixture, 'notes.txt'), 'not a directory\n')
+    const referencing = (reference: string, id = 'swe-task:reference') =>
+      sweTask(id, { task: { prompt: 'Fix it.', fixture, reference } })
+    ctx.environments.register(referencing('reference'))
+    expect(ctx.environments.get(EnvironmentId('swe-task:reference'))?.task.reference).toBe('reference')
+
+    for (const [reference, reason] of [
+      ['', 'declares an empty task reference'],
+      ['/etc', 'that is not fixture-relative'],
+      ['C:/reference', 'that is not fixture-relative'],
+      ['ref\\erence', 'that uses a backslash'],
+      ['reference//run', 'it holds an empty segment'],
+      ['./reference', 'it holds a "." segment'],
+      ['../reference', 'it holds a ".." segment'],
+      ['notes.txt', 'which is not a directory inside its fixture'],
+      ['absent', 'which is not a directory inside its fixture'],
+    ] as const) {
+      expect(() => ctx.environments.register(referencing(reference, 'swe-task:rejected')))
+        .toThrow(expect.objectContaining({ code: 'ENVIRONMENT_INVALID_REFERENCE', message: expect.stringContaining(reason) as unknown as string }))
+    }
+    expect(() => ctx.environments.register(sweTask('swe-task:unanchored', {
+      task: { prompt: 'Fix it.', reference: 'reference' },
+    }))).toThrow(expect.objectContaining({
+      code: 'ENVIRONMENT_INVALID_REFERENCE',
+      message: expect.stringContaining('without a fixture to resolve it against') as unknown as string,
+    }))
+    expect(ctx.environments.get(EnvironmentId('swe-task:rejected'))).toBeUndefined()
+  })
+
+  it('requires a recreation environment to carry a reference and leaves every other kind free', async () => {
+    const ctx = await harness()
+
+    expect(() => ctx.environments.register({
+      ...sweTask('recreation:missing'),
+      kind: RECREATION_KIND,
+    } as unknown as EnvironmentDefinition)).toThrow(expect.objectContaining({
+      code: 'ENVIRONMENT_INVALID_REFERENCE',
+      message: expect.stringContaining('is a "recreation" environment without a task reference') as unknown as string,
+    }))
+    // Every other kind registers exactly as before, reference or not.
+    ctx.environments.register(sweTask('swe-task:plain'))
+    expect(ctx.environments.get(EnvironmentId('swe-task:plain'))?.task.reference).toBeUndefined()
   })
 
   it('detaches the immutable set on write and on every read', async () => {

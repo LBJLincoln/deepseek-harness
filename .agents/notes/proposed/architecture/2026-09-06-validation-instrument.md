@@ -48,6 +48,26 @@ The scorekeeper fact and the exported field are both the parity of the last reco
 
 `ScoreboardRow.parity` is the mean of each session's `weightPassed / weightTotal` rather than the pooled ratio of the row's weights, so a session sampled by more cases does not weigh more than its siblings in the cell the row names.
 
+### Deviations recorded while slice 4 landed
+
+`task.reference` is a directory INSIDE `task.fixture` rather than a sibling of it, so the environment's `fixtureSha256` already covers the reference tree and the decontamination key changes when the reference program does. The runner therefore deletes it from the workspace after every overlay — the first one and the one before each validation — instead of relying on an overlay that never carried it.
+
+The reference is check-owned by living inside the reservation, which `hashCheckOwned` already digests whole: rewriting the reference under the validator voids the attempt exactly as rewriting a check script does, with no second list to keep in step.
+
+The registry holds the literal `recreation` because it enforces the kind's registration rule — a `recreation` environment must carry a reference — while the kind itself is declared by `@deepseek-ai/dsh-tool-standard-author` through `EnvironmentKindMap`. Declaring it in the registry would narrow `EnvironmentKind` for every program that reads the registry's types, including the ones that register no kind at all.
+
+The instrument reads its session's reservation through a new `ReadBarrierService.reservation(agent)` rather than through `reserve(agent)`: reserving is what makes an unmarked session the implementer, so a reader that reserved to find out would demote the session it was reading for. `EnvironmentRunner.stageReference(agent, environment)` is what mints one for a validator and copies the reference beneath it, which is also how the fixture drives a validator before the runner drives an implementer.
+
+The four-channel capture is exported from the runner as `captureCase` and `caseExpectation` rather than moved into `dsh-verification`: the capture needs the shell seam, which the verification package does not read, and the tool package already sits above the runner in the graph.
+
+`freeze` takes `run` per check and defaults it to `. ./run`, the workspace counterpart of the reference's own entry point, because a recreation task asks for the reference's behaviour at the same entry point. A `treeScope` restated at freeze must equal the one the check's cases were recorded against; the cases decide it.
+
+The model-facing schema carries `files` as `{ path, content }` entries rather than as a keyed map, which the parameter DSL cannot type; the tool folds them into `CheckCaseInput.files` unchanged.
+
+The instrument authors into the CALLING session's standard, so the fixture registers the derived environment itself: the runner has no validator phase, and giving it one is the suite-admission slice's work. A recreation environment therefore registers with the checks its author wrote by hand — the admission check that the candidate exists — and gains the weighted ones the validator froze.
+
+A preset composes no executor, so the `validator` preset cannot confine its shell: it composes the shell tool and no tool that reaches a workspace, and the deployment's own file sandbox and the session's working directory are what bound it. The shipped Web and CLI compositions hold neither `completionStandards` nor `readBarrier`, so the shipped `validator` preset does not activate there; a deployment that runs validators composes both host rows.
+
 ## Alternatives considered
 
 **Cases inside the `verification/standard` event.** Rejected: a recreation task carries hundreds of cases and the log is the record every replay reads; the reservation already holds the check bodies, the tamper digest already covers it, and the event carries the digest that binds the two.
@@ -75,7 +95,7 @@ The scorekeeper fact and the exported field are both the parity of the last reco
 1. Landed. Cases on checks: the `cases` reference, `CheckCase`, the normalizer set, `maxCases`, four-channel execution in the runner, `CheckResult.cases` and `verification/run.parity`, the invariant rules, catalogs regenerated.
 2. Landed. The wall closed: clustered directives with `clusters` on `verification/directive`, the sentinel test, and the `instrument-cases` snapshot over a Loader-booted fixture.
 3. Landed. Parity downstream: `SessionFactsOutcome.parity` and the `ScoreboardRow.parity` column, `parity` on the `dsh-trajectory/1` record, and the publication rule in the Village note.
-4. The instrument: the `recreation` kind with `task.reference`, the `standard-author` authority, the `standard_author` tool, the validator preset, the sampling skill, the `recreation-instrument` fixture.
+4. Landed. The instrument: the `recreation` kind with `task.reference`, the `standard-author` authority, the `standard_author` tool, the validator preset, the sampling skill, the `recreation-instrument` fixture.
 5. Suite admission: recreation environments admitted through the curator of the four-goal note with both metrics on the stamp.
 
 ## Risks

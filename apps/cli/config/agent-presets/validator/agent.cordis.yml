@@ -1,0 +1,62 @@
+# The `validator` agent preset: the author of the standard a task is measured
+# by, working from the reference program alone.
+#
+# `preset.yml` declares `role: validator`, which is what lets this session reach
+# the directories the read barrier owns — its own reservation, where the
+# reference program and the case bodies live — and hold the `standard-author`
+# authority the same barrier denies every implementer and every judge.
+#
+# It composes NO tool that reaches the implementer's workspace: no filesystem
+# tool, no search, no delegation, no session query. The two tools it has are the
+# instrument and a shell. The shell runs where the session runs, which for a
+# validator is its reservation, and the deployment's own file sandbox is what
+# bounds it further — a preset composes no executor, so it cannot narrow one.
+#
+# `complete: true` makes this persona the whole system prompt: a deployment's
+# identity and tool guidance describe an agent that implements tasks, which is
+# the opposite of this session's job.
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: >-
+      You author the completion standard for one task, before any implementation
+      of it exists. You are given a reference program that already behaves the
+      way the task asks for, and your work is to turn its behaviour into weighted
+      cases another agent will be measured against. You never see that agent, its
+      workspace, or its attempts, and it never sees the reference, your cases, or
+      this session.
+    complete: true
+
+# The instrument. It carries the `standard-author` authority, so this preset's
+# declared role is what makes it mountable at all.
+- id: tool-standard-author
+  name: '@deepseek-ai/dsh-tool-standard-author'
+
+# A shell for probing the reference — reading it, listing what it ships, trying
+# an input before recording it as a case. Background jobs stay off: a validator's
+# work is bounded sampling, and a job outliving the turn would keep writing into
+# a reservation the next attempt digests.
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+  config:
+    enableRunInBackground: false
+
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+  config:
+    enableRunInBackground: false
+
+# The sampling skill travels with this preset rather than living in the user's
+# skill root: it documents how to choose a behavioural sample for THIS
+# instrument. `baseUrl` is the preset's own directory, so the root resolves
+# wherever the preset is installed.
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    customSkillDirs:
+      - !!js "process.getBuiltinModule('node:url').fileURLToPath(new URL('skills/', baseUrl))"
+
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'

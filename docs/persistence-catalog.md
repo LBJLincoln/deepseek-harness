@@ -492,7 +492,7 @@ Source: [`packages/governance/data-use/src/types.ts:19`](../packages/governance/
 'environment/run': EnvironmentRunStamp
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:36`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:38`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 

@@ -68,6 +68,9 @@
         "headless-agent/tests/fixtures/instrument-cases/driver.ts",
         "headless-agent/tests/fixtures/instrument-cases/register-environment.ts",
         "headless-agent/tests/fixtures/instrument-cases/instrument-mock-llm.ts",
+      "headless-agent/tests/fixtures/recreation-instrument/driver.ts",
+      "headless-agent/tests/fixtures/recreation-instrument/register-environment.ts",
+      "headless-agent/tests/fixtures/recreation-instrument/instrument-mock-llm.ts",
         "headless-agent/tests/fixtures/fleet-run/driver.ts",
         "headless-agent/tests/fixtures/fleet-shift/driver.ts",
         "headless-agent/tests/fixtures/scoreboard/driver.ts",
@@ -208,6 +211,15 @@
       "entry": [
         "tests/**/*.spec.ts",
         "tests/**/*.e2e.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ]
+    },
+    "packages/verification/tool-standard-author": {
+      "entry": [
+        "tests/**/*.spec.ts"
       ],
       "project": [
         "src/**/*.ts",

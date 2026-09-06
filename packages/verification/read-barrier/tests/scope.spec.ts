@@ -109,6 +109,7 @@ describe('the denied-authority rule', () => {
     ['session-log'],
     ['plugin-mount'],
     ['runtime-introspection'],
+    ['standard-author'],
   ] as const)('denies an implementer the %s authority', (authority) => {
     expect(deniedAuthority('implementer', [authority])).toBe(authority)
     expect(deniedAuthority('judge', [authority])).toBe(authority)
@@ -125,6 +126,15 @@ describe('the denied-authority rule', () => {
 
   it.each(['validator', 'unrestricted'] as const)('denies a %s session nothing', (role) => {
     expect(deniedAuthority(role, ['session-log'])).toBeUndefined()
+    // The validator is the role the instrument's authority exists for.
+    expect(deniedAuthority(role, ['standard-author'])).toBeUndefined()
+  })
+
+  it('refuses the instrument by name for the two denied roles', () => {
+    expect(authorityDenialMessage('standard_author', 'standard-author', 'implementer'))
+      .toBe('"standard_author" carries the "standard-author" authority and is not callable in an implementer session')
+    expect(authorityDenialMessage('standard_author', 'standard-author', 'judge'))
+      .toBe('"standard_author" carries the "standard-author" authority and is not callable in a judge session')
   })
 
   it('states the refusal without a recovery instruction, naming the role it refused', () => {
