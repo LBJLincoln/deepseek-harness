@@ -1,0 +1,48 @@
+# The headless coding agent with its LLM seam served by the host's own Claude
+# Code installation instead of a keyed API provider. The owning e2e in
+# packages/llm/llm-claude-code drives a real installation and self-skips
+# without one.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../../../../cordis.yml
+    patches:
+      # The keyed provider is the entry this route replaces; nothing in this
+      # composition resolves DEEPSEEK_API_KEY.
+      - id: llm-deepseek
+        name: '@deepseek-ai/dsh-llm-deepseek'
+        disabled: true
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          agents:
+            - id: main
+              provider: claude-code
+              model: default
+              cwd: !!js process.cwd()
+          workspaceContext: false
+          dshHome: './.dsh-home'
+          skills:
+            filesystem:
+              agentsHome: './.agents-home'
+          persona: |
+            You are headless-agent, a coding assistant.
+
+            Verify your work by running the code. Keep answers brief and factual.
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+
+# One query per model turn against the installation the operator already
+# authenticated. The catalog names no model, so the installation runs whatever
+# it is configured to; `contextWindow` is what the token meter and compaction
+# threshold read.
+- id: llm-claude-code
+  name: '@deepseek-ai/dsh-llm-claude-code'
+  config:
+    provider: claude-code
+    models:
+      - id: default
+        name: Claude Code default
+        contextWindow: 200000

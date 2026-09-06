@@ -732,7 +732,7 @@ export interface Config {
 
 依赖：`CertificateIsolation`（`@deepseek-ai/dsh-verification/types`）
 
-来源：[`packages/improvement/environment-runner/src/index.ts:102`](../packages/improvement/environment-runner/src/index.ts)
+来源：[`packages/improvement/environment-runner/src/index.ts:103`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -1100,6 +1100,88 @@ export interface Config {
 ```
 
 来源：[`packages/verification/judge/src/index.ts:133`](../packages/verification/judge/src/index.ts)
+
+<a id="deepseek-aidsh-llm-claude-code"></a>
+
+## `@deepseek-ai/dsh-llm-claude-code`
+
+需要：`llm` · `subprocess`
+
+```ts config-catalog
+/**
+ * Deployment-owned route facts. The model catalog is configuration with no
+ * default: only the operator knows which models their installation may run,
+ * and this plugin names none.
+ */
+export interface Config {
+  /** Provider route this plugin registers on `ctx.llm`. */
+  provider: string
+  /** Route name shown by provider selectors; the route name when absent. */
+  displayName?: string
+  /** Models this route accepts; a request naming any other fails with `UNKNOWN_MODEL`. */
+  models: ClaudeCodeModel[]
+  /**
+   * Explicit environment entries layered over the subprocess seam's
+   * credential-scrubbed parent environment.
+   */
+  env?: Record<string, string>
+  /** Response effort for every query; absent keeps the installation's own. */
+  effort?: ClaudeCodeEffort
+  /** Thinking policy for every query; absent keeps the installation's own. */
+  thinking?: ClaudeCodeThinking
+  /** Maximum idle interval between messages of one query (default five minutes). */
+  queryTimeoutMs?: number
+  /** Grace in milliseconds for CLI process-tree termination (default 3000). */
+  disposeGraceMs?: number
+  /** Provider-owned model-request retry policy; omission uses normal defaults. */
+  retryPolicy?: RetryPolicyConfig
+}
+
+/**
+ * One model the operator's installation can run, declared by the operator
+ * because the harness has no way to interrogate an installation's entitlements.
+ */
+export interface ClaudeCodeModel {
+  /** Model id harness requests select through `GenerateOptions.model`. */
+  id: string
+  /**
+   * Model the installation is asked to run, sent as the product's `model`
+   * option. Absent leaves that option off, so the installation runs whatever
+   * it is configured to run.
+   */
+  productModel?: string
+  /** Human-readable name for selectors; the id when absent. */
+  name?: string
+  /** User-facing distinction from otherwise similar entries. */
+  description?: string
+  /** Maximum combined request and response context, when the operator knows it. */
+  contextWindow?: number
+}
+
+/** Response effort passed through to the product's `effort` option. */
+export type ClaudeCodeEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+
+/** Thinking policy passed through to the product's `thinking` option. */
+export type ClaudeCodeThinking =
+  | {
+    /** The model decides when and how much to think. */
+    type: 'adaptive'
+  }
+  | {
+    /** The model thinks within a fixed budget. */
+    type: 'enabled'
+    /** That budget, in thinking tokens. */
+    budgetTokens: number
+  }
+  | {
+    /** The model does not think. */
+    type: 'disabled'
+  }
+```
+
+Depends on: [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts)
+
+来源：[`packages/llm/llm-claude-code/src/config.ts:43`](../packages/llm/llm-claude-code/src/config.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 
