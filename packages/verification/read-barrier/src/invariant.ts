@@ -12,6 +12,7 @@ import type {
   ReadBarrierScope,
 } from './types.ts'
 import {
+  DENIED_ROLES,
   ENFORCED_CAPABILITY_SERVICES,
   READ_BARRIER_ATTESTATION_VERSION,
   READ_BARRIER_DENIED_VERSION,
@@ -29,7 +30,7 @@ export const inject = ['invariants']
 const CAPABILITIES: readonly ReadBarrierCapability[] = ['fs', 'shell', 'subprocess', 'terminal']
 
 /** Every role a session can hold. */
-const ROLES: readonly ReadBarrierRole[] = ['implementer', 'validator', 'unrestricted']
+const ROLES: readonly ReadBarrierRole[] = ['implementer', 'judge', 'validator', 'unrestricted']
 
 /** Every enforcement decision a capability can record. */
 const ENFORCEMENT_STATES: readonly ReadBarrierEnforcementState[] = ['denied-at-executor', 'unenforced', 'not-composed']
@@ -54,8 +55,8 @@ function checkPayload(denial: ReadBarrierDenial, seq: number, fail: InvariantFai
   if (!CAPABILITIES.includes(denial.capability)) {
     fail(`session event ${seq} records a read-barrier/denied from unknown capability ${JSON.stringify(denial.capability)}`)
   }
-  if (denial.role !== 'implementer') {
-    fail(`session event ${seq} records a read-barrier/denied for role ${JSON.stringify(denial.role)}; only an implementer is denied a read`)
+  if (!DENIED_ROLES.includes(denial.role)) {
+    fail(`session event ${seq} records a read-barrier/denied for role ${JSON.stringify(denial.role)}; only ${DENIED_ROLES.join(' or ')} is denied a read`)
   }
 }
 

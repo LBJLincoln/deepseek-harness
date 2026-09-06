@@ -184,12 +184,29 @@ describe('the shipped Web composition', () => {
     }
   })
 
-  it('supplies both shipped presets, and only those, from the system root', async () => {
+  it('supplies the shipped presets, and only those, from the system root', async () => {
     const listed = await ctx.agentPresets.list()
 
-    expect(listed.map(preset => preset.id).sort()).toEqual(['code', 'cordis', 'minimal', 'standard'])
+    expect(listed.map(preset => preset.id).sort()).toEqual(['code', 'cordis', 'judge', 'minimal', 'standard'])
     expect(listed.every(preset => preset.trust === 'system')).toBe(true)
+    expect(listed.every(preset => preset.broken === undefined)).toBe(true)
+    // The judge is the one shipped preset that claims a role, and `system`
+    // trust is what lets it claim one the barrier acts on.
+    expect(listed.filter(preset => preset.role !== undefined).map(preset => [preset.id, preset.role]))
+      .toEqual([['judge', 'judge']])
     expect(ctx.agentPresets.defaultId).toBe('standard')
+  })
+
+  it('composes a tool-free blind judge from `judge`', async () => {
+    const handle = await ctx.agents.create({
+      sessionId: SessionId('preset-judge'),
+      setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'judge').then(() => undefined),
+    })
+    try {
+      expect(toolNames(ctx, handle.agent)).toEqual([])
+    } finally {
+      await handle.dispose()
+    }
   })
 
   it('composes the full agent from `standard`', async () => {

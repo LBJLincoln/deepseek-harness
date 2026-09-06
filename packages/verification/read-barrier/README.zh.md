@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-读取屏障（`ctx.readBarrier`）：实现者会话不得执行的读取由它决定，其角色与 [`dsh-sandbox-policy`](../../sandbox/sandbox-policy/README.md) 之于沙箱模式和工作区根目录相同。它拥有一棵验证者所有的目录树，为每次运行铸造验证者用于放置其检查所执行内容的目录，收集其他插件登记的目录，为每个会话解析出一份策略，通过文件系统 seam 判定包含关系，记录每个会话组合了什么，并校验 `host` 隔离声明所需的宿主证明。它自身不拒绝任何读取：每个开放路径的能力都在开放路径的那次操作中执行该决定，[`@deepseek-ai/dsh-fs-read-barrier`](../../fs/fs-read-barrier/README.md) 对 `ctx.fs` 做的正是这件事。设计依据由 [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md) 拥有。
+读取屏障（`ctx.readBarrier`）：`implementer` 或 `judge` 会话不得执行的读取由它决定，其角色与 [`dsh-sandbox-policy`](../../sandbox/sandbox-policy/README.md) 之于沙箱模式和工作区根目录相同。它拥有一棵验证者所有的目录树，为每次运行铸造验证者用于放置其检查所执行内容的目录，收集其他插件登记的目录，为每个会话解析出一份策略，通过文件系统 seam 判定包含关系，记录每个会话组合了什么，并校验 `host` 隔离声明所需的宿主证明。它自身不拒绝任何读取：每个开放路径的能力都在开放路径的那次操作中执行该决定，[`@deepseek-ai/dsh-fs-read-barrier`](../../fs/fs-read-barrier/README.md) 对 `ctx.fs` 做的正是这件事。设计依据由 [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md) 拥有。
 
 ## Config
 
@@ -40,17 +40,19 @@
 
 `ctx.readBarrier.startRefusal(capability, session)` 给出无法在本进程内围住的能力必须返回、以取代启动的确切拒绝文本，可以启动时返回 `undefined`。此类能力的每次启动都在此询问，因此拒绝是在本该开放路径的那次操作中作出的。文案由 `startRefusalMessage(capability, claim)` 拥有。
 
-`deniedReadRoots(policy)` 给出已解析策略实际对其持有者禁止的目录：对 `implementer` 是全部被拒目录，对其他任何角色都为空。由一处判定被拒集合约束哪些角色，因此填充自身拒绝的进程 runner 与进程内的 `denies()` 判定不会产生分歧。
+`deniedReadRoots(policy)` 给出已解析策略实际对其持有者禁止的目录：对 `DENIED_ROLES` 中的角色——`implementer` 与 `judge`——是全部被拒目录，对其他任何角色都为空。由一处判定被拒集合约束哪些角色，因此填充自身拒绝的进程 runner 与进程内的 `denies()` 判定不会产生分歧。
 
 `ctx.readBarrier.declareComposition(agent, { presetId, role })` 记录 preset 名册为某个 agent 组合了什么。声明的角色高于预留，因为只有组合本身知道实际挂载了什么；未作声明的 preset 把判定交回预留。[`dsh-agent-presets`](../../preset/agent-presets/README.md) 是唯一的调用方：会话自身运行的任何东西都不能抬高自己的角色。
 
 `ctx.readBarrier.resolve({ session })` 给出一份 `ReadBarrierPolicy { role, root, denied }`。preset 声明了角色的会话持有该角色；否则持有预留的会话是 `implementer`，其他所有会话以及所有无 agent 的调用都是 `unrestricted`。`denied` 先列出根目录，再列出配置的附加项，最后是各次登记，且不重复。
 
-`ctx.readBarrier.denies(policy, target)` 对已解析的 `FsTarget` 判定包含关系。角色 `validator` 和 `unrestricted` 不被拒绝任何内容。对 `implementer`，每个被拒目录都在 `ctx.fs.contains` 判定之前立即经 `ctx.fs.resolve` 规范化，因此目标解析之后被替换的祖先符号链接会被抓住；后端无法解析的目录使包含关系无法判定，该读取被拒绝。
+`ctx.readBarrier.denies(policy, target)` 对已解析的 `FsTarget` 判定包含关系。角色 `validator` 和 `unrestricted` 不被拒绝任何内容。对 `implementer` 或 `judge`，每个被拒目录都在 `ctx.fs.contains` 判定之前立即经 `ctx.fs.resolve` 规范化，因此目标解析之后被替换的祖先符号链接会被抓住；后端无法解析的目录使包含关系无法判定，该读取被拒绝。
+
+两个被拒角色被拒的是同一集合，理由却不同。`implementer` 不得读取度量它的那份标准；`judge` 同样不得读取，因为交给它的证据背后的检查指令，正是盲审所要扣留的内容——这一安排由 [`@deepseek-ai/dsh-judge`](../judge/README.md) 拥有。
 
 `ctx.readBarrier.recordDenial(session, policy, capability, target)` 追加仅记录日志的 `read-barrier/denied` 事件——`{ version, role, capability, displayPath, root }`，其中 `capability` 指出拒绝的那个 seam——并返回它所追加的载荷。写入由屏障拥有，因此每个拒绝的 seam 都产生同样的证据；该路径本就存在于日志中模型自己的 `tool/call` 参数里，所以这条记录只增加证据，不带来新的泄露。
 
-`deniedAuthority(role, authority)` 给出某个角色不得持有的第一项权限。[`ToolDefinition`](../../core/tools/README.md) 声明的每一项权限对 `implementer` 都被拒绝，对其他任何角色都不拒绝，因此日后并入 `ToolAuthorityMap` 的权限由这条同样的规则拒绝，而不是靠一份会过期的名单。`authorityDenialMessage(tool, authority)` 拥有守卫返回的那段文案。
+`deniedAuthority(role, authority)` 给出某个角色不得持有的第一项权限。[`ToolDefinition`](../../core/tools/README.md) 声明的每一项权限对 `DENIED_ROLES` 中的角色都被拒绝，对其他任何角色都不拒绝，因此日后并入 `ToolAuthorityMap` 的权限由这条同样的规则拒绝，而不是靠一份会过期的名单。`authorityDenialMessage(tool, authority, role)` 拥有守卫返回的那段文案，并在其中指明它所拒绝的角色。
 
 ### 组合普查
 
@@ -58,7 +60,7 @@
 
 屏障还在 `agent/created` 时于每个 agent 自己的 context 上登记一个 `ctx.tools.guard()`，拒绝任何其定义携带了该会话角色所禁权限的执行。守卫在所有 `tools/pre-execute` 监听器之后运行且是单调的，因此后续监听器无法把拒绝翻转回允许。`mountPreset` 审计覆盖 preset 的组合；守卫覆盖此后注册进 agent 自身层的工具。
 
-单独发布的 `./invariant` 伴随插件会拒绝：为 `implementer` 以外任何角色记录的拒绝、载荷版本或 capability 未知的拒绝，以及所指屏障根目录与该会话先前记录不一致的记录。它还会拒绝：版本未知的普查、角色未知的普查、为不开放路径的能力记录执行或记录词汇之外判定的普查、一个会话中的第二份普查，以及版本未知或没有文件路径的证明。
+单独发布的 `./invariant` 伴随插件会拒绝：为屏障不拒绝任何内容的角色记录的拒绝、载荷版本或 capability 未知的拒绝，以及所指屏障根目录与该会话先前记录不一致的记录。它还会拒绝：版本未知的普查、角色未知的普查、为不开放路径的能力记录执行或记录词汇之外判定的普查、一个会话中的第二份普查，以及版本未知或没有文件路径的证明。
 
 ## Model Experience
 
@@ -100,12 +102,13 @@
 
 #### What the model sees
 
-实现者会话调用其定义声明了权限的工具时，得到的是工具注册表通常的 `Error: ` 包装加上下面这段文案，且不附任何补救指示，因为同一调用重试都不会成功。`authority` 本身从不对模型可见：`schemas()` 只放行 name、description 和 parameters，因此该工具在被调用之前一直列在表中、看起来可以调用。
+`implementer` 或 `judge` 会话调用其定义声明了权限的工具时，得到的是工具注册表通常的 `Error: ` 包装加上下面这段文案，且不附任何补救指示，因为同一调用重试都不会成功。`authority` 本身从不对模型可见：`schemas()` 只放行 name、description 和 parameters，因此该工具在被调用之前一直列在表中、看起来可以调用。
 
 ##### Authority denial
 
 ```markdown
 "<tool>" carries the "<authority>" authority and is not callable in an implementer session
+"<tool>" carries the "<authority>" authority and is not callable in a judge session
 ```
 
 #### Token effect

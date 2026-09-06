@@ -10,13 +10,16 @@
 import type { ToolAuthority } from '@deepseek-ai/dsh-tools/types'
 
 /**
- * Authority a session holds against the barrier. `implementer` is denied every
- * directory the barrier owns; `validator` and `unrestricted` are denied
+ * Authority a session holds against the barrier. `implementer` and `judge` are
+ * denied every directory the barrier owns and every declared tool authority —
+ * the implementer so it cannot read the standard it is measured against, the
+ * judge so it cannot reach the audited session's log or the check instructions
+ * behind the evidence it was handed. `validator` and `unrestricted` are denied
  * nothing, and `unrestricted` is what a session holds without a reservation.
- * Which directories a role may read is a security invariant, never a
- * deployment choice.
+ * Which directories and authorities a role may hold is a security invariant,
+ * never a deployment choice.
  */
-export type ReadBarrierRole = 'implementer' | 'validator' | 'unrestricted'
+export type ReadBarrierRole = 'implementer' | 'judge' | 'validator' | 'unrestricted'
 
 /**
  * Capability seam that refused one read. Each member names a seam that opens

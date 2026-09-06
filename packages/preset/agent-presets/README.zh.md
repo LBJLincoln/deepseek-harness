@@ -80,9 +80,9 @@ role: implementer
 
 `id` 是目录名，`trust` 取自 preset 被发现时所在的根目录，两者都不可写在这里——否则本地创作的 preset 就能把自己命名进随附集合。之所以是独立文件：组装是插件行的顶层列表，YAML 无法在其旁携带同级键，而伪造一个元信息行等于递给 Loader 一个要加载的东西。
 
-任何读取失败都退化为「没有元信息」——缺失、格式错误、类型不对、内容为空，含义相同，选择器回退到 id。展示不是能力：名字坏掉的 preset 依然能挂载。`implementer | validator | unrestricted` 之外的 `role` 不构成声明，这让组合与没有该键时同样不受限制。
+任何读取失败都退化为「没有元信息」——缺失、格式错误、类型不对、内容为空，含义相同，选择器回退到 id。展示不是能力：名字坏掉的 preset 依然能挂载。`implementer | judge | validator | unrestricted` 之外的 `role` 不构成声明，这让组合与没有该键时同样不受限制。
 
-`role` 是该文件承载的唯一一项权限声明，也是 [`dsh-read-barrier`](../../verification/read-barrier/README.md) 为每个由该 preset 组合出的会话读取的内容。缺省即 `unrestricted`，这正是所有不含该键的 preset 所声明的，也让每个随附 preset 保持原样。
+`role` 是该文件承载的唯一一项权限声明，也是 [`dsh-read-barrier`](../../verification/read-barrier/README.md) 为每个由该 preset 组合出的会话读取的内容。缺省即 `unrestricted`，这正是所有不含该键的 preset 所声明的，也让四个编码 preset 保持原样。随附的 `judge` preset 是唯一声明了角色的那个：`judge`，屏障对其会话拒绝它拥有的每个目录与每一项工具权限，而该 preset 只组合一行 persona、不组合任何工具（判官会话的用途由 [`dsh-judge`](../../verification/judge/README.md) 拥有）。
 
 ## 配置
 
@@ -135,9 +135,9 @@ agent-presets:
 
 ## 信任
 
-preset 就是组装，因此一个 preset 的权限恰好等于它所引用的插件。`user` preset——无论由人还是由 agent 写出——与 shell 访问权限同级；`trust` 字段的存在是为了让消费方呈现这一差异，而对其中一个字段它也确实强制执行：声明 `role: validator` 的 `user` 信任 preset 会被列为 `broken` 而不被挂载，因为 `validator` 是屏障不拒绝任何内容的角色，本地创作的 preset 自称该角色就等于给自己授予屏障本要拒绝的每一次读取。`implementer` 与 `unrestricted` 在任何根目录下都被接受，因为两者都不增加触及范围。
+preset 就是组装，因此一个 preset 的权限恰好等于它所引用的插件。`user` preset——无论由人还是由 agent 写出——与 shell 访问权限同级；`trust` 字段的存在是为了让消费方呈现这一差异，而对其中一个字段它也确实强制执行：声明 `role: validator` 的 `user` 信任 preset 会被列为 `broken` 而不被挂载，因为 `validator` 是屏障不拒绝任何内容的角色，本地创作的 preset 自称该角色就等于给自己授予屏障本要拒绝的每一次读取。`implementer`、`judge` 与 `unrestricted` 在任何根目录下都被接受，因为三者都不增加触及范围。
 
-`mountPreset` 在子树稳定后、紧挨未激活行检查处，按声明的角色审计组合，并在 `implementer` preset 组合了定义携带任何[工具权限](../../core/tools/README.md)的工具时拒绝挂载。审计按 preset 挂入的作用域解析工具注册表，因此它同时覆盖 preset 自己的行和每一条继承而来的全局行。拒绝文案指出要移除什么，并原样上报，而不是包在「挂载失败」的外壳里：
+`mountPreset` 在子树稳定后、紧挨未激活行检查处，按声明的角色审计组合，并在 `implementer` 或 `judge` preset 组合了定义携带任何[工具权限](../../core/tools/README.md)的工具时拒绝挂载。审计按 preset 挂入的作用域解析工具注册表，因此它同时覆盖 preset 自己的行和每一条继承而来的全局行。拒绝文案指出要移除什么，并原样上报，而不是包在「挂载失败」的外壳里：
 
 ```markdown
 agent-presets: preset "<id>" declares role "<role>" but composes "<tool>", which carries the "<authority>" authority

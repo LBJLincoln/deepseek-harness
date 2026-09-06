@@ -29,7 +29,7 @@ import type { ReadBarrierRole } from '@deepseek-ai/dsh-read-barrier/types'
 export const METADATA_FILE = 'preset.yml'
 
 /** Every role a preset may declare for the sessions it composes. */
-export const PRESET_ROLES: readonly ReadBarrierRole[] = ['implementer', 'validator', 'unrestricted']
+export const PRESET_ROLES: readonly ReadBarrierRole[] = ['implementer', 'judge', 'validator', 'unrestricted']
 
 /** Display text and the one authority claim a preset may publish about itself. */
 export interface PresetMetadata {
@@ -48,7 +48,8 @@ export interface PresetMetadata {
    * means `unrestricted`, which is what every preset without the key declares.
    * It is the one authority claim this file carries, so a `user`-trust preset
    * declaring `validator` is broken rather than mounted, and an `implementer`
-   * preset composing a tool that carries an authority is refused at mount.
+   * or `judge` preset composing a tool that carries an authority is refused at
+   * mount.
    */
   readonly role?: ReadBarrierRole
 }

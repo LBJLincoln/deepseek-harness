@@ -69,6 +69,12 @@ describe('read-barrier invariants', () => {
     expect(() => { feed(ctx, session, denial(), denial({ capability: 'shell' }, 1)) }).not.toThrow()
   })
 
+  it('accepts a refusal recorded for a judge, the barrier\'s other denied role', async () => {
+    const ctx = await setup()
+    const session = Session.create(SessionId('judging'))
+    expect(() => { feed(ctx, session, denial({ role: 'judge' })) }).not.toThrow()
+  })
+
   it('ignores unrelated event streams', async () => {
     const ctx = await setup()
     const session = Session.create(SessionId('unrelated'))
@@ -79,8 +85,8 @@ describe('read-barrier invariants', () => {
   it.each([
     ['unknown version', { version: 2 }, 'records a read-barrier/denied of unknown version 2'],
     ['unknown capability', { capability: 'lsp' }, 'records a read-barrier/denied from unknown capability "lsp"'],
-    ['a role the barrier denies nothing', { role: 'validator' }, 'records a read-barrier/denied for role "validator"; only an implementer is denied a read'],
-    ['an unknown role', { role: 'auditor' }, 'records a read-barrier/denied for role "auditor"; only an implementer is denied a read'],
+    ['a role the barrier denies nothing', { role: 'validator' }, 'records a read-barrier/denied for role "validator"; only implementer or judge is denied a read'],
+    ['an unknown role', { role: 'auditor' }, 'records a read-barrier/denied for role "auditor"; only implementer or judge is denied a read'],
   ])('rejects %s', async (_name, overrides, message) => {
     const ctx = await setup()
     const session = Session.create(SessionId('malformed'))

@@ -40,6 +40,8 @@
 
 每一项都是 UTF-8 字节上的纯函数，且重复施加保持不变；`normalizeCaseBytes()` 施加一条链，`caseChannelDigest()` 对结果求摘要，`caseBodiesSha256()` 与 `checkCasesRef()` 推导检查必须携带的引用。该集合是封闭的，因为每一项都会放宽“相等”的判定。
 
+`hashWorkspaceTree(root, normalizers?)` 是同一种比较在整棵目录树尺度上的形式：对目录下每个普通文件求 SHA-256——相对 POSIX 路径，然后是字节，按路径排序，每个字段以 NUL 结尾——这既是 `tree` 通道对单个用例作用域所求的摘要，也是一次运行的 `treeHash` 对整个工作区所陈述的内容。它位于此处而非任一调用方，是因为记录摘要的执行器与从副本重新推导它的[判官](../judge/README.md)不得在路径写法、排序或归一化上产生分歧。
+
 ### Parity，以及它不决定什么
 
 `recordRun()` 从带用例检查的 `cases` 统计推导其状态——无论调用方报告了什么状态，只有每个用例都通过才是 `pass`——并拒绝这样的统计：`total` 或 `weightTotal` 与该检查的引用不符、`passed` 或 `weightPassed` 超过自身总量、`failed` 列表长于它所计的失败数，以及回答了一个没有引用用例的检查。带用例检查的无统计结果保留给定的状态，被篡改的尝试正是这样记录它从未执行的检查。随后 `verification/run` 事件携带在带用例结果上求和的 `parity: { weightPassed, weightTotal }`，若无任何带用例结果则省略它。

@@ -8,4 +8,5 @@ Durable completion standards for an agent session's goal, owned independently of
 |---|---|---|
 | [`verification/`](verification/README.md) | Completion-standard state, certificates, directives | `ctx.completionStandards` |
 | [`read-barrier/`](read-barrier/README.md) | The validator-owned directory tree, per-run reservations, and the per-session deny decision | `ctx.readBarrier` |
+| [`judge/`](judge/README.md) | The lineage-free judge session that audits one recorded attempt and records a verdict | `ctx.judge` |
 | [`command-verification/`](command-verification/README.md) | Human-facing `/verification` evidence ledger | — |

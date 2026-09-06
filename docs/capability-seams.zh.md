@@ -119,6 +119,8 @@ flowchart LR
   svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
   pkg_fs_read_barrier["fs-read-barrier"]
   pkg_environment_runner["environment-runner"]
+  pkg_judge["judge"]
+  svc_judge["ctx.judge<br/>Blind judge"]
   pkg_components["components"]
   svc_components["ctx.components<br/>Component registry"]
   pkg_components_tools["components-tools"]
@@ -265,6 +267,7 @@ flowchart LR
   pkg_invariants --> svc_invariants
   pkg_jobs --> svc_jobs
   pkg_jobs_local --> svc_jobs
+  pkg_judge --> svc_judge
   pkg_llm --> svc_llm
   pkg_llm_deepseek --> svc_llm
   pkg_llm_pi_ai --> svc_llm
@@ -512,6 +515,7 @@ flowchart LR
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
 | `ctx.completionStandards` | `core` | [`verification`](../packages/verification/verification) | - | [`command-verification`](../packages/verification/command-verification), [`trajectories`](../packages/improvement/trajectories) | - | 每个 goal 拥有一份可执行标准，从完全通过的运行记录证书，并在 goal 操作内部拒绝未认证的 goal 完成。 |
 | `ctx.readBarrier` | `core` | [`read-barrier`](../packages/verification/read-barrier) | - | [`fs-read-barrier`](../packages/fs/fs-read-barrier), [`environment-runner`](../packages/improvement/environment-runner) | - | 拥有验证者所有的目录树，为每个实现者会话铸造一份运行预留，并判定该会话不得读取哪些目录。 |
+| `ctx.judge` | `core` | [`judge`](../packages/verification/judge) | - | - | - | 在实现者目录树的已校验副本上，为每次被审尝试创建一个无谱系的判官会话，并记录它所给出的裁决。 |
 | `ctx.components` | `core` | [`components`](../packages/components/components) | - | [`components-tools`](../packages/components/components-tools), [`components-prompt`](../packages/components/components-prompt), [`components-presets`](../packages/components/components-presets), [`components-subagents`](../packages/components/components-subagents), [`components-manifest`](../packages/components/components-manifest), [`command-components`](../packages/components/command-components) | - | 组合期清单，收录每个可寻址单元及其种类、内容地址、来源、谱系、成员关系与可调用路由，按先全局后 agent 分层；适配器将活跃 seam 镜像入内，清单写入方则记录某个 agent 当时在用的内容。 |
 | `ctx.environments` | `core` | [`environments`](../packages/improvement/environments) | - | [`environment-runner`](../packages/improvement/environment-runner), [`trajectories`](../packages/improvement/trajectories) | - | 组合期任务清单，任务携带以完成标准词汇书写的可执行检查，标记为留出或可用于训练；拥有 environment/run stamp 词汇。 |
 | `ctx.environmentRuns` | `core` | [`environment-runner`](../packages/improvement/environment-runner) | - | [`fleet`](../packages/improvement/fleet), `headless-agent` | - | 把一个环境作为一个全新的、已盖章的会话运行，由其检查编写标准，作为验证者执行检查，并且只在有证书时才完成 goal。 |

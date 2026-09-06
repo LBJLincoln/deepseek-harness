@@ -48,6 +48,12 @@ const readBarrierConfigPath = fileURLToPath(new URL('../read-barrier.cordis.snap
 const tamperScenarioDir = join(snapshotsDir, 'read-barrier-tamper')
 const tamperConfigPath = fileURLToPath(new URL('../read-barrier-tamper.cordis.snapshot.yml', import.meta.url))
 const tamperBinScript = fileURLToPath(new URL('./fixtures/read-barrier-tamper/driver.ts', import.meta.url))
+const judgeScenarioDir = join(snapshotsDir, 'blind-judge')
+// The scenario's two model routes are a committed scripted adapter rather than
+// a recorded script, so the fixture composition IS the keyless one and needs no
+// replay counterpart.
+const judgeConfigPath = fileURLToPath(new URL('./fixtures/blind-judge/cordis.yml', import.meta.url))
+const judgeBinScript = fileURLToPath(new URL('./fixtures/blind-judge/driver.ts', import.meta.url))
 const instrumentScenarioDir = join(snapshotsDir, 'instrument-cases')
 const instrumentConfigPath = fileURLToPath(new URL('../instrument-cases.cordis.snapshot.yml', import.meta.url))
 const instrumentBinScript = fileURLToPath(new URL('./fixtures/instrument-cases/driver.ts', import.meta.url))
@@ -789,6 +795,42 @@ describe('headless stream-json snapshots', () => {
 
     expect(result.stderr).toBe('')
     const normalized = normalizeRunnerStream(result.stdout, runCwd)
+    if (refreshing) await writeFile(streamExpected, normalized)
+    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins the judge system prompt and the evidence message a blind judge reads', async () => {
+    const streamExpected = join(judgeScenarioDir, 'stream-json.expected.jsonl')
+    let runCwd = ''
+    const result = await runLoaderSmoke({
+      label: 'blind judge headless stream-json snapshot',
+      tempDirPrefix: 'headless-snapshot-blind-judge-',
+      binScript: judgeBinScript,
+      libBinScript: judgeBinScript,
+      configPath: judgeConfigPath,
+      binArgs: [judgeConfigPath],
+      tsconfigPath,
+      env: {
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      prepare: (cwd) => { runCwd = cwd },
+      inspect: async (cwd) => {
+        const logs = await persistedLogs(cwd)
+        expect(logs).toHaveLength(2)
+        const judgeLog = logs.find(log => String(log.header.id).startsWith('judge-'))
+        if (judgeLog === undefined) throw new Error('blind-judge snapshot did not persist its judge session')
+        // The lineage the verdict rests on is durable, not only in memory.
+        expect(judgeLog.header.parentSession).toBeUndefined()
+        expect(judgeLog.header.seedLength).toBeUndefined()
+        const records = parseJsonl(judgeLog.content)
+        expect(records.filter(record => record.type === 'judge/session')).toHaveLength(1)
+        expect(records.find(record => record.type === 'judge/verdict')?.data)
+          .toMatchObject({ attempt: 1, verdict: 'upheld' })
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    const normalized = normalizeHeadlessStream(result.stdout, runCwd)
     if (refreshing) await writeFile(streamExpected, normalized)
     expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)

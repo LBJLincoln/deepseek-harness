@@ -1,0 +1,99 @@
+# Test-only composition: one environment run whose attempt is then audited by a
+# blind judge composed from the SHIPPED `judge` preset.
+#
+# It registers no model-facing tool at all. That is the arrangement the shipped
+# CLI has for a judge — every model-facing row lives on the agent plane, so a
+# preset composing none reaches the model with none — and this file reproduces
+# it by keeping the spine's own bash, skill, and job tools off.
+- id: judge-mock-llm
+  name: './judge-mock-llm.ts'
+
+# Managed child-process groups for the check executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+# The barrier's containment test runs through the filesystem seam, so a
+# composition holding it needs a filesystem provider even with no fs tool.
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+# The root defaults to <harness home>/verification, which the smoke isolates per run.
+# It is what makes the runner's session the implementer and what records the
+# judge session's role in its own scope census.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environment
+  name: './register-environment.ts'
+
+# The SHIPPED preset roster, so the judge session composes the same `judge`
+# preset a deployment installs rather than a fixture copy of it. The driver
+# exports the absolute path before boot; the smoke runs in a temporary cwd, so
+# no relative root would reach it.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: judge
+    roots:
+      - path: !!js process.env.DSH_BLIND_JUDGE_PRESETS
+        trust: system
+    includeUserRoot: false
+
+# Judge workspaces default to <harness home>/judge, isolated per run with the rest.
+- id: judge
+  name: '@deepseek-ai/dsh-judge'
+
+# The runner creates its own agent per run from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: implementer-mock
+    model: implementer-mock
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 1
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the scripted routes, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run the registered environment as a validated session.'
+    workspaceContext: false
+    toolBash: false
+    toolJobs: false
+    skills:
+      enabled: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

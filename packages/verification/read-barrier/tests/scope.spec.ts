@@ -111,6 +111,7 @@ describe('the denied-authority rule', () => {
     ['runtime-introspection'],
   ] as const)('denies an implementer the %s authority', (authority) => {
     expect(deniedAuthority('implementer', [authority])).toBe(authority)
+    expect(deniedAuthority('judge', [authority])).toBe(authority)
   })
 
   it('reports the first authority a tool declares', () => {
@@ -126,9 +127,11 @@ describe('the denied-authority rule', () => {
     expect(deniedAuthority(role, ['session-log'])).toBeUndefined()
   })
 
-  it('states the refusal without a recovery instruction', () => {
-    expect(authorityDenialMessage('session_search', 'session-log'))
+  it('states the refusal without a recovery instruction, naming the role it refused', () => {
+    expect(authorityDenialMessage('session_search', 'session-log', 'implementer'))
       .toBe('"session_search" carries the "session-log" authority and is not callable in an implementer session')
+    expect(authorityDenialMessage('session_search', 'session-log', 'judge'))
+      .toBe('"session_search" carries the "session-log" authority and is not callable in a judge session')
   })
 
   it('names the capability and the claim in a start refusal', () => {

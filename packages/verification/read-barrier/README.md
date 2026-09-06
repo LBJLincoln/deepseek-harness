@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-The read barrier (`ctx.readBarrier`): the policy home for reads an implementer session must not perform, in the role [`dsh-sandbox-policy`](../../sandbox/sandbox-policy/README.md) plays for sandbox mode and workspace root. It owns one validator-owned directory tree, mints the per-run directory a validator stocks with what its checks execute, collects the directories other plugins register, resolves one policy per session, decides containment through the filesystem seam, records what each session composed, and verifies the host attestation a `host` isolation claim needs. It denies nothing by itself: each path-opening capability enforces the decision in the operation that opens paths, which is what [`@deepseek-ai/dsh-fs-read-barrier`](../../fs/fs-read-barrier/README.md) does for `ctx.fs`. The [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md) owns the design rationale.
+The read barrier (`ctx.readBarrier`): the policy home for reads an `implementer` or `judge` session must not perform, in the role [`dsh-sandbox-policy`](../../sandbox/sandbox-policy/README.md) plays for sandbox mode and workspace root. It owns one validator-owned directory tree, mints the per-run directory a validator stocks with what its checks execute, collects the directories other plugins register, resolves one policy per session, decides containment through the filesystem seam, records what each session composed, and verifies the host attestation a `host` isolation claim needs. It denies nothing by itself: each path-opening capability enforces the decision in the operation that opens paths, which is what [`@deepseek-ai/dsh-fs-read-barrier`](../../fs/fs-read-barrier/README.md) does for `ctx.fs`. The [read-barrier Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-read-barrier.md) owns the design rationale.
 
 ## Config
 
@@ -40,17 +40,19 @@ The denied set for a role is deliberately not a field, and neither are the autho
 
 `ctx.readBarrier.startRefusal(capability, session)` answers the exact refusal a capability that cannot be confined in-process must return instead of starting, or `undefined` when it may start. Every start of such a capability asks here, so the refusal is decided in the operation that would open the paths. `startRefusalMessage(capability, claim)` owns the text.
 
-`deniedReadRoots(policy)` answers the directories a resolved policy actually denies its holder: every denied directory for an `implementer`, none for any other role. One place decides which roles the denied set binds, so a process runner filling its own denial and the in-process `denies()` test cannot disagree.
+`deniedReadRoots(policy)` answers the directories a resolved policy actually denies its holder: every denied directory for a role in `DENIED_ROLES` — `implementer` and `judge` — and none for any other. One place decides which roles the denied set binds, so a process runner filling its own denial and the in-process `denies()` test cannot disagree.
 
 `ctx.readBarrier.declareComposition(agent, { presetId, role })` records what a preset roster composed for one agent. A declared role outranks a reservation, because only the composition knows what was actually mounted; a preset that declares none leaves the reservation to decide. [`dsh-agent-presets`](../../preset/agent-presets/README.md) is the only caller: nothing a session itself runs may raise its own role.
 
 `ctx.readBarrier.resolve({ session })` answers one `ReadBarrierPolicy { role, root, denied }`. A session whose preset declared a role holds that role; otherwise a session holding a reservation is the `implementer`, and every other session and every agentless call is `unrestricted`. `denied` lists the root first, then the configured extras, then each registration, without repeats.
 
-`ctx.readBarrier.denies(policy, target)` decides containment for an already-resolved `FsTarget`. Roles `validator` and `unrestricted` are denied nothing. For an `implementer`, each denied directory is canonicalized through `ctx.fs.resolve` immediately before `ctx.fs.contains` tests it, so an ancestor symlink swapped since the target was resolved is caught; a directory the backend cannot resolve leaves containment undecidable and the read is denied.
+`ctx.readBarrier.denies(policy, target)` decides containment for an already-resolved `FsTarget`. Roles `validator` and `unrestricted` are denied nothing. For an `implementer` or a `judge`, each denied directory is canonicalized through `ctx.fs.resolve` immediately before `ctx.fs.contains` tests it, so an ancestor symlink swapped since the target was resolved is caught; a directory the backend cannot resolve leaves containment undecidable and the read is denied.
+
+The two denied roles are denied the same set for different reasons. An `implementer` must not read the standard it is measured against; a `judge` must not read it either, because the check instructions behind the evidence it was handed are exactly what a blind audit withholds — [`@deepseek-ai/dsh-judge`](../judge/README.md) owns that arrangement.
 
 `ctx.readBarrier.recordDenial(session, policy, capability, target)` appends the log-only `read-barrier/denied` event — `{ version, role, capability, displayPath, root }`, with `capability` naming the seam that refused — and returns the payload it appended. The barrier owns the write so every refusing seam produces the same evidence; the path is already in the log inside the model's own `tool/call` arguments, so the record adds evidence and no new disclosure.
 
-`deniedAuthority(role, authority)` answers the first authority a role may not hold. Every authority a [`ToolDefinition`](../../core/tools/README.md) declares is denied to an `implementer` and none to any other role, so an authority merged into `ToolAuthorityMap` later is denied by this same rule rather than by a list that would go stale. `authorityDenialMessage(tool, authority)` owns the text the guard returns.
+`deniedAuthority(role, authority)` answers the first authority a role may not hold. Every authority a [`ToolDefinition`](../../core/tools/README.md) declares is denied to a role in `DENIED_ROLES` and none to any other, so an authority merged into `ToolAuthorityMap` later is denied by this same rule rather than by a list that would go stale. `authorityDenialMessage(tool, authority, role)` owns the text the guard returns, naming the role it refused.
 
 ### The composition census
 
@@ -58,7 +60,7 @@ Before a session's first `request/header`, the barrier appends one log-only `rea
 
 The barrier also registers one `ctx.tools.guard()` on each agent's own context at `agent/created`, denying any execution whose definition carries an authority that session's role forbids. Guards run after every `tools/pre-execute` listener and are monotonic, so no later listener can turn the denial back into permission. The `mountPreset` audit covers the preset's composition; the guard covers a tool registered into the agent's own layer afterwards.
 
-The separately published `./invariant` companion rejects a refusal recorded for any role but `implementer`, one carrying an unknown payload version or capability, and one naming a different barrier root than the session's earlier records. It rejects a census of unknown version, one for an unknown role, one recording enforcement for a capability that opens no path or a decision outside the vocabulary, and a second census in one session; and an attestation of unknown version or with no file path.
+The separately published `./invariant` companion rejects a refusal recorded for any role the barrier denies nothing, one carrying an unknown payload version or capability, and one naming a different barrier root than the session's earlier records. It rejects a census of unknown version, one for an unknown role, one recording enforcement for a capability that opens no path or a decision outside the vocabulary, and a second census in one session; and an attestation of unknown version or with no file path.
 
 ## Model Experience
 
@@ -100,12 +102,13 @@ Prefix-stable. No schema and no prompt section changes, so the refusal is an ord
 
 #### What the model sees
 
-An implementer session calling a tool whose definition declares an authority gets the tool registry's ordinary `Error: ` framing around the text below, and no recovery instruction, because no retry of the same call succeeds. `authority` is never model-visible on its own: `schemas()` whitelists name, description, and parameters, so the tool stays listed and callable-looking until it is called.
+An `implementer` or `judge` session calling a tool whose definition declares an authority gets the tool registry's ordinary `Error: ` framing around the text below, and no recovery instruction, because no retry of the same call succeeds. `authority` is never model-visible on its own: `schemas()` whitelists name, description, and parameters, so the tool stays listed and callable-looking until it is called.
 
 ##### Authority denial
 
 ```markdown
 "<tool>" carries the "<authority>" authority and is not callable in an implementer session
+"<tool>" carries the "<authority>" authority and is not callable in a judge session
 ```
 
 #### Token effect

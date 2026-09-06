@@ -374,6 +374,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Owns the validator-owned directory tree, mints one run reservation per implementer session, and decides which directories that session may not read.',
   },
   {
+    key: 'judge',
+    pkg: 'judge',
+    title: 'Blind judge',
+    mode: 'core',
+    note: 'Creates one lineage-free judge session per audited attempt over a verified copy of the implementer tree, and records the verdict it answers.',
+  },
+  {
     key: 'components',
     pkg: 'components',
     title: 'Component registry',

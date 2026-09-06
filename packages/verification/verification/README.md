@@ -40,6 +40,8 @@ A case names the channels it compares — `exit`, `stdout`, `stderr`, and `tree`
 
 Every entry is a pure function over UTF-8 bytes and idempotent under repetition; `normalizeCaseBytes()` applies a chain, `caseChannelDigest()` digests the result, and `caseBodiesSha256()` and `checkCasesRef()` derive the reference a check must carry. The set is closed because each entry widens what counts as equal.
 
+`hashWorkspaceTree(root, normalizers?)` is the same comparison at whole-tree scale: SHA-256 over every regular file under a directory — relative POSIX path, then bytes, in sorted path order, each field NUL-terminated — which is what a `tree` channel digests for one case's scope and what a run's `treeHash` states for the whole workspace. It lives here rather than in either caller because the executor that records a digest and the [judge](../judge/README.md) that re-derives it from a copy must not disagree over path spelling, sort order, or normalization.
+
 ### Parity, and what it does not decide
 
 `recordRun()` derives a cased check's status from its `cases` tally — `pass` only when every case passed, whatever status the caller reported — and refuses a tally whose `total` or `weightTotal` disagrees with the check's reference, whose `passed` or `weightPassed` exceeds its own total, or whose `failed` list is longer than the failures it counts, and a tally answering a check that references no cases. A caseless result of a cased check keeps the status it was given, which is how a tampered attempt records checks it never executed. The `verification/run` event then carries `parity: { weightPassed, weightTotal }` summed over the results that carry cases, and omits it when none does.

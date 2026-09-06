@@ -560,6 +560,9 @@ importers:
       '@deepseek-ai/dsh-jobs-local':
         specifier: workspace:*
         version: link:../packages/jobs/jobs-local
+      '@deepseek-ai/dsh-judge':
+        specifier: workspace:*
+        version: link:../packages/verification/judge
       '@deepseek-ai/dsh-llm':
         specifier: workspace:*
         version: link:../packages/llm/llm
@@ -584,6 +587,9 @@ importers:
       '@deepseek-ai/dsh-permission-presets':
         specifier: workspace:*
         version: link:../packages/interaction/permission-presets
+      '@deepseek-ai/dsh-persona':
+        specifier: workspace:*
+        version: link:../packages/preset/persona
       '@deepseek-ai/dsh-plan-mode':
         specifier: workspace:*
         version: link:../packages/plan/plan-mode
@@ -8725,6 +8731,46 @@ importers:
       '@deepseek-ai/dsh-verification':
         specifier: workspace:^
         version: link:../verification
+
+  packages/verification/judge:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@deepseek-ai/dsh-agent-presets':
+        specifier: workspace:^
+        version: link:../../preset/agent-presets
+      '@deepseek-ai/dsh-goal':
+        specifier: workspace:^
+        version: link:../../goal/goal
+      '@deepseek-ai/dsh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-loader-smoke':
+        specifier: workspace:^
+        version: link:../../test-support/loader-smoke
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@deepseek-ai/dsh-verification':
+        specifier: workspace:^
+        version: link:../verification
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.2.0
 
   packages/verification/read-barrier:
     dependencies:

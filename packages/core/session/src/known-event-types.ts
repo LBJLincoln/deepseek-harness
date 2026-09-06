@@ -38,6 +38,8 @@ export const KNOWN_SESSION_EVENT_TYPES: ReadonlySet<string> = new Set([
   'goal/change',
   'hook/invoked',
   'hook/result',
+  'judge/session',
+  'judge/verdict',
   'llm/retry',
   'llm/retry-started',
   'permission/preset',
