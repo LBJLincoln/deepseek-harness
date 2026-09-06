@@ -1,7 +1,8 @@
 /**
  * Unit + real-load-path coverage for @deepseek-ai/dsh-budget-policy. The
- * enforcement cases dispatch the real `agent/pre-step` waterfall over a
- * hand-built agent so the durable consequences — the breach event, the blocked
+ * enforcement and pricing cases dispatch the real `agent/pre-step` waterfall
+ * and the real `agent/turn-stopping` serial event over a hand-built agent, so
+ * the durable consequences — the pricing records, the breach event, the blocked
  * goal, and the rejected step — are observed exactly as the loop would produce
  * them.
  */
@@ -17,8 +18,14 @@ import type { TokenUsage } from '@deepseek-ai/dsh-llm'
 import { Session, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import * as budgetPolicy from '@deepseek-ai/dsh-budget-policy'
-import { BUDGET_EXHAUSTED, foldBudgetSpend, measuredFor } from '@deepseek-ai/dsh-budget-policy'
-import type { BudgetRoutePricing, BudgetSpend } from '@deepseek-ai/dsh-budget-policy'
+import {
+  BUDGET_EXHAUSTED,
+  foldBudgetSpend,
+  measuredFor,
+  pricingTableDigest,
+  unpricedUsage,
+} from '@deepseek-ai/dsh-budget-policy'
+import type { BudgetRoutePricing, BudgetSpend, UsagePriced } from '@deepseek-ai/dsh-budget-policy'
 
 const PRICING: Record<string, BudgetRoutePricing> = {
   'cli-mock/cli-mock': { inputEurPerMillionTokens: 1_000_000, outputEurPerMillionTokens: 2_000_000 },
@@ -44,19 +51,28 @@ function stubAgent(session: Session): Agent {
   }
 }
 
+/** Append one assistant message reporting `usage` for one step of one route. */
+function appendMessage(
+  session: Session,
+  where: { turn: number; step: number },
+  usage: TokenUsage | undefined,
+  source: { provider: string; model: string } = { provider: 'cli-mock', model: 'cli-mock' },
+): void {
+  session.append('assistant/message', {
+    ...where,
+    message: createAssistantMessage({
+      content: [{ type: 'text', text: `step ${where.turn}.${where.step}` }],
+      source,
+    }),
+    ...usage === undefined ? {} : { usage },
+  }, { surfaceOp: 'append' })
+}
+
 /** Append one balanced turn whose single step reports `usage` on its assistant message. */
 function appendPricedStep(session: Session, turn: number, usage: TokenUsage): void {
   session.append('turn/start', { turn })
   session.append('step/start', { turn, step: 1 })
-  session.append('assistant/message', {
-    turn,
-    step: 1,
-    message: createAssistantMessage({
-      content: [{ type: 'text', text: `step ${turn}` }],
-      source: { provider: 'cli-mock', model: 'cli-mock' },
-    }),
-    usage,
-  }, { surfaceOp: 'append' })
+  appendMessage(session, { turn, step: 1 }, usage)
   session.append('step/end', { turn, step: 1 })
   session.append('turn/end', { turn, reason: { kind: 'completed' } })
 }
@@ -82,9 +98,19 @@ function preStep(ctx: Context, agent: Agent, step = 1): Promise<PreStepDecision>
   )
 }
 
+/** Dispatch one closing turn through the real serial stop boundary. */
+function turnStopping(ctx: Context, agent: Agent, turn = 1): Promise<void> {
+  return agentEvents(ctx, agent).serial('agent/turn-stopping', { turn, signal: new AbortController().signal })
+}
+
 /** The breach events a session recorded, in log order. */
 function breaches(session: Session): SessionEvent<'budget/breach'>[] {
   return session.events.filter(event => event.type === 'budget/breach')
+}
+
+/** The pricing events a session recorded, in log order. */
+function prices(session: Session): SessionEvent<'usage/priced'>[] {
+  return session.events.filter(event => event.type === 'usage/priced')
 }
 
 describe('foldBudgetSpend', () => {
@@ -118,14 +144,7 @@ describe('foldBudgetSpend', () => {
     const session = Session.create(SessionId('fold-usageless'))
     session.append('turn/start', { turn: 1 })
     session.append('step/start', { turn: 1, step: 1 })
-    session.append('assistant/message', {
-      turn: 1,
-      step: 1,
-      message: createAssistantMessage({
-        content: [{ type: 'text', text: 'no accounting' }],
-        source: { provider: 'cli-mock', model: 'cli-mock' },
-      }),
-    }, { surfaceOp: 'append' })
+    appendMessage(session, { turn: 1, step: 1 }, undefined)
     expect(foldBudgetSpend(session.events, PRICING)).toMatchObject({ totalTokens: 0, costEur: 0 })
   })
 
@@ -135,6 +154,81 @@ describe('foldBudgetSpend', () => {
       { type: 'turn/end', seq: 1, time: 4_500, data: { turn: 1, reason: { kind: 'completed' } } },
     ]
     expect(foldBudgetSpend(events, {}).wallMs).toBe(3_500)
+  })
+})
+
+describe('pricingTableDigest', () => {
+  it('names the rates, not the order the deployment listed them in', () => {
+    const ascending = pricingTableDigest({
+      'a/one': { inputEurPerMillionTokens: 1, outputEurPerMillionTokens: 2 },
+      'b/two': { inputEurPerMillionTokens: 3, outputEurPerMillionTokens: 4 },
+      'c/three': { inputEurPerMillionTokens: 5, outputEurPerMillionTokens: 6 },
+    })
+    const descending = pricingTableDigest({
+      'c/three': { inputEurPerMillionTokens: 5, outputEurPerMillionTokens: 6 },
+      'b/two': { inputEurPerMillionTokens: 3, outputEurPerMillionTokens: 4 },
+      'a/one': { inputEurPerMillionTokens: 1, outputEurPerMillionTokens: 2 },
+    })
+    const shuffled = pricingTableDigest({
+      'b/two': { inputEurPerMillionTokens: 3, outputEurPerMillionTokens: 4 },
+      'c/three': { inputEurPerMillionTokens: 5, outputEurPerMillionTokens: 6 },
+      'a/one': { inputEurPerMillionTokens: 1, outputEurPerMillionTokens: 2 },
+    })
+    expect(ascending).toMatch(/^[0-9a-f]{64}$/)
+    expect(descending).toBe(ascending)
+    expect(shuffled).toBe(ascending)
+  })
+
+  it('changes when one rate changes', () => {
+    const raised = pricingTableDigest({
+      'cli-mock/cli-mock': { inputEurPerMillionTokens: 1_000_000, outputEurPerMillionTokens: 2_000_001 },
+    })
+    expect(raised).not.toBe(pricingTableDigest(PRICING))
+  })
+})
+
+describe('unpricedUsage', () => {
+  it('returns the priced-route steps the log does not price yet, in log order', () => {
+    const session = Session.create(SessionId('unpriced-selection'))
+    session.append('turn/start', { turn: 1 })
+    appendMessage(session, { turn: 1, step: 1 }, { inputTokens: 1, outputTokens: 2 })
+    appendMessage(session, { turn: 1, step: 2 }, undefined)
+    appendMessage(session, { turn: 1, step: 3 }, { inputTokens: 3, outputTokens: 4 }, {
+      provider: 'other',
+      model: 'other',
+    })
+    appendMessage(session, { turn: 2, step: 1 }, { inputTokens: 5, outputTokens: 6 })
+
+    // The narrowed return reads `usage` without a second presence check.
+    expect(unpricedUsage(session.events, PRICING)
+      .map(event => [event.data.turn, event.data.step, event.data.usage.inputTokens]))
+      .toEqual([[1, 1, 1], [2, 1, 5]])
+  })
+
+  it('skips a step some earlier record already priced', () => {
+    const session = Session.create(SessionId('unpriced-idempotent'))
+    appendMessage(session, { turn: 1, step: 1 }, { inputTokens: 1, outputTokens: 2 })
+    appendMessage(session, { turn: 1, step: 2 }, { inputTokens: 3, outputTokens: 4 })
+    session.append('usage/priced', {
+      turn: 1,
+      step: 1,
+      provider: 'cli-mock',
+      model: 'cli-mock',
+      inputTokens: 1,
+      outputTokens: 2,
+      inputEurPerMillionTokens: 1_000_000,
+      outputEurPerMillionTokens: 2_000_000,
+      costEur: 5,
+      pricingDigest: pricingTableDigest(PRICING),
+    })
+
+    expect(unpricedUsage(session.events, PRICING).map(event => event.data.step)).toEqual([2])
+  })
+
+  it('returns nothing when the deployment prices no route at all', () => {
+    const session = Session.create(SessionId('unpriced-empty-table'))
+    appendMessage(session, { turn: 1, step: 1 }, { inputTokens: 1, outputTokens: 2 })
+    expect(unpricedUsage(session.events, {})).toEqual([])
   })
 })
 
@@ -235,12 +329,15 @@ describe('budget-policy enforcement', () => {
     expect(breaches(session)[0]?.data).toEqual({ cap: 'maxOutputTokens', measured: 4, limit: 1 })
   })
 
-  it('trips the cost cap once priced usage exceeds it', async () => {
+  it('trips the cost cap once priced usage exceeds it, having priced that usage first', async () => {
     const { ctx, agent, session } = await harness({ maxCostEur: 10, pricing: PRICING })
     appendPricedStep(session, 1, { inputTokens: 6, outputTokens: 3 })
     await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'reject' })
     expect(breaches(session)[0]?.data).toMatchObject({ cap: 'maxCostEur', limit: 10 })
     expect(breaches(session)[0]?.data.measured).toBeCloseTo(12, 10)
+    // The step that stops the session prices the message that stopped it first.
+    expect(prices(session)[0]?.data.costEur).toBeCloseTo(12, 10)
+    expect(prices(session)[0]?.seq).toBeLessThan(breaches(session)[0]?.seq ?? -1)
   })
 
   it('records every later blocked step so a re-prompted session stays stopped', async () => {
@@ -273,14 +370,74 @@ describe('budget-policy enforcement', () => {
   })
 })
 
+describe('budget-policy pricing', () => {
+  it('records one price per priced step at the configured rates', async () => {
+    const { ctx, agent, session } = await harness({ pricing: PRICING })
+    appendPricedStep(session, 1, { inputTokens: 3, outputTokens: 5, cacheReadTokens: 2, cacheWriteTokens: 4 })
+
+    await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'enter', messages: [] })
+
+    expect(prices(session).map(event => event.data)).toEqual<UsagePriced[]>([{
+      turn: 1,
+      step: 1,
+      provider: 'cli-mock',
+      model: 'cli-mock',
+      // Billed input is the disjoint sum of uncached input, cache reads, and cache writes.
+      inputTokens: 9,
+      outputTokens: 5,
+      inputEurPerMillionTokens: 1_000_000,
+      outputEurPerMillionTokens: 2_000_000,
+      costEur: (9 * 1_000_000 + 5 * 2_000_000) / 1_000_000,
+      pricingDigest: pricingTableDigest(PRICING),
+    }])
+  })
+
+  it('prices no step twice, however often the session proposes another', async () => {
+    const { ctx, agent, session } = await harness({ pricing: PRICING })
+    appendPricedStep(session, 1, { inputTokens: 3, outputTokens: 5 })
+
+    await preStep(ctx, agent, 2)
+    await preStep(ctx, agent, 3)
+    await turnStopping(ctx, agent)
+
+    expect(prices(session)).toHaveLength(1)
+  })
+
+  it('prices nothing for a route the table does not name', async () => {
+    const { ctx, agent, session } = await harness({ pricing: PRICING })
+    session.append('turn/start', { turn: 1 })
+    appendMessage(session, { turn: 1, step: 1 }, { inputTokens: 3, outputTokens: 5 }, {
+      provider: 'other',
+      model: 'other',
+    })
+
+    await preStep(ctx, agent, 2)
+
+    expect(prices(session)).toHaveLength(0)
+  })
+
+  it('prices the final step of a turn that closes normally', async () => {
+    const { ctx, agent, session } = await harness({ pricing: PRICING })
+    session.append('turn/start', { turn: 1 })
+    appendMessage(session, { turn: 1, step: 1 }, { inputTokens: 3, outputTokens: 5 })
+
+    await turnStopping(ctx, agent)
+
+    expect(prices(session).map(event => event.data.step)).toEqual([1])
+  })
+})
+
 describe('budget-policy disposal (HMR safety)', () => {
-  it('removes its pre-step listener when the plugin fiber disposes', async () => {
-    const { ctx, agent, session, fiber } = await harness({ maxTotalTokens: 0 })
+  it('removes its pre-step and stop-boundary listeners when the plugin fiber disposes', async () => {
+    const { ctx, agent, session, fiber } = await harness({ maxTotalTokens: 0, pricing: PRICING })
     appendPricedStep(session, 1, { inputTokens: 1, outputTokens: 0 })
     await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'reject' })
     await fiber.dispose()
+    appendPricedStep(session, 2, { inputTokens: 1, outputTokens: 0 })
     await expect(preStep(ctx, agent, 3)).resolves.toEqual({ kind: 'enter', messages: [] })
+    await turnStopping(ctx, agent, 2)
     expect(breaches(session)).toHaveLength(1)
+    expect(prices(session)).toHaveLength(1)
   })
 })
 

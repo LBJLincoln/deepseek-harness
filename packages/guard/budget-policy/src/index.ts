@@ -2,7 +2,9 @@
  * Session budget guard. Configured token, wall-clock, and cost caps are
  * measured against the durable session log before every proposed step; the
  * first cap the log exceeds is recorded as a `budget/breach` event, blocks any
- * active goal, and rejects the step so no further model request is made.
+ * active goal, and rejects the step so no further model request is made. Every
+ * step served by a priced route also gets a durable `usage/priced` record, so
+ * session cost replays from the log at the rates that priced it.
  *
  * @module @deepseek-ai/dsh-budget-policy
  */
@@ -12,15 +14,17 @@ import z from '@deepseek-ai/schemastery'
 import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
 // Type-only: resolves ctx.goals for the optional durable block.
 import type {} from '@deepseek-ai/dsh-goal'
-import { foldBudgetSpend, measuredFor } from './fold.ts'
-import type { BudgetBreach, BudgetCapId, BudgetRoutePricing } from './types.ts'
+import { foldBudgetSpend, measuredFor, unpricedUsage } from './fold.ts'
+import { billedInputTokens, costEurFor, pricingTableDigest, routeKey } from './pricing.ts'
+import type { AccountedMessage, BudgetBreach, BudgetCapId, BudgetRoutePricing, UsagePriced } from './types.ts'
 
-// The pure payload outlet (./types.ts, ONE home of the `budget/breach`
-// declaration) re-exported onto the package root keeps the module edge in the
-// emitted index.d.ts, so aggregate programs consuming the declarations still
-// receive the SessionEventMap merge.
+// The pure payload outlet (./types.ts, ONE home of the `budget/breach` and
+// `usage/priced` declarations) re-exported onto the package root keeps the
+// module edge in the emitted index.d.ts, so aggregate programs consuming the
+// declarations still receive the SessionEventMap merge.
 export type * from './types.ts'
-export { foldBudgetSpend, measuredFor } from './fold.ts'
+export { foldBudgetSpend, measuredFor, unpricedUsage } from './fold.ts'
+export { pricingTableDigest } from './pricing.ts'
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'budget-policy'
@@ -86,6 +90,10 @@ export const Config: z<Config> = z.object({
 interface ResolvedConfig {
   readonly caps: readonly (readonly [BudgetCapId, number])[]
   readonly pricing: Readonly<Record<string, BudgetRoutePricing>>
+  /** Whether {@link pricing} names any route; an empty table never reads the log. */
+  readonly prices: boolean
+  /** {@link pricingTableDigest} of {@link pricing}, computed once at load. */
+  readonly pricingDigest: string
 }
 
 /** Reject a cap that cannot express a ceiling before any session depends on it. */
@@ -114,7 +122,8 @@ function resolveBudgetConfig(config: Config): ResolvedConfig {
     requireFiniteRate(route, 'inputEurPerMillionTokens', rates.inputEurPerMillionTokens)
     requireFiniteRate(route, 'outputEurPerMillionTokens', rates.outputEurPerMillionTokens)
   }
-  if (config.maxCostEur !== undefined && Object.keys(pricing).length === 0) {
+  const prices = Object.keys(pricing).length > 0
+  if (config.maxCostEur !== undefined && !prices) {
     throw new TypeError('budget-policy: maxCostEur needs a non-empty pricing table; an unpriced route has no cost cap')
   }
   const caps: (readonly [BudgetCapId, number])[] = []
@@ -124,7 +133,47 @@ function resolveBudgetConfig(config: Config): ResolvedConfig {
     requireFiniteCap(cap, value)
     caps.push([cap, value])
   }
-  return { caps, pricing }
+  return { caps, pricing, prices, pricingDigest: pricingTableDigest(pricing) }
+}
+
+/**
+ * Build the durable price of one accounted message at the configured rates.
+ * @param event - a message {@link unpricedUsage} selected, so its route is priced.
+ * @param resolved - the pricing table and its digest this deployment enforces.
+ * @returns the record to append for that step.
+ */
+function priceMessage(event: AccountedMessage, resolved: ResolvedConfig): UsagePriced {
+  const { provider, model } = event.data.message.source
+  // oxlint-disable-next-line typescript/no-non-null-assertion -- unpricedUsage yields only routes the table names
+  const rates = resolved.pricing[routeKey(provider, model)]!
+  const inputTokens = billedInputTokens(event.data.usage)
+  const outputTokens = event.data.usage.outputTokens
+  return {
+    turn: event.data.turn,
+    step: event.data.step,
+    provider,
+    model,
+    inputTokens,
+    outputTokens,
+    inputEurPerMillionTokens: rates.inputEurPerMillionTokens,
+    outputEurPerMillionTokens: rates.outputEurPerMillionTokens,
+    costEur: costEurFor(inputTokens, outputTokens, rates),
+    pricingDigest: resolved.pricingDigest,
+  }
+}
+
+/**
+ * Record the price of every priced-route step the log does not price yet. The
+ * selection is log-derived, so a resumed session prices what its predecessor
+ * left unpriced and a second call over the same log appends nothing.
+ * @param agent - the agent whose session log is priced.
+ * @param resolved - the pricing table and its digest this deployment enforces.
+ */
+function priceUnpricedSteps(agent: Agent, resolved: ResolvedConfig): void {
+  if (!resolved.prices) return
+  for (const event of unpricedUsage(agent.session.events, resolved.pricing)) {
+    agent.session.append('usage/priced', priceMessage(event, resolved))
+  }
 }
 
 /**
@@ -161,8 +210,9 @@ function blockGoal(ctx: Context, agent: Agent, breach: BudgetBreach): void {
 }
 
 /**
- * Register the pre-step budget check for the lifetime of `ctx`.
- * @param ctx - plugin context; the listener is disposed with it.
+ * Register the pre-step budget check and the pricing records for the lifetime
+ * of `ctx`.
+ * @param ctx - plugin context; both listeners are disposed with it.
  * @param config - the per-session caps and pricing to enforce.
  * @throws {TypeError} when the configuration cannot express the caps it declares.
  */
@@ -172,10 +222,19 @@ export function apply(ctx: Context, config: Config): void {
   // Prepended so the budget decision precedes every listener that would build
   // request context or reserve continuation work for a step that cannot run.
   ctx.on('agent/pre-step', async ({ agent }, next): Promise<PreStepDecision> => {
+    // Priced before the caps are read, so the last message before a breach is
+    // priced by the same step that records the breach.
+    priceUnpricedSteps(agent, resolved)
     const breach = detectBreach(agent, resolved)
     if (breach === undefined) return next()
     agent.session.append('budget/breach', breach)
     blockGoal(ctx, agent, breach)
     return { kind: 'reject' }
   }, { prepend: true })
+
+  // A turn that closes normally opens no further step, so its final message is
+  // priced at the stop boundary instead.
+  ctx.on('agent/turn-stopping', ({ agent }) => {
+    priceUnpricedSteps(agent, resolved)
+  })
 }

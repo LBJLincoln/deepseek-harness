@@ -426,7 +426,7 @@ export interface BudgetRoutePricing {
 }
 ```
 
-来源：[`packages/guard/budget-policy/src/index.ts:57`](../packages/guard/budget-policy/src/index.ts)
+来源：[`packages/guard/budget-policy/src/index.ts:61`](../packages/guard/budget-policy/src/index.ts)
 
 <a id="deepseek-aidsh-client-connection"></a>
 

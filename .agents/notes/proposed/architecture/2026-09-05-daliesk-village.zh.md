@@ -22,7 +22,7 @@ Daliesk Village 是一组既有插件按班次运行的组合，绝不是持有�
 - **篡改裁决落地之前不公开证书率。** 今天一张证书证明的是有一次完全通过的 `verification/run` 在它之前；它不证明实现者没有触碰检查所属路径（读取屏障切片 6），在切片 5 之前也不证明能用 shell 的实现者读不到标准。在切片 6 落地之前，每个公开行都带有 `tamper: not instrumented`，证书率既不进入归档的 quality 项也不作为训练奖励；Workshop 的行留在人工评审之后。
 - **区是盖章字段。** `environment/run` 新增 `district`；导出器与观测台默认扣留 Workshop 会话，正如扣留留出会话一样，任何会话的原始摘录只有在数据管理员的 `SignoffRecord` 与导出的脱敏配置之后才能到达公众。
 - **节奏跟随区。** 每周冻结的 `SuitePlan` 为 Proving Ground 与 Commons 各层定节奏；Workshop 的目标依程序账本与计划关键路径开启与关闭，绝不依日历。
-- **成本要么是日志事实，要么不发布。** 预算策略用自己的价格表为用量定价；一条携带价格表摘要的 `usage/priced` 事件使每个已认证会话的成本成为可重放的 scorekeeper 字段；在它存在之前，任何成本数字都不离开实验室。
+- **成本要么是日志事实，要么不发布。** 预算策略把每个被计价的步骤记录为一条 `usage/priced` 事件，携带为其计价的价格与价格表摘要，因此每次会话的成本可重放；在 scorekeeper 把这些事件折叠为每个已认证会话的成本之前，任何成本数字都不离开实验室。
 
 ### 落在 seam 上的机制
 
@@ -32,8 +32,8 @@ Daliesk Village 是一组既有插件按班次运行的组合，绝不是持有�
 | 跨天的记忆 | 每 40 个动作整合一次 | 部门层中的技能，作为已记录 seam 的压缩（已落地）；除经摘要的组件外没有任何东西持久进入 cell（组合清单，已设计） |
 | 每周目标 | 聊天消息加系统提示 | 带检查的环境、每班一个 fleet 计划、运行后解除武装的 goal（已落地） |
 | 知道发生了什么 | 800 条摘要、一条时间线、一个博客 | 每会话一份 `SessionFacts`、每批次的记分板与 pass@k、每个已认证会话的轨迹（已落地）；排行榜的实时投影（提议中） |
-| 捕捉捏造 | 事后阅读 10.9 万条摘要 | 只有在完全通过的 `verification/run` 之后才有证书（已落地）；证书上的 executor 以及对 `none` 之上 agent 自报运行的拒绝（进行中，读取屏障切片 4）；篡改裁决（切片 6，提议中） |
-| 藏起答案 | 无 | 验证者根目录之下的文件系统工具读取被拒（已落地，切片 1–2）；工具权限守卫与 preset 角色（切片 3，进行中）；shell、subprocess 与 terminal 的拒绝（切片 5，提议中） |
+| 捕捉捏造 | 事后阅读 10.9 万条摘要 | 只有在完全通过的 `verification/run` 之后才有证书（已落地）；证书上的 executor 以及对 `none` 之上 agent 自报运行的拒绝（已落地，读取屏障切片 4）；篡改裁决（切片 6，提议中） |
+| 藏起答案 | 无 | 验证者根目录之下的文件系统工具读取被拒（已落地，切片 1–2）；工具权限守卫与 preset 角色（已落地，切片 3）；shell、subprocess 与 terminal 的拒绝（切片 5，提议中） |
 | 阻止失控的 agent | 管理员提醒、一套误触发的闲置系统 | `budget/breach` 在下一步之前持久地阻塞 goal，没有任何提醒文本到达模型（已落地）；班次级支出聚合与按路由的熔断器（提议中） |
 | 模型之间的公平比较 | 每个模型一个持久实例 | 同组内的 fleet 重复、pass@k、带种子化 bootstrap 区间的配对实验（已落地）；preset 作为实验臂与 stamp 上的组合摘要（提议中） |
 | 公开数据集 | 研究许可证下的 HuggingFace 转储 | 带留出扣留的轨迹与事实导出（已落地）；区扣留、数据使用条款、强制脱敏、动态挂载的隔离（提议中） |
@@ -96,9 +96,9 @@ Proving Ground 本身已经是 W3 的 rollout 机制；常驻运行增加的是�
 
 ## Rollout
 
-1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；以及组合门禁。仍需要：证书上的 executor（读取屏障切片 4，进行中）与 `usage/priced` 事件；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
+1. **零号班次（Proving Ground，NDA）。** 已落地：`environment/run` stamp 上的 `district`，连同导出器的 `withheldDistricts` 与按请求的 `districts`；fleet 按路由的熔断器（`FLEET_ROUTE_BREAKER_OPEN`）；其计划级 `tokenCeiling` 与整次运行的 `spend`（`FLEET_TOKEN_CEILING_REACHED`）；其 `workspaceRetention`；组合门禁；预算策略携带价格表摘要的 `usage/priced` 事件；以及证书上的 executor（读取屏障切片 4）。仍需要：scorekeeper 将 `usage/priced` 折叠为每次会话的成本；有人值班运行。TODO：只有当 `ScoreboardRow` 携带 stamp 的 `district` 之后观测台才能扣留某个区，该字段归 scorekeeper 所有。
 2. **公开证书率。** 需要读取屏障切片 5 与 6（shell 拒绝与篡改裁决）以及篡改列；此后证书率进入归档的 quality 项。
-3. **无人值守的班次。** 需要四目标 note 的 rollout 第 11 项（幂等 cell、程序账本）与计划级支出聚合器；主机级监督进程退为后备。
+3. **无人值守的班次。** 已在[班次笔记](2026-09-05-village-shifts.md)中设计：班次身份与 `shift/*` 账本、从 stamp 恢复且绝不重跑的 cell、按区的节奏，以及跨班次的 token 花费窗口；其切片落地后，主机级监督进程退为后备。
 4. **点名比较与 Commons。** 需要组合清单各切片（stamp 上的摘要、preset 作为实验臂、排行榜上的 `harnessVariantId`）以及带 `parked` 与同胞摘要的归档。
 5. **公开的 Workshop 与摘录披露。** 需要 `signoff/recorded`、`dataUse/terms`、强制脱敏与信任档案导出。
 6. **任何外联。** 需要 `external-communication` 权限与可拒绝的 monitor。

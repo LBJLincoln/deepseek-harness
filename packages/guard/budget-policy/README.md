@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-A durable spend ceiling for one session: configured token, wall-clock, and cost caps are measured against the session log before every proposed step, and the first cap the log exceeds records a `budget/breach` event, blocks the session's goal, and rejects the step so no further model request is made. Nothing is measured in memory — the caps read the same durable events a replay reads, so a recorded breach is reproducible by anyone holding the log. Decision record: [the budget-policy Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-budget-policy.md).
+A durable spend ceiling for one session: configured token, wall-clock, and cost caps are measured against the session log before every proposed step, and the first cap the log exceeds records a `budget/breach` event, blocks the session's goal, and rejects the step so no further model request is made. Every step a priced route served also records a `usage/priced` event, so what a session cost is a durable fact rather than an in-memory total. Nothing is measured in memory — the caps read the same durable events a replay reads, so a recorded breach or price is reproducible by anyone holding the log. Decision record: [the budget-policy Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-budget-policy.md).
 
 ## Config
 
@@ -29,11 +29,11 @@ Validation happens at plugin load, before any session can depend on a cap the po
 
 ## Plugin contract (namespace: `budget-policy`)
 
-A function/namespace plugin (`name` / `inject` / `Config` / `apply`), not a service. It injects `ctx.agents` and registers one prepended `agent/pre-step` listener; `ctx.goals` is read optionally through `ctx.get('goals')`, so the policy enforces identically in a composition without the goal domain.
+A function/namespace plugin (`name` / `inject` / `Config` / `apply`), not a service. It injects `ctx.agents` and registers one prepended `agent/pre-step` listener and one `agent/turn-stopping` listener; `ctx.goals` is read optionally through `ctx.get('goals')`, so the policy enforces identically in a composition without the goal domain.
 
-The listener is prepended so the budget decision precedes every listener that would build request context or reserve continuation work for a step that cannot run. On a breach it does not call `next()`: the chain short-circuits and the loop closes the turn with reason `blocked`, having opened no step.
+The pre-step listener is prepended so the budget decision precedes every listener that would build request context or reserve continuation work for a step that cannot run. On a breach it does not call `next()`: the chain short-circuits and the loop closes the turn with reason `blocked`, having opened no step.
 
-`foldBudgetSpend(events, pricing)` and `measuredFor(spend, cap)` are exported so a supervisor can recompute any recorded measurement from the log.
+`foldBudgetSpend(events, pricing)`, `measuredFor(spend, cap)`, `unpricedUsage(events, pricing)`, and `pricingTableDigest(pricing)` are exported so a supervisor can recompute any recorded measurement or price from the log.
 
 ### Measuring spend from the log
 
@@ -49,9 +49,17 @@ The listener is prepended so the budget decision precedes every listener that wo
 
 Spend never decreases, so a later step in the same session breaches again: each stopped step records its own event, and the durable log states exactly how many attempts the exhausted budget turned away. Raising a cap and reloading the deployment is the way to resume.
 
+### What a priced step records
+
+`usage/priced` states the price of one `assistant/message` whose `provider/model` the `pricing` table names: the `turn` and `step` it prices, that route's `provider` and `model`, the `inputTokens` (billed input) and `outputTokens` it charges for, the `inputEurPerMillionTokens` and `outputEurPerMillionTokens` applied, the resulting `costEur = (inputTokens * inputEurPerMillionTokens + outputTokens * outputEurPerMillionTokens) / 1_000_000`, and a `pricingDigest`. The digest is the lowercase SHA-256 of the whole configured table — route keys ordered by code unit, each entry serialized as its input rate then its output rate — so a reader can tell which table version priced a step and one changed rate changes the digest. Rates travel in the record itself, which is what makes session cost replayable without the deployment configuration. A route the table does not name records nothing.
+
+Which steps to price is read from the log, not remembered: a step is priced when its message carries `usage`, its route is priced, and no `usage/priced` in the log already carries its turn and step. A resumed session therefore prices exactly what its predecessor left unpriced, and never prices a step twice. The records are written at two points — inside the pre-step listener, before the caps are read, so the last message before a breach is priced by the same step that records the breach; and at `agent/turn-stopping`, so the final step of a turn that closes normally is priced too.
+
+A turn that ends by error or abort reaches neither point, so its last message stays unpriced until the session's next pre-step or stop boundary; a session abandoned in that state keeps one unpriced step in its log.
+
 ### Invariant companion
 
-`@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable breach independently: the recorded `measured` must exceed `limit`, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record. `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation.
+`@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable record independently. A breach's recorded `measured` must exceed `limit`, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record; `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation. A price must cite an earlier `assistant/message` with the same turn and step whose billed tokens and route it reproduces exactly, its `costEur` must equal its own rates applied to its own tokens, and no earlier `usage/priced` may carry the same turn and step.
 
 ## Model Experience
 
@@ -59,7 +67,7 @@ Spend never decreases, so a later step in the same session breaches again: each 
 
 #### What the model sees
 
-Nothing. A breach is decided before the step opens, so no prompt section, tool schema, tool result, or message text is added, and no model request is made for the stopped step or for any later step while the cap holds. The breach record and the goal's `budget-exhausted` block reason are durable state for humans and supervising processes, not model-visible content.
+Nothing. A breach is decided before the step opens, so no prompt section, tool schema, tool result, or message text is added, and no model request is made for the stopped step or for any later step while the cap holds. The breach record, the pricing records, and the goal's `budget-exhausted` block reason are durable state for humans and supervising processes; none of them is a surface event, so none reaches a model request.
 
 #### Token effect
 
@@ -72,7 +80,8 @@ Independent: the request surface is neither extended nor rewritten, so an alread
 ## Known Limitations and Deferred Work
 
 - **Session-scoped only** — the caps measure one session log. A deployment that wants a per-workspace, per-user, or per-day ceiling has no aggregation point here; subagent sessions carry their own logs and their own independent budgets.
-- **Cost covers priced routes only** — usage on a `provider/model` absent from `pricing` adds tokens but no cost, so `maxCostEur` cannot be the sole ceiling for a deployment whose routes are not all priced.
+- **Cost covers priced routes only** — usage on a `provider/model` absent from `pricing` adds tokens but no cost and records no `usage/priced`, so `maxCostEur` cannot be the sole ceiling for a deployment whose routes are not all priced, and an unpriced session has no cost the log can state.
+- **A turn that ends by error or abort leaves its last step unpriced** — pricing happens at the next pre-step or at the normal stop boundary, and neither is reached when a turn fails or is cancelled. The record lands at the session's next pre-step or stop; a session abandoned right after such a turn keeps one unpriced step.
 - **One input rate per route** — the table prices billed input with a single number, so a provider that discounts cache reads against cache misses is priced at the uncached rate.
 - **No warning before the stop** — the policy has no advisory threshold that tells the model to wrap up before the cap trips; the first model-visible consequence of an exhausted budget is that the turn ends.
 - **Raising a cap needs a reload** — caps are load-time configuration, so an exhausted session resumes only after the deployment is reconfigured and reloaded; there is no runtime grant.
