@@ -25,7 +25,7 @@ const TESTS_PASS = CheckId('tests-pass')
 const NO_DEPENDENCIES = CheckId('no-dependencies')
 
 /** The rules every task shares: only `src/` changes, the tests and the manifest stay, nothing gets installed. */
-const SHARED_RULES = 'Change only files under src/. Do not modify anything under test/ or package.json, and add no dependencies: node_modules must not exist. The standard is `node --test test/` passing in the workspace root.'
+const SHARED_RULES = 'Change only files under src/. Do not modify anything under test/ or package.json, and add no dependencies: node_modules must not exist. The standard is `node --test test/*.test.js` passing in the workspace root.'
 
 /** A Node project task whose fixture's tests are the standard and may not be edited. */
 function code(id: string, fixture: string, description: string, prompt: string, heldOut: boolean): EnvironmentDefinition<'code'> {
@@ -40,7 +40,7 @@ function code(id: string, fixture: string, description: string, prompt: string, 
       immutable: ['test', 'package.json'],
     },
     checks: [
-      { id: TESTS_PASS, outcome: 'node --test test/ passes in the workspace root', run: 'node --test test/' },
+      { id: TESTS_PASS, outcome: 'node --test test/*.test.js passes in the workspace root', run: 'node --test test/*.test.js' },
       { id: NO_DEPENDENCIES, outcome: 'no dependency was installed', run: 'test ! -e node_modules' },
     ],
     heldOut,
@@ -74,7 +74,7 @@ export function apply(ctx: Context): void {
       'code:paginate-fix',
       'paginate-fix',
       'Fix a pagination function so its test suite passes.',
-      '`src/paginate.js` is wrong and `node --test test/` fails. Fix `paginate(items, page, size)` so pages are 1-based, `pages` is the number of pages needed to hold every item (0 for an empty list), pages past the last are empty, the input is never mutated, and a non-positive or fractional page or size throws a RangeError.',
+      '`src/paginate.js` is wrong and `node --test test/*.test.js` fails. Fix `paginate(items, page, size)` so pages are 1-based, `pages` is the number of pages needed to hold every item (0 for an empty list), pages past the last are empty, the input is never mutated, and a non-positive or fractional page or size throws a RangeError.',
       false,
     ),
     code(
