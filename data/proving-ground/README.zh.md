@@ -87,6 +87,15 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-07-bench-e2-harness-vs-product-t3](2026-09-07-bench-e2-harness-vs-product-t3/manifest.json) | `f07b6614a` | `route` 对 `claude-code`（产品自身循环），两侧均为 `sonnet` | `code:union-find-rollback` | 2 之 2 对 2 之 2 | 各 1 | 175、164 s 对 147、238 s |
 | [2026-09-07-bench-e2-harness-vs-product-t3](2026-09-07-bench-e2-harness-vs-product-t3/manifest.json) | `f07b6614a` | `route` 对 `claude-code`（产品自身循环），两侧均为 `sonnet` | `code:url-template` | 2 之 2 对 2 之 2 | 各 1 | 283、461 s 对 383、354 s |
 
+| [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:csv-codec` | 2 之 2 | 各 1 | 152 与 116 s |
+| [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:glob-match` | 2 之 2 | 各 1 | 481 与 261 s |
+| [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:interval-ops` | 2 之 2 | 各 1 | 37 与 38 s |
+| [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:path-normalize` | 2 之 2 | 各 1 | 84 与 52 s |
+| [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:stable-sort-by` | 2 之 2 | 各 1 | 172 与 75 s |
+| [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:table-format` | 2 之 2 | 各 1 | 109 与 209 s |
+
+第九份记录是 harness 循环在第四份记录用产品自身循环测过的同六个第 2 层环境上的舰队运行：十二个单元，每个都在一次尝试内获得认证，每个单元 37 至 481 s，中位数 116 s，同时运行两个单元共用时 979 s，平均每个单元 7.6 个模型步骤，158,899 个输出 token，255,502 个缓存读取与 884,168 个缓存写入 token。与第四份记录逐单元对照（同一环境与同一重复，但来自不同舰队而非同一个冻结计划），harness 循环在 12 对中的 9 对更快，其单元合计用时 1786 s，产品自身循环为 1932 s。
+
 第八份记录是假设计划的第一个冻结配对实验（摘要 `4c9659e3…`）：以 harness 自身在 Claude Code 路由上的循环为基线臂，以产品自身的循环为候选臂，两侧使用同一个模型，覆盖未被保留的九个第 3 层环境，每个重复两次，种子 1，共 36 个单元，同时运行两个单元共用时 4194 s。两臂都以每个一次尝试认证了 18 之 18 个单元，因此证书率之差为 0，自助区间为 [0, 0]，在 0.05 的最小差值下结论为不确定：在这一层上，就证书而言 harness 循环既不优于也不劣于产品循环，这驳斥了"harness 循环在这些任务上输给产品循环"的假设，也不支持"它胜出"的假设。墙上时间同样持平：harness 循环在 18 对中的 11 对更快，其单元中位数为 164 s，对方为 179 s，两臂总计相差不到百分之一。harness 循环的花费有据可查，因为它的查询经过 harness：200 次查询共 352,494 个输出 token 与 553,676 个缓存读取 token，但缓存写入 token 达 3,005,288 个，因为每次查询都新开一个产品会话，其前缀被再次写入缓存而不是从缓存读取；产品循环每个单元只保持一个会话，这笔开销只付一次。产品臂的花费不在这份记录中：把单元模型转发给子进程并记录其报告用量与费用的切片是在运行开始后才合并的（清单的头部包含它，运行本身不包含），因此下一个配对实验将同时记录两臂的花费。
 
 第七份记录是 harness 自身的循环在 Claude Code 路由上认证的第一个单元，紧接在该路由开始以原生方式提供 harness 工具之后：五次模型查询，五次工具调用（探索、读测试、读桩、写模块、跑测试套件），没有重试，一次验证，从标记到证书 41 s，输出 2580 个 token。同一个环境在第四份记录中由产品自身循环完成用了 59 与 63 s。在这次路由变更之前，同一个单元的每次查询都在产品的轮次上限处失败，该路由的说明记录了这一点。
