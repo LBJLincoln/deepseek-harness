@@ -16,7 +16,9 @@ Status: proposed
 
 在 `improvement/` 分组中加入 `@deepseek-ai/dsh-experiments`（`ctx.experiments`）：`run(plan)` 冻结一份计划，在计划未冻结或超出预算时拒绝它，以配对的重复索引经 `ctx.fleet` 运行两个 arm，并折叠出带判定的 `ExperimentResult`。这个包不调用模型、不渲染 prompt、不追加任何会话事件；四目标 note 在它周围指名的每个语义阶段——提名、诊断、评审——都留在外面。
 
-**今天一个 arm 就是一条模型路由。** `EnvironmentRunRequest` 携带一个环境、一个工作区、一条模型路由、一个重复索引、一个 group 与一个中止信号，没有任何字段指名 agent（智能体）preset。因此路由是这个包唯一能表达、又不会让计划无声地指名运行器无法兑现之物的 arm。具名 agent preset 会在为 `EnvironmentRunRequest` 增加 preset 字段并将其贯穿运行器的那个切片中成为第二个 arm 维度——即 W1 第 1 阶段的"model and preset overrides on `EnvironmentRunRequest`"，也就是下文 rollout 第 2 项——计划在那时、而非在此之前，为每个 arm 增加第二个可选字段。
+**一个 arm 是一条模型路由与一个 implementer。** `EnvironmentRunRequest` 携带一个环境、一个工作区、一条模型路由、一个 implementer、一个重复索引、一个 group 与一个中止信号，没有任何字段指名 agent（智能体）preset。因此这两者是这个包唯一能表达、又不会让计划无声地指名运行器无法兑现之物的 arm 维度。具名 agent preset 会在为 `EnvironmentRunRequest` 增加 preset 字段并将其贯穿运行器的那个切片中成为第三个维度——即 W1 第 1 阶段的"model and preset overrides on `EnvironmentRunRequest`"，也就是下文 rollout 第 2 项——计划在那时、而非在此之前，为每个 arm 再增加一个可选字段。
+
+**implementer 成为一个 arm 维度，是因为值得一跑的比较正是 harness 原生的 agent 对上一个外部 agent。** 运行器与 fleet 已经携带 `{ kind: 'route' }` 与 `{ kind: 'subagent', provider, label? }`——[external-implementer note](2026-09-06-external-implementer.md) 拥有被委派的证书证明了什么——因此让 arm 指名 implementer，对这个包只是每次 fleet 调用多转发一个字段，换来的却是这场比较得以诚实的唯一设计：两个 arm 在同一份被冻结的摘要之下，以相同的重复索引运行相同的环境 id，于是证书率 delta 度量的是两个 implementer，而不是分别做两次基准测试时各自抽到的两批任务。implementer 按角色顺序进入摘要，不指名它的 arm 以写出来的默认路由进入，因此什么都不指名的 arm 与指名 `{ kind: 'route' }` 的 arm 是同一场实验，而被委派的 arm 是另一场，且不会落进对方的 stamp group；摘要的格式版本随该字段上调，因此在它之前冻结的摘要与如今冻结的任何计划都不匹配。
 
 **一份计划由在任何 cell 运行之前算出的内容摘要冻结。** 该摘要是对如下内容的规范化 JSON 取 SHA-256：一个格式版本、按角色顺序排列的两条 arm 路由、排序后的环境 id、重复次数，以及四个阈值：bootstrap（自助重采样）重采样次数、置信水平、最小可晋升 delta、每 cell token 上限。对 id 排序使摘要与调用方列出它们的顺序无关，而重复的 id 会被拒绝，因此排序不存在歧义。部署的总 token 预算被刻意排除在摘要之外：它约束的是一个部署愿意支付什么，而不是这场实验度量什么，因此提高它不会铸出另一场实验。在更早时刻冻结过计划的调用方——在排期前就把摘要记录在案的提名阶段——把那个摘要随计划传回，而与重算结果不相等的摘要会被拒绝，于是冻结之后被改动的计划无法再以其旧身份运行。
 
@@ -61,7 +63,7 @@ Status: proposed
 ## Rollout
 
 1. 本 note、该包、经两次 fleet 调用实现的 `ctx.experiments.run(plan)`、被冻结的摘要及其 group 方案、配对 bootstrap 与判定、预算拒绝、JSONL sink、单元 spec，以及经 Loader 启动的示例。
-2. **preset 作为第二个 arm 维度。** 在 `EnvironmentRunRequest` 上增加 preset 字段并贯穿运行器与 fleet cell，随后在计划上以及摘要中为每个 arm 增加一个可选 preset——即 W1 第 1 阶段的 model and preset overrides。
+2. **preset 作为第三个 arm 维度。** 在 `EnvironmentRunRequest` 上增加 preset 字段并贯穿运行器与 fleet cell，随后在计划上以及摘要中为每个 arm 增加一个可选 preset——即 W1 第 1 阶段的 model and preset overrides。
 3. **在运行期间强制每 cell 上限。** 把计划的每 cell token 上限接进每个 cell 的 `@deepseek-ai/dsh-budget-policy` 配置，使越限的 cell 被持久阻断，而不只是被事先预计。
 4. **阶梯式评估。** 把 W1 第 9 阶段的三段——训练可用套件跑一次重复、派生 cell 跑 k 次配对重复、再对每个 Pareto 前沿变体跑一次留出套件——实现为一串被冻结的计划，每一段是否继续由上一段的判定决定。
 5. **存档。** 在 `dsh-archive` 中的 `HarnessVariant` 记录引用评估过它们的 `ExperimentResult` 摘要，使被支配的变体保留自己的证据。

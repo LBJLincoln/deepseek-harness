@@ -6,11 +6,28 @@
  * @module @deepseek-ai/dsh-experiments/types
  */
 
+import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 
 /** Role one arm plays in a comparison; both roles run the same cells. */
 export type ExperimentArmRole = 'baseline' | 'candidate'
+
+/**
+ * One arm as a plan names it: the model route its cells run and who implements
+ * them. An arm that names no implementer runs its own route, so a plan that
+ * omits the field and one that spells `{ kind: 'route' }` out are one
+ * experiment and freeze to one digest.
+ */
+export interface ExperimentArmPlan extends EnvironmentRunModel {
+  /**
+   * Who does the work of every cell of this arm — the arm's own model route,
+   * or an out-of-band coding agent behind a registered subagent provider. The
+   * cells, the checks, and the certificate are the same either way, so an arm
+   * that delegates is comparable with one that does not.
+   */
+  readonly implementer?: EnvironmentRunImplementer
+}
 
 /**
  * Statistical choices frozen into the plan digest. They decide what the
@@ -38,10 +55,10 @@ export interface ExperimentPlan {
   readonly environments: readonly EnvironmentId[]
   /** Positive number of repetitions per environment and arm; repetition indexes start at zero. */
   readonly repetitions: number
-  /** Model route of the reference arm. */
-  readonly baseline: EnvironmentRunModel
-  /** Model route of the arm under test. */
-  readonly candidate: EnvironmentRunModel
+  /** The reference arm. */
+  readonly baseline: ExperimentArmPlan
+  /** The arm under test. */
+  readonly candidate: ExperimentArmPlan
   /** Existing absolute directory under which every cell gets its own fresh workspace directory. */
   readonly workspaceRoot: string
   /**
@@ -63,10 +80,12 @@ export interface ExperimentPlan {
   readonly sink?: TrajectorySink
 }
 
-/** One arm as it ran: its model route and the stamp `group` its sessions carry. */
+/** One arm as it ran: its model route, its implementer, and the stamp `group` its sessions carry. */
 export interface ExperimentArm {
   /** Model route every cell of this arm ran. */
   readonly model: EnvironmentRunModel
+  /** Implementer every cell of this arm ran under, with the plan's default applied, so a stored result tells the arms apart alone. */
+  readonly implementer: EnvironmentRunImplementer
   /** `experiment-<digest>-<role>`, written into the `environment/run` stamp of every session of this arm. */
   readonly group: string
 }

@@ -20,8 +20,16 @@ import type { FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { foldExperiment } from './fold.ts'
-import { experimentGroup, planDigest, projectedTokens } from './plan.ts'
-import type { ExperimentArm, ExperimentArms, ExperimentPlan, ExperimentResult, ExperimentThresholds } from './types.ts'
+import { armImplementer, experimentGroup, planDigest, projectedTokens } from './plan.ts'
+import type {
+  ExperimentArm,
+  ExperimentArmPlan,
+  ExperimentArmRole,
+  ExperimentArms,
+  ExperimentPlan,
+  ExperimentResult,
+  ExperimentThresholds,
+} from './types.ts'
 
 export type * from './types.ts'
 export { foldExperiment } from './fold.ts'
@@ -122,9 +130,9 @@ export class ExperimentService extends Service {
    * indexes, and fold the paired comparison. Every refusal happens before the
    * first cell runs; a cell the fleet kept as an error leaves its repetition
    * unpaired instead of failing the experiment.
-   * @param plan - environments, repetitions, the two arm routes, the workspace
-   *   root, and an optional policy version, base seed, frozen digest, abort
-   *   signal, and result sink.
+   * @param plan - environments, repetitions, the two arms with their model
+   *   routes and optional implementers, the workspace root, and an optional
+   *   policy version, base seed, frozen digest, abort signal, and result sink.
    * @returns the digest, both arms with their stamp groups, one cell per
    *   environment, the pooled delta with its interval, the spend, and the verdict.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
@@ -135,8 +143,8 @@ export class ExperimentService extends Service {
   async run(plan: ExperimentPlan): Promise<ExperimentResult> {
     const digest = this.freeze(plan)
     const arms: ExperimentArms = {
-      baseline: { model: plan.baseline, group: experimentGroup(digest, 'baseline') },
-      candidate: { model: plan.candidate, group: experimentGroup(digest, 'candidate') },
+      baseline: resolveArm(plan.baseline, digest, 'baseline'),
+      candidate: resolveArm(plan.candidate, digest, 'candidate'),
     }
     const baseline = await this.runArm(plan, arms.baseline)
     const candidate = await this.runArm(plan, arms.candidate)
@@ -186,6 +194,7 @@ export class ExperimentService extends Service {
     return this.ctx.fleet.run({
       environments: { ids: plan.environments },
       models: [arm.model],
+      implementer: arm.implementer,
       repetitions: plan.repetitions,
       workspaceRoot: plan.workspaceRoot,
       group: arm.group,
@@ -193,6 +202,22 @@ export class ExperimentService extends Service {
       ...plan.seed === undefined ? {} : { seed: plan.seed },
       ...plan.signal === undefined ? {} : { signal: plan.signal },
     })
+  }
+}
+
+/**
+ * One arm as it will run: the model route alone, the implementer the plan
+ * named or the route default, and the stamp group its sessions carry.
+ * @param arm - one arm as the plan names it.
+ * @param digest - the frozen plan digest both arm groups carry.
+ * @param role - which arm of the comparison this is.
+ * @returns the arm the fleet call and the result both state.
+ */
+function resolveArm(arm: ExperimentArmPlan, digest: string, role: ExperimentArmRole): ExperimentArm {
+  return {
+    model: { provider: arm.provider, model: arm.model },
+    implementer: armImplementer(arm),
+    group: experimentGroup(digest, role),
   }
 }
 

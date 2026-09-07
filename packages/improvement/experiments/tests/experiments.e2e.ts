@@ -42,6 +42,7 @@ describe('an experiment through a real cordis.yml and headless process', () => {
     expect(result.digest).toMatch(/^[0-9a-f]{64}$/)
     expect(result.thresholds).toEqual({ bootstrapResamples: 200, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 20000 })
     expect(result.arms.baseline.model).toEqual(result.arms.candidate.model)
+    expect([result.arms.baseline.implementer, result.arms.candidate.implementer]).toEqual([{ kind: 'route' }, { kind: 'route' }])
     expect(parseExperimentGroup(result.arms.baseline.group)).toEqual({ digest: result.digest, role: 'baseline' })
     expect(parseExperimentGroup(result.arms.candidate.group)).toEqual({ digest: result.digest, role: 'candidate' })
 

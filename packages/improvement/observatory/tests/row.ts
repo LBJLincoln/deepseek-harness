@@ -114,8 +114,8 @@ export function experiment(
   return {
     digest,
     arms: {
-      baseline: { model: { provider: 'cli-mock', model: baseline }, group: `experiment-${digest}-baseline` },
-      candidate: { model: { provider: 'cli-mock', model: candidate }, group: `experiment-${digest}-candidate` },
+      baseline: { model: { provider: 'cli-mock', model: baseline }, implementer: { kind: 'route' }, group: `experiment-${digest}-baseline` },
+      candidate: { model: { provider: 'cli-mock', model: candidate }, implementer: { kind: 'route' }, group: `experiment-${digest}-candidate` },
     },
     cells: [],
     seedsPaired: 4,
