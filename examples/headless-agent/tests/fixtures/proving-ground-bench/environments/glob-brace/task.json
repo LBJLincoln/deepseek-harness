@@ -1,0 +1,30 @@
+{
+  "id": "code:glob-brace",
+  "tier": 5,
+  "domain": "parsing",
+  "title": "Brace expansion and a glob matcher with extended groups",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes exactly one argument, `expand` or `match`, and reads UTF-8 text from standard input. Split the input on newlines and drop the empty tail a trailing newline leaves. In `expand` mode the input must be exactly one line, the pattern, and the output is its brace expansions, one per line, in order, keeping duplicates. In `match` mode the first line is the pattern and every later line is a candidate path; print one line per candidate, `+ `, then the candidate, when it matches, and `- `, then the candidate, when it does not. A pattern with no candidates prints nothing. Exit 0 on success.\n\nBrace expansion runs before matching, and a pattern matches when any of its expansions does. Find the leftmost `{` that has a matching `}`, counting nesting and skipping any character preceded by a backslash. Split the text between them on the commas that sit at that group's own nesting depth, again skipping escaped characters. If there is at least one such comma, the parts are the alternatives, and an alternative may be empty. If there is none, read the body as a range: `A..B` or `A..B..S` where both endpoints are integers, optionally signed, or both are single ASCII letters. The step is the absolute value of `S`, defaulting to 1, and a step of 0 makes the body not a range. Values run from the first endpoint towards the second, inclusive, walking code points for letters, so `{e..a}` counts down and `{A..d}` passes through the characters that lie between `Z` and `a`. An integer range pads its values with leading zeros to the width of the longer endpoint's digits when either endpoint is written with a leading zero, placing the sign before the padding. A body that is neither a list nor a range leaves its braces as literal text, and the search for the next group resumes just after that `{`. A `{` with no matching `}` is literal too. Each alternative is substituted for the whole group and the result expanded again, so the leftmost group varies slowest.\n\nMatching splits both the pattern and the path on `/`, skipping an escaped `/`, and compares segment by segment; a pattern segment that is exactly `**` instead matches zero or more whole path segments, none of which may begin with `.`. Any other segment must match its path segment as a whole. Within a segment, `\\` makes the next character literal, `?` matches exactly one character, and any run of `*` matches zero or more characters. A bracket class opens with `[`, is negated by a leading `!` or `^`, holds single characters and `from-to` code-point ranges, treats a `]` written first as a literal, treats a `-` that has no character after it as a literal, honours a backslash inside itself, and closes at the first `]` that is neither first nor escaped. An extended group is one of `?`, `*`, `+`, `@` or `!` immediately followed by `(`, holding `|`-separated sub-patterns and closing at its matching `)`; sub-patterns may themselves hold groups. `?(…)` matches zero or one of its alternatives, `*(…)` zero or more, `+(…)` one or more, `@(…)` exactly one, and `!(…)` matches any run of characters that is not one of them. All five may be followed by more pattern, and the segment matches when some division of the text satisfies the whole segment.\n\nA path segment that begins with `.` matches only a pattern segment whose first element is a literal `.`, written plainly or escaped; a wildcard, a class or a group at the start of a segment never matches that dot. Neither `?`, nor `*`, nor a class, nor a group ever matches a `/`, because matching is done inside one segment.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output. The messages are `error: usage: cli.js expand|match` when the arguments are not exactly one of the two mode words; `error: expand needs exactly one pattern line` when `expand` receives any number of lines other than one; `error: match needs a pattern line` when `match` receives no line at all; `error: unterminated bracket in pattern` when a `[` has no closing `]`; `error: unterminated extglob in pattern` when a group has no closing `)`; `error: trailing backslash in pattern` when a backslash ends the pattern or a class; and `error: range is too long` when a range would produce more than 1000 values.",
+  "heldOut": true,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}

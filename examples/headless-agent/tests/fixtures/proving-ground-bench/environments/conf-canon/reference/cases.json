@@ -1,0 +1,2401 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "# a comment\nzeta = 1\nalpha = \"a\\tbA\"\nflag = true\nnum = 1_000\npi = 3.14\nsci = 1e3\nlit = 'raw\\nnot'\narr = [1, 2, [3, 4], ]\ninline = { x = 1, y.z = \"q\" }\n\n[server]\nhost = \"example.com\"\nport = 8080\n\n[server.tls]\non = false\n\n[[items]]\nname = \"one\"\n\n[[items]]\nname = \"two\"\n\n[a.\"b c\"]\nd = 1\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {\n    \"b c\": {\n      \"d\": 1\n    }\n  },\n  \"alpha\": \"a\\tbA\",\n  \"arr\": [\n    1,\n    2,\n    [\n      3,\n      4\n    ]\n  ],\n  \"flag\": true,\n  \"inline\": {\n    \"x\": 1,\n    \"y\": {\n      \"z\": \"q\"\n    }\n  },\n  \"items\": [\n    {\n      \"name\": \"one\"\n    },\n    {\n      \"name\": \"two\"\n    }\n  ],\n  \"lit\": \"raw\\\\nnot\",\n  \"num\": 1000,\n  \"pi\": 3.14,\n  \"sci\": 1000,\n  \"server\": {\n    \"host\": \"example.com\",\n    \"port\": 8080,\n    \"tls\": {\n      \"on\": false\n    }\n  },\n  \"zeta\": 1\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "# a comment\nzeta = 1\nalpha = \"a\\tbA\"\nflag = true\nnum = 1_000\npi = 3.14\nsci = 1e3\nlit = 'raw\\nnot'\narr = [1, 2, [3, 4], ]\ninline = { x = 1, y.z = \"q\" }\n\n[server]\nhost = \"example.com\"\nport = 8080\n\n[server.tls]\non = false\n\n[[items]]\nname = \"one\"\n\n[[items]]\nname = \"two\"\n\n[a.\"b c\"]\nd = 1\n",
+  "exitCode": 0,
+  "stdout": "a table\na.b c table\na.b c.d integer\nalpha string\narr array\narr[0] integer\narr[1] integer\narr[2] array\narr[2][0] integer\narr[2][1] integer\nflag boolean\ninline table\ninline.x integer\ninline.y table\ninline.y.z string\nitems array\nitems[0] table\nitems[0].name string\nitems[1] table\nitems[1].name string\nlit string\nnum integer\npi float\nsci float\nserver table\nserver.host string\nserver.port integer\nserver.tls table\nserver.tls.on boolean\nzeta integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = 1\nb = 1.0\nc = 1e0\nd = -0\ne = +1\nf = 1.5e-2\ng = 0\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": 1,\n  \"b\": 1,\n  \"c\": 1,\n  \"d\": 0,\n  \"e\": 1,\n  \"f\": 0.015,\n  \"g\": 0\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = 1\nb = 1.0\nc = 1e0\nd = -0\ne = +1\nf = 1.5e-2\ng = 0\n",
+  "exitCode": 0,
+  "stdout": "a integer\nb float\nc float\nd integer\ne integer\nf float\ng integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = 1__0\nb = _1\nc = 1_\nd = 1.\ne = .5\nf = 1e\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid value 1__0\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = 1__0\nb = _1\nc = 1_\nd = 1.\ne = .5\nf = 1e\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid value 1__0\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = \"\\u0041\\u00e9\"\nb = \"\\q\"\nc = \"no end\nd = ''\ne = \"\"\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid escape \\q\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = \"\\u0041\\u00e9\"\nb = \"\\q\"\nc = \"no end\nd = ''\ne = \"\"\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid escape \\q\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = []\nb = [[]]\nc = [1, \"x\", true, 2.5]\nd = [1,]\ne = [,]\nf = [1 2]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 5: invalid value \n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = []\nb = [[]]\nc = [1, \"x\", true, 2.5]\nd = [1,]\ne = [,]\nf = [1 2]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 5: invalid value \n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = {}\nb = { x = 1 }\nc = { x = 1, x = 2 }\nd = { x = 1,, }\ne = { x = }\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: key x is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = {}\nb = { x = 1 }\nc = { x = 1, x = 2 }\nd = { x = 1,, }\ne = { x = }\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: key x is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a]\nx = 1\n[a.b]\ny = 2\n[a]\nz = 3\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 5: table a is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a]\nx = 1\n[a.b]\ny = 2\n[a]\nz = 3\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 5: table a is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a.b]\nx = 1\n[a]\ny = 2\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {\n    \"b\": {\n      \"x\": 1\n    },\n    \"y\": 2\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a.b]\nx = 1\n[a]\ny = 2\n",
+  "exitCode": 0,
+  "stdout": "a table\na.b table\na.b.x integer\na.y integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a]\nx = 1\n[a.b]\ny = 2\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {\n    \"b\": {\n      \"y\": 2\n    },\n    \"x\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a]\nx = 1\n[a.b]\ny = 2\n",
+  "exitCode": 0,
+  "stdout": "a table\na.b table\na.b.y integer\na.x integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a.b = 1\na.c = 2\n[a]\nd = 3\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {\n    \"b\": 1,\n    \"c\": 2,\n    \"d\": 3\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a.b = 1\na.c = 2\n[a]\nd = 3\n",
+  "exitCode": 0,
+  "stdout": "a table\na.b integer\na.c integer\na.d integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = 1\n[a]\nb = 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: table a is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = 1\n[a]\nb = 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: table a is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a]\nb.c = 1\nb.d = 2\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {\n    \"b\": {\n      \"c\": 1,\n      \"d\": 2\n    }\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a]\nb.c = 1\nb.d = 2\n",
+  "exitCode": 0,
+  "stdout": "a table\na.b table\na.b.c integer\na.b.d integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a]\nb = 1\nb.c = 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: a.b is not a table\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a]\nb = 1\nb.c = 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: a.b is not a table\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[[a]]\nx = 1\n[a.b]\ny = 2\n[[a]]\nx = 3\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": [\n    {\n      \"b\": {\n        \"y\": 2\n      },\n      \"x\": 1\n    },\n    {\n      \"x\": 3\n    }\n  ]\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[[a]]\nx = 1\n[a.b]\ny = 2\n[[a]]\nx = 3\n",
+  "exitCode": 0,
+  "stdout": "a array\na[0] table\na[0].b table\na[0].b.y integer\na[0].x integer\na[1] table\na[1].x integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[[a]]\n[[a]]\n[[a]]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": [\n    {},\n    {},\n    {}\n  ]\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[[a]]\n[[a]]\n[[a]]\n",
+  "exitCode": 0,
+  "stdout": "a array\na[0] table\na[1] table\na[2] table\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = 1\n[[a]]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: a is not an array of tables\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = 1\n[[a]]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: a is not an array of tables\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[\"quoted key\"]\nx = 1\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"quoted key\": {\n    \"x\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[\"quoted key\"]\nx = 1\n",
+  "exitCode": 0,
+  "stdout": "quoted key table\nquoted key.x integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "['single']\nx = 1\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"single\": {\n    \"x\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "['single']\nx = 1\n",
+  "exitCode": 0,
+  "stdout": "single table\nsingle.x integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a] # trailing\nx = 1 ; other\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {\n    \"x\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a] # trailing\nx = 1 ; other\n",
+  "exitCode": 0,
+  "stdout": "a table\na.x integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a] junk\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: trailing text after a table header\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a] junk\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: trailing text after a table header\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "x = 1 junk\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: trailing text after a value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "x = 1 junk\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: trailing text after a value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated table header\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated table header\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[[a]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated table header\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[[a]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated table header\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a name\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a name\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "x =\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "x =\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "x 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected key = value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "x 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected key = value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "= 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a name\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "= 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a name\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "{}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "\n\n#\n;\n   \n",
+  "exitCode": 0,
+  "stdout": "{}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "\n\n#\n;\n   \n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "Z = 1\na = 2\nB = 3\nb = 4\n_ = 5\n-x = 6\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"-x\": 6,\n  \"B\": 3,\n  \"Z\": 1,\n  \"_\": 5,\n  \"a\": 2,\n  \"b\": 4\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "Z = 1\na = 2\nB = 3\nb = 4\n_ = 5\n-x = 6\n",
+  "exitCode": 0,
+  "stdout": "-x integer\nB integer\nZ integer\n_ integer\na integer\nb integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "x = \"a#b\"\ny = 1 #c\nz = 1#c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: invalid value 1#c\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "x = \"a#b\"\ny = 1 #c\nz = 1#c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: invalid value 1#c\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "json"
+  ],
+  "stdin": "deep.a.b.c.d = 1\n[deep.a]\ne = 2\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"deep\": {\n    \"a\": {\n      \"b\": {\n        \"c\": {\n          \"d\": 1\n        }\n      },\n      \"e\": 2\n    }\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "deep.a.b.c.d = 1\n[deep.a]\ne = 2\n",
+  "exitCode": 0,
+  "stdout": "deep table\ndeep.a table\ndeep.a.b table\ndeep.a.b.c table\ndeep.a.b.c.d integer\ndeep.a.e integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "toml"
+  ],
+  "stdin": "a = 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js json|keys\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [],
+  "stdin": "a = 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js json|keys\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "json",
+   "keys"
+  ],
+  "stdin": "a = 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js json|keys\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-068",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "\"f g\" = \"s\"\nh = 'r'\n",
+  "exitCode": 0,
+  "stdout": "f g string\nh string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-069",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = false\n[w]\nh = 1e2\na = false\ne = 1e2\nc.d = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"w\": {\n    \"a\": false,\n    \"c\": {\n      \"d\": [\n        1,\n        2\n      ]\n    },\n    \"e\": 100,\n    \"h\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-070",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\ne = 'r'\nc.d = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"c\": {\n      \"d\": [\n        1,\n        2\n      ]\n    },\n    \"e\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-071",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 'r'\na = false\n[w]\nb = 'r'\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"h\": \"r\",\n  \"w\": {\n    \"b\": \"r\",\n    \"f g\": 2.5\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-072",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nb = 1\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": false,\n    \"b\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-073",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 1e2\nc.d = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": 2.5\n  },\n  \"h\": 100\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-074",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "e = 1e2\n\"f g\" = [1, 2]\n[w]\nb = 1e2\n",
+  "exitCode": 0,
+  "stdout": "e float\nf g array\nf g[0] integer\nf g[1] integer\nw table\nw.b float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-075",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = 1_0\nh = 1e2\nc.d = false\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": 10,\n  \"c\": {\n    \"d\": false\n  },\n  \"h\": 100,\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-076",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nb = 1\n\"f g\" = false\nh = 'r'\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": false,\n    \"b\": 1,\n    \"f g\": false,\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-077",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "e = 1e2\na = false\n[w]\nb = 1e2\n",
+  "exitCode": 0,
+  "stdout": "a boolean\ne float\nw table\nw.b float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-078",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = 1_0\ne = 1\n\"f g\" = 2.5\n[w]\nb = 1\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": 10,\n  \"e\": 1,\n  \"f g\": 2.5,\n  \"w\": {\n    \"a\": false,\n    \"b\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-079",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 'r'\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"e\": \"r\"\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-080",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 'r'\na = false\n[w]\nb = 'r'\na = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"b\": \"r\",\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"b\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-081",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 'r'\n\"f g\" = false\n[w]\nh = 1\na = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": \"r\",\n  \"f g\": false,\n  \"w\": {\n    \"a\": 2.5,\n    \"h\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-082",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 1e2\nc.d = 2.5\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": 100,\n  \"c\": {\n    \"d\": 2.5\n  },\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-083",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nb = 'r'\n\"f g\" = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"b\": \"r\",\n    \"f g\": [\n      1,\n      2\n    ]\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-084",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 'r'\nc.d = false\ne = 1e2\n\"f g\" = {}\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"c\": {\n      \"d\": false\n    },\n    \"e\": 100,\n    \"f g\": {},\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-085",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 'r'\na = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": 2.5,\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-086",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 1e2\nc.d = [1, 2]\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": 100,\n  \"c\": {\n    \"d\": [\n      1,\n      2\n    ]\n  },\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-087",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\ne = 'r'\nc.d = 2.5\nb = 1\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.b integer\nw.c table\nw.c.d float\nw.e string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-088",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = {}\ne = 1e2\na = \"s\"\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": \"s\",\n  \"c\": {\n    \"d\": {}\n  },\n  \"e\": 100,\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-089",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 1e2\nc.d = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"c\": {\n      \"d\": 2.5\n    },\n    \"h\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-090",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "e = 'r'\nc.d = [1, 2]\n[w]\ne = 1\n\"f g\" = [1, 2]\nb = 1\n",
+  "exitCode": 0,
+  "stdout": "c table\nc.d array\nc.d[0] integer\nc.d[1] integer\ne string\nw table\nw.b integer\nw.e integer\nw.f g array\nw.f g[0] integer\nw.f g[1] integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-091",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = {}\ne = 'r'\nc.d = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {},\n  \"c\": {\n    \"d\": 2.5\n  },\n  \"e\": \"r\"\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-092",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 1e2\nc.d = false\n[w]\nb = 1e2\na = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": 100,\n  \"c\": {\n    \"d\": false\n  },\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"b\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-093",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 1\na = 2.5\n[w]\ne = 1\na = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": 2.5,\n  \"e\": 1,\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"e\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-094",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\ne = 1e2\nc.d = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"c\": {\n      \"d\": [\n        1,\n        2\n      ]\n    },\n    \"e\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-095",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\ne = 1\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.e integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "\"f g\" = \"s\"\ne = 1\nc.d = false\n[w]\nh = 'r'\nc.d = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": false\n  },\n  \"e\": 1,\n  \"f g\": \"s\",\n  \"w\": {\n    \"c\": {\n      \"d\": 2.5\n    },\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 1\nc.d = 2.5\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": 2.5\n  },\n  \"h\": 1,\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 'r'\n\"f g\" = false\nb = 1\nc.d = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"b\": 1,\n    \"c\": {\n      \"d\": false\n    },\n    \"f g\": false,\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 1e2\na = false\n[w]\nh = 'r'\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"e\": 100,\n  \"w\": {\n    \"a\": false,\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\nh = 1e2\na = false\nb = 1\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.a boolean\nw.b integer\nw.h float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = [1, 2]\n[w]\nb = 1e2\n",
+  "exitCode": 0,
+  "stdout": "a array\na[0] integer\na[1] integer\nw table\nw.b float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = {}\ne = 1\na = \"s\"\nh = 'r'\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": \"s\",\n  \"c\": {\n    \"d\": {}\n  },\n  \"e\": 1,\n  \"f g\": 2.5,\n  \"h\": \"r\"\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 1\na = false\n[w]\nb = 1\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"h\": 1,\n  \"w\": {\n    \"b\": 1,\n    \"f g\": 2.5\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "h = 1e2\na = 2.5\n[w]\ne = 1\n",
+  "exitCode": 0,
+  "stdout": "a float\nh float\nw table\nw.e integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "\"f g\" = {}\nb = 1\nc.d = {}\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": 1,\n  \"c\": {\n    \"d\": {}\n  },\n  \"f g\": {},\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\nh = 'r'\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.h string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "c.d = 1_0\ne = 1\n\"f g\" = false\n[w]\nh = 1\n\"f g\" = [1, 2]\ne = 1e2\n",
+  "exitCode": 0,
+  "stdout": "c table\nc.d integer\ne integer\nf g boolean\nw table\nw.e float\nw.f g array\nw.f g[0] integer\nw.f g[1] integer\nw.h integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = \"s\"\nb = 1e2\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"b\": 100,\n  \"c\": {\n    \"d\": \"s\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 1e2\na = false\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"b\": 100,\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 1e2\n\"f g\" = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"f g\": false,\n    \"h\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 1\nc.d = 2.5\n[w]\nb = 'r'\na = [1, 2]\ne = 'r'\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": 2.5\n  },\n  \"e\": 1,\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"b\": \"r\",\n    \"e\": \"r\",\n    \"f g\": 2.5\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 'r'\na = 2.5\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": 2.5,\n  \"h\": \"r\",\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\nh = 'r'\nc.d = 2.5\ne = 1\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.c table\nw.c.d float\nw.e integer\nw.h string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = false\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 1e2\na = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"h\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 1\n\"f g\" = false\n[w]\nb = 1e2\nc.d = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"f g\": false,\n  \"h\": 1,\n  \"w\": {\n    \"b\": 100,\n    \"c\": {\n      \"d\": 2.5\n    }\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\ne = 1\na = false\nh = 1e2\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.a boolean\nw.e integer\nw.h float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "a = false\n[w]\nh = 'r'\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"w\": {\n    \"f g\": 2.5,\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\ne = 1e2\nc.d = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"c\": {\n      \"d\": false\n    },\n    \"e\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "b = 1\nc.d = false\n[w]\nh = 'r'\n\"f g\" = [1, 2]\nb = 1e2\n",
+  "exitCode": 0,
+  "stdout": "b integer\nc table\nc.d boolean\nw table\nw.b float\nw.f g array\nw.f g[0] integer\nw.f g[1] integer\nw.h string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "a = {}\ne = 'r'\n\"f g\" = false\n[w]\ne = 1\n",
+  "exitCode": 0,
+  "stdout": "a table\ne string\nf g boolean\nw table\nw.e integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "\"f g\" = \"s\"\ne = 1\na = [1, 2]\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": [\n    1,\n    2\n  ],\n  \"e\": 1,\n  \"f g\": \"s\",\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\ne = 1e2\n\"f g\" = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"e\": 100,\n    \"f g\": false\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\ne = 'r'\na = false\nb = 'r'\nc.d = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": false,\n    \"b\": \"r\",\n    \"c\": {\n      \"d\": false\n    },\n    \"e\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 1e2\n\"f g\" = [1, 2]\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"e\": 100,\n  \"f g\": [\n    1,\n    2\n  ],\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\nb = 1\nc.d = [1, 2]\ne = 1e2\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.b integer\nw.c table\nw.c.d array\nw.c.d[0] integer\nw.c.d[1] integer\nw.e float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "\"f g\" = {}\nh = 'r'\nc.d = false\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": false\n  },\n  \"f g\": {},\n  \"h\": \"r\",\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nh = 'r'\nc.d = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"c\": {\n      \"d\": 2.5\n    },\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "e = 1e2\n\"f g\" = false\n[w]\nh = 1\na = [1, 2]\nb = 1e2\n",
+  "exitCode": 0,
+  "stdout": "e float\nf g boolean\nw table\nw.a array\nw.a[0] integer\nw.a[1] integer\nw.b float\nw.h integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = \"s\"\ne = 1e2\n\"f g\" = [1, 2]\n[w]\nh = 'r'\na = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": \"s\"\n  },\n  \"e\": 100,\n  \"f g\": [\n    1,\n    2\n  ],\n  \"w\": {\n    \"a\": false,\n    \"h\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\ne = 1e2\na = [1, 2]\nh = 1\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.a array\nw.a[0] integer\nw.a[1] integer\nw.e float\nw.h integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "\"f g\" = false\n[w]\nb = 'r'\n\"f g\" = false\nh = 1e2\na = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"f g\": false,\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"b\": \"r\",\n    \"f g\": false,\n    \"h\": 100\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "e = 1e2\na = 2.5\n[w]\ne = 'r'\n",
+  "exitCode": 0,
+  "stdout": "a float\ne float\nw table\nw.e string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = {}\ne = 'r'\na = {}\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": {},\n  \"c\": {\n    \"d\": {}\n  },\n  \"e\": \"r\",\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\ne = 1e2\na = 2.5\nb = 'r'\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.a float\nw.b string\nw.e float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "c.d = \"s\"\nb = 'r'\n",
+  "exitCode": 0,
+  "stdout": "b string\nc table\nc.d string\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = [1, 2]\n[w]\nh = 1\na = [1, 2]\ne = 1\nc.d = 1_0\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": [\n      1,\n      2\n    ]\n  },\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"c\": {\n      \"d\": 10\n    },\n    \"e\": 1,\n    \"h\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nb = 1\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"b\": 1,\n    \"f g\": 2.5\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 'r'\n\"f g\" = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"f g\": 2.5,\n  \"h\": \"r\"\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "h = 1\n\"f g\" = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"f g\": false,\n  \"h\": 1\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 1\na = false\n[w]\nb = 1\nc.d = false\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"a\": false,\n  \"e\": 1,\n  \"w\": {\n    \"b\": 1,\n    \"c\": {\n      \"d\": false\n    }\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\nh = 1e2\nc.d = [1, 2]\ne = 1e2\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.c table\nw.c.d array\nw.c.d[0] integer\nw.c.d[1] integer\nw.e float\nw.h float\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "c.d = \"s\"\nb = 'r'\n\"f g\" = false\n[w]\nh = 1\na = 2.5\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": \"r\",\n  \"c\": {\n    \"d\": \"s\"\n  },\n  \"f g\": false,\n  \"w\": {\n    \"a\": 2.5,\n    \"h\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "e = 'r'\nc.d = 2.5\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"c\": {\n    \"d\": 2.5\n  },\n  \"e\": \"r\",\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nb = 'r'\na = [1, 2]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"b\": \"r\"\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "[w]\nb = 1e2\na = [1, 2]\ne = 1\nc.d = {}\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"w\": {\n    \"a\": [\n      1,\n      2\n    ],\n    \"b\": 100,\n    \"c\": {\n      \"d\": {}\n    },\n    \"e\": 1\n  }\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "json"
+  ],
+  "stdin": "b = 'r'\n\"f g\" = false\n[w]\n",
+  "exitCode": 0,
+  "stdout": "{\n  \"b\": \"r\",\n  \"f g\": false,\n  \"w\": {}\n}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "[w]\nb = 1e2\na = 2.5\nh = 1\n",
+  "exitCode": 0,
+  "stdout": "w table\nw.a float\nw.b float\nw.h integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "c.d = 1_0\nh = 1\n",
+  "exitCode": 0,
+  "stdout": "c table\nc.d integer\nh integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "keys"
+  ],
+  "stdin": "c.d = 1_0\ne = 1e2\n\"f g\" = 1_0\nb = 'r'\n",
+  "exitCode": 0,
+  "stdout": "b string\nc table\nc.d integer\ne float\nf g integer\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

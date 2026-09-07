@@ -1,0 +1,30 @@
+{
+  "id": "code:diff3-merge",
+  "tier": 5,
+  "domain": "text",
+  "title": "Three-way line merge with conflict markers",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes exactly one argument, `merge`, `merge2` or `regions`, and reads three documents from standard input. Split the input on newlines and drop the empty tail a trailing newline leaves; a line that is exactly `%%%` separates the documents, and every other line belongs to the document it sits in. The three documents, in order, are mine, the base they both derive from, and theirs. A document may hold no line at all. Exit 0 when the merge is clean and 1 when any conflict was written, on every mode.\n\nCompare each side against the base with a longest common subsequence over whole lines, comparing them as exact strings. When two subsequences are equally long, take the one whose matches come earliest: walking both documents from the start, take a match whenever the two current lines are equal, and otherwise advance the side whose remaining subsequence is at least as long as the other's, preferring to advance the base when they tie. Every stretch the subsequence does not cover is a change, described as a run of base lines replaced by a run of that side's lines; an insertion replaces zero base lines and a deletion inserts zero lines.\n\nGather the changes from both sides into one list ordered by where they start in the base, with the changes from mine before the changes from theirs when they start at the same place. Walk that list: take the first remaining change, let the region run from its base start to its base end, and keep absorbing the next change while that change starts at or before the region's current end, extending the end to cover it. The base lines before a region and after the last one form stable regions, which the merge keeps unchanged.\n\nA region only one change touches resolves to that side's lines. For a region several changes touch, each side's replacement runs from the smallest start of its own changes, moved back by however far the region begins before those changes do in the base, to the largest end of its own changes, moved forward by however far the region ends after them. With mine's lines, the base lines of the region, and theirs's lines in hand: if mine and theirs are equal the region resolves to mine; otherwise if mine equals the base it resolves to theirs; otherwise if theirs equals the base it resolves to mine; otherwise the region is a conflict.\n\n`merge` prints the resolved lines in order, and writes a conflict as the line `<<<<<<< mine`, then mine's lines, then `||||||| base`, then the base's lines, then `=======`, then theirs's lines, then `>>>>>>> theirs`. `merge2` writes the same thing without the `||||||| base` line and the base's lines. `regions` instead prints one line per region: `stable N`, `mine N`, `theirs N` or `both N`, where N counts the lines the region resolves to and `both` names a region where the two sides made the same change, or `conflict mine=A base=O theirs=B` with the three line counts.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output. The messages are `error: usage: cli.js merge|merge2|regions` when the argument is not exactly one of the three mode words, and `error: expected three parts separated by %%%` when the input does not hold exactly three documents.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}

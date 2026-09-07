@@ -1,0 +1,2401 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 2 1 3\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 3 k1\nevent 6 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n0 k1 deny b\n3 k1 allow\n6 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 2 1 3\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 3 k1\nevent 6 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=4 denied=1\ntotal allowed=4 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1 2\nroute k b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 deny b\n2 k1 allow\n3 k1 deny b\n4 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1 2\nroute k b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=3 denied=2\ntotal allowed=3 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 3 2 5\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 2 k1\nevent 5 k1\nevent 5 k1\nevent 20 k1\nevent 20 k1\nevent 20 k1\nevent 20 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 deny b\n2 k1 deny b\n5 k1 allow\n5 k1 allow\n20 k1 allow\n20 k1 allow\n20 k1 allow\n20 k1 deny b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 3 2 5\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 2 k1\nevent 5 k1\nevent 5 k1\nevent 20 k1\nevent 20 k1\nevent 20 k1\nevent 20 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=8 denied=3\ntotal allowed=8 denied=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 2 0 1\nroute k b\nevent 0 k1\nevent 100 k1\nevent 200 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n100 k1 allow\n200 k1 deny b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 2 0 1\nroute k b\nevent 0 k1\nevent 100 k1\nevent 200 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=2 denied=1\ntotal allowed=2 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 2 4\nroute k w\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 allow\n2 k1 deny w\n3 k1 deny w\n4 k1 allow\n5 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 2 4\nroute k w\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=4 denied=2\ntotal allowed=4 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 0 3\nroute k w\nevent 0 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 deny w\n5 k1 deny w\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 0 3\nroute k w\nevent 0 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=0 denied=2\ntotal allowed=0 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 3 1\nroute k w\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 deny w\n1 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 3 1\nroute k w\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=4 denied=1\ntotal allowed=4 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket small 2 1 3\nwindow burst 3 5\nroute api/ small\nroute api/hot small burst\nevent 0 api/a\nevent 0 api/a\nevent 0 api/a\nevent 0 other\nevent 3 api/a\nevent 4 api/hot/x\nevent 4 api/hot/x\nevent 4 api/hot/x\nevent 9 api/hot/x\n",
+  "exitCode": 0,
+  "stdout": "0 api/a allow\n0 api/a allow\n0 api/a deny small\n0 other allow\n3 api/a allow\n4 api/hot/x allow\n4 api/hot/x allow\n4 api/hot/x deny small\n9 api/hot/x allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket small 2 1 3\nwindow burst 3 5\nroute api/ small\nroute api/hot small burst\nevent 0 api/a\nevent 0 api/a\nevent 0 api/a\nevent 0 other\nevent 3 api/a\nevent 4 api/hot/x\nevent 4 api/hot/x\nevent 4 api/hot/x\nevent 9 api/hot/x\n",
+  "exitCode": 0,
+  "stdout": "api/a allowed=3 denied=1\napi/hot/x allowed=3 denied=1\nother allowed=1 denied=0\ntotal allowed=7 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket wide 5 0 1\nbucket tight 1 0 1\nroute a wide\nroute ab tight\nevent 0 abc\nevent 0 abc\nevent 0 ax\nevent 0 ax\n",
+  "exitCode": 0,
+  "stdout": "0 abc allow\n0 abc deny tight\n0 ax allow\n0 ax allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket wide 5 0 1\nbucket tight 1 0 1\nroute a wide\nroute ab tight\nevent 0 abc\nevent 0 abc\nevent 0 ax\nevent 0 ax\n",
+  "exitCode": 0,
+  "stdout": "abc allowed=1 denied=1\nax allowed=2 denied=0\ntotal allowed=3 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 5 0 1\nwindow w 1 9\nroute k b w\nevent 0 k1\nevent 0 k1\nevent 0 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 deny w\n0 k1 deny w\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 5 0 1\nwindow w 1 9\nroute k b w\nevent 0 k1\nevent 0 k1\nevent 0 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=1 denied=2\ntotal allowed=1 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 1 9\nbucket b 5 0 1\nroute k w b\nevent 0 k1\nevent 0 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 deny w\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 1 9\nbucket b 5 0 1\nroute k w b\nevent 0 k1\nevent 0 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=1 denied=1\ntotal allowed=1 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1 5\nroute k b\nevent 0 k1\nevent 0 k2\nevent 0 k3\nevent 5 k1\nevent 5 k2\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k2 allow\n0 k3 allow\n5 k1 allow\n5 k2 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1 5\nroute k b\nevent 0 k1\nevent 0 k2\nevent 0 k3\nevent 5 k1\nevent 5 k2\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=2 denied=0\nk2 allowed=2 denied=0\nk3 allowed=1 denied=0\ntotal allowed=5 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nevent 0 other\nevent 0 other\n",
+  "exitCode": 0,
+  "stdout": "0 other allow\n0 other allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nevent 0 other\nevent 0 other\n",
+  "exitCode": 0,
+  "stdout": "other allowed=2 denied=0\ntotal allowed=2 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 3 1\nroute k b\nevent 0 k1\nevent 1 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 allow\n1 k1 deny b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 3 1\nroute k b\nevent 0 k1\nevent 1 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=2 denied=1\ntotal allowed=2 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 10 1 1\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 deny b\n1 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 10 1 1\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=11 denied=1\ntotal allowed=11 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "# comment\n\nbucket b 1 0 1\nroute k b\nevent 0 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "# comment\n\nbucket b 1 0 1\nroute k b\nevent 0 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=1 denied=0\ntotal allowed=1 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\n",
+  "exitCode": 0,
+  "stdout": "total allowed=0 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "total allowed=0 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nevent 3 k1\nevent 1 k1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: tick 1 is before tick 3\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nevent 3 k1\nevent 1 k1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: tick 1 is before tick 3\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "route k ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown policy ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "route k ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown policy ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nevent 0 k1\nwindow w 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: declarations must come before the first event\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nevent 0 k1\nwindow w 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: declarations must come before the first event\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nwindow b 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: policy b is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nwindow b 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: policy b is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nroute k b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: prefix k is routed twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nroute k b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: prefix k is routed twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "limit b 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown directive limit\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "limit b 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown directive limit\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 0 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: capacity must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 0 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: capacity must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 -1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: refill must be an integer of at least 0\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 -1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: refill must be an integer of at least 0\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: per must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: per must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 1 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: span must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 1 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: span must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected bucket <name> <capacity> <refill> <per>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected bucket <name> <capacity> <refill> <per>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 1 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected window <name> <limit> <span>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 1 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected window <name> <limit> <span>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "route k\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected route <prefix> <policy>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "route k\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected route <prefix> <policy>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "event 0 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "event 0 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=1 denied=0\ntotal allowed=1 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "event -1 k1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: tick must be an integer of at least 0\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "event -1 k1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: tick must be an integer of at least 0\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 01 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: capacity must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 01 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: capacity must be an integer of at least 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b! 1 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid policy name b!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b! 1 1 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid policy name b!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1 7\nroute k b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\nevent 5 k1\nevent 6 k1\nevent 7 k1\nevent 8 k1\nevent 13 k1\nevent 14 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 deny b\n2 k1 deny b\n3 k1 deny b\n4 k1 deny b\n5 k1 deny b\n6 k1 deny b\n7 k1 allow\n8 k1 deny b\n13 k1 deny b\n14 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1 7\nroute k b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\nevent 5 k1\nevent 6 k1\nevent 7 k1\nevent 8 k1\nevent 13 k1\nevent 14 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=3 denied=8\ntotal allowed=3 denied=8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 2 3 4\nroute k b\nevent 0 k1\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n1 k1 deny b\n2 k1 allow\n3 k1 allow\n4 k1 allow\n5 k1 deny b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 2 3 4\nroute k b\nevent 0 k1\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\nevent 4 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=5 denied=2\ntotal allowed=5 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 5 3\nroute k b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 allow\n2 k1 allow\n3 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 5 3\nroute k b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 3 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=4 denied=0\ntotal allowed=4 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 2 1\nroute k w\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\nevent 1 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n0 k1 deny w\n1 k1 allow\n1 k1 allow\n1 k1 deny w\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 2 1\nroute k w\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\nevent 1 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=4 denied=2\ntotal allowed=4 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1 4\nwindow w 5 2\nroute k b w\nevent 0 k1\nevent 1 k1\nevent 4 k1\nevent 5 k1\nevent 8 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 deny b\n4 k1 allow\n5 k1 deny b\n8 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1 4\nwindow w 5 2\nroute k b w\nevent 0 k1\nevent 1 k1\nevent 4 k1\nevent 5 k1\nevent 8 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=3 denied=2\ntotal allowed=3 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 1 4\nbucket b 3 1 1\nroute k w b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 4 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n1 k1 deny w\n2 k1 deny w\n4 k1 allow\n5 k1 deny w\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 1 4\nbucket b 3 1 1\nroute k w b\nevent 0 k1\nevent 1 k1\nevent 2 k1\nevent 4 k1\nevent 5 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=2 denied=3\ntotal allowed=2 denied=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 2 1 2\nroute a b\nroute ab b\nroute abc b\nevent 0 abcd\nevent 0 abcd\nevent 0 abd\nevent 0 ad\n",
+  "exitCode": 0,
+  "stdout": "0 abcd allow\n0 abcd allow\n0 abd allow\n0 ad allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 2 1 2\nroute a b\nroute ab b\nroute abc b\nevent 0 abcd\nevent 0 abcd\nevent 0 abd\nevent 0 ad\n",
+  "exitCode": 0,
+  "stdout": "abcd allowed=2 denied=0\nabd allowed=1 denied=0\nad allowed=1 denied=0\ntotal allowed=4 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nroute kk b\nevent 0 kkx\nevent 0 kx\nevent 0 kkx\n",
+  "exitCode": 0,
+  "stdout": "0 kkx allow\n0 kx allow\n0 kkx deny b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 0 1\nroute k b\nroute kk b\nevent 0 kkx\nevent 0 kx\nevent 0 kkx\n",
+  "exitCode": 0,
+  "stdout": "kkx allowed=1 denied=1\nkx allowed=1 denied=0\ntotal allowed=2 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 3 1 1\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n0 k1 allow\n0 k1 allow\n0 k1 deny b\n0 k1 deny b\n1 k1 allow\n1 k1 deny b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 3 1 1\nroute k b\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 0 k1\nevent 1 k1\nevent 1 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=4 denied=3\ntotal allowed=4 denied=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "window w 2 3\nroute k b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown policy b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "window w 2 3\nroute k b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown policy b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket b 1 1 1000\nroute k b\nevent 0 k1\nevent 999 k1\nevent 1000 k1\nevent 1999 k1\nevent 2000 k1\n",
+  "exitCode": 0,
+  "stdout": "0 k1 allow\n999 k1 deny b\n1000 k1 allow\n1999 k1 deny b\n2000 k1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket b 1 1 1000\nroute k b\nevent 0 k1\nevent 999 k1\nevent 1000 k1\nevent 1999 k1\nevent 2000 k1\n",
+  "exitCode": 0,
+  "stdout": "k1 allowed=3 denied=2\ntotal allowed=3 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "simulate"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js replay|summary\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js replay|summary\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-095",
+  "weight": 3,
+  "argv": [
+   "replay",
+   "summary"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js replay|summary\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 1 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 1 a/b/1\nevent 3 zzz\nevent 3 b/1\nevent 4 a/b/1\nevent 5 zzz\nevent 7 b/1\nevent 7 zzz\nevent 7 a/b/1\nevent 8 zzz\nevent 10 a/2\nevent 12 a/1\n",
+  "exitCode": 0,
+  "stdout": "1 a/b/1 allow\n3 zzz allow\n3 b/1 allow\n4 a/b/1 allow\n5 zzz allow\n7 b/1 allow\n7 zzz allow\n7 a/b/1 allow\n8 zzz allow\n10 a/2 allow\n12 a/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 2 2\nwindow wn 0 6\nroute a/ bk\nevent 1 zzz\nevent 3 a/1\nevent 3 zzz\nevent 5 zzz\nevent 5 a/2\nevent 5 zzz\nevent 6 a/2\nevent 7 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=1 denied=0\nzzz allowed=4 denied=0\ntotal allowed=8 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 1 1\nwindow wn 3 5\nroute a/ bk wn\nroute a/b wn\nevent 1 b/1\nevent 1 a/2\nevent 1 zzz\nevent 1 a/b/1\nevent 3 b/1\nevent 5 a/1\nevent 7 a/2\nevent 9 a/1\nevent 11 a/b/1\nevent 13 b/1\nevent 14 zzz\n",
+  "exitCode": 0,
+  "stdout": "1 b/1 allow\n1 a/2 allow\n1 zzz allow\n1 a/b/1 allow\n3 b/1 allow\n5 a/1 allow\n7 a/2 allow\n9 a/1 allow\n11 a/b/1 allow\n13 b/1 allow\n14 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 0 2\nwindow wn 0 2\nroute a/ bk\nevent 1 a/1\nevent 3 a/b/1\nevent 3 b/1\nevent 3 a/b/1\nevent 3 a/b/1\nevent 5 b/1\nevent 5 b/1\nevent 6 b/1\nevent 7 a/b/1\nevent 7 a/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/b/1 allowed=3 denied=1\nb/1 allowed=4 denied=0\ntotal allowed=9 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 3 1 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 0 b/1\nevent 0 zzz\nevent 0 a/2\nevent 2 zzz\nevent 2 zzz\n",
+  "exitCode": 0,
+  "stdout": "0 b/1 allow\n0 zzz allow\n0 a/2 allow\n2 zzz allow\n2 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 0 2\nwindow wn 0 6\nroute a/ bk\nevent 1 a/2\nevent 1 a/1\nevent 2 a/b/1\nevent 3 zzz\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=1 denied=0\na/b/1 allowed=1 denied=0\nzzz allowed=1 denied=0\ntotal allowed=4 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 1 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 0 a/1\nevent 1 a/1\nevent 1 a/b/1\nevent 1 a/1\nevent 2 zzz\nevent 3 a/2\nevent 3 zzz\n",
+  "exitCode": 0,
+  "stdout": "0 a/1 allow\n1 a/1 allow\n1 a/b/1 allow\n1 a/1 allow\n2 zzz allow\n3 a/2 allow\n3 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 2 2\nwindow wn 0 6\nroute a/ bk\nevent 0 a/b/1\nevent 1 b/1\nevent 2 b/1\nevent 2 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/b/1 allowed=2 denied=0\nb/1 allowed=2 denied=0\ntotal allowed=4 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 2 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 0 zzz\nevent 2 a/1\nevent 4 b/1\nevent 4 b/1\nevent 5 zzz\nevent 7 a/2\nevent 8 b/1\nevent 9 zzz\nevent 10 a/b/1\nevent 12 a/b/1\nevent 12 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "0 zzz allow\n2 a/1 allow\n4 b/1 allow\n4 b/1 allow\n5 zzz allow\n7 a/2 allow\n8 b/1 allow\n9 zzz allow\n10 a/b/1 allow\n12 a/b/1 allow\n12 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 0 2\nwindow wn 0 4\nroute a/ bk\nevent 2 a/1\nevent 2 zzz\nevent 4 a/2\nevent 5 b/1\nevent 7 zzz\nevent 8 a/2\nevent 10 zzz\nevent 12 a/2\nevent 12 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=2 denied=1\na/b/1 allowed=1 denied=0\nb/1 allowed=1 denied=0\nzzz allowed=3 denied=0\ntotal allowed=8 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 1 3\nwindow wn 1 3\nroute a/ bk wn\nroute a/b wn\nevent 2 b/1\nevent 3 a/2\nevent 4 zzz\nevent 4 a/1\nevent 5 b/1\nevent 7 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "2 b/1 allow\n3 a/2 allow\n4 zzz allow\n4 a/1 allow\n5 b/1 allow\n7 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 2 2\nwindow wn 0 4\nroute a/ bk\nevent 2 a/1\nevent 2 zzz\nevent 2 zzz\nevent 3 b/1\nevent 3 a/2\nevent 3 zzz\nevent 3 zzz\nevent 5 zzz\nevent 7 b/1\nevent 9 a/b/1\nevent 11 a/1\nevent 12 b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/2 allowed=1 denied=0\na/b/1 allowed=1 denied=0\nb/1 allowed=3 denied=0\nzzz allowed=5 denied=0\ntotal allowed=12 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 3 0 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 2 b/1\nevent 2 zzz\nevent 3 a/2\nevent 4 b/1\nevent 5 a/2\nevent 5 zzz\nevent 6 b/1\nevent 6 a/b/1\nevent 6 b/1\nevent 7 a/1\nevent 9 a/b/1\nevent 11 a/1\n",
+  "exitCode": 0,
+  "stdout": "2 b/1 allow\n2 zzz allow\n3 a/2 allow\n4 b/1 allow\n5 a/2 allow\n5 zzz allow\n6 b/1 allow\n6 a/b/1 allow\n6 b/1 allow\n7 a/1 allow\n9 a/b/1 allow\n11 a/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 2 4\nwindow wn 2 4\nroute a/ bk\nevent 1 b/1\nevent 2 a/1\nevent 4 b/1\nevent 4 zzz\nevent 5 a/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\nb/1 allowed=2 denied=0\nzzz allowed=1 denied=0\ntotal allowed=5 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 0 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 1 b/1\nevent 1 a/2\nevent 1 a/2\nevent 2 a/2\nevent 4 zzz\nevent 4 zzz\nevent 5 b/1\nevent 7 a/2\nevent 9 b/1\nevent 10 b/1\nevent 11 a/2\nevent 12 zzz\n",
+  "exitCode": 0,
+  "stdout": "1 b/1 allow\n1 a/2 allow\n1 a/2 allow\n2 a/2 deny bk\n4 zzz allow\n4 zzz allow\n5 b/1 allow\n7 a/2 deny bk\n9 b/1 allow\n10 b/1 allow\n11 a/2 deny bk\n12 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 0 4\nwindow wn 2 6\nroute a/ bk\nevent 0 a/1\nevent 0 zzz\nevent 0 b/1\nevent 1 a/2\nevent 3 a/b/1\nevent 3 b/1\nevent 4 b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=1 denied=0\na/b/1 allowed=1 denied=0\nb/1 allowed=3 denied=0\nzzz allowed=1 denied=0\ntotal allowed=7 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 2 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 1 b/1\nevent 2 zzz\nevent 2 a/1\nevent 3 b/1\nevent 4 a/1\nevent 6 zzz\nevent 6 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "1 b/1 allow\n2 zzz allow\n2 a/1 allow\n3 b/1 allow\n4 a/1 allow\n6 zzz allow\n6 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 1 2\nwindow wn 0 6\nroute a/ bk\nevent 1 a/b/1\nevent 1 a/b/1\nevent 1 zzz\nevent 1 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/2 allowed=1 denied=0\na/b/1 allowed=2 denied=0\nzzz allowed=1 denied=0\ntotal allowed=4 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 2 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 1 a/1\nevent 3 zzz\nevent 3 a/1\nevent 5 b/1\nevent 5 zzz\nevent 6 a/b/1\nevent 8 a/2\nevent 8 a/1\n",
+  "exitCode": 0,
+  "stdout": "1 a/1 allow\n3 zzz allow\n3 a/1 allow\n5 b/1 allow\n5 zzz allow\n6 a/b/1 allow\n8 a/2 allow\n8 a/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 1 4\nwindow wn 2 6\nroute a/ bk\nevent 1 a/1\nevent 3 zzz\nevent 4 b/1\nevent 6 a/b/1\nevent 6 a/2\nevent 6 a/b/1\nevent 8 b/1\nevent 8 zzz\nevent 10 b/1\nevent 12 zzz\nevent 13 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=1 denied=1\nb/1 allowed=3 denied=0\nzzz allowed=3 denied=0\ntotal allowed=10 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 2 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 0 zzz\nevent 0 a/b/1\nevent 1 b/1\nevent 1 b/1\nevent 1 b/1\nevent 3 a/b/1\nevent 3 zzz\nevent 5 zzz\nevent 6 zzz\nevent 6 a/2\nevent 7 a/b/1\nevent 8 a/1\n",
+  "exitCode": 0,
+  "stdout": "0 zzz allow\n0 a/b/1 allow\n1 b/1 allow\n1 b/1 allow\n1 b/1 allow\n3 a/b/1 allow\n3 zzz allow\n5 zzz allow\n6 zzz allow\n6 a/2 allow\n7 a/b/1 allow\n8 a/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 0 4\nwindow wn 2 6\nroute a/ bk\nevent 1 zzz\nevent 2 a/2\nevent 3 zzz\nevent 5 zzz\nevent 7 b/1\nevent 7 a/2\nevent 8 a/1\nevent 9 a/b/1\nevent 9 b/1\nevent 9 a/1\nevent 9 zzz\nevent 10 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=2 denied=0\nb/1 allowed=2 denied=0\nzzz allowed=4 denied=0\ntotal allowed=12 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 2 3\nwindow wn 1 5\nroute a/ bk wn\nroute a/b wn\nevent 2 a/2\nevent 3 a/1\nevent 5 b/1\nevent 5 a/2\nevent 7 a/2\nevent 7 zzz\nevent 8 a/b/1\nevent 10 zzz\nevent 12 zzz\nevent 12 a/1\n",
+  "exitCode": 0,
+  "stdout": "2 a/2 allow\n3 a/1 allow\n5 b/1 allow\n5 a/2 deny wn\n7 a/2 allow\n7 zzz allow\n8 a/b/1 allow\n10 zzz allow\n12 zzz allow\n12 a/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 2 2\nwindow wn 0 4\nroute a/ bk\nevent 2 a/b/1\nevent 2 a/2\nevent 2 zzz\nevent 2 b/1\nevent 3 b/1\nevent 4 a/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=1 denied=0\na/b/1 allowed=1 denied=0\nb/1 allowed=2 denied=0\nzzz allowed=1 denied=0\ntotal allowed=6 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 1 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 2 a/2\nevent 3 a/2\nevent 4 zzz\nevent 4 zzz\nevent 6 a/b/1\nevent 7 a/1\nevent 7 zzz\n",
+  "exitCode": 0,
+  "stdout": "2 a/2 allow\n3 a/2 allow\n4 zzz allow\n4 zzz allow\n6 a/b/1 allow\n7 a/1 allow\n7 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 1 2\nwindow wn 0 6\nroute a/ bk\nevent 0 a/b/1\nevent 1 a/1\nevent 1 a/b/1\nevent 3 a/1\nevent 5 a/2\nevent 5 b/1\nevent 6 a/1\nevent 8 b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=3 denied=0\na/2 allowed=1 denied=0\na/b/1 allowed=2 denied=0\nb/1 allowed=2 denied=0\ntotal allowed=8 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 0 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 2 a/1\nevent 4 zzz\nevent 4 a/b/1\nevent 5 b/1\nevent 7 zzz\nevent 9 a/1\nevent 11 b/1\nevent 11 a/1\n",
+  "exitCode": 0,
+  "stdout": "2 a/1 allow\n4 zzz allow\n4 a/b/1 allow\n5 b/1 allow\n7 zzz allow\n9 a/1 deny bk\n11 b/1 allow\n11 a/1 deny bk\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 1 4\nwindow wn 2 2\nroute a/ bk\nevent 1 a/2\nevent 2 b/1\nevent 3 a/b/1\nevent 3 a/b/1\nevent 3 a/b/1\nevent 4 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/2 allowed=1 denied=1\na/b/1 allowed=1 denied=2\nb/1 allowed=1 denied=0\ntotal allowed=3 denied=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 0 3\nwindow wn 1 1\nroute a/ bk wn\nroute a/b wn\nevent 2 a/1\nevent 2 b/1\nevent 2 b/1\nevent 2 zzz\nevent 2 a/1\nevent 2 a/2\nevent 4 a/1\nevent 5 zzz\nevent 6 zzz\nevent 7 zzz\nevent 7 zzz\nevent 7 zzz\n",
+  "exitCode": 0,
+  "stdout": "2 a/1 allow\n2 b/1 allow\n2 b/1 allow\n2 zzz allow\n2 a/1 deny bk\n2 a/2 allow\n4 a/1 deny bk\n5 zzz allow\n6 zzz allow\n7 zzz allow\n7 zzz allow\n7 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 2 2\nwindow wn 0 2\nroute a/ bk\nevent 0 b/1\nevent 0 zzz\nevent 2 zzz\nevent 3 a/b/1\nevent 3 a/1\nevent 3 b/1\nevent 3 b/1\nevent 5 a/b/1\nevent 6 zzz\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/b/1 allowed=2 denied=0\nb/1 allowed=3 denied=0\nzzz allowed=3 denied=0\ntotal allowed=9 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 3 0 3\nwindow wn 1 3\nroute a/ bk wn\nroute a/b wn\nevent 0 b/1\nevent 0 a/b/1\nevent 1 a/b/1\nevent 2 a/1\nevent 4 a/b/1\nevent 4 zzz\n",
+  "exitCode": 0,
+  "stdout": "0 b/1 allow\n0 a/b/1 allow\n1 a/b/1 deny wn\n2 a/1 allow\n4 a/b/1 allow\n4 zzz allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 0 2\nwindow wn 0 4\nroute a/ bk\nevent 1 a/2\nevent 3 a/2\nevent 4 a/2\nevent 6 a/b/1\nevent 6 b/1\nevent 6 zzz\nevent 8 zzz\nevent 8 zzz\nevent 8 a/b/1\nevent 8 a/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=3 denied=0\na/b/1 allowed=2 denied=0\nb/1 allowed=1 denied=0\nzzz allowed=3 denied=0\ntotal allowed=10 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 3 1 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 0 a/b/1\nevent 2 zzz\nevent 4 a/b/1\nevent 5 a/1\nevent 7 a/2\nevent 9 a/1\nevent 10 zzz\nevent 12 zzz\nevent 13 zzz\nevent 15 a/2\nevent 17 b/1\nevent 19 b/1\n",
+  "exitCode": 0,
+  "stdout": "0 a/b/1 allow\n2 zzz allow\n4 a/b/1 allow\n5 a/1 allow\n7 a/2 allow\n9 a/1 allow\n10 zzz allow\n12 zzz allow\n13 zzz allow\n15 a/2 allow\n17 b/1 allow\n19 b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 0 4\nwindow wn 2 6\nroute a/ bk\nevent 0 b/1\nevent 2 a/1\nevent 2 zzz\nevent 4 b/1\nevent 6 b/1\nevent 6 b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\nb/1 allowed=4 denied=0\nzzz allowed=1 denied=0\ntotal allowed=6 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 1 3\nwindow wn 1 5\nroute a/ bk wn\nroute a/b wn\nevent 1 a/2\nevent 3 b/1\nevent 4 zzz\nevent 6 b/1\nevent 8 b/1\nevent 9 a/2\nevent 11 a/b/1\nevent 11 zzz\nevent 11 b/1\n",
+  "exitCode": 0,
+  "stdout": "1 a/2 allow\n3 b/1 allow\n4 zzz allow\n6 b/1 allow\n8 b/1 allow\n9 a/2 allow\n11 a/b/1 allow\n11 zzz allow\n11 b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 0 4\nwindow wn 2 2\nroute a/ bk\nevent 0 zzz\nevent 0 a/b/1\nevent 0 a/1\nevent 2 a/2\nevent 4 a/1\nevent 4 zzz\nevent 6 b/1\nevent 8 a/2\nevent 8 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=2 denied=0\nb/1 allowed=1 denied=0\nzzz allowed=2 denied=0\ntotal allowed=9 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 1 1\nwindow wn 3 5\nroute a/ bk wn\nroute a/b wn\nevent 0 zzz\nevent 2 zzz\nevent 2 b/1\nevent 2 a/2\nevent 2 a/b/1\nevent 3 a/b/1\nevent 4 b/1\nevent 6 a/2\nevent 8 a/b/1\nevent 9 a/1\nevent 10 a/2\n",
+  "exitCode": 0,
+  "stdout": "0 zzz allow\n2 zzz allow\n2 b/1 allow\n2 a/2 allow\n2 a/b/1 allow\n3 a/b/1 allow\n4 b/1 allow\n6 a/2 allow\n8 a/b/1 allow\n9 a/1 allow\n10 a/2 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 2 2\nwindow wn 0 6\nroute a/ bk\nevent 1 a/b/1\nevent 1 a/2\nevent 1 a/1\nevent 2 zzz\nevent 2 a/b/1\nevent 2 b/1\nevent 4 b/1\nevent 6 b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=0\na/2 allowed=1 denied=0\na/b/1 allowed=2 denied=0\nb/1 allowed=3 denied=0\nzzz allowed=1 denied=0\ntotal allowed=8 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 0 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 2 b/1\nevent 2 b/1\nevent 3 a/2\nevent 5 a/2\nevent 6 zzz\nevent 8 b/1\nevent 8 zzz\nevent 10 a/1\nevent 11 a/b/1\nevent 12 zzz\nevent 12 a/2\nevent 14 a/1\n",
+  "exitCode": 0,
+  "stdout": "2 b/1 allow\n2 b/1 allow\n3 a/2 allow\n5 a/2 allow\n6 zzz allow\n8 b/1 allow\n8 zzz allow\n10 a/1 allow\n11 a/b/1 allow\n12 zzz allow\n12 a/2 deny bk\n14 a/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 1 4\nwindow wn 2 2\nroute a/ bk\nevent 2 zzz\nevent 3 a/1\nevent 5 zzz\nevent 5 a/b/1\nevent 7 a/2\nevent 7 zzz\nevent 7 a/1\nevent 7 a/b/1\nevent 8 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=2 denied=0\nzzz allowed=3 denied=0\ntotal allowed=9 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 0 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 2 a/1\nevent 2 a/b/1\nevent 3 a/b/1\nevent 5 a/b/1\nevent 6 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "2 a/1 allow\n2 a/b/1 allow\n3 a/b/1 allow\n5 a/b/1 allow\n6 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 1 2\nwindow wn 0 4\nroute a/ bk\nevent 1 a/b/1\nevent 3 a/1\nevent 4 zzz\nevent 5 a/2\nevent 7 a/2\nevent 9 a/1\nevent 10 a/b/1\nevent 10 zzz\nevent 11 zzz\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=2 denied=0\nzzz allowed=3 denied=0\ntotal allowed=9 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 2 3\nwindow wn 1 3\nroute a/ bk wn\nroute a/b wn\nevent 0 a/b/1\nevent 2 a/2\nevent 3 a/1\nevent 5 a/2\nevent 5 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "0 a/b/1 allow\n2 a/2 allow\n3 a/1 allow\n5 a/2 allow\n5 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 3 2 4\nwindow wn 2 6\nroute a/ bk\nevent 2 b/1\nevent 3 a/1\nevent 3 zzz\nevent 3 b/1\nevent 4 a/b/1\nevent 4 zzz\nevent 5 b/1\nevent 5 a/2\nevent 5 a/1\nevent 7 a/1\nevent 9 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=3 denied=0\na/2 allowed=2 denied=0\na/b/1 allowed=1 denied=0\nb/1 allowed=3 denied=0\nzzz allowed=2 denied=0\ntotal allowed=11 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 1 1\nwindow wn 3 3\nroute a/ bk wn\nroute a/b wn\nevent 2 b/1\nevent 4 a/1\nevent 6 b/1\nevent 7 a/1\nevent 8 zzz\nevent 9 a/2\nevent 9 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "2 b/1 allow\n4 a/1 allow\n6 b/1 allow\n7 a/1 allow\n8 zzz allow\n9 a/2 allow\n9 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 0 2\nwindow wn 0 4\nroute a/ bk\nevent 0 a/2\nevent 1 b/1\nevent 3 a/b/1\nevent 5 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/2 allowed=1 denied=0\na/b/1 allowed=1 denied=1\nb/1 allowed=1 denied=0\ntotal allowed=3 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 0 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 2 a/1\nevent 4 a/1\nevent 4 a/1\nevent 5 a/1\nevent 6 zzz\nevent 7 a/1\nevent 9 b/1\nevent 11 a/2\nevent 11 a/1\n",
+  "exitCode": 0,
+  "stdout": "2 a/1 allow\n4 a/1 allow\n4 a/1 deny bk\n5 a/1 deny bk\n6 zzz allow\n7 a/1 deny bk\n9 b/1 allow\n11 a/2 allow\n11 a/1 deny bk\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 1 0 2\nwindow wn 0 2\nroute a/ bk\nevent 2 b/1\nevent 4 a/b/1\nevent 5 a/1\nevent 6 a/1\nevent 7 zzz\nevent 9 a/1\nevent 10 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=1 denied=2\na/2 allowed=1 denied=0\na/b/1 allowed=1 denied=0\nb/1 allowed=1 denied=0\nzzz allowed=1 denied=0\ntotal allowed=5 denied=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 3 1 3\nwindow wn 1 3\nroute a/ bk wn\nroute a/b wn\nevent 2 a/b/1\nevent 4 a/1\nevent 5 a/b/1\nevent 6 a/2\n",
+  "exitCode": 0,
+  "stdout": "2 a/b/1 allow\n4 a/1 allow\n5 a/b/1 allow\n6 a/2 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 1 2\nwindow wn 0 6\nroute a/ bk\nevent 2 zzz\nevent 2 a/b/1\nevent 3 a/1\nevent 5 a/b/1\nevent 6 a/1\nevent 8 a/1\nevent 10 zzz\nevent 10 a/1\nevent 12 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=4 denied=0\na/b/1 allowed=3 denied=0\nzzz allowed=2 denied=0\ntotal allowed=9 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 2 3\nwindow wn 1 3\nroute a/ bk wn\nroute a/b wn\nevent 1 a/2\nevent 2 zzz\nevent 4 zzz\nevent 4 zzz\nevent 6 a/b/1\nevent 8 zzz\nevent 9 a/b/1\nevent 10 b/1\nevent 12 a/1\nevent 13 a/b/1\nevent 13 b/1\n",
+  "exitCode": 0,
+  "stdout": "1 a/2 allow\n2 zzz allow\n4 zzz allow\n4 zzz allow\n6 a/b/1 allow\n8 zzz allow\n9 a/b/1 allow\n10 b/1 allow\n12 a/1 allow\n13 a/b/1 allow\n13 b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 0 4\nwindow wn 2 2\nroute a/ bk\nevent 0 a/b/1\nevent 1 b/1\nevent 2 a/2\nevent 2 a/2\nevent 2 a/2\nevent 3 zzz\n",
+  "exitCode": 0,
+  "stdout": "a/2 allowed=2 denied=1\na/b/1 allowed=1 denied=0\nb/1 allowed=1 denied=0\nzzz allowed=1 denied=0\ntotal allowed=5 denied=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 1 2 3\nwindow wn 1 5\nroute a/ bk wn\nroute a/b wn\nevent 1 a/2\nevent 2 a/b/1\nevent 4 a/1\nevent 5 a/1\nevent 6 a/b/1\nevent 7 a/2\nevent 8 b/1\nevent 9 b/1\nevent 10 b/1\nevent 11 a/1\nevent 13 zzz\nevent 14 a/b/1\n",
+  "exitCode": 0,
+  "stdout": "1 a/2 allow\n2 a/b/1 allow\n4 a/1 allow\n5 a/1 deny bk\n6 a/b/1 deny wn\n7 a/2 allow\n8 b/1 allow\n9 b/1 allow\n10 b/1 allow\n11 a/1 allow\n13 zzz allow\n14 a/b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "bucket bk 2 2 2\nwindow wn 0 4\nroute a/ bk\nevent 1 a/2\nevent 1 a/b/1\nevent 1 a/1\nevent 1 a/2\nevent 2 a/b/1\nevent 3 a/1\nevent 4 a/b/1\nevent 4 a/2\n",
+  "exitCode": 0,
+  "stdout": "a/1 allowed=2 denied=0\na/2 allowed=3 denied=0\na/b/1 allowed=3 denied=0\ntotal allowed=8 denied=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "replay"
+  ],
+  "stdin": "bucket bk 2 1 1\nwindow wn 3 1\nroute a/ bk wn\nroute a/b wn\nevent 0 a/b/1\nevent 0 b/1\nevent 0 a/1\nevent 2 a/1\nevent 2 a/1\nevent 4 a/b/1\nevent 4 a/b/1\nevent 5 b/1\n",
+  "exitCode": 0,
+  "stdout": "0 a/b/1 allow\n0 b/1 allow\n0 a/1 allow\n2 a/1 allow\n2 a/1 allow\n4 a/b/1 allow\n4 a/b/1 allow\n5 b/1 allow\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

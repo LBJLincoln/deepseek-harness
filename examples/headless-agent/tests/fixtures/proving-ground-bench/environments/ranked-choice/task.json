@@ -1,0 +1,30 @@
+{
+  "id": "code:ranked-choice",
+  "tier": 5,
+  "domain": "data-structures-algorithms",
+  "title": "Run an instant-runoff count with a backwards tie-break",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes exactly one argument, `rounds` or `tally`, and reads an election from standard input. Split the input on newlines and drop the empty tail a trailing newline leaves. Trim each line; ignore it when it is empty or begins with `#`; otherwise split it on runs of whitespace. Exit 0 whenever the election parses.\n\nThe line `candidates <name>...` declares the field. It must appear exactly once, before any ballot, and must name at least one candidate; a name is one or more of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `_` and `-`, and no name may repeat. The line `ballot <count> <candidate>...` records `count` identical ballots ranking those candidates from most to least preferred. The count is a decimal integer of at least 1 written without a sign and without a leading zero, a ballot names at least one candidate, every name must have been declared, and no ballot may name a candidate twice. A ballot need not rank every candidate.\n\nCount in rounds. Every candidate starts continuing. In each round every ballot counts for the first candidate on it that is still continuing; a ballot whose named candidates are all eliminated is exhausted and counts for nobody. Let the active total be the number of ballots that counted for someone. When the active total is 0 the election ends with no winner. When some candidate's count, doubled, is greater than the active total, that candidate wins and the election ends. Otherwise exactly one candidate is eliminated and another round is counted.\n\nThe candidate eliminated is the one with the fewest votes in this round. When several tie for fewest, compare them across the rounds already counted, this one included, from the first round onwards: at the first round where their counts are not all equal, keep only those with the fewest votes in that round and compare the survivors the same way from the first round again. When no round separates them, eliminate the one whose name sorts last by code point.\n\n`rounds` prints, for each round in order, `round K: ` followed by one `<name>=<votes>` for every continuing candidate, separated by single spaces, and then `exhausted=<n>`. Candidates are listed by descending vote count, and by ascending name where counts tie. A round that eliminated someone is followed by the line `eliminated <name>`. `tally` instead prints one line, `rounds N`, holding how many rounds were counted. Both modes end with `winner <name>`, or `no winner` when no candidate ever reached the majority.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output; stop at the first one. The messages are `error: usage: cli.js rounds|tally` when the argument is not exactly one of the two mode words; `error: line N: candidates must be declared once, before any ballot`; `error: line N: expected candidates <name>...`; `error: line N: invalid candidate name <name>`; `error: line N: candidate <name> is declared twice`; `error: line N: expected ballot <count> <candidate>...`; `error: line N: count must be a positive integer`; `error: line N: unknown candidate <name>`; `error: line N: candidate <name> is repeated`; `error: line N: unknown directive <word>`; and `error: no candidates`, with no line number, when the input declares none.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}
