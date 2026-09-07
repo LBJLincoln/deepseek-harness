@@ -47,6 +47,20 @@ export interface BridgeEndData {
   readonly stopReason: SubagentStopReason
   /** Whole-run token accounting the external product reported, absent when it reported none. */
   readonly usage?: TokenUsage
+  /**
+   * The model the external product stated it was running, verbatim from its
+   * opening `init` message; it is what a reader of this log has instead of the
+   * product's own transcript. Absent when the run ended before the product
+   * stated one.
+   */
+  readonly model?: string
+  /**
+   * Whole-run cost in US dollars as the external product priced it. It is that
+   * product's own accounting of a spend no harness pricing table covers, so it
+   * is never comparable with a `usage/priced` cost by arithmetic alone. Absent
+   * when the run ended before the product stated one.
+   */
+  readonly costUsd?: number
 }
 
 declare module '@deepseek-ai/dsh-session/types' {

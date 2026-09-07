@@ -84,11 +84,16 @@ type ResolvedConfig = Omit<Required<Config>, 'permissionMode'> & Pick<Config, 'p
 class ClaudeCodeProvider implements SubagentProvider {
   readonly name = 'claude-code'
   /**
-   * `harnessTools` is the one start-time feature an out-of-process child can
-   * honor: the harness composes the child agent whose tools it serves, so the
-   * feature is enforced in this process rather than promised to the product.
+   * `harnessTools` is enforced in this process — the harness composes the child
+   * agent whose tools it serves, rather than promising the product anything —
+   * and `model` is carried to the product's own `--model`, which refuses an
+   * identifier it does not accept instead of running another one.
    */
-  readonly capabilities: SubagentCapabilities = { ...NO_START_CAPABILITIES, harnessTools: true }
+  readonly capabilities: SubagentCapabilities = {
+    ...NO_START_CAPABILITIES,
+    harnessTools: true,
+    model: true,
+  }
   readonly inheritsParentContext = false
 
   constructor(
@@ -128,6 +133,7 @@ class ClaudeCodeProvider implements SubagentProvider {
         )
       },
       ...this.config.permissionMode === undefined ? {} : { permissionMode: this.config.permissionMode },
+      ...request.model === undefined ? {} : { model: request.model },
       // Black-box only: bridge mode serves the harness registry and owns its
       // own allowlist, which a deployment list must not widen.
       ...bridge === undefined ? { allowedTools: this.config.allowedTools } : { bridge },

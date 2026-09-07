@@ -20,7 +20,7 @@ ACP（Agent Client Protocol）提供方会在全新的子进程中运行每个 s
 
 ## 能力与上下文
 
-ACP 不声明任何启动时能力，因为当前进程无法强制执行远程子 agent 的深度、工具过滤、persona 或结构化输出运行时。它也报告 `inheritsParentContext: false`：远程会话从全新状态开始，唯一源自父级的输入是上述工作区 cwd；对话上下文不会跨越进程边界。
+ACP 不声明任何启动时能力，因为当前进程无法强制执行远程子 agent 的深度、工具过滤、persona 或结构化输出运行时，也因为协议的 `session/new` 不携带模型选择，所以点名 `model` 的启动会被拒绝，而不是让它跑在远程 agent 恰好配置的那个模型上。它也报告 `inheritsParentContext: false`：远程会话从全新状态开始，唯一源自父级的输入是上述工作区 cwd；对话上下文不会跨越进程边界。
 
 ## 配置
 
@@ -98,5 +98,6 @@ ACP 不声明任何启动时能力，因为当前进程无法强制执行远程�
 - **每次运行使用全新进程**：持久进程池属于后续优化（见 [seam Agent Note](../../../.agents/notes/implemented/feature/2026-06-21-subagent-capability-seam.md)）。
 - **仅支持本地工作区**：解析后的 cwd 是交给同一台机器上子进程的本地路径；远程 ACP agent 的工作区映射需要独立的后端能力，此处尚未设计这种能力。
 - **不支持可选启动时能力**：该提供方无法在远程进程内应用本地 harness 的 `outputSchema`、深度上限、工具过滤器或 persona，因此不会声明这些能力；服务会拒绝需要它们的请求。
+- **不能选择模型，也不报告开销**：ACP 的 `session/new` 不点名模型，其更新也不携带任何 token 或成本计量，因此点名 `model` 的启动被拒绝，一次运行两者都不报告。远程 agent 的开销只有在该 agent 自己报告的地方才可测量。
 - **只收集已提交的 `agent_message_chunk` 文本**：自动化服务器把推理（reasoning）、工具活动、计划和其他 trace 数据保留在子 agent 会话日志中，不通过 ACP 发出。
 - **权限提示自动回答**（`permission: allow | reject`）：不会把子 agent 的 `session/request_permission` 呈现给人。

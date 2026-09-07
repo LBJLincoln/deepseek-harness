@@ -23,7 +23,8 @@ import type { SubagentCapabilities, SubagentResult, SubagentRun, SubagentStopRea
  * service rejects a request needing any of them before `start` runs — never
  * accepted-then-ignored. A backend that bridges the harness tool set into the
  * foreign model declares `harnessTools` itself instead of taking this
- * advertisement.
+ * advertisement, and one whose product accepts a model selection declares
+ * `model` the same way.
  */
 export const NO_START_CAPABILITIES: SubagentCapabilities = Object.freeze({
   outputSchema: false,
@@ -31,6 +32,7 @@ export const NO_START_CAPABILITIES: SubagentCapabilities = Object.freeze({
   toolFilter: false,
   persona: false,
   harnessTools: false,
+  model: false,
 })
 
 /**
@@ -40,9 +42,11 @@ export const NO_START_CAPABILITIES: SubagentCapabilities = Object.freeze({
  * (`outputSchema`, `depthLimit`, `toolFilter`, `persona`) can only be honored
  * by a driver that composes the child in this process, so an in-process driver
  * supports at least one of them and a backend that launches a foreign agent
- * supports none. `harnessTools` is deliberately not read: a bridging backend
- * advertises it while its child still runs in another process, because the
- * served tools execute here and the model does not. The test fails closed,
+ * supports none. `harnessTools` and `model` are deliberately not read: a
+ * bridging backend advertises the first while its child still runs in another
+ * process, because the served tools execute here and the model does not, and a
+ * backend advertises the second by passing a model selection to a product that
+ * runs wherever it already runs. The test fails closed,
  * which is what a caller needs it for: an unknown backend that advertises
  * nothing is treated as one this process cannot fence.
  * @param capabilities - the provider's {@link SubagentCapabilities} advertisement.

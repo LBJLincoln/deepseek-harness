@@ -94,7 +94,9 @@ function attachDescriptorAppend(childCtx: Context, descriptor: SubagentDescripto
  * and disposal work through the returned run. Rejection means the agent
  * factory's unpublished creation transaction reached quiescence without
  * publishing a child. Every start appends its resolved descriptor inside the
- * child's initial turn.
+ * child's initial turn. The child runs the parent's route unless the request
+ * names a `model`, which replaces the model on that route for this child alone
+ * and comes back as the run's `reportedModel`.
  * @param request - the trusted typed start request, including its required signal.
  * @param options - the optional fork seed.
  * @returns a published holder-owned run.
@@ -133,7 +135,13 @@ export async function startInProcessRun(
     sessionId: childId,
     meta: childSessionMeta(parent, childDepth, activationBoundary),
     ...seed !== undefined ? { seed } : {},
-    agentOptions: resolveChildAgentOptions(parent, request.agentOptions, childDepth),
+    agentOptions: {
+      ...resolveChildAgentOptions(parent, request.agentOptions, childDepth),
+      // Last, over the inherited route and over `agentOptions`: the seam's
+      // `model` is capability-gated and contractually binding, so a caller that
+      // named it must not be silently served the parent's model.
+      ...request.model === undefined ? {} : { model: request.model },
+    },
     signal: request.signal,
     setup,
   })
@@ -204,7 +212,7 @@ function drivePublishedRun(
   }
 }
 
-/** Read one settled child's result from events after its activation boundary. */
+/** Read one settled child's result from events after its activation boundary, plus the route it ran. */
 function readResult(
   child: Agent,
   boundary: number,
@@ -223,11 +231,15 @@ function readResult(
   // Disposal can tear the owner down before the loop records its ordinary
   // `aborted` end, yielding `disposed` instead.
   const stopReason: SubagentStopReason = cancelled && recorded !== 'completed' ? 'aborted' : recorded
+  // The published child's own resolved route, which is what its requests ran
+  // on whether the start named a model or inherited the parent's.
+  const reported = child.options.model
+  const model = reported === undefined ? {} : { reportedModel: reported }
   if (structured !== undefined) {
     if (structured.captured !== undefined) {
-      return { output, structured: structured.captured.value, stopReason }
+      return { output, structured: structured.captured.value, stopReason, ...model }
     }
-    if (stopReason === 'completed') return { output, stopReason: cancelled ? 'aborted' : 'error' }
+    if (stopReason === 'completed') return { output, stopReason: cancelled ? 'aborted' : 'error', ...model }
   }
-  return { output, stopReason }
+  return { output, stopReason, ...model }
 }

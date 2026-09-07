@@ -257,7 +257,7 @@ Source: [`packages/core/session/src/types.ts:273`](../packages/core/session/src/
 'bridge/assistant': BridgeAssistantData
 ```
 
-Source: [`packages/subagent/subagent-claude-code/src/types.ts:64`](../packages/subagent/subagent-claude-code/src/types.ts)
+Source: [`packages/subagent/subagent-claude-code/src/types.ts:78`](../packages/subagent/subagent-claude-code/src/types.ts)
 
 <a id="bridgeend--log-only"></a>
 
@@ -268,7 +268,7 @@ Source: [`packages/subagent/subagent-claude-code/src/types.ts:64`](../packages/s
 'bridge/end': BridgeEndData
 ```
 
-Source: [`packages/subagent/subagent-claude-code/src/types.ts:66`](../packages/subagent/subagent-claude-code/src/types.ts)
+Source: [`packages/subagent/subagent-claude-code/src/types.ts:80`](../packages/subagent/subagent-claude-code/src/types.ts)
 
 <a id="bridgestart--log-only"></a>
 
@@ -283,7 +283,7 @@ Source: [`packages/subagent/subagent-claude-code/src/types.ts:66`](../packages/s
 'bridge/start': BridgeStartData
 ```
 
-Source: [`packages/subagent/subagent-claude-code/src/types.ts:59`](../packages/subagent/subagent-claude-code/src/types.ts)
+Source: [`packages/subagent/subagent-claude-code/src/types.ts:73`](../packages/subagent/subagent-claude-code/src/types.ts)
 
 ### `budget/*`
 
@@ -530,14 +530,20 @@ Source: [`packages/governance/data-use/src/types.ts:19`](../packages/governance/
  * One attempt of a delegated cell, appended after the child run settled
  * and before the runner validates the tree it left: which provider ran it,
  * the run's parent-scoped id, how it ended, the structured result it
- * returned, and the model usage this process can account for. Log-only —
- * it never enters model history, and it is the cell session's only record
- * of an implementer whose own transcript stays in its product.
+ * returned, the model usage this process can account for, and the model and
+ * spend the child's own backend reported. Log-only — it never enters model
+ * history, and it is the cell session's only record of an implementer whose
+ * own transcript stays in its product.
+ *
+ * The model the cell ASKED for is on the `environment/run` stamp, which the
+ * runner also passes to the provider, so a reader comparing the two sees
+ * whether the child ran the arm's model and which concrete version an alias
+ * resolved to.
  */
 'environment/delegation': EnvironmentDelegation
 ```
 
-Source: [`packages/improvement/environment-runner/src/types.ts:25`](../packages/improvement/environment-runner/src/types.ts)
+Source: [`packages/improvement/environment-runner/src/types.ts:31`](../packages/improvement/environment-runner/src/types.ts)
 
 <a id="environmentrun--log-only"></a>
 

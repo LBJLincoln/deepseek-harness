@@ -323,6 +323,7 @@ describe('startInProcessRun', () => {
     await expect(signalled.result).resolves.toEqual({
       output: [{ type: 'text', text: 'partial' }],
       stopReason: 'aborted',
+      reportedModel: 'mock',
     })
     expect(adapter.requests[0]?.signal?.reason).toEqual({ kind: 'parent' })
     const child = parent.ctx.agents.get(signalled.id)
@@ -373,7 +374,7 @@ describe('startInProcessRun', () => {
     } as unknown as Agent
     const run = await startInProcessRun(request(parentWithAbortAtHandoff, controller.signal), {})
     expect(ctx.agents.get(run.id)).toBeDefined()
-    await expect(run.result).resolves.toEqual({ output: [], stopReason: 'aborted' })
+    await expect(run.result).resolves.toEqual({ output: [], stopReason: 'aborted', reportedModel: 'mock' })
     await run.dispose()
     expect(ctx.agents.list()).toHaveLength(beforeAgents)
     expect(ctx.sessions.list()).toHaveLength(beforeSessions)

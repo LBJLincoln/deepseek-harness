@@ -24,8 +24,12 @@ function fakeParent(id = 'parent-1'): Agent {
   return { id: SessionId(id) } as unknown as Agent
 }
 
-const ALL_CAPS: SubagentCapabilities = { outputSchema: true, depthLimit: true, toolFilter: true, persona: true, harnessTools: false }
-const NO_CAPS: SubagentCapabilities = { outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false }
+const ALL_CAPS: SubagentCapabilities = {
+  outputSchema: true, depthLimit: true, toolFilter: true, persona: true, harnessTools: false, model: false,
+}
+const NO_CAPS: SubagentCapabilities = {
+  outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false, model: false,
+}
 
 function baseRequest(overrides: Partial<SubagentStartRequest> = {}): SubagentStartRequest {
   return {
@@ -165,6 +169,7 @@ describe('SubagentRuntime', () => {
     ['depthLimit', { maxDepth: 1 }],
     ['toolFilter', { toolFilter: { deny: ['bash'] } }],
     ['persona', { persona: 'reviewer' }],
+    ['model', { model: 'some-model' }],
   ] as const)('rejects unsupported %s before provider startup', async (_capability, override) => {
     const { subagents } = await service()
     const provider = new StubProvider('weak', NO_CAPS)
@@ -172,6 +177,14 @@ describe('SubagentRuntime', () => {
     await expect(subagents.start('weak', baseRequest(override)))
       .rejects.toMatchObject({ code: 'UNSUPPORTED_CAPABILITY' })
     expect(provider.startCount).toBe(0)
+  })
+
+  it('passes a supported model through to the provider verbatim', async () => {
+    const { subagents } = await service()
+    const provider = new StubProvider('selector', { ...NO_CAPS, model: true })
+    subagents.registerProvider(provider)
+    await subagents.start('selector', baseRequest({ model: 'product-alias' }))
+    expect(provider.lastRequest?.model).toBe('product-alias')
   })
 
   it('validates depth and schema semantics before provider startup', async () => {

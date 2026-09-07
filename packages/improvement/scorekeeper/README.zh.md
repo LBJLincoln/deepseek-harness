@@ -44,6 +44,7 @@
 | `sessionId`、`createdAt` | 已存储的会话头（仅 `facts()` 与 `exportFacts()`；投影值本身已由其会话定址） |
 | `environment.environmentId`、`.environmentKind`、`.heldOut`、`.repetition`、`.group`、`.district`、`.contentSha256`、`.provider`、`.model`、`.isolation`、`.implementer` | `environment/run` stamp；未被运行器盖章的会话没有该字段；不点名 `implementer` 的 stamp 折叠为 `route`，即由该运行自身模型路由实现 |
 | `requestProvider`、`requestModel` | 最后一条 `request/header` 的 `config.provider` 与 `config.model` |
+| `implementerModel` | 最后一条作出陈述的 `environment/delegation` 的 `reportedModel`（[`@deepseek-ai/dsh-environment-runner`](../environment-runner/README.md)）；route 实现的会话、以及不报告模型的 provider，此项缺席 |
 | `compositionSha256` | 最后一条 `composition/manifest`（`@deepseek-ai/dsh-components-manifest`）的 `compositionSha256`；日志中没有该事件的会话没有该字段 |
 
 ### Outcome
@@ -72,6 +73,9 @@
 | `pricedSteps` | `usage/priced` 事件（`@deepseek-ai/dsh-budget-policy`） |
 | `costEur` | 这些事件所述 `costEur` 之和 |
 | `pricingDigests` | 它们互不相同的 `pricingDigest` 取值，按首次出现的顺序 |
+| `delegated.inputTokens`、`.outputTokens`、`.cacheReadTokens`、`.cacheWriteTokens`、`.costUsd` | 每条 `environment/delegation` 所陈述的开销之和；其委派一笔都没记账的会话，此项缺席 |
+
+`delegated` 正是被委派的 cell 报告其自身 token 字段无法承载的那份工作之处：这样的 cell 不驱动任何模型轮次，因此它的 `inputTokens` 为 `0`，而 `delegated` 持有全部开销。每条委托至多陈述一种账目——进程内子进程的 `usage`，从该子进程自己的日志读出；或外部产品自陈的 `reportedUsage` 与 `reportedCostUsd`——因此把两者相加不会重复计数。`costUsd` 是该产品自身的定价而非 harness 定价表，绝不加进 `costEur`，这正是二者作为两种货币下的两个字段分开存在的原因。在证书率区分不出任何东西的地方，正是它区分开两个都在第一次尝试就认证的实现者。
 
 折叠不接受定价表：成本就是 `usage/priced` 记录自身携带的金额之和，因此部署对某条路由重新定价，无法改变一次已经跑完的会话花了多少。只有当每一条报告了 `usage` 的 `assistant/message` 都在同一 turn 与 step 上有一条 `usage/priced` 时，`costEur` 才出现，所以跑过未定价路由的会话根本不陈述成本，而不是只陈述其已定价步骤那份更低的成本；日志中没有任何携带 usage 的消息的会话，成本为 `0`。`pricingDigests` 有两个或更多，意味着该日志是在不止一个定价表版本下定价的，`costEur` 是跨表求和。
 

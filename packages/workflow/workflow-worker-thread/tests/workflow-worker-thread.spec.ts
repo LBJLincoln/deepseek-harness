@@ -56,7 +56,7 @@ interface ControlledRun {
  */
 class StubProvider implements SubagentProvider {
   readonly capabilities: SubagentCapabilities = {
-    outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false,
+    outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false,
   }
   readonly inheritsParentContext = false
   readonly runs: ControlledRun[] = []
@@ -461,7 +461,7 @@ describe('dsh-workflow-worker-thread', () => {
       await ctx.plugin(SubagentRuntime)
       const provider: SubagentProvider = {
         name: 'rejecting',
-        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false },
+        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false },
         inheritsParentContext: false,
         start: async () => ({
           id: SessionId('reject-child'),
@@ -520,7 +520,7 @@ describe('dsh-workflow-worker-thread', () => {
       await ctx.plugin(SubagentRuntime)
       const provider: SubagentProvider = {
         name: 'bad-dispose',
-        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false },
+        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false },
         inheritsParentContext: false,
         start: async () => ({
           id: SessionId('bad-dispose-child'),
@@ -542,7 +542,7 @@ describe('dsh-workflow-worker-thread', () => {
       await ctx.plugin(SubagentRuntime)
       const provider: SubagentProvider = {
         name: 'coercion-trap-dispose',
-        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false },
+        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false },
         inheritsParentContext: false,
         start: async () => ({
           id: SessionId('trap-child'),
@@ -893,7 +893,7 @@ describe('dsh-workflow-worker-thread', () => {
       const aborted: string[] = []
       const provider: SubagentProvider = {
         name: 'signal-only',
-        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false },
+        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false },
         inheritsParentContext: false,
         start: async (request) => {
           let settle!: (result: SubagentResult) => void
@@ -1191,7 +1191,7 @@ describe('dsh-workflow-worker-thread', () => {
       const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => ctx.logger)
       const provider: SubagentProvider = {
         name: 'late-ready',
-        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false },
+        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false },
         inheritsParentContext: false,
         start: (request) => {
           requested.resolve(request)
@@ -1252,7 +1252,7 @@ describe('dsh-workflow-worker-thread', () => {
       const signalAborts: unknown[] = []
       const provider: SubagentProvider = {
         name: 'doomed',
-        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false },
+        capabilities: { outputSchema: true, depthLimit: true, toolFilter: true, persona: false, harnessTools: false, model: false },
         inheritsParentContext: false,
         start: async (request) => {
           request.signal.addEventListener('abort', () => {

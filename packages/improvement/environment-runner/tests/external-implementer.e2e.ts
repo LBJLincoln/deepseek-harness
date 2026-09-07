@@ -43,8 +43,17 @@ describe('a delegated cell through a real cordis.yml and headless process', () =
     expect(result.routed.leaderboard.map(row => row.implementer)).toEqual(['route', 'route'])
 
     // One child run per attempt, the second carrying the directive the first produced.
+    // Each child ran the model its cell was stamped with and said so.
+    expect(result.delegated.stamps.map(stamp => stamp?.model.model)).toEqual(['cli-mock', 'cli-mock'])
     expect(result.delegations['smoke:round-trip']).toEqual([
-      { attempt: 1, provider: 'spawn', runId: expect.any(String) as unknown as string, stopReason: 'completed', usage: expect.any(Object) as unknown as object },
+      {
+        attempt: 1,
+        provider: 'spawn',
+        runId: expect.any(String) as unknown as string,
+        stopReason: 'completed',
+        usage: expect.any(Object) as unknown as object,
+        reportedModel: 'cli-mock',
+      },
     ])
     const failing = result.delegations['smoke:unsatisfiable'] ?? []
     expect(failing.map(delegation => [delegation.attempt, delegation.provider, delegation.stopReason]))
@@ -52,13 +61,21 @@ describe('a delegated cell through a real cordis.yml and headless process', () =
     expect(new Set(failing.map(delegation => delegation.runId)).size).toBe(2)
 
     // The cell session carries the delegation records and no model turn of its own.
-    expect(result.facts.identity.environment).toMatchObject({ environmentId: 'smoke:round-trip', implementer: 'spawn' })
-    expect(result.facts.outcome).toMatchObject({ reward: 1, rewardBasis: 'certificate', certified: true, certificateExecutor: 'runner' })
+    expect(result.facts.identity.environment).toMatchObject({ environmentId: 'smoke:round-trip', implementer: 'spawn', model: 'cli-mock' })
+    // The scorekeeper can state what the child reported beside what was asked
+    // for, and the delegated spend where a route cell reports its own.
+    expect(result.facts.identity.implementerModel).toBe('cli-mock')
     expect(result.facts.efficiency.inputTokens).toBe(0)
+    expect(result.facts.efficiency.delegated?.inputTokens).toBeGreaterThan(0)
+    expect(result.facts.outcome).toMatchObject({ reward: 1, rewardBasis: 'certificate', certified: true, certificateExecutor: 'runner' })
 
-    // Two implementers on one environment are two rows the scoreboard never merges.
+    // Two implementers on one environment are two rows the scoreboard never
+    // merges. Rows follow the first appearance of a session in the store's own
+    // listing, which orders random session ids, so the pair is compared without
+    // an order the store does not promise.
     const roundTrip = result.scoreboard.rows.filter(row => row.environmentId === 'smoke:round-trip')
-    expect(roundTrip.map(row => [row.implementer, row.certified, row.runs])).toEqual([['spawn', 1, 1], ['route', 1, 1]])
+    expect(roundTrip.map(row => [row.implementer, row.certified, row.runs]).sort())
+      .toEqual([['route', 1, 1], ['spawn', 1, 1]])
     // The delegated children are sessions of their own that no runner stamped.
     expect(result.scoreboard.unstamped).toBeGreaterThan(0)
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)

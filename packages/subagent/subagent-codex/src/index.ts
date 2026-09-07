@@ -48,6 +48,12 @@ type ResolvedConfig = Required<Config>
 
 class CodexProvider implements SubagentProvider {
   readonly name = 'codex'
+  /**
+   * No start-time capability, `model` included: the pinned app-server protocol
+   * baseline this provider is verified against carries no model selection on
+   * `thread/start`, so a start naming a model is refused rather than run on
+   * whichever model the native Codex configuration selects.
+   */
   readonly capabilities: SubagentCapabilities = NO_START_CAPABILITIES
   readonly inheritsParentContext = false
 

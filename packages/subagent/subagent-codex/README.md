@@ -18,7 +18,7 @@ Before anything is spawned, `start()` asks the composed [read barrier](../../ver
 
 ## Capabilities and context
 
-The provider advertises no optional start-time capabilities and reports `inheritsParentContext: false`. Codex receives the standalone text task and the parent Session cwd, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. The ephemeral Codex thread id and turn id stay private to this run and are never persisted in the parent Session.
+The provider advertises no optional start-time capabilities and reports `inheritsParentContext: false`. `model` is refused with the rest: the verified 0.147.0 app-server protocol baseline carries no model selection on `thread/start`, and accepting one would run the native Codex configuration's model under the caller's name. Codex receives the standalone text task and the parent Session cwd, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. The ephemeral Codex thread id and turn id stay private to this run and are never persisted in the parent Session.
 
 ## Configuration
 
@@ -90,4 +90,5 @@ Append-only: the new tool result follows the reusable parent request prefix.
 - **No human approval path** — known unattended approval requests are denied and unknown server requests fail closed; deployments cannot configure an allow policy through this package.
 - **Final text only** — reasoning, commentary, intermediate messages, tool traffic, usage, stderr, and workspace diffs remain product-local.
 - **No optional shared capabilities** — output schemas, child personas, tool filtering, and harness depth enforcement are rejected by the shared service for this provider.
+- **No model selection and no reported spend** — a start naming `model` is rejected, and a run reports neither the model it ran nor what it cost, because the protocol baseline this provider is verified against carries neither. Both need upstream schema evidence for a newer app-server and a rerun of the real-product tests, as the compatibility note above requires.
 - **No wall-clock timeout or side-effect rollback** — the caller cancels long work, and files or external systems changed before cancellation are not restored.

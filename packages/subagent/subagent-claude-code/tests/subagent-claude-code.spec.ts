@@ -189,6 +189,20 @@ function failure(
   } as SDKResultMessage
 }
 
+/** The same terminal message with the accounting the real product attaches to it. */
+function priced(message: SDKResultMessage): SDKResultMessage {
+  return {
+    ...message,
+    usage: {
+      input_tokens: 31,
+      output_tokens: 7,
+      cache_read_input_tokens: 12,
+      cache_creation_input_tokens: 4,
+    },
+    total_cost_usd: 0.0412,
+  } as SDKResultMessage
+}
+
 function queryFrom(
   messages: readonly SDKMessage[],
   after?: Error,
@@ -383,6 +397,8 @@ describe('task admission and package contracts', () => {
     // The deployment's product-permission policy reaches the black-box query.
     expect(queryMock.mock.calls[0]?.[0].options.permissionMode).toBe('acceptEdits')
     expect(queryMock.mock.calls[0]?.[0].options.allowedTools).toEqual(['Read'])
+    // A start naming no model leaves the host's own settings selecting one.
+    expect(queryMock.mock.calls[0]?.[0].options).not.toHaveProperty('model')
     expect(spawn).toHaveBeenCalledWith(expect.objectContaining({
       cwd: process.cwd(),
       graceMs: 29,
@@ -391,6 +407,11 @@ describe('task admission and package contracts', () => {
       ANTHROPIC_API_KEY: 'provider-fake-key',
     })
     await run.dispose()
+
+    // A start naming a model carries it to the product's own selection.
+    const selected = await ctx.subagents.start('claude-code', { ...request(), model: 'sonnet' })
+    expect(queryMock.mock.calls[1]?.[0].options.model).toBe('sonnet')
+    await selected.dispose()
     await ctx.fiber.dispose()
   })
 
@@ -618,6 +639,11 @@ describe('query options and result mapping', () => {
 
     // An empty list is the product's default, not "auto-approve nothing".
     expect(build({ ...base, allowedTools: [] })).not.toHaveProperty('allowedTools')
+
+    // The caller's model reaches the product, and no model leaves the host's
+    // own settings selecting one.
+    expect(build({ ...base, model: 'sonnet' }).model).toBe('sonnet')
+    expect(build(base)).not.toHaveProperty('model')
   })
 
   it('accepts only a non-error success with a non-blank final result', () => {
@@ -674,6 +700,42 @@ describe('run publication, cancellation, and settlement', () => {
     await first
     expect(fixture.close).toHaveBeenCalledOnce()
     expect(fixture.child.terminate).toHaveBeenCalledOnce()
+  })
+
+  it('reports the model, usage, and cost the product stated, on every settlement path', async () => {
+    const init = { type: 'system', subtype: 'init', model: 'product-sonnet-2026-01' } as SDKMessage
+    const completed = fakeRun([init, priced(success('exact answer'))])
+    const run = await startClaudeCodeRun(request(), completed.spec)
+    await expect(run.result).resolves.toEqual({
+      output: [{ type: 'text', text: 'exact answer' }],
+      stopReason: 'completed',
+      reportedModel: 'product-sonnet-2026-01',
+      reportedUsage: { inputTokens: 31, outputTokens: 7, cacheReadTokens: 12, cacheWriteTokens: 4 },
+      reportedCostUsd: 0.0412,
+    })
+    await run.dispose()
+
+    // A run the product could not finish still states what it opened on and
+    // what it spent getting there — the spend an external implementer leaves.
+    const failed = fakeRun([init, priced(failure('error_during_execution'))])
+    const errored = await startClaudeCodeRun(request(), { ...failed.spec, onError: () => {} })
+    await expect(errored.result).resolves.toEqual({
+      output: [],
+      stopReason: 'error',
+      reportedModel: 'product-sonnet-2026-01',
+      reportedUsage: { inputTokens: 31, outputTokens: 7, cacheReadTokens: 12, cacheWriteTokens: 4 },
+      reportedCostUsd: 0.0412,
+    })
+    await errored.dispose()
+
+    // A product that stated none states none rather than an invented default.
+    const silent = fakeRun([{ type: 'system', subtype: 'init' } as SDKMessage, success('answer')])
+    const quiet = await startClaudeCodeRun(request(), silent.spec)
+    const bare = await quiet.result
+    for (const absent of ['reportedModel', 'reportedUsage', 'reportedCostUsd']) {
+      expect(bare).not.toHaveProperty(absent)
+    }
+    await quiet.dispose()
   })
 
   it('flattens every SDK error result without inventing shared stop reasons', async () => {

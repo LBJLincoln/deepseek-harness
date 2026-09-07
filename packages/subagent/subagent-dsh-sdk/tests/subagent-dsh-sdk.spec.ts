@@ -127,6 +127,24 @@ describe('dsh-subagent-dsh-sdk provider', () => {
     }
   })
 
+  it('initializes the child on the model a start named, over the configured default', async () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'subagent-dsh-sdk-model-'))
+    const recordFile = join(tmp, 'init.jsonl')
+    try {
+      const ctx = await setup({ FAKE_RECORD_INIT: recordFile })
+      const run = await ctx.subagents.start('dsh-sdk', { ...request(), model: 'named-by-the-caller' })
+      await run.result
+      await run.dispose()
+      const { readFileSync } = await import('node:fs')
+      const records = readFileSync(recordFile, 'utf8').trim().split('\n').map(line => JSON.parse(line) as Record<string, unknown>)
+      // The provider route stays the deployment's; only the model is replaced.
+      expect(records).toEqual([{ cwd: process.cwd(), provider: 'fake-provider', model: 'named-by-the-caller' }])
+      await ctx.fiber.dispose()
+    } finally {
+      rmSync(tmp, { recursive: true, force: true })
+    }
+  })
+
   it('scrubs ambient credentials but forwards explicit config env', async () => {
     process.env.DSH_TEST_AMBIENT_SECRET_KEY = 'leak-me-not'
     try {
@@ -378,6 +396,7 @@ describe('dsh-subagent-dsh-sdk provider', () => {
       toolFilter: false,
       persona: false,
       harnessTools: false,
+      model: true,
     })
     await fiber.dispose()
     expect(ctx.subagents.getProvider('sdk-hmr')).toBeUndefined()

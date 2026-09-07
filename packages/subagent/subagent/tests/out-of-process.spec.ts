@@ -23,7 +23,7 @@ import {
 describe('NO_START_CAPABILITIES', () => {
   it('advertises nothing and is frozen (shared by every out-of-process backend)', () => {
     expect(NO_START_CAPABILITIES).toEqual({
-      outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false,
+      outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false, model: false,
     })
     expect(Object.isFrozen(NO_START_CAPABILITIES)).toBe(true)
   })
@@ -32,13 +32,16 @@ describe('NO_START_CAPABILITIES', () => {
 describe('runsOutOfProcess', () => {
   it('reads the advertisement: nothing supported is out of process, one feature is not', () => {
     expect(runsOutOfProcess(NO_START_CAPABILITIES)).toBe(true)
-    expect(runsOutOfProcess({ outputSchema: true, depthLimit: true, toolFilter: true, persona: true, harnessTools: false })).toBe(false)
+    expect(runsOutOfProcess({
+      outputSchema: true, depthLimit: true, toolFilter: true, persona: true, harnessTools: false, model: false,
+    })).toBe(false)
     // A single supported feature is enough: only a provider that composes the
     // child in this process can enforce any of them.
     expect(runsOutOfProcess({ ...NO_START_CAPABILITIES, persona: true })).toBe(false)
     // A bridging backend serves the harness tools to a model that still runs
-    // elsewhere, so `harnessTools` alone does not make it in-process.
-    expect(runsOutOfProcess({ ...NO_START_CAPABILITIES, harnessTools: true })).toBe(true)
+    // elsewhere, and a product backend passes a model selection to an agent
+    // that still runs elsewhere, so neither flag makes a provider in-process.
+    expect(runsOutOfProcess({ ...NO_START_CAPABILITIES, harnessTools: true, model: true })).toBe(true)
   })
 })
 

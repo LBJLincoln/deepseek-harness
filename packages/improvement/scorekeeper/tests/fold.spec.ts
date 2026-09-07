@@ -188,6 +188,77 @@ describe('foldSessionFacts', () => {
     expect(foldSessionFacts(header('bare'), new Log().events).identity.compositionSha256).toBeUndefined()
   })
 
+  it('carries the model a delegated child last reported, beside the model its cell was stamped with', () => {
+    const log = new Log()
+    log.push('environment/run', stamp())
+    log.push('environment/delegation', { attempt: 1, provider: 'claude-code', runId: 'child-1', stopReason: 'error' })
+    log.push('environment/delegation', { attempt: 2, provider: 'claude-code', runId: 'child-2', stopReason: 'completed', reportedModel: 'product-sonnet-2026-01' })
+    const delegated = foldSessionFacts(header('delegated'), log.events).identity
+    expect(delegated.implementerModel).toBe('product-sonnet-2026-01')
+    // The requested arm stays the stamp's, so the two are read side by side.
+    expect(delegated.environment?.model).toBe(MOCK_ROUTE.model)
+
+    // An attempt that ended before its backend spoke retracts nothing.
+    log.push('environment/delegation', { attempt: 3, provider: 'claude-code', runId: 'child-3', stopReason: 'aborted' })
+    expect(foldSessionFacts(header('later'), log.events).identity.implementerModel).toBe('product-sonnet-2026-01')
+
+    // A route-implemented cell records no delegation, so it states no model.
+    const routed = new Log()
+    routed.push('environment/run', stamp())
+    expect(foldSessionFacts(header('routed'), routed.events).identity.implementerModel).toBeUndefined()
+  })
+
+  it('sums the spend of every delegated attempt where a route cell reports its own', () => {
+    // An out-of-process implementer states its product's own accounting.
+    const external = new Log()
+    external.push('environment/run', stamp())
+    external.push('environment/delegation', {
+      attempt: 1,
+      provider: 'claude-code',
+      runId: 'child-1',
+      stopReason: 'error',
+      reportedUsage: { inputTokens: 31, outputTokens: 7, cacheReadTokens: 12, cacheWriteTokens: 4 },
+      reportedCostUsd: 0.04,
+    })
+    external.push('environment/delegation', {
+      attempt: 2,
+      provider: 'claude-code',
+      runId: 'child-2',
+      stopReason: 'completed',
+      reportedUsage: { inputTokens: 9, outputTokens: 2 },
+      reportedCostUsd: 0.01,
+    })
+    const product = foldSessionFacts(header('external'), external.events).efficiency
+    expect(product.delegated).toEqual({
+      inputTokens: 40,
+      outputTokens: 9,
+      cacheReadTokens: 12,
+      cacheWriteTokens: 4,
+      costUsd: 0.05,
+    })
+    // The cell drove no turn of its own; the whole cost of the work is above.
+    expect(product.inputTokens).toBe(0)
+
+    // An in-process child is accounted from its own log instead, and prices nothing.
+    const inProcess = new Log()
+    inProcess.push('environment/run', stamp())
+    inProcess.push('environment/delegation', {
+      attempt: 1,
+      provider: 'spawn',
+      runId: 'child-1',
+      stopReason: 'completed',
+      usage: { inputTokens: 21, outputTokens: 4 },
+    })
+    expect(foldSessionFacts(header('local'), inProcess.events).efficiency.delegated)
+      .toEqual({ inputTokens: 21, outputTokens: 4, cacheReadTokens: 0, cacheWriteTokens: 0 })
+
+    // A delegation accounting for nothing leaves the session stating none.
+    const bare = new Log()
+    bare.push('environment/run', stamp())
+    bare.push('environment/delegation', { attempt: 1, provider: 'acp', runId: 'child-1', stopReason: 'aborted' })
+    expect(foldSessionFacts(header('bare'), bare.events).efficiency.delegated).toBeUndefined()
+  })
+
   it('records the cap of the last budget breach', () => {
     const log = new Log()
     log.push('budget/breach', { cap: 'maxTotalTokens', measured: 9, limit: 4 })

@@ -193,6 +193,20 @@ describe('the sessionFacts projection unit', () => {
     // refused and the served value stays at the last accepted one.
     append(bench.session, 'verification/run', runRecord(5, 'pass'))
     expect(bench.value()?.outcome).toMatchObject({ reward: 1, certified: true, runsRecorded: 0 })
+
+    // The delegated implementer's own account survives the wire schema.
+    append(bench.session, 'environment/delegation', {
+      attempt: 1,
+      provider: 'claude-code',
+      runId: 'child-1',
+      stopReason: 'completed',
+      reportedModel: 'product-sonnet-2026-01',
+      reportedUsage: { inputTokens: 31, outputTokens: 7 },
+      reportedCostUsd: 0.04,
+    })
+    expect(bench.value()?.identity.implementerModel).toBe('product-sonnet-2026-01')
+    expect(bench.value()?.efficiency.delegated)
+      .toEqual({ inputTokens: 31, outputTokens: 7, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.04 })
   })
 
   it('omits the key without the service and drops it when the service fiber is disposed', async () => {

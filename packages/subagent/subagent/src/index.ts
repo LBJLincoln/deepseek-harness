@@ -491,6 +491,7 @@ export class SubagentRuntime extends Service {
       { when: request.toolFilter !== undefined, cap: 'toolFilter' },
       { when: request.persona !== undefined, cap: 'persona' },
       { when: request.harnessTools !== undefined, cap: 'harnessTools' },
+      { when: request.model !== undefined, cap: 'model' },
     ]
     for (const { when, cap } of needs) {
       if (when && !provider.capabilities[cap]) {

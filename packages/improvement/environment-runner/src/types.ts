@@ -18,9 +18,15 @@ declare module '@deepseek-ai/dsh-session/types' {
      * One attempt of a delegated cell, appended after the child run settled
      * and before the runner validates the tree it left: which provider ran it,
      * the run's parent-scoped id, how it ended, the structured result it
-     * returned, and the model usage this process can account for. Log-only —
-     * it never enters model history, and it is the cell session's only record
-     * of an implementer whose own transcript stays in its product.
+     * returned, the model usage this process can account for, and the model and
+     * spend the child's own backend reported. Log-only — it never enters model
+     * history, and it is the cell session's only record of an implementer whose
+     * own transcript stays in its product.
+     *
+     * The model the cell ASKED for is on the `environment/run` stamp, which the
+     * runner also passes to the provider, so a reader comparing the two sees
+     * whether the child ran the arm's model and which concrete version an alias
+     * resolved to.
      */
     'environment/delegation': EnvironmentDelegation
   }
@@ -63,6 +69,29 @@ export interface EnvironmentDelegation {
    * product and never reach a log here.
    */
   readonly usage?: TokenUsage
+  /**
+   * The model the child's own backend stated it ran, as that backend names it —
+   * an in-process child's route model, an external product's full model id.
+   * Absent when the provider reports none or the run ended before it did.
+   * Against the requested model on the `environment/run` stamp it is what
+   * decides whether a delegated measurement is labelled with the model that
+   * produced it.
+   */
+  readonly reportedModel?: string
+  /**
+   * Token accounting the child's own backend reported for the run. It is the
+   * only spend record an out-of-process child leaves, whose tokens are spent in
+   * another product; {@link usage} covers an in-process one instead, so at most
+   * one of the two is stated. Absent when the provider reported none.
+   */
+  readonly reportedUsage?: TokenUsage
+  /**
+   * Cost in US dollars as the child's own backend priced the run. It is a
+   * foreign product's accounting rather than a harness pricing table, so it is
+   * comparable across attempts of the same implementer and never summed with a
+   * `usage/priced` cost. Absent when the provider reported none.
+   */
+  readonly reportedCostUsd?: number
 }
 
 /** One request to run a registered environment as one fresh session. */

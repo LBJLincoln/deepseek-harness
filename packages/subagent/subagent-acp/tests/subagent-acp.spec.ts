@@ -864,8 +864,14 @@ describe('dsh-subagent-acp', () => {
     const ctx = await setup()
     const provider = ctx.subagents.getProvider('acp')!
     expect(provider.capabilities).toEqual({
-      outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false,
+      outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false, model: false,
     })
+  })
+
+  it('refuses a start naming a model, which the protocol cannot carry', async () => {
+    const ctx = await setup()
+    await expect(ctx.subagents.start('acp', { ...request(), model: 'some-agent-model' }))
+      .rejects.toThrow('does not support the "model" capability')
   })
 
   it('unregisters the provider when its fiber is disposed (HMR safety)', async () => {

@@ -4813,8 +4813,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SessionFacts {\n    readonly identity: SessionFactsIdentity;\n    readonly outcome: SessionFactsOutcome;\n    readonly efficiency: SessionFactsEfficiency;\n    readonly tools: SessionFactsTools;\n}',
   },
   {
+    name: 'SessionFactsDelegatedSpend',
+    declaration: 'export interface SessionFactsDelegatedSpend {\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly cacheReadTokens: number;\n    readonly cacheWriteTokens: number;\n    readonly costUsd?: number;\n}',
+  },
+  {
     name: 'SessionFactsEfficiency',
-    declaration: 'export interface SessionFactsEfficiency {\n    readonly turns: number;\n    readonly steps: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly cacheReadTokens: number;\n    readonly cacheWriteTokens: number;\n    readonly reasoningTokens: number;\n    readonly wallMs: number;\n    readonly pricedSteps: number;\n    readonly costEur?: number;\n    readonly pricingDigests: readonly string[];\n}',
+    declaration: 'export interface SessionFactsEfficiency {\n    readonly turns: number;\n    readonly steps: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly cacheReadTokens: number;\n    readonly cacheWriteTokens: number;\n    readonly reasoningTokens: number;\n    readonly wallMs: number;\n    readonly pricedSteps: number;\n    readonly costEur?: number;\n    readonly pricingDigests: readonly string[];\n    readonly delegated?: SessionFactsDelegatedSpend;\n}',
   },
   {
     name: 'SessionFactsEnvironment',
@@ -4822,7 +4826,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsIdentity',
-    declaration: 'export interface SessionFactsIdentity {\n    readonly environment?: SessionFactsEnvironment;\n    readonly requestProvider?: string;\n    readonly requestModel?: string;\n    readonly compositionSha256?: string;\n}',
+    declaration: 'export interface SessionFactsIdentity {\n    readonly environment?: SessionFactsEnvironment;\n    readonly requestProvider?: string;\n    readonly requestModel?: string;\n    readonly implementerModel?: string;\n    readonly compositionSha256?: string;\n}',
   },
   {
     name: 'SessionFactsOutcome',
@@ -5178,7 +5182,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentCapabilities',
-    declaration: 'export interface SubagentCapabilities {\n    readonly outputSchema: boolean;\n    readonly depthLimit: boolean;\n    readonly toolFilter: boolean;\n    readonly persona: boolean;\n    readonly harnessTools: boolean;\n}',
+    declaration: 'export interface SubagentCapabilities {\n    readonly outputSchema: boolean;\n    readonly depthLimit: boolean;\n    readonly toolFilter: boolean;\n    readonly persona: boolean;\n    readonly harnessTools: boolean;\n    readonly model: boolean;\n}',
   },
   {
     name: 'SubagentDescendantListEntry',
@@ -5214,7 +5218,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentResult',
-    declaration: 'export interface SubagentResult {\n    readonly output: ContentBlock[];\n    readonly structured?: unknown;\n    readonly stopReason: SubagentStopReason;\n}',
+    declaration: 'export interface SubagentResult {\n    readonly output: ContentBlock[];\n    readonly structured?: unknown;\n    readonly stopReason: SubagentStopReason;\n    readonly reportedModel?: string;\n    readonly reportedUsage?: TokenUsage;\n    readonly reportedCostUsd?: number;\n}',
   },
   {
     name: 'SubagentRun',
@@ -5238,7 +5242,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentStartRequest',
-    declaration: 'export interface SubagentStartRequest {\n    readonly label?: string;\n    readonly prompt: ContentBlock[];\n    readonly parent: Agent;\n    readonly signal: AbortSignal;\n    readonly agentOptions?: AgentOptions;\n    readonly outputSchema?: ObjectJsonSchema;\n    readonly maxDepth?: number;\n    readonly toolFilter?: ToolRestriction;\n    readonly persona?: string;\n    readonly harnessTools?: SubagentHarnessTools;\n}',
+    declaration: 'export interface SubagentStartRequest {\n    readonly label?: string;\n    readonly prompt: ContentBlock[];\n    readonly parent: Agent;\n    readonly signal: AbortSignal;\n    readonly agentOptions?: AgentOptions;\n    readonly outputSchema?: ObjectJsonSchema;\n    readonly maxDepth?: number;\n    readonly toolFilter?: ToolRestriction;\n    readonly persona?: string;\n    readonly harnessTools?: SubagentHarnessTools;\n    readonly model?: string;\n}',
   },
   {
     name: 'SubagentStopReason',

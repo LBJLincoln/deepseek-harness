@@ -37,7 +37,7 @@ function parentAgent(id: string): Agent {
 class UnusedProvider implements SubagentProvider {
   readonly name = 'spawn'
   readonly capabilities: SubagentCapabilities = {
-    outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false,
+    outputSchema: false, depthLimit: false, toolFilter: false, persona: false, harnessTools: false, model: false,
   }
   readonly inheritsParentContext = false
 

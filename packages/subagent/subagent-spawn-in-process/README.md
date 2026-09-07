@@ -12,7 +12,7 @@ The shared driver owns depth checking, persona and tool-filter setup, structured
 
 ## Capabilities
 
-Spawn advertises `{ outputSchema: true, depthLimit: true, toolFilter: true, persona: true }` because it controls the child's creation window and can enforce all four features.
+Spawn advertises `{ outputSchema: true, depthLimit: true, toolFilter: true, persona: true, model: true }` because it controls the child's creation window and can enforce all five. `model` replaces the model on the route the child inherits from its parent, for that child alone, and the run reports it back as `reportedModel`.
 
 ## Config
 
