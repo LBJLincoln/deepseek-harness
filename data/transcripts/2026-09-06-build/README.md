@@ -19,7 +19,7 @@ This dataset is the process transcripts of an AI-assisted build of the DeepSeek 
 ## Data quality notes
 
 - 0 of the 92 subagent transcript files were symlinks into a live Claude Code project directory rather than frozen copies; a subagent still running at export time shows more lines on a later re-run of `transcripts-to-dataset.mjs` than it did here.
-- 3 subagent transcript(s) end mid-action: the last recorded line is a tool call with no accompanying text and no result, rather than a closing report - id(s): `a4764188a9fb71d1d`, `a55a4649cbdf2ed91`, `ac1d0180b6ef3cf0a`. For these, `finalAssistantExcerpt` and `commitShasMentioned` reflect that the transcript stops there, not that the agent produced no final report.
+- 4 subagent transcript(s) end mid-action: the last recorded line is a tool call with no accompanying text and no result, rather than a closing report - id(s): `a47e32782b70b9955`, `a55a4649cbdf2ed91`, `a97251f408261f597`, `ac1d0180b6ef3cf0a`. For these, `finalAssistantExcerpt` and `commitShasMentioned` reflect that the transcript stops there, not that the agent produced no final report.
 
 ## Provenance
 
@@ -27,7 +27,7 @@ This dataset is the process transcripts of an AI-assisted build of the DeepSeek 
 - Raw transcripts: `data/transcripts/2026-09-06-build/raw`
 - Export date: 2026-09-07
 - Harness repo branch at export time: `claude/coding-agent-harness-u9l4gt`
-- Harness repo HEAD commit at export time: `1e6ecec2594d09e0491c16706527417034054593`
+- Harness repo HEAD commit at export time: `3c22d74d4e293e7d5de7bda93a123e87bd0f9383`
 
 ## Usage
 
