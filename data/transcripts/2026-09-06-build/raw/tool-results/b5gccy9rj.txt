@@ -1,0 +1,350 @@
+=============== docs/architecture.md ===============
+# DeepSeek Harness Architecture
+
+English | [中文](architecture.zh.md)
+
+Read this before changing anything under `packages/`. It assumes you know Cordis; if you do not, start with the [primer](cordis-primer.md) or the [tutorial](cordis-tutorial/index.md).
+
+We recommend using an agent to explore the codebase and understand its architecture.
+
+## Cordis
+
+[Cordis](cordis-primer.md) is the framework under dsh: plugins contribute services, typed events, and reversible effects to a shared context. Every part of the product is a plugin, including the model adapter, the tool registry, the session log, and the agent loop itself, so every part is replaceable from configuration.
+
+There is no privileged core to patch: you extend dsh by mounting a plugin beside the others, and registrations are effects that unwind when their plugin unloads.
+
+## Profiles and bundles
+
+A running `dsh` is a plugin tree composed at boot from ordered layers.
+
+A **profile** is a named composition stored in the Harness home. It lists the bundles it stacks, holds any out-of-tree plugins it installs, and keeps the user's own `cordis.patch.yml`. `web` and `headless` ship as templates.
+
+A **bundle** is a distribution format for Cordis config rows and the code they mount, so whatever it inserts stays patchable by the layers above it.
+
+Each declares itself in its own `package.json` under a `dsh` field: `dsh.profile` lists a profile's bundles, and `dsh.bundle` points at a bundle's patch file.
+
+[`dsh-base`](../packages/bundle/base/README.md) is the first layer of every profile: model adapters, tools, persistence, sandbox and approval policy, settings, credentials, telemetry. [`dsh-web-app`](../packages/bundle/web-app/README.md) adds the browser application; [`dsh-headless`](../packages/bundle/headless/README.md) adds a one-shot runner with no server at all.
+
+Layers apply to an empty entry list in this order: each bundle in the profile's listed order, then the profile's `cordis.patch.yml`, then the home-level one, then any `--patch` overlay. A patch targets a row by id and replaces its whole config, or inserts new rows.
+
+To see the tree your machine actually boots:
+
+```sh
+dsh --profile web --dump-config
+```
+
+Any row it prints can be replaced by a patch of your own.
+
+Composition mechanics are in [app-boot](../packages/boot/app-boot/README.md#profiles); config fields are in the generated [config catalog](config-catalog.md).
+
+## Core packages
+
+Here are some core packages that contribute to the Cordis tree.
+
+| Package | Owns | `ctx` key |
+|---|---|---|
+| [`core/session`](subsystems/session.md) | The append-only `SessionEvent` log and in-memory store | `ctx.sessions` |
+| [`core/system-prompt`](subsystems/system-prompt.md) | Prompt-section and tool-schema assembly | `ctx.systemPrompt` |
+| [`core/tools`](subsystems/tools.md) | The scoped tool registry and guarded execution pipeline | `ctx.tools` |
+| [`core/agent`](subsystems/core.md) | The `Agent` interface, live registry, and `agent/*` events | `ctx.agents` |
+| [`core/agent-loop`](subsystems/core.md) | The default driver implementing that interface | `ctx.agentLoop` |
+| [`core/scope`](subsystems/scope.md) | The per-agent scoped-registration primitive | library, no key |
+| [`llm/llm`](subsystems/llm-streaming.md) | Message and stream vocabulary plus the adapter seam | `ctx.llm` |
+
+## Events
+
+Events are the extension points, and picking the right domain is the first decision in most changes.
+
+- **Session events** are durable facts appended to the log and broadcast through `session/event`. Use one when the fact must survive a reload.
+- **Agent events** (`agent/*`) carry a live `Agent`: inbox, step, status, request, validation, continuation. Use one to observe or intercept work in flight.
+- **Capability events** attach policy and adapters to a seam (`fs/*`, `tools/*`, `telemetry/*`) without importing the loop.
+
+The [event map](event-producer-consumer.md) lists every event's producers and consumers.
+
+## Turn flow
+
+A **step** is one model request plus the tools it calls. A **turn** is zero or more steps: it opens before its first input is claimed and closes once nothing is owed.
+
+```text
+turn/start
+  claim next-step input plus one queued message
+  assemble prompt sections + tool schemas
+  -> agent/pre-step                   reject | enter(messages)
+     reject, or a first enter rewritten empty -> close the turn with no step
+     step/start
+     append entered messages as user/message
+     derive model history from the log
+     agent/request -> llm/stream -> assistant/chunk* -> assistant/message
+     tool/call* -> tools/pre-execute -> tools/execute -> tools/post-execute -> tool/result*
+     step/end
+     tools owe another request, or next-step input arrived -> claim -> next step
+  -> agent/turn-stopping
+turn/end
+```
+
+`turn/*`, `step/*`, `user/message`, `assistant/*`, and `tool/*` are durable session events; the rest are live extension points across three domains. `agent/pre-step`, `agent/request`, `llm/stream`, and the three `tools/*` events are waterfalls, whose listeners must call `next()` to delegate; `agent/turn-stopping` is serial and has no `next()`.
+
+Input reaches the driver through one inbox. Some messages wake it immediately; injected context waits in the inbox until another message does.
+
+`agent/pre-step` decides what the model sees. Listeners may rewrite the claimed messages or reject them outright; a rejected or empty first claim still closes a durable turn that spent no step, so the log records the attempt. Each step reads the prompt sections and tool schemas that plugins registered.
+
+Details: the [sequence diagram](agent-lifecycle.md), the [tool pipeline](tool-execution-pipeline.md), and [cancellation and error recovery](subsystems/core.md#the-agent-handle).
+
+## Session log
+
+The session log is the source of the context the model sees. `deriveMessages()` projects model history from it, and raw `assistant/chunk` events preserve replay and UI fidelity. Fork, resume, transcripts, telemetry, and persistence all derive from this stream.
+
+**Model-visible means logged.** Anything that reaches a model request must be reconstructable from the log, and a runtime invariant asserts it. This is why a new model-visible input requires a new session event: extend `SessionEventMap` and render from the log.
+
+## Capability seams
+
+A **seam** is a swappable capability with three roles: a **Service Definition** declaring the interface, a **Service Provider** implementing it, and a **Consumer** using it, commonly a model-facing tool. A package may combine roles, but one role alone is not a seam; adding a capability means designing all three ([capability graph](capability-seams.md)).
+
+Seams are why one provider swap changes the whole product. Filesystem and subprocess providers share one execution world, so pointing them at a remote sandbox moves Bash, PTY, and LSP with them, with no provider forks. [Subagent providers](subsystems/subagent.md) vary just as widely behind one interface, from a fresh child agent to a delegated turn in another product.
+
+## Where new behavior goes
+
+New behavior attaches to a documented extension point. Changing the loop itself updates this map.
+
+| Goal | Mechanism |
+|---|---|
+| Add a model provider | register its adapter on `ctx.llm` |
+| Add a model-facing capability | register on `ctx.tools`; its schema joins prompt assembly |
+| Give one session a different capability set | compose an agent preset; a service row there needs an `isolate` realm |
+| Add shell execution | register a `ctx.shell` backend; the local one spawns through `ctx.subprocess` |
+| Add persistent terminal execution | register a `ctx.terminals` backend plus `dsh-tool-terminal` |
+| Add a human command | register on `ctx.commands`; it dispatches without a model turn |
+| Add background work | register on `ctx.jobs`; `job_*` tools collect or stop it |
+| Add filesystem access or policy | register a `ctx.fs` provider or listen to `fs/*` events |
+| Confine spawned processes | use a `ctx.sandbox` backend; consumers wrap argv before spawning |
+| Intercept a request, tool, or turn | use its `agent/*` or `tools/*` event; `agent/turn-stopping` stops a turn |
+| Add model-facing context | call `agent.inject()`; it lands in the next admitted request |
+| Add UI or editor integration | drive `ctx.agents` and render from `session/event` |
+| Add a Web Client Chat node | register a `ConversationNodeDefinition` + keyed renderer |
+| Add durable session state | extend `SessionEventMap`; render and replay from the log |
+| Generate session titles | register the sole `ctx.sessionTitle` provider |
+| Manage a same-session objective | use `ctx.goals`; continue through `agent/*` |
+| Fork a live session | `ctx.sessions.fork(source, boundary?, childSessionId?)` |
+| Scope a registration to one agent | use that agent's `agent.ctx` |
+
+The [extension cookbook](cookbook/extension-cookbook.md) maps features to capabilities and indexes the step-by-step guides for [packages](cookbook/adding-a-package.md), [tools](cookbook/adding-a-tool.md), [LLM adapters](cookbook/adding-an-llm-adapter.md), and [Chat nodes](cookbook/adding-a-conversation-node.md).
+=============== packages/README.md ===============
+# Packages
+
+English | [中文](README.zh.md)
+
+npm scope: `@deepseek-ai/dsh-*`; Cordis `Service` subclasses and function plugins contribute through `ctx.effect()`, `ctx.on()`, or `ctx.waterfall()`. Rules: [package](AGENTS.md), [root](../AGENTS.md#conventions).
+
+## Hierarchy
+
+Groups hold `packages/<group>/<pkg>/`; names stay `@deepseek-ai/dsh-<pkg>`. **Group READMEs own package/ctx-key maps.**
+
+| Group | Role | Release expectation |
+|---|---|---|
+| [`core/`](core/README.md) | Product API spine: sessions, prompts, tools, agent services, and the concrete loop | Product — stable API |
+| [`api/`](api/README.md) | Remote BFF assembly and Typert RPC gateway | Product — stable API |
+| [`typert/`](typert/README.md) | Type graph generation, artifact loading, and runtime registry | Product — stable API |
+| [`goal/`](goal/README.md) | Same-session goal persistence and lifecycle | Product — stable API |
+| [`verification/`](verification/README.md) | Executable completion standards whose certificates gate goal completion | Product — stable API |
+| [`components/`](components/README.md) | Component registry: every addressable unit of a composition with kind, provenance, lineage, and callable route, plus seam adapters | Product — stable API |
+| [`improvement/`](improvement/README.md) | Improvement seam: environments with verifiers and trajectory export with certificate-decided rewards | Product — stable API |
+| [`governance/`](governance/README.md) | Signed transitions, terms, curated export | Product — stable API |
+| [`schedule/`](schedule/README.md) | Session-local scheduled follow-ups | Product — stable API |
+| [`feedback/`](feedback/README.md) | Human feedback | Product — stable API |
+| [`identity/`](identity/README.md) | Shared anonymous identity | Product — stable API |
+| [`llm/`](llm/README.md) | LLM capability family: the abstract service + provider adapters | Product — stable API |
+| [`e2b/`](e2b/README.md) | E2B providers | POC |
+| [`subprocess/`](subprocess/README.md) | Subprocess capability family: Service Definition + local process-tree provider | Product — stable API |
+| [`shell/`](shell/README.md) | Bash capability family: executor seam, local impl, model-facing tool | Product — stable API |
+| [`terminal/`](terminal/README.md) | Persistent PTY capability family: owner-scoped sessions, local implementation, and model-facing tools | Product — stable API |
+| [`code-runtime/`](code-runtime/README.md) | Code-execution capability family: Service Definition + worker-thread provider + Code Mode Consumer | Product — stable API |
+| [`sandbox/`](sandbox/README.md) | Process-confinement seam; bwrap/Landlock/Seatbelt backends | Product — stable API |
+| [`fs/`](fs/README.md) | Filesystem capability family: seam, local impl, model-facing file tools, bash-backed discovery tools | Product — stable API |
+| [`lsp/`](lsp/README.md) | LSP capability family: seam, generic stdio provider, and the `lsp` tool | Product — stable API |
+| [`skill/`](skill/README.md) | Skill capability family: the provider registry, local provider, and model-facing catalog/loader | Product — stable API |
+| [`compaction/`](compaction/README.md) | Compaction capability family: Service Definition + basic provider + command Consumer | Product — stable API |
+| [`context/`](context/README.md) | Model-visible request context, including workspace instructions and time context | Product — stable API |
+| [`subagent/`](subagent/README.md) | Subagent capability family: the provider-registry contract and the model-facing delegation tool | Product — stable API |
+| [`jobs/`](jobs/README.md) | Generic background-job runtime and model-facing `job_*` control tools | Product — stable API |
+| [`workflow/`](workflow/README.md) | Workflow seam, worker-thread engine, and model-facing `workflow`/`ralph` tools | Product — stable API |
+| [`web/`](web/README.md) | Web capability family: seam, search/fetch provider impls, and the model-facing web tools | Product — stable API |
+| [`attachment/`](attachment/README.md) | Durable attachment identity, validation, local content-addressed storage | Product — stable API |
+| [`spill/`](spill/README.md) | Spill capability family: storage seam, local impl, tool-result spill policy | Product — stable API |
+| [`todo/`](todo/README.md) | The model-facing `todo_write` tool | Product — stable API |
+| [`plan/`](plan/README.md) | Plan collaboration state with a direct entry command and reviewed exit | Product — stable API |
+| [`preset/`](preset/README.md) | Per-session agent composition from preset `cordis.yml` files | Product — stable API |
+| [`guard/`](guard/README.md) | Loop-hygiene guards: advisory repeat-call reminders, the `tools/execute` deadline enforcer, and the durable session budget | Product — stable API |
+| [`bundle/`](bundle/README.md) | Installable `dsh --profile` patch layers | Product — stable API |
+| [`extensions/`](extensions/README.md) | Agent runtime self-modification: live plugin/service inspection and model-written plugin mount/unmount ([design](../.agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md)) | Product — stable API |
+| [`hooks/`](hooks/README.md) | Hook bridges + the shared Claude Code / Codex wire-protocol library | Product — stable API |
+| [`mcp/`](mcp/README.md) | Model Context Protocol both ways: foreign tools registered on `ctx.tools`, one agent's tools served to a foreign model | Product — stable API |
+| [`session/`](session/README.md) | Durable session data plane: persistence seam + JSONL/SQLite backends, projection seam, log-backed titles, session reporting | Product — stable API |
+| [`session-query/`](session-query/README.md) | Session retrieval family: logical corpus, bounded reads, lineage, event relationships, semantic filtering, and SQLite full-text search | Product — stable API |
+| [`settings/`](settings/README.md) | User-settings seam + file-backed provider | Product — stable API |
+| [`credentials/`](credentials/README.md) | Credential-reference seam + env-over-`.env` provider | Product — stable API |
+| [`storage/`](storage/README.md) | Non-session storage hub + backends + domain form | Product — stable API |
+| [`workspace/`](workspace/README.md) | Workspace entity | Product — stable API |
+| [`sdk/`](sdk/README.md) | Out-of-process runtime SDK: JSON-RPC protocol, TypeScript client, and server plugin | Product — stable API |
+| [`acp/`](acp/README.md) | Automation-only Agent Client Protocol server | Product — stable API |
+| [`interaction/`](interaction/README.md) | Human-collaboration plane: approval/interaction seams, permission preset, commands, ask-user tool | Product — stable API |
+| [`boot/`](boot/README.md) | Shared app-bin boot glue | Product — stable API |
+| [`host/`](host/README.md) | Web-GUI host half: API gateway + HTTP route server | Product — stable API |
+| [`client/`](client/README.md) | Web-GUI browser half: shell, wire, object services, slots, `ui-*` plugins | Product — stable API |
+| [`examples/`](examples/README.md) | Demo bundles (agent-spine + CLI/ACP/JSON-RPC bins) leaves load | Support — example infra |
+| [`test-support/`](test-support/README.md) | Support infrastructure (testkits, invariants, replay, Loader smokes) | Support — lower compatibility expectations |
+| [`util/`](util/README.md) | Low-level zero-dependency utilities shared across groups (`Branded<B>`, Harness home/path helpers, timeout, retention) | Support — small, stable, harness-dep-free |
+
+New packages join existing groups; new groups update their README and this table.
+
+## Dependencies
+
+The dependency graph is generated: [docs/module-graph.md](../docs/module-graph.md) (`pnpm run gen-module-graph`, freshness-gated in CI).
+
+**Extension plugins depend on Service Definitions, never concrete providers.** `dsh-agent-loop` is swappable; UI, hook, and tool plugins use `dsh-agent`. Composition bundles, including `dsh-agent-spine-demo`, may depend on spine plugins. Capabilities separate Service Definition / Service Provider / Consumer roles when they evolve independently; see [capability seams](../.agents/notes/implemented/architecture/2026-06-13-capability-seams.md).
+
+Package READMEs cover purpose, APIs, extension points, and [Model Experience](../docs/cookbook/adding-a-package.md#4-write-the-package-readme) unless on the model-agnostic [omission allowlist](../scripts/verify-package-readme-model-experience.ts). They also carry `## Known Limitations and Deferred Work` or use its [allowlist](../scripts/verify-package-readme-limitations.ts).
+=============== packages/improvement/README.md ===============
+# improvement/ — from certified sessions to training and evaluation records
+
+English | [中文](README.zh.md)
+
+The improvement seam turns what the harness already records into what a trainer and an evaluator consume. Environments declare tasks with executable checks in the completion-standard vocabulary; the runner runs one environment as one fresh session, stamps it, executes the checks as the validator, and completes the goal only under a certificate; the fleet runs a plan of environment × model × repetition cells through the runner and folds a leaderboard; trajectories fold persisted sessions into chat-format records whose reward a certificate decided and withhold held-out environments by the stamp; the scorekeeper folds the same logs into session facts and a scoreboard, so every number is recomputable from the log alone; an experiment freezes a plan, runs two arms over paired cells, and reports the delta with a confidence interval and a verdict; the shift driver runs the fleet unattended on a cadence, recording each shift in its own session log so a restart resumes exactly the cells that never started; the program ledger decomposes one client deliverable into department goals, each on its own worktree and session, and releases only on a certificate of the merged head; and the observatory publishes the fold as a page that withholds the configured districts and the held-out split, counts what it withheld, and shows a staleness notice in place of every figure once its newest session is too old.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`environments/`](environments/README.md) | Environment registry: tasks with verifiers, held out or training-eligible; the `environment/run` stamp vocabulary | `ctx.environments` |
+| [`environment-runner/`](environment-runner/README.md) | Environment runner: one environment as one validated session, the runner as validator | `ctx.environmentRuns` |
+| [`fleet/`](fleet/README.md) | Fleet runs: a plan of environment × model × repetition cells, every outcome kept, a leaderboard per route and environment | `ctx.fleet` |
+| [`trajectories/`](trajectories/README.md) | Trajectory export: sessions as `dsh-trajectory/1` JSONL with rewards, provenance, and the environment stamp | `ctx.trajectories` |
+| [`scorekeeper/`](scorekeeper/README.md) | Session facts: the `sessionFacts` projection unit, a log-derived scoreboard with pass@k per environment, and a JSONL facts export | `ctx.scorekeeper` |
+| [`experiments/`](experiments/README.md) | Experiments: a frozen paired comparison of two arms over fleet cells, with bootstrap intervals and a promote/reject/inconclusive verdict | `ctx.experiments` |
+| [`shifts/`](shifts/README.md) | Shifts: a cadenced, spend-windowed loop over fleet plans whose ledger lives in its own session log and whose interrupted shifts resume by ledger and run stamp | `ctx.shifts` |
+| [`program/`](program/README.md) | Programs: one deliverable decomposed into department goals, each on its own git worktree, session, preset, and caps, integrated on a merged head and released on its certificate | `ctx.programs` |
+| [`observatory/`](observatory/README.md) | The public page: a withheld, staleness-aware fold of every persisted session, rendered as one self-contained HTML page and one JSON document | `ctx.observatory` |
+=============== packages/subagent/README.md ===============
+# subagent/ — subagent capability family
+
+English | [中文](README.zh.md)
+
+This family lets an agent delegate work to child agents. Multiple named providers may coexist in one context.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`subagent/`](subagent/README.md) | Defines provider registration, delegation, and continuation | `ctx.subagents` |
+| [`subagent-inprocess/`](subagent-in-process-driver/README.md) | Provides the shared in-process run driver | — |
+| [`subagent-spawn-in-process/`](subagent-spawn-in-process/README.md) | Starts a fresh in-process child | registers on `ctx.subagents` |
+| [`subagent-fork-in-process/`](subagent-fork-in-process/README.md) | Starts an in-process child from the parent's completed history | registers on `ctx.subagents` |
+| [`subagent-acp/`](subagent-acp/README.md) | Starts an out-of-process child over ACP | registers on `ctx.subagents` |
+| [`subagent-codex/`](subagent-codex/README.md) | Starts a real Codex app-server child | registers on `ctx.subagents` |
+| [`subagent-claude-code/`](subagent-claude-code/README.md) | Starts a real Claude Code child through the official Claude Agent SDK | registers on `ctx.subagents` |
+| [`subagent-dsh-sdk/`](subagent-dsh-sdk/README.md) | Starts an out-of-process Harness child through the TypeScript SDK | registers on `ctx.subagents` |
+| [`tool-subagent/`](tool-subagent/README.md) | Exposes delegation to the model | registers on `ctx.tools` |
+| [`tool-subagent-control/`](tool-subagent-control/README.md) | Exposes child messaging and listing to the model | registers on `ctx.tools` |
+| [`tool-subagent-report/`](tool-subagent-report/README.md) | Provides the child-to-parent report channel | registers in child scopes |
+
+See the decisions for the [capability family](../../.agents/notes/implemented/feature/2026-06-21-subagent-capability-seam.md), [continuable children](../../.agents/notes/implemented/feature/2026-07-21-continuable-background-subagents.md), and [control tools](../../.agents/notes/implemented/simplification/2026-07-26-merge-subagent-control-service.md).
+
+The subsystem reference — start requests, results, live runs, the provider contract, continuable background children — is [docs/subsystems/subagent.md](../../docs/subsystems/subagent.md); design rationale in the [subagent capability seam](../../.agents/notes/implemented/feature/2026-06-21-subagent-capability-seam.md), [continuable background subagents](../../.agents/notes/implemented/feature/2026-07-21-continuable-background-subagents.md), and [merged subagent control service](../../.agents/notes/implemented/simplification/2026-07-26-merge-subagent-control-service.md) Agent Notes.
+=============== packages/llm/README.md ===============
+# llm/ — LLM capability family
+
+English | [中文](README.zh.md)
+
+The LLM seam and its provider adapters. The `llm` package owns both the Service Definition and Consumer roles: the abstract service, content-block vocabulary, and stream-chunk assembler. Provider adapters register on `ctx.llm`. All **product** packages.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`llm/`](llm/README.md) | LLM service and shared streaming vocabulary | `ctx.llm` |
+| [`token-meter/`](token-meter/README.md) | Replay-aware token measurement | `ctx.tokenMeter` |
+| [`llm-retry/`](llm-retry/README.md) | Provider-scoped retry policy | listens to `agent/request-error` |
+| [`llm-deepseek/`](llm-deepseek/README.md) | Direct DeepSeek adapter | registers on `ctx.llm` |
+| [`llm-pi-ai/`](llm-pi-ai/README.md) | Multi-provider pi-ai adapter | registers on `ctx.llm` |
+| [`llm-claude-code/`](llm-claude-code/README.md) | Local Claude Code installation adapter | registers on `ctx.llm` |
+
+Adapters register provider routes on the seam; retry and token measurement remain separate consumers. The child READMEs own routing, metadata, replay, and provider-wire details; the [LLM architecture decisions](../../.agents/notes/implemented/architecture/2026-06-13-twin-llm-adapters.md) own the rationale.
+
+The subsystem reference — messages and blocks, the model request, the `StreamChunk` protocol, the adapter contract — is [docs/subsystems/llm-streaming.md](../../docs/subsystems/llm-streaming.md) (token measurement: [token-meter.md](../../docs/subsystems/token-meter.md)); see the [twin adapters](../../.agents/notes/implemented/architecture/2026-06-13-twin-llm-adapters.md), [replay token meter](../../.agents/notes/implemented/architecture/2026-07-15-replay-token-meter-service.md), and [routed model context](../../.agents/notes/implemented/architecture/2026-07-20-routed-model-context-and-compaction-policy.md) Agent Notes.
+=============== packages/verification/README.md ===============
+# verification/ — executable completion standards
+
+English | [中文](README.zh.md)
+
+Durable completion standards for an agent session's goal, owned independently of the validator, orchestrator, and policy consumers that use them. A goal measured by a standard completes against a certificate from a fully passing run, not against a self-report; standard state is part of the owning session log. What the checks execute is the validator's own, and the barrier decides which directories an implementer session may not read; each path-opening capability enforces that decision where it opens paths.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`verification/`](verification/README.md) | Completion-standard state, certificates, directives | `ctx.completionStandards` |
+| [`read-barrier/`](read-barrier/README.md) | The validator-owned directory tree, per-run reservations, and the per-session deny decision | `ctx.readBarrier` |
+| [`judge/`](judge/README.md) | The lineage-free judge session that audits one recorded attempt and records a verdict | `ctx.judge` |
+| [`command-verification/`](command-verification/README.md) | Human-facing `/verification` evidence ledger | — |
+=============== packages/components/README.md ===============
+# components/ — every addressable unit of a composition
+
+English | [中文](README.zh.md)
+
+One registry for what a composition contains and how a model reaches each part: plugins and plugin-provided members carry a stable id, a content address, a kind, provenance, lineage, membership, and a callable route, filed in the global layer or an agent's own. Producers are adapters that mirror one seam's live registry and own their kind's canonical value; consumers read the inventory for humans, models, and the seams that score components.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`components/`](components/README.md) | Component registry: descriptors, kinds, lineage, callable routes | `ctx.components` |
+| [`components-tools/`](components-tools/README.md) | Mirrors visible tools as `tool` components | — |
+| [`components-prompt/`](components-prompt/README.md) | Mirrors system-prompt sections as `prompt-section` components | — |
+| [`components-presets/`](components-presets/README.md) | Mirrors standing agent-preset mounts as `preset` components | — |
+| [`components-skills/`](components-skills/README.md) | Mirrors loaded skill bodies as `skill` components | — |
+| [`components-packages/`](components-packages/README.md) | Mirrors Loader entries and runtime-written packages as `plugin` and `dynamic-package` components | — |
+| [`components-subagents/`](components-subagents/README.md) | Mirrors subagent providers as `agent-provider` components | — |
+| [`components-manifest/`](components-manifest/README.md) | Records the composition in play as a `composition/manifest` event | — |
+| [`command-components/`](command-components/README.md) | Human-facing `/components` inventory | — |
+=============== packages/session/README.md ===============
+# session/ — durable session data plane
+
+English | [中文](README.zh.md)
+
+The durable family around `core/session`'s live in-memory service: the persistence seam with its storage backends and checkpoint policy, the projection seam that serves whole log-derived values, log-backed titles, and outbound session telemetry. All **product** packages. `session-query/` remains a sibling group: the read/tool surface is consumed independently of persistence internals.
+
+## Persistence
+
+Durable session persistence, semantic checkpoint policy, and the shipped storage backends.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`session-persistence/`](session-persistence/README.md) | Defines the persistence service and shared write coordination | `ctx.sessionPersistence` |
+| [`session-checkpoint-policy/`](session-checkpoint-policy/README.md) | Applies semantic durability checkpoints | wraps `ctx.llm` and `ctx.tools` |
+| [`session-persistence-jsonl/`](session-persistence-jsonl/README.md) | Persists sessions in JSONL files | registers on `ctx.sessionPersistence` |
+| [`session-persistence-sqlite/`](session-persistence-sqlite/README.md) | Persists sessions in SQLite | registers on `ctx.sessionPersistence` |
+
+The [session-persistence decision](../../.agents/notes/implemented/architecture/2026-06-14-session-persistence.md) records the persistence design.
+
+## Projection
+
+Serves current, log-derived per-session state to client carriers.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`session-projection/`](session-projection/README.md) | Defines and drives session projection units | `ctx.sessionProjections` |
+| [`session-projection-cache/`](session-projection-cache/README.md) | Persists and restores projection checkpoints | `ctx.sessionProjectionCache` |
+| [`session-stats/`](session-stats/README.md) | Serves whole-log conversation counts and wall times (`sessionStats` unit) | registers on `ctx.sessionProjections` |
+
+## Titles
+
+Derives durable session titles from the session log, with an optional model-backed provider.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`session-title/`](session-title/README.md) | Owns title state, fallback behavior, provider registration, and refresh | `ctx.sessionTitle` |
+| [`session-title-llm/`](session-title-llm/README.md) | Provides shared model-backed title generation | — |
+| [`session-title-first-prompt-llm/`](session-title-first-prompt-llm/README.md) | Titles a session from its first eligible human message | registers on `ctx.sessionTitle` |
+| [`session-title-all-prompts-llm/`](session-title-all-prompts-llm/README.md) | Titles a session from all eligible human messages | registers on `ctx.sessionTitle` |
+
+Deployments may register one model-backed provider; the service retains a deterministic fallback when none is present.
+
+## SessionTelemetryBackend
+
+Projects session activity into outbound telemetry and delegates delivery to a configured reporting backend. The [telemetry decision](../../.agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.md) records the reporting boundary; the [mode decision](../../.agents/notes/implemented/feature/2026-08-05-feedback-gated-session-telemetry.md) records immediate, feedback-gated, and disabled delivery.
+
+| Package | Role |
+|---|---|
+| [`session-telemetry/`](session-telemetry/README.md) | Defines capture, redaction, projection, and live or on-demand backend delivery. |
+| [`session-telemetry-otel/`](session-telemetry-otel/README.md) | Delivers telemetry through OpenTelemetry logs in `FULL`, `FEEDBACK_ONLY`, or `DISABLED` mode. |
+
+The subsystem references: [persistence.md](../../docs/subsystems/persistence.md), [session-projection.md](../../docs/subsystems/session-projection.md), [session-title.md](../../docs/subsystems/session-title.md), and [session-telemetry.md](../../docs/subsystems/session-telemetry.md). Only one title provider may register at a time; the demo spine mounts the fallback service and leaves both model providers out of default composition.
