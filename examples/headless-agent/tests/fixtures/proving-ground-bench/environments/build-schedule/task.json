@@ -1,0 +1,30 @@
+{
+  "id": "code:build-schedule",
+  "tier": 5,
+  "domain": "data-structures-algorithms",
+  "title": "Schedule a build graph into waves, timings, and worker lanes",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It reads a build graph from standard input and takes one of three argument forms: `waves`, `explain`, or `pack` followed by a worker count. Split the input on newlines and drop the empty tail a trailing newline leaves. Trim each line; ignore it when it is empty or begins with `#`; otherwise split it on runs of whitespace.\n\nA `task <name> <cost>` line declares a task. A name is one or more of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `_`, `.` and `-`. A cost is an unsigned decimal integer written without a sign and without separators, so `01` is the cost 1. A `dep <name> <dependency>...` line makes the first name depend on every later name on the line; a repeated edge counts once, and a `dep` line may appear before the tasks it names. Every name a `dep` line uses must be declared by some `task` line somewhere in the input. An empty input is a valid graph with no task.\n\n`waves` prints one line per wave, `wave K: ` followed by the wave's task names in ascending order separated by single spaces, and then a final line `total T`. Wave 0 holds every task with no dependency and wave K holds every task whose deepest dependency is in wave K-1. `T` is the makespan with unlimited workers: the greatest finish time, or 0 when there is no task. A task's start is the greatest finish of its dependencies, or 0 when it has none, and its finish is its start plus its cost.\n\n`explain` prints one line per task in ascending name order, `<name> start=<s> finish=<f> depth=<d>`, where the start and finish are the ones above and the depth is the wave the task sits in, and then the same final `total T` line.\n\n`pack <workers>` simulates the same graph on that many workers. Time starts at 0. While a worker is free at the current instant and some task is ready, meaning every one of its dependencies has already finished at or before that instant, take the ready task with the greatest priority, breaking ties by ascending name, and start it on the free worker with the smallest index. A task's priority is the cost of the longest chain that begins at it, counting its own cost and then the costs down to any task that nothing depends on. A task of cost 0 finishes at the instant it starts, so its worker is free again at once and its dependents may start in the same instant. When nothing more can start, time advances to the next instant at which a worker becomes free, and the loop repeats. The output is one line per worker in index order, `worker <i>:` followed by ` <name>@<start>-<finish>` for each task it ran in the order it ran them, and then a final line `makespan M` holding the greatest finish, or 0 when there is no task.\n\nA cycle makes the graph unschedulable: write `error: cycle: ` followed by the cycle's names joined with ` -> ` and ending with a repeat of the first name, then exit 3, having written nothing to standard output. The reported cycle is the first one a depth-first search finds when it starts from each task in ascending name order and walks each task's dependencies in ascending name order; it runs from the task the search re-entered, through the search stack, back to that task.\n\nEvery other failure writes one line to standard error and exits 2, having written nothing to standard output; stop at the first one. The messages are `error: usage: cli.js waves|explain|pack <workers>` when the arguments are not one of the three forms; `error: workers must be a positive integer` when the worker count is not a decimal integer of at least 1 written without a sign or a leading zero; `error: line N: expected task <name> <cost>` and `error: line N: expected dep <name> <dependency>...` when a directive has the wrong number of words; `error: line N: invalid task name <name>` for a name outside the allowed characters; `error: line N: cost must be a non-negative integer`; `error: line N: task <name> is declared twice`; `error: line N: unknown directive <word>`; and `error: unknown task <name>`, with no line number, for the first name in input order that a `dep` line uses and no `task` line declares.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}

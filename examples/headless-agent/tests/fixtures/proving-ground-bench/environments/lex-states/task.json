@@ -1,0 +1,30 @@
+{
+  "id": "code:lex-states",
+  "tier": 5,
+  "domain": "state-machines",
+  "title": "Scan a small language into positioned tokens",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes exactly one argument, `tokens` or `stats`, reads UTF-8 source text from standard input, and scans it. Exit 0 when the whole input scans.\n\nPositions count from 1. Reading a line feed moves to the next line and sets the column back to 1. Reading a tab moves the column forward to the next multiple of 4 plus 1, so a tab in column 1 lands on column 5 and a tab in column 6 lands on column 9. Every other code point moves the column forward by 1. A token's position is where its first code point sits.\n\nSpaces, tabs, carriage returns and line feeds separate tokens and produce none. `//` starts a comment that runs to the next line feed or to the end of the input. `/*` starts a block comment that ends at the matching `*/` and nests, so `/* a /* b */ c */` is one comment; a block comment that never closes is an error reported at the `/*` that opened the outermost one.\n\nAn identifier starts with a letter or `_` and continues with letters, digits and `_`; it is a `keyword` when it is exactly `let`, `if`, `else`, `while`, `return`, `true`, `false` or `null`, and an `ident` otherwise. A `number` starts with a digit. `0x` or `0X` introduces hexadecimal digits, `0b` or `0B` binary, and `0o` or `0O` octal; anything else is decimal digits, optionally a `.` and more digits, and optionally `e` or `E`, an optional `+` or `-`, and more digits. A `.` only continues a number when a digit follows it, and an exponent marker only continues one when a digit, or a sign and then a digit, follows it. A `_` may sit between two digits of the same run and nowhere else. A number followed immediately by a letter, a digit or `_` that the rules above did not consume, and a prefix with no digit after it, are both errors, and the reported text is everything the scanner ran through, up to and including those trailing characters.\n\nA `string` is written between double quotes and carries the escapes `\\n`, `\\t`, `\\r`, `\\\\`, `\\\"`, `\\0`, `\\xHH` with exactly two hexadecimal digits, and `\\u{H...}` with at least one hexadecimal digit naming a code point of at most 10FFFF. Any other escape is an error reported at its backslash. A line feed inside a string is an error reported where the line feed sits, and a string the input ends before closing is an error reported at its opening quote. A `rawstring` is written `r\"` then any characters, line feeds included, up to the first `\"`; it carries no escapes, and its position is that of the `r`.\n\nThe punctuation, matched longest first, is `==`, `!=`, `<=`, `>=`, `&&`, `||`, `->`, `=>`, `+`, `-`, `*`, `/`, `%`, `=`, `<`, `>`, `!`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `;` and `.`. Any other character is an error.\n\n`tokens` prints one line per token, `<line>:<column> <kind> <body>`. For a `string` and a `rawstring` the body is the decoded value written as a JSON string, quotes and escapes included; for every other kind it is the source text of the token. `stats` instead prints one line per kind, `<kind> <count>`, for all six kinds `ident`, `keyword`, `number`, `punct`, `rawstring` and `string` in that order, whether or not any token had that kind, and then `total N`.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output; stop at the first one. The message is `error: usage: cli.js tokens|stats` when the argument is not exactly one of the two mode words, and otherwise `error: <line>:<column>: <reason>` where the reason is one of `unterminated string`, `newline in string`, `unterminated block comment`, `invalid escape \\<character>`, `invalid number <text>` and `unexpected character <character>`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}

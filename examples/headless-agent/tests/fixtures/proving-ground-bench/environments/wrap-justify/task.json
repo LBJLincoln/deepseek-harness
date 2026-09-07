@@ -1,0 +1,30 @@
+{
+  "id": "code:wrap-justify",
+  "tier": 5,
+  "domain": "text",
+  "title": "Wrap and justify text by display columns with hyphenation points",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes two arguments, `wrap` or `justify` followed by a column width, reads UTF-8 text from standard input, and writes the laid-out text to standard output. Split the input on newlines and drop the empty tail a trailing newline leaves. Exit 0 on success.\n\nA line whose characters are all spaces and tabs ends the current paragraph; a run of such lines ends only one, and such lines before the first paragraph and after the last produce nothing. Every other line contributes its words, which are the runs between spaces and tabs, so the input's own line breaks carry no meaning and a paragraph is re-flowed from its words alone. Paragraphs are printed in order, separated by exactly one empty line.\n\nWidth is counted in display columns per code point, not in characters or bytes. A code point in U+0300 to U+036F, U+1AB0 to U+1AFF, U+20D0 to U+20F0, or U+FE20 to U+FE2F occupies 0 columns. A code point in U+1100 to U+115F, U+2E80 to U+A4CF, U+AC00 to U+D7A3, U+F900 to U+FAFF, U+FE30 to U+FE4F, U+FF00 to U+FF60, or U+FFE0 to U+FFE6 occupies 2. Every other code point occupies 1. A soft hyphen, U+00AD, occupies none and never appears in the output.\n\nA soft hyphen inside a word marks a place the word may be broken. Break a paragraph greedily: keep adding the next word to the current line, separated from the previous word by one space, while the line stays within the width. When the whole word does not fit, look at its break points and take the last one whose text before the soft hyphen, plus the `-` that replaces it, still fits on the current line; put that text and the `-` on the line, end the line, and carry the text after that soft hyphen forward as the next word, which may itself break again. When no break point fits and the line already holds a word, end the line and start the word on the next one. When no break point fits and the line is empty, the word takes a line of its own and overflows it. Soft hyphens that were not used for a break are removed wherever the word is printed.\n\n`wrap` prints each line's words joined by single spaces. `justify` prints the last line of each paragraph the same way, and pads every earlier line to exactly the width by widening the gaps between its words: with G gaps and E columns to spread over them, every gap takes the floor of E divided by G, and the leftmost E modulo G gaps take one more. A line with a single word, and a line whose words plus one space per gap already reach or pass the width, is printed with single spaces instead.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output. The messages are `error: usage: cli.js wrap|justify <width>` when the arguments are not one of the two mode words followed by exactly one more, and `error: width must be a positive integer` when the width is not a decimal integer of at least 1 written without a sign and without a leading zero.",
+  "heldOut": true,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}

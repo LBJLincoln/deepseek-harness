@@ -1,0 +1,2721 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b\nballot 3 a\nballot 1 b\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=3 b=1 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b\nballot 3 a\nballot 1 b\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates alice bob carol\nballot 4 alice bob\nballot 3 bob carol\nballot 2 carol bob\nballot 1 carol\n",
+  "exitCode": 0,
+  "stdout": "round 1: alice=4 bob=3 carol=3 exhausted=0\neliminated carol\nround 2: bob=5 alice=4 exhausted=1\nwinner bob\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates alice bob carol\nballot 4 alice bob\nballot 3 bob carol\nballot 2 carol bob\nballot 1 carol\n",
+  "exitCode": 0,
+  "stdout": "rounds 2\nwinner bob\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 3 a\nballot 2 b\nballot 1 c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=3 b=2 c=1 exhausted=0\neliminated c\nround 2: a=3 b=2 exhausted=1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 3 a\nballot 2 b\nballot 1 c\n",
+  "exitCode": 0,
+  "stdout": "rounds 2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 2 a\nballot 2 b\nballot 2 c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=2 c=2 exhausted=0\neliminated c\nround 2: a=2 b=2 exhausted=2\neliminated b\nround 3: a=2 exhausted=4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 2 a\nballot 2 b\nballot 2 c\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 2 a b\nballot 2 b a\nballot 2 c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=2 c=2 exhausted=0\neliminated c\nround 2: a=2 b=2 exhausted=2\neliminated b\nround 3: a=4 exhausted=2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 2 a b\nballot 2 b a\nballot 2 c\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 1 a\nballot 1 b\nballot 1 c\nballot 1 d\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=1 b=1 c=1 d=1 exhausted=0\neliminated d\nround 2: a=1 b=1 c=1 exhausted=1\neliminated c\nround 3: a=1 b=1 exhausted=2\neliminated b\nround 4: a=1 exhausted=3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 1 a\nballot 1 b\nballot 1 c\nballot 1 d\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 5 a\nballot 1 b c\nballot 1 c b\nballot 1 d\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=5 b=1 c=1 d=1 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 5 a\nballot 1 b c\nballot 1 c b\nballot 1 d\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=0 b=0 exhausted=0\nno winner\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nno winner\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=1 b=0 c=0 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates zeta alpha\nballot 1 zeta\nballot 1 alpha\n",
+  "exitCode": 0,
+  "stdout": "round 1: alpha=1 zeta=1 exhausted=0\neliminated zeta\nround 2: alpha=1 exhausted=1\nwinner alpha\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates zeta alpha\nballot 1 zeta\nballot 1 alpha\n",
+  "exitCode": 0,
+  "stdout": "rounds 2\nwinner alpha\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 1 c\nballot 1 b\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=1 b=1 c=1 exhausted=0\neliminated c\nround 2: a=1 b=1 exhausted=1\neliminated b\nround 3: a=1 exhausted=2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 1 c\nballot 1 b\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates aa ab ac\nballot 2 aa\nballot 2 ab\nballot 2 ac\n",
+  "exitCode": 0,
+  "stdout": "round 1: aa=2 ab=2 ac=2 exhausted=0\neliminated ac\nround 2: aa=2 ab=2 exhausted=2\neliminated ab\nround 3: aa=2 exhausted=4\nwinner aa\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates aa ab ac\nballot 2 aa\nballot 2 ab\nballot 2 ac\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner aa\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 4 a b c\nballot 4 b a c\nballot 3 c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=4 b=4 c=3 exhausted=0\neliminated c\nround 2: a=4 b=4 exhausted=3\neliminated b\nround 3: a=8 exhausted=3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 4 a b c\nballot 4 b a c\nballot 3 c\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d e\nballot 6 a\nballot 5 b\nballot 4 c\nballot 4 d\nballot 1 e d\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=6 b=5 c=4 d=4 e=1 exhausted=0\neliminated e\nround 2: a=6 b=5 d=5 c=4 exhausted=0\neliminated c\nround 3: a=6 b=5 d=5 exhausted=4\neliminated d\nround 4: a=6 b=5 exhausted=9\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d e\nballot 6 a\nballot 5 b\nballot 4 c\nballot 4 d\nballot 1 e d\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 1 a b c\nballot 1 b c a\nballot 1 c a b\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=1 b=1 c=1 exhausted=0\neliminated c\nround 2: a=2 b=1 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 1 a b c\nballot 1 b c a\nballot 1 c a b\n",
+  "exitCode": 0,
+  "stdout": "rounds 2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 10 a b\nballot 10 b a\nballot 1 c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=10 b=10 c=1 exhausted=0\neliminated c\nround 2: a=10 b=10 exhausted=1\neliminated b\nround 3: a=20 exhausted=1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 10 a b\nballot 10 b a\nballot 1 c\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "# leading comment\n\ncandidates a\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=1 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "# leading comment\n\ncandidates a\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "   candidates a b   \n  ballot 2 a  \n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=0 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "   candidates a b   \n  ballot 2 a  \n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 1 a\nballot 1 a\nballot 1 b\nballot 1 c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=1 c=1 exhausted=0\neliminated c\nround 2: a=2 b=1 exhausted=1\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 1 a\nballot 1 a\nballot 1 b\nballot 1 c\n",
+  "exitCode": 0,
+  "stdout": "rounds 2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 3 d c b a\nballot 3 c d b a\nballot 2 b\nballot 2 a\n",
+  "exitCode": 0,
+  "stdout": "round 1: c=3 d=3 a=2 b=2 exhausted=0\neliminated b\nround 2: c=3 d=3 a=2 exhausted=2\neliminated a\nround 3: c=3 d=3 exhausted=4\neliminated d\nround 4: c=6 exhausted=4\nwinner c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 3 d c b a\nballot 3 c d b a\nballot 2 b\nballot 2 a\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 4 a\nballot 2 b c\nballot 2 c b\nballot 2 d b\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=4 b=2 c=2 d=2 exhausted=0\neliminated d\nround 2: a=4 b=4 c=2 exhausted=0\neliminated c\nround 3: b=6 a=4 exhausted=0\nwinner b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 4 a\nballot 2 b c\nballot 2 c b\nballot 2 d b\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 2 a\nballot 2 b\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=2 c=0 exhausted=0\neliminated c\nround 2: a=2 b=2 exhausted=0\neliminated b\nround 3: a=2 exhausted=2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 2 a\nballot 2 b\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 5 a\nballot 3 b\nballot 1 c d\nballot 1 d c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=5 b=3 c=1 d=1 exhausted=0\neliminated d\nround 2: a=5 b=3 c=2 exhausted=0\neliminated c\nround 3: a=5 b=3 exhausted=2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 5 a\nballot 3 b\nballot 1 c d\nballot 1 d c\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d e\nballot 1 a\nballot 1 b\nballot 1 c\nballot 1 d\nballot 1 e\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=1 b=1 c=1 d=1 e=1 exhausted=0\neliminated e\nround 2: a=1 b=1 c=1 d=1 exhausted=1\neliminated d\nround 3: a=1 b=1 c=1 exhausted=2\neliminated c\nround 4: a=1 b=1 exhausted=3\neliminated b\nround 5: a=1 exhausted=4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d e\nballot 1 a\nballot 1 b\nballot 1 c\nballot 1 d\nballot 1 e\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates p q r s\nballot 6 p\nballot 3 q r\nballot 3 r q\nballot 2 s q\n",
+  "exitCode": 0,
+  "stdout": "round 1: p=6 q=3 r=3 s=2 exhausted=0\neliminated s\nround 2: p=6 q=5 r=3 exhausted=0\neliminated r\nround 3: q=8 p=6 exhausted=0\nwinner q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates p q r s\nballot 6 p\nballot 3 q r\nballot 3 r q\nballot 2 s q\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 2 a b\nballot 2 b a\nballot 1 c d\nballot 1 d c\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=2 c=1 d=1 exhausted=0\neliminated d\nround 2: a=2 b=2 c=2 exhausted=0\neliminated c\nround 3: a=2 b=2 exhausted=2\neliminated b\nround 4: a=4 exhausted=2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 2 a b\nballot 2 b a\nballot 1 c d\nballot 1 d c\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d e\nballot 4 a\nballot 3 b\nballot 3 c\nballot 1 d e\nballot 1 e d\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=4 b=3 c=3 d=1 e=1 exhausted=0\neliminated e\nround 2: a=4 b=3 c=3 d=2 exhausted=0\neliminated d\nround 3: a=4 b=3 c=3 exhausted=2\neliminated c\nround 4: a=4 b=3 exhausted=5\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d e\nballot 4 a\nballot 3 b\nballot 3 c\nballot 1 d e\nballot 1 e d\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ab aa ac\nballot 2 ab\nballot 2 aa\nballot 2 ac\n",
+  "exitCode": 0,
+  "stdout": "round 1: aa=2 ab=2 ac=2 exhausted=0\neliminated ac\nround 2: aa=2 ab=2 exhausted=2\neliminated ab\nround 3: aa=2 exhausted=4\nwinner aa\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ab aa ac\nballot 2 ab\nballot 2 aa\nballot 2 ac\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner aa\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 3 a b\nballot 3 b a\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=3 b=3 c=0 exhausted=0\neliminated c\nround 2: a=3 b=3 exhausted=0\neliminated b\nround 3: a=6 exhausted=0\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 3 a b\nballot 3 b a\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c\nballot 1 a b c\nballot 1 a c b\nballot 2 b\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=2 b=2 c=0 exhausted=0\neliminated c\nround 2: a=2 b=2 exhausted=0\neliminated b\nround 3: a=2 exhausted=2\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c\nballot 1 a b c\nballot 1 a c b\nballot 2 b\n",
+  "exitCode": 0,
+  "stdout": "rounds 3\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 3 a\nballot 3 b\nballot 3 c\nballot 3 d\n",
+  "exitCode": 0,
+  "stdout": "round 1: a=3 b=3 c=3 d=3 exhausted=0\neliminated d\nround 2: a=3 b=3 c=3 exhausted=3\neliminated c\nround 3: a=3 b=3 exhausted=6\neliminated b\nround 4: a=3 exhausted=9\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 3 a\nballot 3 b\nballot 3 c\nballot 3 d\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b c d\nballot 1 d\nballot 2 c\nballot 2 b\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "round 1: b=2 c=2 a=1 d=1 exhausted=0\neliminated d\nround 2: b=2 c=2 a=1 exhausted=1\neliminated a\nround 3: b=2 c=2 exhausted=2\neliminated c\nround 4: b=2 exhausted=4\nwinner b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b c d\nballot 1 d\nballot 2 c\nballot 2 b\nballot 1 a\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "ballot 1 a\ncandidates a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: candidates must be declared once, before any ballot\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "ballot 1 a\ncandidates a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: candidates must be declared once, before any ballot\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\ncandidates b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: candidates must be declared once, before any ballot\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\ncandidates b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: candidates must be declared once, before any ballot\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nballot 1 z\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown candidate z\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nballot 1 z\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown candidate z\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a b\nballot 1 a b a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: candidate a is repeated\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a b\nballot 1 a b a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: candidate a is repeated\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nballot 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: count must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nballot 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: count must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nballot 01 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: count must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nballot 01 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: count must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nballot -1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: count must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nballot -1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: count must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nballot 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected ballot <count> <candidate>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nballot 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected ballot <count> <candidate>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nballot\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected ballot <count> <candidate>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nballot\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected ballot <count> <candidate>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected candidates <name>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected candidates <name>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: candidate a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: candidate a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a!\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid candidate name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a!\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid candidate name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "# nothing\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: no candidates\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "# nothing\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: no candidates\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: no candidates\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: no candidates\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates a\nvote 1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown directive vote\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates a\nvote 1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown directive vote\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-095",
+  "weight": 3,
+  "argv": [
+   "count"
+  ],
+  "stdin": "candidates alice bob carol\nballot 4 alice bob\nballot 3 bob carol\nballot 2 carol bob\nballot 1 carol\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js rounds|tally\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-096",
+  "weight": 3,
+  "argv": [],
+  "stdin": "candidates alice bob carol\nballot 4 alice bob\nballot 3 bob carol\nballot 2 carol bob\nballot 1 carol\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js rounds|tally\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-097",
+  "weight": 3,
+  "argv": [
+   "rounds",
+   "tally"
+  ],
+  "stdin": "candidates alice bob carol\nballot 4 alice bob\nballot 3 bob carol\nballot 2 carol bob\nballot 1 carol\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js rounds|tally\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-098",
+  "weight": 3,
+  "argv": [
+   "Rounds"
+  ],
+  "stdin": "candidates alice bob carol\nballot 4 alice bob\nballot 3 bob carol\nballot 2 carol bob\nballot 1 carol\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js rounds|tally\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy\nballot 6 ann bo\nballot 4 bo ann\nballot 5 bo ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy\nballot 1 ann bo cy\nballot 2 bo cy ann\nballot 3 cy ann bo\nballot 6 cy\nballot 5 ann\nballot 1 cy bo\nballot 6 ann\n",
+  "exitCode": 0,
+  "stdout": "round 1: ann=12 cy=10 bo=2 exhausted=0\neliminated bo\nround 2: ann=12 cy=12 exhausted=0\neliminated cy\nround 3: ann=17 exhausted=7\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 ann cy\nballot 5 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 3 bo\nballot 1 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 3 ann dee cy\nballot 4 eli\nballot 5 dee\nballot 2 dee eli ann cy bo\nballot 3 dee ann cy bo eli\nballot 6 dee bo cy eli ann\nballot 2 bo dee cy ann\n",
+  "exitCode": 0,
+  "stdout": "round 1: dee=16 eli=4 ann=3 bo=2 cy=0 exhausted=0\nwinner dee\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 1 ann bo\nballot 5 ann bo\nballot 1 ann bo\nballot 3 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 1 dee\nballot 5 ann dee\nballot 3 ann cy\nballot 5 ann cy\nballot 5 ann dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 3 bo\nballot 5 ann bo\nballot 1 ann bo\nballot 5 ann bo\nballot 1 ann bo\nballot 5 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 dee\nballot 5 ann bo\nballot 1 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 3 bo\nballot 1 cy eli\nballot 5 eli fay ann dee bo cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 1 fay cy bo\nballot 5 ann dee\nballot 1 cy ann bo fay\nballot 5 cy ann eli dee\nballot 5 eli dee ann fay bo cy\nballot 3 ann cy bo eli\nballot 3 cy fay\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 1 bo cy dee\nballot 3 ann dee\nballot 3 ann cy\nballot 1 ann bo\nballot 5 ann dee\nballot 3 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 5 fay eli dee\nballot 3 cy fay dee bo ann eli\nballot 5 eli cy dee fay\nballot 5 cy eli ann bo dee fay\nballot 1 eli bo ann dee cy fay\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 1 ann dee cy bo eli\nballot 5 eli dee cy bo\nballot 1 eli bo dee cy\nballot 2 dee eli cy\nballot 5 ann\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 bo cy dee\nballot 1 ann bo\nballot 3 ann cy\nballot 5 ann bo\nballot 3 ann dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 bo cy dee\nballot 1 ann cy\nballot 1 ann bo\nballot 3 ann bo\nballot 5 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 bo dee cy\nballot 3 ann bo\nballot 5 ann bo\nballot 1 ann cy\nballot 5 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 1 cy ann eli bo dee\nballot 1 bo cy\nballot 3 cy bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 1 dee ann cy eli fay\nballot 3 ann bo eli dee\nballot 1 ann bo cy fay\nballot 1 eli cy dee bo\nballot 5 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 3 ann bo\nballot 3 ann bo\nballot 3 ann bo\nballot 5 ann bo\nballot 5 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 1 bo dee cy\nballot 5 ann dee\nballot 1 ann dee\nballot 1 ann bo\nballot 5 ann bo\nballot 5 ann cy\nballot 1 ann dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 bo dee cy\nballot 3 ann cy\nballot 1 ann dee\nballot 3 ann bo\nballot 5 ann cy\nballot 5 ann bo\nballot 3 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 3 ann bo\nballot 3 ann bo\nballot 3 ann bo\nballot 5 ann bo\nballot 3 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 3 cy dee eli\nballot 4 cy bo ann\nballot 3 eli ann cy bo dee\nballot 5 bo cy\nballot 5 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 1 bo dee cy\nballot 2 cy bo dee eli ann\nballot 1 bo dee cy ann eli\nballot 4 dee\nballot 1 cy ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner dee\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 1 bo\nballot 5 ann bo\nballot 1 ann bo\nballot 3 ann bo\nballot 3 ann bo\nballot 5 ann bo\nballot 3 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 5 fay\nballot 3 eli bo dee cy\nballot 1 cy eli ann dee\nballot 5 eli ann\nballot 1 cy eli dee ann\nballot 1 ann cy bo dee\nballot 1 cy ann eli fay bo dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy\nballot 3 ann\nballot 5 bo cy\nballot 1 bo cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 dee\nballot 3 ann cy\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 1 bo\nballot 5 cy eli ann bo\nballot 3 eli dee cy fay ann bo\nballot 5 cy fay\nballot 5 ann eli dee bo cy fay\nballot 1 cy dee eli ann\nballot 1 ann cy bo dee eli fay\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy\nballot 5 bo ann cy\nballot 4 ann\nballot 3 cy ann bo\nballot 4 bo\nballot 3 bo\nballot 3 ann cy\nballot 6 bo\n",
+  "exitCode": 0,
+  "stdout": "round 1: bo=18 ann=7 cy=3 exhausted=0\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 cy bo ann dee\nballot 5 ann bo\nballot 5 ann bo\nballot 3 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 3 bo ann dee cy eli\nballot 6 ann cy eli\nballot 5 eli\nballot 4 dee bo cy\nballot 2 cy ann dee bo\n",
+  "exitCode": 0,
+  "stdout": "round 1: ann=6 eli=5 dee=4 bo=3 cy=2 exhausted=0\neliminated cy\nround 2: ann=8 eli=5 dee=4 bo=3 exhausted=0\neliminated bo\nround 3: ann=11 eli=5 dee=4 exhausted=0\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 2 eli dee cy bo ann\nballot 3 dee\nballot 1 ann cy eli dee\nballot 6 dee eli ann cy bo\n",
+  "exitCode": 0,
+  "stdout": "round 1: dee=9 eli=2 ann=1 bo=0 cy=0 exhausted=0\nwinner dee\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy\nballot 4 cy bo ann\nballot 3 ann\nballot 4 bo cy ann\nballot 5 cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy\nballot 5 bo ann cy\nballot 2 bo cy ann\nballot 3 cy\nballot 1 ann cy\nballot 2 ann\n",
+  "exitCode": 0,
+  "stdout": "round 1: bo=7 ann=3 cy=3 exhausted=0\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 ann dee\nballot 5 ann dee\nballot 3 ann dee\nballot 1 ann dee\nballot 3 ann cy\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 3 dee eli fay cy bo\nballot 1 eli bo ann dee cy fay\nballot 3 cy eli ann bo dee fay\nballot 3 eli fay\nballot 5 ann fay bo eli cy dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 3 bo\nballot 3 ann bo\nballot 3 ann bo\nballot 5 ann bo\nballot 1 ann bo\nballot 5 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy\nballot 1 ann\nballot 5 ann cy\nballot 1 cy bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 5 ann bo\nballot 5 ann bo\nballot 3 ann bo\nballot 5 ann bo\nballot 5 ann bo\nballot 5 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 3 dee fay eli ann cy\nballot 5 cy dee ann eli bo fay\nballot 3 cy bo ann eli dee fay\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 3 ann bo\nballot 1 ann bo\nballot 5 ann bo\nballot 5 ann bo\nballot 3 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 3 bo ann cy dee eli\nballot 2 bo\nballot 2 ann dee\nballot 1 bo\nballot 2 bo eli ann\nballot 4 cy dee bo ann\nballot 6 ann bo\n",
+  "exitCode": 0,
+  "stdout": "round 1: ann=8 bo=8 cy=4 dee=0 eli=0 exhausted=0\neliminated eli\nround 2: ann=8 bo=8 cy=4 dee=0 exhausted=0\neliminated dee\nround 3: ann=8 bo=8 cy=4 exhausted=0\neliminated cy\nround 4: bo=12 ann=8 exhausted=0\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 1 cy ann bo dee\nballot 3 ann dee\nballot 1 ann cy\nballot 5 ann cy\nballot 3 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 1 ann bo\nballot 1 ann bo\nballot 3 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy\nballot 3 bo ann cy\nballot 3 cy bo\nballot 2 cy bo ann\n",
+  "exitCode": 0,
+  "stdout": "round 1: cy=5 bo=3 ann=0 exhausted=0\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy\nballot 5 bo cy\nballot 6 bo cy ann\nballot 1 ann bo cy\nballot 6 cy bo ann\nballot 3 cy\nballot 6 bo\n",
+  "exitCode": 0,
+  "stdout": "round 1: bo=17 cy=9 ann=1 exhausted=0\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 2 cy bo eli\nballot 3 dee ann cy bo eli\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner dee\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 5 fay dee bo\nballot 1 eli dee ann cy bo fay\nballot 3 eli ann bo cy\nballot 3 cy eli\nballot 5 cy fay dee bo\nballot 5 eli cy ann dee\nballot 3 ann eli\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy\nballot 5 cy ann bo\nballot 6 cy\nballot 4 cy ann\nballot 2 ann bo\nballot 4 cy ann\n",
+  "exitCode": 0,
+  "stdout": "round 1: cy=19 ann=2 bo=0 exhausted=0\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 1 ann bo\nballot 5 ann bo\nballot 5 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-151",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 1 bo\nballot 5 ann bo\nballot 5 ann bo\nballot 1 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-152",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 6 ann bo eli cy\nballot 5 cy dee eli\nballot 3 bo cy dee eli\n",
+  "exitCode": 0,
+  "stdout": "rounds 4\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-153",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 3 bo\nballot 3 ann bo\nballot 3 ann bo\nballot 1 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-154",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 3 bo\nballot 5 ann bo\nballot 1 ann bo\nballot 3 ann bo\nballot 5 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-155",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 bo cy dee\nballot 1 ann cy\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-156",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 4 bo ann\nballot 4 cy ann\nballot 3 dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-157",
+  "weight": 1,
+  "argv": [
+   "rounds"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 5 ann\nballot 4 cy\nballot 6 dee ann eli bo\n",
+  "exitCode": 0,
+  "stdout": "round 1: dee=6 ann=5 cy=4 bo=0 eli=0 exhausted=0\neliminated eli\nround 2: dee=6 ann=5 cy=4 bo=0 exhausted=0\neliminated bo\nround 3: dee=6 ann=5 cy=4 exhausted=0\neliminated cy\nround 4: dee=6 ann=5 exhausted=4\nwinner dee\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-158",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 3 eli dee cy fay ann bo\nballot 3 ann eli dee fay\nballot 1 ann fay bo eli cy dee\nballot 5 cy ann\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-159",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy\nballot 5 bo ann cy\nballot 2 cy bo ann\nballot 1 ann\nballot 1 ann cy\nballot 5 cy bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 2\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-160",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 dee\nballot 5 ann bo\nballot 1 ann bo\nballot 5 ann cy\nballot 1 ann dee\nballot 5 ann dee\nballot 1 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-161",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 1 ann bo\nballot 3 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-162",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 5 fay bo cy eli dee\nballot 3 cy ann\nballot 3 eli cy dee bo ann fay\nballot 1 cy bo eli ann\nballot 1 eli bo ann fay\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-163",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 5 dee\nballot 3 eli dee\nballot 3 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner dee\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-164",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 dee\nballot 1 ann dee\nballot 5 ann bo\nballot 5 ann dee\nballot 3 ann cy\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-165",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 4 ann bo cy dee\nballot 4 bo dee\nballot 3 eli cy bo\nballot 6 bo\nballot 2 bo dee eli ann\nballot 5 cy ann bo dee eli\nballot 3 bo cy eli dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner bo\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-166",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 3 bo dee cy\nballot 3 ann bo\nballot 1 ann dee\nballot 1 ann dee\nballot 3 ann cy\nballot 3 ann bo\nballot 1 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-167",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli fay\nballot 5 bo eli fay\nballot 5 ann fay dee cy bo eli\nballot 3 eli dee\nballot 5 eli bo\nballot 1 cy fay dee eli\n",
+  "exitCode": 0,
+  "stdout": "rounds 5\nwinner eli\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-168",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee\nballot 5 dee\nballot 5 ann bo\nballot 3 ann dee\nballot 1 ann bo\nballot 1 ann dee\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-169",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo cy dee eli\nballot 5 bo ann cy dee eli\nballot 5 cy bo\nballot 1 cy bo\nballot 4 cy\nballot 3 cy dee ann bo eli\nballot 4 ann\nballot 3 eli ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner cy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-170",
+  "weight": 1,
+  "argv": [
+   "tally"
+  ],
+  "stdin": "candidates ann bo\nballot 5 bo\nballot 1 ann bo\nballot 5 ann bo\nballot 5 ann bo\nballot 3 ann bo\nballot 1 ann bo\nballot 5 ann bo\n",
+  "exitCode": 0,
+  "stdout": "rounds 1\nwinner ann\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

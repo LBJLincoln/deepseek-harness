@@ -1,0 +1,2722 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "a{b,c}d\n",
+  "exitCode": 0,
+  "stdout": "abd\nacd\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{1..5}\n",
+  "exitCode": 0,
+  "stdout": "1\n2\n3\n4\n5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{5..1}\n",
+  "exitCode": 0,
+  "stdout": "5\n4\n3\n2\n1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{1..9..2}\n",
+  "exitCode": 0,
+  "stdout": "1\n3\n5\n7\n9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{01..10}\n",
+  "exitCode": 0,
+  "stdout": "01\n02\n03\n04\n05\n06\n07\n08\n09\n10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{001..10}\n",
+  "exitCode": 0,
+  "stdout": "001\n002\n003\n004\n005\n006\n007\n008\n009\n010\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{-3..3}\n",
+  "exitCode": 0,
+  "stdout": "-3\n-2\n-1\n0\n1\n2\n3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{3..-3..2}\n",
+  "exitCode": 0,
+  "stdout": "3\n1\n-1\n-3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a..e}\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{e..a}\n",
+  "exitCode": 0,
+  "stdout": "e\nd\nc\nb\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a..e..2}\n",
+  "exitCode": 0,
+  "stdout": "a\nc\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{A..d}\n",
+  "exitCode": 0,
+  "stdout": "A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ\n[\n\\\n]\n^\n_\n`\na\nb\nc\nd\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a}\n",
+  "exitCode": 0,
+  "stdout": "{a}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{}\n",
+  "exitCode": 0,
+  "stdout": "{}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a,}\n",
+  "exitCode": 0,
+  "stdout": "a\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{,a}\n",
+  "exitCode": 0,
+  "stdout": "\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{,}\n",
+  "exitCode": 0,
+  "stdout": "\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "x{a,{b,c}y}z\n",
+  "exitCode": 0,
+  "stdout": "xaz\nxbyz\nxcyz\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "a{b,c}{d,e}\n",
+  "exitCode": 0,
+  "stdout": "abd\nabe\nacd\nace\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "\\{a,b\\}\n",
+  "exitCode": 0,
+  "stdout": "\\{a,b\\}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a,b\n",
+  "exitCode": 0,
+  "stdout": "{a,b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "a}b\n",
+  "exitCode": 0,
+  "stdout": "a}b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{1..3}{a,b}\n",
+  "exitCode": 0,
+  "stdout": "1a\n1b\n2a\n2b\n3a\n3b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{0..0}\n",
+  "exitCode": 0,
+  "stdout": "0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{1..2..0}\n",
+  "exitCode": 0,
+  "stdout": "{1..2..0}\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "pre{x,y}post\n",
+  "exitCode": 0,
+  "stdout": "prexpost\npreypost\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a,b}/{c,d}\n",
+  "exitCode": 0,
+  "stdout": "a/c\na/d\nb/c\nb/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{x{1..2},y}\n",
+  "exitCode": 0,
+  "stdout": "x1\nx2\ny\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "no-braces\n",
+  "exitCode": 0,
+  "stdout": "no-braces\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{2..-2}\n",
+  "exitCode": 0,
+  "stdout": "2\n1\n0\n-1\n-2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a..c}{1..2}\n",
+  "exitCode": 0,
+  "stdout": "a1\na2\nb1\nb2\nc1\nc2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{01..3}\n",
+  "exitCode": 0,
+  "stdout": "01\n02\n03\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{10..1..4}\n",
+  "exitCode": 0,
+  "stdout": "10\n6\n2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "a{,b}c\n",
+  "exitCode": 0,
+  "stdout": "ac\nabc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{{a,b},c}\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{a,b\\,c}\n",
+  "exitCode": 0,
+  "stdout": "a\nb\\,c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{}{a,b}\n",
+  "exitCode": 0,
+  "stdout": "{}a\n{}b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*.js\na.js\n.a.js\nb/c.js\nxjs\na.js.js\n.js\n",
+  "exitCode": 0,
+  "stdout": "+ a.js\n- .a.js\n- b/c.js\n- xjs\n+ a.js.js\n- .js\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*\na\n.a\na/b\n\n",
+  "exitCode": 0,
+  "stdout": "+ a\n- .a\n- a/b\n+ \n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?\na\nab\n.\n\n",
+  "exitCode": 0,
+  "stdout": "+ a\n- ab\n- .\n- \n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a?c\nabc\na/c\nac\nabbc\n",
+  "exitCode": 0,
+  "stdout": "+ abc\n- a/c\n- ac\n- abbc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**\na\na/b\na/b/c\n.a\na/.b\n",
+  "exitCode": 0,
+  "stdout": "+ a\n+ a/b\n+ a/b/c\n- .a\n- a/.b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/*.js\na.js\nx/y/z.js\nx/.h/z.js\n.x/z.js\nx/y.js\n",
+  "exitCode": 0,
+  "stdout": "+ a.js\n+ x/y/z.js\n- x/.h/z.js\n- .x/z.js\n+ x/y.js\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a/**/b\na/b\na/x/b\na/x/y/b\na/.x/b\nab\n",
+  "exitCode": 0,
+  "stdout": "+ a/b\n+ a/x/b\n+ a/x/y/b\n- a/.x/b\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/**\na\na/b\n\n",
+  "exitCode": 0,
+  "stdout": "+ a\n+ a/b\n+ \n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a**b\nab\naxb\na/b\n",
+  "exitCode": 0,
+  "stdout": "+ ab\n+ axb\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[abc]x\nax\nbx\ndx\n[x\n",
+  "exitCode": 0,
+  "stdout": "+ ax\n+ bx\n- dx\n- [x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c]x\nax\ncx\ndx\nBx\n",
+  "exitCode": 0,
+  "stdout": "+ ax\n+ cx\n- dx\n- Bx\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[!a-c]x\ndx\nax\n-x\n/x\n",
+  "exitCode": 0,
+  "stdout": "+ dx\n- ax\n+ -x\n- /x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[^a-c]x\ndx\nax\n",
+  "exitCode": 0,
+  "stdout": "+ dx\n- ax\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[]]b\na]b\nab\n",
+  "exitCode": 0,
+  "stdout": "+ a]b\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[!]]b\na]b\naxb\n",
+  "exitCode": 0,
+  "stdout": "- a]b\n+ axb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[-x]b\na-b\naxb\nayb\n",
+  "exitCode": 0,
+  "stdout": "+ a-b\n+ axb\n- ayb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[x-]b\na-b\naxb\n",
+  "exitCode": 0,
+  "stdout": "+ a-b\n+ axb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[\\]]x\n]x\n\\x\n",
+  "exitCode": 0,
+  "stdout": "+ ]x\n- \\x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?(a|b)c\nc\nac\nbc\nabc\n",
+  "exitCode": 0,
+  "stdout": "+ c\n+ ac\n+ bc\n- abc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*(ab)c\nc\nabc\nababc\nabac\n",
+  "exitCode": 0,
+  "stdout": "+ c\n+ abc\n+ ababc\n- abac\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "+(ab)c\nc\nabc\nababc\n",
+  "exitCode": 0,
+  "stdout": "- c\n+ abc\n+ ababc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(a|bb)c\nac\nbbc\nc\nbc\n",
+  "exitCode": 0,
+  "stdout": "+ ac\n+ bbc\n- c\n- bc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "!(foo|bar).js\nfoo.js\nbar.js\nbaz.js\n.js\nfoobar.js\n",
+  "exitCode": 0,
+  "stdout": "- foo.js\n- bar.js\n+ baz.js\n- .js\n+ foobar.js\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "!(foo)\nfoo\nbar\n\nfoof\n",
+  "exitCode": 0,
+  "stdout": "- foo\n+ bar\n+ \n+ foof\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "x!(a)y\nxy\nxby\nxay\nxaay\n",
+  "exitCode": 0,
+  "stdout": "+ xy\n+ xby\n- xay\n+ xaay\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(a|!(b))c\nac\nbc\ndc\n",
+  "exitCode": 0,
+  "stdout": "+ ac\n- bc\n+ dc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*(a|b)*(c)\n\nabc\ncc\nabd\n",
+  "exitCode": 0,
+  "stdout": "+ \n+ abc\n+ cc\n- abd\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "+(a|b)/c\na/c\nab/c\n/c\n",
+  "exitCode": 0,
+  "stdout": "+ a/c\n+ ab/c\n- /c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "\\*\n*\na\n\\a\n",
+  "exitCode": 0,
+  "stdout": "+ *\n- a\n- \\a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "\\?x\n?x\nax\n",
+  "exitCode": 0,
+  "stdout": "+ ?x\n- ax\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\\/b\na/b\nab\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{a,b}*.js\nax.js\nb.js\nc.js\n",
+  "exitCode": 0,
+  "stdout": "+ ax.js\n+ b.js\n- c.js\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{**/,}*.js\na.js\nx/a.js\nx/y/a.js\n",
+  "exitCode": 0,
+  "stdout": "+ a.js\n+ x/a.js\n+ x/y/a.js\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": ".*\n.a\na\n.\n",
+  "exitCode": 0,
+  "stdout": "+ .a\n- a\n+ .\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": ".[ab]\n.a\n.c\n",
+  "exitCode": 0,
+  "stdout": "+ .a\n- .c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a/.*/b\na/.x/b\na/x/b\n",
+  "exitCode": 0,
+  "stdout": "+ a/.x/b\n- a/x/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/.*\n.a\nx/.a\nx/y/.a\nx/a\n",
+  "exitCode": 0,
+  "stdout": "+ .a\n+ x/.a\n+ x/y/.a\n- x/a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-]x\nax\n-x\nbx\n",
+  "exitCode": 0,
+  "stdout": "+ ax\n+ -x\n- bx\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*.{js,ts}\na.js\na.ts\na.tsx\n",
+  "exitCode": 0,
+  "stdout": "+ a.js\n+ a.ts\n- a.tsx\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?(*).js\n.js\na.js\nab.js\n",
+  "exitCode": 0,
+  "stdout": "- .js\n+ a.js\n+ ab.js\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "a{b,c}\nsecond\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: expand needs exactly one pattern line\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: expand needs exactly one pattern line\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: match needs a pattern line\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[abc\nax\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unterminated bracket in pattern\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\\\nax\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: trailing backslash in pattern\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(a|b\nax\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unterminated extglob in pattern\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[b\\\nax\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: trailing backslash in pattern\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-085",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./b\na/.b/c\nab\nq\n",
+  "exitCode": 0,
+  "stdout": "- a/.b/c\n- ab\n- q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-086",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "./**\n",
+  "exitCode": 0,
+  "stdout": "./**\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-087",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*\n\na/.b/c\nxy\n",
+  "exitCode": 0,
+  "stdout": "+ \n- a/.b/c\n+ xy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-088",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\na/b\na/b/c/d\n\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- a/b/c/d\n- \n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-089",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "!(z)\n.a\na/.b/c\na/b\n",
+  "exitCode": 0,
+  "stdout": "- .a\n- a/.b/c\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-090",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a!(z)*\nab\nq\n.a\n",
+  "exitCode": 0,
+  "stdout": "+ ab\n- q\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-091",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[a-c][a-c]\np\nz\nab\n",
+  "exitCode": 0,
+  "stdout": "- p\n- z\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-092",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "!(z)*\n\na\na/b\n",
+  "exitCode": 0,
+  "stdout": "+ \n+ a\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-093",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a[a-c]\n\na\na/b\n",
+  "exitCode": 0,
+  "stdout": "- \n- a\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-094",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\na/b\na/b/c/d\n.a\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- a/b/c/d\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-095",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "*[a-c]{p,q}\n",
+  "exitCode": 0,
+  "stdout": "*[a-c]p\n*[a-c]q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./?/**\na/b/c/d\np\na\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- p\n- a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "**/?/?\n",
+  "exitCode": 0,
+  "stdout": "**/?/?\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*{p,q}*\n\na/.b/c\na/b\n",
+  "exitCode": 0,
+  "stdout": "- \n- a/.b/c\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}\na/b\nq\n\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n+ q\n- \n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\n.a\na\na/b\n",
+  "exitCode": 0,
+  "stdout": "- .a\n+ a\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*a\np\nz\na/b\n",
+  "exitCode": 0,
+  "stdout": "- p\n- z\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a**\nxy\nq\np\n",
+  "exitCode": 0,
+  "stdout": "- xy\n- q\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c]!(z)\na/b\nq\n.a\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- q\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\n\na\nxy\n",
+  "exitCode": 0,
+  "stdout": "- \n+ a\n- xy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c]a[a-c]\nxy\nx/y/z\np\n",
+  "exitCode": 0,
+  "stdout": "- xy\n- x/y/z\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "[a-c]\n",
+  "exitCode": 0,
+  "stdout": "[a-c]\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": ".\nx/y/z\n\na\n",
+  "exitCode": 0,
+  "stdout": "- x/y/z\n- \n- a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b/**\nx/y/z\n.a\na\n",
+  "exitCode": 0,
+  "stdout": "- x/y/z\n- .a\n- a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/?\nx/y/z\n\na\n",
+  "exitCode": 0,
+  "stdout": "+ x/y/z\n- \n+ a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./.\nx/y/z\n\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- x/y/z\n- \n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(x|y)\na\na/b\nq\n",
+  "exitCode": 0,
+  "stdout": "- a\n- a/b\n- q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**\nq\n.a\na\n",
+  "exitCode": 0,
+  "stdout": "+ q\n- .a\n+ a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?\na\nxy\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "+ a\n- xy\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?/**\na/.b/c\nxy\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- a/.b/c\n- xy\n+ a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": ".\nq\np\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- q\n- p\n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./@(x|y)\na/b/c/d\np\nz\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- p\n- z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(x|y)/./b\na\nxy\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- a\n- xy\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b/**\na\na/b\nq\n",
+  "exitCode": 0,
+  "stdout": "- a\n- a/b\n- q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/**/b\na/b/c/d\n\nz\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- \n- z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/@(x|y)\na/b/c/d\n.a\na\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- .a\n- a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./b/?\na/.b/c\nxy\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- a/.b/c\n- xy\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./**\na\na/b\nx/y/z\n",
+  "exitCode": 0,
+  "stdout": "- a\n- a/b\n- x/y/z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b\nx/y/z\n.a\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- x/y/z\n- .a\n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./**\na/b/c/d\n.a\na\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- .a\n- a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "./b/.\n",
+  "exitCode": 0,
+  "stdout": "./b/.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*[a-c]a\n\na/.b/c\nab\n",
+  "exitCode": 0,
+  "stdout": "- \n- a/.b/c\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c]!(z){p,q}\na/b\na/b/c/d\np\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- a/b/c/d\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./@(x|y)/?\na/b/c/d\n.a\nz\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- .a\n- z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?/?\nq\np\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- q\n- p\n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "@(x|y)/**\n",
+  "exitCode": 0,
+  "stdout": "@(x|y)/**\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}*!(z)\nab\na/b/c/d\n\n",
+  "exitCode": 0,
+  "stdout": "- ab\n- a/b/c/d\n- \n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}\np\na/.b/c\nab\n",
+  "exitCode": 0,
+  "stdout": "+ p\n- a/.b/c\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*{p,q}\n\nz\nxy\n",
+  "exitCode": 0,
+  "stdout": "- \n- z\n- xy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**a\nab\nq\n.a\n",
+  "exitCode": 0,
+  "stdout": "- ab\n- q\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c]\np\na/.b/c\nab\n",
+  "exitCode": 0,
+  "stdout": "- p\n- a/.b/c\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}\na/b\nx/y/z\n.a\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- x/y/z\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}\n\na/.b/c\nab\n",
+  "exitCode": 0,
+  "stdout": "- \n- a/.b/c\n- ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "{p,q}\n",
+  "exitCode": 0,
+  "stdout": "p\nq\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/**/b\na\nab\nx/y/z\n",
+  "exitCode": 0,
+  "stdout": "- a\n- ab\n- x/y/z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?/**\na/.b/c\nab\nx/y/z\n",
+  "exitCode": 0,
+  "stdout": "- a/.b/c\n- ab\n+ x/y/z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(x|y)/**\na/.b/c\nab\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- a/.b/c\n- ab\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b/b\nz\na/b\nq\n",
+  "exitCode": 0,
+  "stdout": "- z\n- a/b\n- q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b/**/**\nx/y/z\np\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- x/y/z\n- p\n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?/.\nq\n\na\n",
+  "exitCode": 0,
+  "stdout": "- q\n- \n- a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**/@(x|y)/?\nz\nab\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- z\n- ab\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b/@(x|y)/@(x|y)\na/b/c/d\np\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- p\n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b/./b\na\nxy\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- a\n- xy\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "./@(x|y)/@(x|y)\nx/y/z\n\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "- x/y/z\n- \n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?/**\na/b/c/d\np\na/.b/c\n",
+  "exitCode": 0,
+  "stdout": "+ a/b/c/d\n+ p\n- a/.b/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b\nz\nxy\na/b/c/d\n",
+  "exitCode": 0,
+  "stdout": "- z\n- xy\n- a/b/c/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-151",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**\na/b/c/d\n\na\n",
+  "exitCode": 0,
+  "stdout": "+ a/b/c/d\n+ \n+ a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-152",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "?\na/.b/c\nxy\nx/y/z\n",
+  "exitCode": 0,
+  "stdout": "- a/.b/c\n- xy\n- x/y/z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-153",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "**\nx/y/z\n\nz\n",
+  "exitCode": 0,
+  "stdout": "+ x/y/z\n+ \n+ z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-154",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "b\n",
+  "exitCode": 0,
+  "stdout": "b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-155",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a**\n\na/.b/c\nxy\n",
+  "exitCode": 0,
+  "stdout": "- \n- a/.b/c\n- xy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-156",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c][a-c]!(z)\nab\na/b/c/d\np\n",
+  "exitCode": 0,
+  "stdout": "+ ab\n- a/b/c/d\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-157",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}!(z)a\n\nz\na/b\n",
+  "exitCode": 0,
+  "stdout": "- \n- z\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-158",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\nxy\nq\n.a\n",
+  "exitCode": 0,
+  "stdout": "- xy\n- q\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-159",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a*[a-c]\n\nz\nxy\n",
+  "exitCode": 0,
+  "stdout": "- \n- z\n- xy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-160",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "aa\np\na\nxy\n",
+  "exitCode": 0,
+  "stdout": "- p\n- a\n- xy\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-161",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c]*!(z)\nxy\nx/y/z\np\n",
+  "exitCode": 0,
+  "stdout": "- xy\n- x/y/z\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-162",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "@(x|y)/./.\na/b/c/d\n\nz\n",
+  "exitCode": 0,
+  "stdout": "- a/b/c/d\n- \n- z\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-163",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "b\nz\na/b\nq\n",
+  "exitCode": 0,
+  "stdout": "- z\n- a/b\n- q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-164",
+  "weight": 1,
+  "argv": [
+   "expand"
+  ],
+  "stdin": "?/b/.\n",
+  "exitCode": 0,
+  "stdout": "?/b/.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-165",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "a\nab\nx/y/z\n.a\n",
+  "exitCode": 0,
+  "stdout": "- ab\n- x/y/z\n- .a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-166",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*\n\na\na/b\n",
+  "exitCode": 0,
+  "stdout": "+ \n+ a\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-167",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "*\nab\nq\np\n",
+  "exitCode": 0,
+  "stdout": "+ ab\n+ q\n+ p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-168",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "[a-c][a-c]\na/b\na/b/c/d\np\n",
+  "exitCode": 0,
+  "stdout": "- a/b\n- a/b/c/d\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-169",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "{p,q}*a\np\na/.b/c\na/b\n",
+  "exitCode": 0,
+  "stdout": "- p\n- a/.b/c\n- a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-170",
+  "weight": 1,
+  "argv": [
+   "match"
+  ],
+  "stdin": "!(z){p,q}a\nab\nq\np\n",
+  "exitCode": 0,
+  "stdout": "- ab\n- q\n- p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

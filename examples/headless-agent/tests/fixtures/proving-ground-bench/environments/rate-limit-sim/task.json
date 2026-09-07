@@ -1,0 +1,30 @@
+{
+  "id": "code:rate-limit-sim",
+  "tier": 5,
+  "domain": "systems",
+  "title": "Replay an event log through token buckets and sliding windows",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes exactly one argument, `replay` or `summary`, and reads a limiter file from standard input. Split the input on newlines and drop the empty tail a trailing newline leaves. Trim each line; ignore it when it is empty or begins with `#`; otherwise split it on runs of whitespace. Exit 0 whenever the file parses.\n\nA name, a route prefix and an event key are each one or more of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `_`, `.`, `/`, `:` and `-`. Every count is an unsigned decimal integer written without a sign and without a leading zero unless it is exactly `0`.\n\n`bucket <name> <capacity> <refill> <per>` declares a token bucket, with a capacity of at least 1, a refill of at least 0, and a period of at least 1. `window <name> <limit> <span>` declares a sliding window, with a limit of at least 0 and a span of at least 1. Two policies may not share a name. `route <prefix> <policy>...` sends every key that starts with that prefix to those policies, in the order written; every policy must already be declared, and two routes may not share a prefix. `event <tick> <key>` is one arrival at that tick, and ticks never go backwards across the file. Once the first event appears no further `bucket`, `window` or `route` line may follow.\n\nEach policy keeps one independent state per key. A key is limited by the route whose prefix it starts with and which is longest among those that match; a key no route matches is always allowed. When an event arrives, every policy on its route first advances to the event's tick, then every one of them is asked, and only when all of them allow it does each of them record it. A denied event changes no policy's stored allowance.\n\nA token bucket holds `capacity` tokens and starts full when a key first reaches it. Advancing it to a tick adds `refill` tokens for every `per` ticks that passed since it last advanced for that key, without ever passing the capacity, and partial periods accumulate exactly: after `n` ticks the bucket holds `refill` times `n` divided by `per` more tokens than it did, and that fraction is never rounded away. It allows a request when it holds at least one whole token, and recording one spends exactly one.\n\nA sliding window remembers the ticks of the requests it recorded for a key. Advancing it to a tick forgets every remembered tick at or before the tick minus the span, so the window covers the `span` ticks ending at the current one. It allows a request when fewer than `limit` ticks remain remembered, and recording one remembers this tick.\n\n`replay` prints one line per event in log order: `<tick> <key> allow`, or `<tick> <key> deny <policy>` naming the first policy on the route, in the order the route wrote them, that refused. `summary` instead prints `<key> allowed=<a> denied=<d>` for every key that saw an event, in ascending key order, and then `total allowed=<a> denied=<d>`.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output; stop at the first one. The messages are `error: usage: cli.js replay|summary` when the argument is not exactly one of the two mode words, and otherwise `error: line N: <reason>` where the reason is one of `unknown directive <word>`, `expected bucket <name> <capacity> <refill> <per>`, `expected window <name> <limit> <span>`, `expected route <prefix> <policy>...`, `expected event <tick> <key>`, `invalid policy name <name>`, `invalid route prefix <prefix>`, `invalid key <key>`, `policy <name> is declared twice`, `prefix <prefix> is routed twice`, `unknown policy <name>`, `declarations must come before the first event`, `tick T is before tick P`, and `<field> must be an integer of at least <least>` naming the field as `capacity`, `refill`, `per`, `limit`, `span` or `tick`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "code:uri-resolve",
+  "tier": 5,
+  "domain": "parsing",
+  "title": "Resolve and normalize URI references by RFC 3986",
+  "prompt": "`src/cli.js` is the program; how the work is split across other files under `src/` is up to you. It takes exactly one argument, `normalize` or `resolve`, reads UTF-8 text from standard input, and writes one result line per input line to standard output. Split the input on newlines and drop the empty tail a trailing newline leaves; every remaining line is a record, including an empty one. Exit 0 when every record succeeds.\n\nIn `normalize` mode each record is one URI reference and its output line is the normalized form. In `resolve` mode each record is a base URI, one space, and a reference; the output line is the reference resolved against the base and then normalized. The first space separates the two, so a reference may contain spaces and a base may not.\n\nParse a URI reference into scheme, authority, path, query and fragment by RFC 3986's generic syntax: an optional scheme running to the first `:`, which may not be preceded by any `/`, `?` or `#`; an optional authority introduced by `//` and running to the next `/`, `?` or `#`; the path up to the next `?` or `#`; an optional query from `?` to the next `#`; an optional fragment from `#` to the end. An absent component and an empty one are different, so `http://a/b?` has an empty query, `http://a/b` has none, and both print back the way they came. Inside an authority the userinfo is everything before the last `@`, the port is everything after the first `:` that follows the last `]`, and the host is what lies between.\n\nNormalization applies in this order. Lowercase the scheme, using ASCII rules only. Normalize percent-encodings in every component: uppercase the two hexadecimal digits of each `%XX`, then replace the triplet with the character it encodes when that character is unreserved, meaning one of `A` to `Z`, `a` to `z`, `0` to `9`, `-`, `.`, `_` and `~`. Lowercase the host, using ASCII rules only and leaving the userinfo alone. Drop the port when it is written empty or written with exactly the digits of the scheme's default, which is 80 for `http` and `ws`, 443 for `https` and `wss`, and 21 for `ftp`; no other scheme has one, and a port padded with a leading zero is not written with those digits and stays. Remove dot segments from the path by RFC 3986 section 5.2.4, so a `.` segment disappears, a `..` segment removes the segment before it, and a `..` that would climb above the root is discarded. Finally, when an authority is present and the path is empty, make the path `/`. Dot removal never touches the query or the fragment.\n\nResolve by RFC 3986 section 5.2.2 in its strict form, in which a reference that repeats the base's scheme is still an absolute URI. A reference that writes a scheme is itself the target, with the dot segments removed from its path. A reference that writes an authority takes the base's scheme and keeps everything else of its own. A reference with neither and an empty path takes the base's authority and path, takes the base's query only when it writes no query of its own, and takes its own fragment, which may be absent. Otherwise, when the reference's path does not start with `/`, merge it onto the base's: keep everything of the base path up to and including its last `/`, or use the reference path alone when the base path holds no `/`, except that a base that has an authority and an empty path contributes a single leading `/`. Remove the dot segments from the resulting path, take the base's authority and the reference's query and fragment, and normalize the whole.\n\nA failure writes one line to standard error and exits 2, having written nothing to standard output; stop at the first one. The messages are `error: usage: cli.js normalize|resolve` when the arguments are not exactly one of the two mode words; `error: line N: expected a base and a reference` when a `resolve` record holds no space; `error: line N: the base has no scheme` when the base of a `resolve` record writes no scheme; and `error: line N: the path has a truncated percent-encoding` when a `%` is not followed by two hexadecimal digits, with `path` replaced by `userinfo`, `host`, `query` or `fragment` for whichever component carries it, those five being checked in that order. N counts records from 1.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    },
+    {
+      "id": "spec-cases",
+      "outcome": "the program follows the written specification on the validator's own inputs",
+      "run": "node src/cli.js",
+      "cases": "reference/cases.json"
+    }
+  ]
+}
