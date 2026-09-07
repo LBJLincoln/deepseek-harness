@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-A frozen, paired, budgeted comparison of two arms. A plan names the environments, the repetition count, and the two model routes; a content digest freezes it before any cell runs; both arms run through `ctx.fleet` at the same repetition indexes under stamp groups derived from that digest; and the paired certificate-rate delta comes back with a bootstrap confidence interval and a `promote` / `reject` / `inconclusive` verdict. Nothing here calls a model. The [experiments Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-experiments.md) owns the design rationale.
+A frozen, paired, budgeted comparison of two arms. A plan names the environments, the repetition count, and the two arms — each a model route and who implements its cells; a content digest freezes it before any cell runs; both arms run through `ctx.fleet` at the same repetition indexes under stamp groups derived from that digest; and the paired certificate-rate delta comes back with a bootstrap confidence interval and a `promote` / `reject` / `inconclusive` verdict. Nothing here calls a model. The [experiments Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-experiments.md) owns the design rationale.
 
 ## Config
 
@@ -39,19 +39,25 @@ The service requires `environments` and `fleet`. `resolveConfig(config)` is the 
 
 ## Service contract
 
-`ctx.experiments.run(plan)` takes `environments` (registered ids, each named once), a positive integer `repetitions`, the `baseline` and `candidate` model routes, an existing absolute `workspaceRoot`, and optionally a `policyVersion` both arms' routes serve, a base `seed`, a `digest` the caller froze earlier, a `signal`, and a `sink`.
+`ctx.experiments.run(plan)` takes `environments` (registered ids, each named once), a positive integer `repetitions`, the `baseline` and `candidate` arms, an existing absolute `workspaceRoot`, and optionally a `policyVersion` both arms' routes serve, a base `seed`, a `digest` the caller froze earlier, a `signal`, and a `sink`.
+
+Each arm is a model route — `provider` and `model` — and an optional `implementer`, the same value a fleet plan takes: `{ kind: 'route' }`, which an arm naming none runs, has every attempt of every cell of that arm driven on the arm's own route, while `{ kind: 'subagent', provider, label? }` delegates each attempt to that registered subagent provider. The [runner README](../environment-runner/README.md#the-two-implementers) owns what a delegated certificate proves and which providers an isolation claim above `none` refuses. Nothing here re-validates the provider: an implementer the composition cannot honor fails every cell of its arm through the runner, so every repetition of that arm goes unpaired and the verdict is `inconclusive`.
 
 It rejects with `ExperimentError` before running any cell: `EXPERIMENT_INVALID_PLAN` for a non-positive or fractional `repetitions`, a `seed` that is not a safe non-negative integer, an empty environment list, an id named twice, or an id the registry does not hold; `EXPERIMENT_PLAN_NOT_FROZEN` when a declared `digest` differs from the recomputed one; `EXPERIMENT_OVER_BUDGET` when `environments × repetitions × 2 × cellTokenCap` exceeds `tokenBudget`.
 
-Both arms are forwarded the same `policyVersion` and the same base `seed`, and each arm's cell samples with `seed + repetition`, so the paired repetitions of the two arms differ only in the model route — the [fleet README](../fleet/README.md#policy-version-and-the-base-seed) owns the arithmetic and the [runner README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) what a replay reproduces.
+Both arms are forwarded the same `policyVersion` and the same base `seed`, and each arm's cell samples with `seed + repetition`, so the paired repetitions of the two arms differ only in the arm itself, its route and its implementer — the [fleet README](../fleet/README.md#policy-version-and-the-base-seed) owns the arithmetic and the [runner README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) what a replay reproduces.
 
-Both arms then run as two `ctx.fleet.run` calls over the same ids at the same repetition count, baseline first. A cell the fleet kept as an error leaves its repetition unpaired rather than failing the experiment. The result is written to `sink` as one JSON line and the sink is closed exactly once; the sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
+Both arms then run as two `ctx.fleet.run` calls over the same ids at the same repetition count, baseline first, each carrying its own arm's route and implementer. A cell the fleet kept as an error leaves its repetition unpaired rather than failing the experiment. The result is written to `sink` as one JSON line and the sink is closed exactly once; the sink is the trajectory exporter's `TrajectorySink`, so `jsonlFileSink(path)` from `@deepseek-ai/dsh-trajectories` serves both exports.
+
+The result restates each arm beside its stamp group: `arms.baseline` and `arms.candidate` carry the `model` route and the `implementer` the arm ran under, with an omitted one stated as `{ kind: 'route' }`, so a stored result tells a harness-native arm from a delegated one without the plan that produced it.
 
 `foldExperiment(request)` is the pure fold behind the run and is exported for tests and offline tools, together with `planDigest`, `experimentGroup`, `parseExperimentGroup`, `projectedTokens`, `EXPERIMENT_ARM_ROLES`, `EXPERIMENT_GROUP_PREFIX`, and the `bootstrapIntervals` pass.
 
 ## Freezing and the group scheme
 
-`planDigest(plan, thresholds)` is the SHA-256 hex digest over a format version, the two arm routes in role order, the environment ids **sorted**, the repetition count, the `policyVersion` and base `seed`, and the four thresholds. Sorting makes the digest independent of the order a caller listed the ids in; the workspace root, the abort signal, and the sink are not digested because they change nothing the comparison measures. The policy version and the seed are digested because both arms' sessions are found in the logs by the groups the digest mints, so two comparisons that differ in either must not collide on one group.
+`planDigest(plan, thresholds)` is the SHA-256 hex digest over a format version, the two arms in role order — each its model route and its implementer — the environment ids **sorted**, the repetition count, the `policyVersion` and base `seed`, and the four thresholds. Sorting makes the digest independent of the order a caller listed the ids in; the workspace root, the abort signal, and the sink are not digested because they change nothing the comparison measures. The policy version and the seed are digested because both arms' sessions are found in the logs by the groups the digest mints, so two comparisons that differ in either must not collide on one group.
+
+An arm's implementer enters the digest as the default `{ kind: 'route' }` when the arm names none, so a plan that omits the field and one that spells it out are one experiment; a delegated arm digests its subagent provider and label, in fixed positions that the key order a caller wrote cannot change. Which arm delegates is part of the identity, because the roles are digested in order.
 
 Each arm runs under the stamp `group` `experiment-<digest>-baseline` or `experiment-<digest>-candidate`, which the environment runner writes into the `environment/run` event of every session of that arm before its first turn. That group is the durable link from a result back to its sessions: `ctx.scorekeeper.leaderboard({ group })` selects one arm out of every persisted log, and the trajectory export carries the same string. The `experiment-` prefix is this package's reserved namespace, and the package invariant rejects a stamp that claims it without a 64-hex digest and a known arm role.
 
@@ -73,7 +79,8 @@ None; the service neither adds to nor changes any model request.
 
 ## Known Limitations and Deferred Work
 
-- **An arm is a model route** — `EnvironmentRunRequest` carries no agent preset, so a preset cannot be an arm until the runner and the fleet cell carry one; the plan gains an optional preset per arm with that field, never before.
+- **A preset cannot be an arm** — an arm names a model route and an implementer, and `EnvironmentRunRequest` carries no agent preset, so two compositions over one route stay incomparable until the runner and the fleet cell carry one; the plan gains an optional preset per arm with that field, never before.
+- **A delegated arm reports no tokens** — an external implementer spends in another product, so its cells carry no `usage`: the `spend` and the token deltas measure the harness-native side alone, while the projection still reserves `cellTokenCap` for every cell of both arms.
 - **The arms run in sequence** — baseline completes before candidate starts, so a provider-side drift between them lands entirely on the candidate. Interleaving both routes in one fleet call yields the same pairs and stays available to a caller.
 - **Paired repetition indexes are not paired seeds** — the `environment/run` stamp carries no seed, so pairing removes environment variance but not run-to-run variance.
 - **The budget is projected, not enforced** — the refusal multiplies `cellTokenCap` by the cell count; capping what a cell actually spends is `@deepseek-ai/dsh-budget-policy`'s job, and wiring the per-cell cap into each cell's policy is not done here.

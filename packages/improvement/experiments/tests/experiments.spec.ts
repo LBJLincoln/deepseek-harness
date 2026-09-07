@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
-import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
+import type { EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { FleetCell, FleetCellOutcome, FleetPlan, FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
@@ -18,7 +18,7 @@ import ExperimentService, {
   projectedTokens,
   resolveConfig,
 } from '@deepseek-ai/dsh-experiments'
-import type { Config, ExperimentPlan, ExperimentThresholds } from '@deepseek-ai/dsh-experiments'
+import type { Config, ExperimentPlan, ExperimentResult, ExperimentThresholds } from '@deepseek-ai/dsh-experiments'
 
 declare module '@deepseek-ai/dsh-environments/types' {
   interface EnvironmentKindMap {
@@ -31,6 +31,10 @@ const ROUND_TRIP = EnvironmentId('smoke:round-trip')
 const UNSATISFIABLE = EnvironmentId('smoke:unsatisfiable')
 const BASELINE = { provider: 'mock', model: 'base' }
 const CANDIDATE = { provider: 'mock', model: 'next' }
+const ROUTE: EnvironmentRunImplementer = { kind: 'route' }
+const DELEGATED: EnvironmentRunImplementer = { kind: 'subagent', provider: 'external-agent' }
+/** The digest this file's default plan freezes to at plan format version 2; the current version must never reproduce it. */
+const PRE_SLICE_DIGEST = '619c25f5f81d0f75fda33381464b9c41f8383dc19100dc400d1804b28bf868b2'
 
 /** One cell's run as the stub fleet reports it; `undefined` makes the cell an error outcome. */
 interface CellShape {
@@ -182,8 +186,8 @@ describe('ExperimentService', () => {
     const digest = planDigest(plan({ baseline: BASELINE, candidate: BASELINE }), result.thresholds)
     expect(result.digest).toBe(digest)
     expect(result.arms).toEqual({
-      baseline: { model: BASELINE, group: `${EXPERIMENT_GROUP_PREFIX}${digest}-baseline` },
-      candidate: { model: BASELINE, group: `${EXPERIMENT_GROUP_PREFIX}${digest}-candidate` },
+      baseline: { model: BASELINE, implementer: ROUTE, group: `${EXPERIMENT_GROUP_PREFIX}${digest}-baseline` },
+      candidate: { model: BASELINE, implementer: ROUTE, group: `${EXPERIMENT_GROUP_PREFIX}${digest}-candidate` },
     })
     expect(EXPERIMENT_ARM_ROLES.map(role => experimentGroup(digest, role)))
       .toEqual([result.arms.baseline.group, result.arms.candidate.group])
@@ -195,6 +199,7 @@ describe('ExperimentService', () => {
       expect(fleet.environments).toEqual({ ids: [ROUND_TRIP, UNSATISFIABLE] })
       expect(fleet.repetitions).toBe(2)
       expect(fleet.workspaceRoot).toBe('/tmp/experiment')
+      expect(fleet.implementer).toEqual(ROUTE)
       expect(fleet).not.toHaveProperty('signal')
     }
     expect(plans.map(fleet => fleet.models)).toEqual([[BASELINE], [BASELINE]])
@@ -306,6 +311,41 @@ describe('ExperimentService', () => {
     expect(StubFleet.current.plans[2]).not.toHaveProperty('policyVersion')
     expect(StubFleet.current.plans[2]).not.toHaveProperty('seed')
     expect(bare.digest).toBe(planDigest(plan(), bare.thresholds))
+  })
+
+  it('runs each arm under the implementer it names and states it beside the arm route in the written result', async () => {
+    const { ctx, plan } = await harness()
+    const sink = recordingSink()
+    const result = await ctx.experiments.run(plan({ candidate: { ...CANDIDATE, implementer: DELEGATED }, sink }))
+
+    expect(StubFleet.current.plans.map(fleet => fleet.implementer)).toEqual([ROUTE, DELEGATED])
+    expect(result.arms.baseline).toEqual({ model: BASELINE, implementer: ROUTE, group: result.arms.baseline.group })
+    expect(result.arms.candidate).toEqual({ model: CANDIDATE, implementer: DELEGATED, group: result.arms.candidate.group })
+    expect(StubFleet.current.plans.map(fleet => fleet.models)).toEqual([[BASELINE], [CANDIDATE]])
+    expect(EXPERIMENT_ARM_ROLES.map(role => experimentGroup(result.digest, role)))
+      .toEqual([result.arms.baseline.group, result.arms.candidate.group])
+
+    const written = JSON.parse(sink.lines[0] as string) as ExperimentResult
+    expect(written.arms.candidate.implementer).toEqual(DELEGATED)
+  })
+
+  it('freezes each arm implementer in role order, taking an omitted one as the route', async () => {
+    const { plan } = await harness()
+    const thresholds = resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds
+    const routes = plan()
+    const spelledOut = plan({ baseline: { ...BASELINE, implementer: ROUTE }, candidate: { ...CANDIDATE, implementer: ROUTE } })
+    expect(planDigest(spelledOut, thresholds)).toBe(planDigest(routes, thresholds))
+    expect(planDigest(routes, thresholds)).not.toBe(PRE_SLICE_DIGEST)
+
+    const delegated = plan({ candidate: { ...CANDIDATE, implementer: DELEGATED } })
+    expect(planDigest(delegated, thresholds)).not.toBe(planDigest(routes, thresholds))
+    expect(planDigest(plan({ baseline: { ...BASELINE, implementer: DELEGATED } }), thresholds))
+      .not.toBe(planDigest(delegated, thresholds))
+
+    const labelled = plan({ candidate: { ...CANDIDATE, implementer: { ...DELEGATED, label: 'nightly' } } })
+    expect(planDigest(labelled, thresholds)).not.toBe(planDigest(delegated, thresholds))
+    const elsewhere = plan({ candidate: { ...CANDIDATE, implementer: { kind: 'subagent', provider: 'other-agent' } } })
+    expect(planDigest(elsewhere, thresholds)).not.toBe(planDigest(delegated, thresholds))
   })
 
   it('accepts a digest the caller froze earlier and refuses one the plan no longer freezes to', async () => {

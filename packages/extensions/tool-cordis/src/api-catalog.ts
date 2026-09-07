@@ -734,7 +734,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
         description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
-        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arm routes, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
+        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional implementers, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
         returns: 'the digest, both arms with their stamp groups, one cell per environment, the pooled delta with its interval, the spend, and the verdict.',
         throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
       },
@@ -3742,7 +3742,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentArm',
-    declaration: 'export interface ExperimentArm {\n    readonly model: EnvironmentRunModel;\n    readonly group: string;\n}',
+    declaration: 'export interface ExperimentArm {\n    readonly model: EnvironmentRunModel;\n    readonly implementer: EnvironmentRunImplementer;\n    readonly group: string;\n}',
+  },
+  {
+    name: 'ExperimentArmPlan',
+    declaration: 'export interface ExperimentArmPlan extends EnvironmentRunModel {\n    readonly implementer?: EnvironmentRunImplementer;\n}',
   },
   {
     name: 'ExperimentArms',
@@ -3754,7 +3758,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentPlan',
-    declaration: 'export interface ExperimentPlan {\n    readonly environments: readonly EnvironmentId[];\n    readonly repetitions: number;\n    readonly baseline: EnvironmentRunModel;\n    readonly candidate: EnvironmentRunModel;\n    readonly workspaceRoot: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly digest?: string;\n    readonly signal?: AbortSignal;\n    readonly sink?: TrajectorySink;\n}',
+    declaration: 'export interface ExperimentPlan {\n    readonly environments: readonly EnvironmentId[];\n    readonly repetitions: number;\n    readonly baseline: ExperimentArmPlan;\n    readonly candidate: ExperimentArmPlan;\n    readonly workspaceRoot: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly digest?: string;\n    readonly signal?: AbortSignal;\n    readonly sink?: TrajectorySink;\n}',
   },
   {
     name: 'ExperimentResult',

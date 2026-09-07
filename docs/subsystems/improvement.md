@@ -562,9 +562,9 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  * indexes, and fold the paired comparison. Every refusal happens before the
  * first cell runs; a cell the fleet kept as an error leaves its repetition
  * unpaired instead of failing the experiment.
- * @param plan - environments, repetitions, the two arm routes, the workspace
- *   root, and an optional policy version, base seed, frozen digest, abort
- *   signal, and result sink.
+ * @param plan - environments, repetitions, the two arms with their model
+ *   routes and optional implementers, the workspace root, and an optional
+ *   policy version, base seed, frozen digest, abort signal, and result sink.
  * @returns the digest, both arms with their stamp groups, one cell per
  *   environment, the pooled delta with its interval, the spend, and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
@@ -575,7 +575,7 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:102`](../../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:110`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 
