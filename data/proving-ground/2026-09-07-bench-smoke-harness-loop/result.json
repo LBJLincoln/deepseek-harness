@@ -1,0 +1,157 @@
+{
+  "type": "result",
+  "plan": "smoke-2-one-cell-sonnet-native-tools",
+  "environments": [
+    "code:interval-ops"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-07T21:45:47.864Z",
+  "endedAt": "2026-09-07T21:46:29.091Z",
+  "report": {
+    "group": "fleet-8cf5e4c5-8721-4171-be29-d49cc84bb609",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:interval-ops",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:interval-ops",
+          "sessionId": "environment-8088d542-b3ea-4e6f-b07c-87db7082577c",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:interval-ops",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "9fcf900b5cc08d84382e7454e53a3dfb114d988987380a18abaf4f6b4ca7cfce",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "324580180f34e14dca246525775eb540a355c685415e7ef3afec10a49bd6d182",
+            "contentSha256": "ff7a729e9ec0cd6a40c74686d1f22213d975c38e5374df634a304a86e883e657",
+            "repetition": 0,
+            "group": "fleet-8cf5e4c5-8721-4171-be29-d49cc84bb609",
+            "district": "bench-smoke",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: normalize sorts, drops empties, and coalesces overlapping and touching intervals\nok 1 - normalize sorts, drops empties, and coalesces overlapping and touching intervals\n  ---\n  duration_ms: 6.373961\n  type: 'test'\n  ...\n# Subtest: normalize is idempotent and leaves its argument untouched\nok 2 - normalize is idempotent and leaves its argument untouched\n  ---\n  duration_ms: 0.671933\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input with the specified error classes\nok 3 - normalize rejects malformed input with the specified error classes\n  ---\n  duration_ms: 1.316698\n  type: 'test'\n  ...\n# Subtest: merge unions both lists\nok 4 - merge unions both lists\n  ---\n  duration_ms: 0.367179\n  type: 'test'\n  ...\n# Subtest: intersect keeps only shared points and never keeps touching endpoints\nok 5 - intersect keeps only shared points and never keeps touching endpoints\n  ---\n  duration_ms: 0.267723\n  type: 'test'\n  ...\n# Subtest: subtract punches every hole and leaves the remainder normalised\nok 6 - subtract punches every hole and leaves the remainder normalised\n  ---\n  duration_ms: 0.348595\n  type: 'test'\n  ...\n# Subtest: coverage counts overlapping points once\nok 7 - coverage counts overlapping points once\n  ---\n  duration_ms: 0.281883\n  type: 'test'\n  ...\n# Subtest: operations agree with a rasterised model on adversarial random input\nok 8 - operations agree with a rasterised model on adversarial random input\n  ---\n  duration_ms: 55.660612\n  type: 'test'\n  ...\n# Subtest: handles wide ranges and long lists without losing points\nok 9 - handles wide ranges and long lists without losing points\n  ---\n  duration_ms: 2.338655\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 284.270124"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "7c222ab2890a1f8b311bdc4a32df40f78ac90cdca2912af56ce54d4d25f282de"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-7da96c36-ae5d-4177-8ffc-bfb46209b985",
+              "revision": 1
+            },
+            "goalId": "goal-2db08120-dd2d-4e48-8b65-2fb05e917e33",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: normalize sorts, drops empties, and coalesces overlapping and touching intervals\nok 1 - normalize sorts, drops empties, and coalesces overlapping and touching intervals\n  ---\n  duration_ms: 6.373961\n  type: 'test'\n  ...\n# Subtest: normalize is idempotent and leaves its argument untouched\nok 2 - normalize is idempotent and leaves its argument untouched\n  ---\n  duration_ms: 0.671933\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input with the specified error classes\nok 3 - normalize rejects malformed input with the specified error classes\n  ---\n  duration_ms: 1.316698\n  type: 'test'\n  ...\n# Subtest: merge unions both lists\nok 4 - merge unions both lists\n  ---\n  duration_ms: 0.367179\n  type: 'test'\n  ...\n# Subtest: intersect keeps only shared points and never keeps touching endpoints\nok 5 - intersect keeps only shared points and never keeps touching endpoints\n  ---\n  duration_ms: 0.267723\n  type: 'test'\n  ...\n# Subtest: subtract punches every hole and leaves the remainder normalised\nok 6 - subtract punches every hole and leaves the remainder normalised\n  ---\n  duration_ms: 0.348595\n  type: 'test'\n  ...\n# Subtest: coverage counts overlapping points once\nok 7 - coverage counts overlapping points once\n  ---\n  duration_ms: 0.281883\n  type: 'test'\n  ...\n# Subtest: operations agree with a rasterised model on adversarial random input\nok 8 - operations agree with a rasterised model on adversarial random input\n  ---\n  duration_ms: 55.660612\n  type: 'test'\n  ...\n# Subtest: handles wide ranges and long lists without losing points\nok 9 - handles wide ranges and long lists without losing points\n  ---\n  duration_ms: 2.338655\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 284.270124"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788817589046
+          },
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 2580,
+            "cacheReadTokens": 10720,
+            "cacheWriteTokens": 37898
+          }
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:interval-ops",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 10,
+        "outputTokens": 2580,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 10,
+      "outputTokens": 2580
+    }
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:interval-ops",
+      "environmentKind": "bench",
+      "district": "bench-smoke",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    }
+  ],
+  "facts": {
+    "sessions": 1,
+    "exported": 1,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 1,
+    "exported": 1,
+    "rewarded": 1,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}

@@ -76,6 +76,9 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:template-engine` | 2 之 2 | 各 1 | 58 与 73 s |
 | [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:text-diff` | 2 之 2 | 各 1 | 120 与 142 s |
 | [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:token-bucket` | 2 之 2 | 各 1 | 191 与 235 s |
+| [2026-09-07-bench-smoke-harness-loop](2026-09-07-bench-smoke-harness-loop/manifest.json) | `8761758fa` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:interval-ops` | 1 之 1 | 1 | 41 s |
+
+第七份记录是 harness 自身的循环在 Claude Code 路由上认证的第一个单元，紧接在该路由开始以原生方式提供 harness 工具之后：五次模型查询，五次工具调用（探索、读测试、读桩、写模块、跑测试套件），没有重试，一次验证，从标记到证书 41 s，输出 2580 个 token。同一个环境在第四份记录中由产品自身循环完成用了 59 与 63 s。在这次路由变更之前，同一个单元的每次查询都在产品的轮次上限处失败，该路由的说明记录了这一点。
 
 第六份记录完成了产品自身循环对整个基准的一遍运行：未被保留的九个第 4 层环境，十八个单元，每个都在一次尝试内获得认证，每个单元 58 至 235 s，同时运行两个单元共用时 1151 s。第 4 层交给实现者的是一个带有预埋缺陷的现成模块和一套不可变的测试，因此其单元比第 3 层更快。三次舰队合计，产品自身循环以每个一次尝试认证了 48 之 48 个单元，因此就证书而言，这个基准在任何层上都无法为这个产品模型区分实现者；基准的下一个切片是更高的一层与六个保留环境，而在此之下的每一项比较都读取尝试次数、墙上时间和花费。
 
