@@ -27,7 +27,7 @@
 - 原始 transcript：`data/transcripts/2026-09-06-build/raw`
 - 导出日期：2026-09-07
 - 导出时 harness 仓库分支：`claude/coding-agent-harness-u9l4gt`
-- 导出时 harness 仓库 HEAD 提交：`1e6b0c2784825a5db078d61f5e06c1abedf8e198`
+- 导出时 harness 仓库 HEAD 提交：`9276032ec40a27eb3798249bbbbc849d9827f052`
 
 ## 使用
 
