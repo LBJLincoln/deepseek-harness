@@ -67,6 +67,17 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-07-bench-h1-product-loop-t3](2026-09-07-bench-h1-product-loop-t3/manifest.json) | `0253e1505` | `claude-code`（产品自身循环） | `code:trie-index` | 2 之 2 | 各 1 | 71 与 95 s |
 | [2026-09-07-bench-h1-product-loop-t3](2026-09-07-bench-h1-product-loop-t3/manifest.json) | `0253e1505` | `claude-code`（产品自身循环） | `code:union-find-rollback` | 2 之 2 | 各 1 | 147 与 187 s |
 | [2026-09-07-bench-h1-product-loop-t3](2026-09-07-bench-h1-product-loop-t3/manifest.json) | `0253e1505` | `claude-code`（产品自身循环） | `code:url-template` | 2 之 2 | 各 1 | 324 与 342 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:bitset-bloom` | 2 之 2 | 各 1 | 79 与 84 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:cron-next` | 2 之 2 | 各 1 | 124 与 163 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:job-scheduler` | 2 之 2 | 各 1 | 117 与 148 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:markdown-inline` | 2 之 2 | 各 1 | 103 与 126 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:query-string` | 2 之 2 | 各 1 | 145 与 216 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:shell-words` | 2 之 2 | 各 1 | 65 与 103 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:template-engine` | 2 之 2 | 各 1 | 58 与 73 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:text-diff` | 2 之 2 | 各 1 | 120 与 142 s |
+| [2026-09-07-bench-h1-product-loop-t4](2026-09-07-bench-h1-product-loop-t4/manifest.json) | `c15a4e944` | `claude-code`（产品自身循环） | `code:token-bucket` | 2 之 2 | 各 1 | 191 与 235 s |
+
+第六份记录完成了产品自身循环对整个基准的一遍运行：未被保留的九个第 4 层环境，十八个单元，每个都在一次尝试内获得认证，每个单元 58 至 235 s，同时运行两个单元共用时 1151 s。第 4 层交给实现者的是一个带有预埋缺陷的现成模块和一套不可变的测试，因此其单元比第 3 层更快。三次舰队合计，产品自身循环以每个一次尝试认证了 48 之 48 个单元，因此就证书而言，这个基准在任何层上都无法为这个产品模型区分实现者；基准的下一个切片是更高的一层与六个保留环境，而在此之下的每一项比较都读取尝试次数、墙上时间和花费。
 
 第五份记录是同一份舰队计划在未被保留的九个第 3 层环境上的运行：十八个单元，每个都在一次尝试内获得认证，每个单元 71 至 389 s，同时运行两个单元共用时 1844 s。因此在这个基准上，第 3 层对产品自身循环同样是天花板；只计数证书的比较在第 4 层以下无法区分实现者，在这些层上能够区分的度量是尝试次数、墙上时间和花费，其中委派记录已保存前两项，排队中的切片落地后将保存子进程报告的花费。
 
