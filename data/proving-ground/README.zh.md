@@ -52,6 +52,14 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` 至 `38dd04165` | `claude-code` | `code:slugify` | 22 之 22 | 各 1 | 22 个时槽，每个 45 至 90 s |
 | [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` 至 `38dd04165` | `claude-code` | `code:parse-duration` | 22 之 22 | 各 1 | 22 个时槽，每个 45 至 90 s |
 | [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` 至 `38dd04165` | `claude-code` | `code:paginate-fix` | 22 之 22 | 各 1 | 22 个时槽，每个 45 至 90 s |
+| [2026-09-07-bench-h1-product-loop-t2](2026-09-07-bench-h1-product-loop-t2/manifest.json) | `1a8ca5025` | `claude-code`（产品自身循环） | `code:csv-codec` | 2 之 2 | 各 1 | 162 与 166 s |
+| [2026-09-07-bench-h1-product-loop-t2](2026-09-07-bench-h1-product-loop-t2/manifest.json) | `1a8ca5025` | `claude-code`（产品自身循环） | `code:glob-match` | 2 之 2 | 各 1 | 318 与 406 s |
+| [2026-09-07-bench-h1-product-loop-t2](2026-09-07-bench-h1-product-loop-t2/manifest.json) | `1a8ca5025` | `claude-code`（产品自身循环） | `code:interval-ops` | 2 之 2 | 各 1 | 59 与 63 s |
+| [2026-09-07-bench-h1-product-loop-t2](2026-09-07-bench-h1-product-loop-t2/manifest.json) | `1a8ca5025` | `claude-code`（产品自身循环） | `code:path-normalize` | 2 之 2 | 各 1 | 94 与 100 s |
+| [2026-09-07-bench-h1-product-loop-t2](2026-09-07-bench-h1-product-loop-t2/manifest.json) | `1a8ca5025` | `claude-code`（产品自身循环） | `code:stable-sort-by` | 2 之 2 | 各 1 | 91 与 100 s |
+| [2026-09-07-bench-h1-product-loop-t2](2026-09-07-bench-h1-product-loop-t2/manifest.json) | `1a8ca5025` | `claude-code`（产品自身循环） | `code:table-format` | 2 之 2 | 各 1 | 184 与 189 s |
+
+第四份记录是 Proving Ground 基准（`examples/headless-agent/tests/fixtures/proving-ground-bench/`，三十个已通过准入的程序任务）的第一次舰队运行：每个单元都由产品自身的循环实现，覆盖未被保留的六个第 2 层环境，每个重复两次，种子 1，策略 `bench-2026-09-07`，区 `bench-h1`，同时运行两个单元，十二个单元共用时 984 s。每个单元都在一次尝试内获得认证，因此第 2 层对这个实现者而言是天花板，harness 循环与产品循环之间的配对比较在第 3 层和第 4 层进行。单元上标注的模型是 `sonnet`；由于委派尚未把单元的模型转发给子进程（转发它并记录子进程所报告模型的切片已排入队列），产品运行的是安装的默认模型，该默认值在运行前被测得为 sonnet。基准的组合与任务对应提交 `128e037bb`；清单记录的是记录时工作树的头部。
 
 第三份记录是同一个区整夜运行的结果：从 22:16 到 09:16 UTC，按三十分钟的节奏运行了 22 个时槽，其中包括第二份记录所保存的第一个时槽。宿主机重启过一次；应在 00:16 开启的时槽没有被补跑，与班次驱动器的节奏规则所述完全一致，重新启动的进程从 00:46 起在当时的工作树上沿用同一份账本和同一节奏继续，因此重启前的时槽运行的是 `88f6a1f2e` 处的树，重启后的时槽运行的是 `38dd04165` 处的树，manifest 记录的 head 即为后者。66 个 cell 全部在一次尝试内获得认证；该记录保存了全部 22 份班次账本、66 个 cell 会话，以及在它们之上折叠出的导出。
 

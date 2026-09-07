@@ -1,0 +1,1180 @@
+{
+  "type": "result",
+  "plan": "h1-product-loop-sonnet-t2",
+  "environments": [
+    "code:csv-codec",
+    "code:glob-match",
+    "code:interval-ops",
+    "code:path-normalize",
+    "code:stable-sort-by",
+    "code:table-format"
+  ],
+  "implementer": {
+    "kind": "subagent",
+    "provider": "claude-code",
+    "label": "product-loop"
+  },
+  "startedAt": "2026-09-07T20:38:52.249Z",
+  "endedAt": "2026-09-07T20:55:17.142Z",
+  "report": {
+    "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:csv-codec",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:csv-codec",
+          "sessionId": "environment-b1c23889-f028-44de-a007-4cb2ff2c6a88",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:csv-codec",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "2d57530990f66af59244159685b90eed2c7a6683888aad1d1a587251dd6f9d2d",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "ea055ed1f56d588fb3103943ec1d96a4d8d2e60ed1a5a3d4fa80213a2af1c8ee",
+            "contentSha256": "c0200b343f886b42934c5e3c09a81c011faa24decac3fc330933e0455fddb0d1",
+            "repetition": 0,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…stral characters and combining marks survive without normalisation\nok 6 - astral characters and combining marks survive without normalisation\n  ---\n  duration_ms: 0.150647\n  type: 'test'\n  ...\n# Subtest: an unterminated quoted field reports the opening quote\nok 7 - an unterminated quoted field reports the opening quote\n  ---\n  duration_ms: 0.562852\n  type: 'test'\n  ...\n# Subtest: text after a closing quote reports its own position\nok 8 - text after a closing quote reports its own position\n  ---\n  duration_ms: 0.259478\n  type: 'test'\n  ...\n# Subtest: the dialect is configurable\nok 9 - the dialect is configurable\n  ---\n  duration_ms: 0.486609\n  type: 'test'\n  ...\n# Subtest: an invalid dialect is rejected\nok 10 - an invalid dialect is rejected\n  ---\n  duration_ms: 0.964462\n  type: 'test'\n  ...\n# Subtest: ragged records are allowed unless strictWidth is set\nok 11 - ragged records are allowed unless strictWidth is set\n  ---\n  duration_ms: 0.406428\n  type: 'test'\n  ...\n# Subtest: escapeField quotes exactly the fields that need it\nok 12 - escapeField quotes exactly the fields that need it\n  ---\n  duration_ms: 0.427564\n  type: 'test'\n  ...\n# Subtest: escapeField converts the accepted non-string values\nok 13 - escapeField converts the accepted non-string values\n  ---\n  duration_ms: 0.351305\n  type: 'test'\n  ...\n# Subtest: stringify terminates every record\nok 14 - stringify terminates every record\n  ---\n  duration_ms: 0.332487\n  type: 'test'\n  ...\n# Subtest: stringify rejects malformed input\nok 15 - stringify rejects malformed input\n  ---\n  duration_ms: 0.375184\n  type: 'test'\n  ...\n# Subtest: a byte-order mark inside a field round-trips because it is quoted\nok 16 - a byte-order mark inside a field round-trips because it is quoted\n  ---\n  duration_ms: 0.160851\n  type: 'test'\n  ...\n# Subtest: generated documents round-trip\nok 17 - generated documents round-trip\n  ---\n  duration_ms: 6.898708\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 148.340155"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "d121f2e33a7e4ab67f828da04fe38d9bcac3be318cea0edd72d42eea38cec336"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-e2311081-77ce-4402-bc33-79b6b73080b8",
+              "revision": 1
+            },
+            "goalId": "goal-ba628ac4-d206-46b8-a0af-4c35ec664fb2",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…stral characters and combining marks survive without normalisation\nok 6 - astral characters and combining marks survive without normalisation\n  ---\n  duration_ms: 0.150647\n  type: 'test'\n  ...\n# Subtest: an unterminated quoted field reports the opening quote\nok 7 - an unterminated quoted field reports the opening quote\n  ---\n  duration_ms: 0.562852\n  type: 'test'\n  ...\n# Subtest: text after a closing quote reports its own position\nok 8 - text after a closing quote reports its own position\n  ---\n  duration_ms: 0.259478\n  type: 'test'\n  ...\n# Subtest: the dialect is configurable\nok 9 - the dialect is configurable\n  ---\n  duration_ms: 0.486609\n  type: 'test'\n  ...\n# Subtest: an invalid dialect is rejected\nok 10 - an invalid dialect is rejected\n  ---\n  duration_ms: 0.964462\n  type: 'test'\n  ...\n# Subtest: ragged records are allowed unless strictWidth is set\nok 11 - ragged records are allowed unless strictWidth is set\n  ---\n  duration_ms: 0.406428\n  type: 'test'\n  ...\n# Subtest: escapeField quotes exactly the fields that need it\nok 12 - escapeField quotes exactly the fields that need it\n  ---\n  duration_ms: 0.427564\n  type: 'test'\n  ...\n# Subtest: escapeField converts the accepted non-string values\nok 13 - escapeField converts the accepted non-string values\n  ---\n  duration_ms: 0.351305\n  type: 'test'\n  ...\n# Subtest: stringify terminates every record\nok 14 - stringify terminates every record\n  ---\n  duration_ms: 0.332487\n  type: 'test'\n  ...\n# Subtest: stringify rejects malformed input\nok 15 - stringify rejects malformed input\n  ---\n  duration_ms: 0.375184\n  type: 'test'\n  ...\n# Subtest: a byte-order mark inside a field round-trips because it is quoted\nok 16 - a byte-order mark inside a field round-trips because it is quoted\n  ---\n  duration_ms: 0.160851\n  type: 'test'\n  ...\n# Subtest: generated documents round-trip\nok 17 - generated documents round-trip\n  ---\n  duration_ms: 6.898708\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 148.340155"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788813698484
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:csv-codec",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:csv-codec",
+          "sessionId": "environment-e53125a2-cb11-48f5-857a-86199a8c831a",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:csv-codec",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "2d57530990f66af59244159685b90eed2c7a6683888aad1d1a587251dd6f9d2d",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "ea055ed1f56d588fb3103943ec1d96a4d8d2e60ed1a5a3d4fa80213a2af1c8ee",
+            "contentSha256": "c0200b343f886b42934c5e3c09a81c011faa24decac3fc330933e0455fddb0d1",
+            "repetition": 1,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… astral characters and combining marks survive without normalisation\nok 6 - astral characters and combining marks survive without normalisation\n  ---\n  duration_ms: 0.152448\n  type: 'test'\n  ...\n# Subtest: an unterminated quoted field reports the opening quote\nok 7 - an unterminated quoted field reports the opening quote\n  ---\n  duration_ms: 0.468726\n  type: 'test'\n  ...\n# Subtest: text after a closing quote reports its own position\nok 8 - text after a closing quote reports its own position\n  ---\n  duration_ms: 0.267643\n  type: 'test'\n  ...\n# Subtest: the dialect is configurable\nok 9 - the dialect is configurable\n  ---\n  duration_ms: 0.423648\n  type: 'test'\n  ...\n# Subtest: an invalid dialect is rejected\nok 10 - an invalid dialect is rejected\n  ---\n  duration_ms: 0.947609\n  type: 'test'\n  ...\n# Subtest: ragged records are allowed unless strictWidth is set\nok 11 - ragged records are allowed unless strictWidth is set\n  ---\n  duration_ms: 0.33482\n  type: 'test'\n  ...\n# Subtest: escapeField quotes exactly the fields that need it\nok 12 - escapeField quotes exactly the fields that need it\n  ---\n  duration_ms: 0.293153\n  type: 'test'\n  ...\n# Subtest: escapeField converts the accepted non-string values\nok 13 - escapeField converts the accepted non-string values\n  ---\n  duration_ms: 0.364688\n  type: 'test'\n  ...\n# Subtest: stringify terminates every record\nok 14 - stringify terminates every record\n  ---\n  duration_ms: 0.354391\n  type: 'test'\n  ...\n# Subtest: stringify rejects malformed input\nok 15 - stringify rejects malformed input\n  ---\n  duration_ms: 0.380496\n  type: 'test'\n  ...\n# Subtest: a byte-order mark inside a field round-trips because it is quoted\nok 16 - a byte-order mark inside a field round-trips because it is quoted\n  ---\n  duration_ms: 0.178048\n  type: 'test'\n  ...\n# Subtest: generated documents round-trip\nok 17 - generated documents round-trip\n  ---\n  duration_ms: 6.598947\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 147.40856"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "62a3b8af278b77f2ca20da4740666d0e81a6031a5db32bf2a4b9fac3afba1d62"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-86173cc4-df7b-4a4e-b333-0688309bca9a",
+              "revision": 1
+            },
+            "goalId": "goal-913a4126-0409-44f2-b61f-8da6f0fda21b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n… astral characters and combining marks survive without normalisation\nok 6 - astral characters and combining marks survive without normalisation\n  ---\n  duration_ms: 0.152448\n  type: 'test'\n  ...\n# Subtest: an unterminated quoted field reports the opening quote\nok 7 - an unterminated quoted field reports the opening quote\n  ---\n  duration_ms: 0.468726\n  type: 'test'\n  ...\n# Subtest: text after a closing quote reports its own position\nok 8 - text after a closing quote reports its own position\n  ---\n  duration_ms: 0.267643\n  type: 'test'\n  ...\n# Subtest: the dialect is configurable\nok 9 - the dialect is configurable\n  ---\n  duration_ms: 0.423648\n  type: 'test'\n  ...\n# Subtest: an invalid dialect is rejected\nok 10 - an invalid dialect is rejected\n  ---\n  duration_ms: 0.947609\n  type: 'test'\n  ...\n# Subtest: ragged records are allowed unless strictWidth is set\nok 11 - ragged records are allowed unless strictWidth is set\n  ---\n  duration_ms: 0.33482\n  type: 'test'\n  ...\n# Subtest: escapeField quotes exactly the fields that need it\nok 12 - escapeField quotes exactly the fields that need it\n  ---\n  duration_ms: 0.293153\n  type: 'test'\n  ...\n# Subtest: escapeField converts the accepted non-string values\nok 13 - escapeField converts the accepted non-string values\n  ---\n  duration_ms: 0.364688\n  type: 'test'\n  ...\n# Subtest: stringify terminates every record\nok 14 - stringify terminates every record\n  ---\n  duration_ms: 0.354391\n  type: 'test'\n  ...\n# Subtest: stringify rejects malformed input\nok 15 - stringify rejects malformed input\n  ---\n  duration_ms: 0.380496\n  type: 'test'\n  ...\n# Subtest: a byte-order mark inside a field round-trips because it is quoted\nok 16 - a byte-order mark inside a field round-trips because it is quoted\n  ---\n  duration_ms: 0.178048\n  type: 'test'\n  ...\n# Subtest: generated documents round-trip\nok 17 - generated documents round-trip\n  ---\n  duration_ms: 6.598947\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 147.40856"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788813694200
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:glob-match",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:glob-match",
+          "sessionId": "environment-b8226471-dad4-4719-a0b8-bd7a23978f5f",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:glob-match",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f4d8cc16fbb4a1572ff5b70106c292622bcf820ab13bb727b24b44e092679be9",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "fca9b8bddfc662c6405318bdc810a0a2ae4dafdddfe355513f964c559d978e15",
+            "contentSha256": "693e0c7cebe8628c5085a375d1874a51784e0882d9d83702d51f395ddb47045d",
+            "repetition": 0,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: wildcards, globstars and the dot rule select the right paths\nok 1 - wildcards, globstars and the dot rule select the right paths\n  ---\n  duration_ms: 6.338032\n  type: 'test'\n  ...\n# Subtest: a globstar matches zero or more whole segments\nok 2 - a globstar matches zero or more whole segments\n  ---\n  duration_ms: 0.74418\n  type: 'test'\n  ...\n# Subtest: wildcards never cross a separator\nok 3 - wildcards never cross a separator\n  ---\n  duration_ms: 0.379548\n  type: 'test'\n  ...\n# Subtest: character classes follow the POSIX bracket rules\nok 4 - character classes follow the POSIX bracket rules\n  ---\n  duration_ms: 2.248967\n  type: 'test'\n  ...\n# Subtest: a leading dot is only matched by an explicit dot\nok 5 - a leading dot is only matched by an explicit dot\n  ---\n  duration_ms: 0.458874\n  type: 'test'\n  ...\n# Subtest: backslash escapes strip a metacharacter of its meaning\nok 6 - backslash escapes strip a metacharacter of its meaning\n  ---\n  duration_ms: 0.398044\n  type: 'test'\n  ...\n# Subtest: case folding is opt-in\nok 7 - case folding is opt-in\n  ---\n  duration_ms: 0.480738\n  type: 'test'\n  ...\n# Subtest: invalid patterns report the reason and the position\nok 8 - invalid patterns report the reason and the position\n  ---\n  duration_ms: 1.238922\n  type: 'test'\n  ...\n# Subtest: filter keeps duplicates and the original order\nok 9 - filter keeps duplicates and the original order\n  ---\n  duration_ms: 0.633593\n  type: 'test'\n  ...\n# Subtest: generated paths satisfy the matching invariants\nok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 16.400219\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 154.114311"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "bbca89acdf18059491c496d546bd9697ebba7bb63f9c90bdee91e6538220e817"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-d288ea1e-6474-4d73-a44f-f8dd3952fdd4",
+              "revision": 1
+            },
+            "goalId": "goal-cb240ddb-0b29-441a-ae48-4eb27d8b26de",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: wildcards, globstars and the dot rule select the right paths\nok 1 - wildcards, globstars and the dot rule select the right paths\n  ---\n  duration_ms: 6.338032\n  type: 'test'\n  ...\n# Subtest: a globstar matches zero or more whole segments\nok 2 - a globstar matches zero or more whole segments\n  ---\n  duration_ms: 0.74418\n  type: 'test'\n  ...\n# Subtest: wildcards never cross a separator\nok 3 - wildcards never cross a separator\n  ---\n  duration_ms: 0.379548\n  type: 'test'\n  ...\n# Subtest: character classes follow the POSIX bracket rules\nok 4 - character classes follow the POSIX bracket rules\n  ---\n  duration_ms: 2.248967\n  type: 'test'\n  ...\n# Subtest: a leading dot is only matched by an explicit dot\nok 5 - a leading dot is only matched by an explicit dot\n  ---\n  duration_ms: 0.458874\n  type: 'test'\n  ...\n# Subtest: backslash escapes strip a metacharacter of its meaning\nok 6 - backslash escapes strip a metacharacter of its meaning\n  ---\n  duration_ms: 0.398044\n  type: 'test'\n  ...\n# Subtest: case folding is opt-in\nok 7 - case folding is opt-in\n  ---\n  duration_ms: 0.480738\n  type: 'test'\n  ...\n# Subtest: invalid patterns report the reason and the position\nok 8 - invalid patterns report the reason and the position\n  ---\n  duration_ms: 1.238922\n  type: 'test'\n  ...\n# Subtest: filter keeps duplicates and the original order\nok 9 - filter keeps duplicates and the original order\n  ---\n  duration_ms: 0.633593\n  type: 'test'\n  ...\n# Subtest: generated paths satisfy the matching invariants\nok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 16.400219\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 154.114311"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814100220
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:glob-match",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:glob-match",
+          "sessionId": "environment-2a669a81-a397-4b42-991d-b595d4980746",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:glob-match",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f4d8cc16fbb4a1572ff5b70106c292622bcf820ab13bb727b24b44e092679be9",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "fca9b8bddfc662c6405318bdc810a0a2ae4dafdddfe355513f964c559d978e15",
+            "contentSha256": "693e0c7cebe8628c5085a375d1874a51784e0882d9d83702d51f395ddb47045d",
+            "repetition": 1,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: wildcards, globstars and the dot rule select the right paths\nok 1 - wildcards, globstars and the dot rule select the right paths\n  ---\n  duration_ms: 6.361964\n  type: 'test'\n  ...\n# Subtest: a globstar matches zero or more whole segments\nok 2 - a globstar matches zero or more whole segments\n  ---\n  duration_ms: 0.635164\n  type: 'test'\n  ...\n# Subtest: wildcards never cross a separator\nok 3 - wildcards never cross a separator\n  ---\n  duration_ms: 0.333717\n  type: 'test'\n  ...\n# Subtest: character classes follow the POSIX bracket rules\nok 4 - character classes follow the POSIX bracket rules\n  ---\n  duration_ms: 0.841013\n  type: 'test'\n  ...\n# Subtest: a leading dot is only matched by an explicit dot\nok 5 - a leading dot is only matched by an explicit dot\n  ---\n  duration_ms: 0.381099\n  type: 'test'\n  ...\n# Subtest: backslash escapes strip a metacharacter of its meaning\nok 6 - backslash escapes strip a metacharacter of its meaning\n  ---\n  duration_ms: 0.349371\n  type: 'test'\n  ...\n# Subtest: case folding is opt-in\nok 7 - case folding is opt-in\n  ---\n  duration_ms: 0.373167\n  type: 'test'\n  ...\n# Subtest: invalid patterns report the reason and the position\nok 8 - invalid patterns report the reason and the position\n  ---\n  duration_ms: 0.888287\n  type: 'test'\n  ...\n# Subtest: filter keeps duplicates and the original order\nok 9 - filter keeps duplicates and the original order\n  ---\n  duration_ms: 1.710164\n  type: 'test'\n  ...\n# Subtest: generated paths satisfy the matching invariants\nok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 27.7541\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 161.876106"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "5dd6c2afaa6d2f50f3b705203e38993da30ae83fc93b70b86cd064924436ed71"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-4221d934-7889-4d60-8aea-fb4052037c01",
+              "revision": 1
+            },
+            "goalId": "goal-748005fe-1cf3-43b0-99ef-4aed0597fd6b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: wildcards, globstars and the dot rule select the right paths\nok 1 - wildcards, globstars and the dot rule select the right paths\n  ---\n  duration_ms: 6.361964\n  type: 'test'\n  ...\n# Subtest: a globstar matches zero or more whole segments\nok 2 - a globstar matches zero or more whole segments\n  ---\n  duration_ms: 0.635164\n  type: 'test'\n  ...\n# Subtest: wildcards never cross a separator\nok 3 - wildcards never cross a separator\n  ---\n  duration_ms: 0.333717\n  type: 'test'\n  ...\n# Subtest: character classes follow the POSIX bracket rules\nok 4 - character classes follow the POSIX bracket rules\n  ---\n  duration_ms: 0.841013\n  type: 'test'\n  ...\n# Subtest: a leading dot is only matched by an explicit dot\nok 5 - a leading dot is only matched by an explicit dot\n  ---\n  duration_ms: 0.381099\n  type: 'test'\n  ...\n# Subtest: backslash escapes strip a metacharacter of its meaning\nok 6 - backslash escapes strip a metacharacter of its meaning\n  ---\n  duration_ms: 0.349371\n  type: 'test'\n  ...\n# Subtest: case folding is opt-in\nok 7 - case folding is opt-in\n  ---\n  duration_ms: 0.373167\n  type: 'test'\n  ...\n# Subtest: invalid patterns report the reason and the position\nok 8 - invalid patterns report the reason and the position\n  ---\n  duration_ms: 0.888287\n  type: 'test'\n  ...\n# Subtest: filter keeps duplicates and the original order\nok 9 - filter keeps duplicates and the original order\n  ---\n  duration_ms: 1.710164\n  type: 'test'\n  ...\n# Subtest: generated paths satisfy the matching invariants\nok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 27.7541\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 161.876106"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814016031
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:interval-ops",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:interval-ops",
+          "sessionId": "environment-3eb30d09-41f9-499a-b258-c48c74396c7c",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:interval-ops",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "9fcf900b5cc08d84382e7454e53a3dfb114d988987380a18abaf4f6b4ca7cfce",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "324580180f34e14dca246525775eb540a355c685415e7ef3afec10a49bd6d182",
+            "contentSha256": "ff7a729e9ec0cd6a40c74686d1f22213d975c38e5374df634a304a86e883e657",
+            "repetition": 0,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: normalize sorts, drops empties, and coalesces overlapping and touching intervals\nok 1 - normalize sorts, drops empties, and coalesces overlapping and touching intervals\n  ---\n  duration_ms: 5.021005\n  type: 'test'\n  ...\n# Subtest: normalize is idempotent and leaves its argument untouched\nok 2 - normalize is idempotent and leaves its argument untouched\n  ---\n  duration_ms: 0.386858\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input with the specified error classes\nok 3 - normalize rejects malformed input with the specified error classes\n  ---\n  duration_ms: 1.220058\n  type: 'test'\n  ...\n# Subtest: merge unions both lists\nok 4 - merge unions both lists\n  ---\n  duration_ms: 0.578418\n  type: 'test'\n  ...\n# Subtest: intersect keeps only shared points and never keeps touching endpoints\nok 5 - intersect keeps only shared points and never keeps touching endpoints\n  ---\n  duration_ms: 0.436554\n  type: 'test'\n  ...\n# Subtest: subtract punches every hole and leaves the remainder normalised\nok 6 - subtract punches every hole and leaves the remainder normalised\n  ---\n  duration_ms: 0.525418\n  type: 'test'\n  ...\n# Subtest: coverage counts overlapping points once\nok 7 - coverage counts overlapping points once\n  ---\n  duration_ms: 0.298361\n  type: 'test'\n  ...\n# Subtest: operations agree with a rasterised model on adversarial random input\nok 8 - operations agree with a rasterised model on adversarial random input\n  ---\n  duration_ms: 40.413607\n  type: 'test'\n  ...\n# Subtest: handles wide ranges and long lists without losing points\nok 9 - handles wide ranges and long lists without losing points\n  ---\n  duration_ms: 3.201777\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 169.971999"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "526dd539ddb0c671686c7bebc28eb324edf5f6ae18e38e0828210962e5722bd5"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-85d0880b-4668-4b54-a5c1-b1b6244c3b36",
+              "revision": 1
+            },
+            "goalId": "goal-00be46c4-5455-4d91-8471-a349150a7e3e",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: normalize sorts, drops empties, and coalesces overlapping and touching intervals\nok 1 - normalize sorts, drops empties, and coalesces overlapping and touching intervals\n  ---\n  duration_ms: 5.021005\n  type: 'test'\n  ...\n# Subtest: normalize is idempotent and leaves its argument untouched\nok 2 - normalize is idempotent and leaves its argument untouched\n  ---\n  duration_ms: 0.386858\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input with the specified error classes\nok 3 - normalize rejects malformed input with the specified error classes\n  ---\n  duration_ms: 1.220058\n  type: 'test'\n  ...\n# Subtest: merge unions both lists\nok 4 - merge unions both lists\n  ---\n  duration_ms: 0.578418\n  type: 'test'\n  ...\n# Subtest: intersect keeps only shared points and never keeps touching endpoints\nok 5 - intersect keeps only shared points and never keeps touching endpoints\n  ---\n  duration_ms: 0.436554\n  type: 'test'\n  ...\n# Subtest: subtract punches every hole and leaves the remainder normalised\nok 6 - subtract punches every hole and leaves the remainder normalised\n  ---\n  duration_ms: 0.525418\n  type: 'test'\n  ...\n# Subtest: coverage counts overlapping points once\nok 7 - coverage counts overlapping points once\n  ---\n  duration_ms: 0.298361\n  type: 'test'\n  ...\n# Subtest: operations agree with a rasterised model on adversarial random input\nok 8 - operations agree with a rasterised model on adversarial random input\n  ---\n  duration_ms: 40.413607\n  type: 'test'\n  ...\n# Subtest: handles wide ranges and long lists without losing points\nok 9 - handles wide ranges and long lists without losing points\n  ---\n  duration_ms: 3.201777\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 169.971999"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814078559
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:interval-ops",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:interval-ops",
+          "sessionId": "environment-3c734331-2ce8-49bd-be6d-bf5bb374a59a",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:interval-ops",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "9fcf900b5cc08d84382e7454e53a3dfb114d988987380a18abaf4f6b4ca7cfce",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "324580180f34e14dca246525775eb540a355c685415e7ef3afec10a49bd6d182",
+            "contentSha256": "ff7a729e9ec0cd6a40c74686d1f22213d975c38e5374df634a304a86e883e657",
+            "repetition": 1,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: normalize sorts, drops empties, and coalesces overlapping and touching intervals\nok 1 - normalize sorts, drops empties, and coalesces overlapping and touching intervals\n  ---\n  duration_ms: 3.876361\n  type: 'test'\n  ...\n# Subtest: normalize is idempotent and leaves its argument untouched\nok 2 - normalize is idempotent and leaves its argument untouched\n  ---\n  duration_ms: 0.268539\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input with the specified error classes\nok 3 - normalize rejects malformed input with the specified error classes\n  ---\n  duration_ms: 1.257202\n  type: 'test'\n  ...\n# Subtest: merge unions both lists\nok 4 - merge unions both lists\n  ---\n  duration_ms: 0.332801\n  type: 'test'\n  ...\n# Subtest: intersect keeps only shared points and never keeps touching endpoints\nok 5 - intersect keeps only shared points and never keeps touching endpoints\n  ---\n  duration_ms: 0.366243\n  type: 'test'\n  ...\n# Subtest: subtract punches every hole and leaves the remainder normalised\nok 6 - subtract punches every hole and leaves the remainder normalised\n  ---\n  duration_ms: 0.429032\n  type: 'test'\n  ...\n# Subtest: coverage counts overlapping points once\nok 7 - coverage counts overlapping points once\n  ---\n  duration_ms: 0.257122\n  type: 'test'\n  ...\n# Subtest: operations agree with a rasterised model on adversarial random input\nok 8 - operations agree with a rasterised model on adversarial random input\n  ---\n  duration_ms: 30.308768\n  type: 'test'\n  ...\n# Subtest: handles wide ranges and long lists without losing points\nok 9 - handles wide ranges and long lists without losing points\n  ---\n  duration_ms: 1.697214\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 144.987923"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "45dc39397f56d2c5fecfb5d5140f980d81540b4231cb19debf69601988a3c757"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-6fecf0a2-d742-485b-8ba1-5b155fcda042",
+              "revision": 1
+            },
+            "goalId": "goal-7885119c-6be9-4283-ae81-cb724457db42",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: normalize sorts, drops empties, and coalesces overlapping and touching intervals\nok 1 - normalize sorts, drops empties, and coalesces overlapping and touching intervals\n  ---\n  duration_ms: 3.876361\n  type: 'test'\n  ...\n# Subtest: normalize is idempotent and leaves its argument untouched\nok 2 - normalize is idempotent and leaves its argument untouched\n  ---\n  duration_ms: 0.268539\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input with the specified error classes\nok 3 - normalize rejects malformed input with the specified error classes\n  ---\n  duration_ms: 1.257202\n  type: 'test'\n  ...\n# Subtest: merge unions both lists\nok 4 - merge unions both lists\n  ---\n  duration_ms: 0.332801\n  type: 'test'\n  ...\n# Subtest: intersect keeps only shared points and never keeps touching endpoints\nok 5 - intersect keeps only shared points and never keeps touching endpoints\n  ---\n  duration_ms: 0.366243\n  type: 'test'\n  ...\n# Subtest: subtract punches every hole and leaves the remainder normalised\nok 6 - subtract punches every hole and leaves the remainder normalised\n  ---\n  duration_ms: 0.429032\n  type: 'test'\n  ...\n# Subtest: coverage counts overlapping points once\nok 7 - coverage counts overlapping points once\n  ---\n  duration_ms: 0.257122\n  type: 'test'\n  ...\n# Subtest: operations agree with a rasterised model on adversarial random input\nok 8 - operations agree with a rasterised model on adversarial random input\n  ---\n  duration_ms: 30.308768\n  type: 'test'\n  ...\n# Subtest: handles wide ranges and long lists without losing points\nok 9 - handles wide ranges and long lists without losing points\n  ---\n  duration_ms: 1.697214\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 144.987923"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814138016
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:path-normalize",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:path-normalize",
+          "sessionId": "environment-3a68538a-e6b1-4f49-9042-2a8e8088b8c4",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:path-normalize",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "316c9dc2a108108c94c6b6ab00066f174e699775032b3852cd527ba12422cce6",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "94d7380f85cd709ec2555eeeb246aada7d97113e257cfc34bf42618d5389acd5",
+            "contentSha256": "1895803e3041da7c01b9457ecc0806bf9aaa20b41fbde69cfa1d75a66fb36342",
+            "repetition": 0,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: isAbsolute looks only at the leading slash\nok 1 - isAbsolute looks only at the leading slash\n  ---\n  duration_ms: 2.551921\n  type: 'test'\n  ...\n# Subtest: normalize collapses separators, dots and trailing slashes\nok 2 - normalize collapses separators, dots and trailing slashes\n  ---\n  duration_ms: 2.059471\n  type: 'test'\n  ...\n# Subtest: normalize keeps leading parents on relative paths only\nok 3 - normalize keeps leading parents on relative paths only\n  ---\n  duration_ms: 0.175569\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input and escapes from the root\nok 4 - normalize rejects malformed input and escapes from the root\n  ---\n  duration_ms: 0.489285\n  type: 'test'\n  ...\n# Subtest: join concatenates and then normalizes\nok 5 - join concatenates and then normalizes\n  ---\n  duration_ms: 0.375387\n  type: 'test'\n  ...\n# Subtest: join rejects empty, absolute and non-string segments\nok 6 - join rejects empty, absolute and non-string segments\n  ---\n  duration_ms: 0.559497\n  type: 'test'\n  ...\n# Subtest: relative walks up and back down\nok 7 - relative walks up and back down\n  ---\n  duration_ms: 0.397818\n  type: 'test'\n  ...\n# Subtest: relative demands two absolute paths\nok 8 - relative demands two absolute paths\n  ---\n  duration_ms: 0.318819\n  type: 'test'\n  ...\n# Subtest: normalized paths are stable and well formed for generated input\nok 9 - normalized paths are stable and well formed for generated input\n  ---\n  duration_ms: 4.416345\n  type: 'test'\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 8.279546\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 163.796908"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "91e86904a2eb1ff73c623d48b4b0cea93b3194df1134f689fa3113869552331f"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-b4fdf1cd-a085-4ed5-a923-64e7fb00e0a8",
+              "revision": 1
+            },
+            "goalId": "goal-d8f49d01-fc06-4c53-88ae-a72c65744e29",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: isAbsolute looks only at the leading slash\nok 1 - isAbsolute looks only at the leading slash\n  ---\n  duration_ms: 2.551921\n  type: 'test'\n  ...\n# Subtest: normalize collapses separators, dots and trailing slashes\nok 2 - normalize collapses separators, dots and trailing slashes\n  ---\n  duration_ms: 2.059471\n  type: 'test'\n  ...\n# Subtest: normalize keeps leading parents on relative paths only\nok 3 - normalize keeps leading parents on relative paths only\n  ---\n  duration_ms: 0.175569\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input and escapes from the root\nok 4 - normalize rejects malformed input and escapes from the root\n  ---\n  duration_ms: 0.489285\n  type: 'test'\n  ...\n# Subtest: join concatenates and then normalizes\nok 5 - join concatenates and then normalizes\n  ---\n  duration_ms: 0.375387\n  type: 'test'\n  ...\n# Subtest: join rejects empty, absolute and non-string segments\nok 6 - join rejects empty, absolute and non-string segments\n  ---\n  duration_ms: 0.559497\n  type: 'test'\n  ...\n# Subtest: relative walks up and back down\nok 7 - relative walks up and back down\n  ---\n  duration_ms: 0.397818\n  type: 'test'\n  ...\n# Subtest: relative demands two absolute paths\nok 8 - relative demands two absolute paths\n  ---\n  duration_ms: 0.318819\n  type: 'test'\n  ...\n# Subtest: normalized paths are stable and well formed for generated input\nok 9 - normalized paths are stable and well formed for generated input\n  ---\n  duration_ms: 4.416345\n  type: 'test'\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 8.279546\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 163.796908"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814200739
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:path-normalize",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:path-normalize",
+          "sessionId": "environment-e5b19786-73d8-4ad7-abc6-eec1ce6ef8e3",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:path-normalize",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "316c9dc2a108108c94c6b6ab00066f174e699775032b3852cd527ba12422cce6",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "94d7380f85cd709ec2555eeeb246aada7d97113e257cfc34bf42618d5389acd5",
+            "contentSha256": "1895803e3041da7c01b9457ecc0806bf9aaa20b41fbde69cfa1d75a66fb36342",
+            "repetition": 1,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: isAbsolute looks only at the leading slash\nok 1 - isAbsolute looks only at the leading slash\n  ---\n  duration_ms: 2.406354\n  type: 'test'\n  ...\n# Subtest: normalize collapses separators, dots and trailing slashes\nok 2 - normalize collapses separators, dots and trailing slashes\n  ---\n  duration_ms: 1.758547\n  type: 'test'\n  ...\n# Subtest: normalize keeps leading parents on relative paths only\nok 3 - normalize keeps leading parents on relative paths only\n  ---\n  duration_ms: 0.190912\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input and escapes from the root\nok 4 - normalize rejects malformed input and escapes from the root\n  ---\n  duration_ms: 0.411191\n  type: 'test'\n  ...\n# Subtest: join concatenates and then normalizes\nok 5 - join concatenates and then normalizes\n  ---\n  duration_ms: 0.354759\n  type: 'test'\n  ...\n# Subtest: join rejects empty, absolute and non-string segments\nok 6 - join rejects empty, absolute and non-string segments\n  ---\n  duration_ms: 0.530015\n  type: 'test'\n  ...\n# Subtest: relative walks up and back down\nok 7 - relative walks up and back down\n  ---\n  duration_ms: 0.480861\n  type: 'test'\n  ...\n# Subtest: relative demands two absolute paths\nok 8 - relative demands two absolute paths\n  ---\n  duration_ms: 0.28399\n  type: 'test'\n  ...\n# Subtest: normalized paths are stable and well formed for generated input\nok 9 - normalized paths are stable and well formed for generated input\n  ---\n  duration_ms: 4.355235\n  type: 'test'\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 8.14602\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 131.961205"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "30e72694f077d21c9928750af2d3226209f06f157fe305e78da0242b9a9e362e"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-04b7bbc6-3a0d-4ab2-a574-970b4588c902",
+              "revision": 1
+            },
+            "goalId": "goal-4e0ee846-7041-42f4-9496-8b3989252877",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: isAbsolute looks only at the leading slash\nok 1 - isAbsolute looks only at the leading slash\n  ---\n  duration_ms: 2.406354\n  type: 'test'\n  ...\n# Subtest: normalize collapses separators, dots and trailing slashes\nok 2 - normalize collapses separators, dots and trailing slashes\n  ---\n  duration_ms: 1.758547\n  type: 'test'\n  ...\n# Subtest: normalize keeps leading parents on relative paths only\nok 3 - normalize keeps leading parents on relative paths only\n  ---\n  duration_ms: 0.190912\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input and escapes from the root\nok 4 - normalize rejects malformed input and escapes from the root\n  ---\n  duration_ms: 0.411191\n  type: 'test'\n  ...\n# Subtest: join concatenates and then normalizes\nok 5 - join concatenates and then normalizes\n  ---\n  duration_ms: 0.354759\n  type: 'test'\n  ...\n# Subtest: join rejects empty, absolute and non-string segments\nok 6 - join rejects empty, absolute and non-string segments\n  ---\n  duration_ms: 0.530015\n  type: 'test'\n  ...\n# Subtest: relative walks up and back down\nok 7 - relative walks up and back down\n  ---\n  duration_ms: 0.480861\n  type: 'test'\n  ...\n# Subtest: relative demands two absolute paths\nok 8 - relative demands two absolute paths\n  ---\n  duration_ms: 0.28399\n  type: 'test'\n  ...\n# Subtest: normalized paths are stable and well formed for generated input\nok 9 - normalized paths are stable and well formed for generated input\n  ---\n  duration_ms: 4.355235\n  type: 'test'\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 8.14602\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 131.961205"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814231868
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:stable-sort-by",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:stable-sort-by",
+          "sessionId": "environment-4de48946-bfa5-430e-8b67-51cdcfa6d946",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:stable-sort-by",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "38ec6493714fad32ff1a8e67288a170219e900ed7a5cb4c58365cab5a01e2d44",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "0e423f2cd031a7039e6f6afd5ba12401e7c9b984366712c6a881e49a8984e3fd",
+            "contentSha256": "552c70f9cbdffad845279a3b194c27659fc312e66db8926e792eaff3a147c22b",
+            "repetition": 0,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: compareValues orders absent values first, then by type rank\nok 1 - compareValues orders absent values first, then by type rank\n  ---\n  duration_ms: 1.30931\n  type: 'test'\n  ...\n# Subtest: compareValues is locale-free and compares strings by code point\nok 2 - compareValues is locale-free and compares strings by code point\n  ---\n  duration_ms: 1.789421\n  type: 'test'\n  ...\n# Subtest: compareValues handles numeric and boolean edges\nok 3 - compareValues handles numeric and boolean edges\n  ---\n  duration_ms: 1.696726\n  type: 'test'\n  ...\n# Subtest: sortBy orders by one key and leaves the input untouched\nok 4 - sortBy orders by one key and leaves the input untouched\n  ---\n  duration_ms: 0.978345\n  type: 'test'\n  ...\n# Subtest: sortBy is stable in both directions\nok 5 - sortBy is stable in both directions\n  ---\n  duration_ms: 0.741352\n  type: 'test'\n  ...\n# Subtest: null placement is independent of direction\nok 6 - null placement is independent of direction\n  ---\n  duration_ms: 0.667974\n  type: 'test'\n  ...\n# Subtest: multiple keys apply in order with per-key direction and paths\nok 7 - multiple keys apply in order with per-key direction and paths\n  ---\n  duration_ms: 0.355924\n  type: 'test'\n  ...\n# Subtest: comparator and sortIndices agree with sortBy\nok 8 - comparator and sortIndices agree with sortBy\n  ---\n  duration_ms: 0.35539\n  type: 'test'\n  ...\n# Subtest: malformed arguments raise the specified errors\nok 9 - malformed arguments raise the specified errors\n  ---\n  duration_ms: 0.831667\n  type: 'test'\n  ...\n# Subtest: matches an independent stable model on random rows and specs\nok 10 - matches an independent stable model on random rows and specs\n  ---\n  duration_ms: 22.929313\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 157.21821"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "119094aaf7e81465e5a0ee3a779968bf28df5610c76601aa7d6c735d3c43cf46"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-59ebc28b-e14b-4ac9-81a9-28e886834734",
+              "revision": 1
+            },
+            "goalId": "goal-b2bf3771-fda8-4a59-a92a-27eec504218e",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: compareValues orders absent values first, then by type rank\nok 1 - compareValues orders absent values first, then by type rank\n  ---\n  duration_ms: 1.30931\n  type: 'test'\n  ...\n# Subtest: compareValues is locale-free and compares strings by code point\nok 2 - compareValues is locale-free and compares strings by code point\n  ---\n  duration_ms: 1.789421\n  type: 'test'\n  ...\n# Subtest: compareValues handles numeric and boolean edges\nok 3 - compareValues handles numeric and boolean edges\n  ---\n  duration_ms: 1.696726\n  type: 'test'\n  ...\n# Subtest: sortBy orders by one key and leaves the input untouched\nok 4 - sortBy orders by one key and leaves the input untouched\n  ---\n  duration_ms: 0.978345\n  type: 'test'\n  ...\n# Subtest: sortBy is stable in both directions\nok 5 - sortBy is stable in both directions\n  ---\n  duration_ms: 0.741352\n  type: 'test'\n  ...\n# Subtest: null placement is independent of direction\nok 6 - null placement is independent of direction\n  ---\n  duration_ms: 0.667974\n  type: 'test'\n  ...\n# Subtest: multiple keys apply in order with per-key direction and paths\nok 7 - multiple keys apply in order with per-key direction and paths\n  ---\n  duration_ms: 0.355924\n  type: 'test'\n  ...\n# Subtest: comparator and sortIndices agree with sortBy\nok 8 - comparator and sortIndices agree with sortBy\n  ---\n  duration_ms: 0.35539\n  type: 'test'\n  ...\n# Subtest: malformed arguments raise the specified errors\nok 9 - malformed arguments raise the specified errors\n  ---\n  duration_ms: 0.831667\n  type: 'test'\n  ...\n# Subtest: matches an independent stable model on random rows and specs\nok 10 - matches an independent stable model on random rows and specs\n  ---\n  duration_ms: 22.929313\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 157.21821"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814291409
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:stable-sort-by",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:stable-sort-by",
+          "sessionId": "environment-64eb4ff6-dd5b-4427-abe6-d0cb7b6ddc8a",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:stable-sort-by",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "38ec6493714fad32ff1a8e67288a170219e900ed7a5cb4c58365cab5a01e2d44",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "0e423f2cd031a7039e6f6afd5ba12401e7c9b984366712c6a881e49a8984e3fd",
+            "contentSha256": "552c70f9cbdffad845279a3b194c27659fc312e66db8926e792eaff3a147c22b",
+            "repetition": 1,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: compareValues orders absent values first, then by type rank\nok 1 - compareValues orders absent values first, then by type rank\n  ---\n  duration_ms: 1.201987\n  type: 'test'\n  ...\n# Subtest: compareValues is locale-free and compares strings by code point\nok 2 - compareValues is locale-free and compares strings by code point\n  ---\n  duration_ms: 1.552559\n  type: 'test'\n  ...\n# Subtest: compareValues handles numeric and boolean edges\nok 3 - compareValues handles numeric and boolean edges\n  ---\n  duration_ms: 1.578289\n  type: 'test'\n  ...\n# Subtest: sortBy orders by one key and leaves the input untouched\nok 4 - sortBy orders by one key and leaves the input untouched\n  ---\n  duration_ms: 0.927356\n  type: 'test'\n  ...\n# Subtest: sortBy is stable in both directions\nok 5 - sortBy is stable in both directions\n  ---\n  duration_ms: 0.661874\n  type: 'test'\n  ...\n# Subtest: null placement is independent of direction\nok 6 - null placement is independent of direction\n  ---\n  duration_ms: 0.646114\n  type: 'test'\n  ...\n# Subtest: multiple keys apply in order with per-key direction and paths\nok 7 - multiple keys apply in order with per-key direction and paths\n  ---\n  duration_ms: 0.346084\n  type: 'test'\n  ...\n# Subtest: comparator and sortIndices agree with sortBy\nok 8 - comparator and sortIndices agree with sortBy\n  ---\n  duration_ms: 0.229501\n  type: 'test'\n  ...\n# Subtest: malformed arguments raise the specified errors\nok 9 - malformed arguments raise the specified errors\n  ---\n  duration_ms: 0.756117\n  type: 'test'\n  ...\n# Subtest: matches an independent stable model on random rows and specs\nok 10 - matches an independent stable model on random rows and specs\n  ---\n  duration_ms: 21.727355\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 149.886056"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "f96808b887a20c0e45631d7a77f9e42ba45db1d8baeaf601a7004d1f2008ae7c"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-fbbff6e5-17a2-4d95-b6e6-03ac2e20462e",
+              "revision": 1
+            },
+            "goalId": "goal-0db264d4-eb53-4b1a-99b4-233f0af68e50",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: compareValues orders absent values first, then by type rank\nok 1 - compareValues orders absent values first, then by type rank\n  ---\n  duration_ms: 1.201987\n  type: 'test'\n  ...\n# Subtest: compareValues is locale-free and compares strings by code point\nok 2 - compareValues is locale-free and compares strings by code point\n  ---\n  duration_ms: 1.552559\n  type: 'test'\n  ...\n# Subtest: compareValues handles numeric and boolean edges\nok 3 - compareValues handles numeric and boolean edges\n  ---\n  duration_ms: 1.578289\n  type: 'test'\n  ...\n# Subtest: sortBy orders by one key and leaves the input untouched\nok 4 - sortBy orders by one key and leaves the input untouched\n  ---\n  duration_ms: 0.927356\n  type: 'test'\n  ...\n# Subtest: sortBy is stable in both directions\nok 5 - sortBy is stable in both directions\n  ---\n  duration_ms: 0.661874\n  type: 'test'\n  ...\n# Subtest: null placement is independent of direction\nok 6 - null placement is independent of direction\n  ---\n  duration_ms: 0.646114\n  type: 'test'\n  ...\n# Subtest: multiple keys apply in order with per-key direction and paths\nok 7 - multiple keys apply in order with per-key direction and paths\n  ---\n  duration_ms: 0.346084\n  type: 'test'\n  ...\n# Subtest: comparator and sortIndices agree with sortBy\nok 8 - comparator and sortIndices agree with sortBy\n  ---\n  duration_ms: 0.229501\n  type: 'test'\n  ...\n# Subtest: malformed arguments raise the specified errors\nok 9 - malformed arguments raise the specified errors\n  ---\n  duration_ms: 0.756117\n  type: 'test'\n  ...\n# Subtest: matches an independent stable model on random rows and specs\nok 10 - matches an independent stable model on random rows and specs\n  ---\n  duration_ms: 21.727355\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 149.886056"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814332221
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:table-format",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:table-format",
+          "sessionId": "environment-8462e53d-721f-4d54-8092-59e1acd4d078",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:table-format",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "783db8f263eb268c0f8b17da8ab6e14103b6e25eed07726addf2d96df105a701",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "af78f00a15bde0ca1bb6d5d18eab934e34cbf689516fbb004dc311d6a1234175",
+            "contentSha256": "399008db73c291689ce4df1ec7196e5b26247075df8a83eea157ebbd5ce2a718",
+            "repetition": 0,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…--\n  duration_ms: 0.484374\n  type: 'test'\n  ...\n# Subtest: padCell rejects impossible requests\nok 3 - padCell rejects impossible requests\n  ---\n  duration_ms: 0.379745\n  type: 'test'\n  ...\n# Subtest: wrapCell breaks on spaces and keeps every line inside the width\nok 4 - wrapCell breaks on spaces and keeps every line inside the width\n  ---\n  duration_ms: 2.623343\n  type: 'test'\n  ...\n# Subtest: wrapCell hard-breaks over-long words and honours explicit newlines\nok 5 - wrapCell hard-breaks over-long words and honours explicit newlines\n  ---\n  duration_ms: 4.701244\n  type: 'test'\n  ...\n# Subtest: wrapCell never splits a wide character across lines\nok 6 - wrapCell never splits a wide character across lines\n  ---\n  duration_ms: 0.410505\n  type: 'test'\n  ...\n# Subtest: formatTable lays out a simple grid\nok 7 - formatTable lays out a simple grid\n  ---\n  duration_ms: 0.661426\n  type: 'test'\n  ...\n# Subtest: formatTable draws a header rule of the full table width\nok 8 - formatTable draws a header rule of the full table width\n  ---\n  duration_ms: 0.327411\n  type: 'test'\n  ...\n# Subtest: formatTable stacks wrapped cells and pads the short ones\nok 9 - formatTable stacks wrapped cells and pads the short ones\n  ---\n  duration_ms: 0.562548\n  type: 'test'\n  ...\n# Subtest: formatTable applies per-column alignment\nok 10 - formatTable applies per-column alignment\n  ---\n  duration_ms: 0.452628\n  type: 'test'\n  ...\n# Subtest: formatTable rejects malformed input\nok 11 - formatTable rejects malformed input\n  ---\n  duration_ms: 0.650274\n  type: 'test'\n  ...\n# Subtest: wrapped lines always fit their column for generated text\nok 12 - wrapped lines always fit their column for generated text\n  ---\n  duration_ms: 21.885812\n  type: 'test'\n  ...\n# Subtest: every rendered line has the same width for generated tables\nok 13 - every rendered line has the same width for generated tables\n  ---\n  duration_ms: 21.08683\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 196.753916"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "ed6d44b2f8f0706baea1ebdf68e57af2f3a2cf3d7c26b9913a72fdc903a4b1e0"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-c38a6fda-c60c-464c-9bc0-c7ecd4390e29",
+              "revision": 1
+            },
+            "goalId": "goal-319bbe38-c6b1-4c75-8784-9eced7240951",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…--\n  duration_ms: 0.484374\n  type: 'test'\n  ...\n# Subtest: padCell rejects impossible requests\nok 3 - padCell rejects impossible requests\n  ---\n  duration_ms: 0.379745\n  type: 'test'\n  ...\n# Subtest: wrapCell breaks on spaces and keeps every line inside the width\nok 4 - wrapCell breaks on spaces and keeps every line inside the width\n  ---\n  duration_ms: 2.623343\n  type: 'test'\n  ...\n# Subtest: wrapCell hard-breaks over-long words and honours explicit newlines\nok 5 - wrapCell hard-breaks over-long words and honours explicit newlines\n  ---\n  duration_ms: 4.701244\n  type: 'test'\n  ...\n# Subtest: wrapCell never splits a wide character across lines\nok 6 - wrapCell never splits a wide character across lines\n  ---\n  duration_ms: 0.410505\n  type: 'test'\n  ...\n# Subtest: formatTable lays out a simple grid\nok 7 - formatTable lays out a simple grid\n  ---\n  duration_ms: 0.661426\n  type: 'test'\n  ...\n# Subtest: formatTable draws a header rule of the full table width\nok 8 - formatTable draws a header rule of the full table width\n  ---\n  duration_ms: 0.327411\n  type: 'test'\n  ...\n# Subtest: formatTable stacks wrapped cells and pads the short ones\nok 9 - formatTable stacks wrapped cells and pads the short ones\n  ---\n  duration_ms: 0.562548\n  type: 'test'\n  ...\n# Subtest: formatTable applies per-column alignment\nok 10 - formatTable applies per-column alignment\n  ---\n  duration_ms: 0.452628\n  type: 'test'\n  ...\n# Subtest: formatTable rejects malformed input\nok 11 - formatTable rejects malformed input\n  ---\n  duration_ms: 0.650274\n  type: 'test'\n  ...\n# Subtest: wrapped lines always fit their column for generated text\nok 12 - wrapped lines always fit their column for generated text\n  ---\n  duration_ms: 21.885812\n  type: 'test'\n  ...\n# Subtest: every rendered line has the same width for generated tables\nok 13 - every rendered line has the same width for generated tables\n  ---\n  duration_ms: 21.08683\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 196.753916"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814480716
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:table-format",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:table-format",
+          "sessionId": "environment-00f05f77-04f0-4cb8-98e2-95053a642b3d",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:table-format",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "783db8f263eb268c0f8b17da8ab6e14103b6e25eed07726addf2d96df105a701",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "af78f00a15bde0ca1bb6d5d18eab934e34cbf689516fbb004dc311d6a1234175",
+            "contentSha256": "399008db73c291689ce4df1ec7196e5b26247075df8a83eea157ebbd5ce2a718",
+            "repetition": 1,
+            "group": "fleet-a5455164-004c-47d5-90fb-8f6ac9786c3b",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "claude-code"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… ---\n  duration_ms: 0.524348\n  type: 'test'\n  ...\n# Subtest: padCell rejects impossible requests\nok 3 - padCell rejects impossible requests\n  ---\n  duration_ms: 0.457248\n  type: 'test'\n  ...\n# Subtest: wrapCell breaks on spaces and keeps every line inside the width\nok 4 - wrapCell breaks on spaces and keeps every line inside the width\n  ---\n  duration_ms: 1.57288\n  type: 'test'\n  ...\n# Subtest: wrapCell hard-breaks over-long words and honours explicit newlines\nok 5 - wrapCell hard-breaks over-long words and honours explicit newlines\n  ---\n  duration_ms: 0.580505\n  type: 'test'\n  ...\n# Subtest: wrapCell never splits a wide character across lines\nok 6 - wrapCell never splits a wide character across lines\n  ---\n  duration_ms: 0.593345\n  type: 'test'\n  ...\n# Subtest: formatTable lays out a simple grid\nok 7 - formatTable lays out a simple grid\n  ---\n  duration_ms: 0.449723\n  type: 'test'\n  ...\n# Subtest: formatTable draws a header rule of the full table width\nok 8 - formatTable draws a header rule of the full table width\n  ---\n  duration_ms: 1.00816\n  type: 'test'\n  ...\n# Subtest: formatTable stacks wrapped cells and pads the short ones\nok 9 - formatTable stacks wrapped cells and pads the short ones\n  ---\n  duration_ms: 0.865186\n  type: 'test'\n  ...\n# Subtest: formatTable applies per-column alignment\nok 10 - formatTable applies per-column alignment\n  ---\n  duration_ms: 0.535597\n  type: 'test'\n  ...\n# Subtest: formatTable rejects malformed input\nok 11 - formatTable rejects malformed input\n  ---\n  duration_ms: 1.316986\n  type: 'test'\n  ...\n# Subtest: wrapped lines always fit their column for generated text\nok 12 - wrapped lines always fit their column for generated text\n  ---\n  duration_ms: 14.25634\n  type: 'test'\n  ...\n# Subtest: every rendered line has the same width for generated tables\nok 13 - every rendered line has the same width for generated tables\n  ---\n  duration_ms: 14.926857\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 211.777777"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "498870640dd6093d32384fddcf8af4c4e5908b7e9d62eb71706fc0424a0ef89a"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-18ac2be5-c0e7-4199-b392-e8ef4318b4cc",
+              "revision": 1
+            },
+            "goalId": "goal-98ad2efc-154f-46ad-8d6b-18058e1304b9",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n… ---\n  duration_ms: 0.524348\n  type: 'test'\n  ...\n# Subtest: padCell rejects impossible requests\nok 3 - padCell rejects impossible requests\n  ---\n  duration_ms: 0.457248\n  type: 'test'\n  ...\n# Subtest: wrapCell breaks on spaces and keeps every line inside the width\nok 4 - wrapCell breaks on spaces and keeps every line inside the width\n  ---\n  duration_ms: 1.57288\n  type: 'test'\n  ...\n# Subtest: wrapCell hard-breaks over-long words and honours explicit newlines\nok 5 - wrapCell hard-breaks over-long words and honours explicit newlines\n  ---\n  duration_ms: 0.580505\n  type: 'test'\n  ...\n# Subtest: wrapCell never splits a wide character across lines\nok 6 - wrapCell never splits a wide character across lines\n  ---\n  duration_ms: 0.593345\n  type: 'test'\n  ...\n# Subtest: formatTable lays out a simple grid\nok 7 - formatTable lays out a simple grid\n  ---\n  duration_ms: 0.449723\n  type: 'test'\n  ...\n# Subtest: formatTable draws a header rule of the full table width\nok 8 - formatTable draws a header rule of the full table width\n  ---\n  duration_ms: 1.00816\n  type: 'test'\n  ...\n# Subtest: formatTable stacks wrapped cells and pads the short ones\nok 9 - formatTable stacks wrapped cells and pads the short ones\n  ---\n  duration_ms: 0.865186\n  type: 'test'\n  ...\n# Subtest: formatTable applies per-column alignment\nok 10 - formatTable applies per-column alignment\n  ---\n  duration_ms: 0.535597\n  type: 'test'\n  ...\n# Subtest: formatTable rejects malformed input\nok 11 - formatTable rejects malformed input\n  ---\n  duration_ms: 1.316986\n  type: 'test'\n  ...\n# Subtest: wrapped lines always fit their column for generated text\nok 12 - wrapped lines always fit their column for generated text\n  ---\n  duration_ms: 14.25634\n  type: 'test'\n  ...\n# Subtest: every rendered line has the same width for generated tables\nok 13 - every rendered line has the same width for generated tables\n  ---\n  duration_ms: 14.926857\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 211.777777"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788814516368
+          }
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:csv-codec",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:glob-match",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:interval-ops",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:path-normalize",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:stable-sort-by",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:table-format",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "isolation": "none",
+        "implementer": "claude-code"
+      }
+    ],
+    "spend": {
+      "inputTokens": 0,
+      "outputTokens": 0
+    }
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:csv-codec",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "claude-code",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:glob-match",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "claude-code",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:interval-ops",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "claude-code",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:path-normalize",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "claude-code",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:stable-sort-by",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "claude-code",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:table-format",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "claude-code",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    }
+  ],
+  "facts": {
+    "sessions": 12,
+    "exported": 12,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 12,
+    "exported": 12,
+    "rewarded": 12,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}
