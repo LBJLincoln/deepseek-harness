@@ -1,0 +1,29 @@
+# The bench with a single attempt per cell: the arm of the attempts hypothesis
+# that measures what the directive loop adds. Everything else is the base
+# composition, so two fleet runs over the same cells differ in this one value.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - id: environment-runner
+        name: '@deepseek-ai/dsh-environment-runner'
+        config:
+          isolation: none
+          maxAttempts: 1
+          evidenceMaxChars: 2048
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

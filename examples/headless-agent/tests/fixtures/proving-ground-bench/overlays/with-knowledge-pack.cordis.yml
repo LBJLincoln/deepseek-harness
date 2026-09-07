@@ -1,0 +1,34 @@
+# The bench with the 2026-q3 knowledge pack mounted as the cell agent's only
+# skill root: the arm of the knowledge hypothesis. The base composition leaves
+# the cell agent with the workspace's own skill roots, which a bench workspace
+# does not have, so the two arms differ in exactly the catalog and the bodies
+# the model may load. The root is found from the repository root above
+# `baseUrl`, as the knowledge-pack fixture does.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          persona: 'You implement one program task in the workspace you are given, against its own test suite, and you stop when the tests pass.'
+          workspaceContext: false
+          skills:
+            filesystem:
+              includeDefaultRoots: false
+              watch: false
+              customSkillDirs:
+                - !!js |
+                    (() => {
+                      const { fileURLToPath } = process.getBuiltinModule('node:url')
+                      const { existsSync } = process.getBuiltinModule('node:fs')
+                      const { dirname, join } = process.getBuiltinModule('node:path')
+                      let dir = fileURLToPath(baseUrl)
+                      while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                        const parent = dirname(dir)
+                        if (parent === dir) throw new Error('proving-ground-bench overlay: repository root not found above ' + baseUrl)
+                        dir = parent
+                      }
+                      return join(dir, 'data', 'knowledge', '2026-q3', 'skills')
+                    })()

@@ -1,0 +1,165 @@
+# The Proving Ground bench: thirty zero-dependency program tasks in three
+# domains, registered from their task.json files, run on the operator's Claude
+# Code subscription through the harness's own agent loop (the LLM route) or
+# through the product's own loop (the external implementer), and compared in
+# frozen paired experiments. No cadence: the drivers beside this file run one
+# plan each.
+#
+# The route serves three product models under one provider. Every arm of an
+# experiment names one of them, so a comparison between models and a comparison
+# between implementers both read from the same catalog. The product envelope
+# around each query is the one model-visible input the log does not hold.
+- id: llm-claude-code
+  name: '@deepseek-ai/dsh-llm-claude-code'
+  config:
+    provider: claude-code
+    models:
+      - id: opus
+        name: Claude Code opus
+        productModel: opus
+        contextWindow: 200000
+      - id: sonnet
+        name: Claude Code sonnet
+        productModel: sonnet
+        contextWindow: 200000
+      - id: haiku
+        name: Claude Code haiku
+        productModel: haiku
+        contextWindow: 200000
+    effort: medium
+    queryTimeoutMs: 300000
+
+# Managed child-process groups for the bash executor, for the CLI the route
+# spawns per query, and for the product the external implementer spawns.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 4096
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: './register-environments.ts'
+
+# The default route of a cell agent; an experiment arm or a fleet plan names the
+# model explicitly, so this only decides what an unnamed request runs.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: claude-code
+    model: sonnet
+
+- id: subagents
+  name: '@deepseek-ai/dsh-subagent'
+
+# The product's own loop as an implementer, for the arm that measures it
+# against the harness loop: unattended edits and the test command allowed,
+# nothing else. Its spend is outside every limit this harness enforces.
+- id: subagent-claude-code
+  name: '@deepseek-ai/dsh-subagent-claude-code'
+  config:
+    permissionMode: acceptEdits
+    allowedTools:
+      - 'Bash(node:*)'
+
+# `isolation: none` is the only claim the external arm can serve; both arms run
+# under the same claim so the certificates compare.
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 3
+    evidenceMaxChars: 2048
+
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 2
+    workspaceRetention: keep
+
+- id: experiments
+  name: '@deepseek-ai/dsh-experiments'
+  config:
+    bootstrapResamples: 2000
+    confidenceLevel: 0.95
+    minimumDelta: 0.05
+    cellTokenCap: 600000
+    tokenBudget: 200000000
+
+# Village rule: unattended cells carry a session budget. A cell that has not
+# certified within these caps is a failed cell, not a longer one.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 1500000
+    maxWallMs: 1200000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'You implement one program task in the workspace you are given, against its own test suite, and you stop when the tests pass.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# Evaluation terms only: bench sessions never train.
+- id: data-use
+  name: '@deepseek-ai/dsh-data-use'
+  config:
+    clientId: daliesk-lab
+    agreementId: proving-ground-bench
+    purposes:
+      - evaluation
+    residency: eu-west
+    retentionDays: 90
+    redactionProfile: village-v1
+
+- id: session-projection
+  name: '@deepseek-ai/dsh-session-projection'
+
+- id: scorekeeper
+  name: '@deepseek-ai/dsh-scorekeeper'
+  config:
+    passAtK:
+      - 1
+
+- id: observatory
+  name: '@deepseek-ai/dsh-observatory'
+  config:
+    withhold:
+      districts:
+        - workshop
+      heldOut: true
+    staleAfterMs: 3600000
+    refreshIntervalMs: 900000
+
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'
+
+- id: curator
+  name: '@deepseek-ai/dsh-curator'
+  config:
+    defaultProfile: village-v1
+    profiles:
+      village-v1:
+        shipped: true
