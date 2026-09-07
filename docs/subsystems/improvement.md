@@ -500,7 +500,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:781`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:784`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -700,7 +700,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:181`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:189`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxshifts--shiftservice"></a>
 

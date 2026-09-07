@@ -62,6 +62,16 @@ export interface SessionFactsIdentity {
   /** Model id of the last `request/header`, absent for a session that made no request. */
   readonly requestModel?: string
   /**
+   * Model the delegated implementer's own backend reported, from the last
+   * `environment/delegation` that stated one. Absent for a route-implemented
+   * session, and for a delegated one whose provider reports no model. Read
+   * against {@link SessionFactsEnvironment.model}, which is the model the cell
+   * asked for and was stamped with, it says whether the arm a row is published
+   * under is the one that did the work — and which concrete version an alias
+   * such as `sonnet` resolved to.
+   */
+  readonly implementerModel?: string
+  /**
    * `compositionSha256` of the last `composition/manifest` in the session,
    * absent for a session whose log carries none. It addresses the component set
    * the agent had in play, so a row carrying it is attributable to one harness
@@ -128,6 +138,31 @@ export interface SessionFactsOutcome {
 }
 
 /**
+ * What one session's delegated children spent, summed over the spend its
+ * `environment/delegation` records state. It is separate from the session's own
+ * token totals rather than added to them: a delegated cell drives no model turn
+ * of its own, so its own totals are zero while this is the whole cost of the
+ * work, and a paired experiment reads the two side by side.
+ */
+export interface SessionFactsDelegatedSpend {
+  /** Uncached input tokens summed over every delegation that accounted for the child. */
+  readonly inputTokens: number
+  /** Output tokens summed over the same delegations. */
+  readonly outputTokens: number
+  /** Cache-read tokens summed over the same delegations. */
+  readonly cacheReadTokens: number
+  /** Cache-write tokens summed over the same delegations. */
+  readonly cacheWriteTokens: number
+  /**
+   * US dollars summed over the delegations whose provider priced its own run.
+   * It is the foreign product's own accounting, so it is never added to
+   * {@link SessionFactsEfficiency.costEur}. Absent when no delegation stated a
+   * cost, which is every in-process implementer.
+   */
+  readonly costUsd?: number
+}
+
+/**
  * What the session cost, from its turn, step, usage, and pricing events. Cost
  * is read from the `usage/priced` records alone, never recomputed from a
  * deployment's current pricing table, so a table edited after the fact cannot
@@ -166,6 +201,13 @@ export interface SessionFactsEfficiency {
    * {@link costEur} is a sum across pricing tables.
    */
   readonly pricingDigests: readonly string[]
+  /**
+   * What this session's delegated children spent, absent for a session whose
+   * delegations accounted for none — including every session that delegated
+   * nothing. Where a route-implemented cell reports its work in the token
+   * fields above, a delegated one reports it here.
+   */
+  readonly delegated?: SessionFactsDelegatedSpend
 }
 
 /** How the session used tools, from its `tool/call` and `tool/result` events. */

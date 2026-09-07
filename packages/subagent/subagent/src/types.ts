@@ -11,7 +11,7 @@
 
 import type { Agent, AgentOptions } from '@deepseek-ai/dsh-agent'
 import type { Branded } from '@deepseek-ai/dsh-brand'
-import type { ContentBlock } from '@deepseek-ai/dsh-llm'
+import type { ContentBlock, TokenUsage } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
 import type { ObjectJsonSchema, ToolRestriction } from '@deepseek-ai/dsh-tools'
 import type { SubagentDescriptorData } from './descriptor.ts'
@@ -89,6 +89,7 @@ export interface SubagentCapabilities {
   readonly toolFilter: boolean
   readonly persona: boolean
   readonly harnessTools: boolean
+  readonly model: boolean
 }
 
 /**
@@ -168,6 +169,20 @@ export interface SubagentStartRequest {
    * the durable record of the run.
    */
   readonly harnessTools?: SubagentHarnessTools
+  /**
+   * Optional model the child MUST run, named exactly as the chosen provider's
+   * own backend names it: a harness model id for a provider that composes the
+   * child on this process's LLM routes, the product's own model id or alias for
+   * one that launches a foreign agent. Requires
+   * {@link SubagentCapabilities.model}; rejected at start otherwise, so a
+   * provider that cannot select a model never runs a different one under the
+   * caller's name. A provider that advertises the capability and cannot honor a
+   * particular identifier rejects the start instead of falling back, which is
+   * what lets a caller label a measurement with the model it asked for. The
+   * model the child's own backend then reports for the run comes back as
+   * {@link SubagentResult.reportedModel}.
+   */
+  readonly model?: string
 }
 
 /**
@@ -257,6 +272,31 @@ export interface SubagentResult {
   readonly structured?: unknown
   /** Why the run ended. A non-`completed` reason means `output` may be partial. */
   readonly stopReason: SubagentStopReason
+  /**
+   * The model the child's own backend states it ran, as that backend names it:
+   * the harness model id of an in-process child's route, the product's full
+   * model id for a foreign agent that reports one. It is what the backend
+   * states rather than an echo of {@link SubagentStartRequest.model} — a
+   * product resolves an alias such as `sonnet` to a concrete version, while an
+   * in-process child states the model its own route resolved to. Absent when
+   * the backend states none, which includes a run that failed before its
+   * backend reported anything.
+   */
+  readonly reportedModel?: string
+  /**
+   * Token accounting the child's own backend reported for the whole run. It is
+   * the ONLY spend a caller has for a child running in another process, whose
+   * tokens are never logged here; a provider that composes its child in this
+   * process states none, because the child's own session log already accounts
+   * for it. Absent when the backend reported none.
+   */
+  readonly reportedUsage?: TokenUsage
+  /**
+   * Whole-run cost in US dollars as the child's own backend priced it, which is
+   * a foreign product's own accounting rather than a harness pricing table.
+   * Absent when the backend reported none.
+   */
+  readonly reportedCostUsd?: number
 }
 
 /**

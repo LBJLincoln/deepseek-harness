@@ -188,6 +188,21 @@ async function realHarness(behavior: MessagesBehavior): Promise<{
   }
 }
 
+/**
+ * The accounting the real CLI attaches to every terminal result. The exact
+ * counts belong to the product's own tokenizer and pricing, so the test pins
+ * that they are reported at all rather than what they came to.
+ */
+const REPORTED_SPEND = {
+  reportedUsage: {
+    inputTokens: expect.any(Number) as unknown as number,
+    outputTokens: expect.any(Number) as unknown as number,
+    cacheReadTokens: expect.any(Number) as unknown as number,
+    cacheWriteTokens: expect.any(Number) as unknown as number,
+  },
+  reportedCostUsd: expect.any(Number) as unknown as number,
+}
+
 async function expectQuiescent(
   handles: readonly SubprocessHandle[],
 ): Promise<void> {
@@ -204,11 +219,13 @@ function startRequest(
   harness: RealHarness,
   prompt: string,
   signal = new AbortController().signal,
+  model?: string,
 ) {
   return harness.ctx.subagents.start('claude-code', {
     prompt: [{ type: 'text', text: prompt }],
     parent: harness.parent,
     signal,
+    ...model === undefined ? {} : { model },
   })
 }
 
@@ -234,6 +251,10 @@ describe('real Claude Agent SDK 0.3.220 and its distributed Claude Code 2.1.220 
     await expect(run.result).resolves.toEqual({
       output: [{ type: 'text', text: sentinel }],
       stopReason: 'completed',
+      // Naming no model leaves the settings model in place, and the CLI reports
+      // exactly that back through its `init` message.
+      reportedModel: settingsModel,
+      ...REPORTED_SPEND,
     })
     await run.dispose()
 
@@ -287,6 +308,8 @@ describe('real Claude Agent SDK 0.3.220 and its distributed Claude Code 2.1.220 
     await expect(run.result).resolves.toEqual({
       output: [],
       stopReason: 'error',
+      reportedModel: settingsModel,
+      ...REPORTED_SPEND,
     })
     await run.dispose()
     expect(fixture.requests).toHaveLength(1)
@@ -307,8 +330,36 @@ describe('real Claude Agent SDK 0.3.220 and its distributed Claude Code 2.1.220 
     await expect(run.result).resolves.toEqual({
       output: [],
       stopReason: 'aborted',
+      reportedModel: settingsModel,
+      ...REPORTED_SPEND,
     })
     await run.dispose()
+    await expectQuiescent(harness.handles)
+  })
+
+  it('runs the model the start named, over the host settings, and reports it back', async () => {
+    const sentinel = 'REAL_CLAUDE_CODE_MODEL_SELECTION'
+    const requested = 'dsh-start-selected-model'
+    const { harness, fixture } = await realHarness({ kind: 'complete', text: sentinel })
+
+    const run = await startRequest(harness, 'Return the fixture sentinel exactly.', undefined, requested)
+    await expect(run.result).resolves.toEqual({
+      output: [{ type: 'text', text: sentinel }],
+      stopReason: 'completed',
+      reportedModel: requested,
+      ...REPORTED_SPEND,
+    })
+    await run.dispose()
+
+    // The selection reaches the model the CLI actually asks for, replacing the
+    // settings model a run naming none would have used.
+    expect(fixture.requests[0]!.body.model).toBe(requested)
+    expect(fixture.requests[0]!.body.model).not.toBe(settingsModel)
+    const initMessage = observedSdkMessages.find(
+      (message): message is SDKSystemMessage =>
+        message.type === 'system' && message.subtype === 'init',
+    )
+    expect(initMessage?.model).toBe(requested)
     await expectQuiescent(harness.handles)
   })
 })

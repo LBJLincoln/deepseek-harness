@@ -16,7 +16,7 @@ import {
   type SDKResultMessage,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
-import type { ContentBlock } from '@deepseek-ai/dsh-llm'
+import type { ContentBlock, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import {
   settleRunResult,
@@ -35,6 +35,7 @@ import {
   claudeSpawnSpec,
   ManagedClaudeCodeProcess,
 } from './process.ts'
+import { initReportedModel, resultReportedCostUsd, resultReportedUsage } from './bridge.ts'
 import type { BridgedRun } from './bridge.ts'
 
 /** Default POSIX grace between subprocess termination tiers. */
@@ -64,6 +65,14 @@ export interface ClaudeCodeRunSpec {
   readonly onError?: (error: Error, stopReason: SubagentStopReason) => void
   /** Product permission mode for this run; absent leaves the product's default. */
   readonly permissionMode?: PermissionMode
+  /**
+   * Model the product must run, as the caller named it in
+   * `SubagentStartRequest.model`; absent leaves whatever the host's own
+   * settings select. The SDK carries it to the CLI's `--model`, so an
+   * identifier the product does not accept fails the run instead of silently
+   * selecting another model.
+   */
+  readonly model?: string
   /**
    * Tool names the product auto-approves, for the black-box mode. Empty or
    * absent leaves the product's default; bridge mode supplies its own.
@@ -225,6 +234,7 @@ export function claudeQueryOptions(
     ...spec.allowedTools === undefined || spec.allowedTools.length === 0
       ? {}
       : { allowedTools: [...spec.allowedTools] },
+    ...spec.model === undefined ? {} : { model: spec.model },
     // Last, so the bridge's closed tool surface cannot be widened by anything
     // above it.
     ...spec.bridge?.options,
@@ -305,16 +315,33 @@ export async function startClaudeCodeRun(
   const publishedQuery = query
   const publishedChild = child
   const bridge = spec.bridge
+  // Observed here as well as inside the bridge because the black-box mode has
+  // no bridge: each record keeps what the product said on every settlement
+  // path, and both read the one SDK stream through the same three readers.
+  let reportedModel: string | undefined
+  let reportedUsage: TokenUsage | undefined
+  let reportedCostUsd: number | undefined
+  const observe = (message: SDKMessage): void => {
+    reportedModel = initReportedModel(message) ?? reportedModel
+    reportedUsage = resultReportedUsage(message) ?? reportedUsage
+    reportedCostUsd = resultReportedCostUsd(message) ?? reportedCostUsd
+    bridge?.observe(message)
+  }
   const result = settleRunResult({
-    attempt: () => consumeClaudeQuery(publishedQuery, bridge?.observe.bind(bridge)),
+    attempt: () => consumeClaudeQuery(publishedQuery, observe),
     collectOutput: () => [],
     cancelled: () => controller.signal.aborted,
     onError: spec.onError,
     signal: request.signal,
     onAbort,
-  }).then((settled) => {
+  }).then((settled): SubagentResult => {
     bridge?.settle(settled.stopReason)
-    return settled
+    return {
+      ...settled,
+      ...reportedModel === undefined ? {} : { reportedModel },
+      ...reportedUsage === undefined ? {} : { reportedUsage },
+      ...reportedCostUsd === undefined ? {} : { reportedCostUsd },
+    }
   })
 
   return subprocessRunHandle({

@@ -297,7 +297,11 @@ const IN_PROCESS_CAPABILITIES: SubagentProvider['capabilities'] = {
   toolFilter: true,
   persona: true,
   harnessTools: false,
+  model: true,
 }
+
+/** An out-of-process product provider: it enforces no start feature here, but its product takes a model. */
+const PRODUCT_CAPABILITIES: SubagentProvider['capabilities'] = { ...NO_START_CAPABILITIES, model: true }
 
 /** What one scripted child run resolves with and leaves behind. */
 interface ScriptedChild {
@@ -928,7 +932,7 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
   })
 
   it('records a child that produced no local agent and delegates under a signal of its own', async () => {
-    const { run } = await harness({ providers: { 'claude-code': NO_START_CAPABILITIES }, config: { isolation: 'none' } })
+    const { run } = await harness({ providers: { 'claude-code': PRODUCT_CAPABILITIES }, config: { isolation: 'none' } })
     StubSubagents.current.children = [{ result: { output: [], stopReason: 'refusal' } }]
     StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
     const report = await run({ implementer: { kind: 'subagent', provider: 'claude-code' } })
@@ -940,6 +944,66 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     // A refusal is recorded and validated like any other ending; only the tree decides.
     expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
       .toEqual([{ attempt: 1, provider: 'claude-code', runId: 'child-1', stopReason: 'refusal' }])
+  })
+
+  it('starts every child on the stamped model and records what the child reported running and spending', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+    })
+    StubSubagents.current.children = [
+      {
+        result: {
+          output: [],
+          stopReason: 'completed',
+          reportedModel: 'product-sonnet-2026-01',
+          reportedUsage: { inputTokens: 31, outputTokens: 7 },
+          reportedCostUsd: 0.0412,
+        },
+      },
+      { result: { output: [], stopReason: 'error' }, work: (directory) => { writeFileSync(join(directory, 'MARKER'), 'done\n') } },
+    ]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    const report = await run({
+      implementer: { kind: 'subagent', provider: 'claude-code' },
+      model: { provider: 'claude-code', model: 'sonnet' },
+    })
+
+    expect(report.stamp.model).toEqual({ provider: 'claude-code', model: 'sonnet' })
+    // The arm the cell is published under is the arm every child was started on.
+    expect(StubSubagents.current.started.map(start => start.request.model)).toEqual(['sonnet', 'sonnet'])
+    // The alias asked for and the version the product answered with are separate
+    // facts, and the product's own accounting is the only spend recorded here.
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data)).toEqual([
+      {
+        attempt: 1,
+        provider: 'claude-code',
+        runId: 'child-1',
+        stopReason: 'completed',
+        reportedModel: 'product-sonnet-2026-01',
+        reportedUsage: { inputTokens: 31, outputTokens: 7 },
+        reportedCostUsd: 0.0412,
+      },
+      { attempt: 2, provider: 'claude-code', runId: 'child-2', stopReason: 'error' },
+    ])
+    // The cell drove no turn of its own, so its own session accounts for nothing.
+    expect(report).not.toHaveProperty('usage')
+  })
+
+  it('forwards the composition default when the request names no model', async () => {
+    const { run } = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES } })
+    StubShell.current.script(MARKER, shellResult())
+    await run({ implementer: SPAWN })
+    expect(StubSubagents.current.started[0]?.request.model).toBe('mock-default')
+  })
+
+  it('refuses a provider that cannot be told which model to run, before any agent exists', async () => {
+    const { run } = await harness({ providers: { codex: NO_START_CAPABILITIES }, config: { isolation: 'none' } })
+    await expect(run({ implementer: { kind: 'subagent', provider: 'codex' } })).rejects.toThrow(new EnvironmentRunError(
+      'implementer provider "codex" cannot be told which model to run, so a run stamped with model "mock-default" would measure whichever model that provider defaults to',
+      'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED',
+    ))
+    expect(StubAgents.current.created).toEqual([])
   })
 
   it('ends a tampered delegated attempt without starting another child', async () => {

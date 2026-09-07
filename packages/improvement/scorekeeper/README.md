@@ -44,6 +44,7 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | `sessionId`, `createdAt` | The stored session header (`facts()` and `exportFacts()` only; a projection value is already addressed by its session) |
 | `environment.environmentId`, `.environmentKind`, `.heldOut`, `.repetition`, `.group`, `.district`, `.contentSha256`, `.provider`, `.model`, `.isolation`, `.implementer` | The `environment/run` stamp, absent for a session no runner stamped; a stamp naming no `implementer` folds as `route`, the run its own model route implemented |
 | `requestProvider`, `requestModel` | `config.provider` and `config.model` of the last `request/header` |
+| `implementerModel` | The `reportedModel` of the last `environment/delegation` that stated one ([`@deepseek-ai/dsh-environment-runner`](../environment-runner/README.md)), absent for a route-implemented session and for a provider that reports no model |
 | `compositionSha256` | The `compositionSha256` of the last `composition/manifest` (`@deepseek-ai/dsh-components-manifest`), absent for a session whose log carries none |
 
 ### Outcome
@@ -72,6 +73,9 @@ Every field folds from a named session event; nothing is inferred. Field names a
 | `pricedSteps` | `usage/priced` events (`@deepseek-ai/dsh-budget-policy`) |
 | `costEur` | The `costEur` those events state, summed |
 | `pricingDigests` | Their distinct `pricingDigest` values, in first-seen order |
+| `delegated.inputTokens`, `.outputTokens`, `.cacheReadTokens`, `.cacheWriteTokens`, `.costUsd` | The spend every `environment/delegation` states, summed; absent for a session whose delegations accounted for none |
+
+`delegated` is where a delegated cell reports the work its own token fields cannot: such a cell drives no model turn, so its `inputTokens` is `0` while `delegated` holds the whole spend. Each delegation states at most one accounting — `usage` for an in-process child, read from that child's own log, or the `reportedUsage` and `reportedCostUsd` a foreign product claimed — so summing both double-counts nothing. `costUsd` is that product's own pricing rather than a harness pricing table and is never added to `costEur`, which is why the two are separate fields in separate currencies. It is what separates two implementers that both certify on their first attempt, where the certificate rate cannot.
 
 The fold takes no pricing table: cost is the sum the `usage/priced` records themselves carry, so a deployment that re-rates a route cannot change what an already-run session cost. `costEur` is present only when every `assistant/message` that reported usage has a `usage/priced` for its turn and step, so a session that ran an unpriced route states no cost at all rather than the lower cost of its priced steps; a session whose log carries no usage-bearing message costs `0`. Two or more `pricingDigests` mean the log was priced under more than one table version and `costEur` is a sum across them.
 

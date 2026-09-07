@@ -28,7 +28,10 @@ import {
   bridgeAssistantRecord,
   bridgeQueryOptions,
   bridgeUsage,
+  initReportedModel,
   openBridgedRun,
+  resultReportedCostUsd,
+  resultReportedUsage,
   SUBAGENT_BRIDGE_UNAVAILABLE,
 } from '../src/bridge.ts'
 import * as claudeCode from '../src/index.ts'
@@ -109,7 +112,13 @@ function success(result = 'bridged answer'): SDKResultMessage {
     is_error: false,
     result,
     usage: { input_tokens: 11, output_tokens: 3, cache_read_input_tokens: 5, cache_creation_input_tokens: 2 },
+    total_cost_usd: 0.0412,
   } as unknown as SDKResultMessage
+}
+
+/** The product's opening record, which is the only message that names the model it runs. */
+function init(model: string): SDKMessage {
+  return { type: 'system', subtype: 'init', model } as unknown as SDKMessage
 }
 
 /** One SDK assistant message carrying text plus a tool call the executor already logged. */
@@ -174,7 +183,7 @@ beforeEach(() => { queryMock.mockReset() })
 afterEach(() => { vi.restoreAllMocks() })
 
 describe('the capability advertisement', () => {
-  it('is the one start-time feature this provider can enforce', async () => {
+  it('is the tool surface this provider enforces and the model the product accepts', async () => {
     const { ctx } = await setup()
     expect(ctx.subagents.getProvider('claude-code')?.capabilities).toEqual({
       outputSchema: false,
@@ -182,6 +191,7 @@ describe('the capability advertisement', () => {
       toolFilter: false,
       persona: false,
       harnessTools: true,
+      model: true,
     })
     await ctx.fiber.dispose()
   })
@@ -246,11 +256,15 @@ describe('the SDK options a bridged run passes', () => {
 describe('the child harness agent', () => {
   it('is published under the parent lineage and records the run in order', async () => {
     const { ctx, parent } = await setup()
-    respondWith(() => queryFrom([assistant('working'), success()]))
-    const run = await ctx.subagents.start('claude-code', request(parent))
+    respondWith(() => queryFrom([init('product-sonnet-2026-01'), assistant('working'), success()]))
+    const run = await ctx.subagents.start('claude-code', request(parent, { model: 'sonnet' }))
+    expect(queryMock.mock.calls[0]?.[0].options.model).toBe('sonnet')
     await expect(run.result).resolves.toEqual({
       output: [{ type: 'text', text: 'bridged answer' }],
       stopReason: 'completed',
+      reportedModel: 'product-sonnet-2026-01',
+      reportedUsage: { inputTokens: 11, outputTokens: 3, cacheReadTokens: 5, cacheWriteTokens: 2 },
+      reportedCostUsd: 0.0412,
     })
 
     const child = run.localAgent!
@@ -267,9 +281,14 @@ describe('the child harness agent', () => {
       .toEqual({ provider: 'claude-code', tools: [`${BRIDGE_TOOL_PREFIX}echo`] })
     expect(events[4]!.type === 'bridge/assistant' && events[4]!.data)
       .toEqual({ text: 'working', usage: { inputTokens: 7, outputTokens: 2 } })
+    // The child's own log states which model produced its turn and what the
+    // product priced it at, which is what a reader has instead of the product's
+    // transcript.
     expect(events[5]!.type === 'bridge/end' && events[5]!.data).toEqual({
       stopReason: 'completed',
       usage: { inputTokens: 11, outputTokens: 3, cacheReadTokens: 5, cacheWriteTokens: 2 },
+      model: 'product-sonnet-2026-01',
+      costUsd: 0.0412,
     })
 
     await run.dispose()
@@ -357,6 +376,21 @@ describe('the durable projection of one SDK message', () => {
     expect(bridgeUsage('not a record')).toBeUndefined()
     expect(bridgeUsage({ output_tokens: 3 })).toBeUndefined()
     expect(bridgeUsage({ input_tokens: 1, output_tokens: 2 })).toEqual({ inputTokens: 1, outputTokens: 2 })
+  })
+
+  it('reads the model from the opening record and the accounting from the terminal one', () => {
+    expect(initReportedModel(init('product-sonnet-2026-01'))).toBe('product-sonnet-2026-01')
+    expect(initReportedModel(success())).toBeUndefined()
+    expect(initReportedModel(assistant('working'))).toBeUndefined()
+
+    expect(resultReportedUsage(success()))
+      .toEqual({ inputTokens: 11, outputTokens: 3, cacheReadTokens: 5, cacheWriteTokens: 2 })
+    expect(resultReportedUsage(init('m'))).toBeUndefined()
+
+    expect(resultReportedCostUsd(success())).toBe(0.0412)
+    expect(resultReportedCostUsd(init('m'))).toBeUndefined()
+    // The stream crosses a process boundary: a non-numeric total states none.
+    expect(resultReportedCostUsd({ type: 'result', total_cost_usd: 'free' } as unknown as SDKMessage)).toBeUndefined()
   })
 })
 

@@ -86,6 +86,7 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_NO_RESERVATION'
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE'
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED'
+  | 'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED'
 
 /** Error returned by the environment runner boundary. */
 export class EnvironmentRunError extends HarnessError {
@@ -184,6 +185,8 @@ type RunImplementer =
     readonly kind: 'subagent'
     readonly provider: string
     readonly label?: string
+    /** The stamped model every child run must be started on, so the arm's model is the one that works. */
+    readonly model: string
     readonly subagents: SubagentRuntime
   }
 
@@ -818,9 +821,9 @@ export class EnvironmentRunner extends Service {
       throw new EnvironmentRunError(`seed must be a non-negative integer, got ${String(request.seed)}`, 'ENVIRONMENT_RUN_INVALID_SEED')
     }
     const requested = resolveImplementer(request)
-    const implementer = this.requireImplementer(requested)
-    const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const model = request.model ?? this.defaultModel()
+    const implementer = this.requireImplementer(requested, model)
+    const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const stamp: EnvironmentRunStamp = {
       kind: 'environment/run',
       version: ENVIRONMENT_RUN_VERSION,
@@ -870,16 +873,20 @@ export class EnvironmentRunner extends Service {
 
   /**
    * Resolve the subagent runtime a delegated run starts its children on, before
-   * any agent exists. A provider the composition does not hold, and one whose
-   * child this process cannot fence under a claim above `none`, both fail here
-   * rather than at the first attempt, when a stamped session would already
-   * exist for a run that can never certify.
+   * any agent exists. A provider the composition does not hold, one whose child
+   * this process cannot fence under a claim above `none`, and one that cannot
+   * be told which model to run all fail here rather than at the first attempt,
+   * when a stamped session would already exist for a run that can never
+   * certify — or, for the model, would exist claiming an arm the child never
+   * ran.
    * @param implementer - the implementer the request resolved to.
+   * @param model - the run's stamped route, whose model every child run is started on.
    * @returns the run implementer with its service resolved.
-   * @throws {@link EnvironmentRunError} when the named provider is not composed
-   *   or runs outside this process under an isolation above `none`.
+   * @throws {@link EnvironmentRunError} when the named provider is not composed,
+   *   runs outside this process under an isolation above `none`, or does not
+   *   support the subagent seam's `model` capability.
    */
-  private requireImplementer(implementer: EnvironmentRunImplementer): RunImplementer {
+  private requireImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): RunImplementer {
     if (implementer.kind === 'route') return implementer
     const { provider: name, label } = implementer
     const subagents = this.ctx.get('subagents')
@@ -894,7 +901,10 @@ export class EnvironmentRunner extends Service {
     if (runsOutOfProcess(provider.capabilities) && isolation !== 'none') {
       throw new EnvironmentRunError(`implementer provider "${name}" runs outside this process, where the read-barrier census cannot confine it, so it cannot implement a run declaring "${isolation}" isolation`, 'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED')
     }
-    return { kind: 'subagent', provider: name, ...label === undefined ? {} : { label }, subagents }
+    if (!provider.capabilities.model) {
+      throw new EnvironmentRunError(`implementer provider "${name}" cannot be told which model to run, so a run stamped with model "${model.model}" would measure whichever model that provider defaults to`, 'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED')
+    }
+    return { kind: 'subagent', provider: name, ...label === undefined ? {} : { label }, model: model.model, subagents }
   }
 
   /** Stamp, goal, standard, then the attempt loop; the session is flushed on every path. */
@@ -1016,8 +1026,14 @@ export class EnvironmentRunner extends Service {
    * recorded rather than judged: whatever the child reports, the checks decide
    * what the tree it left is worth, so a refusal or a transport failure ends
    * the attempt exactly where a completed one does — at the validation.
+   * The child is started on the run's own stamped model, so the arm a cell is
+   * published under is the arm that did the work; what the child's backend then
+   * reports it ran, and what it says that run cost, are recorded beside it
+   * rather than assumed. The reported spend is the only spend an out-of-process
+   * implementer leaves here, and it is what separates two implementers that
+   * both certify on their first attempt.
    * @param agent - the cell agent, which is the delegating parent and holds the durable record.
-   * @param implementer - the provider, its optional label, and the resolved subagent service.
+   * @param implementer - the provider, its optional label, the stamped model, and the resolved subagent service.
    * @param text - the task prompt on the first attempt, the directive follow-up on later ones.
    * @param attempt - one-based attempt number, recorded on the delegation event.
    * @param signal - the run's cancellation; a run that carries none delegates under one that never fires.
@@ -1033,6 +1049,7 @@ export class EnvironmentRunner extends Service {
       prompt: [{ type: 'text', text }],
       parent: agent,
       signal: signal ?? new AbortController().signal,
+      model: implementer.model,
       ...implementer.label === undefined ? {} : { label: implementer.label },
     })
     try {
@@ -1047,6 +1064,9 @@ export class EnvironmentRunner extends Service {
         stopReason: result.stopReason,
         ...result.structured === undefined ? {} : { structured: result.structured },
         ...usage === undefined ? {} : { usage },
+        ...result.reportedModel === undefined ? {} : { reportedModel: result.reportedModel },
+        ...result.reportedUsage === undefined ? {} : { reportedUsage: result.reportedUsage },
+        ...result.reportedCostUsd === undefined ? {} : { reportedCostUsd: result.reportedCostUsd },
       })
     } finally {
       await run.dispose()

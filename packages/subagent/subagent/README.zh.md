@@ -40,8 +40,13 @@ subagent seam 允许一个 agent（智能体）通过具名提供方把工作委
 - `toolFilter`：应用请求的子 agent 工具限制；
 - `persona`：应用每个子 agent 独立的 persona；
 - `harnessTools`：兑现 `harnessTools: { only: true }`。
+- `model`：让子进程运行启动请求点名的那个模型。
 
-`harnessTools` 是进程外后端唯一能够持有的能力。请求它意味着子模型的工具面**就是**提供方在父级血统下创建的一个子本仓库智能体的工具集，除此之外别无他物：后端把该智能体的注册表提供给它的外来模型，把该模型发出的每一次调用都通过该智能体上的本仓库执行器执行，而子会话成为这次运行的持久记录。它是对象而非布尔值，因为 `only` 是语义而不是开关 —— 日后新增的非排他成员是加宽该选项，而不是重新定义它。
+`model` 是子进程**必须**运行的模型的 provider 专属标识符：对在本进程 LLM 路由上组装子进程的 provider 是 harness 的模型 id，对启动外来 agent 的 provider 是产品自己的 id 或别名。其契约是 provider 绝不悄悄改跑另一个模型。无法选择模型的 provider 声明 `model: false`，服务便以 `SubagentError` 码 `UNSUPPORTED_CAPABILITY` 拒绝该次启动；声明了该能力却无法兑现某个具体标识符的 provider 会拒绝而非回退，于是测量子进程的调用方可以用它所要求的模型给测量结果贴标签。子进程自身后端随后声称跑了什么，作为 `SubagentResult.reportedModel` 返回，那是该后端所陈述的而非回声：产品会把 `sonnet` 这样的别名解析成具体版本，而进程内子进程陈述的是它自己那条路由解析出的模型。
+
+`SubagentResult` 对开销也携带同一类自陈：`reportedUsage` 是子进程后端报告的 token 计量，`reportedCostUsd` 是它给该次运行标的价。两者都是身处另一进程的子进程留下的**唯一**开销记录——它的 token 从不进入这里的日志；在本进程组装子进程的 provider 两者都不陈述，因为该子进程自己的会话日志已经把它记下了。`reportedCostUsd` 是外部产品自身的定价而非 harness 定价表，因此它可在该产品的多次运行之间比较，绝不与 `usage/priced` 的成本相加。
+
+`harnessTools` 与 `model` 是进程外后端能够持有的两项能力。请求 `harnessTools` 意味着子模型的工具面**就是**提供方在父级血统下创建的一个子本仓库智能体的工具集，除此之外别无他物：后端把该智能体的注册表提供给它的外来模型，把该模型发出的每一次调用都通过该智能体上的本仓库执行器执行，而子会话成为这次运行的持久记录。它是对象而非布尔值，因为 `only` 是语义而不是开关 —— 日后新增的非排他成员是加宽该选项，而不是重新定义它。
 
 每个进程内子 agent 都通过一次 `applyChildComposition(childCtx, parent, composition)` 调用完成组装：先加入父级的 agent-preset 组合，再应用子 agent 自己的 persona 和工具限制。加入父级组合正是子 agent 获得能力的途径：所有面向模型的行都位于 agent 平面，完全没有加入任何组合的子 agent 抵达模型时会看到空的工具注册表（见 [`dsh-agent-presets`](../../preset/agent-presets/README.md)）。将父级作为参数是刻意设计：这让“组装子 agent 却不做该加入”在各调用点无法表达，而这正是这一次调用所要杜绝的缺陷。未组装 preset roster 的部署不加入任何组合、也不需要加入；其面向模型的行位于宿主组合中，子 agent 已能通过工具注册表的全局层解析到它们。
 
@@ -65,7 +70,7 @@ subagent seam 允许一个 agent（智能体）通过具名提供方把工作委
 
 进程内驱动不做这两次调用。通过 `composeFrom()` 加入父级现有组合的子 agent 继承同一份普查、同一作用域层和同一角色，因此父级自身的执行器已经对它执行拒绝。
 
-`runsOutOfProcess(capabilities)` 回答一个被命名的 provider 在哪里运行它的子进程，供必须在启动之前作出判断的调用方使用——[环境运行器](../../improvement/environment-runner/README.md#the-two-implementers)据此拒绝一个它无法约束的被委派 cell。四项由父方强制的启动期特性（`outputSchema`、`depthLimit`、`toolFilter`、`persona`）只有在本进程组装子 agent 的驱动才能兑现，因此进程外后端一项都不声明，而进程内驱动至少支持其中一项；`harnessTools` 不参与判断，因为桥接后端声明它时，其模型仍在别处运行。该判断失败关闭：什么都不声明的后端一律按本进程无法为其设围栏来处理。
+`runsOutOfProcess(capabilities)` 回答一个被命名的 provider 在哪里运行它的子进程，供必须在启动之前作出判断的调用方使用——[环境运行器](../../improvement/environment-runner/README.md#the-two-implementers)据此拒绝一个它无法约束的被委派 cell。四项由父方强制的启动期特性（`outputSchema`、`depthLimit`、`toolFilter`、`persona`）只有在本进程组装子 agent 的驱动才能兑现，因此进程外后端一项都不声明，而进程内驱动至少支持其中一项；`harnessTools` 与 `model` 不参与判断，因为桥接后端声明前者时其模型仍在别处运行，而产品后端声明后者的方式是把一个选择传给一个本就跑在别处的 agent。该判断失败关闭：什么都不声明的后端一律按本进程无法为其设围栏来处理。
 
 ## 委派策略
 

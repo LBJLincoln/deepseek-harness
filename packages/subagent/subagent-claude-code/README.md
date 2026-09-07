@@ -48,7 +48,7 @@ The pinned SDK warns that a bare `allowedTools` entry auto-approves before `canU
 |---|---|---|
 | `bridge/start` | `provider`, `tools` (the names as the external model sees them) | Once, after the server is attached. |
 | `bridge/assistant` | `text`, optional `usage` | Per assistant message with text. Tool calls are absent: the executor already logged each as the durable pair. |
-| `bridge/end` | `stopReason`, optional `usage` | Once, when the run settles or is released. |
+| `bridge/end` | `stopReason`, optional `usage`, `model`, `costUsd` | Once, when the run settles or is released. |
 
 The whole run is one turn of that child session, because the durable tool pair is step-scoped; [`dsh-mcp-tool-server`](../../mcp/mcp-tool-server/README.md) owns that turn and closes it on disposal.
 
@@ -56,9 +56,23 @@ The log does NOT hold the external model's hidden reasoning, its assembled syste
 
 ## Capabilities and context
 
-The provider advertises `harnessTools` and no other optional start-time capability, and reports `inheritsParentContext: false`. `harnessTools` is the one start-time feature an out-of-process child can honor, because the harness composes the child agent whose tools it serves rather than asking the product to enforce anything. `outputSchema`, `maxDepth`, `toolFilter`, and `persona` are still rejected by the shared service for this provider, in both modes.
+The provider advertises `harnessTools` and `model`, and reports `inheritsParentContext: false`. `harnessTools` is honored because the harness composes the child agent whose tools it serves rather than asking the product to enforce anything. `outputSchema`, `maxDepth`, `toolFilter`, and `persona` are still rejected by the shared service for this provider, in both modes.
 
-Without `harnessTools`, Claude Code receives the standalone text task and the parent Session cwd, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. Every run has an independent SDK query, cancellation controller, CLI process, and non-persisted product session.
+## Selecting the model, and what the product reports back
+
+A start naming `model` sets the SDK's `model` option, which the CLI takes as `--model`, in both modes. The identifier is the product's own — an alias such as `sonnet` or a full model id — and it replaces whatever the host's settings would have selected for that run alone; a run naming none leaves those settings in place. The product refuses an identifier it does not accept, so a run either used the named model or failed.
+
+Every run reports back what the product said about itself, on every settlement path — completed, error, and cancelled alike:
+
+| Result field | Source | Meaning |
+|---|---|---|
+| `reportedModel` | the `system`/`init` message's `model` | the model the product opened the run on, as a full product model id. |
+| `reportedUsage` | the terminal `result` message's `usage` | input, output, and cache tokens the product accounted for. |
+| `reportedCostUsd` | that message's `total_cost_usd` | what the product priced the run at, in its own accounting. |
+
+Each is absent when the product stated none — a run that failed before the CLI opened reports no model, one killed before its terminal message reports no spend. These are the only account of a Claude Code run this process can hold: its tokens are spent in another product and never reach a harness log, so a caller measuring an external implementer reads spend here or nowhere. In bridge mode the same three land in the child session's own `bridge/end` record.
+
+Without `harnessTools`, Claude Code receives the standalone text task, the parent Session cwd, and the model when a start named one, but not the parent conversation, persona, tool filter, depth policy, or structured-output contract. Every run has an independent SDK query, cancellation controller, CLI process, and non-persisted product session.
 
 ## Configuration
 
@@ -71,7 +85,7 @@ Without `harnessTools`, Claude Code receives the standalone text task and the pa
 
 Under the host's native settings the product's default permission mode prompts before a file write, so an unattended black-box child reports that it lacks permission rather than doing the work. An unattended implementer at `isolation: none` therefore needs `acceptEdits` (file edits) or `bypassPermissions` (everything, and the provider pairs it with the SDK's required `allowDangerouslySkipPermissions`). Both hand the product's own confinement away — which is exactly what bridge mode replaces: there the harness authorizes each call at its own executor, so no product-side permission decision is involved at all.
 
-Production resolves `claude` from the subprocess execution world's credential-scrubbed `PATH`, with explicit `env` entries applied, and passes the resulting path to the SDK as `pathToClaudeCodeExecutable`. On Windows, a resolved `.cmd` or `.bat` path is carried as a quoted, per-spawn environment value that `cmd.exe /v:off` expands once, so valid path metacharacters remain data. The pinned SDK's fixed flags then occupy cmd's command tail and contain no cmd metacharacters; they are not ordinary Windows argv. Native settings and authentication remain authoritative. The plugin does not install another CLI, select a model, create a product home, log in, or probe an account. Credential-shaped ambient variables are removed before the explicit `env` overlay is applied, so an API key or token intended for the child must be supplied there. Non-credential endpoint variables such as `ANTHROPIC_BASE_URL`, along with ordinary ambient values such as `PATH` and `HOME`, remain inherited unless overridden.
+Production resolves `claude` from the subprocess execution world's credential-scrubbed `PATH`, with explicit `env` entries applied, and passes the resulting path to the SDK as `pathToClaudeCodeExecutable`. On Windows, a resolved `.cmd` or `.bat` path is carried as a quoted, per-spawn environment value that `cmd.exe /v:off` expands once, so valid path metacharacters remain data. The pinned SDK's fixed flags then occupy cmd's command tail and contain no cmd metacharacters; they are not ordinary Windows argv. Native settings and authentication remain authoritative. The plugin does not install another CLI, create a product home, log in, or probe an account; it selects a model only when a start names one. Credential-shaped ambient variables are removed before the explicit `env` overlay is applied, so an API key or token intended for the child must be supplied there. Non-credential endpoint variables such as `ANTHROPIC_BASE_URL`, along with ordinary ambient values such as `PATH` and `HOME`, remain inherited unless overridden.
 
 Shipped profiles load this provider once on the host and start no Claude process until a tool call. Full Agent Presets carry the tool row below with `disabled: true`; copy a preset and remove that field to expose `subagent_claude_code` only to agents composed from the copy. A custom host composition can still use both rows directly.
 
@@ -104,7 +118,7 @@ The project owner's identity-scoped distribution authorization covers the offici
 
 #### What the model sees
 
-The Claude Code child receives the standalone text task as one fresh SDK query. Its workspace is the parent Session cwd, while its model, system instructions, tools, permissions, and authentication come from the host's native Claude settings and product installation. Under `harnessTools: { only: true }` the tools instead come from the child harness agent's registry, and the host's settings, hooks, project files, and MCP servers are excluded — only the model and the authentication remain the product's.
+The Claude Code child receives the standalone text task as one fresh SDK query. Its workspace is the parent Session cwd and its model is the one the start named, while its system instructions, tools, permissions, authentication, and — for a start naming no model — its model come from the host's native Claude settings and product installation. Under `harnessTools: { only: true }` the tools instead come from the child harness agent's registry, and the host's settings, hooks, project files, and MCP servers are excluded — only the model and the authentication remain the product's.
 
 #### Token effect
 
@@ -118,7 +132,7 @@ Independent of the parent request cache. Reuse depends only on Claude Code's own
 
 #### What the model sees
 
-Through `dsh-tool-subagent`, the parent sees only the strict final Claude Code answer or the consumer's exact error for a non-completed result. Claude Code reasoning, tool activity, intermediate messages, stderr, workspace diffs, usage, and product ids are not copied into the parent Session.
+Through `dsh-tool-subagent`, the parent sees only the strict final Claude Code answer or the consumer's exact error for a non-completed result. Claude Code reasoning, tool activity, intermediate messages, stderr, workspace diffs, and product ids are not copied into the parent Session; the model, usage, and cost the product reported reach the caller through the run result, not the parent's context.
 
 #### Token effect
 
@@ -136,7 +150,7 @@ Append-only: the new tool result follows the reusable parent request prefix.
 - **The SDK platform CLI remains in the install closure** — production ignores it in favor of the host `claude`, but the current SDK optional dependency is still installed and supplies the keyless compatibility fixture. Removing that payload belongs to the separate product installation-closure follow-up.
 - **No human interaction path** — `AskUserQuestion` is disabled and other interactive callbacks are absent, so tasks requiring new approval or input fail instead of suspending.
 - **Final text only outside bridge mode** — without `harnessTools`, reasoning, intermediate messages, tool traffic, usage, stderr, and workspace diffs remain product-local. Bridge mode records the tool traffic, the assistant text, and the usage; the reasoning and the product's own prompt stay unobservable in both.
-- **No optional shared capabilities besides `harnessTools`** — output schemas, child personas, tool filtering, and harness depth enforcement are rejected by the shared service for this provider. `toolFilter` is meaningful in bridge mode and refused there too: capability flags are per provider rather than per mode, so advertising it would accept it in the black-box mode as well, where it would be silently ignored.
+- **No optional shared capabilities besides `harnessTools` and `model`** — output schemas, child personas, tool filtering, and harness depth enforcement are rejected by the shared service for this provider. `toolFilter` is meaningful in bridge mode and refused there too: capability flags are per provider rather than per mode, so advertising it would accept it in the black-box mode as well, where it would be silently ignored.
 - **Bridge mode needs the tool server composed** — a deployment that requests `harnessTools` without [`dsh-mcp-tool-server`](../../mcp/mcp-tool-server/README.md) is refused at start with `SubagentError` `BRIDGE_UNAVAILABLE`, because the provider cannot serve a registry that is not there.
 - **The bridged process is unconfined** — bridge mode fences the tools the external model is given, not the process it runs in.
 - **No wall-clock timeout or side-effect rollback** — the caller cancels long work, and files or external systems changed before cancellation are not restored.

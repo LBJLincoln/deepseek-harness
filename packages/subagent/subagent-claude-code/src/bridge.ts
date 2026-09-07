@@ -67,6 +67,41 @@ export function bridgeUsage(usage: unknown): TokenUsage | undefined {
 }
 
 /**
+ * Read the model the product states it is running from its opening `init`
+ * message, which is the only place the SDK stream names it. The stream crosses
+ * a process boundary, so a message that is not that opening record yields none
+ * rather than a guess.
+ * @param message - one message from the SDK stream.
+ * @returns the product's own model identifier, or `undefined` for every other message.
+ */
+export function initReportedModel(message: SDKMessage): string | undefined {
+  return message.type === 'system' && message.subtype === 'init' ? message.model : undefined
+}
+
+/**
+ * Read the whole-run token accounting the product reported, carried by its
+ * terminal `result` message.
+ * @param message - one message from the SDK stream.
+ * @returns the harness token accounting, or `undefined` for every other message.
+ */
+export function resultReportedUsage(message: SDKMessage): TokenUsage | undefined {
+  return message.type === 'result' ? bridgeUsage(message.usage) : undefined
+}
+
+/**
+ * Read the whole-run cost the product priced its own work at, carried by the
+ * same terminal message. Same process boundary as the usage beside it: a value
+ * that is not a number yields none rather than a fabricated zero.
+ * @param message - one message from the SDK stream.
+ * @returns the product's own US-dollar total, or `undefined` for every other message.
+ */
+export function resultReportedCostUsd(message: SDKMessage): number | undefined {
+  if (message.type !== 'result') return undefined
+  const cost: unknown = message.total_cost_usd
+  return typeof cost === 'number' ? cost : undefined
+}
+
+/**
  * Project one SDK assistant message onto its durable record. Text blocks only:
  * the tool calls in the same message are already the executor's `tool/call`
  * events.
@@ -228,11 +263,18 @@ export async function openBridgedRun(inputs: BridgeInputs): Promise<BridgedRun> 
 
   let settled = false
   let lastUsage: TokenUsage | undefined
+  let lastModel: string | undefined
+  let lastCostUsd: number | undefined
   let released: Promise<void> | undefined
   const settle = (stopReason: SubagentStopReason): void => {
     if (settled) return
     settled = true
-    record('bridge/end', { stopReason, ...lastUsage === undefined ? {} : { usage: lastUsage } })
+    record('bridge/end', {
+      stopReason,
+      ...lastUsage === undefined ? {} : { usage: lastUsage },
+      ...lastModel === undefined ? {} : { model: lastModel },
+      ...lastCostUsd === undefined ? {} : { costUsd: lastCostUsd },
+    })
   }
 
   return {
@@ -240,7 +282,9 @@ export async function openBridgedRun(inputs: BridgeInputs): Promise<BridgedRun> 
     id: childId,
     options: bridgeQueryOptions(served.config, request.agentOptions?.maxTurns),
     observe(message: SDKMessage): void {
-      if (message.type === 'result') lastUsage = bridgeUsage(message.usage) ?? lastUsage
+      lastModel = initReportedModel(message) ?? lastModel
+      lastUsage = resultReportedUsage(message) ?? lastUsage
+      lastCostUsd = resultReportedCostUsd(message) ?? lastCostUsd
       const assistant = bridgeAssistantRecord(message)
       if (assistant !== undefined) record('bridge/assistant', assistant)
     },

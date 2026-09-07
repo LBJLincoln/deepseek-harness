@@ -71,6 +71,7 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     environment: environmentSchema.optional(),
     requestProvider: zod.string().min(1).optional(),
     requestModel: zod.string().min(1).optional(),
+    implementerModel: zod.string().min(1).optional(),
     compositionSha256: zod.string().min(1).optional(),
   }),
   outcome: zod.object({
@@ -119,6 +120,13 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     pricedSteps: zod.number().int().nonnegative(),
     costEur: zod.number().nonnegative().optional(),
     pricingDigests: zod.array(zod.string().min(1)),
+    delegated: zod.object({
+      inputTokens: zod.number().int().nonnegative(),
+      outputTokens: zod.number().int().nonnegative(),
+      cacheReadTokens: zod.number().int().nonnegative(),
+      cacheWriteTokens: zod.number().int().nonnegative(),
+      costUsd: zod.number().nonnegative().optional(),
+    }).optional(),
   }),
   tools: zod.object({
     toolCalls: zod.number().int().nonnegative(),

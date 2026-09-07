@@ -51,7 +51,7 @@ export interface Config {
   cwd?: string
   /** Provider route the child runtime initializes with (default `deepseek-official`). */
   provider: string
-  /** Model the child runtime initializes with (default `deepseek-v4-flash`). */
+  /** Model the child runtime initializes with (default `deepseek-v4-flash`), unless a start names one. */
   model: string
   /** Optional per-request output-token cap for the child runtime. */
   maxTokens?: number
@@ -93,12 +93,14 @@ export const Config: z<Config> = z.object({
 type ResolvedConfig = Required<Omit<Config, 'cwd' | 'maxTokens'>> & Pick<Config, 'cwd' | 'maxTokens'>
 
 /**
- * The SDK provider. Advertises NO start-time capabilities: an out-of-process
- * child cannot honor `outputSchema`/`maxDepth`/`toolFilter`/`persona` (the
- * service rejects a request needing any of them before `start` runs).
+ * The SDK provider. Advertises `model` alone: an out-of-process child cannot
+ * honor `outputSchema`/`maxDepth`/`toolFilter`/`persona` (the service rejects a
+ * request needing any of them before `start` runs), while the model is part of
+ * the route the child runtime is initialized with, so a start that names one
+ * replaces the configured default for that child alone.
  */
 class SdkSubagentProvider implements SubagentProvider {
-  readonly capabilities: SubagentCapabilities = NO_START_CAPABILITIES
+  readonly capabilities: SubagentCapabilities = { ...NO_START_CAPABILITIES, model: true }
   // Context contract: an out-of-process SDK child starts fresh — no parent conversation crosses the process boundary.
   readonly inheritsParentContext = false
 
@@ -111,7 +113,7 @@ class SdkSubagentProvider implements SubagentProvider {
       args: this.config.args,
       cwd: resolveChildCwd('subagent-dsh-sdk', this.config.cwd, request.parent.session.header.cwd),
       provider: this.config.provider,
-      model: this.config.model,
+      model: request.model ?? this.config.model,
       ...this.config.maxTokens === undefined ? {} : { maxTokens: this.config.maxTokens },
       env: this.config.env,
       shutdownTimeoutMs: this.config.shutdownTimeoutMs,

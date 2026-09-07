@@ -1,7 +1,7 @@
 /**
  * Pure fold of one session log into {@link SessionFacts}. Every field comes
  * from a named session event: the identity group from `environment/run`,
- * `request/header` and `composition/manifest`, the outcome group from
+ * `environment/delegation`, `request/header` and `composition/manifest`, the outcome group from
  * `goal/change`, the five `verification/*` events and `budget/breach`, the
  * efficiency group from `turn/start`, `step/start`, the usage of
  * `assistant/message` and the `usage/priced` records, and the tool group from
@@ -25,12 +25,15 @@ import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-budget-policy'
 // Type-only: the `composition/manifest` SessionEventMap merge this fold reads.
 import type {} from '@deepseek-ai/dsh-components-manifest'
+// Type-only: the `environment/delegation` SessionEventMap merge this fold reads.
+import type {} from '@deepseek-ai/dsh-environment-runner/types'
 import { TOOL_TIMEOUT } from '@deepseek-ai/dsh-tool-call-timeout-policy'
 import { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@deepseek-ai/dsh-tools'
 import { foldTrajectoryReward } from '@deepseek-ai/dsh-trajectories'
 import { foldVerification } from '@deepseek-ai/dsh-verification'
 import type {
   SessionFacts,
+  SessionFactsDelegatedSpend,
   SessionFactsEfficiency,
   SessionFactsIdentity,
   SessionFactsOutcome,
@@ -57,6 +60,14 @@ export interface SessionFactsPricing {
 
 /** The pricing state of a log that carries neither usage nor a price. */
 const EMPTY_PRICING: SessionFactsPricing = { usageStepKeys: [], pricedStepKeys: [], costEur: 0, digests: [] }
+
+/** The delegated spend of a session before its first accounted delegation. */
+const EMPTY_DELEGATED_SPEND: SessionFactsDelegatedSpend = {
+  inputTokens: 0,
+  outputTokens: 0,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
+}
 
 /** The outcome group of a log that recorded no goal and no standard. */
 const EMPTY_OUTCOME: SessionFactsOutcome = {
@@ -255,6 +266,32 @@ function withStamp(state: SessionFactsState, event: SessionEvent<'environment/ru
 }
 
 /**
+ * Add one delegated attempt: the model its child last reported running, and the
+ * spend that child accounted for. A delegation stating neither moves nothing —
+ * an attempt that ended before its backend spoke retracts what an earlier one
+ * said. `usage` is an in-process child's own logged total and `reportedUsage` a
+ * foreign product's claim; a provider states at most one, so summing both here
+ * double-counts nothing.
+ */
+function withDelegation(state: SessionFactsState, event: SessionEvent<'environment/delegation'>): SessionFactsState {
+  const { reportedModel, reportedCostUsd } = event.data
+  const named = reportedModel === undefined ? state : withIdentity(state, { implementerModel: reportedModel })
+  const usage = event.data.usage ?? event.data.reportedUsage
+  if (usage === undefined && reportedCostUsd === undefined) return named
+  const spent = named.facts.efficiency.delegated ?? EMPTY_DELEGATED_SPEND
+  const costUsd = reportedCostUsd === undefined ? spent.costUsd : (spent.costUsd ?? 0) + reportedCostUsd
+  return withEfficiency(named, {
+    delegated: {
+      inputTokens: spent.inputTokens + (usage?.inputTokens ?? 0),
+      outputTokens: spent.outputTokens + (usage?.outputTokens ?? 0),
+      cacheReadTokens: spent.cacheReadTokens + (usage?.cacheReadTokens ?? 0),
+      cacheWriteTokens: spent.cacheWriteTokens + (usage?.cacheWriteTokens ?? 0),
+      ...costUsd === undefined ? {} : { costUsd },
+    },
+  })
+}
+
+/**
  * Add one assistant message's provider accounting, and record its step as one
  * the log must price before it can state a cost. Only `assistant/message`
  * carries a step's final usage, so the earlier `assistant/chunk` sample for the
@@ -315,6 +352,8 @@ export function applySessionFacts(state: SessionFactsState, event: SessionEvent)
       return withPrice(timed, event)
     case 'environment/run':
       return withStamp(timed, event)
+    case 'environment/delegation':
+      return withDelegation(timed, event)
     case 'request/header':
       return withIdentity(timed, {
         requestProvider: event.data.header.config.provider,
