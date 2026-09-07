@@ -1,0 +1,24 @@
+{
+  "id": "code:semver-ranges",
+  "tier": 3,
+  "domain": "parsing",
+  "title": "Semantic versions, precedence and range matching",
+  "prompt": "`src/index.js` must export `parse`, `compare`, `parseRange`, `satisfies`, `maxSatisfying` and the error class `SemverError`; how the work is split across files under `src/` is up to you. `parse(text)` accepts a version with optional surrounding whitespace and an optional leading `v`, and returns `{ major, minor, patch, prerelease, build, version }`. The three numbers carry no leading zeros. A `-` introduces dot-separated prerelease identifiers of letters, digits and hyphens, where an all-digit identifier becomes a number and must have no leading zero, and a `+` introduces dot-separated build identifiers, which stay strings. `version` is the input without the `v` prefix or surrounding whitespace. Anything else throws `SemverError` with `invalid version: 1.2`, and a non-string throws `version must be a string`.\n\n`compare(a, b)` returns -1, 0 or 1 for the precedence of two versions, given as text or as already-parsed objects. Major, then minor, then patch compare numerically. A version with a prerelease has lower precedence than the same three numbers without one. Otherwise prerelease identifiers compare pairwise: two numbers compare numerically, a number is lower than an alphanumeric identifier, two alphanumerics compare by code unit, and when one list runs out first the shorter list is lower. Build metadata never affects precedence, so `1.0.0+a` and `1.0.0+b` compare equal.\n\n`parseRange(range)` returns one array of comparator strings per `||`-separated alternative, each comparator written as its operator immediately followed by a version, for example `[['>=1.2.3', '<2.0.0']]`. Within an alternative, whitespace separates comparators, and whitespace between an operator and its version is allowed. A comparator is a version, possibly partial, with an optional leading `^`, `~`, `<`, `<=`, `>`, `>=` or `=`. A partial version omits parts or writes `x`, `X` or `*` for them. A bare or `=` comparator on a full version is `=1.2.3`; on a partial one it is the range that version covers, so `1.2` is `>=1.2.0 <1.3.0`, `1` is `>=1.0.0 <2.0.0`, and `*` or the empty alternative is `>=0.0.0`. `>=` and `<` on a partial fill the missing parts with zero, while `>` and `<=` move to the next version the partial excludes, so `>1.2` is `>=1.3.0` and `<=1.2` is `<1.3.0`. `^` keeps the leftmost non-zero part fixed: `^1.2.3` is `>=1.2.3 <2.0.0`, `^0.2.3` is `>=0.2.3 <0.3.0`, `^0.0.3` is `>=0.0.3 <0.0.4`, `^1.2` is `>=1.2.0 <2.0.0`, `^0.0` is `>=0.0.0 <0.1.0` and `^0` is `>=0.0.0 <1.0.0`. `~` allows patch-level changes when a minor is given and minor-level changes otherwise: `~1.2.3` is `>=1.2.3 <1.3.0`, `~1.2` is `>=1.2.0 <1.3.0` and `~1` is `>=1.0.0 <2.0.0`. `a - b` is inclusive at both ends, except that a partial upper bound widens to what it excludes, so `1.2.3 - 2.3` is `>=1.2.3 <2.4.0`; a wildcard on either side simply drops that bound.\n\nRange text that cannot be read that way throws `SemverError`, including a wildcard major under any operator other than `=` (`>x`), a wildcard before a given part (`1.x.2`), a prerelease on a partial version (`^1.2-beta`) and a stray hyphen; a non-string range throws `range must be a string`. `satisfies(version, range, options)` is true when every comparator of some alternative holds. A version carrying a prerelease is additionally refused unless that alternative contains a comparator whose own version has a prerelease and the same major, minor and patch, so `1.2.4-beta` does not satisfy `^1.2.3` while `1.2.3-beta` does satisfy `>=1.2.3-alpha <2.0.0`; `options.includePrerelease` set to true drops that extra rule. `maxSatisfying(versions, range, options)` returns the highest satisfying entry exactly as it was written, keeping the first of equal precedence, and null when none match; a non-array throws `versions must be an array` and an unparsable entry throws.",
+  "heldOut": true,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

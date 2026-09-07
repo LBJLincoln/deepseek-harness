@@ -1,0 +1,24 @@
+{
+  "id": "code:expr-eval",
+  "tier": 3,
+  "domain": "parsing",
+  "title": "Arithmetic tokeniser, precedence-climbing parser and evaluator",
+  "prompt": "`src/index.js` must export `tokenize`, `parse`, `evaluate` and the error class `ExprError`; how the work is split across files under `src/` is up to you. `tokenize(input)` returns tokens in source order, each `{ type, value, index }` where `index` is the 0-based position in UTF-16 code units. Whitespace separates tokens and is otherwise ignored. The types are `number` (value a JavaScript number), `name` (value the identifier text, matching `[A-Za-z_][A-Za-z0-9_]*`), `operator` (value one of `+ - * / % ^`), and `lparen`, `rparen`, `comma` whose value is the character. A numeric literal is digits with an optional fractional part, or a leading `.` with digits, each optionally followed by `e` or `E`, an optional sign and digits. Anything that starts like a number but does not fit, including `1.2.3`, `1e`, `4.` and `2abc`, throws `malformed number at 0` pointing at the first character of the literal; any other unusable character throws `unexpected character '$' at 4`, quoting the whole code point.\n\n`parse(input)` returns the expression tree. Nodes are `{ type: 'number', value, index }`, `{ type: 'variable', name, index }`, `{ type: 'unary', op, operand, index }`, `{ type: 'binary', op, left, right, index }` and `{ type: 'call', name, args, index }`; the index of a unary or binary node is its operator's position and the index of a call is its name's position. Parentheses only group, leaving no node of their own. `+` and `-` are left-associative at the lowest precedence, `*`, `/` and `%` are left-associative and bind tighter, a prefix `+` or `-` binds tighter still, and `^` is right-associative and binds tightest, so `-2^2` is -4, `(-2)^2` is 4, `2^3^2` is 512, `2^-2` is 0.25 and `5--3` is 8. A function call is a name immediately followed by a parenthesised, comma-separated argument list, which may be empty.\n\nFailures throw `ExprError` with a 0-based `index` and a message that ends with ` at <index>`: `unexpected end of input at 3` (the index is the input's length), `missing closing parenthesis at 4`, and `unexpected token ')' at 4` quoting the token's source text. Evaluation reports `division by zero at 1` for `/` or `%` with a zero divisor, and `non-finite result at 5` whenever an operation or call produces something that is not a finite number, each pointing at the operator or the call's name.\n\n`evaluate(input, env)` walks the tree in JavaScript double arithmetic and returns a finite number, preserving negative zero. A name resolves first to an own property of `env` and then to the constants `pi` and `e`, so bindings shadow them; an unresolvable name throws `unknown variable: x at 0` and a binding that is not a finite number throws `variable x is not a finite number at 0`. The callable functions are fixed: `abs`, `sqrt`, `floor`, `ceil`, `round` (ties toward positive infinity), `sign` take exactly one argument; `pow` and `atan2` take exactly two; `min` and `max` take one or more. Calling anything else throws `unknown function: foo at 0`, and a wrong count throws `function abs expects 1 argument, got 2 at 0`, `function pow expects 2 arguments, got 1 at 0` or `function max expects at least 1 argument, got 0 at 0`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

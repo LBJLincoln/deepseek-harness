@@ -1,0 +1,13 @@
+{
+  "id": "code:text-diff",
+  "tier": 4,
+  "domain": "data-structures-algorithms",
+  "title": "Fix a unified line diff",
+  "prompt": "`src/diff.js` renders a unified diff between two texts, and its test suite is failing. Find and fix the defects. Keep the public exports, their signatures, and every behaviour the passing tests already pin; the module's own documentation states the intended contract, and the tests are fixed.\n\nThe module splits a text into lines, remembers whether the text ended with a newline, and compares the two line sequences with a longest-common-subsequence walk that prefers a deletion over an insertion when both are equally good. A line carries its terminator, so the last line of a text that does not end with a newline never matches the same text terminated normally; wherever such a line is printed, the marker `\\ No newline at end of file` follows it, on whichever side of the diff it appears.\n\nOutput is the unified format: a `--- name` header, a `+++ name` header, then one hunk per changed region. A hunk shows up to `context` unchanged lines before and after the change, defaulting to three; two changed regions merge into a single hunk when at most `2 * context` unchanged lines separate them, since their context windows would otherwise touch. The hunk header reads `@@ -oldStart,oldCount +newStart,newCount @@`, where a count of one is written without the comma and count, and a side that contributes no lines at all is written with a count of zero and the number of the line it follows — which is `0` at the start of a file. Identical texts produce an empty string, and any non-empty diff ends with a newline. `applyUnified` reverses the process, rebuilding the new text from the old text and the patch.\n\nDo not add dependencies, and do not weaken the module by special-casing the tests' inputs; `test/` and `package.json` are fixed and the suite must pass with `node --test test/*.test.js`.",
+  "heldOut": false,
+  "immutable": ["test", "package.json"],
+  "checks": [
+    { "id": "tests-pass", "outcome": "the test suite passes", "run": "node --test test/*.test.js" },
+    { "id": "no-dependencies", "outcome": "no packages were installed", "run": "test ! -e node_modules" }
+  ]
+}

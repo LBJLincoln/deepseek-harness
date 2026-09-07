@@ -76,8 +76,8 @@ try {
   const request: ExperimentPlan = {
     environments: selected,
     repetitions: plan.repetitions,
-    baseline: plan.baseline as ExperimentPlan['baseline'],
-    candidate: plan.candidate as ExperimentPlan['candidate'],
+    baseline: plan.baseline,
+    candidate: plan.candidate,
     workspaceRoot: process.cwd(),
     ...(plan.seed === undefined ? {} : { seed: plan.seed }),
     ...(plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion }),

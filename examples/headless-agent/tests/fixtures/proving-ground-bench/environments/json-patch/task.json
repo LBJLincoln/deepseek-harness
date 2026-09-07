@@ -1,0 +1,24 @@
+{
+  "id": "code:json-patch",
+  "tier": 3,
+  "domain": "parsing",
+  "title": "JSON Pointer resolution and atomic JSON Patch",
+  "prompt": "`src/index.js` must export `parsePointer`, `formatPointer`, `resolve`, `applyPatch` and the error classes `PointerError` and `PatchError`; how the work is split across files under `src/` is up to you. `parsePointer(pointer)` turns pointer text into decoded reference tokens: the empty string is no tokens, and any other pointer must start with `/` and is split on every following `/`, so `'/'` is one empty token and `'//'` is two. Inside a token `~1` decodes to `/` and `~0` decodes to `~`, decoded left to right in one pass so `'/~01'` is the single token `~1`; a `~` followed by anything else throws `invalid escape in pointer token: ~2`. `formatPointer(tokens)` is the exact inverse, escaping `~` before `/`.\n\n`resolve(document, pointer)` walks the document token by token and returns the selected value; the empty pointer returns the document itself. Inside an array a token must be `0` or a digit string with no leading zero, and it must be less than the length, otherwise `invalid array index: 01 at /list/01` or `index out of range: 3 at /list/3`. Inside an object the token must name an own property, otherwise `missing property: x at /a/x`. A token applied to a string, number, boolean or null throws `cannot index into string at /name/0`. Each of these carries the pointer up to and including the failing token, and every one is a `PointerError`.\n\n`applyPatch(document, operations)` returns a new document with every operation applied. It never modifies its arguments and never shares structure with them: the document and every inserted value are deep-copied, so an empty patch still returns an independent copy. If any operation fails, the call throws and the document is left exactly as it was. The operations are `add`, `remove`, `replace`, `move`, `copy` and `test`. `add` creates or overwrites an object member, and inside an array it inserts before the given index, where the index may equal the length and the token `-` appends. `remove` and `replace` require an existing target, and `replace` on the empty pointer replaces the whole document while `remove` on it throws `cannot remove the whole document`. `move` removes the value at `from` and adds it at `path`, is a no-op when the two pointers are equal, and throws `cannot move a value into its own child` when `from` is a proper prefix of `path`. `copy` adds an independent copy of the value at `from`. `test` compares the value at `path` with `value` as JSON — object members in any order, array elements in order, and no type coercion — and throws `test failed at /a/y` when they differ.\n\nEvery failure from `applyPatch` is a `PatchError` whose `index` is the 0-based position of the operation that failed; when the cause was a pointer failure, the message is that failure's message and `cause` is the `PointerError`. Operations are checked before they run: a non-object operation throws `operation must be an object`, an unrecognised or missing `op` throws `unknown operation: frob`, and missing members throw `add requires a path`, `add requires a value` or `move requires a from`. A patch that is not an array throws `patch must be an array`, and data that is not JSON throws `document is not JSON data` or `value is not JSON data`. Keys that shadow `Object.prototype`, including `__proto__`, are ordinary own properties throughout: adding `/__proto__` must leave the result's prototype and every other object alone, and resolving `/toString` on an empty object must fail.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

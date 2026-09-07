@@ -1,0 +1,24 @@
+{
+  "id": "code:url-template",
+  "tier": 3,
+  "domain": "parsing",
+  "title": "URI template parsing and expansion",
+  "prompt": "`src/index.js` must export `parse`, `expand` and the error class `UriTemplateError`; how the work is split across files under `src/` is up to you. `parse(template)` returns the template's parts in order: `{ type: 'literal', value }` for text outside braces, with adjacent literal text merged into one part, and `{ type: 'expression', operator, variables }` for each `{...}` group. `operator` is one of `+ # . / ; ? &` when the expression starts with it and the empty string otherwise. Each entry of `variables` is `{ name, explode, maxLength }`: `name*` sets `explode`, `name:3` sets `maxLength` to a number of 1 to 9999 written with no leading zero, and a name is one or more of letters, digits, `_` or a `%XX` triplet, with single dots allowed between them. An empty template yields no parts.\n\nParsing failures throw `UriTemplateError` whose `index` is the position of the `{` that opens the offending expression, or of the stray character: `unterminated expression at 1`, `unexpected '}' at 1`, `empty expression at 0`, `empty variable specification at 0`, `reserved operator '=' at 0` for the operators `= , ! @ |`, `invalid variable name 'a-b' at 0`, and `invalid prefix modifier ':0' at 0`. A non-string template throws `template must be a string`.\n\n`expand(template, variables)` returns the expanded text. Literal parts keep unreserved characters, the reserved characters `:/?#[]@!$&'()*+,;=` and existing percent-triplets, and percent-encode everything else as uppercase UTF-8 triplets. Each expression looks its variables up as own properties of `variables`; a name that is absent, `null`, `undefined`, an array with no usable members or an object with no usable members contributes nothing, and `null` or `undefined` members inside an array or object are skipped. An expression whose variables all contribute nothing produces no text at all, not even its prefix. Otherwise the expression is its prefix followed by the pieces joined by its separator. The operators give (prefix, separator, named, empty-value text): the simple form (``, `,`, no, ``), `+` (``, `,`, no, ``), `#` (`#`, `,`, no, ``), `.` (`.`, `.`, no, ``), `/` (`/`, `/`, no, ``), `;` (`;`, `;`, yes, ``), `?` (`?`, `&`, yes, `=`) and `&` (`&`, `&`, yes, `=`). Values under `+` and `#` are encoded like literals; under every other operator only unreserved characters survive, so `/` becomes `%2F` and an existing `%20` becomes `%2520`.\n\nA string, a finite number or a boolean expands to its text; anything else throws `value for 'a' is not a string, number or boolean`. Under a named operator a scalar becomes `name=value`, or `name` followed by the operator's empty-value text when the encoded value is empty. `:n` truncates a string to `n` characters, counted in code points and applied before encoding, and throws `prefix modifier applied to a composite value: 'dom'` for an array or object. An array without `*` joins its encoded items with `,` and, when named, becomes one `name=a,b` piece; with `*` each item is its own piece, named as `name=item`. An object without `*` flattens to `key,value,key,value` joined with `,` and behaves like an array otherwise; with `*` each pair is its own `key=value` piece, where a named operator applies the empty-value rule to a pair whose value is empty, and the keys are encoded like values. `variables` that is not an object throws `variables must be an object`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

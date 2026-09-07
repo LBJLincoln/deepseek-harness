@@ -1,0 +1,24 @@
+{
+  "id": "code:csv-codec",
+  "tier": 2,
+  "domain": "parsing",
+  "title": "RFC 4180 CSV reader and writer",
+  "prompt": "`src/csv.js` must export `parse`, `stringify`, `escapeField` and the error class `CsvError`. `parse(text, options)` returns an array of records, each an array of field strings. A leading U+FEFF byte-order mark is dropped; anywhere else U+FEFF is ordinary data. Records are terminated by CRLF, LF or a lone CR, and a single terminator at the very end of the document closes the last record without starting an empty one, so `\"a\\n\"` and `\"a\"` both read as one record while `\"a\\n\\n\"` reads as two and `\"\\n\"` reads as one record holding one empty field. An empty document has no records at all. Fields are never trimmed, and an empty field is preserved wherever it appears, including at the start or end of a record.\n\nA field is quoted only when the quote character is its very first character: there, the field runs to the matching closing quote, a doubled quote character stands for one literal quote, and delimiters and line terminators inside the quotes are data rather than separators. A quote character anywhere else in a field is ordinary text. After a closing quote only a delimiter, a line terminator or the end of the document may follow. `options.delimiter` (default `,`) and `options.quote` (default `\"`) each take one UTF-16 code unit; they must differ from each other and neither may be a line terminator. `options.strictWidth` makes every record after the first have to match the first record's field count; without it ragged records are returned as they are.\n\nEvery failure throws `CsvError`. Positional failures carry a 1-based `line` and, where a single character is at fault, a 1-based `column` counted in UTF-16 code units from the start of that line: `unterminated quoted field` points at the opening quote, and `unexpected character after closing quote: b` points at the offending character, both accounting for line breaks that occurred inside a quoted field. `expected 2 fields, got 1` carries the line the offending record starts on. Bad arguments throw without a position: `input must be a string`, `delimiter must be a single character`, `quote must be a single character`, `delimiter and quote must differ`, `delimiter and quote must not be line terminators`.\n\n`escapeField(value, options)` returns the text for one field. A string is used as it is; `null` and `undefined` become the empty field; booleans and finite numbers are converted with `String`; anything else throws (`unsupported field value: NaN` for non-finite numbers, `unsupported field type: object` otherwise). The field is quoted, doubling every embedded quote character, when it contains the delimiter, the quote character, CR, LF or U+FEFF, or when `options.alwaysQuote` is set. `stringify(rows, options)` writes each record's escaped fields joined by the delimiter and followed by `options.newline` (default CRLF, and it must be CRLF, LF or CR), including after the last record, and prepends the byte-order mark when `options.bom` is set. `stringify` throws `CsvError` for input that is not an array (`rows must be an array`), a record that is not an array (`record 1 is not an array`) and a record with no fields (`record 0 has no fields`). Reading a document this module wrote, with the same options, must return exactly the records it was given.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

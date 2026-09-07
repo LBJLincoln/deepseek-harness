@@ -1,0 +1,24 @@
+{
+  "id": "code:markdown-inline",
+  "tier": 4,
+  "domain": "parsing",
+  "title": "Repair an inline Markdown to HTML renderer",
+  "prompt": "`src/markdown-inline.js` is a finished renderer that turns one paragraph of inline Markdown into HTML, and its test suite is failing. Find and fix the faults in the module. Keep every behaviour the passing tests already pin down, keep the exported names `renderInline` and `escapeHtml`, and do not weaken the module by special-casing the inputs the tests happen to use.\n\nThe renderer walks the text once, and at each position tries a backslash escape, a code span, an autolink, an inline link and an emphasis run, in that order; anything else is ordinary text with `&`, `<`, `>` and `\"` escaped as entities. A backslash before ASCII punctuation writes that character literally and is otherwise itself. A code span opens on a run of backticks and closes on the next run of exactly the same length, with the text between them taken verbatim; if the content both starts and ends with a space and is not all spaces, one space is dropped from each end, and an opening run that never closes is literal text.\n\nAn autolink is `<` followed by an absolute URI, meaning a scheme of letters, digits, `+`, `.` or `-` then a colon and no whitespace or angle brackets, or by an email address whose local part may hold letters, digits and the usual mail punctuation such as `.`, `+`, `-`, `_`, `'` and `%`; it becomes a link whose text is the address itself and whose destination is that URI or the address with a `mailto:` prefix. An inline link is `[text](destination)` with an optional `\"title\"` or `'title'`, where the brackets may nest, the destination may be wrapped in angle brackets or run to the closing parenthesis with balanced parentheses inside, and both may carry backslash escapes; the text is rendered as inline Markdown except that it may not contain another link. A destination is written into the `href` with its existing percent-triplets left exactly as they are, with space, `\"`, `<`, `>`, backslash and backtick percent-encoded, and with the attribute then escaped for HTML.\n\nEmphasis pairs runs of `*` or `_`. A run may open when the character after it is neither absent nor whitespace, and may close when the character before it is neither absent nor whitespace. An underscore run additionally may not open directly after a letter or digit, and may not close directly before one, so `foo_bar_baz` is plain text while `foo*bar*baz` is not. An opening run of two or more delimiters first looks for a closing run of at least two, which produces `<strong>`, and falls back to a closing run of one, which produces `<em>`; the delimiters used are taken from the start of the opening run and the end of the closing run, and whatever is left over belongs to the enclosed text, which is rendered recursively. The search for a closing run skips backslash-escaped characters and does not otherwise look inside other constructs. A non-string argument throws `TypeError`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "code:cron-next",
+  "tier": 4,
+  "domain": "parsing",
+  "title": "Repair a cron parser and next-occurrence calculator",
+  "prompt": "`src/cron.js` is a finished five-field cron parser and next-occurrence calculator, and its test suite is failing. Find and fix the faults in the module. Keep every behaviour the passing tests already pin down, keep the exported names `parse`, `matches`, `next` and `CronError`, and do not weaken the module by special-casing the inputs the tests happen to use.\n\n`parse(expression)` takes five whitespace-separated fields — minute 0 to 59, hour 0 to 23, day of month 1 to 31, month 1 to 12, day of week 0 to 7 — and returns the values each field admits as a sorted array without duplicates, alongside `restrictedDayOfMonth` and `restrictedDayOfWeek`, which are false only when that field is written as a bare `*`. A field is a comma-separated list of terms, and a term is `*`, a single value, `a-b`, or any of those followed by `/step`, where `*/s` walks the whole field, `a-b/s` walks the range and `a/s` walks from `a` to the field maximum. A step always counts from the start of the range it applies to. Months accept `JAN` to `DEC` and days of the week `SUN` to `SAT`, in any case, including inside a range, and 7 means Sunday, so it is the same value as 0.\n\n`matches(expression, date)` reports whether the expression fires during that UTC minute, ignoring seconds. `next(expression, from)` returns the first matching minute strictly after `from`, as a `Date` with zero seconds, and throws when there is none within five years. Both use UTC throughout and the Gregorian calendar, so a year is a leap year when it is divisible by 4 and either not divisible by 100 or divisible by 400. When both day fields are restricted a day is scheduled if either one accepts it; when only one is restricted only that one applies.\n\nFailures throw `CronError`: `expected 5 fields, got 4`, `value 60 is out of range 0-59 in minute`, `unknown name FOO in month`, `invalid step 0 in minute`, `range 5-1 is reversed in minute`, `invalid value a in minute`, `empty value in dayOfWeek`, `invalid range 1-2-3 in minute`, `invalid term 1/2/3 in minute`, `expression must be a string`, `date must be a valid Date`, `from must be a valid Date` and `no occurrence within 5 years`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

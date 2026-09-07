@@ -1,0 +1,13 @@
+{
+  "id": "code:trie-index",
+  "tier": 3,
+  "domain": "data-structures-algorithms",
+  "title": "Trie with prefix counts that survive deletion",
+  "prompt": "Finish `src/trie.js`, whose `Trie` class currently keeps words in a plain map. Build a real trie: one node per distinct prefix, walked by Unicode code point so a character outside the basic plane is a single step and never a pair of surrogate halves. Every listing is ordered by code point, so `'\\uFF10'` comes before `'\\uFFFD'` and both come before an emoji. You may add files under `src/`.\n\n`insert(word, value)` stores a value and returns the value it replaced, or `undefined` when the word is new. `get(word)` and `has(word)` read it back. `delete(word)` removes a word, returns whether it removed one, and drops the nodes that word alone kept alive; deleting a string that is only a prefix of stored words removes nothing and returns `false`. `countPrefix(prefix)` returns how many stored words start with the prefix, and must cost the length of the prefix rather than a walk of the subtree, so keep a per-node count of the words below it. `search(prefix, limit)` lists the matching words in order, at most `limit` of them, defaulting to no limit; a prefix that is not in the index yields an empty list. `entries()` lists every `[word, value]` pair in order. `longestPrefixMatch(text)` returns `{ word, value }` for the longest stored word that is a prefix of `text`, or `null` when no stored word is.\n\nThe empty string is an ordinary word: it can be stored, it is a prefix of every string, and `countPrefix('')` is the number of stored words. `size` is the number of stored words. `nodeCount` counts nodes including the root, so an empty index has a node count of 1 and, after any sequence of inserts and deletes, the count equals the number of distinct prefixes of the stored words plus that root.\n\nA word, prefix, or text argument that is not a string raises `TypeError` with message `word must be a string`, `prefix must be a string`, or `text must be a string` respectively. A limit that is neither `Infinity` nor a non-negative safe integer raises `TypeError` with message `limit must be a non-negative integer`. Do not add dependencies; `test/` and `package.json` are fixed and the suite must pass with `node --test test/*.test.js`.",
+  "heldOut": false,
+  "immutable": ["test", "package.json"],
+  "checks": [
+    { "id": "tests-pass", "outcome": "the test suite passes", "run": "node --test test/*.test.js" },
+    { "id": "no-dependencies", "outcome": "no packages were installed", "run": "test ! -e node_modules" }
+  ]
+}

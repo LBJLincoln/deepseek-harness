@@ -1,0 +1,13 @@
+{
+  "id": "code:interval-ops",
+  "tier": 2,
+  "domain": "data-structures-algorithms",
+  "title": "Set algebra over half-open integer intervals",
+  "prompt": "Implement `src/intervals.js`, a set algebra over half-open integer intervals. An interval is a two-element array `[start, end)` of safe integers that covers every integer x with `start <= x < end`. An interval list is normalised when it is sorted by start, contains no empty interval, and no two of its members overlap or touch: `[1, 3)` and `[3, 5)` touch and must coalesce into `[1, 5)`, while `[1, 3)` and `[4, 5)` must stay apart.\n\nExport five functions. `normalize(intervals)` returns the normalised form of one list. `merge(a, b)` returns the normalised union of two lists. `intersect(a, b)` returns the normalised intersection; touching intervals share no integer, so `[1, 3)` against `[3, 5)` yields an empty list. `subtract(a, b)` returns the normalised relative complement `a \\ b`. `coverage(intervals)` returns how many integers the list covers, counting an integer covered by several intervals once.\n\nEvery function validates both of its interval-list arguments before doing any work, and inputs may be adversarial: unsorted, duplicated, nested, negative, empty (`start === end`, which normalisation drops), or spanning a large range. A value that is not an array raises `TypeError` with message `interval list must be an array`. A member that is not a two-element array raises `TypeError` with message `interval must be a two-element array`. A bound that is not a safe integer — a float, a numeric string, `NaN`, `Infinity`, or a value beyond `Number.MAX_SAFE_INTEGER` — raises `TypeError` with message `interval bounds must be safe integers`. An interval whose start exceeds its end raises `RangeError` with message `interval start must not exceed end`.\n\nNo function may mutate its arguments or return arrays that alias them; every returned interval is freshly allocated. Do not add dependencies; `test/` and `package.json` are fixed and the suite must pass with `node --test test/*.test.js`.",
+  "heldOut": false,
+  "immutable": ["test", "package.json"],
+  "checks": [
+    { "id": "tests-pass", "outcome": "the test suite passes", "run": "node --test test/*.test.js" },
+    { "id": "no-dependencies", "outcome": "no packages were installed", "run": "test ! -e node_modules" }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "code:ini-parse",
+  "tier": 2,
+  "domain": "parsing",
+  "title": "INI parser and serialiser with quoting and duplicate policies",
+  "prompt": "`src/ini.js` must export `parse`, `stringify`, `formatKey`, `formatValue` and the error class `IniError`. `parse(text, options)` returns `{ global, sections }`: `global` holds the pairs written before the first section header, and `sections` maps each header name to its own object of pairs, in the order the headers first appear. Every value is a string. Lines are terminated by LF, CRLF or a lone CR. A line whose first non-blank character is `;` or `#` is a comment, and blank lines are skipped; those two characters are ordinary text everywhere else, so `k=v ; x` has the value `v ; x`. A section header is a line that, once trimmed, starts with `[` and ends with `]`. Any other line is an entry: the key is the text before the first `=`, and both halves are trimmed. Repeating a header selects the existing section again instead of replacing it, and every key is stored as an own enumerable property even when it is named `__proto__` or `constructor`.\n\nA key, a value or a section name may instead be written as a double-quoted token, the only place where escape sequences are recognised: `\\\\`, `\\\"`, `\\n`, `\\r`, `\\t`, `\\0`, `\\;`, `\\#`, `\\=`, `\\[`, `\\]`, and `\\uXXXX` with exactly four hexadecimal digits. Text inside quotes keeps its spacing verbatim, and text outside quotes is literal after trimming. Nothing but whitespace may follow a closing quote, except for the `=` that follows a quoted key.\n\n`options.duplicates` decides what happens when a key repeats within one section or within the global block: `'last'` (the default) keeps the final value, `'first'` keeps the first, `'array'` collects the repeated values into an array in document order while keys that occur once stay plain strings, and `'error'` throws. The same key in two different sections is never a duplicate. Every failure throws an `IniError` whose `line` property is the 1-based line number and whose message begins with the reason: `unterminated section header`, `unterminated quoted string`, `unknown escape sequence: \\q`, `invalid unicode escape: \\u12g4`, `unexpected text after quoted value` (likewise `... quoted key` and `... quoted section name`), `missing '=' in entry`, `empty key`, `empty section name`, `duplicate key: k`. A non-string document is rejected with `input must be a string` and an unrecognised policy with `unknown duplicates policy: merge`; neither carries a line number.\n\n`stringify(data, options)` is the exact inverse: `parse(stringify(d))` deep-equals `d`, and `stringify(parse(t))` reproduces `t` for any text this module wrote. It emits the global entries first, then every section, each header preceded by one blank line when output already exists, and it terminates every line with `options.eol` (`\\n` by default) including the last; a document with no entries becomes the empty string, and `data.global` and `data.sections` may both be absent. Entries are written as `key=value` with no padding around `=`, and an array value becomes one line per element. `formatValue(v)` returns the token for a value, quoting it when it is empty, differs from its trimmed form, starts with `[`, or contains any of `\"`, backslash, LF, CR, TAB, NUL, `;`, `#` or `=`. `formatKey(k)` applies the same rule plus `[` and `]` anywhere in the key; a section name is quoted when it is empty, differs from its trimmed form, or contains `\"`, backslash, LF, CR, TAB, NUL, `[` or `]`. Quoting escapes backslash, `\"`, LF, CR, TAB and NUL and leaves every other character alone, astral ones included. `stringify` throws `IniError` for an empty key, an empty section name, a value that is not a string or an array of strings, and a document that is not an object.",
+  "heldOut": true,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

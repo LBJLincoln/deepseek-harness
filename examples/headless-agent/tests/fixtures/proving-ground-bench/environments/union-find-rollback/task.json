@@ -1,0 +1,24 @@
+{
+  "id": "code:union-find-rollback",
+  "tier": 3,
+  "domain": "data-structures-algorithms",
+  "title": "Disjoint sets that can be rolled back to a checkpoint",
+  "prompt": "Finish `src/dsu.js` and `src/kruskal.js`. `DisjointSets` holds the elements `0 .. count - 1` and joins them by size; the starting point can join and query, but it keeps no history, so `checkpoint`, `undo`, and `rollback` are unimplemented. `union(a, b)` attaches the smaller set's root under the larger set's root, and on a tie attaches the larger root index under the smaller one, returning `false` when both elements already shared a set. `find(element)` returns the representative of an element's set, `connected(a, b)` compares representatives, `sizeOf(element)` returns the size of an element's set, `components` counts the sets, and `count` is the number of elements. `groups()` lists the sets, each ascending, ordered by their smallest member.\n\nThe history is exact. `checkpoint()` returns a token naming the current state — the number of unions performed so far. `undo()` reverses the most recent union and returns `false` when there is none left. `rollback(token)` undoes unions until the state matches that checkpoint and returns how many it undid. After a rollback the structure must be indistinguishable from the moment the checkpoint was taken: the same partition, the same set sizes, and the same representative returned by `find` for every element. Because tokens count unions, they are naturally used newest-first: a token that has already been rolled past no longer names a reachable state. A token that is not a safe integer in `0 .. unions performed` raises `RangeError` with message `unknown checkpoint: 5`, quoting the token.\n\n`src/kruskal.js` exports two functions over edges written `[u, v, weight]`. `minimumSpanningForest(count, edges)` takes the edges in weight order, breaking ties by first endpoint and then second endpoint, keeps an edge when it joins two different sets, and returns `{ edges, weight, components }` with the chosen edges in the order they were taken, their total weight, and how many components remain. `componentsWithAlternatives(count, baseEdges, alternatives)` applies the base edges once, then measures each alternative edge list on top of that base independently, rolling back between them, and returns `{ base, alternatives }` where `base` is the component count after the base edges and `alternatives` holds one component count per alternative.\n\nValidate up front. A count that is not a non-negative safe integer raises `TypeError` with message `count must be a non-negative integer`. An element that is not a safe integer in `0 .. count - 1` raises `RangeError` with message `element out of range: 7`, quoting the offending value. An edge list that is not an array raises `TypeError` with message `edges must be an array`, an edge that is not a three-element array raises `TypeError` with message `edge must be [u, v, weight]`, a weight that is not a finite number raises `TypeError` with message `weight must be a finite number`, and an alternatives argument that is not an array raises `TypeError` with message `alternatives must be an array`. Do not add dependencies; `test/` and `package.json` are fixed and the suite must pass with `node --test test/*.test.js`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "code:glob-match",
+  "tier": 2,
+  "domain": "parsing",
+  "title": "Glob patterns compiled to path matchers",
+  "prompt": "`src/glob.js` must export `compile`, `isMatch`, `filter` and the error class `GlobError`. `compile(pattern, options)` returns a function that reports whether a whole path matches; `isMatch(path, pattern, options)` is the one-shot form, and `filter(paths, pattern, options)` keeps the matching paths in their original order without removing duplicates. Paths are separated by `/` and a pattern is anchored at both ends. Within one segment, `*` matches any run of characters other than `/`, including none, and `?` matches exactly one character other than `/`; a run of several `*` in a segment behaves as one.\n\nA segment that is exactly `**` matches zero or more whole segments, so `a/**/b` matches `a/b`, `a/x/b` and `a/x/y/b` but not `a/b/c`, `**/a` matches `a` and `x/y/a`, `a/**` matches `a` as well as `a/b/c`, and adjacent `**` segments collapse into one. A bracket expression matches one character: `[abc]` and ranges such as `[a-c]` match a listed character, while `[!...]` and `[^...]` match one character that is neither `/` nor listed. A `]` written immediately after the opening bracket, or after the negation mark, is a literal `]`, a `-` at either end of the list is a literal `-`, and a backslash inside the brackets escapes the next character. Outside brackets a backslash also removes the special meaning of the next character, so `\\*` matches a literal asterisk. Characters that are special to regular expressions but not to globs, such as `.`, `+`, `(` and `$`, always stand for themselves.\n\nA path segment that begins with `.` is matched only by a pattern segment that itself begins with a literal `.` (optionally written as `\\.`): `*`, `?`, `**` and a bracket expression all refuse a leading dot, so `*` does not match `.x`, `**/y` does not match `.x/y`, and `[.]x` does not match `.x`, while `.*` does. `options.dot` set to true removes that restriction everywhere. `options.nocase` set to true makes matching case-insensitive. Neither option changes anything else.\n\nEvery failure throws `GlobError`, and a positional one carries the 0-based `index` into the pattern where the fault starts: `unterminated character class` (index of the opening bracket), `trailing backslash` (index of the backslash), and `path separator in character class` (index of the `/`). An empty pattern (`pattern must not be empty`) and a non-string pattern (`pattern must be a string`) are rejected without an index, as are a non-string path (`path must be a string`) and a non-array first argument to `filter` (`paths must be an array`).",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

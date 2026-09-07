@@ -1,0 +1,24 @@
+{
+  "id": "code:query-string",
+  "tier": 4,
+  "domain": "parsing",
+  "title": "Repair a query-string reader and writer",
+  "prompt": "`src/query-string.js` is a finished reader and writer for URL query strings, and its test suite is failing. Find and fix the faults in the module. Keep every behaviour the passing tests already pin down, keep the exported names `parse`, `stringify` and `extract`, and do not weaken the module by special-casing the inputs the tests happen to use.\n\n`parse(input, options)` reads a query string, with or without a leading `?` or `#`, into an object. Pairs are separated by `&`, empty pairs are skipped, and each pair splits at its first unencoded `=`, with a missing `=` meaning an empty value. Keys and values are decoded separately: `+` stands for a space unless `options.plusAsSpace` is false, percent escapes are decoded, and text that cannot be decoded is kept as it is. A key is split into a path on its unencoded brackets before any decoding, so `a[b][c]` nests but an encoded bracket stays part of a name; `options.depth` (5 by default) limits how many bracket groups are structural, and whatever is left of the key becomes one final literal segment. Empty brackets append to the container, a repeated plain key collects its values into an array in order, and a container whose keys are all non-negative integers written without leading zeros becomes an array, ordered by index with missing indices dropped, as long as the largest index is below `options.arrayLimit` (20 by default). Every key is stored as an own property, so `__proto__` never reaches a prototype, and each call returns a result no earlier call can observe or influence.\n\n`stringify(input, options)` writes an object back. Members are written in insertion order, or ordered by their whole written key when `options.sort` is true, comparing by code unit. A nested object writes `a[b]=x`; an array writes `a[0]=x` by default, `a[]=x` under `arrayFormat: 'brackets'` and `a=x` under `arrayFormat: 'repeat'`; an empty array or object writes nothing. Strings, numbers and booleans become their text, `undefined` members are skipped, and a `null` member writes its key with no `=` at all unless `options.skipNull` is set, which drops it. Keys and values are percent-encoded, including `!'()*`, with structural brackets left literal and spaces written as `%20` or, under `space: 'plus'`, as `+`. `extract(url)` returns the text after the first `?` that comes before any `#`, or the empty string. Bad arguments throw `TypeError`.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

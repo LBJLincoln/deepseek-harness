@@ -37,6 +37,18 @@
 - id: bash
   name: '@deepseek-ai/dsh-bash-local'
 
+# The filesystem tools resolve paths against the cell session's cwd, which the
+# runner sets to the cell workspace; the policy loads first so writes and edits
+# require an observed file.
+- id: fs-local
+  name: '@deepseek-ai/dsh-fs-local'
+
+- id: fs-observation-policy
+  name: '@deepseek-ai/dsh-fs-observation-policy'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
 - id: goal
   name: '@deepseek-ai/dsh-goal'
   config:
@@ -110,7 +122,10 @@
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'
   config:
-    persona: 'You implement one program task in the workspace you are given, against its own test suite, and you stop when the tests pass.'
+    persona: |
+      You implement one program task in the workspace you are given, against its own test suite, and you stop when the tests pass.
+
+      The workspace is your working directory: every bash command and every file path resolves inside it, so read and edit its files by their relative paths and never search outside it.
     workspaceContext: false
 
 - id: persistence

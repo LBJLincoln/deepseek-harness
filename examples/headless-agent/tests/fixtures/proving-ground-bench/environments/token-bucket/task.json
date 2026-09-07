@@ -1,0 +1,13 @@
+{
+  "id": "code:token-bucket",
+  "tier": 4,
+  "domain": "data-structures-algorithms",
+  "title": "Fix a token-bucket rate limiter",
+  "prompt": "`src/limiter.js` implements a token-bucket rate limiter with one bucket per key, and its test suite is failing. Find and fix the defects. Keep the public class, its methods, their signatures, and every behaviour the passing tests already pin; the module's own documentation states the intended contract, and the tests are fixed.\n\nA bucket holds at most `capacity` tokens and earns `refillTokens` every `refillIntervalMs`. The refill is continuous, not stepped: time that does not add up to a whole interval still earns its share, and repeated small advances must earn exactly what one large advance of the same total would. A bucket never holds more than `capacity`, which is what bounds a burst, and it is created full, which is what allows the first burst. Time is read only through the injectable clock, and a clock that moves backwards earns nothing.\n\nA request for `n` tokens succeeds when the bucket holds at least `n` — taking exactly what is left is a success, not a refusal. A refusal reports `retryAfterMs`, the whole number of milliseconds after which the same request would succeed, so a caller that waits exactly that long and retries is allowed; rounding it down is not good enough. A request larger than `capacity` can never be paid no matter how long the caller waits, and reports `retryAfterMs` as `null` rather than a wait that will not help. `remaining` is always whole tokens, rounded down. Buckets are independent per key, and a key whose bucket has been dropped by `reset` or `clear` starts again from a full bucket, however recently it was used.\n\nDo not add dependencies, and do not weaken the module by special-casing the tests' inputs; `test/` and `package.json` are fixed and the suite must pass with `node --test test/*.test.js`.",
+  "heldOut": false,
+  "immutable": ["test", "package.json"],
+  "checks": [
+    { "id": "tests-pass", "outcome": "the test suite passes", "run": "node --test test/*.test.js" },
+    { "id": "no-dependencies", "outcome": "no packages were installed", "run": "test ! -e node_modules" }
+  ]
+}

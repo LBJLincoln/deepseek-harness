@@ -1,0 +1,13 @@
+{
+  "id": "code:bitset-bloom",
+  "tier": 4,
+  "domain": "data-structures-algorithms",
+  "title": "Fix a bit set and the Bloom filter built on it",
+  "prompt": "`src/bitset.js` holds a fixed-size bit set backed by 32-bit words and `src/bloom.js` builds a Bloom filter on top of it. The test suite is failing. Find and fix the defects. Keep the public classes, their methods, their signatures, the hash functions, and the byte layout exactly as they are — the serialized form is pinned by the tests — along with every behaviour the passing tests already pin; the modules' own documentation states the intended contract, and the tests are fixed.\n\nA bit set numbers its bits from zero and holds exactly the size it was built with: every index from `0` to `size - 1` is usable no matter how the size divides into words, and every index outside that span is refused with a `RangeError`, including the index equal to the size. `count` reports how many bits are on, `or` and `and` combine two sets of the same size and refuse sets of any other size, and `equals` compares size and bits. The byte form gives byte `b` the bits `8b` through `8b + 7`, with bit `8b + k` at value `1 << k`, so a byte carries every one of its eight bits and the whole set survives a trip through `toBytes` and `fromBytes`.\n\nThe Bloom filter derives two 32-bit hashes from a value and its seed and probes `(h1 + i * h2) mod bits` for each of its `hashes` rounds. Those hashes are 32-bit values and the arithmetic that combines them is 32-bit and unsigned: every probe must land on a valid bit index for any input. A value that was added is always reported as present. `union` merges two filters only when they agree on their bit count, their probe count, and their seed, and refuses otherwise with a `RangeError`. `serialize` writes a four-byte signature, the bit count, the seed, the probe count, the number of added values, and then the bits; `deserialize` restores all of it.\n\nDo not add dependencies, and do not weaken the modules by special-casing the tests' inputs; `test/` and `package.json` are fixed and the suite must pass with `node --test test/*.test.js`.",
+  "heldOut": false,
+  "immutable": ["test", "package.json"],
+  "checks": [
+    { "id": "tests-pass", "outcome": "the test suite passes", "run": "node --test test/*.test.js" },
+    { "id": "no-dependencies", "outcome": "no packages were installed", "run": "test ! -e node_modules" }
+  ]
+}
