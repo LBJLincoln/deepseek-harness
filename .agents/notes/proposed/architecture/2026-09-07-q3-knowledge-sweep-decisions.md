@@ -1,14 +1,16 @@
-# Decisions from the June to September 2026 knowledge sweep
+# Agent Note: Decisions from the June to September 2026 knowledge sweep
+
+Status: proposed
 
 English | [中文](2026-09-07-q3-knowledge-sweep-decisions.zh.md)
 
-Status: proposed. The evidence lives in the [2026-q3 knowledge pack](../../../../data/knowledge/2026-q3/manifest.json); this note records what the lab decided from it and which slices it queues. One home per fact: numbers and URLs stay in the pack's theme skills and corpus.
+## Problem
 
-## How the sweep was run
+The lab's plan for the four goals rested on knowledge that stopped in the first half of 2026. In the following three months the harness became both a trained object and a measured object, reward integrity was quantified and found worse than assumed, the open-weight landscape in the 120B class changed its licences, the regulation of general-purpose models was mapped jurisdiction by jurisdiction, and competitors shipped always-on fleets and self-improving harnesses with public results. Decisions taken on the older picture would be wrong in known ways. The evidence now lives in the [2026-q3 knowledge pack](../../../../data/knowledge/2026-q3/manifest.json); this note records what the lab decided from it and which slices it queues. One home per fact: numbers and URLs stay in the pack's theme skills and corpus.
 
-Three research agents, one per source (GitHub, Hugging Face, arXiv), each under the same brief: the state of the art between 2026-06-01 and 2026-09-07 as it bears on the four goals, primary sources first, every number with its URL, evidence graded primary, secondary, or claim. Their briefings and items were merged by `data/knowledge/tools/build-pack.mjs` into one corpus, deduplicated by URL, and distributed over eight theme skills; the pack is served to agents through the filesystem skill provider as described in the [knowledge packs note](2026-09-07-knowledge-packs.md). A fourth agent compared ruflo with this harness from a shallow clone; that result is the [ruflo comparison note](2026-09-07-ruflo-comparison.md).
+## Proposal
 
-## Decisions
+Adopt the twenty decisions below, grouped by goal, as the plan's response to the window; each names the seam it touches.
 
 ### Goal 1, the harness
 
@@ -45,12 +47,34 @@ Three research agents, one per source (GitHub, Hugging Face, arXiv), each under 
 19. The EU AI Act artefacts are generated from the composition manifest, the data-use terms, the sign-off records, and the training-run record with cumulative compute; the release is shaped as an AI bill of materials with the fields the field's own documentation lacks; a per-jurisdiction duty table joins each client contract's technical annex; the runner's certificate export becomes signable, as the answer to third-party signed evidence.
 20. A base model's licence is pinned by version in the lineage record; a licence change is a supply-chain event.
 
+## How the sweep was run
+
+Three research agents, one per source (GitHub, Hugging Face, arXiv), each under the same brief: the state of the art between 2026-06-01 and 2026-09-07 as it bears on the four goals, primary sources first, every number with its URL, evidence graded primary, secondary, or claim. Their briefings and items were merged by `data/knowledge/tools/build-pack.mjs` into one corpus, deduplicated by URL, and distributed over eight theme skills; the pack is served to agents through the filesystem skill provider as described in the [knowledge packs note](2026-09-07-knowledge-packs.md). A fourth agent compared ruflo with this harness from a shallow clone; that result is the [ruflo comparison note](2026-09-07-ruflo-comparison.md).
+
 ## What the sweep changed in the roadmap
 
-The Village note's rollout keeps its order; items 2, 4, 5, 9, 10, 13, 14, 15, and 17 above become named slices in it, and the base-model task carries decision 7 as its recommendation. Two findings bound the plan rather than extend it: harness choice moves cost far more than pass rate, so no leaderboard row is published without cost; and the agent main effect is a small share of variance on open agent-trace benchmarks, so a claimed delta needs a held-out reliability estimate, not paired seeds alone.
+The Village note's rollout keeps its order; decisions 2, 4, 5, 9, 10, 13, 14, 15, and 17 become named slices in it, and the base-model task carries decision 7 as its recommendation. Two findings bound the plan rather than extend it: harness choice moves cost far more than pass rate, so no leaderboard row is published without cost; and the agent main effect is a small share of variance on open agent-trace benchmarks, so a claimed delta needs a held-out reliability estimate, not paired seeds alone.
 
 ## Open
 
 - The base-model decision (Mistral-Small-4-119B-2603 against the licensed alternatives) and the hardware scenario it implies.
 - Whether the harness's own RL runs use an external trainer's endpoint (TRL, prime-rl) or a route served in-house; the token-capture boundary is the same either way.
 - Staffing the review of district output: certificates raise the quality of what a shift produces and do not land it.
+
+## Alternatives considered
+
+- **Keep the decisions in chat and in published pages.** Rejected: not durable, not linked to the evidence, and invisible to the agents that work in the repository.
+- **One note carrying the evidence inline.** Rejected: one home per fact; the pack carries the numbers and URLs, and this note carries the decisions.
+- **Adopt every action the three agents proposed.** Rejected: thirty proposals were reduced to the twenty bounded by our seams and by evidence quality; a graph memory substrate and a below-noise-floor training result were among those left out.
+
+## Acceptance criteria
+
+- Every numbered decision maps to a task or a named slice with its seam, and the base-model task carries decision 7 as its recommendation.
+- The pack the decisions rest on is committed with its manifest and passes `verify-knowledge-packs`.
+- The next quarterly sweep produces a new pack and a new decisions note rather than an edit of this one.
+
+## Risks
+
+- A research agent's error propagates into a decision; the evidence grades and the primary-source rule limit it, and each decision is verified against its primary source before a slice is built on it.
+- Twenty decisions exceed near-term capacity; the Village rollout order governs, and this note does not reorder it.
+- The licence and regulatory readings are engineering readings of the sources, not legal advice, and a client contract needs counsel over them.
