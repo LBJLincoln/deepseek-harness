@@ -52,7 +52,7 @@ examples/    Runnable cordis.yml leaves over packages/examples bundles (see exam
 docs/        architecture, generated catalogs, postmortems, cookbook (see docs/AGENTS.md)
 scripts/     repo gates and generators
 website/     VitePress projection of selected bilingual docs/ sources
-data/        this repository's own transcripts and runs (see data/README.md)
+data/        this repository's own transcripts, runs, knowledge packs (see data/README.md)
 ```
 
 Package groups: [packages/README.md](packages/README.md).
@@ -147,4 +147,4 @@ Docs accompany every code change: update affected README and JSDoc contracts tog
 
 ## Vendoring policy
 
-`vendor/` packages are pinned source copies (manifest with upstream SHAs in [vendor/README.md](vendor/README.md)). Update via the sync procedure there; re-apply or retire logged local modifications; rerun `pnpm run test && pnpm run build`.
+`vendor/` packages are pinned source copies (manifest with upstream SHAs in [vendor/README.md](vendor/README.md)). Update via its sync procedure; re-apply or retire logged local modifications; rerun `pnpm run test && pnpm run build`.

@@ -86,6 +86,7 @@
     "resolve-translation-pairing-conflicts": "tsx scripts/merge-translation-pairing.ts --resolve",
     "gen-translation-brief": "tsx scripts/gen-translation-brief.ts",
     "verify-doc-budgets": "tsx scripts/verify-doc-budgets.ts",
+    "verify-knowledge-packs": "node data/knowledge/tools/build-pack.mjs --check data/knowledge/2026-q3",
     "docs:dev": "pnpm --filter @deepseek-ai/website run dev",
     "docs:build": "pnpm --filter @deepseek-ai/website run build && pnpm run verify-doc-site-fragments",
     "docs:build:mpa": "pnpm --filter @deepseek-ai/website exec vitepress build . --mpa && pnpm run verify-doc-site-fragments",

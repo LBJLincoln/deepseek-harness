@@ -1,0 +1,29 @@
+---
+name: rl-verifiable-rewards-2026q3
+description: Use when designing or reviewing reinforcement learning from verifiable rewards for coding and tool-use agents — training inside a real harness, reward integrity and hacking rates, credit assignment, LoRA versus full fine-tuning at the 100B scale — as the field stood between June and September 2026, with sources.
+---
+
+# RL from verifiable rewards for agents, June to September 2026
+
+The window settled one question and sharpened another. Settled: RL for coding agents is run inside the production harness, with the policy's exact tokens captured at the model-serving boundary rather than reconstructed from transcripts. Sharpened: the reward is the weak point, and the published hacking rates are higher than most pipelines assume.
+
+## What changed
+
+- **Harness-native training.** LEGO-RL (<https://arxiv.org/abs/2608.17393>, 2026-08-18) trains a policy inside unmodified Claude Code, OpenHands, and OpenCode through an in-process proxy that records token ids, log-probabilities, response masks, and mixture-of-experts routing, and replays the routing at training time. Qwen3.5-35B-A3B under GSPO moves SWE-bench Verified from 64.0 to 70.4 (OpenHands), 62.4 to 68.2 (Claude Code), and 57.2 to 66.6 (OpenCode); 2.4 to 7.1 percent of trajectories are excluded as infrastructure failures and about 2.5 percent of candidate tasks carried verifier logic that mis-applied the reference patch. Train What You Deploy (<https://arxiv.org/abs/2609.04678>, 2026-09-04) adds the agent-side half: a training mode that provably issues zero background model calls and per-request provenance headers that fail closed. TRL's Harbor integration (<https://huggingface.co/docs/trl/harbor>, v1.10 and v1.11, August 2026) states the consequence plainly: an agent installed inside the sandbox runs its own model and emits a trajectory after the fact, so there are no policy tokens for a trainer to optimise; only an externally driven agent can be trained.
+- **Reward integrity, quantified.** Auditing Reward Hackability (<https://arxiv.org/abs/2606.16062>, 2026-06-14) finds 28.5 percent of a SWE-bench Verified sample and 25.0 percent of R2E-Gym accept a verified-incorrect patch, a +14.14 point Pass@1 inflation on hackable tasks across 134 frontier submissions, and a 61.9 percent defect rate in LLM-authored hardening tests that an LLM judge endorsed and a gold-patch execution gate caught. Hacker-Fixer loops (<https://arxiv.org/abs/2606.08960>, 2026-06-08) find 16 percent of 1,968 terminal tasks hackable and release them as Terminal Wrench. Hack-Verifiable Terminal Bench (<https://arxiv.org/abs/2608.22103>, 2026-08-22) plants honeypots so hacks are detected by the filesystem rather than judged: 22.7 to 47.7 percent hack rates across five frontier agents. The Verification Horizon (<https://arxiv.org/abs/2606.26300>, 2026-06-24) shows a behaviour monitor refreshed from the current policy's rollouts taking hacked-resolved from 28.57 to 0.56 percent while clean resolves rise from 40.22 to 60.53 percent.
+- **Credit assignment.** CREST (<https://arxiv.org/abs/2608.13179>, 2026-08-13): the verifier owns the sign of every token's advantage and any teacher only scales the magnitude, gated by entropy. SIGNBALANCE (<https://arxiv.org/abs/2609.04063>, 2026-09-03) names the failure GRPO's within-group magnitude produces on bounded-answer tasks. CompactionRL (<https://arxiv.org/abs/2607.05378>, 2026-07-06) trains the summariser under the same terminal reward: swapping only the summariser moves SWE-bench Verified from 49.0 to 55.5.
+- **A published recipe.** The KAT-Coder-V2.5-Dev card (<https://huggingface.co/Kwaipilot/KAT-Coder-V2.5-Dev>, 2026-07-23, Apache-2.0) documents token-in-token-out consistency, truncated importance sampling for stale rollouts, verifier validation before scoring, hierarchical rewards from the harness's execution feedback, and a collapse under a binary reward (more than 70 parallel tool calls in one turn by epoch two) fixed by penalties on excessive, failed, empty, and repeated calls.
+- **Scale calibration.** Post-Training Science for SFT (<https://arxiv.org/abs/2609.01244>, 2026-09-01): the optimal LoRA learning rate is flat at 1e-3 across 0.6B to 32B, LoRA recovers a median 98 percent of full fine-tuning at 3 to 13 percent of parameters, rank plateaus at 64 with alpha 32, and a mixture-of-experts model fine-tunes like a dense model at the geometric mean of its active and total parameters.
+
+## What Daliesk adopts
+
+1. The LLM route is the capture boundary. A harness-native run on a route the trainer serves yields policy tokens; a run delegated to an external implementer yields a measurement and never a training row. The trajectory export keeps that distinction on the stamp's `implementer` field.
+2. The verifier owns the sign. A certificate-decided reward is the ceiling any shaping term scales; a shaping term never flips it.
+3. Execution, never judgement, admits a check: a synthesised or hardened check enters a standard only after it fails on the pre-state fixture and passes on the reference under the runner, which is the registry's admission record.
+4. A behaviour monitor's verdict is a logged tamper verdict, refreshed from the current policy's own rollouts each interval, with honeypot paths so part of the verdict is deterministic.
+5. The KAT penalty list is the starting shaping vocabulary; every term must be reconstructable from session events.
+6. LoRA at 1e-3 and rank 64 is the first configuration for a ~120B mixture-of-experts base, sized as a dense model at the geometric mean of active and total parameters.
+
+## Using the references
+
+`references/items.md` lists every corpus item this theme selects, with date, evidence level, and URL. Cite the URL when a claim rests on an item; treat `secondary` and `claim` items as leads to verify, not facts.

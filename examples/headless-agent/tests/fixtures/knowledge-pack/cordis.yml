@@ -1,0 +1,50 @@
+# The knowledge pack as the only skill root. `includeDefaultRoots: false` keeps the
+# host's project and user skill directories out, so the catalog this composition
+# publishes is the pack's contents and nothing else wherever it runs. The root is
+# found from the repository root above `baseUrl`, not from the process cwd (the
+# smoke runs in a temporary directory) and not by a fixed number of `..` segments
+# (a patched entry evaluates inside the included base file's context).
+- id: knowledge-pack-mock-llm
+  name: './mock-llm.ts'
+
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../../../cordis.yml
+    patches:
+      - id: llm-deepseek
+        name: '@deepseek-ai/dsh-llm-deepseek'
+        disabled: true
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          agents:
+            - id: main
+              provider: knowledge-mock
+              model: knowledge-mock
+              cwd: !!js process.cwd()
+          workspaceContext: false
+          dshHome: './.dsh-home'
+          skills:
+            filesystem:
+              includeDefaultRoots: false
+              watch: false
+              customSkillDirs:
+                - !!js |
+                    (() => {
+                      const { fileURLToPath } = process.getBuiltinModule('node:url')
+                      const { existsSync } = process.getBuiltinModule('node:fs')
+                      const { dirname, join } = process.getBuiltinModule('node:path')
+                      let dir = fileURLToPath(baseUrl)
+                      while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                        const parent = dirname(dir)
+                        if (parent === dir) throw new Error('knowledge-pack fixture: repository root not found above ' + baseUrl)
+                        dir = parent
+                      }
+                      return join(dir, 'data', 'knowledge', '2026-q3', 'skills')
+                    })()
+          persona: 'Keyless knowledge-pack composition.'
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
