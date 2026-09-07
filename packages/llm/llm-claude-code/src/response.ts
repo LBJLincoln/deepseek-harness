@@ -1,12 +1,16 @@
 /**
- * Map one product result back onto the seam: parse the structured answer into
- * chunks, translate token accounting, and classify a failed query into the
- * seam's provider-neutral error codes.
+ * Map one product query back onto the seam: read the answer out of the query's
+ * assistant messages, translate token accounting, and classify a result that
+ * carries no answer into the seam's provider-neutral error codes.
  *
  * @module @deepseek-ai/dsh-llm-claude-code/response
  */
 
-import type { NonNullableUsage, SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
+import type {
+  NonNullableUsage,
+  SDKAssistantMessage,
+  SDKResultMessage,
+} from '@anthropic-ai/claude-agent-sdk'
 import {
   CallId,
   CONTEXT_WINDOW_EXCEEDED_CODE,
@@ -17,67 +21,104 @@ import {
   QUOTA_EXCEEDED_CODE,
 } from '@deepseek-ai/dsh-llm'
 import type { StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
+import { harnessToolName } from './tools.ts'
 import type { ClaudeCodeAnswer, ClaudeCodeToolCall } from './types.ts'
 
-/** Code for a product result the seam cannot read as one model response. */
+/** Code for a reply the seam cannot read as one model response. */
 export const MALFORMED_RESPONSE_CODE = 'MALFORMED_RESPONSE'
 
 /** Code for a query the product ended without producing its answer. */
 export const PRODUCT_ERROR_CODE = 'PRODUCT_ERROR'
 
-/** Code for a query the product stopped at its turn bound. */
+/** Code for a query the product stopped at its turn bound with nothing to deliver. */
 export const MAX_TURNS_CODE = 'MAX_TURNS'
+
+/**
+ * Code for a transient failure of the query itself rather than of the model's
+ * answer: a product-side API failure reported on an otherwise successful
+ * result, and any SDK failure raised without a result at all.
+ */
+export const TRANSPORT_CODE = 'TRANSPORT'
 
 function malformed(detail: string): LlmError {
   return new LlmError(`llm-claude-code: ${detail}`, MALFORMED_RESPONSE_CODE)
 }
 
-/** Read one required string field of the structured answer. */
-function requiredString(source: Record<string, unknown>, field: string, where: string): string {
-  const value = source[field]
-  if (typeof value !== 'string') throw malformed(`${where} must carry a string "${field}"`)
-  return value
-}
-
 /**
- * Accept the arguments field in either form the product may emit: the JSON
- * string the schema asks for, or a JSON object when its structured-output
- * enforcement passed one through.
+ * Read one call's arguments. The API delivers the model's arguments already
+ * parsed, so re-serializing them is the only representation this route can
+ * carry; anything but a JSON object means the value did not survive the CLI's
+ * process boundary intact.
  */
-function callArguments(raw: unknown): string {
-  if (typeof raw === 'string') return raw
-  if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) return JSON.stringify(raw)
-  throw malformed('every tool call must carry "arguments" as a JSON string or object')
+function callArguments(raw: unknown, name: string): string {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    throw malformed(`the call to "${name}" carried no JSON object of arguments`)
+  }
+  return JSON.stringify(raw)
+}
+
+/** Translate one `tool_use` block into the call the agent loop executes. */
+function toolCall(called: string, input: unknown, offered: ReadonlySet<string>): ClaudeCodeToolCall {
+  const name = harnessToolName(called)
+  if (!offered.has(name)) {
+    throw malformed(`the reply called "${called}", which this request did not offer`)
+  }
+  return { name, arguments: callArguments(input, name) }
 }
 
 /**
- * Parse the product's structured output into the answer this route returns.
- * A missing or unreadable structured output is a provider failure, never an
- * empty answer that would silently end the turn.
- * @param structured - the result's `structured_output` value, exactly as delivered.
+ * Read the answer out of the query's assistant messages, in the order the
+ * product published them. One API message may arrive as several assistant
+ * messages, one per block, so text joins across messages and calls keep their
+ * order across them.
+ * @param messages - every assistant message the query published.
+ * @param offered - the harness tool names this request offered.
  * @returns the visible text and the tool calls to hand back to the agent loop.
  */
-export function parseAnswer(structured: unknown): ClaudeCodeAnswer {
-  if (typeof structured !== 'object' || structured === null || Array.isArray(structured)) {
-    throw malformed('the query returned no structured answer')
-  }
-  const source = structured as Record<string, unknown>
-  const content = requiredString(source, 'content', 'the structured answer')
-  const rawCalls = source['toolCalls']
-  if (!Array.isArray(rawCalls)) {
-    throw malformed('the structured answer must carry a "toolCalls" array')
-  }
-  const toolCalls: ClaudeCodeToolCall[] = rawCalls.map((rawCall) => {
-    if (typeof rawCall !== 'object' || rawCall === null || Array.isArray(rawCall)) {
-      throw malformed('every tool call must be an object')
+export function parseAnswer(
+  messages: readonly SDKAssistantMessage[],
+  offered: ReadonlySet<string>,
+): ClaudeCodeAnswer {
+  const texts: string[] = []
+  const toolCalls: ClaudeCodeToolCall[] = []
+  for (const message of messages) {
+    for (const block of message.message.content) {
+      switch (block.type) {
+        case 'text':
+          texts.push(block.text)
+          break
+        case 'tool_use':
+          toolCalls.push(toolCall(block.name, block.input, offered))
+          break
+        default:
+          // Thinking and every other block the product may publish carry
+          // nothing this seam delivers: an answer is text and tool calls.
+          break
+      }
     }
-    const call = rawCall as Record<string, unknown>
-    return {
-      name: requiredString(call, 'name', 'every tool call'),
-      arguments: callArguments(call['arguments']),
-    }
-  })
-  return { content, toolCalls }
+  }
+  return { content: texts.join(''), toolCalls }
+}
+
+/**
+ * Decide whether a result delivers the reply the assistant messages carry.
+ *
+ * A reply that calls tools ends the query at the turn bound, because the
+ * product runs the call it just asked for and has no turn left to speak again.
+ * That terminal is this route's normal end for a tool-calling reply; a bound
+ * reached with no call is the failure {@link resultFailure} codes as
+ * `MAX_TURNS`.
+ * @param result - the product's result message.
+ * @param messages - every assistant message the query published.
+ * @returns true when the answer is the query's outcome rather than a failure.
+ */
+export function deliversAnswer(
+  result: SDKResultMessage,
+  messages: readonly SDKAssistantMessage[],
+): boolean {
+  if (result.subtype === 'success') return !result.is_error
+  return result.subtype === 'error_max_turns'
+    && messages.some(message => message.message.content.some(block => block.type === 'tool_use'))
 }
 
 /** Read one usage counter across the CLI's JSON boundary, where a field may be absent. */
@@ -104,15 +145,18 @@ export function mapUsage(usage: NonNullableUsage): TokenUsage {
 }
 
 /**
- * Classify one failed query. Every code, terminal reason, and message the
- * product reported joins one detail string so the seam's shared classifiers
- * see the same evidence they see from an HTTP provider.
+ * Classify one query that carries no answer. Every code, terminal reason, and
+ * message the product reported joins one detail string so the seam's shared
+ * classifiers see the same evidence they see from an HTTP provider. A
+ * successful query the product itself marked failed carries an API failure of
+ * its own in `result` — a connection, rate, or capacity failure of the request
+ * it made — so that text joins the detail and the residue is transient.
  * @param message - the product's result message.
  * @returns the seam-coded failure to throw for this query.
  */
 export function resultFailure(message: SDKResultMessage): LlmError {
-  const errors = message.subtype === 'success' ? [] : message.errors
-  const detail = [message.subtype, message.terminal_reason, message.stop_reason, ...errors]
+  const reported = message.subtype === 'success' ? [message.result] : message.errors
+  const detail = [message.subtype, message.terminal_reason, message.stop_reason, ...reported]
     .filter(part => typeof part === 'string' && part.length > 0)
     .join(' ')
   const text = `llm-claude-code: the query failed: ${detail}`
@@ -120,7 +164,7 @@ export function resultFailure(message: SDKResultMessage): LlmError {
   if (isQuotaExceededError(detail)) return new LlmError(text, QUOTA_EXCEEDED_CODE)
   switch (message.subtype) {
     case 'success':
-      return new LlmError(text, PRODUCT_ERROR_CODE)
+      return new LlmError(text, TRANSPORT_CODE)
     case 'error_max_turns':
       return new LlmError(text, MAX_TURNS_CODE)
     case 'error_max_budget_usd':
@@ -135,7 +179,7 @@ export function resultFailure(message: SDKResultMessage): LlmError {
 /**
  * Emit one answer as the seam's chunk protocol: the visible text block first,
  * then one block per tool call, then usage and the terminal finish.
- * @param answer - the parsed structured answer.
+ * @param answer - the answer read from the query's assistant messages.
  * @param usage - the product's token accounting for this query.
  * @param responseId - the result's own identity, which makes call ids unique per response.
  * @returns the chunks in protocol order.

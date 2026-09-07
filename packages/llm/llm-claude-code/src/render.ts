@@ -1,7 +1,9 @@
 /**
  * Render one harness request into the product's prompt inputs: the harness
- * system prompt becomes the query's custom system prompt, and the tool
- * definitions plus the whole conversation become one prompt text in log order.
+ * system prompt becomes the query's custom system prompt, and the whole
+ * conversation becomes one prompt text in log order. The request's tools are
+ * not rendered here — they reach the model as native tools of the query's
+ * in-process MCP server.
  *
  * Every output here is a pure function of the request the seam hands over, and
  * that request is itself derived from the session log, so a rendered query is
@@ -11,44 +13,11 @@
  */
 
 import { contentHasImage, LlmError } from '@deepseek-ai/dsh-llm'
-import type { ContentBlock, GenerateOptions, Message, ToolSchema } from '@deepseek-ai/dsh-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@deepseek-ai/dsh-llm'
 import type { RenderedRequest } from './types.ts'
 
 /** Tag prefix framing the rendered conversation when no content already uses it. */
 export const TAG_BASE = 'dsh'
-
-/**
- * JSON Schema requested through the product's structured-output option. Tool
- * arguments stay a JSON string because the seam carries raw JSON arguments
- * end-to-end and never re-serializes what the model wrote.
- */
-export const RESPONSE_SCHEMA: Record<string, unknown> = Object.freeze({
-  type: 'object',
-  additionalProperties: false,
-  required: ['content', 'toolCalls'],
-  properties: {
-    content: {
-      type: 'string',
-      description: 'The reply to show the user. Empty when this turn is tool calls alone.',
-    },
-    toolCalls: {
-      type: 'array',
-      description: 'Tool calls to run before the next turn, in the order they should run.',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['name', 'arguments'],
-        properties: {
-          name: { type: 'string', description: 'A tool name offered in the prompt.' },
-          arguments: {
-            type: 'string',
-            description: 'That call\'s arguments as a JSON object, encoded as a JSON string.',
-          },
-        },
-      },
-    },
-  },
-})
 
 /** One rendering pass: the prompt text plus every verbatim string it embedded. */
 interface RenderPass {
@@ -151,23 +120,6 @@ function writeUser(writer: PromptWriter, message: Message): void {
   }
 }
 
-/** Write the tool section: what the harness runs, and the schema of each call. */
-function writeTools(writer: PromptWriter, tools: readonly ToolSchema[]): void {
-  writer.open('tools')
-  writer.structure(
-    'The harness runs these tools, not you. Ask for a call by putting it in `toolCalls`;'
-    + ' its result arrives in the next request.',
-  )
-  for (const tool of tools) {
-    writer.open('tool', [['name', attributeValue(tool.name)]])
-    writer.content(tool.description)
-    writer.structure('Arguments (JSON Schema):')
-    writer.content(JSON.stringify(tool.parameters))
-    writer.close('tool')
-  }
-  writer.close('tools')
-}
-
 /** Render the whole prompt text under one tag prefix. */
 function renderPass(options: GenerateOptions, ns: string): RenderPass {
   const writer = new PromptWriter(ns)
@@ -175,8 +127,6 @@ function renderPass(options: GenerateOptions, ns: string): RenderPass {
     `Answer the last turn of the conversation below. Elements tagged \`<${ns}-…>\` are the harness's`
     + ' framing; everything between them is the conversation.',
   )
-  const tools = options.tools ?? []
-  if (tools.length > 0) writeTools(writer, tools)
   writer.open('conversation')
   for (const message of options.messages) {
     assertTextOnly(message)
@@ -219,7 +169,7 @@ export function tagNamespace(contents: readonly string[]): string {
 /**
  * Render one harness request into the product's system prompt and prompt text.
  * @param options - the fully assembled harness request.
- * @returns the custom system prompt and the single prompt text carrying tools and conversation.
+ * @returns the custom system prompt and the single prompt text carrying the conversation.
  */
 export function renderRequest(options: GenerateOptions): RenderedRequest {
   const first = renderPass(options, TAG_BASE)

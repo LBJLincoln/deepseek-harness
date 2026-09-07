@@ -23,7 +23,15 @@ import type {
   SubprocessTerminalHandle,
 } from '@deepseek-ai/dsh-subprocess'
 import * as LlmClaudeCode from '../src/index.ts'
-import { fakeChild, request, successResult } from './fixture.ts'
+import {
+  assistantMessage,
+  BASH_TOOL,
+  fakeChild,
+  request,
+  successResult,
+  textBlock,
+  toolUseBlock,
+} from './fixture.ts'
 
 type QueryFactory = (params: { prompt: string; options: Options }) => Query
 
@@ -55,6 +63,7 @@ class FixtureSubprocess extends SubprocessRuntime {
 
 let root: string | undefined
 let context: Context | undefined
+let offeredTools: string[] = []
 
 afterEach(async () => {
   await context?.fiber.dispose()
@@ -73,10 +82,12 @@ describe('llm-claude-code real Loader composition', () => {
         cwd: process.cwd(),
         env: { PATH: '/usr/bin' },
       } as never)
-      const messages: SDKMessage[] = [successResult({
-        content: 'composed',
-        toolCalls: [{ name: 'bash', arguments: '{"command":"ls"}' }],
-      })]
+      offeredTools = [...options.allowedTools ?? []]
+      const messages: SDKMessage[] = [
+        assistantMessage(textBlock('composed')),
+        assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'ls' })),
+        successResult(),
+      ]
       const published = (async function* iterate(): AsyncGenerator<SDKMessage> {
         yield* messages
       })()
@@ -132,7 +143,7 @@ describe('llm-claude-code real Loader composition', () => {
 
     const assembler = new BlockAssembler()
     const chunks: StreamChunk[] = []
-    for await (const chunk of ctx.llm.stream(request())) {
+    for await (const chunk of ctx.llm.stream(request({ tools: [BASH_TOOL] }))) {
       chunks.push(chunk)
       assembler.push(chunk)
     }
@@ -142,6 +153,7 @@ describe('llm-claude-code real Loader composition', () => {
       { type: 'tool-call', id: 'r1-0', name: 'bash', arguments: '{"command":"ls"}' },
     ])
     expect(assembler.finish).toEqual({ kind: 'tool-calls' })
+    expect(offeredTools).toEqual(['mcp__dsh__bash'])
     // The CLI the SDK asked to spawn went through the mounted subprocess seam.
     expect(spawned).toHaveLength(1)
     expect(spawned[0]?.argv[0]).toBe('/fixture/bin/claude')

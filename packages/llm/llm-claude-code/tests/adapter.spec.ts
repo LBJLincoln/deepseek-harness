@@ -1,9 +1,10 @@
 /**
  * One `generate()` is one query: the request rendered into the product's
- * inputs, the structured answer parsed back into chunks, and every failure —
- * cancellation, idle expiry, a refused product result, a missing CLI — mapped
- * onto the seam's codes. The SDK's `query` is mocked throughout; the real
- * installation is exercised by this package's e2e suites.
+ * inputs, its tools offered as native MCP tools, the reply read back out of the
+ * query's assistant messages, and every failure — cancellation, idle expiry, a
+ * refused product result, a missing CLI — mapped onto the seam's codes. The
+ * SDK's `query` is mocked throughout; the real installation is exercised by
+ * this package's e2e suites.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -25,14 +26,18 @@ import { resolveAdapterOptions } from '../src/config.ts'
 import type { Config } from '../src/config.ts'
 import type { ClaudeCodeAdapterDependencies } from '../src/adapter.ts'
 import {
+  assistantMessage,
   BASE_CONFIG,
+  BASH_TOOL,
   routeConfig,
   errorResult,
   fakeChild,
   partialMessage,
   request,
   successResult,
+  textBlock,
   toolConversation,
+  toolUseBlock,
   type FakeChild,
 } from './fixture.ts'
 
@@ -173,18 +178,20 @@ afterEach(() => {
 })
 
 describe('one query per request', () => {
-  it('renders the request, parses the structured answer, and reports usage', async () => {
+  it('renders the request, reads the reply\'s text and call, and reports usage', async () => {
     script({
       messages: [
         partialMessage(),
-        successResult({
-          content: 'done',
-          toolCalls: [{ name: 'bash', arguments: '{"command":"ls"}' }],
-        }),
+        assistantMessage(textBlock('done')),
+        assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'ls' })),
+        errorResult('error_max_turns', ['Reached maximum number of turns (1)']),
       ],
     })
 
-    const chunks = await collect(adapter().stream(request({ messages: toolConversation() })))
+    const chunks = await collect(adapter().stream(request({
+      messages: toolConversation(),
+      tools: [BASH_TOOL],
+    })))
     const assembler = new BlockAssembler()
     for (const chunk of chunks) assembler.push(chunk)
 
@@ -202,8 +209,32 @@ describe('one query per request', () => {
     expect(queryMock.mock.calls[0]?.[0].prompt).toContain('<dsh-tool-call id="call-1" name="bash">')
   })
 
-  it('gives the product the harness prompt and no tools, MCP, settings, or session of its own', async () => {
-    script({ messages: [successResult({ content: 'ok', toolCalls: [] })] })
+  it('offers the request\'s tools as the only names the query allows', async () => {
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    await collect(adapter().stream(request({ tools: [BASH_TOOL] })))
+
+    expect(capturedOptions?.allowedTools).toEqual(['mcp__dsh__bash'])
+    expect(capturedOptions?.tools).toEqual([])
+    expect(Object.keys(capturedOptions?.mcpServers ?? {})).toEqual(['dsh'])
+    expect(capturedOptions?.mcpServers?.['dsh']).toMatchObject({ type: 'sdk', name: 'dsh' })
+  })
+
+  it('builds no MCP server for a request that offers no tools', async () => {
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    await collect(adapter().stream(request()))
+
+    expect(capturedOptions?.mcpServers).toEqual({})
+    expect(capturedOptions?.allowedTools).toEqual([])
+  })
+
+  it('finishes a text-only reply with a plain stop', async () => {
+    script({ messages: [assistantMessage(textBlock('hello')), successResult()] })
+    const chunks = await collect(adapter().stream(request()))
+    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'stop' } })
+  })
+
+  it('gives the product the harness prompt and no settings or session of its own', async () => {
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
     await collect(adapter(routeConfig({
       models: [{ id: 'default', productModel: 'installation-default' }],
       env: { CLAUDE_AGENT_SDK_CLIENT_APP: 'dsh/1' },
@@ -213,13 +244,11 @@ describe('one query per request', () => {
 
     expect(capturedOptions).toMatchObject({
       systemPrompt: 'You are the harness.',
-      outputFormat: { type: 'json_schema' },
       includePartialMessages: true,
-      maxTurns: 2,
+      maxTurns: 1,
       permissionMode: 'dontAsk',
       tools: [],
-      allowedTools: [],
-      mcpServers: {},
+      disallowedTools: ['AskUserQuestion'],
       strictMcpConfig: true,
       settingSources: [],
       persistSession: false,
@@ -228,18 +257,19 @@ describe('one query per request', () => {
       effort: 'high',
       thinking: { type: 'adaptive' },
     })
+    expect(capturedOptions).not.toHaveProperty('outputFormat')
     expect(capturedOptions?.env?.['CLAUDE_AGENT_SDK_CLIENT_APP']).toBe('dsh/1')
   })
 
   it('omits the product model when the operator let the installation choose', async () => {
-    script({ messages: [successResult({ content: 'ok', toolCalls: [] })] })
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
     await collect(adapter().stream(request()))
     expect(capturedOptions).not.toHaveProperty('model')
   })
 
   it('places the SDK-spawned CLI under the shared process owner and tears it down', async () => {
     const child = fakeChild()
-    script({ messages: [successResult({ content: 'ok', toolCalls: [] })], child })
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()], child })
 
     await collect(adapter(BASE_CONFIG, { spawn: () => child.handle }).stream(request()))
 
@@ -262,9 +292,25 @@ describe('failure classification', () => {
     expect(await failureOf(request(), instance)).toMatchObject({ code: 'MISSING_EXECUTABLE' })
   })
 
-  it('maps a product failure result onto the seam code', async () => {
-    script({ messages: [errorResult('error_max_turns')] })
+  it('maps a turn bound reached with no tool call onto the seam code', async () => {
+    script({ messages: [assistantMessage(textBlock('thinking out loud')), errorResult('error_max_turns')] })
     expect(await failureOf(request())).toMatchObject({ code: 'MAX_TURNS' })
+  })
+
+  it('maps a product-side API failure on a successful result to a retryable transport failure', async () => {
+    script({
+      messages: [
+        assistantMessage(textBlock('API Error: Unable to connect to API: Self-signed certificate detected')),
+        successResult({
+          is_error: true,
+          result: 'API Error: Unable to connect to API: Self-signed certificate detected',
+          stop_reason: 'stop_sequence',
+        }),
+      ],
+    })
+    const failure = await failureOf(request())
+    expect(failure).toMatchObject({ code: 'TRANSPORT' })
+    expect((failure as Error).message).toContain('Self-signed certificate detected')
   })
 
   it('treats a query that ended without a result as a closed stream', async () => {
@@ -272,17 +318,48 @@ describe('failure classification', () => {
     expect(await failureOf(request())).toMatchObject({ code: 'STREAM_CLOSED' })
   })
 
-  it('treats a missing structured answer as a provider failure, not an empty turn', async () => {
-    script({ messages: [successResult(undefined)] })
-    expect(await failureOf(request())).toMatchObject({ code: 'MALFORMED_RESPONSE' })
+  it('refuses a reply that called a tool the request did not offer', async () => {
+    script({
+      messages: [
+        assistantMessage(toolUseBlock('mcp__dsh__write_file', { path: 'a.txt' })),
+        errorResult('error_max_turns'),
+      ],
+    })
+    expect(await failureOf(request({ tools: [BASH_TOOL] })))
+      .toMatchObject({ code: 'MALFORMED_RESPONSE' })
   })
 
-  it('reports an answer with neither text nor tool calls as an empty response', async () => {
-    script({ messages: [successResult({ content: '', toolCalls: [] })] })
+  it('reports a query that published no assistant message as an empty response', async () => {
+    script({ messages: [successResult()] })
     expect(await failureOf(request())).toMatchObject({ code: 'EMPTY_RESPONSE' })
   })
 
-  it('wraps an unexpected SDK failure as a transport failure that names it', async () => {
+  it('classifies the published result, not the throw the SDK raises after it', async () => {
+    script({
+      messages: [
+        assistantMessage(toolUseBlock('bash', { command: 'ls' })),
+        errorResult('error_max_turns', ['Reached maximum number of turns (1)']),
+      ],
+      failWith: new Error('Claude Code process exited with code 1'),
+    })
+
+    const chunks = await collect(adapter().stream(request({ tools: [BASH_TOOL] })))
+    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'tool-calls' } })
+  })
+
+  it('keeps caller cancellation over a result the product had already published', async () => {
+    const controller = new AbortController()
+    script({
+      messages: [assistantMessage(textBlock('done')), successResult(), partialMessage()],
+      gapMs: 20,
+    })
+    const pending = failureOf(request({ signal: controller.signal }))
+    await new Promise<void>((resolve) => { setTimeout(resolve, 50) })
+    controller.abort(new Error('caller stopped'))
+    expect(await pending).toMatchObject({ code: 'ABORTED' })
+  })
+
+  it('wraps an unexpected SDK failure that published no result as a transport failure', async () => {
     script({ failWith: new Error('the CLI died') })
     expect(await failureOf(request())).toMatchObject({
       code: 'TRANSPORT',
@@ -292,7 +369,7 @@ describe('failure classification', () => {
 
   it('reports caller cancellation as an abort', async () => {
     const controller = new AbortController()
-    script({ messages: [partialMessage(), successResult({ content: 'late', toolCalls: [] })], gapMs: 50 })
+    script({ messages: [partialMessage(), assistantMessage(textBlock('late')), successResult()], gapMs: 50 })
     const pending = failureOf(request({ signal: controller.signal }))
     await new Promise<void>((resolve) => { setTimeout(resolve, 10) })
     controller.abort(new Error('caller stopped'))
@@ -300,14 +377,14 @@ describe('failure classification', () => {
   })
 
   it('reports an installation that produced nothing as a timeout', async () => {
-    script({ messages: [successResult({ content: 'late', toolCalls: [] })], gapMs: 200 })
+    script({ messages: [assistantMessage(textBlock('late')), successResult()], gapMs: 200 })
     const instance = adapter(routeConfig({ queryTimeoutMs: 20 }))
     expect(await failureOf(request(), instance)).toMatchObject({ code: 'TIMEOUT' })
   })
 
   it('keeps the query alive across partial events that arrive inside the idle interval', async () => {
     script({
-      messages: [partialMessage(), partialMessage(), successResult({ content: 'ok', toolCalls: [] })],
+      messages: [partialMessage(), partialMessage(), assistantMessage(textBlock('ok')), successResult()],
       gapMs: 20,
     })
     const instance = adapter(routeConfig({ queryTimeoutMs: 60 }))
@@ -364,6 +441,7 @@ describe('claudeQueryOptions', () => {
       options: resolveAdapterOptions(BASE_CONFIG),
       model: { id: 'default' },
       rendered: { systemPrompt: 'system', prompt: 'prompt' },
+      offer: undefined,
       executable: '/usr/bin/claude',
       cwd: '/workspace',
       controller: new AbortController(),
@@ -393,6 +471,18 @@ describe('disposeQuery', () => {
     expect(child.terminate).toHaveBeenCalledTimes(1)
   })
 
+  it('releases the offered tool server with the query', async () => {
+    const close = vi.fn(() => Promise.resolve())
+    await disposeQuery(undefined, undefined, { close })
+    expect(close).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports a tool server that refused to close', async () => {
+    await expect(disposeQuery(undefined, undefined, {
+      close: () => Promise.reject(new Error('transport stuck')),
+    })).rejects.toThrow('transport stuck')
+  })
+
   it('skips a handle that never held a process', async () => {
     const child = fakeChild({ pid: 0 })
     await disposeQuery(undefined, child.handle)
@@ -417,7 +507,7 @@ describe('the plugin on a real context', () => {
   it('registers the configured route and serves a request through ctx.llm', async () => {
     const child = fakeChild()
     StubSubprocess.child = child.handle
-    script({ messages: [successResult({ content: 'through the seam', toolCalls: [] })], child })
+    script({ messages: [assistantMessage(textBlock('through the seam')), successResult()], child })
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(StubSubprocess)

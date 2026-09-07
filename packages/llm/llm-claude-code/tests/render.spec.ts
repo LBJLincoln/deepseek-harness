@@ -1,7 +1,8 @@
 /**
  * The rendering a harness request becomes: one custom system prompt plus one
- * prompt text carrying the tool definitions and the whole conversation in log
- * order, framed by tags no message content can imitate.
+ * prompt text carrying the whole conversation in log order, framed by tags no
+ * message content can imitate. Tools are not rendered here — the query offers
+ * them natively.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -13,14 +14,8 @@ import {
   CallId,
 } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock, GenerateOptions } from '@deepseek-ai/dsh-llm'
-import { RESPONSE_SCHEMA, TAG_BASE, renderRequest, tagNamespace } from '../src/render.ts'
-import { request, toolConversation } from './fixture.ts'
-
-const BASH_TOOL = {
-  name: 'bash',
-  description: 'Run a shell command.',
-  parameters: { type: 'object', properties: { command: { type: 'string' } } },
-}
+import { TAG_BASE, renderRequest, tagNamespace } from '../src/render.ts'
+import { BASH_TOOL, request, toolConversation } from './fixture.ts'
 
 describe('renderRequest', () => {
   it('renders a multi-turn conversation with its tool call and result in log order', () => {
@@ -48,20 +43,12 @@ describe('renderRequest', () => {
     ].join('\n'))
   })
 
-  it('offers the tool definitions with the schema of each call', () => {
+  it('renders no tool section, and no schema or name of an offered tool', () => {
     const rendered = renderRequest(request({ tools: [BASH_TOOL] }))
 
-    expect(rendered.prompt).toContain(
-      '<dsh-tools>\nThe harness runs these tools, not you. Ask for a call by putting it in'
-      + ' `toolCalls`; its result arrives in the next request.\n<dsh-tool name="bash">\n'
-      + 'Run a shell command.\nArguments (JSON Schema):\n'
-      + '{"type":"object","properties":{"command":{"type":"string"}}}\n</dsh-tool>\n</dsh-tools>',
-    )
-  })
-
-  it('omits the tool section when the request offers no tools', () => {
-    expect(renderRequest(request({ tools: [] })).prompt).not.toContain('<dsh-tools>')
-    expect(renderRequest(request()).prompt).not.toContain('<dsh-tools>')
+    expect(rendered.prompt).not.toContain('<dsh-tools>')
+    expect(rendered.prompt).not.toContain('toolCalls')
+    expect(rendered.prompt).not.toContain('Run a shell command.')
   })
 
   it('renders a system message that arrived inside the conversation', () => {
@@ -133,18 +120,5 @@ describe('tagNamespace', () => {
   it('bumps past an opening and a closing collision independently', () => {
     expect(tagNamespace(['<dsh-user>'])).toBe('dsh2')
     expect(tagNamespace(['</dsh-user>'])).toBe('dsh2')
-  })
-})
-
-describe('RESPONSE_SCHEMA', () => {
-  it('asks for visible text and tool calls whose arguments stay a JSON string', () => {
-    expect(RESPONSE_SCHEMA).toMatchObject({
-      type: 'object',
-      required: ['content', 'toolCalls'],
-      properties: {
-        content: { type: 'string' },
-        toolCalls: { items: { properties: { arguments: { type: 'string' } } } },
-      },
-    })
   })
 })
