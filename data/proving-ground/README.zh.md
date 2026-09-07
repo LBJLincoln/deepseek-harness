@@ -49,6 +49,11 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:slugify` | 是 | 1 | 该时槽共 54 s |
 | [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:parse-duration` | 是 | 1 | 该时槽共 54 s |
 | [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:paginate-fix` | 是 | 1 | 该时槽共 54 s |
+| [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` 至 `38dd04165` | `claude-code` | `code:slugify` | 22 之 22 | 各 1 | 22 个时槽，每个 45 至 90 s |
+| [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` 至 `38dd04165` | `claude-code` | `code:parse-duration` | 22 之 22 | 各 1 | 22 个时槽，每个 45 至 90 s |
+| [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` 至 `38dd04165` | `claude-code` | `code:paginate-fix` | 22 之 22 | 各 1 | 22 个时槽，每个 45 至 90 s |
+
+第三份记录是同一个区整夜运行的结果：从 22:16 到 09:16 UTC，按三十分钟的节奏运行了 22 个时槽，其中包括第二份记录所保存的第一个时槽。宿主机重启过一次；应在 00:16 开启的时槽没有被补跑，与班次驱动器的节奏规则所述完全一致，重新启动的进程从 00:46 起在当时的工作树上沿用同一份账本和同一节奏继续，因此重启前的时槽运行的是 `88f6a1f2e` 处的树，重启后的时槽运行的是 `38dd04165` 处的树，manifest 记录的 head 即为后者。66 个 cell 全部在一次尝试内获得认证；该记录保存了全部 22 份班次账本、66 个 cell 会话，以及在它们之上折叠出的导出。
 
 第二次运行是实时区在修复了它自己暴露出的两个缺陷之后的第一个时槽：一个被此版本 Node 拒绝的测试检查，以及一个在验证前把整个 fixture 覆盖回去、从而丢弃了对 fixture 所提供源文件的一切改动的 runner。三个各自带有不可变测试套件的程序任务，由该产品各以一次尝试实现，并由 runner 在它留下的目录树上认证；被留出的任务从未进入计划。
 

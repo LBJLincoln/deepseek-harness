@@ -49,6 +49,11 @@ A delegated cell's certificate proves that the runner authored the standard befo
 | [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:slugify` | yes | 1 | 54 s for the slot |
 | [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:parse-duration` | yes | 1 | 54 s for the slot |
 | [2026-09-06-claude-code-run-2](2026-09-06-claude-code-run-2/manifest.json) | `88f6a1f2e` | `claude-code` | `code:paginate-fix` | yes | 1 | 54 s for the slot |
+| [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` to `38dd04165` | `claude-code` | `code:slugify` | 22 of 22 | 1 each | 22 slots, 45 to 90 s each |
+| [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` to `38dd04165` | `claude-code` | `code:parse-duration` | 22 of 22 | 1 each | 22 slots, 45 to 90 s each |
+| [2026-09-07-claude-code-live-night](2026-09-07-claude-code-live-night/manifest.json) | `88f6a1f2e` to `38dd04165` | `claude-code` | `code:paginate-fix` | 22 of 22 | 1 each | 22 slots, 45 to 90 s each |
+
+The third record is the same district left running overnight: 22 slots on its thirty-minute cadence from 22:16 to 09:16 UTC, including the first slot the second record holds. The host restarted once; the slot due at 00:16 was not caught up, exactly as the shift driver's cadence rule states, and the relaunched process resumed the same ledger and cadence from 00:46 on the working tree of that moment, so the slots before the restart ran the tree at `88f6a1f2e` and the slots after it the tree at `38dd04165`, which the manifest records as the head. Every one of the 66 cells was certified in one attempt; the record holds all 22 shift ledgers, the 66 cell sessions, and the exports folded over them.
 
 The second run is the live district's first slot after two defects the district itself exposed were fixed: a test check this Node rejected, and a runner that overlaid the whole fixture before validation and so discarded every edit to a fixture-supplied source file. Three program tasks, each with an immutable test suite, were implemented by the product in one attempt each and certified by the runner on the trees it left; the held-out task never entered the plan.
 
