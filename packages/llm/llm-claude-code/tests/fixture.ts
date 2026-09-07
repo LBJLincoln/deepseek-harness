@@ -6,10 +6,15 @@
 
 import { PassThrough } from 'node:stream'
 import { vi, type Mock } from 'vitest'
-import type { NonNullableUsage, SDKMessage, SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
+import type {
+  NonNullableUsage,
+  SDKAssistantMessage,
+  SDKMessage,
+  SDKResultMessage,
+} from '@anthropic-ai/claude-agent-sdk'
 import { createAssistantMessage, createToolResultMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
 import { CallId } from '@deepseek-ai/dsh-llm'
-import type { GenerateOptions, Message } from '@deepseek-ai/dsh-llm'
+import type { GenerateOptions, Message, ToolSchema } from '@deepseek-ai/dsh-llm'
 import type { SubprocessHandle, SubprocessOutcome } from '@deepseek-ai/dsh-subprocess'
 import type { Config } from '../src/config.ts'
 
@@ -18,6 +23,13 @@ export const BASE_CONFIG = {
   provider: 'claude-code',
   models: [{ id: 'default', name: 'Installation default', contextWindow: 200_000 }],
 } satisfies Config
+
+/** The one tool the suites offer, with the JSON Schema the model must read verbatim. */
+export const BASH_TOOL: ToolSchema = {
+  name: 'bash',
+  description: 'Run a shell command.',
+  parameters: { type: 'object', properties: { command: { type: 'string' } } },
+}
 
 /**
  * The base route config with one or more fields replaced.
@@ -39,23 +51,40 @@ export function usage(overrides: Partial<NonNullableUsage> = {}): NonNullableUsa
   } as NonNullableUsage
 }
 
-/** A successful product result carrying one structured answer. */
-export function successResult(
-  structured: unknown,
-  overrides: Partial<SDKResultMessage> = {},
-): SDKResultMessage {
+/** A successful product result: the query ended with the reply it published. */
+export function successResult(overrides: Partial<SDKResultMessage> = {}): SDKResultMessage {
   return {
     type: 'result',
     subtype: 'success',
     is_error: false,
-    result: 'ignored',
+    result: 'done',
     stop_reason: 'end_turn',
     uuid: 'r1',
     session_id: 's1',
     usage: usage(),
-    structured_output: structured,
     ...overrides,
   } as SDKResultMessage
+}
+
+/** One assistant message of the query, carrying the blocks the API delivered. */
+export function assistantMessage(...content: readonly unknown[]): SDKAssistantMessage {
+  return {
+    type: 'assistant',
+    message: { role: 'assistant', type: 'message', content, usage: usage() },
+    parent_tool_use_id: null,
+    uuid: 'a1',
+    session_id: 's1',
+  } as unknown as SDKAssistantMessage
+}
+
+/** A text block of an assistant message. */
+export function textBlock(text: string): unknown {
+  return { type: 'text', text }
+}
+
+/** A `tool_use` block: the name as the product qualifies it, the input already parsed. */
+export function toolUseBlock(name: string, input: unknown): unknown {
+  return { type: 'tool_use', id: 'toolu_1', name, input }
 }
 
 /** A failed product result of one error subtype. */

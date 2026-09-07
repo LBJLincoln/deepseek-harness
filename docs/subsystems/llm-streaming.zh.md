@@ -216,7 +216,7 @@ interface LlmFailure {
 - **空 completion 是可重试错误，而不是静默的成功结果。** 两个适配器都把没有携带任何内容块的终止性 `stop` 结束映射为携带规范 `EMPTY_RESPONSE` code 的 `finish {kind:'error'}`，`dsh-llm-retry` 默认会重试它；详见[空模型响应可重试](../../.agents/notes/implemented/bug-fix/2026-07-24-empty-model-response-is-retryable.md)。
 - **每个提供方 HTTP 请求都携带应用归属头。** 适配器发送 `attributionHeaders()`（见下文）作为 `User-Agent` 基线，并通过协议级测试加以证明。
 - **回放状态归适配器所有。** 成功的 `finish` 可以携带重建提供方原生响应所需的无损 JSON 状态。循环会将其与组装后的 assistant 消息一起存储。后续请求中，仅当历史提供方与目标提供方当前注册到完全相同的适配器实例时，`LlmRuntime` 才会传递该状态。该适配器负责校验状态并拥有所有跨模型或跨提供方转换；其他适配器只会收到提供方无关的内容以及提供方／模型字段，不会收到私有状态。
-- **提供方不必是 HTTP 客户端。** [`dsh-llm-claude-code`](../../packages/llm/llm-claude-code/README.md) 用一个经其官方 SDK 驱动的本地 Claude Code 安装来服务本缝：一次 `stream()` 把请求渲染为一个 prompt，索取结构化答案，将其解析回 chunk，并通过 `dsh-subprocess` 拥有该安装的 CLI。它不发出任何提供方 HTTP 请求，因此归属头对它不适用；它以查询空闲预算限定静默的安装，正如远程适配器限定停滞的传输；而它所配置的模型目录是权威的而非仅供参考的，因为未登记的 id 没有可透传的去处。
+- **提供方不必是 HTTP 客户端。** [`dsh-llm-claude-code`](../../packages/llm/llm-claude-code/README.md) 用一个经其官方 SDK 驱动的本地 Claude Code 安装来服务本缝：一次 `stream()` 把请求渲染为一个 prompt，把请求的工具作为一个什么也不执行的进程内 MCP 服务器的原生工具提供，把回复中的文本与工具调用读回 chunk，并通过 `dsh-subprocess` 拥有该安装的 CLI。它不发出任何提供方 HTTP 请求，因此归属头对它不适用；它以查询空闲预算限定静默的安装，正如远程适配器限定停滞的传输；而它所配置的模型目录是权威的而非仅供参考的，因为未登记的 id 没有可透传的去处。
 
 ## `ResolvedRetryPolicy`
 

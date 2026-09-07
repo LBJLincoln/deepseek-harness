@@ -1,40 +1,76 @@
 /**
- * How one product result becomes seam vocabulary: the structured answer parsed
- * into chunks, token accounting translated, and every failed query classified
- * into a provider-neutral code.
+ * How one product query becomes seam vocabulary: the reply read out of the
+ * assistant messages, token accounting translated, and every query that
+ * carries no answer classified into a provider-neutral code.
  */
 
 import { describe, expect, it } from 'vitest'
-import { answerChunks, mapUsage, parseAnswer, resultFailure } from '../src/response.ts'
-import { errorResult, successResult, usage } from './fixture.ts'
+import { answerChunks, deliversAnswer, mapUsage, parseAnswer, resultFailure } from '../src/response.ts'
+import {
+  assistantMessage,
+  errorResult,
+  successResult,
+  textBlock,
+  toolUseBlock,
+  usage,
+} from './fixture.ts'
+
+const OFFERED = new Set(['bash'])
 
 describe('parseAnswer', () => {
-  it('accepts arguments as the JSON string the schema asks for', () => {
-    expect(parseAnswer({
+  it('joins text across messages and keeps the calls in published order', () => {
+    expect(parseAnswer([
+      assistantMessage(textBlock('listing '), textBlock('them')),
+      assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'ls' })),
+      assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'pwd' })),
+    ], OFFERED)).toEqual({
       content: 'listing them',
-      toolCalls: [{ name: 'bash', arguments: '{"command":"ls"}' }],
-    })).toEqual({
-      content: 'listing them',
+      toolCalls: [
+        { name: 'bash', arguments: '{"command":"ls"}' },
+        { name: 'bash', arguments: '{"command":"pwd"}' },
+      ],
+    })
+  })
+
+  it('accepts the bare harness name a reply sometimes calls, and ignores thinking', () => {
+    expect(parseAnswer([
+      assistantMessage({ type: 'thinking', thinking: 'weighing it up' }),
+      assistantMessage(toolUseBlock('bash', { command: 'ls' })),
+    ], OFFERED)).toEqual({
+      content: '',
       toolCalls: [{ name: 'bash', arguments: '{"command":"ls"}' }],
     })
   })
 
-  it('accepts arguments the product passed through as a JSON object', () => {
-    expect(parseAnswer({ content: '', toolCalls: [{ name: 'bash', arguments: { command: 'ls' } }] }))
-      .toEqual({ content: '', toolCalls: [{ name: 'bash', arguments: '{"command":"ls"}' }] })
+  it('refuses a call to a tool the request did not offer', () => {
+    expect(() => parseAnswer([assistantMessage(toolUseBlock('mcp__dsh__rm', {}))], OFFERED))
+      .toThrow(expect.objectContaining({ code: 'MALFORMED_RESPONSE' }))
   })
 
   it.each([
-    ['no structured answer at all', undefined],
-    ['a primitive', 'answer'],
+    ['a JSON string', '{"command":"ls"}'],
     ['an array', []],
-    ['a missing content field', { toolCalls: [] }],
-    ['a non-array toolCalls field', { content: 'hi', toolCalls: {} }],
-    ['a non-object tool call', { content: '', toolCalls: ['bash'] }],
-    ['a tool call without a name', { content: '', toolCalls: [{ arguments: '{}' }] }],
-    ['tool-call arguments of the wrong type', { content: '', toolCalls: [{ name: 'bash', arguments: 7 }] }],
-  ])('refuses %s as a provider failure', (_case, structured) => {
-    expect(() => parseAnswer(structured)).toThrow(expect.objectContaining({ code: 'MALFORMED_RESPONSE' }))
+    ['nothing at all', undefined],
+  ])('refuses arguments that crossed as %s', (_case, input) => {
+    expect(() => parseAnswer([assistantMessage(toolUseBlock('bash', input))], OFFERED))
+      .toThrow(expect.objectContaining({ code: 'MALFORMED_RESPONSE' }))
+  })
+})
+
+describe('deliversAnswer', () => {
+  it('delivers a successful query and a turn bound the reply\'s call ended', () => {
+    expect(deliversAnswer(successResult(), [assistantMessage(textBlock('hi'))])).toBe(true)
+    expect(deliversAnswer(errorResult('error_max_turns'), [
+      assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'ls' })),
+    ])).toBe(true)
+  })
+
+  it('withholds a turn bound with no call, a product API failure, and every other subtype', () => {
+    expect(deliversAnswer(errorResult('error_max_turns'), [assistantMessage(textBlock('hi'))])).toBe(false)
+    expect(deliversAnswer(successResult({ is_error: true }), [assistantMessage(textBlock('hi'))])).toBe(false)
+    expect(deliversAnswer(errorResult('error_during_execution'), [
+      assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'ls' })),
+    ])).toBe(false)
   })
 })
 
@@ -68,9 +104,14 @@ describe('resultFailure', () => {
     expect(resultFailure(errorResult(subtype))).toMatchObject({ code })
   })
 
-  it('classifies a success result the product itself marked failed', () => {
-    const result = successResult({ content: '', toolCalls: [] }, { is_error: true })
-    expect(resultFailure(result)).toMatchObject({ code: 'PRODUCT_ERROR' })
+  it('classifies a success result the product itself marked failed as transient', () => {
+    const result = successResult({
+      is_error: true,
+      result: 'API Error: Unable to connect to API: Self-signed certificate detected',
+    })
+    const failure = resultFailure(result)
+    expect(failure.code).toBe('TRANSPORT')
+    expect(failure.message).toContain('Self-signed certificate detected')
   })
 
   it('recognizes context overflow and quota exhaustion in the reported detail', () => {

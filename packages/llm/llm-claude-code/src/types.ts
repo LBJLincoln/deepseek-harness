@@ -5,6 +5,7 @@
  * @module @deepseek-ai/dsh-llm-claude-code/types
  */
 
+import type { McpSdkServerConfigWithInstance } from '@anthropic-ai/claude-agent-sdk'
 import type { ResolvedRetryPolicy } from '@deepseek-ai/dsh-llm'
 
 /**
@@ -73,15 +74,34 @@ export interface ResolvedClaudeCodeOptions {
   readonly retryPolicy: ResolvedRetryPolicy
 }
 
-/** One tool invocation the product returned in its structured answer. */
+/**
+ * The harness tools of one request, offered to the product as native tools of
+ * an in-process MCP server. Absent for a request that offers none, which is
+ * what keeps a tool-free query free of a server it would never call.
+ */
+export interface ToolOffer {
+  /** The in-process server configuration the query mounts, accepted by the SDK verbatim. */
+  readonly server: McpSdkServerConfigWithInstance
+  /** The qualified names the query allows, one per offered tool. */
+  readonly allowedTools: readonly string[]
+  /** The harness names a reply may call, after its qualification is stripped. */
+  readonly names: ReadonlySet<string>
+  /**
+   * Release the server's transport once the query is over.
+   * @returns fulfillment after the server closed.
+   */
+  close(): Promise<void>
+}
+
+/** One tool invocation the product's reply requested. */
 export interface ClaudeCodeToolCall {
-  /** Harness tool name, as offered in the rendered tool section. */
+  /** Harness tool name, with the product's MCP qualification stripped. */
   name: string
-  /** Raw JSON arguments, exactly as the seam carries them to the agent loop. */
+  /** JSON arguments, exactly as the seam carries them to the agent loop. */
   arguments: string
 }
 
-/** The product's structured answer to one harness request. */
+/** The product's answer to one harness request, read from its assistant messages. */
 export interface ClaudeCodeAnswer {
   /** Visible assistant text, empty when the turn is tool calls alone. */
   content: string
@@ -96,6 +116,6 @@ export interface RenderedRequest {
    * system prompt is the only standing instruction the model reads.
    */
   systemPrompt: string
-  /** Tool section and conversation, rendered as one prompt text. */
+  /** The conversation, rendered as one prompt text. */
   prompt: string
 }

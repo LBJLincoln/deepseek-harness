@@ -2,13 +2,14 @@
  * Serve the harness LLM seam from a Claude Code installation the operator has
  * already authenticated. One plugin instance registers one provider route on
  * `ctx.llm`; every `generate()` on that route is one stateless query to the
- * installation through the official Agent SDK, with the harness system prompt,
- * conversation, and tool definitions rendered into the query's inputs and the
- * structured answer parsed back into the seam's chunks.
+ * installation through the official Agent SDK, with the harness system prompt
+ * and conversation rendered into the query's inputs, the harness tools offered
+ * as native tools of an in-process MCP server, and the reply's text and tool
+ * calls returned as the seam's chunks.
  *
- * The product runs no tool and reads no workspace, so tool calls return to the
- * harness agent loop and run under the harness's own tools, session log, read
- * barrier, budget policy, and approvals.
+ * The product runs no harness tool and reads no workspace, so tool calls
+ * return to the harness agent loop and run under the harness's own tools,
+ * session log, read barrier, budget policy, and approvals.
  *
  * ```yaml
  * - id: llm-claude-code
@@ -48,16 +49,26 @@ export {
   resolveAdapterOptions,
 } from './config.ts'
 export { claudeSpawnSpec, ManagedClaudeCodeProcess, sdkEnvironmentOverlay } from './process.ts'
-export { RESPONSE_SCHEMA, TAG_BASE, renderRequest, tagNamespace } from './render.ts'
+export { TAG_BASE, renderRequest, tagNamespace } from './render.ts'
 export {
   answerChunks,
+  deliversAnswer,
   MALFORMED_RESPONSE_CODE,
   mapUsage,
   MAX_TURNS_CODE,
   parseAnswer,
   PRODUCT_ERROR_CODE,
   resultFailure,
+  TRANSPORT_CODE,
 } from './response.ts'
+export {
+  harnessToolName,
+  MCP_SERVER_NAME,
+  MCP_TOOL_PREFIX,
+  OFFER_SERVER_VERSION,
+  QUEUED_CALL_TEXT,
+  toolOffer,
+} from './tools.ts'
 export type * from './types.ts'
 
 export const name = 'llm-claude-code'

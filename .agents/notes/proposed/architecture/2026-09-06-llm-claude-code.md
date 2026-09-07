@@ -24,6 +24,8 @@ The SDK-spawned CLI goes under `ctx.subprocess` through the same custom-spawn pr
 
 ### The turn bound
 
+[Native tool use on this route](2026-09-07-claude-code-route-native-tools.md) supersedes the prompt-rendered tool section, the structured-output answer, and the bound described here: the harness tools are offered as native tools of an in-process MCP server, and the bound is one assistant message.
+
 The query asks for `maxTurns: 2`, counted in assistant messages. What makes one `generate()` one model response is offering no tools: the product can speak and then deliver its structured answer, and it can never act between turns. The bound is two rather than one because the delivery costs an assistant message of its own — a one-turn bound refuses every reply that says anything before delivering, which is most of them. It is fixed rather than configurable because it belongs to the product's structured-output protocol, not to a deployment.
 
 ### What is logged

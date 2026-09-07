@@ -2,10 +2,11 @@
  * The adapter that serves this route: every `stream()` is one stateless query
  * to the operator's Claude Code installation through the official Agent SDK.
  *
- * The product executes no tool and reads no workspace — built-in tools, MCP
- * servers, and filesystem settings are all switched off — so every tool call
- * comes back to the harness agent loop, which runs it exactly as it does for
- * any other route.
+ * The product executes no harness tool and reads no workspace — its built-in
+ * tools and filesystem settings are switched off, and the only tools it is
+ * offered are this route's own MCP declarations, which run nothing. Every tool
+ * call comes back to the harness agent loop, which runs it exactly as it does
+ * for any other route.
  *
  * @module @deepseek-ai/dsh-llm-claude-code/adapter
  */
@@ -14,6 +15,7 @@ import {
   query as officialQuery,
   type Options,
   type Query,
+  type SDKAssistantMessage,
   type SDKResultMessage,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
@@ -33,22 +35,31 @@ import {
 } from '@deepseek-ai/dsh-subprocess'
 import { idleWatchdog, timeoutOf } from '@deepseek-ai/dsh-timeout'
 import { claudeSpawnSpec, ManagedClaudeCodeProcess } from './process.ts'
-import { RESPONSE_SCHEMA, renderRequest } from './render.ts'
-import { answerChunks, parseAnswer, resultFailure } from './response.ts'
-import type { ClaudeCodeModel, RenderedRequest, ResolvedClaudeCodeOptions } from './types.ts'
+import { renderRequest } from './render.ts'
+import { answerChunks, deliversAnswer, parseAnswer, resultFailure, TRANSPORT_CODE } from './response.ts'
+import { MCP_SERVER_NAME, toolOffer } from './tools.ts'
+import type {
+  ClaudeCodeModel,
+  RenderedRequest,
+  ResolvedClaudeCodeOptions,
+  ToolOffer,
+} from './types.ts'
 
 /**
  * Turn bound for every query, where a turn is one assistant message.
  *
- * One `generate()` is one model response, and offering no tools is what
- * guarantees it: with `tools: []` the product can only speak and then deliver
- * its structured answer, never act between turns. This bound is two because
- * that delivery costs an assistant message of its own, so a reply that says
- * anything before it needs both; a one-turn bound refuses every such reply.
- * Fixed rather than configurable because it belongs to the product's
- * structured-output protocol, not to a deployment.
+ * One `generate()` is one model response, and this bound is what guarantees
+ * it: the product answers once and the query ends. A reply that calls tools
+ * reaches the bound after the product ran the offered call — the route's
+ * declarations execute nothing — and the SDK reports that as `error_max_turns`
+ * carrying the reply, which is this route's normal terminal for a tool-calling
+ * answer rather than a failure. Fixed rather than configurable because it is
+ * what makes one query one model response.
  */
-export const MAX_TURNS = 2
+export const MAX_TURNS = 1
+
+/** Names a request that offers no tools accepts in a reply: none. */
+const NO_OFFERED_TOOLS: ReadonlySet<string> = new Set()
 
 /** Permission posture: never prompt, and deny anything not pre-approved. */
 export const PERMISSION_MODE = 'dontAsk'
@@ -83,6 +94,8 @@ export interface ClaudeCodeQuerySpec {
   readonly model: ClaudeCodeModel
   /** The rendered system prompt and prompt text. */
   readonly rendered: RenderedRequest
+  /** The request's tools as an in-process MCP server, absent when it offers none. */
+  readonly offer: ToolOffer | undefined
   /** Exact CLI path resolved through the subprocess seam. */
   readonly executable: string
   /** Directory the CLI process runs in. */
@@ -101,8 +114,8 @@ export interface ClaudeCodeQuerySpec {
  * `includePartialMessages` is what keeps the idle watchdog armed: the product
  * takes seconds to answer, and its partial assistant events are the only
  * evidence the installation is alive before the result arrives.
- * @param spec - resolved route facts, rendered prompt, and process ownership.
- * @returns options that give the product the harness prompt and nothing else.
+ * @param spec - resolved route facts, rendered prompt, tool offer, and process ownership.
+ * @returns options that give the product the harness prompt, the harness tools, and nothing else.
  */
 export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
   return {
@@ -113,16 +126,16 @@ export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
     // The harness prompt is the prompt: a custom string replaces the product's
     // own preset instead of appending to it.
     systemPrompt: spec.rendered.systemPrompt,
-    outputFormat: { type: 'json_schema', schema: RESPONSE_SCHEMA },
     includePartialMessages: true,
     maxTurns: MAX_TURNS,
     permissionMode: PERMISSION_MODE,
-    // No tools, no MCP, no filesystem settings, no persisted session: the
-    // product answers one prompt and touches nothing else.
+    // The product's own tools stay off, and the only names it may call are the
+    // harness tools this request offered. No filesystem settings and no
+    // persisted session: the query reads nothing else and leaves nothing.
     tools: [],
-    allowedTools: [],
+    allowedTools: spec.offer === undefined ? [] : [...spec.offer.allowedTools],
     disallowedTools: ['AskUserQuestion'],
-    mcpServers: {},
+    mcpServers: spec.offer === undefined ? {} : { [MCP_SERVER_NAME]: spec.offer.server },
     strictMcpConfig: true,
     settingSources: [],
     persistSession: false,
@@ -146,20 +159,29 @@ function thrown(value: unknown): Error {
 }
 
 /**
- * Close the query, terminate the managed process tree, and wait for the
- * subprocess owner to prove it is gone.
+ * Close the query and the tool server it was offered, terminate the managed
+ * process tree, and wait for the subprocess owner to prove it is gone.
  * @param query - the published SDK query, when creation reached that point.
  * @param child - the shared handle owning the CLI process tree, when the SDK spawned one.
+ * @param offer - the request's tool offer, when it carried tools.
  */
 export async function disposeQuery(
   query: Pick<Query, 'close'> | undefined,
   child: SubprocessHandle | undefined,
+  offer?: Pick<ToolOffer, 'close'>,
 ): Promise<void> {
   const failures: Error[] = []
   try {
     query?.close()
   } catch (error: unknown) {
     failures.push(thrown(error))
+  }
+  if (offer !== undefined) {
+    try {
+      await offer.close()
+    } catch (error: unknown) {
+      failures.push(thrown(error))
+    }
   }
   if (child !== undefined && child.pid > 0) {
     child.terminate()
@@ -254,6 +276,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
   private async runQuery(options: GenerateOptions): Promise<StreamChunk[]> {
     const model = this.entry(options.model)
     const rendered = renderRequest(options)
+    const offer = toolOffer(options.tools ?? [])
     const executable = await this.resolveExecutable(options.signal)
     const consumer = new AbortController()
     const upstream = options.signal === undefined
@@ -270,6 +293,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     let child: SubprocessHandle | undefined
     let query: Query | undefined
     let result: SDKResultMessage | undefined
+    const assistants: SDKAssistantMessage[] = []
     try {
       query = officialQuery({
         prompt: rendered.prompt,
@@ -277,6 +301,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
           options: this.options,
           model,
           rendered,
+          offer,
           executable,
           cwd: this.deps.cwd(),
           controller,
@@ -289,20 +314,28 @@ export class ClaudeCodeAdapter extends LlmAdapter {
         const next = await watchdog.next(iterator)
         if (next.done) break
         if (next.value.type === 'result') result = next.value
+        if (next.value.type === 'assistant') assistants.push(next.value)
       }
     } catch (error: unknown) {
-      throw this.queryFailure(error, options.signal, watchdog.signal)
+      const failure = this.queryFailure(error, options.signal, watchdog.signal)
+      // The SDK reports a failed result by publishing it and then throwing. A
+      // throw that follows a result is a second account of the same query, and
+      // the result is the better one. Cancellation and idle expiry are the
+      // exception: the harness stopped this query, so its own reason outranks
+      // whatever the product managed to publish.
+      if (result === undefined || failure.code !== TRANSPORT_CODE) throw failure
     } finally {
       watchdog.signal.removeEventListener('abort', cancelQuery)
       consumer.abort(new Error('llm-claude-code: query consumer stopped'))
-      await disposeQuery(query, child)
+      await disposeQuery(query, child, offer)
     }
 
     if (result === undefined) {
       throw new LlmError('llm-claude-code: the query ended without a result', 'STREAM_CLOSED')
     }
-    if (result.subtype !== 'success' || result.is_error) throw resultFailure(result)
-    return answerChunks(parseAnswer(result.structured_output), result.usage, result.uuid)
+    if (!deliversAnswer(result, assistants)) throw resultFailure(result)
+    const answer = parseAnswer(assistants, offer?.names ?? NO_OFFERED_TOOLS)
+    return answerChunks(answer, result.usage, result.uuid)
   }
 
   /** Resolve the installation's CLI, naming the fix when the host has none. */
@@ -336,7 +369,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     // said; the durable failure carries the message, not the live cause.
     return new LlmError(
       `llm-claude-code: the query failed: ${errorChain(error)}`,
-      'TRANSPORT',
+      TRANSPORT_CODE,
       { cause: error },
     )
   }
