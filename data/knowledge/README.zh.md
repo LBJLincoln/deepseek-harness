@@ -43,5 +43,6 @@ node data/knowledge/tools/build-pack.mjs data/knowledge/2026-q3 --sweeps /path/t
 | 知识包 | 时间窗口 | 来源 | 主题 | 条目 |
 | --- | --- | --- | --- | --- |
 | [2026-q3](2026-q3/manifest.json) | 2026-06-01 至 2026-09-07 | GitHub、Hugging Face、arXiv | 8 | 103 |
+| [2026-09-fortnight](2026-09-fortnight/manifest.json) | 2026-08-24 至 2026-09-07 | 一次 Sakana 与路由的深入调研；全部来源按双周分辨率重扫 | 3 | 63 |
 
-2026-q3 知识包的主题为：harness 全景、来自可验证奖励的强化学习、20B 至 200B 级别的开放权重模型、环境与评测、agent 数据管线、多 agent 舰队、上下文与 KV cache，以及通用模型在欧盟 AI 法案下的义务。[扫描决策说明](../../.agents/notes/proposed/architecture/2026-09-07-q3-knowledge-sweep-decisions.md)记录了实验室据此做出的决定。
+2026-q3 知识包的主题为：harness 全景、来自可验证奖励的强化学习、20B 至 200B 级别的开放权重模型、环境与评测、agent 数据管线、多 agent 舰队、上下文与 KV cache，以及通用模型在欧盟 AI 法案下的义务。[扫描决策说明](../../.agents/notes/proposed/architecture/2026-09-07-q3-knowledge-sweep-decisions.md)记录了实验室据此做出的决定。2026-09-fortnight 知识包以更高分辨率重读该窗口的最后两周：季度扫描在这两周里漏掉了三次前沿模型发布、一次会破坏朴素回放的 API 变更，以及[假设检验计划](../../.agents/notes/proposed/architecture/2026-09-07-hypothesis-program.md)所要检验的路由结果；其主题为路由与交接、前沿与 API 变化，以及奖励完整性与训练约束。
