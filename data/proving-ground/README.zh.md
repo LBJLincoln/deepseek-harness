@@ -94,6 +94,18 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:stable-sort-by` | 2 之 2 | 各 1 | 172 与 75 s |
 | [2026-09-07-bench-h1-harness-loop-t2](2026-09-07-bench-h1-harness-loop-t2/manifest.json) | `e608c8502` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:table-format` | 2 之 2 | 各 1 | 109 与 209 s |
 
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:bitset-bloom` | 2 之 2 | 各 1 | 176 与 74 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:cron-next` | 2 之 2 | 各 1 | 176 与 122 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:job-scheduler` | 2 之 2 | 各 1 | 122 与 175 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:markdown-inline` | 2 之 2 | 各 1 | 174 与 86 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:query-string` | 2 之 2 | 各 1 | 293 与 182 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:shell-words` | 2 之 2 | 各 1 | 106 与 68 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:template-engine` | 2 之 2 | 各 1 | 97 与 137 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:text-diff` | 2 之 2 | 各 1 | 255 与 216 s |
+| [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:token-bucket` | 2 之 2 | 各 1 | 252 与 204 s |
+
+第十份记录完成了 harness 循环对第 2 至 4 层的一遍运行：九个第 4 层环境，十八个单元，每个都在一次尝试内获得认证，每个单元 68 至 293 s，中位数 175 s，同时运行两个单元共用时 1467 s，平均每个单元 13.2 个模型步骤，214,397 个输出 token，655,134 个缓存读取与 4,024,446 个缓存写入 token。在这一层上产品自身循环是更快的实现者：与第六份记录逐单元对照，harness 循环在 18 对中只有 6 对更快，其单元合计用时 2915 s，对方为 2292 s。第 4 层交给实现者的是一个带预埋缺陷的模块，harness 循环在其上花费的短步骤比其他层更多；而每一步都是一个新的产品进程，把整个前缀重新写入缓存，墙上时间与缓存写入 token 都耗在这里。三层合计，两种实现者都以每个一次尝试认证了 48 之 48 个单元，harness 循环在第 2、3 层更快，在第 4 层更慢。
+
 第九份记录是 harness 循环在第四份记录用产品自身循环测过的同六个第 2 层环境上的舰队运行：十二个单元，每个都在一次尝试内获得认证，每个单元 37 至 481 s，中位数 116 s，同时运行两个单元共用时 979 s，平均每个单元 7.6 个模型步骤，158,899 个输出 token，255,502 个缓存读取与 884,168 个缓存写入 token。与第四份记录逐单元对照（同一环境与同一重复，但来自不同舰队而非同一个冻结计划），harness 循环在 12 对中的 9 对更快，其单元合计用时 1786 s，产品自身循环为 1932 s。
 
 第八份记录是假设计划的第一个冻结配对实验（摘要 `4c9659e3…`）：以 harness 自身在 Claude Code 路由上的循环为基线臂，以产品自身的循环为候选臂，两侧使用同一个模型，覆盖未被保留的九个第 3 层环境，每个重复两次，种子 1，共 36 个单元，同时运行两个单元共用时 4194 s。两臂都以每个一次尝试认证了 18 之 18 个单元，因此证书率之差为 0，自助区间为 [0, 0]，在 0.05 的最小差值下结论为不确定：在这一层上，就证书而言 harness 循环既不优于也不劣于产品循环，这驳斥了"harness 循环在这些任务上输给产品循环"的假设，也不支持"它胜出"的假设。墙上时间同样持平：harness 循环在 18 对中的 11 对更快，其单元中位数为 164 s，对方为 179 s，两臂总计相差不到百分之一。harness 循环的花费有据可查，因为它的查询经过 harness：200 次查询共 352,494 个输出 token 与 553,676 个缓存读取 token，但缓存写入 token 达 3,005,288 个，因为每次查询都新开一个产品会话，其前缀被再次写入缓存而不是从缓存读取；产品循环每个单元只保持一个会话，这笔开销只付一次。产品臂的花费不在这份记录中：把单元模型转发给子进程并记录其报告用量与费用的切片是在运行开始后才合并的（清单的头部包含它，运行本身不包含），因此下一个配对实验将同时记录两臂的花费。

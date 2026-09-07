@@ -1,0 +1,1856 @@
+{
+  "type": "result",
+  "plan": "h1-harness-loop-sonnet-t4",
+  "environments": [
+    "code:bitset-bloom",
+    "code:cron-next",
+    "code:job-scheduler",
+    "code:markdown-inline",
+    "code:query-string",
+    "code:shell-words",
+    "code:template-engine",
+    "code:text-diff",
+    "code:token-bucket"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-07T22:59:17.049Z",
+  "endedAt": "2026-09-07T23:23:43.855Z",
+  "report": {
+    "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:bitset-bloom",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:bitset-bloom",
+          "sessionId": "environment-6d9245be-46a6-46a2-b67d-92e552b20891",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:bitset-bloom",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "ba164e619b2b5c6c3499de5330dffca0fbd817b00ac4ac5bc1f19783fe5f41f5",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "c6f29933574d8d002ac31c234c7bee0d3a48d69e968ce5a4f44ecdb23b1c928e",
+            "contentSha256": "f2073c6ee709b7600f78c01a15f909c71adb8a62cb7b020a57757a601e7d788f",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…728\n  type: 'test'\n  ...\n# Subtest: a size that is not a multiple of the word width still holds its last bits\nok 3 - a size that is not a multiple of the word width still holds its last bits\n  ---\n  duration_ms: 3.79142\n  type: 'test'\n  ...\n# Subtest: indexes outside the set are refused\nok 4 - indexes outside the set are refused\n  ---\n  duration_ms: 1.866349\n  type: 'test'\n  ...\n# Subtest: union and intersection combine two sets of the same size\nok 5 - union and intersection combine two sets of the same size\n  ---\n  duration_ms: 0.511096\n  type: 'test'\n  ...\n# Subtest: bytes carry the low bit of each byte first\nok 6 - bytes carry the low bit of each byte first\n  ---\n  duration_ms: 0.685517\n  type: 'test'\n  ...\n# Subtest: matches a boolean array over a long random operation sequence\nok 7 - matches a boolean array over a long random operation sequence\n  ---\n  duration_ms: 19.127139\n  type: 'test'\n  ...\n# Subtest: every added value is reported as present\nok 8 - every added value is reported as present\n  ---\n  duration_ms: 7.609434\n  type: 'test'\n  ...\n# Subtest: an empty filter reports nothing and misses are usually detected\nok 9 - an empty filter reports nothing and misses are usually detected\n  ---\n  duration_ms: 4.832777\n  type: 'test'\n  ...\n# Subtest: the same values and seed produce the same bits\nok 10 - the same values and seed produce the same bits\n  ---\n  duration_ms: 6.5581\n  type: 'test'\n  ...\n# Subtest: union merges filters built the same way and refuses the rest\nok 11 - union merges filters built the same way and refuses the rest\n  ---\n  duration_ms: 1.220657\n  type: 'test'\n  ...\n# Subtest: a serialized filter round-trips through bytes\nok 12 - a serialized filter round-trips through bytes\n  ---\n  duration_ms: 3.020465\n  type: 'test'\n  ...\n# Subtest: malformed options and payloads are refused\nok 13 - malformed options and payloads are refused\n  ---\n  duration_ms: 0.858599\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 183.618475"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "fd2779fb166268f937e91cdc59475a3bd0dbfda4766f92f466636aecd50ddcf5"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-feddb69d-cf17-46cc-9de2-d6eb431c1631",
+              "revision": 1
+            },
+            "goalId": "goal-1359f14f-0519-4771-bd6c-788d6ece9754",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…728\n  type: 'test'\n  ...\n# Subtest: a size that is not a multiple of the word width still holds its last bits\nok 3 - a size that is not a multiple of the word width still holds its last bits\n  ---\n  duration_ms: 3.79142\n  type: 'test'\n  ...\n# Subtest: indexes outside the set are refused\nok 4 - indexes outside the set are refused\n  ---\n  duration_ms: 1.866349\n  type: 'test'\n  ...\n# Subtest: union and intersection combine two sets of the same size\nok 5 - union and intersection combine two sets of the same size\n  ---\n  duration_ms: 0.511096\n  type: 'test'\n  ...\n# Subtest: bytes carry the low bit of each byte first\nok 6 - bytes carry the low bit of each byte first\n  ---\n  duration_ms: 0.685517\n  type: 'test'\n  ...\n# Subtest: matches a boolean array over a long random operation sequence\nok 7 - matches a boolean array over a long random operation sequence\n  ---\n  duration_ms: 19.127139\n  type: 'test'\n  ...\n# Subtest: every added value is reported as present\nok 8 - every added value is reported as present\n  ---\n  duration_ms: 7.609434\n  type: 'test'\n  ...\n# Subtest: an empty filter reports nothing and misses are usually detected\nok 9 - an empty filter reports nothing and misses are usually detected\n  ---\n  duration_ms: 4.832777\n  type: 'test'\n  ...\n# Subtest: the same values and seed produce the same bits\nok 10 - the same values and seed produce the same bits\n  ---\n  duration_ms: 6.5581\n  type: 'test'\n  ...\n# Subtest: union merges filters built the same way and refuses the rest\nok 11 - union merges filters built the same way and refuses the rest\n  ---\n  duration_ms: 1.220657\n  type: 'test'\n  ...\n# Subtest: a serialized filter round-trips through bytes\nok 12 - a serialized filter round-trips through bytes\n  ---\n  duration_ms: 3.020465\n  type: 'test'\n  ...\n# Subtest: malformed options and payloads are refused\nok 13 - malformed options and payloads are refused\n  ---\n  duration_ms: 0.858599\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 183.618475"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822133604
+          },
+          "usage": {
+            "inputTokens": 32,
+            "outputTokens": 11096,
+            "cacheReadTokens": 42880,
+            "cacheWriteTokens": 309083
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:bitset-bloom",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:bitset-bloom",
+          "sessionId": "environment-5005a00f-5e6c-4d4d-a51b-1261821c19a0",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:bitset-bloom",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "ba164e619b2b5c6c3499de5330dffca0fbd817b00ac4ac5bc1f19783fe5f41f5",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "c6f29933574d8d002ac31c234c7bee0d3a48d69e968ce5a4f44ecdb23b1c928e",
+            "contentSha256": "f2073c6ee709b7600f78c01a15f909c71adb8a62cb7b020a57757a601e7d788f",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…9\n  type: 'test'\n  ...\n# Subtest: a size that is not a multiple of the word width still holds its last bits\nok 3 - a size that is not a multiple of the word width still holds its last bits\n  ---\n  duration_ms: 4.671525\n  type: 'test'\n  ...\n# Subtest: indexes outside the set are refused\nok 4 - indexes outside the set are refused\n  ---\n  duration_ms: 1.609968\n  type: 'test'\n  ...\n# Subtest: union and intersection combine two sets of the same size\nok 5 - union and intersection combine two sets of the same size\n  ---\n  duration_ms: 0.34171\n  type: 'test'\n  ...\n# Subtest: bytes carry the low bit of each byte first\nok 6 - bytes carry the low bit of each byte first\n  ---\n  duration_ms: 0.482686\n  type: 'test'\n  ...\n# Subtest: matches a boolean array over a long random operation sequence\nok 7 - matches a boolean array over a long random operation sequence\n  ---\n  duration_ms: 14.229021\n  type: 'test'\n  ...\n# Subtest: every added value is reported as present\nok 8 - every added value is reported as present\n  ---\n  duration_ms: 4.226187\n  type: 'test'\n  ...\n# Subtest: an empty filter reports nothing and misses are usually detected\nok 9 - an empty filter reports nothing and misses are usually detected\n  ---\n  duration_ms: 2.880957\n  type: 'test'\n  ...\n# Subtest: the same values and seed produce the same bits\nok 10 - the same values and seed produce the same bits\n  ---\n  duration_ms: 3.402371\n  type: 'test'\n  ...\n# Subtest: union merges filters built the same way and refuses the rest\nok 11 - union merges filters built the same way and refuses the rest\n  ---\n  duration_ms: 1.102388\n  type: 'test'\n  ...\n# Subtest: a serialized filter round-trips through bytes\nok 12 - a serialized filter round-trips through bytes\n  ---\n  duration_ms: 3.030273\n  type: 'test'\n  ...\n# Subtest: malformed options and payloads are refused\nok 13 - malformed options and payloads are refused\n  ---\n  duration_ms: 0.745908\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 164.028074"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "fd2779fb166268f937e91cdc59475a3bd0dbfda4766f92f466636aecd50ddcf5"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-688bba01-fed2-47f9-ba94-7bea894e7d6c",
+              "revision": 1
+            },
+            "goalId": "goal-06921b7a-2d3b-4960-ae59-4645902bcc6e",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…9\n  type: 'test'\n  ...\n# Subtest: a size that is not a multiple of the word width still holds its last bits\nok 3 - a size that is not a multiple of the word width still holds its last bits\n  ---\n  duration_ms: 4.671525\n  type: 'test'\n  ...\n# Subtest: indexes outside the set are refused\nok 4 - indexes outside the set are refused\n  ---\n  duration_ms: 1.609968\n  type: 'test'\n  ...\n# Subtest: union and intersection combine two sets of the same size\nok 5 - union and intersection combine two sets of the same size\n  ---\n  duration_ms: 0.34171\n  type: 'test'\n  ...\n# Subtest: bytes carry the low bit of each byte first\nok 6 - bytes carry the low bit of each byte first\n  ---\n  duration_ms: 0.482686\n  type: 'test'\n  ...\n# Subtest: matches a boolean array over a long random operation sequence\nok 7 - matches a boolean array over a long random operation sequence\n  ---\n  duration_ms: 14.229021\n  type: 'test'\n  ...\n# Subtest: every added value is reported as present\nok 8 - every added value is reported as present\n  ---\n  duration_ms: 4.226187\n  type: 'test'\n  ...\n# Subtest: an empty filter reports nothing and misses are usually detected\nok 9 - an empty filter reports nothing and misses are usually detected\n  ---\n  duration_ms: 2.880957\n  type: 'test'\n  ...\n# Subtest: the same values and seed produce the same bits\nok 10 - the same values and seed produce the same bits\n  ---\n  duration_ms: 3.402371\n  type: 'test'\n  ...\n# Subtest: union merges filters built the same way and refuses the rest\nok 11 - union merges filters built the same way and refuses the rest\n  ---\n  duration_ms: 1.102388\n  type: 'test'\n  ...\n# Subtest: a serialized filter round-trips through bytes\nok 12 - a serialized filter round-trips through bytes\n  ---\n  duration_ms: 3.030273\n  type: 'test'\n  ...\n# Subtest: malformed options and payloads are refused\nok 13 - malformed options and payloads are refused\n  ---\n  duration_ms: 0.745908\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 164.028074"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822031541
+          },
+          "usage": {
+            "inputTokens": 20,
+            "outputTokens": 3653,
+            "cacheReadTokens": 26800,
+            "cacheWriteTokens": 98619
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:cron-next",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:cron-next",
+          "sessionId": "environment-5e585c43-049a-4f03-b991-6685d1728c18",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:cron-next",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "1691a9535673e65d272eff50598a03004a1363f987fce9d18c47f89586e61af8",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "30e96e1ffa3403a15c49d4a919b0fc0135406d1e41e4b91e75f865d9632196d9",
+            "contentSha256": "b89694c172ff3a780ae5a003334516ca32f81bc12c8ab7819bed51bb90ad7878",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: a bare expression covers every value\nok 1 - a bare expression covers every value\n  ---\n  duration_ms: 4.905958\n  type: 'test'\n  ...\n# Subtest: lists, ranges and steps expand to sorted values\nok 2 - lists, ranges and steps expand to sorted values\n  ---\n  duration_ms: 1.29981\n  type: 'test'\n  ...\n# Subtest: names are case-insensitive and Sunday has two numbers\nok 3 - names are case-insensitive and Sunday has two numbers\n  ---\n  duration_ms: 0.598112\n  type: 'test'\n  ...\n# Subtest: only a bare asterisk leaves a day field unrestricted\nok 4 - only a bare asterisk leaves a day field unrestricted\n  ---\n  duration_ms: 0.397414\n  type: 'test'\n  ...\n# Subtest: malformed expressions are rejected\nok 5 - malformed expressions are rejected\n  ---\n  duration_ms: 2.615374\n  type: 'test'\n  ...\n# Subtest: matches ignores seconds and reads the date in UTC\nok 6 - matches ignores seconds and reads the date in UTC\n  ---\n  duration_ms: 0.640964\n  type: 'test'\n  ...\n# Subtest: a restricted day of month and day of week are combined with or\nok 7 - a restricted day of month and day of week are combined with or\n  ---\n  duration_ms: 1.035976\n  type: 'test'\n  ...\n# Subtest: next lands on the following occurrence, never on the start\nok 8 - next lands on the following occurrence, never on the start\n  ---\n  duration_ms: 1.628531\n  type: 'test'\n  ...\n# Subtest: a schedule that never fires is reported\nok 9 - a schedule that never fires is reported\n  ---\n  duration_ms: 0.932147\n  type: 'test'\n  ...\n# Subtest: repeated calls walk the schedule in order\nok 10 - repeated calls walk the schedule in order\n  ---\n  duration_ms: 5.281526\n  type: 'test'\n  ...\n# Subtest: next agrees with a minute-by-minute scan\nok 11 - next agrees with a minute-by-minute scan\n  ---\n  duration_ms: 317.459742\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 476.845277"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "ba56485af5a2de40a296f65e267ed94172992df7cbc1513e875401d7bcb34606"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-0ac0eb75-2b1c-4e00-b90e-9810cb596d3e",
+              "revision": 1
+            },
+            "goalId": "goal-0e724ec0-72d7-40e7-b72f-55c6b88d373c",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: a bare expression covers every value\nok 1 - a bare expression covers every value\n  ---\n  duration_ms: 4.905958\n  type: 'test'\n  ...\n# Subtest: lists, ranges and steps expand to sorted values\nok 2 - lists, ranges and steps expand to sorted values\n  ---\n  duration_ms: 1.29981\n  type: 'test'\n  ...\n# Subtest: names are case-insensitive and Sunday has two numbers\nok 3 - names are case-insensitive and Sunday has two numbers\n  ---\n  duration_ms: 0.598112\n  type: 'test'\n  ...\n# Subtest: only a bare asterisk leaves a day field unrestricted\nok 4 - only a bare asterisk leaves a day field unrestricted\n  ---\n  duration_ms: 0.397414\n  type: 'test'\n  ...\n# Subtest: malformed expressions are rejected\nok 5 - malformed expressions are rejected\n  ---\n  duration_ms: 2.615374\n  type: 'test'\n  ...\n# Subtest: matches ignores seconds and reads the date in UTC\nok 6 - matches ignores seconds and reads the date in UTC\n  ---\n  duration_ms: 0.640964\n  type: 'test'\n  ...\n# Subtest: a restricted day of month and day of week are combined with or\nok 7 - a restricted day of month and day of week are combined with or\n  ---\n  duration_ms: 1.035976\n  type: 'test'\n  ...\n# Subtest: next lands on the following occurrence, never on the start\nok 8 - next lands on the following occurrence, never on the start\n  ---\n  duration_ms: 1.628531\n  type: 'test'\n  ...\n# Subtest: a schedule that never fires is reported\nok 9 - a schedule that never fires is reported\n  ---\n  duration_ms: 0.932147\n  type: 'test'\n  ...\n# Subtest: repeated calls walk the schedule in order\nok 10 - repeated calls walk the schedule in order\n  ---\n  duration_ms: 5.281526\n  type: 'test'\n  ...\n# Subtest: next agrees with a minute-by-minute scan\nok 11 - next agrees with a minute-by-minute scan\n  ---\n  duration_ms: 317.459742\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 476.845277"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822207499
+          },
+          "usage": {
+            "inputTokens": 20,
+            "outputTokens": 13812,
+            "cacheReadTokens": 26800,
+            "cacheWriteTokens": 142757
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:cron-next",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:cron-next",
+          "sessionId": "environment-583e3957-23c2-4cac-907e-6b3b36203639",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:cron-next",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "1691a9535673e65d272eff50598a03004a1363f987fce9d18c47f89586e61af8",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "30e96e1ffa3403a15c49d4a919b0fc0135406d1e41e4b91e75f865d9632196d9",
+            "contentSha256": "b89694c172ff3a780ae5a003334516ca32f81bc12c8ab7819bed51bb90ad7878",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: a bare expression covers every value\nok 1 - a bare expression covers every value\n  ---\n  duration_ms: 4.506583\n  type: 'test'\n  ...\n# Subtest: lists, ranges and steps expand to sorted values\nok 2 - lists, ranges and steps expand to sorted values\n  ---\n  duration_ms: 1.208913\n  type: 'test'\n  ...\n# Subtest: names are case-insensitive and Sunday has two numbers\nok 3 - names are case-insensitive and Sunday has two numbers\n  ---\n  duration_ms: 0.491469\n  type: 'test'\n  ...\n# Subtest: only a bare asterisk leaves a day field unrestricted\nok 4 - only a bare asterisk leaves a day field unrestricted\n  ---\n  duration_ms: 0.255898\n  type: 'test'\n  ...\n# Subtest: malformed expressions are rejected\nok 5 - malformed expressions are rejected\n  ---\n  duration_ms: 3.605804\n  type: 'test'\n  ...\n# Subtest: matches ignores seconds and reads the date in UTC\nok 6 - matches ignores seconds and reads the date in UTC\n  ---\n  duration_ms: 0.5924\n  type: 'test'\n  ...\n# Subtest: a restricted day of month and day of week are combined with or\nok 7 - a restricted day of month and day of week are combined with or\n  ---\n  duration_ms: 0.947801\n  type: 'test'\n  ...\n# Subtest: next lands on the following occurrence, never on the start\nok 8 - next lands on the following occurrence, never on the start\n  ---\n  duration_ms: 1.43263\n  type: 'test'\n  ...\n# Subtest: a schedule that never fires is reported\nok 9 - a schedule that never fires is reported\n  ---\n  duration_ms: 0.822794\n  type: 'test'\n  ...\n# Subtest: repeated calls walk the schedule in order\nok 10 - repeated calls walk the schedule in order\n  ---\n  duration_ms: 6.29925\n  type: 'test'\n  ...\n# Subtest: next agrees with a minute-by-minute scan\nok 11 - next agrees with a minute-by-minute scan\n  ---\n  duration_ms: 349.189633\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 532.588904"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "b3c2fef851fbb40176bf021bc3cc1c81c91d12fcebfe525579592f5a46749c28"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-8ca516eb-a235-416d-a040-1048d55542ed",
+              "revision": 1
+            },
+            "goalId": "goal-efa4fb92-e89d-4485-be02-e488af50ff82",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: a bare expression covers every value\nok 1 - a bare expression covers every value\n  ---\n  duration_ms: 4.506583\n  type: 'test'\n  ...\n# Subtest: lists, ranges and steps expand to sorted values\nok 2 - lists, ranges and steps expand to sorted values\n  ---\n  duration_ms: 1.208913\n  type: 'test'\n  ...\n# Subtest: names are case-insensitive and Sunday has two numbers\nok 3 - names are case-insensitive and Sunday has two numbers\n  ---\n  duration_ms: 0.491469\n  type: 'test'\n  ...\n# Subtest: only a bare asterisk leaves a day field unrestricted\nok 4 - only a bare asterisk leaves a day field unrestricted\n  ---\n  duration_ms: 0.255898\n  type: 'test'\n  ...\n# Subtest: malformed expressions are rejected\nok 5 - malformed expressions are rejected\n  ---\n  duration_ms: 3.605804\n  type: 'test'\n  ...\n# Subtest: matches ignores seconds and reads the date in UTC\nok 6 - matches ignores seconds and reads the date in UTC\n  ---\n  duration_ms: 0.5924\n  type: 'test'\n  ...\n# Subtest: a restricted day of month and day of week are combined with or\nok 7 - a restricted day of month and day of week are combined with or\n  ---\n  duration_ms: 0.947801\n  type: 'test'\n  ...\n# Subtest: next lands on the following occurrence, never on the start\nok 8 - next lands on the following occurrence, never on the start\n  ---\n  duration_ms: 1.43263\n  type: 'test'\n  ...\n# Subtest: a schedule that never fires is reported\nok 9 - a schedule that never fires is reported\n  ---\n  duration_ms: 0.822794\n  type: 'test'\n  ...\n# Subtest: repeated calls walk the schedule in order\nok 10 - repeated calls walk the schedule in order\n  ---\n  duration_ms: 6.29925\n  type: 'test'\n  ...\n# Subtest: next agrees with a minute-by-minute scan\nok 11 - next agrees with a minute-by-minute scan\n  ---\n  duration_ms: 349.189633\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 532.588904"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822255768
+          },
+          "usage": {
+            "inputTokens": 22,
+            "outputTokens": 8617,
+            "cacheReadTokens": 31599,
+            "cacheWriteTokens": 161143
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:job-scheduler",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:job-scheduler",
+          "sessionId": "environment-5b2469c2-433d-44be-8fa6-4271f7a2b4dd",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:job-scheduler",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "461bdd11b81c308c76cf771fc3ed249d07d0e6fa4f7fbe03c4e0e26c511a45d7",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "2e48126b217adffde469045a255880d763ff1678e4368275f202e3557bae482f",
+            "contentSha256": "e01eaf4192712a7edadac5f9353defd8a81fac04acda0b2f99d6583f0528d40e",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ubtest: equal priorities break ties by deadline and then by id\nok 4 - equal priorities break ties by deadline and then by id\n  ---\n  duration_ms: 0.726322\n  type: 'test'\n  ...\n# Subtest: a job may start exactly on its deadline but not after\nok 5 - a job may start exactly on its deadline but not after\n  ---\n  duration_ms: 0.60881\n  type: 'test'\n  ...\n# Subtest: a dependency must finish before its dependant starts\nok 6 - a dependency must finish before its dependant starts\n  ---\n  duration_ms: 0.3763\n  type: 'test'\n  ...\n# Subtest: a job waits for its release time even when a worker is free\nok 7 - a job waits for its release time even when a worker is free\n  ---\n  duration_ms: 0.288014\n  type: 'test'\n  ...\n# Subtest: two workers run two jobs at once\nok 8 - two workers run two jobs at once\n  ---\n  duration_ms: 0.314587\n  type: 'test'\n  ...\n# Subtest: cancelling a job blocks everything downstream of it\nok 9 - cancelling a job blocks everything downstream of it\n  ---\n  duration_ms: 0.634538\n  type: 'test'\n  ...\n# Subtest: a running job cannot be cancelled\nok 10 - a running job cannot be cancelled\n  ---\n  duration_ms: 0.575825\n  type: 'test'\n  ...\n# Subtest: a missed job blocks everything downstream of it\nok 11 - a missed job blocks everything downstream of it\n  ---\n  duration_ms: 0.363708\n  type: 'test'\n  ...\n# Subtest: a job submitted after its dependency failed is born blocked\nok 12 - a job submitted after its dependency failed is born blocked\n  ---\n  duration_ms: 0.169985\n  type: 'test'\n  ...\n# Subtest: submission is validated\nok 13 - submission is validated\n  ---\n  duration_ms: 0.925417\n  type: 'test'\n  ...\n# Subtest: the event log and job views are copies\nok 14 - the event log and job views are copies\n  ---\n  duration_ms: 0.272616\n  type: 'test'\n  ...\n# Subtest: generated schedules keep every invariant\nok 15 - generated schedules keep every invariant\n  ---\n  duration_ms: 8.230168\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 144.985008"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "c0de89c0dd0491b67093aa576ffaebf027b56d162dbe7ea7c1279ce8b7aa6692"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-ec9296d8-1a8d-4885-93e7-2da345db9254",
+              "revision": 1
+            },
+            "goalId": "goal-0bbb0440-9bf3-4dc1-9764-c5b525f440fa",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ubtest: equal priorities break ties by deadline and then by id\nok 4 - equal priorities break ties by deadline and then by id\n  ---\n  duration_ms: 0.726322\n  type: 'test'\n  ...\n# Subtest: a job may start exactly on its deadline but not after\nok 5 - a job may start exactly on its deadline but not after\n  ---\n  duration_ms: 0.60881\n  type: 'test'\n  ...\n# Subtest: a dependency must finish before its dependant starts\nok 6 - a dependency must finish before its dependant starts\n  ---\n  duration_ms: 0.3763\n  type: 'test'\n  ...\n# Subtest: a job waits for its release time even when a worker is free\nok 7 - a job waits for its release time even when a worker is free\n  ---\n  duration_ms: 0.288014\n  type: 'test'\n  ...\n# Subtest: two workers run two jobs at once\nok 8 - two workers run two jobs at once\n  ---\n  duration_ms: 0.314587\n  type: 'test'\n  ...\n# Subtest: cancelling a job blocks everything downstream of it\nok 9 - cancelling a job blocks everything downstream of it\n  ---\n  duration_ms: 0.634538\n  type: 'test'\n  ...\n# Subtest: a running job cannot be cancelled\nok 10 - a running job cannot be cancelled\n  ---\n  duration_ms: 0.575825\n  type: 'test'\n  ...\n# Subtest: a missed job blocks everything downstream of it\nok 11 - a missed job blocks everything downstream of it\n  ---\n  duration_ms: 0.363708\n  type: 'test'\n  ...\n# Subtest: a job submitted after its dependency failed is born blocked\nok 12 - a job submitted after its dependency failed is born blocked\n  ---\n  duration_ms: 0.169985\n  type: 'test'\n  ...\n# Subtest: submission is validated\nok 13 - submission is validated\n  ---\n  duration_ms: 0.925417\n  type: 'test'\n  ...\n# Subtest: the event log and job views are copies\nok 14 - the event log and job views are copies\n  ---\n  duration_ms: 0.272616\n  type: 'test'\n  ...\n# Subtest: generated schedules keep every invariant\nok 15 - generated schedules keep every invariant\n  ---\n  duration_ms: 8.230168\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 144.985008"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822329775
+          },
+          "usage": {
+            "inputTokens": 30,
+            "outputTokens": 6680,
+            "cacheReadTokens": 40200,
+            "cacheWriteTokens": 268686
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:job-scheduler",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:job-scheduler",
+          "sessionId": "environment-2fc295d1-f500-4e85-bfe3-c3a7e646e22e",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:job-scheduler",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "461bdd11b81c308c76cf771fc3ed249d07d0e6fa4f7fbe03c4e0e26c511a45d7",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "2e48126b217adffde469045a255880d763ff1678e4368275f202e3557bae482f",
+            "contentSha256": "e01eaf4192712a7edadac5f9353defd8a81fac04acda0b2f99d6583f0528d40e",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…Subtest: equal priorities break ties by deadline and then by id\nok 4 - equal priorities break ties by deadline and then by id\n  ---\n  duration_ms: 2.952106\n  type: 'test'\n  ...\n# Subtest: a job may start exactly on its deadline but not after\nok 5 - a job may start exactly on its deadline but not after\n  ---\n  duration_ms: 0.487426\n  type: 'test'\n  ...\n# Subtest: a dependency must finish before its dependant starts\nok 6 - a dependency must finish before its dependant starts\n  ---\n  duration_ms: 0.618028\n  type: 'test'\n  ...\n# Subtest: a job waits for its release time even when a worker is free\nok 7 - a job waits for its release time even when a worker is free\n  ---\n  duration_ms: 0.251209\n  type: 'test'\n  ...\n# Subtest: two workers run two jobs at once\nok 8 - two workers run two jobs at once\n  ---\n  duration_ms: 0.312214\n  type: 'test'\n  ...\n# Subtest: cancelling a job blocks everything downstream of it\nok 9 - cancelling a job blocks everything downstream of it\n  ---\n  duration_ms: 0.58356\n  type: 'test'\n  ...\n# Subtest: a running job cannot be cancelled\nok 10 - a running job cannot be cancelled\n  ---\n  duration_ms: 1.36676\n  type: 'test'\n  ...\n# Subtest: a missed job blocks everything downstream of it\nok 11 - a missed job blocks everything downstream of it\n  ---\n  duration_ms: 0.397511\n  type: 'test'\n  ...\n# Subtest: a job submitted after its dependency failed is born blocked\nok 12 - a job submitted after its dependency failed is born blocked\n  ---\n  duration_ms: 0.195573\n  type: 'test'\n  ...\n# Subtest: submission is validated\nok 13 - submission is validated\n  ---\n  duration_ms: 2.25322\n  type: 'test'\n  ...\n# Subtest: the event log and job views are copies\nok 14 - the event log and job views are copies\n  ---\n  duration_ms: 0.237322\n  type: 'test'\n  ...\n# Subtest: generated schedules keep every invariant\nok 15 - generated schedules keep every invariant\n  ---\n  duration_ms: 13.95893\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 219.96887"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "c0de89c0dd0491b67093aa576ffaebf027b56d162dbe7ea7c1279ce8b7aa6692"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-acada973-2295-4b10-b46d-38aabd04a2e3",
+              "revision": 1
+            },
+            "goalId": "goal-3e3d85fb-3123-4787-b982-4ee5f91f469a",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…Subtest: equal priorities break ties by deadline and then by id\nok 4 - equal priorities break ties by deadline and then by id\n  ---\n  duration_ms: 2.952106\n  type: 'test'\n  ...\n# Subtest: a job may start exactly on its deadline but not after\nok 5 - a job may start exactly on its deadline but not after\n  ---\n  duration_ms: 0.487426\n  type: 'test'\n  ...\n# Subtest: a dependency must finish before its dependant starts\nok 6 - a dependency must finish before its dependant starts\n  ---\n  duration_ms: 0.618028\n  type: 'test'\n  ...\n# Subtest: a job waits for its release time even when a worker is free\nok 7 - a job waits for its release time even when a worker is free\n  ---\n  duration_ms: 0.251209\n  type: 'test'\n  ...\n# Subtest: two workers run two jobs at once\nok 8 - two workers run two jobs at once\n  ---\n  duration_ms: 0.312214\n  type: 'test'\n  ...\n# Subtest: cancelling a job blocks everything downstream of it\nok 9 - cancelling a job blocks everything downstream of it\n  ---\n  duration_ms: 0.58356\n  type: 'test'\n  ...\n# Subtest: a running job cannot be cancelled\nok 10 - a running job cannot be cancelled\n  ---\n  duration_ms: 1.36676\n  type: 'test'\n  ...\n# Subtest: a missed job blocks everything downstream of it\nok 11 - a missed job blocks everything downstream of it\n  ---\n  duration_ms: 0.397511\n  type: 'test'\n  ...\n# Subtest: a job submitted after its dependency failed is born blocked\nok 12 - a job submitted after its dependency failed is born blocked\n  ---\n  duration_ms: 0.195573\n  type: 'test'\n  ...\n# Subtest: submission is validated\nok 13 - submission is validated\n  ---\n  duration_ms: 2.25322\n  type: 'test'\n  ...\n# Subtest: the event log and job views are copies\nok 14 - the event log and job views are copies\n  ---\n  duration_ms: 0.237322\n  type: 'test'\n  ...\n# Subtest: generated schedules keep every invariant\nok 15 - generated schedules keep every invariant\n  ---\n  duration_ms: 13.95893\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 219.96887"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822430747
+          },
+          "usage": {
+            "inputTokens": 42,
+            "outputTokens": 10134,
+            "cacheReadTokens": 58541,
+            "cacheWriteTokens": 390403
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:markdown-inline",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:markdown-inline",
+          "sessionId": "environment-47eb3ec8-5717-468d-9c27-ce2b772adb25",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:markdown-inline",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "3b330826ebb522a82036aabf9b4a9150a3203b01e1e665c0dc4caa2bdae9838f",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "bf464d743487573ecff6fa0c0aec717969f298d7c4db6604de74b1b2a7744080",
+            "contentSha256": "abd54ead7ff49e64096de83568eb7a956b750e6a32ac79bbea18fa925b676824",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: ordinary text is escaped for HTML\nok 1 - ordinary text is escaped for HTML\n  ---\n  duration_ms: 3.610408\n  type: 'test'\n  ...\n# Subtest: backslash escapes remove markup meaning\nok 2 - backslash escapes remove markup meaning\n  ---\n  duration_ms: 0.602296\n  type: 'test'\n  ...\n# Subtest: code spans close on a run of the same length\nok 3 - code spans close on a run of the same length\n  ---\n  duration_ms: 0.388089\n  type: 'test'\n  ...\n# Subtest: a code span drops at most one space from each end\nok 4 - a code span drops at most one space from each end\n  ---\n  duration_ms: 0.273378\n  type: 'test'\n  ...\n# Subtest: emphasis pairs delimiter runs\nok 5 - emphasis pairs delimiter runs\n  ---\n  duration_ms: 0.542763\n  type: 'test'\n  ...\n# Subtest: an underscore inside a word is not emphasis\nok 6 - an underscore inside a word is not emphasis\n  ---\n  duration_ms: 0.423192\n  type: 'test'\n  ...\n# Subtest: inline links carry a destination and an optional title\nok 7 - inline links carry a destination and an optional title\n  ---\n  duration_ms: 0.926236\n  type: 'test'\n  ...\n# Subtest: link destinations keep the escapes they already carry\nok 8 - link destinations keep the escapes they already carry\n  ---\n  duration_ms: 0.352454\n  type: 'test'\n  ...\n# Subtest: autolinks cover absolute URIs and email addresses\nok 9 - autolinks cover absolute URIs and email addresses\n  ---\n  duration_ms: 0.67043\n  type: 'test'\n  ...\n# Subtest: constructs combine without leaking markup\nok 10 - constructs combine without leaking markup\n  ---\n  duration_ms: 0.579936\n  type: 'test'\n  ...\n# Subtest: a paragraph of mixed markup renders as a whole\nok 11 - a paragraph of mixed markup renders as a whole\n  ---\n  duration_ms: 0.504808\n  type: 'test'\n  ...\n# Subtest: generated plain text renders as escaped text\nok 12 - generated plain text renders as escaped text\n  ---\n  duration_ms: 3.700635\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 129.169646"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "0523f662b55015c5bb0aa1c44fbc1de604242b22cdc4028562c86f52d82b94dc"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-09f5a771-23c2-47db-bc97-5fcc54e1c2e2",
+              "revision": 1
+            },
+            "goalId": "goal-a241869f-d0c3-4def-8f17-e8d9281dc299",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: ordinary text is escaped for HTML\nok 1 - ordinary text is escaped for HTML\n  ---\n  duration_ms: 3.610408\n  type: 'test'\n  ...\n# Subtest: backslash escapes remove markup meaning\nok 2 - backslash escapes remove markup meaning\n  ---\n  duration_ms: 0.602296\n  type: 'test'\n  ...\n# Subtest: code spans close on a run of the same length\nok 3 - code spans close on a run of the same length\n  ---\n  duration_ms: 0.388089\n  type: 'test'\n  ...\n# Subtest: a code span drops at most one space from each end\nok 4 - a code span drops at most one space from each end\n  ---\n  duration_ms: 0.273378\n  type: 'test'\n  ...\n# Subtest: emphasis pairs delimiter runs\nok 5 - emphasis pairs delimiter runs\n  ---\n  duration_ms: 0.542763\n  type: 'test'\n  ...\n# Subtest: an underscore inside a word is not emphasis\nok 6 - an underscore inside a word is not emphasis\n  ---\n  duration_ms: 0.423192\n  type: 'test'\n  ...\n# Subtest: inline links carry a destination and an optional title\nok 7 - inline links carry a destination and an optional title\n  ---\n  duration_ms: 0.926236\n  type: 'test'\n  ...\n# Subtest: link destinations keep the escapes they already carry\nok 8 - link destinations keep the escapes they already carry\n  ---\n  duration_ms: 0.352454\n  type: 'test'\n  ...\n# Subtest: autolinks cover absolute URIs and email addresses\nok 9 - autolinks cover absolute URIs and email addresses\n  ---\n  duration_ms: 0.67043\n  type: 'test'\n  ...\n# Subtest: constructs combine without leaking markup\nok 10 - constructs combine without leaking markup\n  ---\n  duration_ms: 0.579936\n  type: 'test'\n  ...\n# Subtest: a paragraph of mixed markup renders as a whole\nok 11 - a paragraph of mixed markup renders as a whole\n  ---\n  duration_ms: 0.504808\n  type: 'test'\n  ...\n# Subtest: generated plain text renders as escaped text\nok 12 - generated plain text renders as escaped text\n  ---\n  duration_ms: 3.700635\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 129.169646"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822503758
+          },
+          "usage": {
+            "inputTokens": 48,
+            "outputTokens": 9203,
+            "cacheReadTokens": 64320,
+            "cacheWriteTokens": 371525
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:markdown-inline",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:markdown-inline",
+          "sessionId": "environment-822e5e5f-4a6e-4f3a-a674-9001229a1405",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:markdown-inline",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "3b330826ebb522a82036aabf9b4a9150a3203b01e1e665c0dc4caa2bdae9838f",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "bf464d743487573ecff6fa0c0aec717969f298d7c4db6604de74b1b2a7744080",
+            "contentSha256": "abd54ead7ff49e64096de83568eb7a956b750e6a32ac79bbea18fa925b676824",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: ordinary text is escaped for HTML\nok 1 - ordinary text is escaped for HTML\n  ---\n  duration_ms: 3.183915\n  type: 'test'\n  ...\n# Subtest: backslash escapes remove markup meaning\nok 2 - backslash escapes remove markup meaning\n  ---\n  duration_ms: 0.659708\n  type: 'test'\n  ...\n# Subtest: code spans close on a run of the same length\nok 3 - code spans close on a run of the same length\n  ---\n  duration_ms: 0.417978\n  type: 'test'\n  ...\n# Subtest: a code span drops at most one space from each end\nok 4 - a code span drops at most one space from each end\n  ---\n  duration_ms: 0.334581\n  type: 'test'\n  ...\n# Subtest: emphasis pairs delimiter runs\nok 5 - emphasis pairs delimiter runs\n  ---\n  duration_ms: 0.533796\n  type: 'test'\n  ...\n# Subtest: an underscore inside a word is not emphasis\nok 6 - an underscore inside a word is not emphasis\n  ---\n  duration_ms: 0.283519\n  type: 'test'\n  ...\n# Subtest: inline links carry a destination and an optional title\nok 7 - inline links carry a destination and an optional title\n  ---\n  duration_ms: 0.846512\n  type: 'test'\n  ...\n# Subtest: link destinations keep the escapes they already carry\nok 8 - link destinations keep the escapes they already carry\n  ---\n  duration_ms: 0.26203\n  type: 'test'\n  ...\n# Subtest: autolinks cover absolute URIs and email addresses\nok 9 - autolinks cover absolute URIs and email addresses\n  ---\n  duration_ms: 0.643092\n  type: 'test'\n  ...\n# Subtest: constructs combine without leaking markup\nok 10 - constructs combine without leaking markup\n  ---\n  duration_ms: 0.518739\n  type: 'test'\n  ...\n# Subtest: a paragraph of mixed markup renders as a whole\nok 11 - a paragraph of mixed markup renders as a whole\n  ---\n  duration_ms: 0.559833\n  type: 'test'\n  ...\n# Subtest: generated plain text renders as escaped text\nok 12 - generated plain text renders as escaped text\n  ---\n  duration_ms: 3.35667\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 130.663359"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "38e7bbaa49c2d97beadaf82c7d02651433a29e1e01e506fc10cf7fc3f9bd227c"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-72342396-e040-4b1d-a27e-c2544c411312",
+              "revision": 1
+            },
+            "goalId": "goal-f3e220fd-b004-47c3-8acf-689bafdc9f7d",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: ordinary text is escaped for HTML\nok 1 - ordinary text is escaped for HTML\n  ---\n  duration_ms: 3.183915\n  type: 'test'\n  ...\n# Subtest: backslash escapes remove markup meaning\nok 2 - backslash escapes remove markup meaning\n  ---\n  duration_ms: 0.659708\n  type: 'test'\n  ...\n# Subtest: code spans close on a run of the same length\nok 3 - code spans close on a run of the same length\n  ---\n  duration_ms: 0.417978\n  type: 'test'\n  ...\n# Subtest: a code span drops at most one space from each end\nok 4 - a code span drops at most one space from each end\n  ---\n  duration_ms: 0.334581\n  type: 'test'\n  ...\n# Subtest: emphasis pairs delimiter runs\nok 5 - emphasis pairs delimiter runs\n  ---\n  duration_ms: 0.533796\n  type: 'test'\n  ...\n# Subtest: an underscore inside a word is not emphasis\nok 6 - an underscore inside a word is not emphasis\n  ---\n  duration_ms: 0.283519\n  type: 'test'\n  ...\n# Subtest: inline links carry a destination and an optional title\nok 7 - inline links carry a destination and an optional title\n  ---\n  duration_ms: 0.846512\n  type: 'test'\n  ...\n# Subtest: link destinations keep the escapes they already carry\nok 8 - link destinations keep the escapes they already carry\n  ---\n  duration_ms: 0.26203\n  type: 'test'\n  ...\n# Subtest: autolinks cover absolute URIs and email addresses\nok 9 - autolinks cover absolute URIs and email addresses\n  ---\n  duration_ms: 0.643092\n  type: 'test'\n  ...\n# Subtest: constructs combine without leaking markup\nok 10 - constructs combine without leaking markup\n  ---\n  duration_ms: 0.518739\n  type: 'test'\n  ...\n# Subtest: a paragraph of mixed markup renders as a whole\nok 11 - a paragraph of mixed markup renders as a whole\n  ---\n  duration_ms: 0.559833\n  type: 'test'\n  ...\n# Subtest: generated plain text renders as escaped text\nok 12 - generated plain text renders as escaped text\n  ---\n  duration_ms: 3.35667\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 130.663359"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822517122
+          },
+          "usage": {
+            "inputTokens": 22,
+            "outputTokens": 5425,
+            "cacheReadTokens": 31737,
+            "cacheWriteTokens": 178496
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:query-string",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:query-string",
+          "sessionId": "environment-b774528d-a657-4741-9d69-b86b9a56e4a9",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:query-string",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "ebf404e40f11dc5ee8f6c65e6995423e2ad022ea876e5a6da054a602e32b1b76",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "122b4eaf5b44a6c19f53845c28abc03e41f0b9230a9cd1e8f7622f1490c567c4",
+            "contentSha256": "536bfcd037e0b9d1f7c9d79ea60ed4dc8fa19b0796a7c18eee4935168fff0fb1",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…t'\n  ...\n# Subtest: a plus sign is a space in keys and in values\nok 3 - a plus sign is a space in keys and in values\n  ---\n  duration_ms: 0.307734\n  type: 'test'\n  ...\n# Subtest: bracket keys nest and empty brackets append\nok 4 - bracket keys nest and empty brackets append\n  ---\n  duration_ms: 0.828016\n  type: 'test'\n  ...\n# Subtest: the array limit decides between an array and an object\nok 5 - the array limit decides between an array and an object\n  ---\n  duration_ms: 0.30337\n  type: 'test'\n  ...\n# Subtest: nesting stops at the configured depth\nok 6 - nesting stops at the configured depth\n  ---\n  duration_ms: 0.275229\n  type: 'test'\n  ...\n# Subtest: parse returns a fresh result that no earlier call can see\nok 7 - parse returns a fresh result that no earlier call can see\n  ---\n  duration_ms: 0.254183\n  type: 'test'\n  ...\n# Subtest: keys that shadow Object.prototype stay own properties\nok 8 - keys that shadow Object.prototype stay own properties\n  ---\n  duration_ms: 0.335159\n  type: 'test'\n  ...\n# Subtest: stringify writes scalars, nulls and missing values\nok 9 - stringify writes scalars, nulls and missing values\n  ---\n  duration_ms: 1.049489\n  type: 'test'\n  ...\n# Subtest: stringify nests objects and formats arrays three ways\nok 10 - stringify nests objects and formats arrays three ways\n  ---\n  duration_ms: 0.636561\n  type: 'test'\n  ...\n# Subtest: sorting orders every pair by its whole written key\nok 11 - sorting orders every pair by its whole written key\n  ---\n  duration_ms: 0.314789\n  type: 'test'\n  ...\n# Subtest: bad arguments are rejected\nok 12 - bad arguments are rejected\n  ---\n  duration_ms: 0.683247\n  type: 'test'\n  ...\n# Subtest: extract takes the query out of a URL\nok 13 - extract takes the query out of a URL\n  ---\n  duration_ms: 0.138177\n  type: 'test'\n  ...\n# Subtest: generated parameters round-trip\nok 14 - generated parameters round-trip\n  ---\n  duration_ms: 23.551594\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 157.940268"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "9cda4181b1769a82ada8296f88c013d0f46eb0d59b227f39996248232237052c"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-9d811fe2-f14f-4903-996e-62bb72f206b4",
+              "revision": 1
+            },
+            "goalId": "goal-5f35706d-d490-4581-97a4-e75ffab9cbac",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…t'\n  ...\n# Subtest: a plus sign is a space in keys and in values\nok 3 - a plus sign is a space in keys and in values\n  ---\n  duration_ms: 0.307734\n  type: 'test'\n  ...\n# Subtest: bracket keys nest and empty brackets append\nok 4 - bracket keys nest and empty brackets append\n  ---\n  duration_ms: 0.828016\n  type: 'test'\n  ...\n# Subtest: the array limit decides between an array and an object\nok 5 - the array limit decides between an array and an object\n  ---\n  duration_ms: 0.30337\n  type: 'test'\n  ...\n# Subtest: nesting stops at the configured depth\nok 6 - nesting stops at the configured depth\n  ---\n  duration_ms: 0.275229\n  type: 'test'\n  ...\n# Subtest: parse returns a fresh result that no earlier call can see\nok 7 - parse returns a fresh result that no earlier call can see\n  ---\n  duration_ms: 0.254183\n  type: 'test'\n  ...\n# Subtest: keys that shadow Object.prototype stay own properties\nok 8 - keys that shadow Object.prototype stay own properties\n  ---\n  duration_ms: 0.335159\n  type: 'test'\n  ...\n# Subtest: stringify writes scalars, nulls and missing values\nok 9 - stringify writes scalars, nulls and missing values\n  ---\n  duration_ms: 1.049489\n  type: 'test'\n  ...\n# Subtest: stringify nests objects and formats arrays three ways\nok 10 - stringify nests objects and formats arrays three ways\n  ---\n  duration_ms: 0.636561\n  type: 'test'\n  ...\n# Subtest: sorting orders every pair by its whole written key\nok 11 - sorting orders every pair by its whole written key\n  ---\n  duration_ms: 0.314789\n  type: 'test'\n  ...\n# Subtest: bad arguments are rejected\nok 12 - bad arguments are rejected\n  ---\n  duration_ms: 0.683247\n  type: 'test'\n  ...\n# Subtest: extract takes the query out of a URL\nok 13 - extract takes the query out of a URL\n  ---\n  duration_ms: 0.138177\n  type: 'test'\n  ...\n# Subtest: generated parameters round-trip\nok 14 - generated parameters round-trip\n  ---\n  duration_ms: 23.551594\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 157.940268"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822796903
+          },
+          "usage": {
+            "inputTokens": 24,
+            "outputTokens": 27117,
+            "cacheReadTokens": 32160,
+            "cacheWriteTokens": 202860
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:query-string",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:query-string",
+          "sessionId": "environment-415ec97d-fb0f-4891-83bc-53bb39968168",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:query-string",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "ebf404e40f11dc5ee8f6c65e6995423e2ad022ea876e5a6da054a602e32b1b76",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "122b4eaf5b44a6c19f53845c28abc03e41f0b9230a9cd1e8f7622f1490c567c4",
+            "contentSha256": "536bfcd037e0b9d1f7c9d79ea60ed4dc8fa19b0796a7c18eee4935168fff0fb1",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…st'\n  ...\n# Subtest: a plus sign is a space in keys and in values\nok 3 - a plus sign is a space in keys and in values\n  ---\n  duration_ms: 0.371997\n  type: 'test'\n  ...\n# Subtest: bracket keys nest and empty brackets append\nok 4 - bracket keys nest and empty brackets append\n  ---\n  duration_ms: 1.416429\n  type: 'test'\n  ...\n# Subtest: the array limit decides between an array and an object\nok 5 - the array limit decides between an array and an object\n  ---\n  duration_ms: 0.411773\n  type: 'test'\n  ...\n# Subtest: nesting stops at the configured depth\nok 6 - nesting stops at the configured depth\n  ---\n  duration_ms: 0.315252\n  type: 'test'\n  ...\n# Subtest: parse returns a fresh result that no earlier call can see\nok 7 - parse returns a fresh result that no earlier call can see\n  ---\n  duration_ms: 0.33069\n  type: 'test'\n  ...\n# Subtest: keys that shadow Object.prototype stay own properties\nok 8 - keys that shadow Object.prototype stay own properties\n  ---\n  duration_ms: 0.250128\n  type: 'test'\n  ...\n# Subtest: stringify writes scalars, nulls and missing values\nok 9 - stringify writes scalars, nulls and missing values\n  ---\n  duration_ms: 1.138493\n  type: 'test'\n  ...\n# Subtest: stringify nests objects and formats arrays three ways\nok 10 - stringify nests objects and formats arrays three ways\n  ---\n  duration_ms: 0.60198\n  type: 'test'\n  ...\n# Subtest: sorting orders every pair by its whole written key\nok 11 - sorting orders every pair by its whole written key\n  ---\n  duration_ms: 0.371254\n  type: 'test'\n  ...\n# Subtest: bad arguments are rejected\nok 12 - bad arguments are rejected\n  ---\n  duration_ms: 0.671424\n  type: 'test'\n  ...\n# Subtest: extract takes the query out of a URL\nok 13 - extract takes the query out of a URL\n  ---\n  duration_ms: 0.338377\n  type: 'test'\n  ...\n# Subtest: generated parameters round-trip\nok 14 - generated parameters round-trip\n  ---\n  duration_ms: 31.097992\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 174.857363"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "9cda4181b1769a82ada8296f88c013d0f46eb0d59b227f39996248232237052c"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-a9262eb5-94c8-485a-a0e5-489080761400",
+              "revision": 1
+            },
+            "goalId": "goal-bd41813f-1487-429f-ad31-031c8bf03e9e",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…st'\n  ...\n# Subtest: a plus sign is a space in keys and in values\nok 3 - a plus sign is a space in keys and in values\n  ---\n  duration_ms: 0.371997\n  type: 'test'\n  ...\n# Subtest: bracket keys nest and empty brackets append\nok 4 - bracket keys nest and empty brackets append\n  ---\n  duration_ms: 1.416429\n  type: 'test'\n  ...\n# Subtest: the array limit decides between an array and an object\nok 5 - the array limit decides between an array and an object\n  ---\n  duration_ms: 0.411773\n  type: 'test'\n  ...\n# Subtest: nesting stops at the configured depth\nok 6 - nesting stops at the configured depth\n  ---\n  duration_ms: 0.315252\n  type: 'test'\n  ...\n# Subtest: parse returns a fresh result that no earlier call can see\nok 7 - parse returns a fresh result that no earlier call can see\n  ---\n  duration_ms: 0.33069\n  type: 'test'\n  ...\n# Subtest: keys that shadow Object.prototype stay own properties\nok 8 - keys that shadow Object.prototype stay own properties\n  ---\n  duration_ms: 0.250128\n  type: 'test'\n  ...\n# Subtest: stringify writes scalars, nulls and missing values\nok 9 - stringify writes scalars, nulls and missing values\n  ---\n  duration_ms: 1.138493\n  type: 'test'\n  ...\n# Subtest: stringify nests objects and formats arrays three ways\nok 10 - stringify nests objects and formats arrays three ways\n  ---\n  duration_ms: 0.60198\n  type: 'test'\n  ...\n# Subtest: sorting orders every pair by its whole written key\nok 11 - sorting orders every pair by its whole written key\n  ---\n  duration_ms: 0.371254\n  type: 'test'\n  ...\n# Subtest: bad arguments are rejected\nok 12 - bad arguments are rejected\n  ---\n  duration_ms: 0.671424\n  type: 'test'\n  ...\n# Subtest: extract takes the query out of a URL\nok 13 - extract takes the query out of a URL\n  ---\n  duration_ms: 0.338377\n  type: 'test'\n  ...\n# Subtest: generated parameters round-trip\nok 14 - generated parameters round-trip\n  ---\n  duration_ms: 31.097992\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 174.857363"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822699172
+          },
+          "usage": {
+            "inputTokens": 26,
+            "outputTokens": 13779,
+            "cacheReadTokens": 36973,
+            "cacheWriteTokens": 207817
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:shell-words",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:shell-words",
+          "sessionId": "environment-3c0d3277-0df7-42d9-b616-ab5fd0902b20",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:shell-words",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "7005dafabbc5f5bedbec609a14f423dca4db866dc22bad1197175e1b3d350873",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "9db60b0c76a8818be941302f29157ba11a380c58aa4a716b4a46dfc13f738699",
+            "contentSha256": "5d1ffe58a3c38c24963c9f1b2225a56058805869236e7d70e9e67e960b06c78f",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…uble quotes keep spaces but expand variables\n  ---\n  duration_ms: 0.6795\n  type: 'test'\n  ...\n# Subtest: a backslash inside double quotes escapes only four characters\nok 4 - a backslash inside double quotes escapes only four characters\n  ---\n  duration_ms: 0.267775\n  type: 'test'\n  ...\n# Subtest: a backslash outside quotes escapes anything\nok 5 - a backslash outside quotes escapes anything\n  ---\n  duration_ms: 0.310282\n  type: 'test'\n  ...\n# Subtest: a comment needs to start a word\nok 6 - a comment needs to start a word\n  ---\n  duration_ms: 0.196729\n  type: 'test'\n  ...\n# Subtest: variables expand from the given environment only\nok 7 - variables expand from the given environment only\n  ---\n  duration_ms: 0.651965\n  type: 'test'\n  ...\n# Subtest: a dollar that starts no name is an ordinary character\nok 8 - a dollar that starts no name is an ordinary character\n  ---\n  duration_ms: 0.444899\n  type: 'test'\n  ...\n# Subtest: unreadable input reports a code and an offset\nok 9 - unreadable input reports a code and an offset\n  ---\n  duration_ms: 1.852251\n  type: 'test'\n  ...\n# Subtest: detailed tokens carry their span and whether they were quoted\nok 10 - detailed tokens carry their span and whether they were quoted\n  ---\n  duration_ms: 0.746186\n  type: 'test'\n  ...\n# Subtest: quote produces something the tokenizer reads back\nok 11 - quote produces something the tokenizer reads back\n  ---\n  duration_ms: 0.731513\n  type: 'test'\n  ...\n# Subtest: leading assignments stop at the first ordinary word\nok 12 - leading assignments stop at the first ordinary word\n  ---\n  duration_ms: 0.517715\n  type: 'test'\n  ...\n# Subtest: only a bare semicolon separates commands\nok 13 - only a bare semicolon separates commands\n  ---\n  duration_ms: 0.367961\n  type: 'test'\n  ...\n# Subtest: quoting round-trips every generated word list\nok 14 - quoting round-trips every generated word list\n  ---\n  duration_ms: 5.040538\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 148.987957"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "77196147230a408177f416fa5dc6ce7544ef54c3fd07ab02223443d708741592"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-cb80130f-6484-476d-a931-8579c98cce22",
+              "revision": 1
+            },
+            "goalId": "goal-3dad3d92-ca4a-4b8e-8bee-42a95ca8b9e7",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…uble quotes keep spaces but expand variables\n  ---\n  duration_ms: 0.6795\n  type: 'test'\n  ...\n# Subtest: a backslash inside double quotes escapes only four characters\nok 4 - a backslash inside double quotes escapes only four characters\n  ---\n  duration_ms: 0.267775\n  type: 'test'\n  ...\n# Subtest: a backslash outside quotes escapes anything\nok 5 - a backslash outside quotes escapes anything\n  ---\n  duration_ms: 0.310282\n  type: 'test'\n  ...\n# Subtest: a comment needs to start a word\nok 6 - a comment needs to start a word\n  ---\n  duration_ms: 0.196729\n  type: 'test'\n  ...\n# Subtest: variables expand from the given environment only\nok 7 - variables expand from the given environment only\n  ---\n  duration_ms: 0.651965\n  type: 'test'\n  ...\n# Subtest: a dollar that starts no name is an ordinary character\nok 8 - a dollar that starts no name is an ordinary character\n  ---\n  duration_ms: 0.444899\n  type: 'test'\n  ...\n# Subtest: unreadable input reports a code and an offset\nok 9 - unreadable input reports a code and an offset\n  ---\n  duration_ms: 1.852251\n  type: 'test'\n  ...\n# Subtest: detailed tokens carry their span and whether they were quoted\nok 10 - detailed tokens carry their span and whether they were quoted\n  ---\n  duration_ms: 0.746186\n  type: 'test'\n  ...\n# Subtest: quote produces something the tokenizer reads back\nok 11 - quote produces something the tokenizer reads back\n  ---\n  duration_ms: 0.731513\n  type: 'test'\n  ...\n# Subtest: leading assignments stop at the first ordinary word\nok 12 - leading assignments stop at the first ordinary word\n  ---\n  duration_ms: 0.517715\n  type: 'test'\n  ...\n# Subtest: only a bare semicolon separates commands\nok 13 - only a bare semicolon separates commands\n  ---\n  duration_ms: 0.367961\n  type: 'test'\n  ...\n# Subtest: quoting round-trips every generated word list\nok 14 - quoting round-trips every generated word list\n  ---\n  duration_ms: 5.040538\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 148.987957"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822804893
+          },
+          "usage": {
+            "inputTokens": 24,
+            "outputTokens": 7082,
+            "cacheReadTokens": 32160,
+            "cacheWriteTokens": 159019
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:shell-words",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:shell-words",
+          "sessionId": "environment-e6fe17e3-4bd3-4e32-b1bb-6b019880b7e3",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:shell-words",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "7005dafabbc5f5bedbec609a14f423dca4db866dc22bad1197175e1b3d350873",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "9db60b0c76a8818be941302f29157ba11a380c58aa4a716b4a46dfc13f738699",
+            "contentSha256": "5d1ffe58a3c38c24963c9f1b2225a56058805869236e7d70e9e67e960b06c78f",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ble quotes keep spaces but expand variables\n  ---\n  duration_ms: 0.512342\n  type: 'test'\n  ...\n# Subtest: a backslash inside double quotes escapes only four characters\nok 4 - a backslash inside double quotes escapes only four characters\n  ---\n  duration_ms: 0.222749\n  type: 'test'\n  ...\n# Subtest: a backslash outside quotes escapes anything\nok 5 - a backslash outside quotes escapes anything\n  ---\n  duration_ms: 0.261871\n  type: 'test'\n  ...\n# Subtest: a comment needs to start a word\nok 6 - a comment needs to start a word\n  ---\n  duration_ms: 0.201647\n  type: 'test'\n  ...\n# Subtest: variables expand from the given environment only\nok 7 - variables expand from the given environment only\n  ---\n  duration_ms: 0.532178\n  type: 'test'\n  ...\n# Subtest: a dollar that starts no name is an ordinary character\nok 8 - a dollar that starts no name is an ordinary character\n  ---\n  duration_ms: 0.260709\n  type: 'test'\n  ...\n# Subtest: unreadable input reports a code and an offset\nok 9 - unreadable input reports a code and an offset\n  ---\n  duration_ms: 1.389028\n  type: 'test'\n  ...\n# Subtest: detailed tokens carry their span and whether they were quoted\nok 10 - detailed tokens carry their span and whether they were quoted\n  ---\n  duration_ms: 0.563559\n  type: 'test'\n  ...\n# Subtest: quote produces something the tokenizer reads back\nok 11 - quote produces something the tokenizer reads back\n  ---\n  duration_ms: 0.47553\n  type: 'test'\n  ...\n# Subtest: leading assignments stop at the first ordinary word\nok 12 - leading assignments stop at the first ordinary word\n  ---\n  duration_ms: 0.490836\n  type: 'test'\n  ...\n# Subtest: only a bare semicolon separates commands\nok 13 - only a bare semicolon separates commands\n  ---\n  duration_ms: 0.444387\n  type: 'test'\n  ...\n# Subtest: quoting round-trips every generated word list\nok 14 - quoting round-trips every generated word list\n  ---\n  duration_ms: 5.673288\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 152.666459"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "01fc79f87a70be9d77a4a2f265b988418e9135703800dcb3332ca3943e2b0fb6"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-b77ccc31-2e27-498e-84e5-23f8a83aa307",
+              "revision": 1
+            },
+            "goalId": "goal-26609d16-2ca4-4868-b2c4-59bcfe7a8f55",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ble quotes keep spaces but expand variables\n  ---\n  duration_ms: 0.512342\n  type: 'test'\n  ...\n# Subtest: a backslash inside double quotes escapes only four characters\nok 4 - a backslash inside double quotes escapes only four characters\n  ---\n  duration_ms: 0.222749\n  type: 'test'\n  ...\n# Subtest: a backslash outside quotes escapes anything\nok 5 - a backslash outside quotes escapes anything\n  ---\n  duration_ms: 0.261871\n  type: 'test'\n  ...\n# Subtest: a comment needs to start a word\nok 6 - a comment needs to start a word\n  ---\n  duration_ms: 0.201647\n  type: 'test'\n  ...\n# Subtest: variables expand from the given environment only\nok 7 - variables expand from the given environment only\n  ---\n  duration_ms: 0.532178\n  type: 'test'\n  ...\n# Subtest: a dollar that starts no name is an ordinary character\nok 8 - a dollar that starts no name is an ordinary character\n  ---\n  duration_ms: 0.260709\n  type: 'test'\n  ...\n# Subtest: unreadable input reports a code and an offset\nok 9 - unreadable input reports a code and an offset\n  ---\n  duration_ms: 1.389028\n  type: 'test'\n  ...\n# Subtest: detailed tokens carry their span and whether they were quoted\nok 10 - detailed tokens carry their span and whether they were quoted\n  ---\n  duration_ms: 0.563559\n  type: 'test'\n  ...\n# Subtest: quote produces something the tokenizer reads back\nok 11 - quote produces something the tokenizer reads back\n  ---\n  duration_ms: 0.47553\n  type: 'test'\n  ...\n# Subtest: leading assignments stop at the first ordinary word\nok 12 - leading assignments stop at the first ordinary word\n  ---\n  duration_ms: 0.490836\n  type: 'test'\n  ...\n# Subtest: only a bare semicolon separates commands\nok 13 - only a bare semicolon separates commands\n  ---\n  duration_ms: 0.444387\n  type: 'test'\n  ...\n# Subtest: quoting round-trips every generated word list\nok 14 - quoting round-trips every generated word list\n  ---\n  duration_ms: 5.673288\n  type: 'test'\n  ...\n1..14\n# tests 14\n# suites 0\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 152.666459"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822865152
+          },
+          "usage": {
+            "inputTokens": 18,
+            "outputTokens": 4566,
+            "cacheReadTokens": 26438,
+            "cacheWriteTokens": 106828
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:template-engine",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:template-engine",
+          "sessionId": "environment-10a61ce4-50aa-4924-beba-45596a603e03",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:template-engine",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "cf41e728ef0fcd378ff608b290dc7cb326e3ae1eafdfe07845f3930fda39d0f3",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "f6c97f73120efb9426106852b097b58f21394757ce1b22d34118ab8424523020",
+            "contentSha256": "7bb492e14a10cc4c7a4baaa7de06f79d942ef8f6fac7f90b1a9f5cc7d70469cd",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…3\n# Subtest: escapeHtml escapes the ampersand before it escapes anything else\nok 1 - escapeHtml escapes the ampersand before it escapes anything else\n  ---\n  duration_ms: 4.327869\n  type: 'test'\n  ...\n# Subtest: parse builds the node list\nok 2 - parse builds the node list\n  ---\n  duration_ms: 1.330254\n  type: 'test'\n  ...\n# Subtest: interpolation escapes by default and stringifies every value\nok 3 - interpolation escapes by default and stringifies every value\n  ---\n  duration_ms: 0.924483\n  type: 'test'\n  ...\n# Subtest: sections iterate, scope and skip\nok 4 - sections iterate, scope and skip\n  ---\n  duration_ms: 0.540331\n  type: 'test'\n  ...\n# Subtest: inverted sections render exactly when a section would not\nok 5 - inverted sections render exactly when a section would not\n  ---\n  duration_ms: 0.348462\n  type: 'test'\n  ...\n# Subtest: the context stack is searched innermost first\nok 6 - the context stack is searched innermost first\n  ---\n  duration_ms: 0.361615\n  type: 'test'\n  ...\n# Subtest: partials render in the current context\nok 7 - partials render in the current context\n  ---\n  duration_ms: 0.635921\n  type: 'test'\n  ...\n# Subtest: malformed templates report a code and an offset\nok 8 - malformed templates report a code and an offset\n  ---\n  duration_ms: 1.064175\n  type: 'test'\n  ...\n# Subtest: a whole page renders end to end\nok 9 - a whole page renders end to end\n  ---\n  duration_ms: 0.45457\n  type: 'test'\n  ...\n# Subtest: a compiled template renders many times over fresh state\nok 10 - a compiled template renders many times over fresh state\n  ---\n  duration_ms: 1.965927\n  type: 'test'\n  ...\n# Subtest: escaping round-trips for generated values\nok 11 - escaping round-trips for generated values\n  ---\n  duration_ms: 5.418189\n  type: 'test'\n  ...\n# Subtest: a section and its inverse never both render\nok 12 - a section and its inverse never both render\n  ---\n  duration_ms: 2.257796\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 136.974134"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "0cb2be807397da19973a5c8aebcce2035003c813f81f61e7ed59e62b2236ec84"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-1285c48f-0882-42e1-ad5d-c248ca645284",
+              "revision": 1
+            },
+            "goalId": "goal-c133a3b4-633b-4aad-b2d6-5d6cbd468435",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…3\n# Subtest: escapeHtml escapes the ampersand before it escapes anything else\nok 1 - escapeHtml escapes the ampersand before it escapes anything else\n  ---\n  duration_ms: 4.327869\n  type: 'test'\n  ...\n# Subtest: parse builds the node list\nok 2 - parse builds the node list\n  ---\n  duration_ms: 1.330254\n  type: 'test'\n  ...\n# Subtest: interpolation escapes by default and stringifies every value\nok 3 - interpolation escapes by default and stringifies every value\n  ---\n  duration_ms: 0.924483\n  type: 'test'\n  ...\n# Subtest: sections iterate, scope and skip\nok 4 - sections iterate, scope and skip\n  ---\n  duration_ms: 0.540331\n  type: 'test'\n  ...\n# Subtest: inverted sections render exactly when a section would not\nok 5 - inverted sections render exactly when a section would not\n  ---\n  duration_ms: 0.348462\n  type: 'test'\n  ...\n# Subtest: the context stack is searched innermost first\nok 6 - the context stack is searched innermost first\n  ---\n  duration_ms: 0.361615\n  type: 'test'\n  ...\n# Subtest: partials render in the current context\nok 7 - partials render in the current context\n  ---\n  duration_ms: 0.635921\n  type: 'test'\n  ...\n# Subtest: malformed templates report a code and an offset\nok 8 - malformed templates report a code and an offset\n  ---\n  duration_ms: 1.064175\n  type: 'test'\n  ...\n# Subtest: a whole page renders end to end\nok 9 - a whole page renders end to end\n  ---\n  duration_ms: 0.45457\n  type: 'test'\n  ...\n# Subtest: a compiled template renders many times over fresh state\nok 10 - a compiled template renders many times over fresh state\n  ---\n  duration_ms: 1.965927\n  type: 'test'\n  ...\n# Subtest: escaping round-trips for generated values\nok 11 - escaping round-trips for generated values\n  ---\n  duration_ms: 5.418189\n  type: 'test'\n  ...\n# Subtest: a section and its inverse never both render\nok 12 - a section and its inverse never both render\n  ---\n  duration_ms: 2.257796\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 136.974134"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788822901981
+          },
+          "usage": {
+            "inputTokens": 22,
+            "outputTokens": 6676,
+            "cacheReadTokens": 29480,
+            "cacheWriteTokens": 126407
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:template-engine",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:template-engine",
+          "sessionId": "environment-368dab36-08f8-4846-8fe8-a5a8895cc535",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:template-engine",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "cf41e728ef0fcd378ff608b290dc7cb326e3ae1eafdfe07845f3930fda39d0f3",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "f6c97f73120efb9426106852b097b58f21394757ce1b22d34118ab8424523020",
+            "contentSha256": "7bb492e14a10cc4c7a4baaa7de06f79d942ef8f6fac7f90b1a9f5cc7d70469cd",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…3\n# Subtest: escapeHtml escapes the ampersand before it escapes anything else\nok 1 - escapeHtml escapes the ampersand before it escapes anything else\n  ---\n  duration_ms: 3.598191\n  type: 'test'\n  ...\n# Subtest: parse builds the node list\nok 2 - parse builds the node list\n  ---\n  duration_ms: 1.351687\n  type: 'test'\n  ...\n# Subtest: interpolation escapes by default and stringifies every value\nok 3 - interpolation escapes by default and stringifies every value\n  ---\n  duration_ms: 0.901042\n  type: 'test'\n  ...\n# Subtest: sections iterate, scope and skip\nok 4 - sections iterate, scope and skip\n  ---\n  duration_ms: 0.368203\n  type: 'test'\n  ...\n# Subtest: inverted sections render exactly when a section would not\nok 5 - inverted sections render exactly when a section would not\n  ---\n  duration_ms: 0.357612\n  type: 'test'\n  ...\n# Subtest: the context stack is searched innermost first\nok 6 - the context stack is searched innermost first\n  ---\n  duration_ms: 0.290662\n  type: 'test'\n  ...\n# Subtest: partials render in the current context\nok 7 - partials render in the current context\n  ---\n  duration_ms: 0.593521\n  type: 'test'\n  ...\n# Subtest: malformed templates report a code and an offset\nok 8 - malformed templates report a code and an offset\n  ---\n  duration_ms: 0.77811\n  type: 'test'\n  ...\n# Subtest: a whole page renders end to end\nok 9 - a whole page renders end to end\n  ---\n  duration_ms: 0.729549\n  type: 'test'\n  ...\n# Subtest: a compiled template renders many times over fresh state\nok 10 - a compiled template renders many times over fresh state\n  ---\n  duration_ms: 1.660878\n  type: 'test'\n  ...\n# Subtest: escaping round-trips for generated values\nok 11 - escaping round-trips for generated values\n  ---\n  duration_ms: 5.269492\n  type: 'test'\n  ...\n# Subtest: a section and its inverse never both render\nok 12 - a section and its inverse never both render\n  ---\n  duration_ms: 2.121327\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 132.046877"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "d18d598c2acc2f8d74a4106641b6f204acfa03974399361616c9d0e593201147"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-0dda6df1-c824-448a-bf92-3ea784ddb556",
+              "revision": 1
+            },
+            "goalId": "goal-0d34a11f-8f20-46e8-ac0c-76ba9d388290",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…3\n# Subtest: escapeHtml escapes the ampersand before it escapes anything else\nok 1 - escapeHtml escapes the ampersand before it escapes anything else\n  ---\n  duration_ms: 3.598191\n  type: 'test'\n  ...\n# Subtest: parse builds the node list\nok 2 - parse builds the node list\n  ---\n  duration_ms: 1.351687\n  type: 'test'\n  ...\n# Subtest: interpolation escapes by default and stringifies every value\nok 3 - interpolation escapes by default and stringifies every value\n  ---\n  duration_ms: 0.901042\n  type: 'test'\n  ...\n# Subtest: sections iterate, scope and skip\nok 4 - sections iterate, scope and skip\n  ---\n  duration_ms: 0.368203\n  type: 'test'\n  ...\n# Subtest: inverted sections render exactly when a section would not\nok 5 - inverted sections render exactly when a section would not\n  ---\n  duration_ms: 0.357612\n  type: 'test'\n  ...\n# Subtest: the context stack is searched innermost first\nok 6 - the context stack is searched innermost first\n  ---\n  duration_ms: 0.290662\n  type: 'test'\n  ...\n# Subtest: partials render in the current context\nok 7 - partials render in the current context\n  ---\n  duration_ms: 0.593521\n  type: 'test'\n  ...\n# Subtest: malformed templates report a code and an offset\nok 8 - malformed templates report a code and an offset\n  ---\n  duration_ms: 0.77811\n  type: 'test'\n  ...\n# Subtest: a whole page renders end to end\nok 9 - a whole page renders end to end\n  ---\n  duration_ms: 0.729549\n  type: 'test'\n  ...\n# Subtest: a compiled template renders many times over fresh state\nok 10 - a compiled template renders many times over fresh state\n  ---\n  duration_ms: 1.660878\n  type: 'test'\n  ...\n# Subtest: escaping round-trips for generated values\nok 11 - escaping round-trips for generated values\n  ---\n  duration_ms: 5.269492\n  type: 'test'\n  ...\n# Subtest: a section and its inverse never both render\nok 12 - a section and its inverse never both render\n  ---\n  duration_ms: 2.121327\n  type: 'test'\n  ...\n1..12\n# tests 12\n# suites 0\n# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 132.046877"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788823001771
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 11389,
+            "cacheReadTokens": 21187,
+            "cacheWriteTokens": 66375
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:text-diff",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:text-diff",
+          "sessionId": "environment-c45a82c0-e056-4e14-8aac-6ebd76de3fbb",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:text-diff",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "6e28133e15c19257518987d8bdd4c15167280a2c329628010a4291fe3e35f320",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "c85b9333c15b0bffb356f3a6abcd59d913e1c96a43c6bfae1572a9522a9ffd29",
+            "contentSha256": "c0f7d91caabf173b28d652518cc9dbba5ac086726264735b6121e9159ba134e0",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: splitLines separates content from the trailing newline\nok 1 - splitLines separates content from the trailing newline\n  ---\n  duration_ms: 2.956369\n  type: 'test'\n  ...\n# Subtest: diffLines puts a deletion before the insertion that replaces it\nok 2 - diffLines puts a deletion before the insertion that replaces it\n  ---\n  duration_ms: 0.72809\n  type: 'test'\n  ...\n# Subtest: diffStats counts each kind of line\nok 3 - diffStats counts each kind of line\n  ---\n  duration_ms: 0.34886\n  type: 'test'\n  ...\n# Subtest: identical line content produces no diff at all\nok 4 - identical line content produces no diff at all\n  ---\n  duration_ms: 0.65725\n  type: 'test'\n  ...\n# Subtest: a hunk against an empty side starts at line zero\nok 5 - a hunk against an empty side starts at line zero\n  ---\n  duration_ms: 0.406026\n  type: 'test'\n  ...\n# Subtest: context lines surround a change on both sides\nok 6 - context lines surround a change on both sides\n  ---\n  duration_ms: 0.535373\n  type: 'test'\n  ...\n# Subtest: changes closer than twice the context share one hunk\nok 7 - changes closer than twice the context share one hunk\n  ---\n  duration_ms: 0.40832\n  type: 'test'\n  ...\n# Subtest: a missing final newline is marked on the side that misses it\nok 8 - a missing final newline is marked on the side that misses it\n  ---\n  duration_ms: 0.280262\n  type: 'test'\n  ...\n# Subtest: names and malformed arguments are handled\nok 9 - names and malformed arguments are handled\n  ---\n  duration_ms: 1.146524\n  type: 'test'\n  ...\n# Subtest: round-trips random edits through the patch text\nok 10 - round-trips random edits through the patch text\n  ---\n  duration_ms: 16.270334\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 139.428656"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "8a98007e00b4f85aa5ff21de733a7125b5308e8b0defbbb93597723d4be1f5f0"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-9075c80c-171d-49e5-8bd3-887c1b9b7ca4",
+              "revision": 1
+            },
+            "goalId": "goal-c9dcb52f-f318-4ca6-8610-0cfe553d5328",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: splitLines separates content from the trailing newline\nok 1 - splitLines separates content from the trailing newline\n  ---\n  duration_ms: 2.956369\n  type: 'test'\n  ...\n# Subtest: diffLines puts a deletion before the insertion that replaces it\nok 2 - diffLines puts a deletion before the insertion that replaces it\n  ---\n  duration_ms: 0.72809\n  type: 'test'\n  ...\n# Subtest: diffStats counts each kind of line\nok 3 - diffStats counts each kind of line\n  ---\n  duration_ms: 0.34886\n  type: 'test'\n  ...\n# Subtest: identical line content produces no diff at all\nok 4 - identical line content produces no diff at all\n  ---\n  duration_ms: 0.65725\n  type: 'test'\n  ...\n# Subtest: a hunk against an empty side starts at line zero\nok 5 - a hunk against an empty side starts at line zero\n  ---\n  duration_ms: 0.406026\n  type: 'test'\n  ...\n# Subtest: context lines surround a change on both sides\nok 6 - context lines surround a change on both sides\n  ---\n  duration_ms: 0.535373\n  type: 'test'\n  ...\n# Subtest: changes closer than twice the context share one hunk\nok 7 - changes closer than twice the context share one hunk\n  ---\n  duration_ms: 0.40832\n  type: 'test'\n  ...\n# Subtest: a missing final newline is marked on the side that misses it\nok 8 - a missing final newline is marked on the side that misses it\n  ---\n  duration_ms: 0.280262\n  type: 'test'\n  ...\n# Subtest: names and malformed arguments are handled\nok 9 - names and malformed arguments are handled\n  ---\n  duration_ms: 1.146524\n  type: 'test'\n  ...\n# Subtest: round-trips random edits through the patch text\nok 10 - round-trips random edits through the patch text\n  ---\n  duration_ms: 16.270334\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 139.428656"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788823156693
+          },
+          "usage": {
+            "inputTokens": 42,
+            "outputTokens": 17067,
+            "cacheReadTokens": 56280,
+            "cacheWriteTokens": 574447
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:text-diff",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:text-diff",
+          "sessionId": "environment-061042f7-d9e2-4601-8117-961e8d9255f8",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:text-diff",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "6e28133e15c19257518987d8bdd4c15167280a2c329628010a4291fe3e35f320",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "c85b9333c15b0bffb356f3a6abcd59d913e1c96a43c6bfae1572a9522a9ffd29",
+            "contentSha256": "c0f7d91caabf173b28d652518cc9dbba5ac086726264735b6121e9159ba134e0",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: splitLines separates content from the trailing newline\nok 1 - splitLines separates content from the trailing newline\n  ---\n  duration_ms: 2.975481\n  type: 'test'\n  ...\n# Subtest: diffLines puts a deletion before the insertion that replaces it\nok 2 - diffLines puts a deletion before the insertion that replaces it\n  ---\n  duration_ms: 0.926352\n  type: 'test'\n  ...\n# Subtest: diffStats counts each kind of line\nok 3 - diffStats counts each kind of line\n  ---\n  duration_ms: 0.971007\n  type: 'test'\n  ...\n# Subtest: identical line content produces no diff at all\nok 4 - identical line content produces no diff at all\n  ---\n  duration_ms: 1.396275\n  type: 'test'\n  ...\n# Subtest: a hunk against an empty side starts at line zero\nok 5 - a hunk against an empty side starts at line zero\n  ---\n  duration_ms: 1.049897\n  type: 'test'\n  ...\n# Subtest: context lines surround a change on both sides\nok 6 - context lines surround a change on both sides\n  ---\n  duration_ms: 1.211111\n  type: 'test'\n  ...\n# Subtest: changes closer than twice the context share one hunk\nok 7 - changes closer than twice the context share one hunk\n  ---\n  duration_ms: 1.027943\n  type: 'test'\n  ...\n# Subtest: a missing final newline is marked on the side that misses it\nok 8 - a missing final newline is marked on the side that misses it\n  ---\n  duration_ms: 0.618827\n  type: 'test'\n  ...\n# Subtest: names and malformed arguments are handled\nok 9 - names and malformed arguments are handled\n  ---\n  duration_ms: 1.891007\n  type: 'test'\n  ...\n# Subtest: round-trips random edits through the patch text\nok 10 - round-trips random edits through the patch text\n  ---\n  duration_ms: 24.512394\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 161.149792"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "8a98007e00b4f85aa5ff21de733a7125b5308e8b0defbbb93597723d4be1f5f0"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-c41699ee-9cf7-42c4-b8ab-a3dcff714ea2",
+              "revision": 1
+            },
+            "goalId": "goal-28b72eb8-76e1-4bdf-97c6-06b0b953477d",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: splitLines separates content from the trailing newline\nok 1 - splitLines separates content from the trailing newline\n  ---\n  duration_ms: 2.975481\n  type: 'test'\n  ...\n# Subtest: diffLines puts a deletion before the insertion that replaces it\nok 2 - diffLines puts a deletion before the insertion that replaces it\n  ---\n  duration_ms: 0.926352\n  type: 'test'\n  ...\n# Subtest: diffStats counts each kind of line\nok 3 - diffStats counts each kind of line\n  ---\n  duration_ms: 0.971007\n  type: 'test'\n  ...\n# Subtest: identical line content produces no diff at all\nok 4 - identical line content produces no diff at all\n  ---\n  duration_ms: 1.396275\n  type: 'test'\n  ...\n# Subtest: a hunk against an empty side starts at line zero\nok 5 - a hunk against an empty side starts at line zero\n  ---\n  duration_ms: 1.049897\n  type: 'test'\n  ...\n# Subtest: context lines surround a change on both sides\nok 6 - context lines surround a change on both sides\n  ---\n  duration_ms: 1.211111\n  type: 'test'\n  ...\n# Subtest: changes closer than twice the context share one hunk\nok 7 - changes closer than twice the context share one hunk\n  ---\n  duration_ms: 1.027943\n  type: 'test'\n  ...\n# Subtest: a missing final newline is marked on the side that misses it\nok 8 - a missing final newline is marked on the side that misses it\n  ---\n  duration_ms: 0.618827\n  type: 'test'\n  ...\n# Subtest: names and malformed arguments are handled\nok 9 - names and malformed arguments are handled\n  ---\n  duration_ms: 1.891007\n  type: 'test'\n  ...\n# Subtest: round-trips random edits through the patch text\nok 10 - round-trips random edits through the patch text\n  ---\n  duration_ms: 24.512394\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 161.149792"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788823217927
+          },
+          "usage": {
+            "inputTokens": 34,
+            "outputTokens": 14971,
+            "cacheReadTokens": 47445,
+            "cacheWriteTokens": 311375
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:token-bucket",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:token-bucket",
+          "sessionId": "environment-123192db-7be8-47fd-a28b-2b68d704084a",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:token-bucket",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "190ef17721a5e7616129a87742e948fd88fa14fd7c658a5179f8b4777909a8d8",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "be1c096bba278c024c67e1c6cbcbeb7cfcb4a4c5bb48a2fabce16b8166a97906",
+            "contentSha256": "b2f2515fee07568720ce0d080ffca6c6a69faa7b7481a3e4566db42c2e4a3b51",
+            "repetition": 0,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… 2 - a request may take exactly what is left\n  ---\n  duration_ms: 0.280242\n  type: 'test'\n  ...\n# Subtest: time shorter than a whole interval still earns tokens\nok 3 - time shorter than a whole interval still earns tokens\n  ---\n  duration_ms: 0.397041\n  type: 'test'\n  ...\n# Subtest: the reported wait is exactly long enough\nok 4 - the reported wait is exactly long enough\n  ---\n  duration_ms: 0.400697\n  type: 'test'\n  ...\n# Subtest: a request larger than the bucket can never be paid\nok 5 - a request larger than the bucket can never be paid\n  ---\n  duration_ms: 0.283404\n  type: 'test'\n  ...\n# Subtest: reset and clear give a key a full bucket again\nok 6 - reset and clear give a key a full bucket again\n  ---\n  duration_ms: 0.26378\n  type: 'test'\n  ...\n# Subtest: buckets are independent per key\nok 7 - buckets are independent per key\n  ---\n  duration_ms: 0.296926\n  type: 'test'\n  ...\n# Subtest: idle time never fills a bucket past its capacity\nok 8 - idle time never fills a bucket past its capacity\n  ---\n  duration_ms: 0.2167\n  type: 'test'\n  ...\n# Subtest: consume reports refusal as an error carrying the wait\nok 9 - consume reports refusal as an error carrying the wait\n  ---\n  duration_ms: 0.953331\n  type: 'test'\n  ...\n# Subtest: a multi-key request takes everything or nothing\nok 10 - a multi-key request takes everything or nothing\n  ---\n  duration_ms: 0.804232\n  type: 'test'\n  ...\n# Subtest: snapshot describes every bucket and sweep retires the idle ones\nok 11 - snapshot describes every bucket and sweep retires the idle ones\n  ---\n  duration_ms: 0.582624\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and arguments\nok 12 - rejects malformed options and arguments\n  ---\n  duration_ms: 0.74245\n  type: 'test'\n  ...\n# Subtest: matches an exact integer model over a long random sequence\nok 13 - matches an exact integer model over a long random sequence\n  ---\n  duration_ms: 16.316515\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 139.672519"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "fb37272d766b9135d47b324e4ab2c6fed77f5fe1274f97ed4fa782d88df37cbb"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-509ee4c6-1ee6-4ebf-8e09-2182c4d8eae2",
+              "revision": 1
+            },
+            "goalId": "goal-260c3d8a-3d0d-41a4-abb0-6c73279d6afb",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n… 2 - a request may take exactly what is left\n  ---\n  duration_ms: 0.280242\n  type: 'test'\n  ...\n# Subtest: time shorter than a whole interval still earns tokens\nok 3 - time shorter than a whole interval still earns tokens\n  ---\n  duration_ms: 0.397041\n  type: 'test'\n  ...\n# Subtest: the reported wait is exactly long enough\nok 4 - the reported wait is exactly long enough\n  ---\n  duration_ms: 0.400697\n  type: 'test'\n  ...\n# Subtest: a request larger than the bucket can never be paid\nok 5 - a request larger than the bucket can never be paid\n  ---\n  duration_ms: 0.283404\n  type: 'test'\n  ...\n# Subtest: reset and clear give a key a full bucket again\nok 6 - reset and clear give a key a full bucket again\n  ---\n  duration_ms: 0.26378\n  type: 'test'\n  ...\n# Subtest: buckets are independent per key\nok 7 - buckets are independent per key\n  ---\n  duration_ms: 0.296926\n  type: 'test'\n  ...\n# Subtest: idle time never fills a bucket past its capacity\nok 8 - idle time never fills a bucket past its capacity\n  ---\n  duration_ms: 0.2167\n  type: 'test'\n  ...\n# Subtest: consume reports refusal as an error carrying the wait\nok 9 - consume reports refusal as an error carrying the wait\n  ---\n  duration_ms: 0.953331\n  type: 'test'\n  ...\n# Subtest: a multi-key request takes everything or nothing\nok 10 - a multi-key request takes everything or nothing\n  ---\n  duration_ms: 0.804232\n  type: 'test'\n  ...\n# Subtest: snapshot describes every bucket and sweep retires the idle ones\nok 11 - snapshot describes every bucket and sweep retires the idle ones\n  ---\n  duration_ms: 0.582624\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and arguments\nok 12 - rejects malformed options and arguments\n  ---\n  duration_ms: 0.74245\n  type: 'test'\n  ...\n# Subtest: matches an exact integer model over a long random sequence\nok 13 - matches an exact integer model over a long random sequence\n  ---\n  duration_ms: 16.316515\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 139.672519"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788823409005
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 25878,
+            "cacheReadTokens": 18760,
+            "cacheWriteTokens": 157574
+          }
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:token-bucket",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:token-bucket",
+          "sessionId": "environment-c13c3475-cb3d-4607-94a3-722b18565d46",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:token-bucket",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "190ef17721a5e7616129a87742e948fd88fa14fd7c658a5179f8b4777909a8d8",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "be1c096bba278c024c67e1c6cbcbeb7cfcb4a4c5bb48a2fabce16b8166a97906",
+            "contentSha256": "b2f2515fee07568720ce0d080ffca6c6a69faa7b7481a3e4566db42c2e4a3b51",
+            "repetition": 1,
+            "group": "fleet-f0698b49-b4e2-4679-a5cc-59c9e47821e4",
+            "district": "bench-h1",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 2,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…- a request may take exactly what is left\n  ---\n  duration_ms: 0.23554\n  type: 'test'\n  ...\n# Subtest: time shorter than a whole interval still earns tokens\nok 3 - time shorter than a whole interval still earns tokens\n  ---\n  duration_ms: 0.372986\n  type: 'test'\n  ...\n# Subtest: the reported wait is exactly long enough\nok 4 - the reported wait is exactly long enough\n  ---\n  duration_ms: 0.511244\n  type: 'test'\n  ...\n# Subtest: a request larger than the bucket can never be paid\nok 5 - a request larger than the bucket can never be paid\n  ---\n  duration_ms: 0.226996\n  type: 'test'\n  ...\n# Subtest: reset and clear give a key a full bucket again\nok 6 - reset and clear give a key a full bucket again\n  ---\n  duration_ms: 0.349907\n  type: 'test'\n  ...\n# Subtest: buckets are independent per key\nok 7 - buckets are independent per key\n  ---\n  duration_ms: 0.291841\n  type: 'test'\n  ...\n# Subtest: idle time never fills a bucket past its capacity\nok 8 - idle time never fills a bucket past its capacity\n  ---\n  duration_ms: 0.223604\n  type: 'test'\n  ...\n# Subtest: consume reports refusal as an error carrying the wait\nok 9 - consume reports refusal as an error carrying the wait\n  ---\n  duration_ms: 0.922945\n  type: 'test'\n  ...\n# Subtest: a multi-key request takes everything or nothing\nok 10 - a multi-key request takes everything or nothing\n  ---\n  duration_ms: 0.744117\n  type: 'test'\n  ...\n# Subtest: snapshot describes every bucket and sweep retires the idle ones\nok 11 - snapshot describes every bucket and sweep retires the idle ones\n  ---\n  duration_ms: 0.615993\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and arguments\nok 12 - rejects malformed options and arguments\n  ---\n  duration_ms: 0.635632\n  type: 'test'\n  ...\n# Subtest: matches an exact integer model over a long random sequence\nok 13 - matches an exact integer model over a long random sequence\n  ---\n  duration_ms: 15.316894\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 138.818149"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "b95f2b4d5503d53b042159526c13bd5360045ac82ed24712acd10e6252332db4"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-edc681c4-3d6a-48bd-bdbf-46172e05dfb9",
+              "revision": 1
+            },
+            "goalId": "goal-60d5df02-8da2-45f0-a39c-e3f1f4fe1c28",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…- a request may take exactly what is left\n  ---\n  duration_ms: 0.23554\n  type: 'test'\n  ...\n# Subtest: time shorter than a whole interval still earns tokens\nok 3 - time shorter than a whole interval still earns tokens\n  ---\n  duration_ms: 0.372986\n  type: 'test'\n  ...\n# Subtest: the reported wait is exactly long enough\nok 4 - the reported wait is exactly long enough\n  ---\n  duration_ms: 0.511244\n  type: 'test'\n  ...\n# Subtest: a request larger than the bucket can never be paid\nok 5 - a request larger than the bucket can never be paid\n  ---\n  duration_ms: 0.226996\n  type: 'test'\n  ...\n# Subtest: reset and clear give a key a full bucket again\nok 6 - reset and clear give a key a full bucket again\n  ---\n  duration_ms: 0.349907\n  type: 'test'\n  ...\n# Subtest: buckets are independent per key\nok 7 - buckets are independent per key\n  ---\n  duration_ms: 0.291841\n  type: 'test'\n  ...\n# Subtest: idle time never fills a bucket past its capacity\nok 8 - idle time never fills a bucket past its capacity\n  ---\n  duration_ms: 0.223604\n  type: 'test'\n  ...\n# Subtest: consume reports refusal as an error carrying the wait\nok 9 - consume reports refusal as an error carrying the wait\n  ---\n  duration_ms: 0.922945\n  type: 'test'\n  ...\n# Subtest: a multi-key request takes everything or nothing\nok 10 - a multi-key request takes everything or nothing\n  ---\n  duration_ms: 0.744117\n  type: 'test'\n  ...\n# Subtest: snapshot describes every bucket and sweep retires the idle ones\nok 11 - snapshot describes every bucket and sweep retires the idle ones\n  ---\n  duration_ms: 0.615993\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and arguments\nok 12 - rejects malformed options and arguments\n  ---\n  duration_ms: 0.635632\n  type: 'test'\n  ...\n# Subtest: matches an exact integer model over a long random sequence\nok 13 - matches an exact integer model over a long random sequence\n  ---\n  duration_ms: 15.316894\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 138.818149"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788823422228
+          },
+          "usage": {
+            "inputTokens": 22,
+            "outputTokens": 17252,
+            "cacheReadTokens": 31374,
+            "cacheWriteTokens": 191032
+          }
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:bitset-bloom",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 52,
+        "outputTokens": 14749,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:cron-next",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 42,
+        "outputTokens": 22429,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:job-scheduler",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 72,
+        "outputTokens": 16814,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:markdown-inline",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 70,
+        "outputTokens": 14628,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:query-string",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 50,
+        "outputTokens": 40896,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:shell-words",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 42,
+        "outputTokens": 11648,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:template-engine",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 36,
+        "outputTokens": 18065,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:text-diff",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 76,
+        "outputTokens": 32038,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:token-bucket",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 36,
+        "outputTokens": 43130,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 476,
+      "outputTokens": 214397
+    }
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:bitset-bloom",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:cron-next",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:job-scheduler",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:markdown-inline",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:query-string",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:shell-words",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:template-engine",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:text-diff",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:token-bucket",
+      "environmentKind": "bench",
+      "district": "bench-h1",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    }
+  ],
+  "facts": {
+    "sessions": 18,
+    "exported": 18,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 18,
+    "exported": 18,
+    "rewarded": 18,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}
