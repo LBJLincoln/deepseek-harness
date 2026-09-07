@@ -47,6 +47,19 @@ Adopt the twenty decisions below, grouped by goal, as the plan's response to the
 19. The EU AI Act artefacts are generated from the composition manifest, the data-use terms, the sign-off records, and the training-run record with cumulative compute; the release is shaped as an AI bill of materials with the fields the field's own documentation lacks; a per-jurisdiction duty table joins each client contract's technical annex; the runner's certificate export becomes signable, as the answer to third-party signed evidence.
 20. A base model's licence is pinned by version in the lineage record; a licence change is a supply-chain event.
 
+### From the fortnight re-read
+
+A second pass at fortnight resolution over 2026-08-24 to 2026-09-07, with a deep-dive on Sakana's Fugu and the routing literature, is the [2026-09-fortnight pack](../../../../data/knowledge/2026-09-fortnight/manifest.json). It adds these decisions:
+
+21. Every route that can reach the Anthropic API is audited for forced `tool_choice` and for replay after a prompt or tool change, and sets the thinking-binding header with an explicit, logged prefix-mismatch policy: `dsh-llm-pi-ai`, `dsh-llm-claude-code`, `dsh-session-projection`.
+22. An allow and deny list at the LLM request boundary polices provider-side fetch parameters as egress, beside the process sandbox: `dsh-sandbox-policy`, `dsh-environment-runner`.
+23. A first-class escalation tool lets an agent declare an environment broken as a logged outcome that marks the fixture and never counts as a pass: `dsh-environments`, `dsh-verification`.
+24. Routing is measured before it is built, in the order the [hypothesis program](2026-09-07-hypothesis-program.md) fixes: the flip rate first, then the attempt ladder with an explicit transcript interface, the static department table as the baseline, and every switch priced against the prefix cache it invalidates.
+25. Retention, zero-data-retention availability, licence, and dated price changes are route facts a client purpose can refuse on: `dsh-data-use`, `dsh-curator`, the LLM seam.
+26. Trajectories export eviction points and the branch structure of compaction and subagents: `dsh-trajectories`, `dsh-compaction`.
+27. The environments registry adopts Terminal-Bench 4.0's saturation rule, records the harness version with every result, and carries the four-field disclosure on every scorekeeper fact: `dsh-environments`, `dsh-scorekeeper`, `dsh-observatory`.
+28. The release plan names a second host beside the Hub until the NVIDIA acquisition's openness commitments are contractual.
+
 ## How the sweep was run
 
 Three research agents, one per source (GitHub, Hugging Face, arXiv), each under the same brief: the state of the art between 2026-06-01 and 2026-09-07 as it bears on the four goals, primary sources first, every number with its URL, evidence graded primary, secondary, or claim. Their briefings and items were merged by `data/knowledge/tools/build-pack.mjs` into one corpus, deduplicated by URL, and distributed over eight theme skills; the pack is served to agents through the filesystem skill provider as described in the [knowledge packs note](2026-09-07-knowledge-packs.md). A fourth agent compared ruflo with this harness from a shallow clone; that result is the [ruflo comparison note](2026-09-07-ruflo-comparison.md).

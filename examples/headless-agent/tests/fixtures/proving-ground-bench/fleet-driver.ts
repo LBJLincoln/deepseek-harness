@@ -82,7 +82,18 @@ try {
   await writeFile('observatory.json', `${JSON.stringify(page.json, null, 2)}\n`)
   const facts = await scorekeeper.exportFacts({ sink: jsonlFileSink('./facts.jsonl') })
   const exported = await trajectories.export({ sink: jsonlFileSink('./trajectories.jsonl') })
-  const status = { type: 'result', plan: plan.name, environments: selected, startedAt, endedAt: new Date().toISOString(), report, rows: page.json.rows, facts, exported }
+  const status = {
+    type: 'result',
+    plan: plan.name,
+    environments: selected,
+    implementer: plan.implementer ?? { kind: 'route' },
+    startedAt,
+    endedAt: new Date().toISOString(),
+    report,
+    rows: page.json.rows,
+    facts,
+    exported,
+  }
   await writeFile('status.json', `${JSON.stringify(status, null, 2)}\n`)
   process.stdout.write(`${JSON.stringify(status)}\n`)
 } finally {

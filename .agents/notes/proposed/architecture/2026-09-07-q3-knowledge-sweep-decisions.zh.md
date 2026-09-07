@@ -47,6 +47,19 @@ Status: proposed
 19. 欧盟 AI 法案所需的产物，由 composition manifest、数据使用条款、签署记录，以及带累计算力的训练运行记录生成；发布物的形态是一份 AI 物料清单，携带该领域自身文档所欠缺的字段；一份按司法辖区划分的义务表，随附在每份客户合同的技术附件中；运行器的 certificate 导出变为可签名的，以此回应第三方签名证据的要求。
 20. 基座模型的许可证按版本钉定在 lineage 记录中；许可证变更是一次供应链事件。
 
+### 源自双周重读
+
+在 2026-08-24 至 2026-09-07 期间，以双周为粒度进行的第二轮重读（其中包括对 Sakana 的 Fugu 与路由相关文献的深入研究）就是 [2026-09-fortnight 知识包](../../../../data/knowledge/2026-09-fortnight/manifest.json)。它新增了以下决定：
+
+21. 每一条能够到达 Anthropic API 的路由都接受审计：核查是否强制 `tool_choice`，以及提示词或工具变更后是否重放；同时按一项显式、被记录的前缀不匹配策略设置 thinking 绑定请求头：`dsh-llm-pi-ai`、`dsh-llm-claude-code`、`dsh-session-projection`。
+22. 在 LLM 请求边界处设置一份允许与拒绝列表，把 provider 侧的 fetch 参数当作出站流量加以管控，与进程沙箱并列：`dsh-sandbox-policy`、`dsh-environment-runner`。
+23. 一个一等升级工具，让 agent 可以把某个环境声明为已损坏；这项声明是一条被记录的结果，它标记该 fixture，并且永远不计为通过：`dsh-environments`、`dsh-verification`。
+24. 路由先经过度量，再进行构建，顺序由 [假设项目](2026-09-07-hypothesis-program.md) 确定：首先是翻转率，其次是配有显式 transcript（文本记录）接口的尝试阶梯，静态部门表作为基线，以及每一次切换都按它所使失效的前缀缓存计价。
+25. 留存期限、零数据留存（zero-data-retention）可用性、许可证以及标注日期的价格变更，都是客户用途可以据以拒绝某条路由的路由事实：`dsh-data-use`、`dsh-curator`、LLM seam。
+26. 轨迹导出淘汰点，以及压缩与 subagent 的分支结构：`dsh-trajectories`、`dsh-compaction`。
+27. 环境注册表采用 Terminal-Bench 4.0 的饱和规则，在每一条结果中都记录 harness 版本，并在每一条 scorekeeper 事实上都携带四字段披露：`dsh-environments`、`dsh-scorekeeper`、`dsh-observatory`。
+28. 发布计划会在 Hub 之外点名第二个托管平台，直到 NVIDIA 收购案的开放性承诺具有合同约束力为止。
+
 ## 扫描是如何进行的
 
 三个研究 agent，每个来源一个（GitHub、Hugging Face、arXiv），都遵循同一份任务简述：2026-06-01 到 2026-09-07 之间与四个目标相关的技术前沿，一手来源优先，每个数字都带 URL，证据分为一手、二手或声称三个等级。它们各自的简报与条目由 `data/knowledge/tools/build-pack.mjs` 合并为一个语料库，按 URL 去重，并分发到八个主题 skill 上；该知识包通过文件系统 skill 提供方提供给 agent，具体方式见[知识包 note](2026-09-07-knowledge-packs.md)。第四个 agent 从一次浅克隆出发，把 ruflo 与本 harness 做了比较；这一结果就是[ruflo 对照 note](2026-09-07-ruflo-comparison.md)。

@@ -18,12 +18,14 @@
 import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
 import { foldExperiment } from '@deepseek-ai/dsh-experiments'
+import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
 import type { FleetRunReport } from '@deepseek-ai/dsh-fleet'
 
 interface FleetStatus {
   readonly plan: string
   readonly environments: readonly string[]
+  readonly implementer: EnvironmentRunImplementer
   readonly report: FleetRunReport
 }
 
@@ -57,8 +59,8 @@ const thresholds = {
 const result = foldExperiment({
   digest,
   arms: {
-    baseline: { model: modelOf(baseline), group: `offline-${digest}-baseline` },
-    candidate: { model: modelOf(candidate), group: `offline-${digest}-candidate` },
+    baseline: { model: modelOf(baseline), implementer: baseline.implementer, group: `offline-${digest}-baseline` },
+    candidate: { model: modelOf(candidate), implementer: candidate.implementer, group: `offline-${digest}-candidate` },
   },
   environments: environments as unknown as readonly EnvironmentId[],
   repetitions,
