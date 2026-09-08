@@ -136,6 +136,7 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
     attempts,
     certified: shape.certified,
     ...shape.usage === undefined ? {} : { usage: shape.usage },
+    caps: [],
   }
 }
 

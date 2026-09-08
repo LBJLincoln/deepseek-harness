@@ -122,6 +122,7 @@ export function experiment(
     delta: 0.25,
     spend: { inputTokens: 40, outputTokens: 10 },
     thresholds: { bootstrapResamples: 1000, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 1000 },
+    caps: [['maxTotalTokens', 1000]],
     verdict,
   }
 }
