@@ -60,6 +60,27 @@ Each task was run once against the product loop in a copy of its directory with 
 
 Four of the ten failed at least one hidden case and seven passed their visible suite. Only `lex-states` failed while its visible suite passed, at 158 of 160 cases, which is the shape the tier exists to produce; `glob-brace`, `conf-canon` and `sheet-eval` each ran out of the eight-minute budget with nothing runnable in place, which is a difficulty signal of a blunter kind. The six re-run tasks — `uri-resolve`, `build-schedule`, `ranked-choice`, `rate-limit-sim`, `diff3-merge` and `wrap-justify` — scored every hidden case in both rounds, in 201 to 417 seconds, so the added corners moved nothing for this implementer. Against this loop the tier separates on how much specification a task carries, not yet on how sharp its corners are.
 
+### The fairness audit of 2026-09-08
+
+Two loops then ran the eight non-held-out tier-5 environments — the harness's own loop and the product's, on the same model — and each certified 11 of 16 cells. Where two independent implementers miss the same case at the same point, the case or the prompt is the suspect, not the implementer, so every failed case was read against its prompt. The rule the tier is built on decides each one: (a) the prompt already fixes the expected output, so the miss is the implementer's; (b) the prompt is silent or admits two readings, so the prompt gains the missing sentence; (c) the reference contradicts the prompt, so the reference changes and `generate-cases.mjs` rewrites the corpus.
+
+| Task | Cases | What the case turned on | Decision |
+|---|---|---|---|
+| `conf-canon` | corner-009, corner-010 | `e = [,]` expected `invalid value ` with an empty offending word, a trailing space no prompt can state | c |
+| `conf-canon` | corner-011, corner-012 | a duplicate key inside an inline table expected the bare `x` against a prompt that counts the path from the root | c |
+| `conf-canon` | corner-021, corner-022 | `a = 1` then `[a]` expected `table a is defined twice` where no header had ever made `a` current | c |
+| `lex-states` | corner-017, corner-018 | `r"unterminated` is reported at its opening quote by one prompt sentence and at the `r` by the next | b |
+| `lex-states` | corner-073 | `tokens stats` passes two argument words where the prompt takes exactly one | a |
+| `sheet-eval` | corner-013 | `MIN` over a range holding text: coerce to numbers, or pick by the stated cross-kind order | b |
+| `sheet-eval` | corner-023, corner-024 | `=AAA1` and `=A1000`: an address outside the addressable range, or a word the grammar rejects | b |
+| `sheet-eval` | corner-028 | whether `deps` names the cells of a range the evaluator rejects for its position | b |
+| `sheet-eval` | corner-063 | `values deps` passes two argument words where the prompt takes exactly one | a |
+| `diff3-merge` | corner-141 | `merge extra` passes two argument words where the prompt takes exactly one | a |
+
+The three `conf-canon` reference changes make its error paths uniform. A value reader that consumed nothing now raises `expected a value` instead of naming an empty word, so no message can end in a space; an inline table now carries its path down from the root, matching what `document.js` already did for a key and for a dot walking through a value; and a `[name]` header over a name holding a non-table now reports `<path> is not a table`, which is what `descend` reports one level deeper and the mirror of `[[name]]`'s `<path> is not an array of tables`, leaving `table <path> is defined twice` for the redeclaration the prompt describes. Six of the 150 cases changed and the generator reproduced the file byte for byte on a rerun. The prompts of `conf-canon`, `lex-states` and `sheet-eval` gained the sentences that make each expected output the only reading; `lex-states`, `sheet-eval` and `diff3-merge` needed no reference or corpus change.
+
+The remaining corners of all ten tasks were read for the same four failure classes — an exact message with an empty argument, the column of a token behind a prefix, two applicable diagnoses with no stated precedence, and a bare key where a path was promised. No other message in any corpus carries an empty argument, and `glob-brace`'s `a[b\`, `uri-resolve`'s five components checked in a written order, and `build-schedule`'s line-less `unknown task` each state their own precedence. The recorded fleets ran against the pre-audit cases, so their per-case results predate every change above and re-running them is what will show the audit landed.
+
 ## Alternatives considered
 
 **Enlarge the visible suites.** The straightforward reading of "48 of 48" is that the tasks are too easy, and the cheap answer is more assertions. It fails on its own terms: a suite complete enough to pin the behaviour is a suite that states the behaviour, and the implementer reads it before writing anything. The measurement stays "can you satisfy what you were shown".
