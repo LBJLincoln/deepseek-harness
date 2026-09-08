@@ -719,6 +719,12 @@ export interface Config {
   isolation: CertificateIsolation
   /** Implementer turns before the run is reported uncertified; each is followed by one validation. */
   maxAttempts?: number
+  /**
+   * Rungs one request's attempt ladder may name. A ladder is the attempt bound
+   * of the run that carries it, so an unbounded ladder in a plan file would be
+   * an unbounded run; this is the ceiling a deployment lets a plan reach.
+   */
+  maxLadderRungs?: number
   /** Round cap handed to goal creation; absent applies the goal service default. */
   maxGoalRounds?: number
   /** Timeout override for each check command and each case, capped by the executor; absent applies the executor default. */
@@ -739,7 +745,7 @@ export interface Config {
 
 依赖：`CertificateIsolation`（`@deepseek-ai/dsh-verification/types`）
 
-来源：[`packages/improvement/environment-runner/src/index.ts:109`](../packages/improvement/environment-runner/src/index.ts)
+来源：[`packages/improvement/environment-runner/src/index.ts:114`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -762,7 +768,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-来源：[`packages/improvement/environments/src/index.ts:199`](../packages/improvement/environments/src/index.ts)
+来源：[`packages/improvement/environments/src/index.ts:220`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -786,7 +792,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/improvement/experiments/src/index.ts:80`](../packages/improvement/experiments/src/index.ts)
+来源：[`packages/improvement/experiments/src/index.ts:91`](../packages/improvement/experiments/src/index.ts)
 
 <a id="deepseek-aidsh-fleet"></a>
 
@@ -2074,7 +2080,7 @@ export interface JsonRpcConfig {
 
 依赖：`Readable`（`node:stream`）· `Writable`（`node:stream`）
 
-来源：[`packages/sdk/server/src/index.ts:29`](../packages/sdk/server/src/index.ts)
+来源：[`packages/sdk/server/src/index.ts:25`](../packages/sdk/server/src/index.ts)
 
 <a id="deepseek-aidsh-session-persistence-jsonl"></a>
 

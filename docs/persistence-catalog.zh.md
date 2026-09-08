@@ -537,15 +537,16 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
  * history, and it is the cell session's only record of an implementer whose
  * own transcript stays in its product.
  *
- * The model the cell ASKED for is on the `environment/run` stamp, which the
- * runner also passes to the provider, so a reader comparing the two sees
- * whether the child ran the arm's model and which concrete version an alias
- * resolved to.
+ * The model the cell ASKED for is on the `environment/run` stamp — its
+ * `ladder` rung for this attempt, or its `model` for a run without one —
+ * which the runner also passes to the provider, so a reader comparing the
+ * two sees whether the child ran the arm's model and which concrete version
+ * an alias resolved to.
  */
 'environment/delegation': EnvironmentDelegation
 ```
 
-来源：[`packages/improvement/environment-runner/src/types.ts:32`](../packages/improvement/environment-runner/src/types.ts)
+来源：[`packages/improvement/environment-runner/src/types.ts:33`](../packages/improvement/environment-runner/src/types.ts)
 
 <a id="environmentrun--log-only"></a>
 
@@ -554,13 +555,14 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 ```ts persistence-catalog
 /**
  * Environment run stamp: the environment, its content hashes, the
- * repetition, group, and district, the model route, and the declared
- * isolation of one run, appended once before the run's first turn.
+ * repetition, group, and district, the model route and the attempt ladder
+ * over it, and the declared isolation of one run, appended once before the
+ * run's first turn.
  */
 'environment/run': EnvironmentRunStamp
 ```
 
-来源：[`packages/improvement/environments/src/index.ts:38`](../packages/improvement/environments/src/index.ts)
+来源：[`packages/improvement/environments/src/index.ts:40`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 
