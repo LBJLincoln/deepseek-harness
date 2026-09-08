@@ -1,0 +1,753 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Daliesk Workflow Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --ground: #EEF1F5; --surface: #FFFFFF; --surface-2: #F6F8FA; --ink: #12181F; --ink-2: #4E5964; --ink-3: #7B8794;
+    --hair: #CBD3DC; --hair-2: #E2E7EC;
+    --human: #7B3FA0; --s: #B8690F; --d: #1E4FD6; --store: #1F7F6E; --gate: #B8322A;
+    --human-soft: #F0E6F6; --s-soft: #FBEFDD; --d-soft: #E4EBFB; --store-soft: #E0F2EE; --gate-soft: #F9E3E0;
+    --focus: #12181F; --shadow: 0 1px 2px rgba(18,24,31,.08), 0 8px 24px rgba(18,24,31,.06);
+    --band-a: rgba(18,24,31,.025); --band-b: transparent;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1319; --surface: #151C25; --surface-2: #1B232E; --ink: #E7ECF2; --ink-2: #AEB8C4; --ink-3: #8794A3;
+      --hair: #2A3441; --hair-2: #222B36;
+      --human: #C08BE0; --s: #E5A24D; --d: #7A9DFF; --store: #4EC2AA; --gate: #F07A6C;
+      --human-soft: #2A1F36; --s-soft: #33261A; --d-soft: #1C2742; --store-soft: #163430; --gate-soft: #3A2220;
+      --focus: #E7ECF2; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      --band-a: rgba(231,236,242,.035); --band-b: transparent;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E1319; --surface: #151C25; --surface-2: #1B232E; --ink: #E7ECF2; --ink-2: #AEB8C4; --ink-3: #8794A3;
+    --hair: #2A3441; --hair-2: #222B36;
+    --human: #C08BE0; --s: #E5A24D; --d: #7A9DFF; --store: #4EC2AA; --gate: #F07A6C;
+    --human-soft: #2A1F36; --s-soft: #33261A; --d-soft: #1C2742; --store-soft: #163430; --gate-soft: #3A2220;
+    --focus: #E7ECF2; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --band-a: rgba(231,236,242,.035); --band-b: transparent;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.5 "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--ink-3); text-underline-offset: 2px; }
+  h1, h2, h3, h4 { font-family: "Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 800; line-height: 1.05; }
+  h2 { font-size: 24px; font-weight: 700; line-height: 1.2; }
+  h3 { font-size: 17px; font-weight: 700; }
+  code, .mono { font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82em; }
+  p { margin: 0; max-width: 68ch; }
+  .eyebrow { font-family: "Martian Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+  .layout { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+  .rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; border-right: 1px solid var(--hair-2); background: var(--surface); padding: 22px 18px; display: flex; flex-direction: column; gap: 22px; }
+  .brand { display: flex; flex-direction: column; gap: 4px; }
+  .brand .name { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 20px; line-height: 1.1; }
+  .brand .sub { color: var(--ink-3); font-size: 12.5px; }
+  .rail nav { display: flex; flex-direction: column; gap: 4px; }
+  .rail nav .group { margin-top: 10px; }
+  .rail nav a { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px; border-radius: 6px; text-decoration: none; color: var(--ink-2); font-size: 14px; }
+  .rail nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .rail nav a.active { background: var(--ink); color: var(--ground); }
+  .rail nav a .k { font-family: "Martian Mono", monospace; font-size: 11px; min-width: 26px; color: inherit; opacity: .7; }
+  .rail nav a.active .k { opacity: .8; }
+  main { padding: 28px 36px 80px; display: flex; flex-direction: column; gap: 44px; min-width: 0; }
+  header.masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding-bottom: 22px; border-bottom: 1px solid var(--hair); }
+  header.masthead p { margin-top: 12px; color: var(--ink-2); font-size: 16px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .legend .item { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .swatch.human { background: var(--human); } .swatch.s { background: var(--s); } .swatch.d { background: var(--d); } .swatch.store { background: var(--store); } .swatch.gate { background: var(--gate); }
+  section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 12px; }
+  .section-head { display: flex; flex-direction: column; gap: 6px; }
+  .section-head p { color: var(--ink-2); }
+  .goal { font-family: "Bricolage Grotesque", sans-serif; font-weight: 500; font-size: 18px; color: var(--ink-2); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--hair); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+  .chip:focus-visible, button:focus-visible, .node:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .stepper { display: inline-flex; align-items: center; gap: 8px; }
+  .stepper button { border: 1px solid var(--hair); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer; }
+  .stepper .pos { font-family: "Martian Mono", monospace; font-size: 12px; color: var(--ink-2); min-width: 8ch; text-align: center; font-variant-numeric: tabular-nums; }
+  .stage-wrap { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+  .diagram { background: var(--surface); border: 1px solid var(--hair-2); border-radius: 10px; overflow-x: auto; overflow-y: hidden; box-shadow: var(--shadow); }
+  .diagram svg { display: block; }
+  .inspector { background: var(--surface); border: 1px solid var(--hair-2); border-radius: 10px; padding: 18px 18px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+  .diagram-caption { font-size: 12.5px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 12px; }
+  .inspector .empty { color: var(--ink-3); }
+  .inspector h3 { font-size: 18px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge { font-family: "Martian Mono", monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--hair); color: var(--ink-2); background: var(--surface-2); }
+  .badge.t-D { color: var(--d); border-color: var(--d); background: var(--d-soft); }
+  .badge.t-S { color: var(--s); border-color: var(--s); background: var(--s-soft); }
+  .badge.t-DS { color: var(--ink); border-color: var(--hair); background: linear-gradient(90deg, var(--d-soft), var(--s-soft)); }
+  .badge.t-GATE { color: var(--gate); border-color: var(--gate); background: var(--gate-soft); }
+  .badge.t-HUMAN { color: var(--human); border-color: var(--human); background: var(--human-soft); }
+  .badge.t-STORE { color: var(--store); border-color: var(--store); background: var(--store-soft); }
+  .badge.new { color: var(--gate); border-style: dashed; }
+  .kv { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 6px 12px; font-size: 14px; }
+  .kv dt { color: var(--ink-3); font-size: 12.5px; padding-top: 2px; }
+  .kv dd { margin: 0; }
+  .schema-link { background: none; border: none; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; text-decoration-color: var(--store); text-underline-offset: 2px; cursor: pointer; font-family: "Martian Mono", monospace; font-size: 12.5px; }
+  table.fields { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.fields th, table.fields td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--hair-2); vertical-align: top; }
+  table.fields th { color: var(--ink-3); font-weight: 400; font-size: 12px; }
+  table.fields td:first-child { font-family: "Martian Mono", monospace; font-size: 12px; white-space: nowrap; }
+  .svg-node { cursor: pointer; }
+  .node rect.box { fill: var(--surface); stroke: var(--hair); stroke-width: 1.2; }
+  .node.selected rect.box { stroke: var(--ink); stroke-width: 2; }
+  .node text.title { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 12.5px; fill: var(--ink); font-weight: 700; }
+  .node text.actor { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 11px; fill: var(--ink-2); }
+  .node text.num { font-family: "Martian Mono", monospace; font-size: 10px; fill: var(--ink-3); }
+  .node text.tag { font-family: "Martian Mono", monospace; font-size: 9.5px; font-weight: 600; }
+  .lane-label { font-family: "Martian Mono", monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; fill: var(--ink-3); }
+  .edge path { fill: none; stroke: var(--ink-3); stroke-width: 1.4; }
+  .edge.feedback path { stroke-dasharray: 5 4; stroke: var(--gate); }
+  .edge.feed path { stroke-dasharray: 2 4; stroke: var(--store); }
+  .edge.report path { stroke-dasharray: 3 3; stroke: var(--ink-3); }
+  .node.st-proposed rect.box { stroke-dasharray: 5 3; }
+  .node.st-partial rect.box { stroke-dasharray: 12 3 3 3; }
+  .node .rev-dot { fill: var(--store); stroke: var(--surface); stroke-width: 1.5; }
+  .badge.st-implemented { color: var(--store); border-color: var(--store); }
+  .badge.st-partial { color: var(--ink-2); border-style: dashed; }
+  .badge.st-proposed { color: var(--ink-3); border-style: dashed; }
+  .rev { border-left: 3px solid var(--store); padding-left: 10px; color: var(--ink-2); font-size: 13.5px; }
+  .edge text { font-family: "Martian Mono", monospace; font-size: 10px; fill: var(--ink-2); }
+  .edge rect { fill: var(--surface); stroke: var(--hair-2); }
+  .edge.selected path { stroke: var(--ink); stroke-width: 2.2; }
+  .edge { cursor: pointer; }
+  .dim { opacity: .16; transition: opacity .2s; }
+  @media (prefers-reduced-motion: reduce) { .dim { transition: none; } }
+  .hide-labels .edge text, .hide-labels .edge rect { display: none; }
+  .stage-list { display: grid; gap: 10px; }
+  details.stage { background: var(--surface); border: 1px solid var(--hair-2); border-radius: 8px; padding: 0; }
+  details.stage summary { cursor: pointer; padding: 12px 14px; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; list-style: none; }
+  details.stage summary::-webkit-details-marker { display: none; }
+  details.stage summary .n { font-family: "Martian Mono", monospace; font-size: 12px; color: var(--ink-3); }
+  details.stage .body { padding: 0 14px 14px 60px; display: flex; flex-direction: column; gap: 8px; color: var(--ink-2); font-size: 14px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--hair-2); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  table.roster { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--surface); border: 1px solid var(--hair-2); border-radius: 10px; overflow: hidden; }
+  table.roster th, table.roster td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--hair-2); vertical-align: top; }
+  table.roster th { font-weight: 700; color: var(--ink-2); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; background: var(--surface-2); }
+  table.roster td.mono { font-size: 12px; }
+  .table-wrap { overflow-x: auto; }
+  .explorer { display: grid; gap: 12px; }
+  .explorer input { font: inherit; padding: 8px 12px; border: 1px solid var(--hair); border-radius: 6px; background: var(--surface); color: var(--ink); width: min(420px, 100%); }
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+  .field { background: var(--surface); border: 1px solid var(--hair-2); border-radius: 6px; padding: 8px 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; }
+  .field .name { font-family: "Martian Mono", monospace; font-size: 12px; overflow-wrap: anywhere; }
+  .field .type { font-family: "Martian Mono", monospace; font-size: 10.5px; color: var(--ink-3); }
+  .field .meta { grid-column: 1 / -1; font-size: 12px; color: var(--ink-2); display: flex; gap: 8px; align-items: center; }
+  .src { font-family: "Martian Mono", monospace; font-size: 10px; padding: 1px 6px; border-radius: 3px; border: 1px solid; }
+  .src.D { color: var(--d); border-color: var(--d); } .src.S { color: var(--s); border-color: var(--s); }
+  .count { font-family: "Martian Mono", monospace; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .sev.landed { color: var(--store); border-color: var(--store); }
+  ol.gaps { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 10px; counter-reset: gap; }
+  ol.gaps li { background: var(--surface); border: 1px solid var(--hair-2); border-radius: 8px; padding: 12px 14px 12px 54px; position: relative; counter-increment: gap; }
+  ol.gaps li::before { content: counter(gap); position: absolute; left: 14px; top: 12px; font-family: "Martian Mono", monospace; font-size: 12px; color: var(--ink-3); width: 28px; }
+  .sev { font-family: "Martian Mono", monospace; font-size: 10.5px; padding: 1px 7px; border-radius: 3px; border: 1px solid; margin-right: 6px; }
+  .sev.blocking { color: var(--gate); border-color: var(--gate); background: var(--gate-soft); }
+  .sev.major { color: var(--s); border-color: var(--s); background: var(--s-soft); }
+  .sev.minor { color: var(--ink-2); border-color: var(--hair); }
+  .council-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+  .judge h3 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .scores { display: flex; gap: 6px; }
+  .score { font-family: "Martian Mono", monospace; font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--hair-2); font-variant-numeric: tabular-nums; }
+  .judge ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; display: grid; gap: 6px; }
+  .judge .better { border-left: 3px solid var(--store); padding-left: 12px; color: var(--ink-2); font-size: 14px; }
+  .pending { color: var(--ink-3); font-style: italic; }
+  .revisions { display: grid; gap: 10px; }
+  .revision { background: var(--surface); border: 1px solid var(--hair-2); border-left: 3px solid var(--d); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--ink-2); }
+  .revision b { color: var(--ink); }
+  .note { font-size: 13px; color: var(--ink-3); }
+  
+  @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } .rail { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--hair-2); } main { padding: 22px 18px 60px; } header.masthead { grid-template-columns: 1fr; } }
+  @media print { .rail { display: none; } .layout { grid-template-columns: 1fr; } .diagram { overflow: visible; box-shadow: none; } .inspector { position: static; } }
+</style>
+
+<div class="layout">
+  <aside class="rail">
+    <div class="brand">
+      <div class="name">Daliesk Workflow Atlas</div>
+      <div class="sub">Four long agentic workflows, one per goal, over the harness as it exists today.</div>
+    </div>
+    <nav id="nav" aria-label="Sections">
+      <a href="#w1" data-nav="w1"><span class="k">W1</span>Harness capability program</a>
+      <a href="#w2" data-nav="w2"><span class="k">W2</span>Software factory</a>
+      <a href="#w3" data-nav="w3"><span class="k">W3</span>Transcript-to-model</a>
+      <a href="#w4" data-nav="w4"><span class="k">W4</span>Fleet observatory</a>
+      <div class="group"></div>
+      <a href="#principles" data-nav="principles"><span class="k">§1</span>Principles</a>
+      <a href="#roster" data-nav="roster"><span class="k">§2</span>Meta-agent roster</a>
+      <a href="#schemas" data-nav="schemas"><span class="k">§3</span>Structured hand-offs</a>
+      <a href="#facts" data-nav="facts"><span class="k">§4</span>Scoreboard schema</a>
+      <a href="#gaps" data-nav="gaps"><span class="k">§5</span>What is missing</a>
+      <a href="#council" data-nav="council"><span class="k">§6</span>Judge council</a>
+      <a href="#revisions" data-nav="revisions"><span class="k">§7</span>Revisions</a>
+    </nav>
+    <div class="legend" aria-label="Lane legend" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+      <span class="eyebrow">Lanes</span>
+      <span class="item"><span class="swatch human"></span>Humans (sign-off)</span>
+      <span class="item"><span class="swatch s"></span>Semantic agents · S</span>
+      <span class="item"><span class="swatch d"></span>Deterministic services · D</span>
+      <span class="item"><span class="swatch store"></span>Records &amp; stores</span>
+      <span class="item"><span class="swatch gate"></span>Gates with authority</span>
+    </div>
+    <p class="note">Solid edges carry a schema-validated hand-off (its schema is written on the edge). Dashed red edges return work with the failure as its directive. Dotted green edges feed a later consumer. Grey dashed edges are worker reports, never gates. Boxes: solid outline implemented, dash-dot partial, dashed proposed; hatched boxes run outside the session log; a green dot marks a stage the council changed.</p>
+  </aside>
+
+  <main>
+    <header class="masthead">
+      <div>
+        <span class="eyebrow">Design draft v1 · 2026-09-05, refreshed 2026-09-06 · revised by a seven-judge council · for revision together</span>
+        <h1>Four workflows, one deterministic spine</h1>
+        <p>Every stage is a plugin. Semantic agents propose inside structured outputs; deterministic services fold the session log, run the verifiers, and hold the authority together with the humans who sign. The same log that runs the fleet is the dataset that trains the model.</p>
+      </div>
+      <div class="legend">
+        <span class="item"><span class="badge t-D">D</span>fold, gate, verifier, replay</span>
+        <span class="item"><span class="badge t-S">S</span>critique, synthesis, proposal</span>
+        <span class="item"><span class="badge t-GATE">GATE</span>authority</span>
+      </div>
+    </header>
+
+    <section id="w1" data-wf="w1"></section>
+    <section id="w2" data-wf="w2"></section>
+    <section id="w3" data-wf="w3"></section>
+    <section id="w4" data-wf="w4"></section>
+
+    <section id="principles">
+      <div class="section-head"><span class="eyebrow">§1</span><h2>Principles shared by the four workflows</h2><p>Each one is enforced by something the repository already has, or names the plugin that will enforce it.</p></div>
+      <div class="grid-2" id="principles-grid"></div>
+    </section>
+
+    <section id="roster">
+      <div class="section-head"><span class="eyebrow">§2</span><h2>Meta-agent roster</h2><p>Every agent is a preset composition. Semantic agents emit forced schemas; deterministic ones fold or gate. No agent judges its own work.</p></div>
+      <div class="table-wrap"><table class="roster" id="roster-table"></table></div>
+    </section>
+
+    <section id="schemas">
+      <div class="section-head"><span class="eyebrow">§3</span><h2>Structured hand-offs</h2><p>Every semantic-to-deterministic edge names one of these schemas. A rejected output returns to its producer with the validation error as the directive.</p></div>
+      <div class="grid-2" id="schema-grid"></div>
+    </section>
+
+    <section id="facts">
+      <div class="section-head"><span class="eyebrow">§4</span><h2>Scoreboard schema · <span class="mono">SessionFacts</span></h2><p>One row per session. D fields fold from the session log or the run report; S fields come from judge sessions that are themselves logged.</p></div>
+      <div class="explorer">
+        <div class="toolbar">
+          <input id="field-search" type="search" placeholder="Search fields, groups, sources…" aria-label="Search fields">
+          <span class="count" id="field-count"></span>
+        </div>
+        <div class="chips" id="group-chips"></div>
+        <div class="field-grid" id="field-grid"></div>
+      </div>
+    </section>
+
+    <section id="gaps">
+      <div class="section-head"><span class="eyebrow">§5</span><h2>What the documentation and processes already allow, and what is missing</h2><p>Ordered by how much of the four workflows each gap blocks.</p></div>
+      <div class="grid-2" id="allowed-grid"></div>
+      <ol class="gaps" id="gap-list"></ol>
+    </section>
+
+    <section id="council">
+      <div class="section-head"><span class="eyebrow">§6</span><h2>Judge council</h2><p>Seven judge agents reviewed the draft independently, each from the perspective of a lab we compete with or a discipline we depend on. Their scores, ranked gaps, and better solutions are shown as they wrote them; the revisions in §7 are what we took.</p></div>
+      <div class="council-grid" id="council-grid"></div>
+    </section>
+
+    <section id="revisions">
+      <div class="section-head"><span class="eyebrow">§7</span><h2>Revisions taken after the council</h2><p>What changed between draft v0 and this page.</p></div>
+      <div class="revisions" id="revision-list"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+// ---------- Schemas: the structured hand-offs written on the edges ----------
+const SCHEMAS = {
+  CapabilityMatrix: { purpose: 'Which model routes run which harness presets in this program.', validator: 'built by a D fold over the LLM adapter registry and the preset roster', fields: [['cells[]', 'object', '{provider, model, presetId, reasoningEffort, budgetEur}'], ['harnessCommit', 'string', 'git sha of the harness under test'], ['createdAt', 'epoch ms', '']] },
+  SuitePlan: { purpose: 'The environment cells of one run batch.', validator: 'registry filter; heldOut environments are marked and never exported', fields: [['environments[]', 'object', '{id, kind, heldOut, difficulty, domain}'], ['seeds[]', 'int', 'paired seeds shared by baseline and candidate'], ['isolation', 'enum', 'none | process | host, from config'], ['attemptBudget', 'int', 'per session']] },
+  EnvironmentRunReport: { purpose: 'One environment run as one fresh session.', validator: 'produced by ctx.environmentRuns; every fact is also in the session log', fields: [['environment', 'EnvironmentId', ''], ['sessionId', 'SessionId', 'the durable record'], ['attempts[]', 'object', '{attempt, results[{checkId, status, evidence}]}'], ['certified', 'boolean', ''], ['certificate?', 'VerificationCertificate', 'present exactly when certified'], ['usage?', 'TokenUsage', 'summed over assistant messages']] },
+  ScoreboardBatch: { purpose: 'Scoreboard rows folded from a batch of sessions.', validator: 'D fold; recomputable from logs', fields: [['rows[]', 'SessionFacts', 'the §4 schema'], ['harnessCommit', 'string', ''], ['computedAt', 'epoch ms', '']] },
+  SessionDiagnosis: { purpose: 'Why one session failed or wasted budget, and who owns the fix.', validator: 'subagent outputSchema; evidence seqs must exist in the log', fields: [['sessionId', 'SessionId', ''], ['taxonomy', 'enum', 'tool-misuse | context-loss | spec-misread | verification-gaming | loop | environment-defect | model-limit'], ['evidenceSeqs[]', 'int', 'event seqs the claim rests on'], ['rootCause', 'string', ''], ['owner', 'enum', 'harness | model | environment | spec'], ['confidence', '0..1', ''], ['proposedExperiment?', 'string', '']] },
+  HarnessPatchProposal: { purpose: 'A component-level change with its predicted effect and its rollback.', validator: 'subagent outputSchema; the branch must pass the static gates before any run', fields: [['id', 'string', ''], ['targets[]', 'ComponentId', ''], ['changeKind', 'enum', 'prompt-section | tool-schema | presentation | policy | skill | preset'], ['rationale', 'string', 'cites SessionDiagnosis ids'], ['predictedDeltas[]', 'object', '{metric, cell, delta}'], ['affectedCells[]', 'string', 'the only cells re-run'], ['branch', 'string', ''], ['rollback', 'string', '']] },
+  GateReport: { purpose: 'The result of one static gate over a branch.', validator: 'scripts/run-gates output, parsed', fields: [['gate', 'enum', 'typecheck | lint | coverage | doc-sync | snapshots | invariants | duplication | hygiene'], ['passed', 'boolean', ''], ['findings[]', 'object', '{path, line?, message}'], ['durationMs', 'int', '']] },
+  ExperimentResult: { purpose: 'Paired comparison of candidate against baseline on the affected cells.', validator: 'experiment plugin (D); bootstrap over paired seeds', fields: [['proposalId', 'string', ''], ['cells[]', 'object', '{cell, baseline, candidate, delta, ci95}'], ['seedsPaired', 'int', ''], ['costEur', 'number', ''], ['verdict', 'enum', 'promote | reject | inconclusive']] },
+  ReviewVerdict: { purpose: 'A disinterested council review of a diff, a spec, or a release.', validator: 'subagent outputSchema; judge model route differs from the worker route', fields: [['dimensions', 'object', 'correctness, security, architecture, docs → {score, confidence, findings[]}'], ['blocking[]', 'string', ''], ['judgeModelId', 'string', 'must differ from the worker model'], ['disinterested', 'true', 'the judge had no stake in the outcome']] },
+  PromotionDecision: { purpose: 'The human-signed authority record for anything that changes the fleet.', validator: 'approval seam; stored beside the Agent Note and PR', fields: [['subject', 'enum', 'harness-patch | model | knowledge | environment'], ['decision', 'enum', 'promote | reject | defer'], ['approver', 'identity', ''], ['noteRef', 'path', 'the Agent Note'], ['prRef', 'url', ''], ['lineageUpdate', 'object', 'components whose provenance becomes curated']] },
+  SpecDraft: { purpose: 'What the client asked for, stated as goals with acceptance outcomes.', validator: 'subagent outputSchema; every goal needs at least one acceptance outcome', fields: [['goals[]', 'object', '{id, statement, acceptanceOutcomes[]}'], ['nonGoals[]', 'string', ''], ['constraints[]', 'string', 'stack, residency, licences'], ['risks[]', 'string', ''], ['dataClasses[]', 'enum', 'public | internal | personal | secret']] },
+  SpecVerdict: { purpose: 'An adversarial reading of the spec before anyone writes code.', validator: 'cross-model judge with outputSchema', fields: [['ambiguities[]', 'string', ''], ['missingOutcomes[]', 'string', 'goals without a testable outcome'], ['conflicts[]', 'string', ''], ['score', '1..10', ''], ['signOffRequired', 'true', 'the client signs the resolved spec']] },
+  CompletionStandard: { purpose: 'The executable definition of done for one goal, authored before implementation.', validator: 'dsh-verification: kebab-case ids, non-empty checks, one revision per mutation', fields: [['goalId', 'GoalId', ''], ['checks[]', 'StandardCheck', '{id, outcome, run}'], ['isolation', 'enum', 'declared by the deployment'], ['authoredBy', 'string', 'validator model route'], ['authoredBeforeFirstWrite', 'boolean', 'a SessionFacts fact']] },
+  Plan: { purpose: 'The goal DAG with owners, isolation and budgets.', validator: 'plan mode (logged state); goals created through ctx.goals', fields: [['goals[]', 'object', '{id, dependsOn[], owner, isolation, budgetEur}'], ['criticalPath[]', 'GoalId', ''], ['parallelism', 'int', 'agent cap for the fan-out']] },
+  Handoff: { purpose: 'The Ralph round report a fresh child leaves for the next one.', validator: 'tool-ralph structured report', fields: [['status', 'enum', 'continue | complete | blocked'], ['summary', 'string', ''], ['nextSteps[]', 'string', ''], ['evidence[]', 'string', 'commands run, tests seen'], ['workspaceState', 'string', 'the workspace is the memory']] },
+  IntegrationReport: { purpose: 'What the merge queue did and what the full gate suite said.', validator: 'D; GateReport per gate', fields: [['mergedHead', 'sha', ''], ['conflicts[]', 'object', '{file, resolvedBy}'], ['gates[]', 'GateReport', '']] },
+  ReleaseRecord: { purpose: 'The release, generated from goals and certificates.', validator: 'D; every changelog line cites a goal id and a certificate', fields: [['version', 'string', ''], ['changelog[]', 'object', '{goalId, certificateRevision, text}'], ['artifacts[]', 'string', ''], ['deployment', 'object', 'client pipeline reference'], ['postmortemRef?', 'path', 'present when any relaxation was recorded']] },
+  ExportManifest: { purpose: 'What the trajectory exporter wrote.', validator: 'ctx.trajectories.export report', fields: [['sessions', 'int', ''], ['exported', 'int', ''], ['rewarded', 'int', 'outcome = 1'], ['filtered', 'int', ''], ['skipped[]', 'object', '{sessionId, reason}'], ['formatVersion', 'string', 'dsh-trajectory/1']] },
+  DatasetManifest: { purpose: 'The curated set with every drop accounted for.', validator: 'curator plugin (D); consent scope checked per client', fields: [['counts', 'object', '{input, deduped, redacted, decontaminated, kept}'], ['dropReasons', 'map', 'reason → count'], ['contentHashes', 'string', 'merkle root'], ['consentScope[]', 'string', 'clients and purposes covered']] },
+  SampleScore: { purpose: 'Whether one trajectory enters the SFT or RL set.', validator: 'D score; S rubric only for SFT candidates, cross-model', fields: [['trajectoryId', 'string', ''], ['dScore', 'object', '{reward, isolation, attempts, toolErrorRate}'], ['sScore?', 'object', '{rubric scores, judgeModelId}'], ['keep', 'boolean', '']] },
+  SplitManifest: { purpose: 'The three sets a training run may touch.', validator: 'D; heldOut environments only in eval', fields: [['sft[]', 'string', 'rejection-sampled certified trajectories'], ['rlEnvironments[]', 'EnvironmentId', 'training-eligible'], ['eval[]', 'EnvironmentId', 'heldOut'], ['curriculum', 'object', 'difficulty weights']] },
+  TrainingRun: { purpose: 'One training job under one hardware scenario.', validator: 'trainer-operator plugin (D)', fields: [['scenario', 'enum', 'A: 2 DGX Spark + cloud | B: 500 k€ GPUs'], ['baseModel', 'string', ''], ['method', 'enum', 'SFT | RL'], ['dataHashes', 'string', 'DatasetManifest root'], ['hyperparameters', 'object', ''], ['compute', 'object', '{gpuHours, flops}'], ['energyKwh', 'number', ''], ['checkpoint', 'string', '']] },
+  EvalReport: { purpose: 'Held-out results of a candidate against base and frontier.', validator: 'environment runner over heldOut suites (D)', fields: [['model', 'string', ''], ['suites[]', 'object', '{kind, pass1, passK, deltaVsBase, deltaVsFrontier}'], ['costPerCertified', 'number', ''], ['sessions[]', 'SessionId', 'every number is replayable']] },
+  SafetyReport: { purpose: 'Refusal, misuse, and monitor results for a candidate.', validator: 'D suites; S mitigations logged', fields: [['suites[]', 'object', '{name, passRate}'], ['monitorAnomalyRate', 'number', ''], ['mitigationsRun[]', 'string', ''], ['verdict', 'enum', 'release | hold']] },
+  ModelRelease: { purpose: 'The promoted model with its card.', validator: 'human-signed PromotionDecision', fields: [['modelId', 'string', ''], ['card', 'object', 'data summary, compute, evaluations, limitations (Art. 53)'], ['promotedFor[]', 'ComponentId', 'never a global default by default'], ['approver', 'identity', '']] },
+  Alert: { purpose: 'A change point in a scoreboard segment.', validator: 'D change-point detection', fields: [['metric', 'string', ''], ['segment', 'object', 'component, preset, model, environment kind'], ['changePoint', 'epoch ms', ''], ['magnitude', 'number', ''], ['sessionsSample[]', 'SessionId', '']] },
+  KnowledgeProposal: { purpose: 'A skill, context provider, note, or environment distilled from transcripts.', validator: 'subagent outputSchema; lands as a plugin with provenance synthesized', fields: [['kind', 'enum', 'skill | context-provider | note | environment'], ['content', 'string', ''], ['provenance', 'synthesized', ''], ['lineage?', 'ComponentId', ''], ['evidenceSessions[]', 'SessionId', '']] },
+  ExperimentPlan: { purpose: 'Which proposals run on which cells with what budget.', validator: 'experiment plugin (D)', fields: [['proposals[]', 'string', ''], ['cells[]', 'string', ''], ['seeds', 'int', ''], ['budgetEur', 'number', ''], ['priority', 'int', '']] },
+  CurriculumUpdate: { purpose: 'How exports and environments are weighted for the next training round.', validator: 'D from certificate rates', fields: [['environmentWeights', 'map', ''], ['difficultyLadder[]', 'EnvironmentId', ''], ['exportWeights', 'map', 'per session segment']] },
+  EnvironmentProposal: { purpose: 'A new task with verifiers mined from failures or client checks.', validator: 'registry rejects duplicates and empty checks', fields: [['definition', 'EnvironmentDefinition', ''], ['sourceSessions[]', 'SessionId', ''], ['heldOutSplit', 'enum', 'train | heldOut']] },
+  AuditReport: { purpose: 'What changed automatically, who approved, what the monitors flagged.', validator: 'D over logs and PromotionDecisions', fields: [['period', 'string', ''], ['automatedChanges[]', 'object', '{noteRef, sessions[]}'], ['approvals[]', 'PromotionDecision', ''], ['anomalies[]', 'string', ''], ['spendEur', 'number', '']] },
+  RunBatch: { purpose: 'The orchestrator\'s fan-out record.', validator: 'workflow engine events (observe-only) plus per-run reports', fields: [['plan', 'SuitePlan | ExperimentPlan', ''], ['agentCap', 'int', ''], ['runs[]', 'EnvironmentRunReport', ''], ['spendEur', 'number', '']] },
+};
+
+const EXTRA_SCHEMAS = {
+  EnvironmentRunStamp: { purpose: 'Log-only session event the runner appends before the first turn; the durable link from a session to its environment.', validator: 'strict decoder in dsh-environment-runner; invariant: exactly one stamp, before turn/start, checksSha256 equal to the standard\'s checks', fields: [['environmentId', 'EnvironmentId', ''], ['heldOut', 'boolean', 'export drops the line unless includeHeldOut'], ['promptSha256', 'hex', ''], ['fixtureSha256', 'hex', ''], ['checksSha256', 'hex', 'decontamination key'], ['seed', 'int', 'or repetition index while the LLM seam has no seed'], ['groupId', 'string', 'GRPO group'], ['policyVersion', 'string', ''], ['harnessVariant', 'string', 'base commit plus patch-set hash'], ['modelSelection', 'object', '{provider, model, reasoningEffort}']] },
+  VerificationRun: { purpose: 'Log-only event for every executed run of a standard, passing or failing; the certificate cites its run.', validator: 'dsh-verification decoder; invariant: certified ⇒ an all-pass run with the same revision', fields: [['standard', 'StandardRef', ''], ['attempt', 'int', ''], ['results[]', 'CheckResult', ''], ['exec[]', 'object', '{argv, cwd, exitCode, stdoutSha256, durationMs} per check'], ['treeHash', 'sha', 'workspace tree the run covered'], ['isolation', 'IsolationEvidence', 'derived from sandbox/mode and config, never a caller argument'], ['executor', 'enum', 'runner | agent-reported']] },
+  IsolationEvidence: { purpose: 'The branded fact behind a certificate\'s isolation claim.', validator: 'runner-derived; invariant: process|host claims need matching sandbox evidence or the row downgrades to none', fields: [['level', 'enum', 'none | process | host'], ['sandboxMode', 'string', 'from the sandbox/mode event'], ['checksRunOnSeparateHost', 'boolean', 'config marker']] },
+  ProgramLedger: { purpose: 'Durable program/* events mapping every goal of a program to its session, workspace, preset, isolation, budget and status.', validator: 'dsh-program seam (new); the orchestrator resumes from it', fields: [['programId', 'string', ''], ['goals[]', 'object', '{goalId, sessionId, workspace, preset, isolation, budgetEur, status}'], ['integrationGoal', 'GoalId', ''], ['updatedAt', 'epoch ms', '']] },
+  ParentSample: { purpose: 'Which archived variant the engineer mutates and why it was drawn.', validator: 'archive sampler (D); the draw is logged with its rng seed', fields: [['variantId', 'string', ''], ['weights', 'object', '{quality, novelty, children}'], ['island', 'string', 'environment kind'], ['rngSeed', 'int', '']] },
+  NoveltyVerdict: { purpose: 'Near-duplicate rejection before any evaluation spend.', validator: 'token-set similarity against the archive (D)', fields: [['similarity', '0..1', ''], ['nearest', 'string', 'variant id'], ['accepted', 'boolean', '']] },
+  HarnessVariant: { purpose: 'One evaluated harness variant in the archive, kept whether or not it won.', validator: 'dsh-archive over ctx.storage; synthesized without lineage rejects', fields: [['id', 'string', 'base commit plus patch-set hash'], ['parent', 'string', ''], ['operator', 'enum', 'prompt-section | tool-schema | policy | preset | skill | composition'], ['patch', 'string', 'patch rows'], ['scores', 'object', 'per environment kind, per isolation'], ['evaluations[]', 'string', 'ExperimentResult ids'], ['children[]', 'string', ''], ['status', 'enum', 'alive | dominated | promoted'], ['proposer', 'object', '{provider, model}']] },
+  CompositionManifest: { purpose: 'Log-only event naming every component in play as id@digest, at session start and on every change.', validator: 'components-manifest plugin; invariant: a skill result\'s digest appears in the manifest', fields: [['components[]', 'object', '{id, digest, provenance, lineage, layer}'], ['presetId', 'string', ''], ['dynamicPackagesMounted', 'boolean', 'quarantine key'], ['seq', 'int', '']] },
+  DataUseTerms: { purpose: 'The contract terms pinned to a session at creation; export and curation read them.', validator: 'dsh-data-use pin; export refuses sessions without the training purpose', fields: [['clientId', 'string', 'hashed on cards'], ['agreementId', 'string', ''], ['purposes[]', 'enum', 'delivery | training | evaluation'], ['residency', 'string', 'region'], ['retentionDays', 'int', ''], ['redactionProfile', 'string', 'versioned']] },
+  SignoffRecord: { purpose: 'Who signed what, with what in view: the attributable human gate.', validator: 'signoff/recorded event in the interaction group; principals from the client\'s identity provider', fields: [['artefactHash', 'sha', ''], ['role', 'enum', 'client-product-owner | client-release-manager | client-tech-lead | lab-lead | component-owner | accountable-officer | data-steward'], ['principal', 'string', ''], ['method', 'enum', 'web | idp | signed-message'], ['scope', 'string', 'stage and decision'], ['evidenceRefs[]', 'string', 'what the signer saw']] },
+  EnvironmentAdmission: { purpose: 'Deterministic admission of a synthesized environment before it can reward anything.', validator: 'curator (D); a human assigns the training split', fields: [['environmentId', 'EnvironmentId', ''], ['preStateFails', 'boolean', 'at least one check fails before the reference'], ['referencePasses', 'boolean', 'all checks pass on the reference'], ['gamingAgentCertified', 'boolean', 'must be false'], ['split', 'enum', 'training | heldOut, by hash bucket or human'], ['approver', 'string', '']] },
+  EnvironmentStats: { purpose: 'Measured difficulty per environment and policy version.', validator: 'fold over group runs (D)', fields: [['environmentId', 'EnvironmentId', ''], ['policyVersion', 'string', ''], ['n', 'int', ''], ['pass1', '0..1', ''], ['pass8', '0..1', ''], ['tamperRate', '0..1', '']] },
+  ModelLineage: { purpose: 'The record the Article 53 documentation is generated from.', validator: 'trainer-operator plugin (D); signed by the accountable officer', fields: [['modelLineageId', 'string', ''], ['baseModel', 'string', 'with licence and upstream documentation'], ['cumulativeFlop', 'number', 'with the estimation method'], ['energyKwh', 'number', ''], ['manifests[]', 'string', 'DatasetManifest roots'], ['thresholdAlarm', 'object', 'fraction of the systemic-risk threshold that fires']] },
+};
+Object.assign(SCHEMAS, EXTRA_SCHEMAS);
+
+const COUNCIL_FIELDS = [
+  ['Identity and provenance', 'D', 'harness_variant_id:string', 'J2'], ['Identity and provenance', 'D', 'parent_variant_id:string', 'J2'], ['Identity and provenance', 'D', 'mutation_operator:enum', 'J2'], ['Identity and provenance', 'D', 'seed:int', 'J2'], ['Identity and provenance', 'D', 'paired_run_id:string', 'J2'], ['Identity and provenance', 'D', 'fixture_sha256:hex', 'J2 J3 J5'], ['Identity and provenance', 'D', 'checks_sha256:hex', 'J3 J5'], ['Identity and provenance', 'D', 'environment_content_hash:hex', 'J2'], ['Identity and provenance', 'D', 'group_id:string', 'J3'], ['Identity and provenance', 'D', 'rollout_index:int', 'J3'], ['Identity and provenance', 'D', 'policy_version:string', 'J3'], ['Identity and provenance', 'D', 'request_header_hash:hex', 'J5'], ['Identity and provenance', 'D', 'component_versions:{id,digest,provenance,lineage,layer}[]', 'J4'], ['Identity and provenance', 'D', 'role:enum', 'J4'], ['Identity and provenance', 'D', 'provider_endpoint:string', 'J1'], ['Identity and provenance', 'D', 'proposer_model_id:string', 'J2'],
+  ['Outcome', 'D', 'terminal_reason:enum', 'J3'], ['Outcome', 'D', 'finish_reason_per_step:enum[]', 'J3'], ['Outcome', 'D', 'tamper_verdict:enum', 'J3'], ['Outcome', 'D', 'check_pass_vector:boolean[]', 'J2'], ['Outcome', 'D', 'check_runs:{attempt,checkId,status,exitCode,durationMs,outputSha256}[]', 'J5'], ['Outcome', 'D', 'workspace_tree_hash:sha', 'J1 J5'], ['Outcome', 'D', 'check_run_hash:hex', 'J1'], ['Outcome', 'D', 'certificate_executor:enum', 'J6'], ['Outcome', 'D', 'standard_source:enum', 'J1'], ['Outcome', 'D', 'parent_certificate_ref:{sessionId,standardRef}', 'J1'], ['Outcome', 'D', 'pass_at_k_at_sampling:number', 'J3'],
+  ['Process quality', 'D', 'structured_output_status:enum', 'J5'], ['Process quality', 'D', 'experiment_id:string', 'J4'], ['Process quality', 'D', 'proposal_digest:hex', 'J4'], ['Process quality', 'D', 'skill_loads:{name,digest,seq,initiator}[]', 'J4'],
+  ['Safety and oversight', 'D', 'approval_records:{tool,argsHash,deciderId,decidedAt}[]', 'J1'], ['Safety and oversight', 'D', 'decision_principals:{stage,principal,method}[]', 'J6'], ['Safety and oversight', 'D', 'dynamic_packages_mounted:boolean', 'J4'], ['Safety and oversight', 'D', 'synthesized_in_play:string[]', 'J4'],
+  ['Training and data', 'D', 'data_use_agreement_id:string', 'J6'], ['Training and data', 'D', 'data_use_purposes:enum[]', 'J6'], ['Training and data', 'D', 'residency_region:string', 'J6'], ['Training and data', 'D', 'redaction_profile_version:string', 'J6'], ['Training and data', 'D', 'redaction_rule_hits:int', 'J6'], ['Training and data', 'D', 'model_lineage_id:string', 'J6'], ['Training and data', 'D', 'token_record_ref:uri', 'J3'], ['Training and data', 'D', 'provider_request_id_per_step:string[]', 'J5'], ['Training and data', 'S', 'knowledge_scope:enum', 'J4'],
+].map(([group, src, f, added]) => { const [name, type] = f.split(':'); return { group, src, name, type, added }; });
+
+const COUNCIL = [
+  { id: 'J1', name: 'Factory delivery judge', lens: 'long software tasks, spec-first, separated roles', scores: [5, 4, 6, 5], overall: 'The authority rule and role separation are right, but W2 as drawn could not certify a client deliverable: the read barrier was asserted while the repository documents it as absent, and nothing bound a certificate to the artefact it certified.', gaps: [['blocking', 'Read barrier asserted, not held: the verification README says "No read barrier" and a session-query tool can read the standard from the log.'], ['blocking', 'No durable substrate for a goal DAG: one goal per session, no ledger, no merge queue, no resume.'], ['major', 'Certificates were not bound to the artefact (no tree hash, no check hash) and departments as subagents could neither ask humans nor run their own preset.']], better: 'Certificate-first delivery: compile the signed spec into hidden per-goal standards plus one integration standard, run every goal as a fresh top-level session at host isolation, validate at each idle, certify the merged head, bind the release to a tree hash, and let humans attest the non-command outcomes.' },
+  { id: 'J2', name: 'Sakana evolution judge', lens: 'Darwin Gödel Machine, ShinkaEvolve, evaluator hacking', scores: [5, 6, 5, 4], overall: 'A faithful map of the seams that stopped where evolution happens: choosing parents, identifying children, evaluating cheaply, and keeping the evaluator out of the mutator\'s reach.', gaps: [['blocking', 'No durable environment→session→seed record, so nothing in W1.4, W4.1, W3.2 or the held-out rule could be computed from the log.'], ['blocking', 'Component identity could not carry a mutation: a patched tool schema kept its parent\'s id, so lineage was unrecordable.'], ['blocking', 'Held-out verifiers were readable by the mutator through the tool-cordis façade.'], ['major', 'Best-only promotion labelled archive; the snapshot gate turned every prompt mutation into a re-record by the author.']], better: 'An archive-first harness DGM whose unit of evolution is a patch-layer bundle: variants are data that mount without a build, parents are sampled from an archive that keeps losers, a novelty gate and a staged ladder spend evaluation cheaply, and the PR exports a search result instead of being the search step.' },
+  { id: 'J3', name: 'DeepSeek RL data judge', lens: 'RLVR at scale, reward hacking, training economics', scores: [6, 6, 4, 5], overall: 'A defensible rejection-sampling SFT design that was not yet an RL design; the scarce resource is a per-rollout, per-environment record with a tamper-proof reward, not GPUs.', gaps: [['blocking', 'No environment identity in the trajectory record: GRPO groups, decontamination and curriculum were impossible from the export.'], ['blocking', 'The reward was computable by the policy: checks ran in the implementer\'s workspace, so editing tests earned a certificate.'], ['major', 'Truncation was scored as failure, and exported messages were the post-compaction surface rather than any step\'s prompt.']], better: 'An environment-first, group-first factory: groups of eight rollouts per environment and policy version produced on demand, reward on a pristine fixture plus the patch with hidden checks, truncations masked, tokens joined by session, turn and step. Scenario A trains LoRA in the cloud for roughly 8 to 10 k€ per RL run; scenario B buys one HGX H200 node plus a rollout node and reaches one run every 3 to 4 days on-prem. Base family: GLM-4.5-Air first, pinned by pass@8 on the held-out suite.' },
+  { id: 'J4', name: 'Hermes self-improvement judge', lens: 'skills as plugins, autonomy loops, self-modification safety', scores: [7, 6, 6, 4], overall: 'The spine is right; W4 claimed a provenance substrate the repository lacks and collapsed Hermes\'s two loops, refine in use and curate the core, into one PR pipeline.', gaps: [['blocking', 'Knowledge had no version identity in the log: skills, presets and compositions were name-only.'], ['blocking', 'Self-modification inside the loop could forge the reward: a dynamic package can append counterfeit verification data.'], ['major', 'No freeze between proposal and evaluation; the fast write-after-use tier was designed away; distilled client knowledge had no tenant scope.']], better: 'A two-speed loop over a content-addressed ledger: a fast loop where agents write and refine skills inside their department layer under a deterministic keep-or-retire board, and a slow loop where frozen experiments and a human move knowledge into the fleet; the observatory is a projection of the log, not a pipeline beside it.' },
+  { id: 'J5', name: 'Determinism judge', lens: 'authority, replayability, invariants', scores: [6, 4, 5, 4], overall: 'The D labels outran the repository by three missing durable records (verification/run, environment/run, a budget block) and two semantic artefacts that had become oracles: re-recorded snapshots and synthesized checks.', gaps: [['blocking', 'Failed check runs left no durable record, so attempts and flakiness were unreplayable.'], ['blocking', 'Environment attribution was not logged; the run report was an in-memory value.'], ['major', 'Top-level structured output does not exist in the LLM seam; only the in-process subagent driver enforces a schema, through a scoped structured_output tool.']], better: 'Ten mechanically checkable invariants (certified ⇒ executed; standard precedes mutation; one environment stamp, first; held-out never exported; fan-out balance; fold agreement; judge independence; isolation is evidenced; budget stop is durable; structured hand-off exactly once) and a build order by determinism unlocked per line of code.' },
+  { id: 'J6', name: 'Alignment and governance judge', lens: 'disinterested judging, EU AI Act, audit trails', scores: [6, 4, 3, 5], overall: '"Human (gate)" was a box on a diagram while the repository could not say who the human was, what they saw, or whether the check they trusted had run.', gaps: [['blocking', 'Certificates were agent-reported until the runner lands.'], ['blocking', 'No attributable human: approvals carried an outcome and an anonymous id, no arguments, no principal.'], ['blocking', 'The client-data path to training was unbuilt: no redaction rules, no consent record, no retention or erasure, no residency pin.'], ['major', 'Monitors flagged but could not deny; deployment was drawn as deterministic while an agent issued it.']], better: 'Attributed decisions as events, data-use terms pinned at session creation, a deny-capable monitor on the tool guard, frozen proposals, judge transcripts excluded from training by default, tamper-evident persistence with per-client erasure, and the Article 53 documentation generated from a model lineage record and signed by an accountable officer.' },
+  { id: 'J7', name: 'Visualization judge', lens: 'legibility for a client CTO and for engineers', scores: [7, 7, 5, 5], overall: 'The draft specified a static process poster and called it a run viewer; the two need different axes and data sources under one glyph grammar.', gaps: [['major', 'Self-report and certificate were undistinguished; certificate strength (isolation) was invisible; static and live views were conflated.'], ['major', 'No durable edge payloads: only the child\'s structured_output call holds a full hand-off.'], ['minor', 'Budgets drawn that nothing measures; shipped UI shows none of this yet.']], better: 'An artefact-lineage graph: nodes are durable records (spec, standard revision, certificate, trajectory line, dataset manifest, model release), edges are the sessions that produced one from another, and agents are edge labels; "follow one artefact" and "diff two runs" become native, and W3/W4 volumes read as a Sankey.' },
+];
+
+const REVISIONS = [
+  ['Two log-only events carry the whole design', 'environment/run (the stamp before the first turn) and verification/run (every executed run, passing or failing, with argv, exit codes, output hashes, tree hash, derived isolation). They turn the run report from an in-memory value into replayable evidence and give decontamination, groups, curriculum and leaderboards something to hash.', 'J2 J3 J5 J6'],
+  ['The read barrier is authority, not a promise', 'A validator root the implementer\'s executor cannot read (fs-policy deny plus monotonic tool guards), no session-query tool in implementer presets, assets re-overlaid before each check run, and an invariant that rejects a certificate from a session that composed a log-reading tool.', 'J1 J4 J5 J6'],
+  ['Reward is re-verified where the policy cannot reach', 'Checks run on a pristine fixture plus the patch under host isolation with hidden checks; a write under check-owned paths is a tamper verdict with reward zero; truncation, abort and error are masked, never scored as failure.', 'J3 J5'],
+  ['Nothing semantic picks its own evaluation', 'Proposals and mitigation plans are hashed before any cell runs; cells derive from diagnosis evidence and lineage by a deterministic rule; priority is a function of alert magnitude, recurrence and cost; a diagnosis can open a dispute but never retire an environment.', 'J4 J5 J6'],
+  ['Archive, parents, novelty, ladder', 'W1 gained a parent sampler over an archive that keeps losers, a novelty gate before the static gates, a three-stage evaluation ladder, and a quarantined engineer that never sees held-out verifiers or the scored process.', 'J2 J4'],
+  ['Every human gate is attributable', 'signoff/recorded and a decidedBy on approvals name the principal, the artefact hash and the evidence in view; deployment, spec freeze, security relaxations, data release and model release are human gates; policy-only kinds may promote on the experiment alone.', 'J6'],
+  ['Consent and redaction are events, filters and profiles', 'Data-use terms pinned at session creation, export refusing sessions without the training purpose, a versioned redaction profile with rule hits, judge transcripts dropped by default, tamper-evident persistence with per-client erasure.', 'J3 J6'],
+  ['W3 is environment-first', 'The RL unit is a group of rollouts of one environment under one policy version; fleet sessions feed a short SFT cold start (including validator and diagnostician roles) and the environment factory; the base model is pinned by pass@8 on the held-out suite, GLM-4.5-Air the first candidate, a Nemotron-class open-data model the better Article 53 story if it ships.', 'J3 J4'],
+  ['W4 runs at two speeds', 'A fast tier where agents write and refine skills in their own layer with a tenant scope and a deterministic keep-or-retire board, and a slow tier of frozen experiments and attributable promotion over a content-addressed ledger that the composition manifest keeps honest.', 'J4 J2'],
+  ['Structured output for root agents is a plugin', 'The structured-output runtime the in-process subagent driver already uses attaches to any preset\'s agent context: validated at the tool JSON boundary, replayable from the log, with both rejection paths; no unlogged provider response schema.', 'J5'],
+  ['The atlas says what exists', 'Every stage carries implemented, partial or proposed; stages outside the session log are hatched; worker reports are drawn as dashed grey edges, never as gates; leaderboards partition by isolation and held-out split.', 'J7'],
+  ['Not taken, kept open', 'The artefact-lineage graph and the single transit map are recorded as the next views once record ids exist for spec, plan and diagnosis; whether validator and judge role sessions train the model is decided per lineage, judge transcripts stay excluded by default.', 'J7 J4 J6'],
+];
+
+const GAPS = [
+  ['landed', 'environment/run and verification/run events, the runner that appends them, and the fleet that runs the cells.', 'On the branch: the run stamp before the first turn (environment, content hashes, held-out flag, repetition and group, model route, isolation), a verification/run event for every executed run with its executor and workspace tree hash, a certificate invariant that requires a fully passing run of the same revision, trajectories that carry the attempt count, and dsh-fleet with a per-route leaderboard partitioned by isolation and held-out split. Left here: EnvironmentStats (pass@k per policy version) folded from the run events.'],
+  ['blocking', 'The read barrier as filesystem and process authority.', 'A validator-root fs-policy plugin, monotonic tool guards, implementer presets without session-query, an invariant on certificates. Until then every certificate measures what the implementer could read.'],
+  ['blocking', 'Attributable decisions and pinned data-use terms.', 'signoff/recorded, decidedBy with an argument digest on approvals, dataUse/terms at session creation, shipped redaction rules and a curator that records rule hits. Without them no client auditor can verify a gate and no transcript may become training data.'],
+  ['major', 'Content-addressed identity: component and skill digests, the composition manifest event.', 'Designed (proposed note on the branch): per-kind canonical values behind id@digest, a required-on-read composition/manifest event appended whenever the composition digest changes, quarantine of dynamic mounts and synthesized components, and an archive ledger over storage with the manifest-versus-ledger invariant. Seven implementation slices remain.'],
+  ['major', 'Scorekeeper as a session projection and the archive ledger.', 'Landed: dsh-scorekeeper folds SessionFacts (identity, outcome, efficiency, tool behavior, each field from a named event) as a projection beside goal and verification, a leaderboard from the persisted logs keyed by route × environment × isolation × held-out with pass@k per stamped batch, a JSONL facts export, and an invariant recomputing runs and certification from the log. Left here: the archive ledger — HarnessVariant records over storage with parents, operators, evaluations and status — and the four fact groups whose producers do not exist yet.'],
+  ['landed', 'Budget policy plugin.', 'On the branch as dsh-budget-policy: token, wall-time and cost caps from config, folded from the session log on agent/pre-step, a budget/breach event, and a durable goal block that no round driver resumes; the model sees nothing because the step never opens. Left here: per-cell caps wired from the fleet plan.'],
+  ['major', 'Experiment plugin: staged ladder, paired repetitions, bootstrap intervals, cost.', 'Cells derived by rule, plans frozen and logged; the only place spend decisions live.'],
+  ['major', 'Structured output for top-level presets as a plugin.', 'Attach the structured-output runtime to a preset\'s agent context; Intake, Planner and Analyst get forced schemas with logged rejection paths.'],
+  ['major', 'Trainer operator, model registry, model lineage, environment factory and admission.', 'W3 end to end, including the Article 53 documentation generated from the lineage record.'],
+  ['minor', 'Deny-capable monitor on the tool guard.', 'Impact classes deny by default, ask for a bounded class, log oversight/deny; makes deployment and secrets human gates.'],
+  ['minor', 'Durable orchestration.', 'Deferred: cells are idempotent by header hash × environment × repetition and recover from persisted child sessions; a journaling workflow engine provider comes with the program ledger.'],
+  ['minor', 'A live run viewer fed by session logs and workflow events.', 'The client\'s ui-workflow-run renders run, phase and member status only; the model\'s-eye view at any seq is the view no competitor can prove complete.'],
+];
+
+// ---------- Workflows ----------
+// lane: human | s | d | store | gate ; type: D | S | DS | GATE | HUMAN | STORE
+const WORKFLOWS = [
+  {
+    id: 'w1', code: 'W1', title: 'Harness capability program', goal: 'Goal 1 · the harness that makes any LLM the best agentic coder',
+    thesis: 'An archive-first search over harness variants. Every run is stamped in its own session log, parents are sampled from an archive that keeps losers, the mutator never touches the evaluator, and only a staged paired experiment plus an attributable human promote a variant into source.',
+    stages: [
+      { n: 1, col: 1, lane: 'd', type: 'D', status: 'partial', title: 'Model matrix intake', actor: 'Scorekeeper', desc: 'Every provider and model in the LLM seam, crossed with harness variants (base commit plus patch rows) and reasoning efforts. Each cell declares its isolation; leaderboards never blend isolation levels.', outputs: ['CapabilityMatrix'], plugins: { existing: ['llm', 'agent-default-model', 'agent-presets', 'bundle patch layers', 'budget-policy'], new: ['preset overrides on EnvironmentRunRequest'] }, metrics: ['cells', 'budget per cell'], failure: 'A route without a registered adapter is excluded and named in the matrix.', revised: 'J1 J2', note: 'The per-run model route already overrides the composition default on EnvironmentRunRequest; only the preset override is still missing. Budget per cell is real now: dsh-budget-policy composed beside the fleet enforces a durable cap per cell session, and verify-village-composition rejects a fleet, runner, or experiment composition that omits it.' },
+      { n: 2, col: 2, lane: 'd', type: 'D', status: 'partial', title: 'Suite selection', actor: 'Scorekeeper', desc: 'Filter the registry by kind, domain, measured difficulty (pass@k per policy version), and held-out split; repetitions per task at fixed sampling parameters replace hand-tagged difficulty.', outputs: ['SuitePlan'], plugins: { existing: ['environments'], new: ['EnvironmentStats (pass@k per policy version)', 'seed and topP on LlmCallConfig'] }, metrics: ['environments per split', 'repetitions'], failure: 'An empty split fails loud; a held-out environment never enters a training or mutation cell.', revised: 'J1 J3', note: 'Difficulty is derived from group runs, never tagged by hand; pairing is tasks × k repetitions until the LLM seam carries a seed.' },
+      { n: 3, col: 3, lane: 'd', type: 'D', status: 'partial', title: 'Fleet run', actor: 'Fleet Orchestrator + environment runner', desc: 'One fresh session per cell and repetition. Before the first turn the runner appends a log-only environment/run stamp (environment and kind, hashes of prompt, fixture and checks, held-out flag, repetition and group, model route, isolation, district). Every run of the standard appends a verification/run event; a certificate needs a fully passing run of its revision. The fleet opens a per-route circuit breaker after consecutive errors, refuses cells once a token ceiling is spent, reaps each cell workspace by a required retention policy, and takes an optional cells selection so a resumed plan runs only its pending subset in place. dsh-shifts durably ledgers each district\'s shifts as shift/* events, freezing a content digest per slot, resuming exactly the cells that never started after a restart, and refusing a slot that would overrun its spend window.', outputs: ['EnvironmentRunStamp', 'VerificationRun', 'EnvironmentRunReport'], plugins: { existing: ['environment-runner', 'fleet', 'workflow', 'subagent providers', 'sandbox / e2b', 'budget-policy', 'scripts/verify-village-composition', 'dsh-shifts'], new: [] }, metrics: ['certificate rate by isolation', 'attempts', 'directives', 'tokens', 'wall time', 'tool errors'], failure: 'A cell that cannot boot, or one the route breaker or token ceiling refuses before it starts, is a row with an error code, never a missing row.', revised: 'J2 J3 J5', note: 'The run report was an in-memory value; the environment/run stamp and the verification/run event now make every fold recomputable from the log alone, and dsh-fleet runs the cells with a per-route leaderboard that never averages across isolation or the held-out split. The fleet now stamps a district, opens a per-route breaker, tracks a token ceiling with its running spend, reaps cell workspaces by a configured retention, and accepts a cells selection so a driver can resume a subset in place; verify-village-composition requires a fleet, runner, or experiment composition to also compose a capped budget policy, session persistence, and the checkpoint policy. Idempotent recovery across a restart is now landed for a shift-driven fleet: dsh-shifts freezes each shift\'s identity by content digest, ledgers shift/* events in the slot\'s own session log, and resumes only the cells with no session — replacing the earlier durable-orchestration gap for scheduled fleet runs. The external implementer is landed: a cell\'s attempts can be delegated to a registered subagent provider (the operator\'s own Claude Code installation in the first real runs), recorded as environment/delegation, with the runner still authoring the standard, restoring the immutable paths, executing the checks, and certifying; the live village-live district runs four program tasks on a thirty-minute cadence with it, and its first corrected slot certified 3 of 3 (data/proving-ground/2026-09-06-claude-code-run-2).' },
+      { n: 4, col: 4, lane: 'store', type: 'STORE', status: 'partial', title: 'Facts projection', actor: 'Scorekeeper', desc: 'SessionFacts is a 180-field session projection folded beside the goal and verification projections, live and replayable, and ctx.scorekeeper folds the same fact groups from persisted logs; the leaderboard store mirrors it and exportFacts writes one JSONL line per session. Rows exist for skipped and torn sessions too.', outputs: ['ScoreboardBatch'], plugins: { existing: ['trajectories', 'session-projection', 'scorekeeper', 'budget-policy (usage/priced fold)'], new: ['fact groups whose producers do not exist yet: process quality (needs the composition manifest folded in), judge scores, safety and oversight, training and data'] }, metrics: ['rows', 'fields with a source event'], failure: 'A metric without a source event is not a field.', revised: 'J4 J5 J7', note: 'A projection, not an ingest pipeline: the same fold the log replays. dsh-scorekeeper landed the sessionFacts record, the log-derived scoreboard, and exportFacts. Cost is landed too: pricedSteps, costEur, and pricingDigests fold from usage/priced alone, present only when every usage-bearing step was priced, alongside district from the stamp and parity from the last recorded run. The four remaining field groups (process quality, judge scores, safety and oversight, training and data) still have no producer.' },
+      { n: 5, col: 5, lane: 's', type: 'DS', status: 'proposed', title: 'Diagnosis', actor: 'Trajectory Analyst (cross-model)', desc: 'Failed and slow sessions read against their facts. The analyst emits a taxonomy, evidence seqs that must exist in the log, a root cause and an owner. Held-out sessions reach it as aggregates only.', outputs: ['SessionDiagnosis'], plugins: { existing: ['session-query', 'subagent outputSchema'], new: ['trajectory-analyst preset'] }, metrics: ['diagnoses per taxonomy', 'confidence'], failure: 'Evidence seqs that do not exist reject the diagnosis; an environment-defect label opens a dispute, it retires nothing.', revised: 'J1 J4', note: 'A diagnosis proposes; it no longer selects cells, sets priority, or retires an environment.' },
+      { n: 6, col: 6, lane: 'd', type: 'D', status: 'proposed', title: 'Parent selection', actor: 'Archive sampler', desc: 'Sample a parent variant from the archive in proportion to quality × novelty × 1/(1+children), within islands per environment kind. The engineer receives the sampled parent, not master.', outputs: ['ParentSample'], plugins: { existing: ['storage'], new: ['dsh-archive (HarnessVariant records over ctx.storage)'] }, metrics: ['archive size', 'stepping-stone rate'], failure: 'An empty archive is seeded with master as v0.', revised: 'J2', note: 'New stage: the Darwin Gödel Machine parent sampler; low scorers stay as stepping stones.' },
+      { n: 7, col: 7, lane: 's', type: 'S', status: 'proposed', title: 'Patch proposal', actor: 'Harness Engineer (quarantined)', desc: 'From the parent, the diagnoses and the training-split registry only, a patch-row set tagged with its operator (prompt section, tool schema, policy, preset, skill, composition). The engineer runs in a lab process with no scored goals or standards, no tool-cordis façade over environments, standards, or trajectories. The proposal is hashed and frozen before any cell runs.', outputs: ['HarnessPatchProposal'], plugins: { existing: ['components', 'bundle patch layers'], new: ['harness-lab preset', 'content-addressed component versions'] }, metrics: ['proposals per operator', 'proposer provider'], failure: 'A proposal touching evaluator paths (snapshots, improvement, verification, run-gates) is a hard reject, never a directive.', revised: 'J2 J4 J6', note: 'Quarantined and frozen: the mutator cannot read held-out verifiers, forge a certificate, or pick its own evaluation.' },
+      { n: 8, col: 8, lane: 'gate', type: 'GATE', status: 'proposed', title: 'Novelty and static gates', actor: 'run-gates + archive', desc: 'Near-duplicate patches are rejected against the archive; then typecheck, lint, per-file coverage, doc-sync, invariants, duplication. A snapshot re-record is never automatic: model-visible text changes wait for a human diff review at promotion.', outputs: ['NoveltyVerdict', 'GateReport'], plugins: { existing: ['scripts/run-gates'], new: ['novelty gate'] }, metrics: ['gate pass rate', 'duplicates rejected'], failure: 'Findings return to the engineer as the directive (dashed edge).', revised: 'J2 J5 J6', note: 'The evaluator is frozen per generation and the snapshot oracle is out of the loop.' },
+      { n: 9, col: 9, lane: 'd', type: 'D', status: 'partial', title: 'Staged evaluation', actor: 'Experiment service', desc: 'Stage A: eight training-eligible environments, one repetition, kill below the parent. Stage B: the cells derived from the diagnosis evidence and the lineage, k paired repetitions, bootstrap intervals. Stage C: the held-out suite once per Pareto-front variant, never shown to any semantic stage. Every result is archived alive or dominated.', outputs: ['ExperimentResult', 'HarnessVariant'], plugins: { existing: ['environment-runner', 'dsh-experiments'], new: ['staged ladder (stage A screen, stage B paired, stage C held-out)', 'dsh-archive', 'EUR cost per arm'] }, metrics: ['delta', 'ci95', 'spend per stage'], failure: 'Inconclusive results park the variant; they never promote by default.', revised: 'J2 J4 J5', note: 'dsh-experiments landed a frozen single-stage paired comparison: a plan digest freezes two model routes over fixed environments and repetitions, both arms run through the fleet under experiment-<digest>-<arm> stamp groups, and a seeded bootstrap interval yields a promote/reject/inconclusive verdict. The three-stage ladder and dsh-archive that would extend this into full parent-sampling search remain proposed.' },
+      { n: 10, col: 10, lane: 's', type: 'S', status: 'proposed', title: 'Auditor and council', actor: 'Review council (cross-model, no stake)', desc: 'A disinterested auditor reads the patch text and transcripts for the three gaming patterns (evaluator edits, format mimicry, resubmission); correctness, security, architecture and docs judges follow. Verdicts are advisory until the gate below.', outputs: ['ReviewVerdict'], plugins: { existing: ['subagent outputSchema', 'dsh-judge'], new: ['oversight seam: judge council'] }, metrics: ['blocking findings', 'disagreement'], failure: 'Blocking findings return to stage 7.', revised: 'J2 J6', note: 'Judges are drawn advisory; identical-resubmission and byte checks stay deterministic and run first. dsh-judge lands the blind judge itself: a lineage-free session over a digest-checked workspace copy, with a history holding exactly the judge prompt, the task, and one evidence message, answering upheld, overturned, or inconclusive as durable judge/session and judge/verdict events. It audits one attempt\'s evidence, not a patch review; the multi-judge council scoring correctness, security, architecture, and docs with a forced ReviewVerdict schema remains proposed.' },
+      { n: 11, col: 11, lane: 'human', type: 'HUMAN', status: 'partial', title: 'Promotion', actor: 'Component owner (attributed)', desc: 'The winning node becomes source: plugin change, Agent Note, reviewed snapshot re-record, PR. The sign-off record names the principal, the artefact hash and what they saw; merge appends lineage and keeps the archive.', outputs: ['PromotionDecision', 'SignoffRecord'], plugins: { existing: ['.agents/notes process', 'approval seam'], new: ['signoff/recorded event', 'decidedBy on approval/decided'] }, metrics: ['acceptance rate', 'regressions after promotion'], failure: 'A rejection stays in the archive with its reason.', revised: 'J6', note: 'Approvals were anonymous; the decision now carries a principal and an artefact digest.' },
+      { n: 12, col: 12, lane: 'store', type: 'STORE', status: 'partial', title: 'Leaderboards', actor: 'Scorekeeper', desc: 'Per model × variant × environment kind, partitioned by isolation, held-out split, and district, never averaged across them; per component through ablation cells and per operator through lineage.', outputs: ['ScoreboardBatch'], plugins: { existing: ['scorekeeper (district partition, costEurPerCertified)'], new: ['per-version leaderboards keyed by component digest'] }, metrics: ['pass@1', 'pass@k', 'cost per certified task'], failure: '', feeds: ['W4 facts', 'W3 calibration'], revised: 'J1 J7', note: 'Isolation, held-out, and district are partitions, not filters. dsh-scorekeeper folds a route × environment × isolation × held-out × district scoreboard with pass@k per stamped group, costEurPerCertified, and the distinct pricingDigests that priced it. Per-version leaderboards keyed by a component\'s digest remain proposed until the composition manifest is folded into SessionFacts. implementer (route or the provider name) is now on the stamp, the facts, the row key, and the observatory column, so two implementers on one environment are two rows.' },
+    ],
+    edges: [[1, 2, 'CapabilityMatrix'], [2, 3, 'SuitePlan'], [3, 4, 'EnvironmentRunStamp'], [4, 5, 'ScoreboardBatch'], [5, 6, 'SessionDiagnosis'], [6, 7, 'ParentSample'], [7, 8, 'HarnessPatchProposal'], [8, 9, 'GateReport'], [9, 10, 'ExperimentResult'], [10, 11, 'ReviewVerdict'], [11, 12, 'PromotionDecision'], [8, 7, 'GateReport', 'feedback'], [10, 7, 'ReviewVerdict', 'feedback'], [9, 6, 'HarnessVariant', 'feed'], [4, 12, 'ScoreboardBatch', 'feed']],
+  },
+  {
+    id: 'w2', code: 'W2', title: 'Certificate-first software factory', goal: 'Goal 2 · the best agentic software creation through the harness',
+    thesis: 'Compile the signed spec into hidden standards before anything else, run every goal as its own session under a program ledger, let the runner validate against a tree hash, admit humans where authority must be attributable, and release only what a certificate on the merged head proves.',
+    stages: [
+      { n: 1, col: 1, lane: 's', type: 'S', status: 'proposed', title: 'Intake', actor: 'Intake Analyst', desc: 'The request plus the client\'s knowledge plugins become goals with acceptance outcomes, non-goals, constraints, risks and data classes. Data-use terms (agreement, purposes, residency, retention, redaction profile) are pinned at session creation.', outputs: ['SpecDraft', 'DataUseTerms'], plugins: { existing: ['agent-presets', 'skills', 'mcp', 'web'], new: ['dsh-data-use pin', 'top-level structured output plugin'] }, metrics: ['goals', 'outcomes per goal'], failure: 'A goal without an acceptance outcome fails the schema.', revised: 'J5 J6', note: 'Top-level presets get forced schemas through the structured-output runtime; consent stops being a word.' },
+      { n: 2, col: 2, lane: 's', type: 'S', status: 'proposed', title: 'Spec critique', actor: 'Spec Critic (cross-model)', desc: 'An adversarial read: ambiguities, missing outcomes, conflicts.', outputs: ['SpecVerdict'], plugins: { existing: ['subagent outputSchema'], new: ['oversight seam: judge'] }, metrics: ['ambiguities found', 'spec churn'], failure: 'A low score returns to intake with the verdict as directive.' },
+      { n: 3, col: 3, lane: 'human', type: 'HUMAN', status: 'partial', title: 'Spec freeze', actor: 'Client product owner + engagement lead', desc: 'The resolved spec, its data classes and the data-use terms are signed. The sign-off record carries the principal, the artefact hash and the method; for listed companies it opens the audit trail.', outputs: ['SignoffRecord'], plugins: { existing: ['approval seam', 'session persistence'], new: ['signoff/recorded event', 'IdP principals through the web host'] }, metrics: ['time to sign-off'], failure: 'No standard is compiled without it.', revised: 'J6', note: 'Who signed, what they saw, and what they signed are now events.' },
+      { n: 4, col: 4, lane: 'd', type: 'DS', status: 'partial', title: 'Standards compiled and hidden', actor: 'Validator', desc: 'Per goal one hidden standard plus one program-level integration standard, with validator-owned fixtures and test assets under a root the implementer cannot read; a check may carry weighted cases compared over four channels (exit, stdout, stderr, tree) through a closed set of normalizers. Non-command outcomes become human-attested checks. The barrier is filesystem and process authority (fs-policy deny, tool guards, sandbox-backend denial, no session-query tool in implementer presets), not a promise.', outputs: ['CompletionStandard'], plugins: { existing: ['verification', 'fs policy', 'tools guard', 'read-barrier', 'fs-read-barrier', 'dsh-judge'], new: ['human-attested check kind', 'standard_author tool and recreation environment kind (instrument slice 4)'] }, metrics: ['checks per goal', 'reference parity of authored checks'], failure: 'A standard without checks is refused; a certificate from a session that composed a log-reading tool is rejected by invariant.', revised: 'J1 J4 J5 J6', note: 'The read barrier was documented as absent; dsh-read-barrier and dsh-fs-read-barrier now deny ctx.fs reads under the validator root, guard tool authority per role, and record the composition census and host attestation (slices 1-4). Slices 5-7 are landed too: deniedReadRoots enforced by the sandbox backends for shell, subprocess, and terminal (5), tamper verdicts (6), and dsh-judge\'s blind judge (7). The validation instrument\'s weighted cases, four-channel comparison, and closed normalizer set (slices 1-3) are landed in dsh-verification\'s author()/extend(); the standard_author tool and the recreation environment kind (slice 4) are landed too: a validator preset samples the reference under the barrier root through record_case, weigh, and freeze, and the recreation-instrument fixture proves it keylessly.' },
+      { n: 5, col: 5, lane: 'store', type: 'STORE', status: 'partial', title: 'Program ledger', actor: 'Program service', desc: 'Durable program/* events map each goal to its session, git worktree, department preset, isolation, budget and status; the program creates each department, runs it as its own validator through maxGoalRounds attempts, and resumes every goal from its department\'s own log and worktree after a restart, never opening a second session for a key. Once every goal certifies, an integration session merges the branches in dependency order and its certificate over the merged head is what releases the program.', outputs: ['ProgramLedger', 'Plan'], plugins: { existing: ['goal', 'plan-mode', 'dsh-program'], new: ['journaling workflow engine provider'] }, metrics: ['goals', 'critical path', 'resumes'], failure: 'A program without a ledger entry per goal cannot start a department.', revised: 'J1 J5', note: 'One goal per session was the seam\'s rule; N goals now have a durable ledger instead of an in-memory plan. dsh-program lands the ledger, budget/caps tightening each department\'s ceiling, and the integration-and-release merge — but requireSignoff still gates on a caller-supplied record rather than a signoff/recorded proof, and nothing yet schedules ctx.programs.resume() the way dsh-shifts schedules the fleet; the journaling workflow engine that would host that loop stays deferred.' },
+      { n: 6, col: 6, lane: 's', type: 'S', status: 'partial', title: 'Departments', actor: 'Implementer departments (top-level agents)', desc: 'Each goal runs as a fresh top-level session on its own git worktree, created by dsh-program with its department preset mounted and its budget/caps tightening the deployment\'s ceiling, at the declared isolation (E2B or a second EU host owns execution; the log stays on the validator host). The program itself drives a department\'s attempts — delivering the objective, running the standard\'s checks, and issuing a directive — up to a configured round cap; a monitor on ctx.tools.guard denies deploy, secrets, production data and egress by default and asks a named engineer for the bounded class. Approvals carry an argument digest and the decider.', outputs: ['Handoff'], plugins: { existing: ['tool-ralph', 'agent-presets', 'sandbox', 'user-approval', 'tools guard', 'dsh-program (worktree, budget/caps, program-as-validator)'], new: ['deny-capable monitor', 'headless approval answerer'] }, metrics: ['rounds', 'tool errors', 'denials', 'spend vs budget'], failure: 'A blocked handoff pauses the goal with its reason; a budget breach blocks the goal durably.', revised: 'J1 J5 J6', note: 'Children pinned approvals to never and could not run their own preset; departments are top-level agents now, and the monitor can deny. dsh-program lands the department mechanics themselves — one worktree and budget/caps per goal, the program driving attempts through maxGoalRounds — as the program\'s own attempt loop rather than a Ralph round, so tool-ralph\'s Handoff schema is not yet what a department actually produces. ProgramSpec.implementer is landed: a department\'s goal can be delegated to an external coding agent in its worktree, recorded as program/delegation, with the program still running the checks and certifying; the first real run\'s mechanism worked end to end and its deliverable needed the provider\'s new permissionMode, which the live district now composes.' },
+      { n: 7, col: 7, lane: 'gate', type: 'GATE', status: 'partial', title: 'Validation', actor: 'Environment runner', desc: 'At each idle the runner re-overlays validator-owned assets, executes the hidden standard against the workspace, appends a verification/run event carrying the results, the executor and the workspace tree hash, and records a certificate only after a fully passing run of the current revision. A worker\'s complete is a report; the goal stays active until certified.', outputs: ['VerificationRun', 'EnvironmentRunReport'], plugins: { existing: ['environment-runner', 'verification', 'read-barrier', 'fs-read-barrier'], new: ['checkHash on certificates', 'derived isolation evidence', 'shell/subprocess/terminal denial (read-barrier slices 5-7)'] }, metrics: ['first-attempt certificate rate', 'directives', 'relaxations'], failure: 'A failing run returns a directive (dashed edge); relaxing a security or compliance check needs a client sign-off.', revised: 'J1 J5 J6', note: 'Failed runs left no record and results were agent-reported; every run is now a verification/run event naming its executor and the workspace tree hash, and a certificate without a fully passing run of its revision fails the invariant. Read-barrier slices 1-4 landed: ctx.fs denial of the validator root, tool-authority guards, preset roles, the composition census, and host attestation, plus recordRun() refusing an isolation claim the record does not support. Slices 5-7 are landed: sandbox-backend denial for shell, subprocess, and terminal, tamper verdicts, and the blind judge. The live district then found that restoration overlaid the whole fixture and discarded the implementer\'s edits to fixture-supplied sources, so every bug-fix task was unsatisfiable; the runner now restores only task.immutable and refuses an immutable path the fixture does not supply or one inside the reference.' },
+      { n: 8, col: 8, lane: 'd', type: 'DS', status: 'proposed', title: 'Integration goal', actor: 'Integrator', desc: 'Integration is itself a goal whose standard runs against the merged head; conflicts are resolved and then re-certified, never re-approved. The full gate suite follows.', outputs: ['IntegrationReport'], plugins: { existing: ['shell', 'hooks', 'run-gates'], new: [] }, metrics: ['conflicts', 'gate pass rate'], failure: 'A red suite returns to the owning department.', revised: 'J1 J5', note: 'Per-goal certificates went stale at merge; the merged head now needs its own certificate.' },
+      { n: 9, col: 9, lane: 's', type: 'S', status: 'proposed', title: 'Review council', actor: 'Lab reviewer + client reviewer + judges', desc: 'Correctness, security, architecture, docs; judges on a different EU-hosted route with no stake; the lab reviewer is never the implementing department. Advisory until the release gate.', outputs: ['ReviewVerdict'], plugins: { existing: ['subagent outputSchema', 'dsh-judge'], new: ['oversight seam: judge council'] }, metrics: ['findings per KLOC', 'blocking'], failure: 'Blocking findings return to stage 6.', revised: 'J6', note: 'Segregation of duties for listed clients; residency binds judges too. dsh-judge lands the blind judge: a lineage-free session over a digest-checked workspace copy, with judge/session and judge/verdict events and an invariant rejecting a verdict from a session that saw more than the task and the evidence. It is one auditor over one attempt, not the multi-judge council with correctness, security, architecture, and docs dimensions, which remains proposed.' },
+      { n: 10, col: 10, lane: 'human', type: 'HUMAN', status: 'partial', title: 'Release approval', actor: 'Client release manager', desc: 'Signs with the certificate on the merged head, the review, the changelog and the rollback in view. Deployment through the client\'s pipeline happens under this signature, never on an agent\'s initiative.', outputs: ['PromotionDecision', 'SignoffRecord'], plugins: { existing: ['approval seam'], new: ['signoff/recorded event'] }, metrics: ['time to release'], failure: 'A deferral records what is missing.', revised: 'J6', note: 'Deployment was drawn as a deterministic step issued by an agent; it is a human gate.' },
+      { n: 11, col: 11, lane: 'store', type: 'STORE', status: 'proposed', title: 'Release, evidence, learning', actor: 'Release service + curator', desc: 'Changelog and docs generated from goals and certificates; the release record binds the tree hash. Sessions leave for the observatory only under the pinned data-use terms with the named redaction profile. The project\'s checks become synthesized environments only after admission: they fail on the pre-state, pass on the reference, a gaming agent fails to certify, and a human assigns the training split.', outputs: ['ReleaseRecord', 'EnvironmentAdmission'], plugins: { existing: ['trajectories', 'environments'], new: ['curator (consent, redaction profile, admission)'] }, metrics: ['incidents after release', 'cost per certified goal', 'escaped defects'], failure: '', feeds: ['W4 facts', 'W1 suites', 'W3 factory'], revised: 'J3 J4 J5 J6', note: 'Synthesized checks entered the reward channel ungated; admission is a gate now.' },
+    ],
+    edges: [[1, 2, 'SpecDraft'], [2, 3, 'SpecVerdict'], [3, 4, 'SignoffRecord'], [4, 5, 'CompletionStandard'], [5, 6, 'ProgramLedger'], [6, 7, 'Handoff', 'report'], [7, 8, 'VerificationRun'], [8, 9, 'IntegrationReport'], [9, 10, 'ReviewVerdict'], [10, 11, 'PromotionDecision'], [2, 1, 'SpecVerdict', 'feedback'], [7, 6, 'EnvironmentRunReport', 'feedback'], [9, 6, 'ReviewVerdict', 'feedback']],
+  },
+  {
+    id: 'w3', code: 'W3', title: 'Environment-first model pipeline', goal: 'Goal 3 · a ~120B open-weight model trained with RLVR that beats frontier models on the fleet\'s tasks',
+    thesis: 'The unit of data is a group of rollouts of one environment under one policy version, produced on demand by the runner. Fleet sessions feed a short SFT cold start and the environment factory; RL rewards come from hidden checks on a pristine fixture plus the patch, and every artefact down to the model card is generated from the same records.',
+    stages: [
+      { n: 1, col: 1, lane: 'd', type: 'DS', status: 'proposed', title: 'Environment factory', actor: 'Environment Synthesizer + curator', desc: 'Ten thousand or more verified tasks: fleet checks after admission, SWE-smith-style bug injection into repositories with passing tests, hidden checks split from visible ones, held out by repository and date, content-hashed. Synthesized provenance and lineage on every entry.', outputs: ['EnvironmentProposal', 'EnvironmentAdmission'], plugins: { existing: ['environments'], new: ['curator (admission, hashes)', 'hiddenChecks on EnvironmentDefinition'] }, metrics: ['environments', 'admission pass rate', 'domain mix'], failure: 'A task whose reference does not pass or whose pre-state does not fail is not admitted.', revised: 'J3 J4 J5', note: 'Fleet sessions stop being the RL data; environments are, and the factory is a real program.' },
+      { n: 2, col: 2, lane: 'd', type: 'D', status: 'proposed', title: 'Calibration', actor: 'Evaluator', desc: 'pass@8 per environment per policy version from group runs; the curriculum samples environments with pass rates between 0.1 and 0.9.', outputs: ['EnvironmentStats'], plugins: { existing: ['environment-runner', 'fleet'], new: ['EnvironmentStats fold (pass@k per policy version, from the run events)'] }, metrics: ['pass@1', 'pass@8', 'coverage'], failure: 'An environment with no group run has no difficulty and is not sampled.', revised: 'J3', note: 'Measured difficulty replaces tags; the ladder comes from the policy itself.' },
+      { n: 3, col: 3, lane: 'd', type: 'D', status: 'proposed', title: 'Export and curation', actor: 'Data Curator', desc: 'Trajectories with environment stamps, terminal reason and per-step prefixes, parity beside outcome as an auxiliary signal that never replaces the certificate-based reward; held-out lines dropped unless explicitly included; sessions without the training purpose refused; the named redaction profile applied with rule hits recorded; dedupe and decontamination by content hash; judge transcripts dropped by default so judges never acquire a stake.', outputs: ['ExportManifest', 'DatasetManifest'], plugins: { existing: ['trajectories', 'session-telemetry redaction'], new: ['curator plugin', 'shipped redaction rules', 'consent and licence events'] }, metrics: ['drop reasons', 'duplicate rate', 'redaction hits'], failure: 'A sample whose consent scope is unknown is dropped, never assumed.', revised: 'J3 J5 J6', note: 'Redaction and consent were names; they are events, filters and an audit trail now. dsh-trajectories already exports parity, the weighted case pass rate of a session\'s last verification/run, as a top-level field beside reward; a training run may shape a reward with it but never optimize it alone.' },
+      { n: 4, col: 4, lane: 'd', type: 'D', status: 'proposed', title: 'SFT cold start', actor: 'Trainer Operator', desc: 'Five to twenty thousand certified, deduplicated, single-standard trajectories (100 to 300M tokens), including validator and diagnostician role sessions with deterministic rewards. Truncated, aborted and errored sessions are masked, never scored as failures.', outputs: ['SplitManifest', 'TrainingRun'], plugins: { existing: ['jobs', 'schedule'], new: ['trainer-operator plugin', 'role field on trajectories'] }, metrics: ['tokens', 'roles covered'], failure: 'A run whose data hashes do not match the manifest is refused.', revised: 'J3 J4', note: 'Roles the model must play are trained on; truncation is masked.' },
+      { n: 5, col: 5, lane: 'd', type: 'D', status: 'proposed', outsideLog: true, title: 'Reinforcement learning', actor: 'Trainer Operator', desc: 'GRPO or DAPO, groups of eight, 64 to 128 environments per step, one-step-off-policy async through prime-rl or slime; LoRA on the MoE in scenario A, full-parameter only as a final cloud phase. Reward is computed on a pristine fixture plus the patch under host isolation with hidden checks; any write under check-owned paths is tampered, reward 0. The proxy captures token ids and logprobs keyed by session, turn and step through correlation headers; the rl-minimal preset ships bash, read and edit only.', outputs: ['TrainingRun'], plugins: { existing: ['subprocess'], new: ['trainer-operator plugin', 'correlation headers on the LLM seam', 'pristine-fixture reward in the runner', 'rl-minimal preset'] }, metrics: ['reward curve by environment kind', 'tamper rate', 'gpu hours', 'energy'], failure: 'A run whose reward source is not a verification/run event is refused.', revised: 'J3 J5 J6', note: 'The reward was computable by the policy; now it is hidden, re-verified on a clean copy, and joined to tokens by a log key. The trainer itself runs outside the session log. The general tamper mechanism this design leans on is landed already: dsh-environments\' immutable check-owned paths, dsh-verification\'s tampered verdict, and dsh-trajectories\' tamper reward basis, from read-barrier slice 6. What remains proposed here is the RL-specific loop: host-isolation reward computation for training, correlation headers, and the rl-minimal preset.' },
+      { n: 6, col: 6, lane: 'd', type: 'D', status: 'proposed', title: 'Held-out evaluation', actor: 'Evaluator', desc: 'Each checkpoint on the held-out suite through the same runner, on a frozen harness variant, paired against the base model and one frontier API; every number points at sessions that replay.', outputs: ['EvalReport'], plugins: { existing: ['environment-runner', 'agent-default-model'], new: ['harness variant pinning in EvalReport'] }, metrics: ['pass@1 delta by kind', 'cost per certified task'], failure: 'An evaluation on an unpinned variant is not comparable and is rejected.', revised: 'J2 J3', note: 'Harness and model no longer co-evolve inside one number.' },
+      { n: 7, col: 7, lane: 's', type: 'DS', status: 'proposed', title: 'Safety and alignment', actor: 'Evaluator + disinterested judges', desc: 'Refusal and tool-misuse suites as environments, monitor anomaly rates, mitigation plans hashed before they run so nothing grades itself; judges on a separate route whose verdicts never feed their own continuation.', outputs: ['SafetyReport'], plugins: { existing: [], new: ['oversight seam', 'safety suites as environments'] }, metrics: ['suite pass rates', 'anomaly rate'], failure: 'A hold verdict stops promotion.', revised: 'J6', note: 'Mitigation runs were self-graded; plans are frozen first.' },
+      { n: 8, col: 8, lane: 'human', type: 'HUMAN', status: 'proposed', title: 'Model lineage and release', actor: 'Accountable officer', desc: 'A ModelLineage record (base model, licence, upstream documentation, cumulative FLOP with method, energy, manifests) generates the Article 53 documentation and the training-content summary; an alarm fires at a configured fraction of the systemic-risk threshold. Promotion is per component evidence and per client contract, never a silent default switch.', outputs: ['ModelLineage', 'ModelRelease', 'SignoffRecord'], plugins: { existing: ['approval seam'], new: ['model registry plugin', 'ModelLineage record'] }, metrics: ['components promoted for', 'cumulative compute'], failure: 'A rejection records which suite failed.', revised: 'J6', note: 'The model card is a generated, signed artefact of the pipeline.' },
+      { n: 9, col: 9, lane: 'store', type: 'STORE', status: 'proposed', title: 'Recalibration and feedback', actor: 'Scorekeeper', desc: 'The new policy\'s pass@8 recalibrates the curriculum; its sessions enter export; the leaderboard tracks the delta per environment kind.', outputs: ['EnvironmentStats', 'ScoreboardBatch'], plugins: { existing: ['trajectories'], new: ['scorekeeper'] }, metrics: ['delta per kind over time'], failure: '', feeds: ['W3 calibration', 'W4 facts'] },
+    ],
+    edges: [[1, 2, 'EnvironmentAdmission'], [2, 3, 'EnvironmentStats'], [3, 4, 'DatasetManifest'], [4, 5, 'TrainingRun'], [5, 6, 'TrainingRun'], [6, 7, 'EvalReport'], [7, 8, 'SafetyReport'], [8, 9, 'ModelRelease'], [9, 2, 'EnvironmentStats', 'feed'], [7, 5, 'SafetyReport', 'feedback']],
+  },
+  {
+    id: 'w4', code: 'W4', title: 'Fleet observatory and two-speed improvement', goal: 'Goal 4 · the loop that feeds both the harness and the model',
+    thesis: 'A fast loop where agents write and refine skills in their department layer under a deterministic keep-or-retire scoreboard, and a slow loop where frozen experiments and attributable humans move knowledge into the fleet. Both read one content-addressed ledger; the observatory is a projection of the log, not a pipeline beside it.',
+    stages: [
+      { n: 1, col: 1, lane: 'store', type: 'STORE', status: 'partial', title: 'Manifest and facts', actor: 'Scorekeeper', desc: 'dsh-components content-addresses every registered component as id@digest with provenance, lineage, and a scoped global/agent layer; dsh-components-manifest appends the log-only composition/manifest event once per composition change, and five per-seam adapters (tools, prompt, presets, skills, packages) mirror what each session actually composed into it, including a loaded skill digest and a runtime-defined dynamic package. SessionFacts folds beside it as a projection: tool errors, timeouts, aborts, directives, relaxations and budget breaches exist as fields; the manifest\'s own composition_hash and skills_used, plus retries, loop-hygiene triggers, compaction, denials and cache reuse, do not yet.', outputs: ['CompositionManifest', 'ScoreboardBatch'], plugins: { existing: ['trajectories', 'session-projection', 'scorekeeper', 'components', 'components-manifest', 'components-tools', 'components-prompt', 'components-presets', 'components-skills', 'components-packages'], new: ['SessionFacts.composition and skillsUsed folded from the manifest', 'the scorekeeper invariant relation over skill-tool digests'] }, metrics: ['sessions per hour', 'fields with a source event'], failure: 'A skill result whose digest is not in the manifest fails the invariant.', revised: 'J4 J5 J7', note: 'componentDigest, componentAddress, and digestBasis now give every component a stable address, and scoped layers resolve what one agent sees. The composition/manifest event and all five adapters are landed: a session\'s manifest names every tool, prompt section, preset, loaded skill, and mounted or dynamically defined package in play as id@digest. What remains is the scorekeeper\'s own read of it: composition_hash and skillsUsed still have no field on SessionFacts because nothing folds the manifest into it yet, so the invariant that would reject a skill result whose digest is absent from the manifest has nothing to check against.' },
+      { n: 2, col: 2, lane: 'd', type: 'D', status: 'partial', title: 'Scoreboards and alerts', actor: 'Scorekeeper', desc: 'Leaderboards per component version, preset, model, environment, department, partitioned by isolation, held-out split, and district; change-point detection raises alerts with sample sessions; budget breaches are durable goal blocks; a live observatory that renders these rows as a cached session projection, current or visibly stale, is in progress.', outputs: ['Alert'], plugins: { existing: ['scorekeeper', 'budget-policy', 'dsh-experiments (paired comparisons)'], new: ['change-point alerts', 'dsh-observatory (in progress, no package yet)'] }, metrics: ['alerts', 'false-alert rate'], failure: 'A metric without enough sessions is not alerted on.', revised: 'J5 J7', note: 'dsh-scorekeeper folds a leaderboard partitioned by model route, environment, isolation level, held-out split, and district, with pass@k per stamped group, costEur/pricedSteps/pricingDigests and costEurPerCertified folded from usage/priced alone, and dsh-budget-policy already backs the budget-breach half of this stage with a durable goal block. Partitioning by component version, preset, and department, and sequential change-point alerting, remain proposed. So does the observatory itself: a live, cached rendering of these rows is designed in the Village and competitive-baselines notes, but no dsh-observatory package exists yet.' },
+      { n: 3, col: 3, lane: 's', type: 'DS', status: 'proposed', title: 'Diagnosis', actor: 'Trajectory Analyst (cross-model)', desc: 'Sampled and alert-driven transcripts, with evidence seqs only; owner routing to harness, model, environment or spec; held-out sessions as aggregates.', outputs: ['SessionDiagnosis'], plugins: { existing: ['session-query', 'subagent outputSchema'], new: ['trajectory-analyst preset'] }, metrics: ['diagnoses per owner'], failure: 'A diagnosis never retires an environment or sets a budget; it opens a dispute or a proposal.', revised: 'J4 J5' },
+      { n: 4, col: 4, lane: 's', type: 'S', status: 'partial', title: 'Fast tier: session and department skills', actor: 'Department agents', desc: 'After use, an agent writes a skill into its own layer and refines it by re-registration (tier 0); a synthesized-skill provider promotes it to a department candidate with provenance, lineage, evidence sessions and a scope of session, department or client (tier 1). Nothing here is fleet-shared, model-visible outside its layer, or exported.', outputs: ['KnowledgeProposal'], plugins: { existing: ['layered ctx.skills', 'agent-presets layers'], new: ['dsh-skill-synthesized provider', 'tenant scope on skills'] }, metrics: ['skills written', 'retire rate'], failure: 'A candidate without evidence sessions or scope is rejected by schema.', revised: 'J4 J6', note: 'Hermes\'s write-after-use loop, kept inside a layer with a tenant boundary instead of being designed away.' },
+      { n: 5, col: 5, lane: 'd', type: 'D', status: 'proposed', title: 'Keep or retire', actor: 'Department scoreboard', desc: 'Paired present-versus-absent cells per skill; a delta at or below zero over N runs marks the skill deprecated (catalog omits, body replayable). Deterministic, per department, no human.', outputs: ['ScoreboardBatch'], plugins: { existing: [], new: ['scorekeeper', 'experiment plugin'] }, metrics: ['kept', 'retired', 'catalog size'], failure: 'A skill without paired runs is neither kept nor retired; it stays tier 0.', revised: 'J4' },
+      { n: 6, col: 6, lane: 'd', type: 'D', status: 'partial', title: 'Nomination and frozen experiment', actor: 'Experiment service', desc: 'Candidates whose paired deltas clear a threshold are nominated; the proposal digest is frozen; cells are the environments cited by the diagnosis evidence plus a stratified held-in sample plus a held-out regression; the cell rule and its seed are logged; priority is a function of alert magnitude, recurrence and cost, never of an S field.', outputs: ['ExperimentPlan', 'ExperimentResult'], plugins: { existing: ['schedule', 'environment-runner', 'dsh-experiments'], new: ['diagnosis-derived cell selection', 'nomination priority (alert magnitude, recurrence, cost)'] }, metrics: ['queue depth', 'budget used', 'delta', 'ci95'], failure: 'A plan over budget waits; a plan above the cap needs a human.', revised: 'J4 J5 J6', note: 'Semantic priority and self-selected cells were the leak; the plan is now derived and frozen. dsh-experiments landed the frozen plan digest, the paired fleet runs under experiment-<digest>-<arm> stamp groups, the bootstrap delta with its verdict, and the projected-token budget refusal; deriving cells from diagnosis evidence and computing nomination priority from alert magnitude and recurrence are still proposed.' },
+      { n: 7, col: 7, lane: 'gate', type: 'GATE', status: 'partial', title: 'Static gates', actor: 'run-gates', desc: 'The full gate suite on every knowledge or harness change before a human sees it; evaluator-touched paths are a hard reject. verify-village-composition requires a fleet, runner, experiment, or program composition to also compose a capped budget policy, session persistence, and the checkpoint policy, and a fleet entry to set workspaceRetention; a runner claiming process or host isolation still warns, because the claim depends on which sandbox backend the host can actually run rather than on anything the composition alone proves.', outputs: ['GateReport'], plugins: { existing: ['scripts/run-gates', 'scripts/verify-village-composition'], new: [] }, metrics: ['pass rate'], failure: 'Findings return to stage 4.', note: 'All seven read-barrier slices are landed now; the isolation warning stays for a different reason than before, asking a reviewer to check the backend rather than trust the claim.' },
+      { n: 8, col: 8, lane: 'human', type: 'HUMAN', status: 'partial', title: 'Promotion', actor: 'Maintainer (attributed)', desc: 'PR plus Agent Note plus a sign-off record; prompt sections, tool schemas and skills always need a person; policy and presentation kinds with no model-visible text may promote on the experiment alone.', outputs: ['PromotionDecision', 'SignoffRecord'], plugins: { existing: ['.agents/notes process', 'approval seam'], new: ['signoff/recorded event'] }, metrics: ['alert-to-promotion time', 'regression rate'], failure: 'A rejection stays in the ledger with its reason.', revised: 'J6', note: 'signoff/recorded, naming the principal and the artefact hash, remains proposed. The governance slice (signoff/recorded, dataUse/terms, and decidedBy on approval/decided) is in progress but not yet landed.' },
+      { n: 9, col: 9, lane: 'store', type: 'STORE', status: 'proposed', title: 'Knowledge ledger', actor: 'Archive', desc: 'Every id@digest with lineage, evidence sessions, results and decisions, losers included; the components registry mirrors only the current set; the manifest event ties replay to what was in play.', outputs: ['HarnessVariant'], plugins: { existing: ['storage', 'components'], new: ['dsh-archive'] }, metrics: ['ledger size', 'divergence from manifest (must be zero)'], failure: 'A ledger entry without a manifest occurrence never counts as in play.', revised: 'J2 J4' },
+      { n: 10, col: 10, lane: 'd', type: 'D', status: 'proposed', title: 'Data steering', actor: 'Data Curator', desc: 'Export weights and curriculum for the model pipeline from certificate rates; bounded reweighting runs on its own, new sources and unbounded changes wait for the data steward.', outputs: ['CurriculumUpdate'], plugins: { existing: [], new: ['curator plugin'] }, metrics: ['curriculum drift'], failure: '', feeds: ['W3 calibration'], revised: 'J5 J6', note: 'The weight formula is config with no semantic inputs.' },
+      { n: 11, col: 11, lane: 'store', type: 'STORE', status: 'proposed', title: 'Audit', actor: 'Scorekeeper', desc: 'Hash-chained persisted artefacts per checkpoint, signed daily manifests to write-once storage, per-client crypto-shredding for erasure; monitor denials, sign-offs and spend in a periodic report every automated change traces to.', outputs: ['AuditReport'], plugins: { existing: ['session-persistence'], new: ['tamper evidence and erasure in persistence', 'oversight seam: monitor'] }, metrics: ['automated changes per period', 'anomalies', 'audit findings'], failure: '', revised: 'J6', note: 'Append-only is not tamper-evident; the chain and the shredding key make it so.' },
+    ],
+    edges: [[1, 2, 'ScoreboardBatch'], [2, 3, 'Alert'], [3, 4, 'SessionDiagnosis'], [4, 5, 'KnowledgeProposal'], [5, 6, 'ScoreboardBatch'], [6, 7, 'ExperimentResult'], [7, 8, 'GateReport'], [8, 9, 'PromotionDecision'], [9, 10, 'HarnessVariant'], [8, 11, 'SignoffRecord'], [7, 4, 'GateReport', 'feedback'], [5, 4, 'ScoreboardBatch', 'feedback'], [2, 10, 'Alert', 'feed']],
+  },
+];
+
+// ---------- Roster ----------
+const ROSTER = [
+  ['Intake Analyst', 'S', 'request, client knowledge (MCP, skills)', 'SpecDraft', 'agent-presets, skills, mcp, web'],
+  ['Spec Critic', 'S · cross-model', 'SpecDraft', 'SpecVerdict', 'subagent outputSchema; oversight judge'],
+  ['Validator', 'S authoring · D executing', 'Spec, goal', 'CompletionStandard → certificates, directives', 'verification, environment-runner, shell'],
+  ['Planner', 'S', 'Spec, repository state', 'Plan', 'plan-mode, goal'],
+  ['Implementer departments', 'S + tools', 'goal, workspace', 'code, Handoff', 'presets per stack, tool-ralph, fs, shell, lsp'],
+  ['Integrator', 'S + D', 'branches, gates', 'IntegrationReport', 'shell, hooks, run-gates'],
+  ['Review council', 'S · cross-model, ≥3 judges', 'diff, standard, logs', 'ReviewVerdict', 'subagent outputSchema; oversight judges'],
+  ['Trajectory Analyst', 'D folds + S taxonomy', 'trajectory, SessionFacts', 'SessionDiagnosis', 'trajectories, session-query'],
+  ['Harness Engineer', 'S + tool-cordis', 'diagnoses, leaderboards', 'HarnessPatchProposal', 'self-modification, components'],
+  ['Environment Synthesizer', 'S', 'failures, client checks', 'EnvironmentProposal (synthesized)', 'environments'],
+  ['Data Curator', 'D + S', 'trajectories', 'DatasetManifest, SampleScore, CurriculumUpdate', 'trajectories, redaction rules; curator plugin'],
+  ['Trainer Operator', 'D', 'DatasetManifest, hardware scenario', 'TrainingRun', 'jobs, schedule, subprocess; trainer-operator plugin'],
+  ['Evaluator', 'D', 'model candidate, held-out suite', 'EvalReport', 'environment-runner, environments'],
+  ['Promotion Gate', 'D + human', 'gates, verdicts, notes', 'PromotionDecision', 'run-gates, approval seam'],
+  ['Scorekeeper', 'D', 'trajectories, reports', 'ScoreboardBatch, leaderboards, Alert, AuditReport', 'trajectories; scorekeeper plugin'],
+  ['Monitor', 'D · oversight', 'tools/pre-execute', 'anomaly flags', 'oversight seam (proposed)'],
+  ['Fleet Orchestrator', 'D script + S dispatch', 'plans, queues, budgets', 'RunBatch', 'workflow engine, subagents, schedule'],
+];
+
+// ---------- Principles ----------
+const PRINCIPLES = [
+  ['P1 Everything is a plugin', 'Knowledge, agents, tools, policies, judges, scoreboards, environments, datasets. A workflow is a composition plus an orchestration script plus an environment suite plus completion standards, and is itself a composition component with members and lineage.', 'Cordis plugins; components registry'],
+  ['P2 Deterministic spine, semantic joints', 'Every stage is D or S. S never holds authority; authority is a D gate or a human. Every S→D hand-off is a forced schema; a rejected output returns with the validation error as its directive.', 'subagent outputSchema; run-gates; verification'],
+  ['P3 The log is the dataset', 'Each workflow leaves session logs that fold into trajectories, scoreboard rows, and Agent Notes. Nothing model-visible bypasses the log, so every metric is recomputable.', 'model-visible ⟺ logged; dsh-trajectory/1'],
+  ['P4 Read barrier and cross-model judging', 'Validators and judges never share an implementer\'s context; the judge\'s model route differs from the worker\'s.', 'verification directives; oversight seam'],
+  ['P5 Lineage and archive', 'Every component, preset, prompt section, environment, and dataset carries provenance and lineage; a promotion is an Agent Note plus a PR; archives are frozen.', 'components provenance; .agents/notes'],
+  ['P6 Held-out discipline', 'Held-out environments are never exported as training data and never shown to improvement agents; decontamination is by content hash.', 'EnvironmentDefinition.heldOut; curator plugin'],
+  ['P7 Budgets are explicit', 'Every fan-out carries agent caps, token and cost budgets, and time limits from config, never from code constants; the observatory reads the spend from the same logs.', 'workflow agent caps; no hardcoded tunables'],
+];
+
+// ---------- SessionFacts fields ----------
+const FIELD_GROUPS = [
+  ['Identity and provenance', 'D', ['session_id:SessionId', 'parent_session_id:SessionId?', 'workflow_id:string', 'workflow_stage:string', 'run_id:string', 'attempt:int', 'environment_id:EnvironmentId', 'environment_kind:string', 'environment_domain:string', 'environment_difficulty:number', 'held_out:boolean', 'environment_lineage:EnvironmentId?', 'department:string', 'preset_id:string', 'composition_hash:sha256', 'harness_commit:sha', 'plugin_set_hash:sha256', 'component_ids:ComponentId[]', 'skills_used:string[]', 'mcp_servers:string[]', 'subagent_providers:string[]', 'model_provider:string', 'model_id:string', 'reasoning_effort:string', 'validator_model_id:string', 'judge_model_ids:string[]', 'isolation:enum', 'sandbox_mode:string', 'host_os:string', 'runtime_version:string', 'started_at:epoch ms', 'ended_at:epoch ms', 'wall_ms:int', 'operator_id:string', 'client_id_hash:sha256', 'consent_flags:string[]', 'licence_tag:string']],
+  ['Outcome', 'D', ['reward_outcome:1|0|null', 'reward_basis:enum', 'certified:boolean', 'certificate_revision:int', 'checks_total:int', 'checks_passed:int', 'checks_relaxed:int', 'attempts:int', 'directives:int', 'goal_phase:enum', 'goal_rounds_started:int', 'goal_rounds_cap:int', 'turn_end_reason:enum', 'error_code:string?', 'blocked_reason_code:string?']],
+  ['Efficiency', 'D', ['turns:int', 'steps:int', 'input_tokens:int', 'output_tokens:int', 'cache_read_tokens:int', 'cache_write_tokens:int', 'reasoning_tokens:int', 'tokens_per_step_p50:number', 'tokens_per_step_p95:number', 'context_peak_tokens:int', 'cost_estimate_eur:number', 'kv_prefix_reuse_ratio:0..1', 'compaction_events:int', 'compaction_tokens_removed:int', 'model_latency_p50_ms:int', 'model_latency_p95_ms:int', 'idle_ms:int', 'retries_provider:int']],
+  ['Tool behavior', 'D', ['tool_calls:int', 'tool_calls_by_name:map', 'tool_errors:int', 'tool_error_rate:0..1', 'tool_timeouts:int', 'tool_aborts:int', 'shell_nonzero_exits:int', 'fs_reads:int', 'fs_writes:int', 'files_touched:int', 'diff_added_lines:int', 'diff_removed_lines:int', 'tests_run:int', 'tests_passed:int', 'lint_errors:int', 'type_errors:int', 'permission_requests:int', 'permission_denials:int', 'loop_hygiene_triggers:int', 'duplicate_tool_calls:int', 'longest_tool_ms:int', 'subagents_spawned:int', 'subagent_depth_max:int', 'workflow_agents_started:int', 'ralph_rounds:int', 'background_jobs:int']],
+  ['Process quality', 'D', ['spec_present:boolean', 'spec_verdict_score:1..10 (S)', 'standard_authored_before_first_write:boolean', 'plan_present:boolean', 'plan_tasks:int', 'plan_tasks_completed:int', 'validator_authored_checks_ratio:0..1', 'read_barrier_violations:int', 'review_findings_total:int', 'review_findings_blocking:int', 'docs_updated:boolean', 'agent_note_present:boolean', 'snapshot_updated:boolean', 'coverage_delta:number']],
+  ['Judge scores', 'S', ['correctness:1..10', 'robustness:1..10', 'code_quality:1..10', 'communication:1..10', 'spec_adherence:1..10', 'verification_rigor:1..10', 'efficiency_judgment:1..10', 'safety_compliance:1..10', 'overall:1..10', 'judge_disagreement:0..1']],
+  ['Safety and oversight', 'D', ['monitor_flags:int', 'high_impact_tool_calls:int', 'sandbox_violations:int', 'secrets_redacted:int', 'policy_overrides:int', 'human_interventions:int']],
+  ['Training and data', 'D', ['content_hash:sha256', 'dedupe_cluster_id:string', 'decontamination_status:enum', 'redaction_applied:boolean', 'split:enum', 'curriculum_difficulty:number', 'sample_weight:number', 'export_format_version:string', 'trainer_tokens:int', 'logprobs_available:boolean']],
+];
+
+// ---------- Allowed today / gaps ----------
+const ALLOWED = [
+  ['Log as sole authority', 'Strict decoders, generated catalogs, projections: D by construction.', 'dsh-session, persistence catalog'],
+  ['Verifiers with a read barrier', 'Standards, certificates, directives, relaxations; goal completion refused without a covering certificate.', 'dsh-verification, dsh-goal'],
+  ['Structured output at the subagent seam', 'outputSchema capability on providers; tool output schemas; Ralph handoffs.', 'dsh-subagent, dsh-tools, tool-ralph'],
+  ['Orchestration scripts with caps', 'parallel and pipeline hooks, per-run agent caps, observe-only events.', 'dsh-workflow'],
+  ['Composition-time inventories', 'Components with provenance and lineage; environments with held-out flags; trajectories with rewards.', 'components, environments, trajectories'],
+  ['Fleet runs with durable run evidence', 'Environment × model × repetition cells through the runner, each a stamped session; every attempt a verification/run event with the workspace tree hash; a leaderboard per route and environment that never averages across isolation or the held-out split.', 'dsh-fleet, dsh-environment-runner, dsh-verification'],
+  ['Promotion as a documented act', 'Agent Notes, doc-sync, coverage, snapshots, invariants, PR taxonomy.', '.agents/notes, scripts/run-gates'],
+];
+// ---------- Council (filled from the judges\' reports) ----------
+
+// ---------- Rendering ----------
+const LANES = [
+  { id: 'human', label: 'Humans' },
+  { id: 's', label: 'Semantic · S' },
+  { id: 'd', label: 'Deterministic · D' },
+  { id: 'store', label: 'Records & stores' },
+  { id: 'gate', label: 'Gates' },
+];
+const LANE_COLOR = { human: 'var(--human)', s: 'var(--s)', d: 'var(--d)', store: 'var(--store)', gate: 'var(--gate)' };
+const TYPE_LABEL = { D: 'D', S: 'S', DS: 'D+S', GATE: 'GATE', HUMAN: 'HUMAN', STORE: 'RECORD' };
+const TYPE_COLOR = { D: 'var(--d)', S: 'var(--s)', DS: 'var(--ink-2)', GATE: 'var(--gate)', HUMAN: 'var(--human)', STORE: 'var(--store)' };
+
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const GUTTER = 150, COLW = 170, NODEW = 134, NODEH = 58, LANEH = 96, TOP = 18;
+
+function nodePos(stage) {
+  const laneIndex = LANES.findIndex(l => l.id === stage.lane);
+  const x = GUTTER + (stage.col - 1) * COLW;
+  const y = TOP + laneIndex * LANEH + (LANEH - NODEH) / 2;
+  return { x, y, cx: x + NODEW / 2, cy: y + NODEH / 2 };
+}
+
+function wrapTitle(title) {
+  const words = title.split(' ');
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    if ((line + ' ' + w).trim().length > 19 && line) { lines.push(line); line = w; } else line = (line + ' ' + w).trim();
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 2);
+}
+
+function renderSvg(wf) {
+  const cols = Math.max(...wf.stages.map(s => s.col));
+  const width = GUTTER + cols * COLW + 20;
+  const height = TOP + LANES.length * LANEH + 12;
+  let out = `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(wf.code)} swimlane diagram">`;
+  out += `<defs><pattern id="hatch-${wf.id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--surface)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--hair)" stroke-width="1.5"/></pattern><marker id="arrow-${wf.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>`;
+  LANES.forEach((lane, i) => {
+    const y = TOP + i * LANEH;
+    out += `<rect x="0" y="${y}" width="${width}" height="${LANEH}" fill="${i % 2 ? 'var(--band-b)' : 'var(--band-a)'}"/>`;
+    out += `<rect x="0" y="${y}" width="4" height="${LANEH}" fill="${LANE_COLOR[lane.id]}"/>`;
+    out += `<text class="lane-label" x="14" y="${y + 18}">${esc(lane.label)}</text>`;
+  });
+  const byN = Object.fromEntries(wf.stages.map(s => [s.n, s]));
+  // edges first
+  wf.edges.forEach((e, idx) => {
+    const [a, b, schema, kind] = e;
+    const A = nodePos(byN[a]), B = nodePos(byN[b]);
+    const forward = B.x > A.x;
+    const kindClass = kind || 'flow';
+    let d, lx, ly;
+    if (forward) {
+      const x1 = A.x + NODEW, y1 = A.cy, x2 = B.x, y2 = B.cy;
+      const dx = Math.max(30, (x2 - x1) / 2);
+      d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+      lx = (x1 + x2) / 2;
+      // A hand-off inside one lane has no room between the boxes: write it in the band above them.
+      ly = Math.abs(y1 - y2) < 6 ? A.y - 9 : (y1 + y2) / 2 - 8;
+    } else {
+      const x1 = A.cx, y1 = A.y + NODEH, x2 = B.cx, y2 = B.y + NODEH;
+      const drop = TOP + LANES.length * LANEH - 4;
+      d = `M${x1},${y1} C${x1},${drop} ${x2},${drop} ${x2},${y2}`;
+      lx = (x1 + x2) / 2; ly = drop - 12;
+    }
+    const label = schema;
+    const lw = label.length * 6.4 + 12;
+    out += `<g class="edge ${kindClass}" data-edge="${idx}" data-from="${a}" data-to="${b}" data-schema="${esc(schema)}" tabindex="0" role="button" aria-label="Hand-off ${esc(schema)} from stage ${a} to stage ${b}">`;
+    out += `<path d="${d}" marker-end="url(#arrow-${wf.id})"/>`;
+    out += `<rect x="${lx - lw / 2}" y="${ly - 9}" width="${lw}" height="15" rx="3"/>`;
+    out += `<text x="${lx}" y="${ly + 2.5}" text-anchor="middle">${esc(label)}</text></g>`;
+  });
+  wf.stages.forEach(s => {
+    const p = nodePos(s);
+    const lines = wrapTitle(s.title);
+    out += `<g class="node svg-node t-${s.type} st-${s.status || 'implemented'}${s.outsideLog ? ' outside' : ''}${s.revised ? ' revised' : ''}" data-stage="${s.n}" data-col="${s.col}" tabindex="0" role="button" aria-label="Stage ${s.n}: ${esc(s.title)}">`;
+    out += `<rect class="box" x="${p.x}" y="${p.y}" width="${NODEW}" height="${NODEH}" rx="7"${s.outsideLog ? ` fill="url(#hatch-${wf.id})"` : ''}/>`;
+    out += `<rect x="${p.x}" y="${p.y}" width="5" height="${NODEH}" rx="2" fill="${TYPE_COLOR[s.type]}"/>`;
+    if (s.type === 'DS') out += `<rect x="${p.x}" y="${p.y}" width="5" height="${NODEH / 2}" rx="2" fill="var(--d)"/><rect x="${p.x}" y="${p.y + NODEH / 2}" width="5" height="${NODEH / 2}" rx="2" fill="var(--s)"/>`;
+    out += `<text class="num" x="${p.x + 12}" y="${p.y + 13}">${s.n}</text>`;
+    if (s.revised) out += `<circle class="rev-dot" cx="${p.x + NODEW - 8}" cy="${p.y + NODEH - 8}" r="3.5"><title>Revised after the council (${esc(s.revised)})</title></circle>`;
+    out += `<text class="tag" x="${p.x + NODEW - 8}" y="${p.y + 13}" text-anchor="end" fill="${TYPE_COLOR[s.type]}">${TYPE_LABEL[s.type]}</text>`;
+    lines.forEach((ln, i) => { out += `<text class="title" x="${p.x + 12}" y="${p.y + 29 + i * 13}">${esc(ln)}</text>`; });
+    out += `<text class="actor" x="${p.x + 12}" y="${p.y + NODEH - 8}">${esc(s.actor.length > 22 ? s.actor.slice(0, 21) + '…' : s.actor)}</text>`;
+    out += `</g>`;
+  });
+  out += `</svg>`;
+  return out;
+}
+
+function schemaCard(name) {
+  const s = SCHEMAS[name];
+  if (!s) return `<p class="empty">Unknown schema ${esc(name)}.</p>`;
+  return `<h3 class="mono">${esc(name)}</h3><p style="color:var(--ink-2)">${esc(s.purpose)}</p><dl class="kv"><dt>Validated by</dt><dd>${esc(s.validator)}</dd></dl><table class="fields"><thead><tr><th>Field</th><th>Type</th><th>Note</th></tr></thead><tbody>${s.fields.map(f => `<tr><td>${esc(f[0])}</td><td class="mono">${esc(f[1])}</td><td>${esc(f[2])}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function stageCard(wf, s) {
+  const out = s.outputs.map(o => `<button class="schema-link" data-schema="${esc(o)}">${esc(o)}</button>`).join(' · ');
+  const plug = s.plugins.existing.map(p => `<span class="badge">${esc(p)}</span>`).join(' ') + ' ' + s.plugins.new.map(p => `<span class="badge new">new · ${esc(p)}</span>`).join(' ');
+  const status = s.status || 'implemented';
+  return `<div class="badges"><span class="badge t-${s.type}">${TYPE_LABEL[s.type]}</span><span class="badge">${esc(wf.code)} · stage ${s.n}</span><span class="badge st-${status}">${status}</span>${s.outsideLog ? '<span class="badge">outside the session log</span>' : ''}</div><h3>${esc(s.title)}</h3><p style="color:var(--ink-2)">${esc(s.desc)}</p><dl class="kv"><dt>Actor</dt><dd>${esc(s.actor)}</dd><dt>Emits</dt><dd>${out}</dd><dt>Plugins</dt><dd>${plug}</dd><dt>Metrics</dt><dd>${esc(s.metrics.join(' · '))}</dd>${s.failure ? `<dt>On failure</dt><dd>${esc(s.failure)}</dd>` : ''}${s.feeds ? `<dt>Feeds</dt><dd>${esc(s.feeds.join(' · '))}</dd>` : ''}</dl>${s.revised ? `<div class="rev"><b>Revised after the council (${esc(s.revised)}).</b> ${esc(s.note || '')}</div>` : ''}`;
+}
+
+function renderWorkflow(wf) {
+  const section = document.querySelector(`section[data-wf="${wf.id}"]`);
+  section.innerHTML = `
+    <div class="section-head"><span class="eyebrow">${esc(wf.code)}</span><h2>${esc(wf.title)}</h2><div class="goal">${esc(wf.goal)}</div><p>${esc(wf.thesis)}</p></div>
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Filter stages">
+        <button class="chip" data-filter="all" aria-pressed="true">All stages</button>
+        <button class="chip" data-filter="d" aria-pressed="false">Deterministic only</button>
+        <button class="chip" data-filter="s" aria-pressed="false">Semantic only</button>
+        <button class="chip" data-filter="authority" aria-pressed="false">Gates and humans</button>
+        <button class="chip" data-filter="proposed" aria-pressed="false">Proposed only</button>
+        <button class="chip" data-filter="labels" aria-pressed="true">Schemas on edges</button>
+      </div>
+      <div class="stepper" aria-label="Step through stages"><button data-step="-1" aria-label="Previous stage">←</button><span class="pos">all</span><button data-step="1" aria-label="Next stage">→</button></div>
+    </div>
+    <div class="stage-wrap">
+      <div class="diagram-caption"><span>Columns are stage order, not duration. The diagram scrolls sideways; select a stage or an edge to open it below.</span><span class="mono">${wf.stages.length} stages · ${wf.stages.filter(s => (s.status || 'implemented') === 'proposed').length} proposed</span></div>
+      <div class="diagram" tabindex="0">${renderSvg(wf)}</div>
+      <aside class="inspector" aria-live="polite"><p class="empty">Select a stage or an edge. Stages open their role, plugins, metrics and failure path; edges open the schema they carry.</p></aside>
+    </div>
+    <div class="stage-list">${wf.stages.map(s => `<details class="stage" id="${wf.id}-s${s.n}"><summary><span class="n">${s.n}</span><span><b>${esc(s.title)}</b> <span style="color:var(--ink-3)">· ${esc(s.actor)}</span></span><span class="badges"><span class="badge st-${s.status || 'implemented'}">${s.status || 'implemented'}</span><span class="badge t-${s.type}">${TYPE_LABEL[s.type]}</span></span></summary><div class="body"><p>${esc(s.desc)}</p><p><b>Emits</b> ${esc(s.outputs.join(', '))} · <b>Plugins</b> ${esc(s.plugins.existing.join(', '))}${s.plugins.new.length ? ` · <b>New</b> ${esc(s.plugins.new.join(', '))}` : ''}</p><p><b>Metrics</b> ${esc(s.metrics.join(', '))}${s.failure ? ` · <b>On failure</b> ${esc(s.failure)}` : ''}</p>${s.revised ? `<div class="rev"><b>Revised after the council (${esc(s.revised)}).</b> ${esc(s.note || '')}</div>` : ''}</div></details>`).join('')}</div>`;
+
+  const inspector = section.querySelector('.inspector');
+  const svg = section.querySelector('svg');
+  const diagram = section.querySelector('.diagram');
+  let step = 0; // 0 = all
+  const maxCol = Math.max(...wf.stages.map(s => s.col));
+  let filter = 'all';
+
+  function applyState() {
+    svg.querySelectorAll('.node').forEach(n => {
+      const s = wf.stages.find(x => x.n === Number(n.dataset.stage));
+      let visible = true;
+      if (filter === 'd') visible = ['D', 'DS', 'GATE', 'STORE'].includes(s.type);
+      if (filter === 's') visible = ['S', 'DS'].includes(s.type);
+      if (filter === 'authority') visible = ['GATE', 'HUMAN'].includes(s.type);
+      if (filter === 'proposed') visible = (s.status || 'implemented') !== 'implemented';
+      if (step && s.col > step) visible = false;
+      n.classList.toggle('dim', !visible);
+    });
+    svg.querySelectorAll('.edge').forEach(e => {
+      const a = wf.stages.find(x => x.n === Number(e.dataset.from));
+      const b = wf.stages.find(x => x.n === Number(e.dataset.to));
+      const na = svg.querySelector(`.node[data-stage="${a.n}"]`), nb = svg.querySelector(`.node[data-stage="${b.n}"]`);
+      const visible = !na.classList.contains('dim') && !nb.classList.contains('dim');
+      e.classList.toggle('dim', !visible);
+    });
+    section.querySelector('.stepper .pos').textContent = step ? `stage ${step}/${maxCol}` : 'all';
+  }
+  section.querySelectorAll('.chip[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.filter;
+      if (f === 'labels') { const on = btn.getAttribute('aria-pressed') !== 'true'; btn.setAttribute('aria-pressed', String(on)); diagram.classList.toggle('hide-labels', !on); return; }
+      filter = f;
+      section.querySelectorAll('.chip[data-filter]').forEach(b => { if (b.dataset.filter !== 'labels') b.setAttribute('aria-pressed', String(b.dataset.filter === f)); });
+      applyState();
+    });
+  });
+  section.querySelectorAll('.stepper button').forEach(btn => btn.addEventListener('click', () => {
+    step = step + Number(btn.dataset.step);
+    if (step < 0) step = maxCol; if (step > maxCol) step = 0;
+    applyState();
+    if (step) selectStage(wf.stages.find(s => s.col === step) || wf.stages[step - 1]);
+  }));
+  function clearSelection() { svg.querySelectorAll('.selected').forEach(x => x.classList.remove('selected')); }
+  function selectStage(s) {
+    clearSelection();
+    svg.querySelector(`.node[data-stage="${s.n}"]`).classList.add('selected');
+    inspector.innerHTML = stageCard(wf, s);
+    bindSchemaLinks();
+  }
+  function selectEdge(el) {
+    clearSelection(); el.classList.add('selected');
+    const a = wf.stages.find(x => x.n === Number(el.dataset.from)), b = wf.stages.find(x => x.n === Number(el.dataset.to));
+    const kind = el.classList.contains('feedback') ? 'Returned with the failure as its directive' : el.classList.contains('feed') ? 'Feeds a later consumer' : 'Forward hand-off';
+    inspector.innerHTML = `<div class="badges"><span class="badge">${esc(wf.code)} · ${a.n} → ${b.n}</span><span class="badge">${esc(kind)}</span></div>` + schemaCard(el.dataset.schema) + `<p class="note">From <b>${esc(a.title)}</b> to <b>${esc(b.title)}</b>.</p>`;
+  }
+  function bindSchemaLinks() {
+    inspector.querySelectorAll('.schema-link').forEach(b => b.addEventListener('click', () => { inspector.innerHTML = schemaCard(b.dataset.schema) + `<p class="note">Select a stage to return.</p>`; }));
+  }
+  svg.querySelectorAll('.node').forEach(n => {
+    const act = () => selectStage(wf.stages.find(s => s.n === Number(n.dataset.stage)));
+    n.addEventListener('click', act);
+    n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+  });
+  svg.querySelectorAll('.edge').forEach(el => {
+    const act = () => selectEdge(el);
+    el.addEventListener('click', act);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+  });
+  applyState();
+}
+
+WORKFLOWS.forEach(renderWorkflow);
+
+// principles
+document.getElementById('principles-grid').innerHTML = PRINCIPLES.map(p => `<div class="card"><h3>${esc(p[0])}</h3><p style="color:var(--ink-2)">${esc(p[1])}</p><span class="note">Enforced by: ${esc(p[2])}</span></div>`).join('');
+
+// roster
+document.getElementById('roster-table').innerHTML = `<thead><tr><th>Agent</th><th>Type</th><th>Consumes</th><th>Produces (forced schema)</th><th>Plugins</th></tr></thead><tbody>${ROSTER.map(r => `<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td class="mono">${esc(r[3])}</td><td>${esc(r[4])}</td></tr>`).join('')}</tbody>`;
+
+// schemas
+document.getElementById('schema-grid').innerHTML = Object.keys(SCHEMAS).map(name => `<div class="card">${schemaCard(name)}</div>`).join('');
+
+// fields
+const FIELDS = [];
+FIELD_GROUPS.forEach(([group, src, list]) => list.forEach(f => { const [name, type] = f.split(':'); const s = /\(S\)$/.test(f) ? 'S' : src; FIELDS.push({ group, src: s, name, type: (type || '').replace(/ \(S\)$/, '') }); }));
+COUNCIL_FIELDS.forEach(f => FIELDS.push(f));
+const groups = [...new Set(FIELDS.map(f => f.group))];
+let activeGroup = 'all';
+const chipsEl = document.getElementById('group-chips');
+chipsEl.innerHTML = [`<button class="chip" data-group="all" aria-pressed="true">All groups</button>`].concat(groups.map(g => `<button class="chip" data-group="${esc(g)}" aria-pressed="false">${esc(g)}</button>`)).join('');
+function renderFields() {
+  const q = document.getElementById('field-search').value.trim().toLowerCase();
+  const shown = FIELDS.filter(f => (activeGroup === 'all' || f.group === activeGroup) && (!q || `${f.name} ${f.type} ${f.group} ${f.src}`.toLowerCase().includes(q)));
+  document.getElementById('field-grid').innerHTML = shown.map(f => `<div class="field"><span class="name">${esc(f.name)}</span><span class="type">${esc(f.type)}</span><span class="meta"><span class="src ${f.src}">${f.src}</span>${esc(f.group)}${f.added ? ` · <span style="color:var(--store)">added by ${esc(f.added)}</span>` : ''}</span></div>`).join('');
+  document.getElementById('field-count').textContent = `${shown.length} of ${FIELDS.length} fields`;
+}
+chipsEl.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { activeGroup = b.dataset.group; chipsEl.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderFields(); }));
+document.getElementById('field-search').addEventListener('input', renderFields);
+renderFields();
+
+// allowed / gaps
+document.getElementById('allowed-grid').innerHTML = ALLOWED.map(a => `<div class="card"><h3>${esc(a[0])}</h3><p style="color:var(--ink-2)">${esc(a[1])}</p><span class="note">${esc(a[2])}</span></div>`).join('');
+document.getElementById('gap-list').innerHTML = GAPS.map(g => `<li><span class="sev ${g[0]}">${g[0]}</span><b>${esc(g[1])}</b><div style="color:var(--ink-2);margin-top:4px">${esc(g[2])}</div></li>`).join('');
+
+// council
+function renderCouncil() {
+  const grid = document.getElementById('council-grid');
+  if (!COUNCIL.length) { grid.innerHTML = `<p class="pending">The judges are still writing. This section fills in when their reports land.</p>`; return; }
+  grid.innerHTML = COUNCIL.map(j => `<div class="card judge"><span class="eyebrow">${esc(j.id)} · ${esc(j.lens)}</span><h3>${esc(j.name)}<span class="scores">${j.scores.map((s, i) => `<span class="score" title="W${i + 1}">W${i + 1} ${s}</span>`).join('')}</span></h3><p style="color:var(--ink-2)">${esc(j.overall)}</p><span class="eyebrow">Top gaps</span><ul>${j.gaps.map(g => `<li><span class="sev ${g[0]}">${g[0]}</span>${esc(g[1])}</li>`).join('')}</ul><span class="eyebrow">Better solution</span><div class="better">${esc(j.better)}</div></div>`).join('');
+}
+function renderRevisions() {
+  const el = document.getElementById('revision-list');
+  el.innerHTML = REVISIONS.length ? REVISIONS.map(r => `<div class="revision"><b>${esc(r[0])}</b> — ${esc(r[1])} <span class="note">(${esc(r[2])})</span></div>`).join('') : `<p class="pending">Pending the council.</p>`;
+}
+renderCouncil(); renderRevisions();
+
+// nav highlighting
+const navLinks = [...document.querySelectorAll('#nav a')];
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(en => { if (en.isIntersecting) { navLinks.forEach(a => a.classList.toggle('active', a.dataset.nav === en.target.id)); } });
+}, { rootMargin: '-20% 0px -70% 0px' });
+document.querySelectorAll('main section').forEach(s => observer.observe(s));
+</script>
+
+</body></html>
