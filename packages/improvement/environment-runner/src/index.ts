@@ -851,28 +851,30 @@ function restatedFollowupText(prompt: string, directive: DirectiveRequest): stri
 }
 
 /**
- * The text one attempt hands its implementer. The first attempt of either
- * implementer receives the task statement. A later attempt receives what its
- * transcript interface leaves it needing: a route implementer continues the
+ * The text one attempt hands its implementer, and whether that text restated
+ * the task ahead of a validation directive. The first attempt of either
+ * implementer receives the task statement alone. A later attempt receives what
+ * its transcript interface leaves it needing: a route implementer continues the
  * session that already holds the task and the work, so the directive alone; a
  * delegated one starts a child that holds neither, so the task statement again
- * ahead of the directive.
+ * ahead of the directive. One decision answers both, because the record of what
+ * a child was asked must not be able to disagree with what it was asked.
  * @param implementer - who does the work of this attempt.
  * @param prompt - the environment's task statement.
  * @param directive - the last failed validation's directive, absent on the first attempt.
- * @returns the text the implementer receives.
+ * @returns the text the implementer receives and whether it restated the task.
  */
 function attemptText(
   implementer: RunImplementer,
   prompt: string,
   directive: DirectiveRequest | undefined,
-): string {
-  if (directive === undefined) return prompt
+): Pick<AttemptDelivery, 'text' | 'restatedTask'> {
+  if (directive === undefined) return { text: prompt, restatedTask: false }
   switch (implementer.kind) {
     case 'route':
-      return followupText(directive)
+      return { text: followupText(directive), restatedTask: false }
     case 'subagent':
-      return restatedFollowupText(prompt, directive)
+      return { text: restatedFollowupText(prompt, directive), restatedTask: true }
     /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
     default:
       return assertNever(implementer, 'run implementer')
@@ -1241,8 +1243,7 @@ export class EnvironmentRunner extends Service {
         selection.current = { provider: model.provider, model: model.model }
         const delivery: AttemptDelivery = {
           attempt,
-          text: attemptText(implementer, definition.task.prompt, directive),
-          restatedTask: directive !== undefined && transcript === 'dropped',
+          ...attemptText(implementer, definition.task.prompt, directive),
           model,
           ...request.signal === undefined ? {} : { signal: request.signal },
         }
