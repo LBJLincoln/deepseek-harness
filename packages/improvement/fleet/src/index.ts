@@ -205,7 +205,7 @@ class PlanLedger {
 
 /** Key of the leaderboard row a cell belongs to. */
 function rowKey(cell: FleetCell): string {
-  return `${cell.model.provider} ${cell.model.model} ${cell.environment}`
+  return `${cell.model.provider}\0${cell.model.model}\0${cell.environment}`
 }
 
 /**
