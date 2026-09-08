@@ -1,0 +1,37 @@
+# The bench with the fixture's own craft skills mounted as the cell agent's only
+# skill root: the arm of the knowledge hypothesis whose catalog the tasks call
+# for. The three skills carry generic practice for a checked command-line
+# program (channel discipline, reading a specification for its corners, working
+# against a node:test suite inside a budget) and no task-specific content; the
+# base composition leaves the cell agent with the workspace's own skill roots,
+# which a bench workspace does not have, so the two arms differ in exactly the
+# catalog and the bodies the model may load. The root is found from the
+# repository root above `baseUrl`, as the knowledge-pack overlay does.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          persona: 'You implement one program task in the workspace you are given, against its own test suite, and you stop when the tests pass. The workspace is your working directory: every bash command and every file path resolves inside it, so read and edit its files by their relative paths and never search outside it.'
+          workspaceContext: false
+          skills:
+            filesystem:
+              includeDefaultRoots: false
+              watch: false
+              customSkillDirs:
+                - !!js |
+                    (() => {
+                      const { fileURLToPath } = process.getBuiltinModule('node:url')
+                      const { existsSync } = process.getBuiltinModule('node:fs')
+                      const { dirname, join } = process.getBuiltinModule('node:path')
+                      let dir = fileURLToPath(baseUrl)
+                      while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                        const parent = dirname(dir)
+                        if (parent === dir) throw new Error('proving-ground-bench overlay: repository root not found above ' + baseUrl)
+                        dir = parent
+                      }
+                      return join(dir, 'examples', 'headless-agent', 'tests', 'fixtures', 'proving-ground-bench', 'skills')
+                    })()
