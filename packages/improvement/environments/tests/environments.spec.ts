@@ -405,6 +405,7 @@ describe('environment run stamps', () => {
     const decoded = decodeEnvironmentRun(stamp({
       fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3,
       policyVersion: 'policy-2026-09', seed: 0, implementer: 'claude-code',
+      ladder: [{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'cli-mock-large' }],
     }))
     expect(decoded).toEqual<EnvironmentRunStamp>({
       kind: 'environment/run',
@@ -422,6 +423,7 @@ describe('environment run stamps', () => {
       policyVersion: 'policy-2026-09',
       seed: 0,
       model: { provider: 'cli-mock', model: 'cli-mock' },
+      ladder: [{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'cli-mock-large' }],
       isolation: 'none',
       implementer: 'claude-code',
     })
@@ -431,6 +433,7 @@ describe('environment run stamps', () => {
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('policyVersion')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('seed')
     expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('implementer')
+    expect(decodeEnvironmentRun(stamp())).not.toHaveProperty('ladder')
     expect(decodeEnvironmentRun({ kind: 'goal/change' })).toBeUndefined()
     expect(decodeEnvironmentRun('environment/run')).toBeUndefined()
     expect(decodeEnvironmentRun([stamp()])).toBeUndefined()
@@ -464,6 +467,10 @@ describe('environment run stamps', () => {
       [stamp({ seed: -1 }), 'seed must be a non-negative integer'],
       [stamp({ seed: '7' }), 'seed must be a non-negative integer'],
       [stamp({ implementer: '' }), 'implementer must be a non-empty string'],
+      [stamp({ ladder: [] }), 'ladder must be a non-empty array of model routes'],
+      [stamp({ ladder: {} }), 'ladder must be a non-empty array of model routes'],
+      [stamp({ ladder: ['cli-mock'] }), 'ladder rung must be a record'],
+      [stamp({ ladder: [{ provider: 'cli-mock' }] }), 'model must be a non-empty string'],
     ]
     for (const [value, message] of cases) {
       expect(() => decodeEnvironmentRun(value), message).toThrow(message)
