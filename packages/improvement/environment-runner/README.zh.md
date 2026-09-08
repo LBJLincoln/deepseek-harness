@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)与[预算对等](../../../.agents/notes/proposed/architecture/2026-09-08-budget-parity-for-delegated-cells.md) Agent Note 承载设计理由。
+环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)、[预算对等](../../../.agents/notes/proposed/architecture/2026-09-08-budget-parity-for-delegated-cells.md)与[尝试阶梯](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md) Agent Note 承载设计理由。
 
 ## Config
 

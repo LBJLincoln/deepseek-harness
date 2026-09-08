@@ -27,7 +27,7 @@ Every arm runs at isolation none, because the external arm can serve no higher c
 ## Slices the slate needs
 
 1. An experiment arm names its implementer, so E2 is one frozen experiment (in flight).
-2. An attempt ladder on the runner and the fleet plan: a model per attempt index with a `keep` or `drop` transcript interface, digested into the plan, so E5 and E6 are frozen experiments rather than offline folds.
+2. An attempt ladder on the runner and the fleet plan: a model per attempt index with a `keep` or `drop` transcript interface, digested into the plan, so E5 and E6 are frozen experiments rather than offline folds ([note](2026-09-08-attempt-ladder.md)).
 3. Cache-correct facts in the scorekeeper: raw input, cache reads, and effective input as separate facts, so E4 and every cost column are read correctly.
 4. A held-out reliability estimate and a difficulty-conditional breakdown in the experiment result, so a promotion is not read from the training cells alone.
 

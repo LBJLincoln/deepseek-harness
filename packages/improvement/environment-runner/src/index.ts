@@ -4,12 +4,14 @@
  * environment it runs, authors the completion standard from the environment's
  * checks, denies the cell everything above its own workspace for the length of
  * the run, has each attempt implemented either by the session's own model route
- * or by an out-of-band coding agent started through the subagent seam, restores
+ * or by an out-of-band coding agent started through the subagent seam, moves
+ * each attempt to its own rung of the request's attempt ladder, restores
  * the fixture's immutable paths and executes the checks through the shell
  * executor after each attempt, records the run, and completes the goal only
  * under a certificate. The
- * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)
- * and [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)
+ * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md),
+ * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md),
+ * and [attempt-ladder](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md)
  * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-environment-runner
  */

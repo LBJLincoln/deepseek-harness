@@ -11,14 +11,20 @@
  * lists registered ids; when absent, every environment whose registered
  * `heldOut` flag equals the plan's `heldOut` (default false) is selected, then
  * narrowed by `tier` and `domain` read from each definition's detail. An arm is
- * `{ provider, model, implementer? }`; `implementer` is forwarded when the
- * experiments service accepts it.
+ * `{ provider, model, ladder?, implementer? }`; `implementer` is forwarded when
+ * the experiments service accepts it.
+ *
+ * `ladder` is one rung per attempt and its length is that arm's attempt bound.
+ * Its first rung is the arm's own route — `{}` or the arm's own `provider` and
+ * `model` — and any other route is refused, so a cheap-then-strong arm is
+ * written as the cheap model with `[{}, { "model": <strong> }]` and a downshift
+ * arm as the strong model with `[{}, { "model": <cheap> }]`.
  */
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
-import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner'
+import type { EnvironmentRunImplementer, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentId as EnvironmentIdType } from '@deepseek-ai/dsh-environments/types'
 import type { ExperimentPlan } from '@deepseek-ai/dsh-experiments'
@@ -29,6 +35,7 @@ import { jsonlFileSink } from '@deepseek-ai/dsh-trajectories'
 interface Arm {
   readonly provider: string
   readonly model: string
+  readonly ladder?: readonly EnvironmentRunRung[]
   readonly implementer?: EnvironmentRunImplementer
 }
 
@@ -72,7 +79,7 @@ try {
       .map(definition => definition.id)
     : plan.environments.map(id => EnvironmentId(id))
   const startedAt = new Date().toISOString()
-  // An arm's optional implementer rides through as the experiments service defines its arm.
+  // An arm's optional ladder and implementer ride through as the experiments service defines its arm.
   const request: ExperimentPlan = {
     environments: selected,
     repetitions: plan.repetitions,
