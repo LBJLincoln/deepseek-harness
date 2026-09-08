@@ -25,9 +25,9 @@
 
 - 构建/会话 id：`f53f80cc-1f77-5d02-a862-99d59ffabdce`
 - 原始 transcript：`data/transcripts/2026-09-06-build/raw`
-- 导出日期：2026-09-07
+- 导出日期：2026-09-08
 - 导出时 harness 仓库分支：`claude/coding-agent-harness-u9l4gt`
-- 导出时 harness 仓库 HEAD 提交：`124f657c6e5926137b8f3f8d72db4e152f274c60`
+- 导出时 harness 仓库 HEAD 提交：`ecc28c85a869e05a07d6df66c37774ea055463ff`
 
 ## 使用
 
