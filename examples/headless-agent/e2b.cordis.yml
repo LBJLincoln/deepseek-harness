@@ -2,6 +2,14 @@
 # place its filesystem and process substrate in one short-lived E2B sandbox;
 # the generic Bash, PTY, and LSP consumers compose above them.
 #
+# The overlay layers over the base rather than over `advanced.cordis.yml`,
+# because a patch reaches only the entries of the file it includes: the two
+# local providers it must disable sit in the base, behind that file's own
+# include, where no patch can name them and an unmatched patch is skipped with a
+# warning. The rows `advanced.cordis.yml` adds are restated here instead; its
+# own patches to `agent-spine` are what make this the advanced agent, and its
+# `persistence` patch restates the base's values unchanged.
+#
 # One-world invariant: e2b.cwd, sandbox-policy.workspaceRoot, and bash-local's
 # default workdir (implicit host process.cwd()) must all name the same remote
 # directory. Only e2b.cwd is created at sandbox open; dropping its !!js line
@@ -10,8 +18,26 @@
 - id: base
   name: '@deepseek-ai/cordis-plugin-include'
   config:
-    path: ./advanced.cordis.yml
+    path: ./cordis.yml
     patches:
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          agents:
+            - id: main
+              provider: deepseek-official
+              model: deepseek-v4-pro
+              cwd: !!js process.cwd()
+          workspaceContext:
+            maxBytes: 65536
+          tools:
+            mode: both
+          persona: |
+            You are headless-agent, a coding assistant powered by the {{model}} model. Your working directory is {{cwd}}.
+
+            Verify your work by running the code or tests. Keep answers brief and factual.
+      # One composition provides `ctx.fs` and `ctx.subprocess` once each, and
+      # the E2B backends inserted below provide both, so the local ones leave.
       - id: subprocess
         name: '@deepseek-ai/dsh-subprocess-local'
         disabled: true
@@ -19,6 +45,12 @@
         name: '@deepseek-ai/dsh-fs-local'
         disabled: true
       - insert:
+          - id: code-runtime
+            name: '@deepseek-ai/dsh-code-runtime-worker-thread'
+          - id: cordis-host-runner
+            name: '@deepseek-ai/dsh-cordis-host-runner'
+          - id: tool-cordis
+            name: '@deepseek-ai/dsh-tool-cordis'
           - id: e2b
             name: '@deepseek-ai/dsh-e2b'
             config:

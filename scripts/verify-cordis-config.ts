@@ -5,16 +5,21 @@
  * activate, against that plugin context) and the entry `disabled` field (at
  * every mount decision, against the loader context). Every other entry
  * metadata field stays static, so an expression there remains truthy data and
- * silently changes composition. Example configs and the dsh Web composition
- * resolve named plugins from their owning workspace manifests. Local example
- * packages must also be in the root TypeScript project graph.
+ * silently changes composition. An include entry's patches must reach the
+ * entries of the file it includes, because a patch that reaches nothing is
+ * warned about and skipped rather than refused. Example configs and the dsh Web
+ * composition resolve named plugins from their owning workspace manifests.
+ * Local example packages must also be in the root TypeScript project graph.
  */
 
 import { globSync, readFileSync } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path'
 import ts from 'typescript'
+import { applyEntryPatches } from '@deepseek-ai/cordis-plugin-include'
+import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
+import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
 import { cordisConfigFiles } from './cordis-config-files.ts'
-import { isJsExpr, isRecord, isUnknownArray, loadCordisDocument } from './cordis-config-entries.ts'
+import { isJsExpr, isRecord, isUnknownArray, loadCordisDocument, parseCordisDocument } from './cordis-config-entries.ts'
 
 interface PackageManifest {
   name?: string
@@ -202,6 +207,7 @@ function validateEntry(value: unknown, file: string, path: string): void {
   }
   if (value.name !== '@deepseek-ai/cordis-plugin-include') return
   const config = value.config
+  validateIncludeTargets(config, file, path)
   if (!isRecord(config) || !isUnknownArray(config.patches)) return
   for (let index = 0; index < config.patches.length; index++) {
     const patch = config.patches[index]
@@ -218,6 +224,85 @@ function validateEntry(value: unknown, file: string, path: string): void {
 
 function recordPlugin(entry: Record<string, unknown>, file: string): void {
   if (typeof entry.name === 'string') pluginReferences.push({ file, name: entry.name })
+}
+
+/**
+ * Every patch of one include entry must reach an entry of the file it includes.
+ *
+ * The include applies its patches at mount and skips one that reaches nothing
+ * with a `loader` warning — an overlay whose row id the base never names
+ * therefore composes without that row, and the only record is a warning in a
+ * boot log. The skips are recomputed here against the included file so the
+ * overlay is refused at rest instead.
+ * @param config - the include entry's `config`, as parsed.
+ * @param file - repository-relative path of the file the entry is written in.
+ * @param path - the entry's diagnostic path prefix.
+ */
+function validateIncludeTargets(config: unknown, file: string, path: string): void {
+  if (!isRecord(config) || typeof config.path !== 'string') {
+    errors.push(`${file}${path}.config: an include entry must name the file it includes`)
+    return
+  }
+  const target = resolve(dirname(resolve(root, file)), config.path)
+  let included: unknown
+  try {
+    included = parseCordisDocument(readFileSync(target, 'utf8'))
+  } catch (error) {
+    // An include whose file is absent writes `initial` there and reads it back,
+    // so that list is the entry list its patches apply to.
+    if (isUnknownArray(config.initial)) included = config.initial
+    else {
+      errors.push(`${file}${path}.config.path: ${config.path} cannot be read as an entry list (${error instanceof Error ? error.message : String(error)})`)
+      return
+    }
+  }
+  if (!isUnknownArray(included)) {
+    errors.push(`${file}${path}.config.path: ${config.path} is not a Loader entry array`)
+    return
+  }
+  for (const skipped of skippedIncludePatches(config.patches, included)) {
+    errors.push(`${file}${path}.config: ${skipped} in ${config.path} (the include warns and skips the patch at mount)`)
+  }
+}
+
+/**
+ * The patches one include entry would skip over one included entry list.
+ *
+ * `applyEntryPatches` is the include's own mount-time patch semantics, called
+ * here so the gate cannot disagree with what boots: ids are matched through
+ * group `config` lists, an `insert` adds ids a later patch in the same list may
+ * target, and a patch that matches nothing, inserts into a row that is not a
+ * group, carries no `id`, or disagrees with its target's `name` is warned about
+ * and skipped.
+ * @param patches - the entry's `config.patches`, as parsed; absent skips nothing.
+ * @param included - the entry list of the included file.
+ * @returns one message per skipped patch, in patch order.
+ */
+export function skippedIncludePatches(patches: unknown, included: readonly unknown[]): string[] {
+  const skipped: string[] = []
+  applyEntryPatches(
+    included as EntryOptions[],
+    isUnknownArray(patches) ? patches as PatchOptions[] : undefined,
+    (message, ...args: unknown[]) => {
+      skipped.push(formatLoaderWarning(message, args))
+    },
+  )
+  return skipped
+}
+
+/**
+ * Render one loader warning, whose only placeholder is the logger's `%C`.
+ * @param message - the printf-style warning text.
+ * @param args - the values its placeholders consume, in order.
+ * @returns the warning with every placeholder substituted.
+ */
+function formatLoaderWarning(message: string, args: readonly unknown[]): string {
+  let next = 0
+  return message.replaceAll('%C', () => {
+    const value = args[next]
+    next += 1
+    return String(value)
+  })
 }
 
 function validateExampleResolution(): string[] {
