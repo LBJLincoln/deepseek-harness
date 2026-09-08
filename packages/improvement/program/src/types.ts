@@ -174,8 +174,19 @@ export interface ProgramGoalRecord {
   readonly sessionId?: SessionId
   /** Absolute path of the department's worktree, from the first status that has one. */
   readonly workspace?: string
-  /** The department branch head when this status was recorded. */
+  /**
+   * The commit the department branch carried when this status was recorded,
+   * from `git rev-parse HEAD` in its worktree. A `certified` record states the
+   * commit its certificate covers, and the integration merges that branch only
+   * while its head still is this commit.
+   */
   readonly revision?: string
+  /**
+   * The tree object {@link ProgramGoalRecord.revision} points at, from
+   * `git rev-parse HEAD^{tree}`. Two commits with the same tree deliver the same
+   * files, so it is what a reader compares when a branch was rewritten.
+   */
+  readonly tree?: string
   /** The blocking code or the failure text; absent for a status that needs no explanation. */
   readonly reason?: string
 }
@@ -188,6 +199,13 @@ export interface ProgramIntegrationRecord {
   readonly mergedRevision?: string
   /** The integration session, present once one exists. */
   readonly sessionId?: SessionId
+  /**
+   * Directories the integration session was denied for the length of its run:
+   * the program's worktrees root, which holds every department worktree. Empty
+   * when the composition has no read barrier to deny with, and absent on a
+   * record written before the integration session existed.
+   */
+  readonly denied?: readonly string[]
   /** Why the integration failed; absent otherwise. */
   readonly reason?: string
 }
@@ -261,17 +279,20 @@ declare module '@deepseek-ai/dsh-session/types' {
     'program/start': ProgramStart
     /**
      * One goal of the program changed status: the key, the new status, and the
-     * department session, worktree, branch head, or reason that status carries.
-     * Appended after the fact it records is durable — the worktree exists, the
-     * department session is flushed, the certificate is in the department's own
-     * log — so the ledger never claims a state the departments cannot show.
+     * department session, worktree, committed revision and tree, or reason that
+     * status carries. Appended after the fact it records is durable — the
+     * worktree exists, the department session is flushed, the certificate is in
+     * the department's own log over a clean worktree — so the ledger never
+     * claims a state the departments cannot show.
      */
     'program/goal': ProgramGoalRecord
     /**
      * The integration of the program: `running` once the merged worktree
      * exists, then `certified` with the merged head its certificate covers, or
-     * `failed` with the reason. Departments move to `merged` only after the
-     * `certified` record.
+     * `failed` with the reason. One `running` record stands for one integration
+     * — a later process takes that record over rather than adding a second —
+     * and both closing records carry what the integration session was denied.
+     * Departments move to `merged` only after the `certified` record.
      */
     'program/integration': ProgramIntegrationRecord
     /**

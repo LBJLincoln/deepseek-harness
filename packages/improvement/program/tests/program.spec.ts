@@ -16,8 +16,15 @@ import SessionStore from '@deepseek-ai/dsh-session'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
-import ProgramService, { ProgramError, programIdFor, programSpecDigest, resolveProgramSpec } from '@deepseek-ai/dsh-program'
-import type { ProgramGoalSpec, ProgramSpec } from '@deepseek-ai/dsh-program'
+import ProgramService, {
+  INTEGRATION_KEY,
+  integrationChecks,
+  ProgramError,
+  programIdFor,
+  programSpecDigest,
+  resolveProgramSpec,
+} from '@deepseek-ai/dsh-program'
+import type { ProgramGoalSpec, ProgramIntegrationRecord, ProgramSpec } from '@deepseek-ai/dsh-program'
 import { implementerPreset, programHarness, stubAgent, type ProgramHarness, type ScriptedRun } from './harness.ts'
 
 const harnesses: ProgramHarness[] = []
@@ -67,9 +74,20 @@ function spec(goals: readonly ProgramGoalSpec[] = [goal()], overrides: Partial<P
   }
 }
 
-/** The default script: every git command and every check succeeds. */
+/** The commit and tree every worktree of a passing script reports. */
+const HEAD = 'headsha'
+const TREE = 'treesha'
+
+/**
+ * The default script: every worktree is clean at the same commit, no branch is
+ * merged into the integration worktree yet, and every git command and every
+ * check succeeds.
+ */
 function passing(command: string): ScriptedRun {
-  return command.startsWith('git rev-parse') ? { stdout: 'headsha\n' } : {}
+  if (command === 'git rev-parse HEAD^{tree}') return { stdout: `${TREE}\n` }
+  if (command.startsWith('git rev-parse')) return { stdout: `${HEAD}\n` }
+  if (command.startsWith('git merge-base')) return { exitCode: 1 }
+  return {}
 }
 
 /** A script that fails the named check commands and passes everything else. */
@@ -96,6 +114,20 @@ function recordedEvidence(events: readonly SessionEvent[]): string {
 async function ledgerTypes(harness: ProgramHarness, sessionId: string): Promise<string[]> {
   const { events } = await harness.ctx.sessionPersistence.inspect(sessionId as SessionId)
   return events.map((event: SessionEvent) => event.type)
+}
+
+/** Every `program/integration` the ledger recorded, in log order. */
+async function integrations(harness: ProgramHarness, sessionId: string): Promise<ProgramIntegrationRecord[]> {
+  const { events } = await harness.ctx.sessionPersistence.inspect(sessionId as SessionId)
+  return events
+    .filter((event): event is SessionEvent<'program/integration'> => event.type === 'program/integration')
+    .map(event => event.data)
+}
+
+/** The root cause of the first directive one session's log carries. */
+function directiveCause(events: readonly SessionEvent[]): string | undefined {
+  const directive = events.find((event): event is SessionEvent<'verification/directive'> => event.type === 'verification/directive')
+  return directive?.data.rootCause
 }
 
 describe('program configuration', () => {
@@ -199,10 +231,12 @@ describe('starting a program', () => {
     const program = spec([goal(), goal({ key: 'docs', preset: 'documenting', dependsOn: ['api'] })])
     const report = await harness.programs.start(program)
     expect(report.outcome).toBe('released')
-    expect(report.mergedRevision).toBe('headsha')
+    expect(report.mergedRevision).toBe(HEAD)
+    // Each certified department states the commit it delivered and the tree
+    // that commit carries, which is what the integration merges.
     expect(report.goals).toEqual([
-      { key: 'api', status: 'merged', sessionId: `${report.programId}-api`, revision: 'headsha' },
-      { key: 'docs', status: 'merged', sessionId: `${report.programId}-docs`, revision: 'headsha' },
+      { key: 'api', status: 'merged', sessionId: `${report.programId}-api`, revision: HEAD, tree: TREE },
+      { key: 'docs', status: 'merged', sessionId: `${report.programId}-docs`, revision: HEAD, tree: TREE },
     ])
     expect(await statuses(harness, report.sessionId, 'api')).toEqual(['pending', 'running', 'certified', 'merged'])
     expect(await statuses(harness, report.sessionId, 'docs')).toEqual(['pending', 'running', 'certified', 'merged'])
@@ -212,7 +246,7 @@ describe('starting a program', () => {
     expect(worktrees[0]).toContain(`${report.programId}/api`)
     expect(worktrees[1]).toContain(`${report.programId}/docs`)
     expect(worktrees[2]).toContain(`${report.programId}/@integration`)
-    expect(harness.commands.filter(command => command.startsWith('git merge'))).toEqual([
+    expect(harness.commands.filter(command => command.startsWith('git merge --no-ff'))).toEqual([
       `git merge --no-ff -m program/${report.programId}/api program/${report.programId}/api`,
       `git merge --no-ff -m program/${report.programId}/docs program/${report.programId}/docs`,
     ])
@@ -296,6 +330,52 @@ describe('a department that cannot certify', () => {
   })
 })
 
+describe('a department that has not committed what it wrote', () => {
+  it('measures nothing, directs the department to commit, and certifies the commit it then makes', async () => {
+    let committed = false
+    let turns = 0
+    const harness = await mount({ maxGoalRounds: 3 }, {
+      script: command => (command === 'git status --porcelain' && !committed
+        ? { stdout: ' M assessment.md\n?? notes.md\n' }
+        : passing(command)),
+    })
+    // The first turn writes without committing; the second commits, which is
+    // what makes the branch carry the work.
+    harness.turn = () => {
+      turns += 1
+      if (turns >= 2) committed = true
+    }
+    const report = await harness.programs.start(spec())
+
+    expect(report.goals[0]).toMatchObject({ status: 'merged', revision: HEAD, tree: TREE })
+    // The checks ran once: an attempt over a dirty worktree measures nothing,
+    // because the branch is what the integration merges.
+    expect(harness.commands.filter(command => command === 'check-api')).toHaveLength(1)
+    expect(harness.prompts[0]).toBe('deliver the api')
+    expect(harness.prompts[1]).toBe([
+      '<uncommitted_work>',
+      'This goal delivers what is committed on its branch, and the worktree carries work that no commit does:',
+      ' M assessment.md',
+      '?? notes.md',
+      'Commit all of it; work left uncommitted is not delivered and is not measured. The checks run again when you stop.',
+      '</uncommitted_work>',
+    ].join('\n'))
+    const { events } = await harness.ctx.sessionPersistence.inspect(`${report.programId}-api` as SessionId)
+    expect(directiveCause(events)).toBe('the worktree carries work that no commit on this branch carries')
+  })
+
+  it('spends the round cap of a department that never commits, and certifies nothing', async () => {
+    const harness = await mount({ maxGoalRounds: 2 }, {
+      script: command => (command === 'git status --porcelain' ? { stdout: '?? assessment.md\n' } : passing(command)),
+    })
+    const report = await harness.programs.start(spec())
+    expect(report.goals[0]).toMatchObject({ status: 'failed', reason: 'no certificate after 2 rounds' })
+    expect(harness.commands).not.toContain('check-api')
+    const { events } = await harness.ctx.sessionPersistence.inspect(`${report.programId}-api` as SessionId)
+    expect(events.some((event: SessionEvent) => event.type === 'verification/certificate')).toBe(false)
+  })
+})
+
 describe('the integration over the merged head', () => {
   it('fails the program when a department branch does not merge', async () => {
     const script = (command: string): ScriptedRun =>
@@ -317,9 +397,43 @@ describe('the integration over the merged head', () => {
     const report = await harness.programs.start(spec())
     expect(report.outcome).toBe('failed')
     expect(report.mergedRevision).toBeUndefined()
-    const { events } = await harness.ctx.sessionPersistence.inspect(report.sessionId)
-    expect(events.filter((event: SessionEvent) => event.type === 'program/integration').at(-1)?.data)
-      .toMatchObject({ status: 'failed', reason: 'the merged head did not pass the integration standard' })
+    expect((await integrations(harness, report.sessionId)).at(-1)).toMatchObject({
+      status: 'failed',
+      reason: 'the merged head did not pass the integration standard',
+      denied: [],
+    })
+  })
+
+  it('skips a department branch the integration worktree already carries', async () => {
+    const harness = await mount({}, {
+      script: command => (command.startsWith('git merge-base') ? {} : passing(command)),
+    })
+    const report = await harness.programs.start(spec())
+    expect(report.outcome).toBe('released')
+    expect(harness.commands.filter(command => command.startsWith('git merge --no-ff'))).toHaveLength(0)
+  })
+
+  it('denies the integration session every worktree of its program but its own', async () => {
+    const harness = await mount({}, { script: passing, readBarrier: true })
+    const report = await harness.programs.start(spec())
+    const worktrees = join(harness.root, report.programId)
+    // The department worktrees are inside that root and the integration's own
+    // is the workspace the barrier grants beneath it.
+    expect(harness.denials).toEqual([{
+      sessionId: `${report.programId}-${INTEGRATION_KEY}`,
+      path: worktrees,
+      released: true,
+    }])
+    expect((await integrations(harness, report.sessionId)).at(-1))
+      .toMatchObject({ status: 'certified', denied: [worktrees] })
+  })
+
+  it('records an empty denial for a composition that has no read barrier to deny with', async () => {
+    const harness = await mount({}, { script: passing })
+    const report = await harness.programs.start(spec())
+    expect(harness.denials).toEqual([])
+    expect((await integrations(harness, report.sessionId)).at(-1))
+      .toMatchObject({ status: 'certified', denied: [] })
   })
 
   it('certifies a merged head without a model turn and runs every gate as a check', async () => {
@@ -352,7 +466,15 @@ interface SeedDepartment {
   standard?: boolean
   /** Whether the department's goal is blocked. */
   blocked?: boolean
+  /** The commit and tree the ledger records the department certified, when it records one. */
+  certifiedAt?: { revision: string; tree: string }
 }
+
+/**
+ * What the seeded integration session carries: nothing but its member stamp,
+ * its goal and standard, or a failing validation run over them as well.
+ */
+type SeedIntegrationSession = 'bare' | 'measurable' | 'measured'
 
 /** What one seeded ledger records beyond its own start. */
 interface SeedOptions {
@@ -360,6 +482,8 @@ interface SeedOptions {
   pending?: boolean
   /** Whether the ledger records a certified integration over its running one. */
   integration?: 'running' | 'certified'
+  /** The integration session a killed process left in persistence, when it left one. */
+  integrationSession?: SeedIntegrationSession
   /** A closing record, making the seeded ledger a finished one. */
   end?: { outcome: 'released' | 'failed'; mergedRevision?: string }
 }
@@ -369,6 +493,43 @@ interface SeededProgram {
   readonly sessions: string
   readonly root: string
   readonly programId: string
+}
+
+/**
+ * Write the integration session and worktree a process killed mid-integration
+ * left behind, at the id the program derives for it.
+ * @param seeder - the harness writing the durable state.
+ * @param frozen - the spec whose integration checks the standard is authored from.
+ * @param programId - the program the session is a member of.
+ * @param root - the repository root the worktrees live under.
+ * @param carries - how far the killed process got before it died.
+ */
+async function seedIntegrationSession(
+  seeder: ProgramHarness,
+  frozen: ReturnType<typeof resolveProgramSpec>,
+  programId: ReturnType<typeof programIdFor>,
+  root: string,
+  carries: SeedIntegrationSession,
+): Promise<void> {
+  const workspace = join(root, programId, INTEGRATION_KEY)
+  mkdirSync(workspace, { recursive: true })
+  const session = seeder.ctx.sessions.create(`${programId}-${INTEGRATION_KEY}` as SessionId, { meta: { cwd: workspace } })
+  const agent = stubAgent(session)
+  const unregister = seeder.ctx.agents.register(agent)
+  session.append('program/member', { programId, key: INTEGRATION_KEY })
+  if (carries !== 'bare') {
+    const checks = integrationChecks(frozen.integration)
+    const created = seeder.ctx.goals.create(agent, { objective: 'Make the merged head pass.', maxGoalRounds: 2 })
+    seeder.ctx.goals.disarm(agent)
+    const standard = seeder.ctx.completionStandards.author(agent, { goalId: created.id, checks })
+    if (carries === 'measured') {
+      seeder.ctx.completionStandards.recordRun(agent, { id: standard.id, revision: standard.revision }, 'none',
+        checks.map(check => ({ checkId: check.id, status: 'fail' as const, evidence: 'exit 1' })),
+        { executor: 'runner' })
+    }
+  }
+  await seeder.ctx.sessions.flush(session)
+  unregister()
 }
 
 /**
@@ -440,6 +601,20 @@ async function seedProgram(
     }
     await seeder.ctx.sessions.flush(session)
     unregister()
+    if (department.certifiedAt !== undefined) {
+      ledger.append('program/goal', {
+        programId,
+        key: department.key,
+        status: 'certified',
+        sessionId,
+        workspace,
+        revision: department.certifiedAt.revision,
+        tree: department.certifiedAt.tree,
+      })
+    }
+  }
+  if (options.integrationSession !== undefined) {
+    await seedIntegrationSession(seeder, frozen, programId, root, options.integrationSession)
   }
   if (options.integration !== undefined) {
     ledger.append('program/integration', { programId, status: 'running' })
@@ -608,6 +783,91 @@ describe('reconciling a program a process left open', () => {
     const harness = await mount({}, { script: passing })
     harness.ctx.sessions.create('unrelated' as SessionId).append('turn/start', { turn: 1 })
     await expect(harness.programs.resume()).resolves.toEqual([])
+  })
+
+  it('keeps the revision a certified department was recorded at, and refuses a branch that moved off it', async () => {
+    const program = spec([goal()])
+    const seeded = await seedProgram(program, [{
+      key: 'api',
+      certified: true,
+      certifiedAt: { revision: 'certified-sha', tree: 'certified-tree' },
+    }])
+
+    const second = await mount({}, { sessions: seeded.sessions, root: seeded.root, script: passing })
+    const report = await second.programs.start(program)
+    // The reconciliation reads the certificate from the ledger rather than the
+    // worktree, so a branch someone moved afterwards is visible as a difference.
+    expect(report.goals[0]).toMatchObject({ status: 'certified', revision: 'certified-sha', tree: 'certified-tree' })
+    expect(report.outcome).toBe('failed')
+    expect((await integrations(second, report.sessionId)).at(-1)).toMatchObject({
+      status: 'failed',
+      reason: `department "api" was certified at certified-sha, and program/${seeded.programId}/api now points at ${HEAD}, so the branch is no longer what this program certified`,
+    })
+    expect(second.commands.filter(command => command.startsWith('git merge --no-ff'))).toHaveLength(0)
+  })
+})
+
+describe('an integration a process left running', () => {
+  /** One program whose only department is certified at the revision a passing script reports. */
+  function interrupted(options: SeedOptions): Promise<SeededProgram> {
+    return seedProgram(spec([goal()]), [{
+      key: 'api',
+      certified: true,
+      certifiedAt: { revision: HEAD, tree: TREE },
+    }], { integration: 'running', ...options })
+  }
+
+  it('resumes the integration session the running record already owns', async () => {
+    const seeded = await interrupted({ integrationSession: 'measured' })
+    const second = await mount({}, { sessions: seeded.sessions, root: seeded.root, script: passing })
+    const report = await second.programs.start(spec([goal()]))
+
+    expect(report.outcome).toBe('released')
+    // The interrupted `running` record stands for this integration too: a
+    // second one would claim a second session for a derived id.
+    const recorded = await integrations(second, report.sessionId)
+    expect(recorded.map(entry => entry.status)).toEqual(['running', 'certified'])
+    expect(recorded.at(-1)?.sessionId).toBe(`${seeded.programId}-${INTEGRATION_KEY}`)
+    expect(second.commands.filter(command => command.includes('worktree add'))).toHaveLength(0)
+  })
+
+  it('continues after the validation runs the interrupted integration already recorded', async () => {
+    const seeded = await interrupted({ integrationSession: 'measured' })
+    const second = await mount({ maxGoalRounds: 1 }, { sessions: seeded.sessions, root: seeded.root, script: passing })
+    const report = await second.programs.start(spec([goal()]))
+
+    // One run is already recorded, so a cap of one leaves this pass no attempt.
+    expect(report.outcome).toBe('failed')
+    expect(second.commands).not.toContain('check-merged')
+    expect((await integrations(second, report.sessionId)).at(-1)).toMatchObject({
+      status: 'failed',
+      reason: 'the merged head did not pass the integration standard',
+    })
+  })
+
+  it('fails an integration whose session carries no goal to resume', async () => {
+    const seeded = await interrupted({ integrationSession: 'bare' })
+    const second = await mount({}, { sessions: seeded.sessions, root: seeded.root, script: passing })
+    const report = await second.programs.start(spec([goal()]))
+
+    expect(report.outcome).toBe('failed')
+    expect((await integrations(second, report.sessionId)).at(-1)).toMatchObject({
+      status: 'failed',
+      reason: expect.stringContaining('the integration session carries no goal to resume') as unknown,
+      denied: [],
+    })
+  })
+
+  it('opens the session a running record was left without', async () => {
+    const seeded = await interrupted({})
+    const second = await mount({}, { sessions: seeded.sessions, root: seeded.root, script: passing })
+    const report = await second.programs.start(spec([goal()]))
+
+    // The process died before the integration session existed, so this pass
+    // creates it — still under the one running record the ledger carries.
+    expect(report.outcome).toBe('released')
+    expect((await integrations(second, report.sessionId)).map(entry => entry.status))
+      .toEqual(['running', 'certified'])
   })
 })
 

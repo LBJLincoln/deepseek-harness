@@ -59,6 +59,13 @@ export interface DepartmentLog {
    * carries one goal's delegations, so the fold reads every record.
    */
   readonly delegated: number
+  /**
+   * Validation runs this log records, and `0` when it records none. An attempt
+   * whose worktree carried uncommitted work records none, so the count is the
+   * attempts that reached the checks; a resumed session continues after them
+   * rather than spending its round cap from the first attempt again.
+   */
+  readonly runs: number
 }
 
 /** One session stamped as a member of some program, with the tokens its log accounts for. */
@@ -102,18 +109,21 @@ export function foldProgramLedger(session: ScannedSession): ProgramLedger | unde
  * Fold one department session's log into what it states about its own work.
  * @param events - the department session's stored log, oldest first.
  * @returns the certificate presence, the goal phase, the blocking code, and
- *   the last delegated attempt the log records.
+ *   the last delegated attempt and the validation runs the log records.
  */
 export function foldDepartmentLog(events: readonly SessionEvent[]): DepartmentLog {
   const certified = events.some(event => event.type === 'verification/certificate')
   const goal = foldGoal(events).goal
   let delegated = 0
+  let runs = 0
   for (const event of events) {
     if (event.type === 'program/delegation') delegated = Math.max(delegated, event.data.attempt)
+    if (event.type === 'verification/run') runs += 1
   }
   return {
     certified,
     delegated,
+    runs,
     ...goal === undefined ? {} : { phase: goal.phase },
     ...goal?.blockedReason === undefined ? {} : { blockedCode: goal.blockedReason.code },
   }

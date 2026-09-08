@@ -77,8 +77,8 @@ describe('foldProgramLedger', () => {
 })
 
 describe('foldDepartmentLog', () => {
-  it('reports no certificate, no phase, and no delegated attempt for a session that never took a goal', () => {
-    expect(foldDepartmentLog([])).toEqual({ certified: false, delegated: 0 })
+  it('reports no certificate, no phase, no delegated attempt, and no run for a session that never took a goal', () => {
+    expect(foldDepartmentLog([])).toEqual({ certified: false, delegated: 0, runs: 0 })
   })
 
   it('reports the highest attempt the delegation records carry, whatever order they are in', () => {
@@ -88,6 +88,24 @@ describe('foldDepartmentLog', () => {
       { type: 'program/delegation', data: { goalKey: 'api', attempt: 1, provider: 'spawn', runId: 'child-1' as SessionId, stopReason: 'error' } },
     ]).events
     expect(foldDepartmentLog(events).delegated).toBe(2)
+  })
+
+  it('counts the validation runs the log records, which is where a resumed session continues', () => {
+    const run = (attempt: number): Omit<SessionEvent, 'seq' | 'time'> => ({
+      type: 'verification/run',
+      data: {
+        kind: 'verification/run',
+        version: 1,
+        standard: { id: 'standard-1' as StandardId, revision: 1 },
+        attempt,
+        isolation: 'none',
+        executor: 'runner',
+        verdict: 'failed',
+        results: [{ checkId: 'api-builds' as CheckId, status: 'fail', evidence: 'exit 1' }],
+        recordedAt: 1_000 + attempt,
+      },
+    })
+    expect(foldDepartmentLog(scanned('department', [run(1), run(2)]).events).runs).toBe(2)
   })
 
   it('reports the goal phase, its blocking code, and the certificate the log carries', () => {
@@ -140,7 +158,13 @@ describe('foldDepartmentLog', () => {
         },
       },
     ]).events
-    expect(foldDepartmentLog(events)).toEqual({ certified: true, delegated: 0, phase: 'blocked', blockedCode: 'budget-exhausted' })
+    expect(foldDepartmentLog(events)).toEqual({
+      certified: true,
+      delegated: 0,
+      runs: 0,
+      phase: 'blocked',
+      blockedCode: 'budget-exhausted',
+    })
   })
 })
 
