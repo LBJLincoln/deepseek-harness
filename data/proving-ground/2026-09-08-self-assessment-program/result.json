@@ -1,0 +1,232 @@
+{
+  "type": "result",
+  "report": {
+    "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+    "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+    "outcome": "released",
+    "mergedRevision": "c7f518df6bed4ecab0db56085b90dcbad5380001",
+    "goals": [
+      {
+        "key": "assessment",
+        "status": "merged",
+        "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment",
+        "revision": "1612fb5223ad4693d71448b660f02ad9a8b47da7"
+      }
+    ]
+  },
+  "ledgers": [
+    {
+      "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+      "events": [
+        {
+          "type": "program/start",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "specSha256": "a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "spec": {
+              "objective": "assess whether this project is viable and state of the art, from its own evidence",
+              "baseRevision": "base",
+              "goals": [
+                {
+                  "key": "assessment",
+                  "objective": "Write `assessment.md` at the root of this repository: an honest assessment of whether the project described by the files under `evidence/` is viable and whether any part of it is state of the art. Read `evidence/goals-and-question.md` first; it states the four goals, the two questions, and the rules. Then read the primary records before the summaries: `evidence/proving-ground-README.md`, `evidence/census.txt`, `evidence/records-index.txt`, `evidence/commits-last-30h.txt`; then the notes. The document has exactly these level-two sections, in this order: `## Verdict`, `## Evidence`, `## What the evidence does not support`, `## What would change the verdict`. `## Verdict` opens with two lines, each on its own line and exactly in this form: `Viable: yes|no|undetermined (high|medium|low confidence)` and `State of the art: yes|no|in part|undetermined (high|medium|low confidence)`, followed by one paragraph for each that names the part of the project the verdict rests on. `## Evidence` is a list of at least eight bullets; every bullet states one fact and ends with the file it comes from as `(evidence/<file>)`; cite at least six distinct files; a measured result is reported with its numbers, its verdict, and its caveats exactly as the record states them. `## What the evidence does not support` lists at least three claims a reader might expect that the evidence does not carry, including any claim the project's own summaries make that the records do not. `## What would change the verdict` lists at least three measurable conditions. Between 600 and 2500 words. No placeholders. Verify with `node checks/verify-assessment.mjs assessment.md` before you stop; the validator runs the same command.",
+                  "preset": "implementing",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 2000000,
+                    "maxWallMs": 1500000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "assessment-verified",
+                      "outcome": "assessment.md exists and passes the committed verifier",
+                      "run": "node checks/verify-assessment.mjs assessment.md"
+                    }
+                  ]
+                }
+              ],
+              "integration": {
+                "checks": [
+                  {
+                    "id": "merged-assessment-verified",
+                    "outcome": "the merged head carries a verified assessment",
+                    "run": "node checks/verify-assessment.mjs assessment.md"
+                  }
+                ],
+                "gates": [
+                  "test -r assessment.md"
+                ]
+              },
+              "signoff": {
+                "artefactSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "implementer": {
+                "kind": "route"
+              }
+            },
+            "baseRevision": "base",
+            "implementer": {
+              "kind": "route"
+            },
+            "signoff": {
+              "artefactSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "key": "assessment",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "key": "assessment",
+            "status": "running",
+            "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/self-assessment/repo/program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326/assessment"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "key": "assessment",
+            "status": "certified",
+            "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/self-assessment/repo/program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326/assessment",
+            "revision": "562dd47394bc67b4f2ff2ac95b31091ba46b3462"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/resume",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "statuses": {
+              "pending": 0,
+              "running": 0,
+              "blocked": 0,
+              "certified": 1,
+              "failed": 0,
+              "merged": 0,
+              "abandoned": 0
+            }
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/resume",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "statuses": {
+              "pending": 0,
+              "running": 0,
+              "blocked": 0,
+              "certified": 1,
+              "failed": 0,
+              "merged": 0,
+              "abandoned": 0
+            }
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/resume",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "statuses": {
+              "pending": 0,
+              "running": 0,
+              "blocked": 0,
+              "certified": 1,
+              "failed": 0,
+              "merged": 0,
+              "abandoned": 0
+            }
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "status": "certified",
+            "mergedRevision": "c7f518df6bed4ecab0db56085b90dcbad5380001",
+            "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "key": "assessment",
+            "status": "merged",
+            "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/self-assessment/repo/program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326/assessment",
+            "revision": "1612fb5223ad4693d71448b660f02ad9a8b47da7"
+          }
+        },
+        {
+          "type": "program/end",
+          "data": {
+            "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+            "outcome": "released",
+            "mergedRevision": "c7f518df6bed4ecab0db56085b90dcbad5380001"
+          }
+        }
+      ],
+      "signoffs": [
+        "spec-freeze",
+        "release"
+      ]
+    }
+  ],
+  "members": [
+    {
+      "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment",
+      "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+      "key": "assessment",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 2000000,
+        "maxWallMs": 1500000
+      }
+    },
+    {
+      "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration",
+      "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+      "key": "@integration",
+      "certified": true
+    }
+  ]
+}

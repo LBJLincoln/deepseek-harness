@@ -1,0 +1,121 @@
+{
+  "record": "2026-09-08-self-assessment-program",
+  "kind": "program artefacts beside the run record",
+  "departmentModel": "opus",
+  "programId": "a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+  "outcome": "released",
+  "departmentRevision": "1612fb5223ad4693d71448b660f02ad9a8b47da7",
+  "mergedRevision": "c7f518df6bed4ecab0db56085b90dcbad5380001",
+  "operatorInterventions": [
+    "the department certified with assessment.md written but never committed, so the integration merged an empty branch and its check failed with \"missing assessment.md\"; after 22 steps of the integration agent trying to satisfy that check the operator stopped the run, committed the department tree unchanged on the department branch (1612fb5), and resumed the program",
+    "the resume refused to republish the integration session identity (resume-refusal.log); the first integration session was set aside under sessions-superseded/ and the program then resumed, re-ran the integration, certified the merged head, and released",
+    "before the operator committed the department tree, the first integration attempt (unconfined bash-local) had found the department worktree and rewritten sentences of assessment.md with a python script (its session, step 20, under sessions-superseded/); the text the department certified at 11:47:50 UTC is reconstructed from the department session's own write and edit calls as assessment.certified.md, and assessment.md is the merged text carrying the integration agent's edits"
+  ],
+  "files": [
+    {
+      "path": "assessment.certified.md",
+      "bytes": 13913,
+      "sha256": "40233de2751c64d3a24a3cb6d63d608bee20010bff3a8f4c3b8c6b4abd2f71c0"
+    },
+    {
+      "path": "assessment.md",
+      "bytes": 14466,
+      "sha256": "c44465727d0d08cf38237faf64e3543cb9c7e9d915b3c4d54a2e4ad60a3844bb"
+    },
+    {
+      "path": "composition.cordis.yml",
+      "bytes": 3292,
+      "sha256": "00a9669e32ec04cd7a01cc1c816149b3bb7f8f18578ad5436c76f60ff2bce992"
+    },
+    {
+      "path": "driver.ts",
+      "bytes": 8091,
+      "sha256": "297066d780db200893232dabed7b7c8f24a7d60eb2957234ae66319c5b686075"
+    },
+    {
+      "path": "evidence/architecture.md",
+      "bytes": 9159,
+      "sha256": "c5b2d290be49f06019b412e56fee4c9b36b853813fd927d4e31fe678712a9c70"
+    },
+    {
+      "path": "evidence/census.txt",
+      "bytes": 7828,
+      "sha256": "94f7d66d4566c0b4a7c89cae0485477722b2b15cf748b590f1d3187c8394fb73"
+    },
+    {
+      "path": "evidence/commits-last-30h.txt",
+      "bytes": 7194,
+      "sha256": "a37e5d45bfae2d77cc3439fbb99628dc40d4a367ece1e560ee8d3726ec003528"
+    },
+    {
+      "path": "evidence/competitive-baselines.md",
+      "bytes": 43746,
+      "sha256": "ecb153be9114ac29937b9c4949f2269a0a362db0a13c86e6a85430d54f298c77"
+    },
+    {
+      "path": "evidence/goals-and-question.md",
+      "bytes": 2256,
+      "sha256": "6c790b729202df0ccf1e91db2825b02b1321b6bc0319a46322cf2093c3eaa1ce"
+    },
+    {
+      "path": "evidence/hypothesis-slate.md",
+      "bytes": 7562,
+      "sha256": "ecb47020d4a29ff784bd014d7e6ff263dd6601737292a3df360a229d81d72c8e"
+    },
+    {
+      "path": "evidence/proving-ground-README.md",
+      "bytes": 47538,
+      "sha256": "e72426d2b5fd838b9de2cc1a790c3caa3fc0de6140eec0cbbc7fca2a46330180"
+    },
+    {
+      "path": "evidence/records-index.txt",
+      "bytes": 968,
+      "sha256": "ab014f4177c23edaaa42f88550e582260d177bf6d63ad8261408ce1c0570a1f3"
+    },
+    {
+      "path": "evidence/results-draft.md",
+      "bytes": 10337,
+      "sha256": "ad421bc17f6fc2e1604bfbede3926fcee7b168ce89f03327557139ce870a2e6f"
+    },
+    {
+      "path": "evidence/roles-matrix.md",
+      "bytes": 4882,
+      "sha256": "ba75668d6a277b02e9688487eaa7c390d5e96ea06f4fe0839c9bafea6f08584a"
+    },
+    {
+      "path": "evidence/ruflo-comparison.md",
+      "bytes": 12031,
+      "sha256": "006f4ba3e627db45903491d298b25e66d4addb2054c090275e00224f8e68cee4"
+    },
+    {
+      "path": "evidence/sealed-cell.md",
+      "bytes": 14710,
+      "sha256": "3b8a3d8415cae687980756ae4d04d868ba5557c789b676e2e09319eca2b5d673"
+    },
+    {
+      "path": "goals-and-question.md",
+      "bytes": 2256,
+      "sha256": "6c790b729202df0ccf1e91db2825b02b1321b6bc0319a46322cf2093c3eaa1ce"
+    },
+    {
+      "path": "repo-git-log.txt",
+      "bytes": 405,
+      "sha256": "deeaa963bd84fbdd86bf61835061a66eae4f1ac58144fa3f3a7a4222b1777cb5"
+    },
+    {
+      "path": "resume-refusal.log",
+      "bytes": 1241,
+      "sha256": "adc4eb005dbed26fdcaa376b3d2d50a8b98d7a8332aded3cd809a5899c682c19"
+    },
+    {
+      "path": "sessions-superseded/integration-first-attempt.jsonl",
+      "bytes": 184022,
+      "sha256": "b745865979542135e14faeb9e44f85e7d33ced422f11456be5cd5ca4785b79a2"
+    },
+    {
+      "path": "verify-assessment.mjs",
+      "bytes": 3380,
+      "sha256": "aa994ae76ba3bea00d91b680428c931c038595df217ac425542bd2e5501ca0bc"
+    }
+  ]
+}

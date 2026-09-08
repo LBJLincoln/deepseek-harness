@@ -1,0 +1,15 @@
+/home/user/deepseek-harness/packages/session/session-persistence/src/preparations.ts:138
+    throw new Error(`cannot publish session "${session.id}": persisted state already owns this identity`)
+          ^
+
+Error: cannot publish session "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration": persisted state already owns this identity
+    at SessionPreparations.reservationFor (/home/user/deepseek-harness/packages/session/session-persistence/src/preparations.ts:138:11)
+    at PersistenceCoordinator.initFor (/home/user/deepseek-harness/packages/session/session-persistence/src/coordinator.ts:1167:43)
+    at Object.<anonymous> (/home/user/deepseek-harness/packages/session/session-persistence/src/coordinator.ts:1119:17)
+    at Object.apply (/home/user/deepseek-harness/vendor/cordis/src/reflect.ts:411:24)
+    at Proxy.announce (/home/user/deepseek-harness/packages/core/session/src/index.ts:987:35)
+    at Object.apply (/home/user/deepseek-harness/vendor/cordis/src/utils.ts:160:40)
+    at Object.publish (/home/user/deepseek-harness/packages/core/agent-loop/src/index.ts:560:30)
+    at Proxy.setupAndPublish (/home/user/deepseek-harness/packages/core/agent-loop/src/index.ts:640:23)
+
+Node.js v22.22.2

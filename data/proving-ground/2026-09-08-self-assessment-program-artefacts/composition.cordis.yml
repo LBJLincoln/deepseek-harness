@@ -1,0 +1,103 @@
+# Test-only composition: one program of the Daliesk Village — a department
+# session and git worktree per goal, an integration over the merged head, and a
+# ledger in the program's own session that a restart reconciles from.
+- id: llm-claude-code
+  name: '@deepseek-ai/dsh-llm-claude-code'
+  config:
+    provider: claude-code
+    models:
+      - id: sonnet
+        name: Claude Code sonnet
+        productModel: sonnet
+        contextWindow: 200000
+      - id: opus
+        name: Claude Code opus
+        productModel: opus
+        contextWindow: 200000
+    effort: high
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+# Composed beside the program, which disarms every goal it creates: a department
+# an operator resumes by hand is driven by this row instead.
+- id: goal-round-driver
+  name: '@deepseek-ai/dsh-goal-round-driver'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+# The roster's root is absolute: the smoke runs in an isolated temporary cwd, so
+# the presets beside this file are reachable only through the path the driver exports.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: implementing
+    roots:
+      - path: !!js process.env.DSH_TEST_PROGRAM_PRESETS
+        trust: system
+    includeUserRoot: false
+
+# The program creates its own agent per department from the goal's preset; the
+# spine composes none of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: claude-code
+    model: opus
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no department
+# breaches them before its own `budget/caps` record tightens them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 3000000
+    maxWallMs: 1800000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'You assess a body of evidence about a software project honestly, on its own branch, and you write only what the evidence supports.'
+    workspaceContext: false
+
+# The ledger and every department log outlive the process, so the three phases
+# of the e2e share one root while each gets its own working directory.
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_TEST_SESSION_ROOT ?? './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The two signatures the program's `requireSignoff` reads are recorded on the
+# program session by the driver, through this service, before `start` opens it.
+- id: signoff
+  name: '@deepseek-ai/dsh-signoff'
+  config:
+    maxEvidence: 8
+    maxEvidenceRefChars: 512
+
+- id: program
+  name: '@deepseek-ai/dsh-program'
+  config:
+    workspaceRoot: !!js process.env.DSH_TEST_PROGRAM_REPO
+    requireSignoff: true
+    maxConcurrentGoals: 1
+    maxGoalRounds: 3
+    branchPrefix: program
+    evidenceMaxChars: 512
