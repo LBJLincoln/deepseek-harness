@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-A durable spend ceiling for one session: configured token, wall-clock, and cost caps, tightened by whatever caps the session's own log records, are measured against that log before every proposed step, and the first cap the log exceeds records a `budget/breach` event, blocks the session's goal, and rejects the step so no further model request is made. Every step a priced route served also records a `usage/priced` event, so what a session cost is a durable fact rather than an in-memory total. Nothing is measured in memory — the caps read the same durable events a replay reads, so a recorded breach or price is reproducible by anyone holding the log. Decision record: [the budget-policy Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-budget-policy.md).
+A durable spend ceiling for one session: configured token, wall-clock, and cost caps, tightened by whatever caps the session's own log records, are measured against that log before every proposed step, and the first cap the log exceeds records a `budget/breach` event, blocks the session's goal, and rejects the step so no further model request is made. Every step a priced route served also records a `usage/priced` event, so what a session cost is a durable fact rather than an in-memory total. Nothing is measured in memory — the caps read the same durable events a replay reads, so a recorded breach or price is reproducible by anyone holding the log. The same enforcement is published as `ctx.sessionBudgets` for a driver whose session proposes no step of its own because an implementer outside this process does its work. Decision records: [the budget-policy Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-budget-policy.md) and [budget parity for delegated cells](../../../.agents/notes/proposed/architecture/2026-09-08-budget-parity-for-delegated-cells.md).
 
 ## Config
 
@@ -19,21 +19,38 @@ A durable spend ceiling for one session: configured token, wall-clock, and cost 
       deepseek/deepseek-chat:
         inputEurPerMillionTokens: 0.25
         outputEurPerMillionTokens: 1.0
+    foreignCostEurPerUsd: 0.92   # converts a foreign implementer's own USD price into the cost cap's currency
 ```
 
 Every cap is optional and uncapped when omitted, so an empty configuration is a valid policy that never stops a step and never reads the log. A cap is exceeded only when measured spend is strictly greater than its value: `0` stops the session at the first recorded spend, and a session exactly on budget keeps running.
 
-Validation happens at plugin load, before any session can depend on a cap the policy could not enforce. A cap or rate that is not a finite non-negative number throws, and `maxCostEur` without a non-empty `pricing` table throws — an unpriced route has no cost cap, so a cost ceiling over an empty table would silently enforce nothing.
+Validation happens at plugin load, before any session can depend on a cap the policy could not enforce. A cap or rate that is not a finite non-negative number throws, `foreignCostEurPerUsd` that is not a finite positive number throws, and `maxCostEur` without a non-empty `pricing` table throws — an unpriced route has no cost cap, so a cost ceiling over an empty table would silently enforce nothing.
 
 `pricing` keys are `provider/model`, matching the provenance each assistant message carries. A route absent from the table contributes its tokens to the token caps but nothing to `costEur`, so token caps remain the enforcement of last resort for a route whose price the deployment has not stated.
 
 ## Plugin contract (namespace: `budget-policy`)
 
-A function/namespace plugin (`name` / `inject` / `Config` / `apply`), not a service. It injects `ctx.agents` and registers one prepended `agent/pre-step` listener and one `agent/turn-stopping` listener; `ctx.goals` is read optionally through `ctx.get('goals')`, so the policy enforces identically in a composition without the goal domain.
+A function/namespace plugin (`name` / `inject` / `Config` / `apply`) that provides one service. It injects `ctx.agents`, registers `ctx.sessionBudgets`, and registers one prepended `agent/pre-step` listener and one `agent/turn-stopping` listener; `ctx.goals` is read optionally through `ctx.get('goals')`, so the policy enforces identically in a composition without the goal domain.
 
 The pre-step listener is prepended so the budget decision precedes every listener that would build request context or reserve continuation work for a step that cannot run. On a breach it does not call `next()`: the chain short-circuits and the loop closes the turn with reason `blocked`, having opened no step.
 
-`foldBudgetSpend(events, pricing)`, `measuredFor(spend, cap)`, `unpricedUsage(events, pricing)`, `foldSessionCaps(events)`, `tightenedCaps(configured, session)`, `BUDGET_CAP_ORDER`, and `pricingTableDigest(pricing)` are exported so a supervisor can recompute any recorded measurement, price, or enforced cap from the log.
+`foldBudgetSpend(events, pricing)`, `measuredFor(spend, cap)`, `unpricedUsage(events, pricing)`, `foldSessionCaps(events)`, `tightenedCaps(configured, session)`, `remainingWallMs(events, caps, now)`, `BUDGET_CAP_ORDER`, and `pricingTableDigest(pricing)` are exported so a supervisor can recompute any recorded measurement, price, or enforced cap from the log.
+
+### `ctx.sessionBudgets`
+
+The pre-step listener is one consumer of the caps; the other is a driver whose session never proposes a step of its own, because an implementer outside this process does its work — an [environment runner](../../improvement/environment-runner) cell delegated to an external coding agent. Such a session reaches no `agent/pre-step`, so nothing would bound it unless the driver asks. The service is what it asks.
+
+- `configuredCaps()` — the caps this deployment enforces, in cap evaluation order, before any session tightens them. A planner comparing two runs reads it to state what they were bounded by.
+- `capsFor(session)` — the same caps tightened by the latest `budget/caps` in that session's log.
+- `pricesForeignCost()` — whether `foreignCostEurPerUsd` is configured, so a caller can tell whether a cost cap bounds foreign work at all.
+- `recordForeignSpend(session, spend)` — record what an implementer outside the session's own model route spent for it, from the `usage` and `costUsd` its backend reported. Returns whether a record was appended; a `ref` the log already accounts for throws, so retrying a recorded unit of work cannot charge it twice.
+- `enforce(agent)` — measure the session, and on the first cap it exceeds append `budget/breach` and block the goal, exactly as a stopped step does. Returns the caps measured, the breach if any, and `remainingWallMs`: the wall budget left, which a driver arms as the deadline of the work it is about to start.
+
+### Spend a session did not make itself
+
+`usage/foreign` records work done outside the session's own model route: the `ref` identifying the unit of work, the `source` that did it, its billed `inputTokens` and `outputTokens`, and its `costEur` where the deployment states a `foreignCostEurPerUsd` rate to convert the implementer's own price at. `foldBudgetSpend` adds every record to the tokens and cost the caps are measured against, so a session that makes no model request of its own breaches the same caps, in the same order, and records the same `budget/breach` as one that ran its own route.
+
+The record is the deployment's own accounting of a foreign price, not the foreign product's: a cost stated in US dollars with no configured rate contributes tokens alone, because a ceiling in one currency cannot bound a price in another. What the implementer actually spent is that implementer's accounting, which this log cannot recompute; the record's agreement with it belongs to whoever wrote the record.
 
 ### Measuring spend from the log
 
@@ -65,7 +82,7 @@ A turn that ends by error or abort reaches neither point, so its last message st
 
 ### Invariant companion
 
-`@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable record independently. A breach's recorded `measured` must exceed `limit`, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record; `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation. A price must cite an earlier `assistant/message` with the same turn and step whose billed tokens and route it reproduces exactly, its `costEur` must equal its own rates applied to its own tokens, and no earlier `usage/priced` may carry the same turn and step.
+`@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable record independently. A breach's recorded `measured` must exceed `limit`, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record; `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation. A price must cite an earlier `assistant/message` with the same turn and step whose billed tokens and route it reproduces exactly, its `costEur` must equal its own rates applied to its own tokens, and no earlier `usage/priced` may carry the same turn and step. A `usage/foreign` must account for work no earlier record of the same log accounts for and must state no negative spend; what the implementer actually spent is outside the log, so nothing here recomputes it.
 
 A `budget/caps` record may only tighten. The deployment's configured caps are not in the log, so the companion compares each cap against the caps the same session's earlier `budget/caps` records already fold to: raising one of those, or dropping it so the cap disappears, is rejected at append. Widening a cap the deployment configured is outside what the log can show and is refused by the enforcing fold instead, which never takes a recorded value above the configured one.
 
@@ -89,6 +106,8 @@ Independent: the request surface is neither extended nor rewritten, so an alread
 
 - **Session-scoped only** — the caps measure one session log. A deployment that wants a per-workspace, per-user, or per-day ceiling has no aggregation point here; subagent sessions carry their own logs and their own independent budgets.
 - **Cost covers priced routes only** — usage on a `provider/model` absent from `pricing` adds tokens but no cost and records no `usage/priced`, so `maxCostEur` cannot be the sole ceiling for a deployment whose routes are not all priced, and an unpriced session has no cost the log can state.
+- **One foreign exchange rate for the whole deployment** — `foreignCostEurPerUsd` is a single load-time number applied to every foreign price, so a deployment whose implementers price in different currencies, or whose rate moves during a long comparison, has no way to say so.
+- **Foreign spend is taken on trust** — `usage/foreign` states what an implementer's own backend reported. A backend that reports nothing leaves the token and cost caps measuring zero for its work, and only the wall cap still bounds it.
 - **A turn that ends by error or abort leaves its last step unpriced** — pricing happens at the next pre-step or at the normal stop boundary, and neither is reached when a turn fails or is cancelled. The record lands at the session's next pre-step or stop; a session abandoned right after such a turn keeps one unpriced step.
 - **One input rate per route** — the table prices billed input with a single number, so a provider that discounts cache reads against cache misses is priced at the uncached rate.
 - **No warning before the stop** — the policy has no advisory threshold that tells the model to wrap up before the cap trips; the first model-visible consequence of an exhausted budget is that the turn ends.

@@ -4,34 +4,62 @@
  * first cap the log exceeds is recorded as a `budget/breach` event, blocks any
  * active goal, and rejects the step so no further model request is made. Every
  * step served by a priced route also gets a durable `usage/priced` record, so
- * session cost replays from the log at the rates that priced it.
+ * session cost replays from the log at the rates that priced it. The same
+ * enforcement is published as `ctx.sessionBudgets` for a driver whose session
+ * never proposes a step of its own because an implementer outside this process
+ * does its work.
  *
  * @module @deepseek-ai/dsh-budget-policy
  */
 
-import type { Context } from '@deepseek-ai/cordis'
+import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
 // Type-only: resolves ctx.goals for the optional durable block.
 import type {} from '@deepseek-ai/dsh-goal'
-import { BUDGET_CAP_ORDER, foldBudgetSpend, foldSessionCaps, measuredFor, tightenedCaps, unpricedUsage } from './fold.ts'
+import type { TokenUsage } from '@deepseek-ai/dsh-llm'
+import type { Session } from '@deepseek-ai/dsh-session'
+import {
+  BUDGET_CAP_ORDER,
+  foldBudgetSpend,
+  foldSessionCaps,
+  measuredFor,
+  remainingWallMs,
+  tightenedCaps,
+  unpricedUsage,
+} from './fold.ts'
 import { billedInputTokens, costEurFor, pricingTableDigest, routeKey } from './pricing.ts'
-import type { AccountedMessage, BudgetBreach, BudgetCapId, BudgetRoutePricing, UsagePriced } from './types.ts'
+import type {
+  AccountedMessage,
+  BudgetBreach,
+  BudgetCap,
+  BudgetCapId,
+  BudgetRoutePricing,
+  UsagePriced,
+} from './types.ts'
 
 // The pure payload outlet (./types.ts, ONE home of the `budget/caps`,
-// `budget/breach`, and `usage/priced` declarations) re-exported onto the
-// package root keeps the module edge in the emitted index.d.ts, so aggregate
-// programs consuming the declarations still receive the SessionEventMap merge.
+// `budget/breach`, `usage/priced`, and `usage/foreign` declarations)
+// re-exported onto the package root keeps the module edge in the emitted
+// index.d.ts, so aggregate programs consuming the declarations still receive
+// the SessionEventMap merge.
 export type * from './types.ts'
 export {
   BUDGET_CAP_ORDER,
   foldBudgetSpend,
   foldSessionCaps,
   measuredFor,
+  remainingWallMs,
   tightenedCaps,
   unpricedUsage,
 } from './fold.ts'
 export { pricingTableDigest } from './pricing.ts'
+
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    sessionBudgets: SessionBudgets
+  }
+}
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'budget-policy'
@@ -65,6 +93,13 @@ export interface Config {
   maxCostEur?: number
   /** EUR-per-million-token rates keyed by `provider/model`; a route absent here is never cost-capped. */
   pricing?: Record<string, BudgetRoutePricing>
+  /**
+   * EUR per one US dollar, applied to the price a foreign implementer's own
+   * backend reported for work it did for a session here. Absent leaves foreign
+   * spend priced in no currency this policy can compare, so it contributes
+   * tokens alone and `maxCostEur` cannot be enforced over it.
+   */
+  foreignCostEurPerUsd?: number
 }
 
 /** Schemastery validation for {@link Config}. */
@@ -78,16 +113,19 @@ export const Config: z<Config> = z.object({
     inputEurPerMillionTokens: z.number().required(),
     outputEurPerMillionTokens: z.number().required(),
   })).default({}),
+  foreignCostEurPerUsd: z.number(),
 })
 
 /** The caps a validated configuration actually enforces, paired with their values. */
 interface ResolvedConfig {
-  readonly caps: readonly (readonly [BudgetCapId, number])[]
+  readonly caps: readonly BudgetCap[]
   readonly pricing: Readonly<Record<string, BudgetRoutePricing>>
   /** Whether {@link pricing} names any route; an empty table never reads the log. */
   readonly prices: boolean
   /** {@link pricingTableDigest} of {@link pricing}, computed once at load. */
   readonly pricingDigest: string
+  /** EUR per one US dollar for foreign spend, absent when the deployment states none. */
+  readonly foreignCostEurPerUsd: number | undefined
 }
 
 /** Reject a cap that cannot express a ceiling before any session depends on it. */
@@ -101,6 +139,13 @@ function requireFiniteCap(cap: BudgetCapId, value: number): void {
 function requireFiniteRate(route: string, field: keyof BudgetRoutePricing, value: number): void {
   if (!Number.isFinite(value) || value < 0) {
     throw new TypeError(`budget-policy: pricing["${route}"].${field} must be a finite non-negative number, got ${String(value)}`)
+  }
+}
+
+/** Reject a currency rate that cannot convert a foreign price before a delegated session depends on it. */
+function requireFiniteExchangeRate(value: number): void {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new TypeError(`budget-policy: foreignCostEurPerUsd must be a finite positive number, got ${String(value)}`)
   }
 }
 
@@ -120,14 +165,21 @@ function resolveBudgetConfig(config: Config): ResolvedConfig {
   if (config.maxCostEur !== undefined && !prices) {
     throw new TypeError('budget-policy: maxCostEur needs a non-empty pricing table; an unpriced route has no cost cap')
   }
-  const caps: (readonly [BudgetCapId, number])[] = []
+  if (config.foreignCostEurPerUsd !== undefined) requireFiniteExchangeRate(config.foreignCostEurPerUsd)
+  const caps: BudgetCap[] = []
   for (const cap of BUDGET_CAP_ORDER) {
     const value = config[cap]
     if (value === undefined) continue
     requireFiniteCap(cap, value)
     caps.push([cap, value])
   }
-  return { caps, pricing, prices, pricingDigest: pricingTableDigest(pricing) }
+  return {
+    caps,
+    pricing,
+    prices,
+    pricingDigest: pricingTableDigest(pricing),
+    foreignCostEurPerUsd: config.foreignCostEurPerUsd,
+  }
 }
 
 /**
@@ -170,50 +222,169 @@ function priceUnpricedSteps(agent: Agent, resolved: ResolvedConfig): void {
   }
 }
 
+/** Spend one implementer outside the session's own model route did for it. */
+export interface ForeignSpendRequest {
+  /** Identity of the work, unique within the session; a `ref` the log already carries is refused. */
+  readonly ref: string
+  /** What did the work, as the deployment names it. */
+  readonly source: string
+  /** Token accounting the implementer's own backend reported for the work. */
+  readonly usage?: TokenUsage
+  /** Price in US dollars the implementer's own backend reported for the work. */
+  readonly costUsd?: number
+}
+
+/** What one enforcement pass measured, and what it did about it. */
+export interface BudgetEnforcement {
+  /** The caps the session runs under: the configured caps tightened by its own `budget/caps`. */
+  readonly caps: readonly BudgetCap[]
+  /** The breach that was recorded and blocked the goal, absent while every cap holds. */
+  readonly breach?: BudgetBreach
+  /**
+   * Milliseconds of wall budget left when the pass ran, absent when no wall cap
+   * applies. Negative once the cap is spent, which is the state a breach on any
+   * earlier cap can leave behind.
+   */
+  readonly remainingWallMs?: number
+}
+
 /**
- * Measure the session log against the caps this session actually runs under:
- * the configured caps tightened by the session's own `budget/caps` record.
- * @param agent - the agent whose session log carries the spend and its caps.
- * @param resolved - the caps and pricing this deployment enforces.
- * @returns the first breach in {@link BUDGET_CAP_ORDER}, or `undefined` while every cap holds.
+ * Session budgets (`ctx.sessionBudgets`): the caps a session runs under and the
+ * enforcement that stops it.
+ *
+ * The pre-step listener of this package is one consumer; the other is a driver
+ * whose session never proposes a step of its own because an implementer outside
+ * this process does its work. Both go through {@link SessionBudgets.enforce},
+ * so a delegated session records the same `budget/breach` and blocks its goal
+ * the same way, and the caps a run is bounded by are read here rather than
+ * restated by each driver.
  */
-function detectBreach(agent: Agent, resolved: ResolvedConfig): BudgetBreach | undefined {
-  const caps = tightenedCaps(resolved.caps, foldSessionCaps(agent.session.events))
-  if (caps.length === 0) return undefined
-  const spend = foldBudgetSpend(agent.session.events, resolved.pricing)
-  for (const [cap, limit] of caps) {
-    const measured = measuredFor(spend, cap)
-    if (measured > limit) return { cap, measured, limit }
+export class SessionBudgets extends Service {
+  /**
+   * @param ctx - the context the service is registered in and disposed with.
+   * @param resolved - the caps, pricing, and foreign rate this deployment enforces.
+   */
+  constructor(ctx: Context, private readonly resolved: ResolvedConfig) {
+    super(ctx, 'sessionBudgets')
   }
-  return undefined
+
+  /**
+   * The caps this deployment enforces before any session tightens them.
+   * @returns the enforced caps in {@link BUDGET_CAP_ORDER}; empty for a policy that caps nothing.
+   */
+  configuredCaps(): readonly BudgetCap[] {
+    return this.resolved.caps
+  }
+
+  /**
+   * The caps one session runs under: the configured caps tightened by the
+   * latest `budget/caps` its own log records.
+   * @param session - the session whose log carries its recorded caps.
+   * @returns the caps to measure that session against, in {@link BUDGET_CAP_ORDER}.
+   */
+  capsFor(session: Session): readonly BudgetCap[] {
+    return tightenedCaps(this.resolved.caps, foldSessionCaps(session.events))
+  }
+
+  /**
+   * Whether this deployment can express a foreign implementer's reported price
+   * in the currency `maxCostEur` caps. A deployment that states no rate cannot,
+   * so a cost cap does not bound work such an implementer does.
+   * @returns `true` when a foreign exchange rate is configured.
+   */
+  pricesForeignCost(): boolean {
+    return this.resolved.foreignCostEurPerUsd !== undefined
+  }
+
+  /**
+   * Record spend an implementer outside the session's own model route incurred
+   * for it, so the caps measure it with the session's own steps. Nothing is
+   * recorded for work whose implementer reported neither tokens nor a price:
+   * an empty record would add nothing to any cap.
+   * @param session - the session the work was done for.
+   * @param spend - what did the work and what its own backend reported for it.
+   * @returns `true` when a record was appended.
+   * @throws {RangeError} when the session's log already accounts for `spend.ref`.
+   */
+  recordForeignSpend(session: Session, spend: ForeignSpendRequest): boolean {
+    for (const event of session.events) {
+      if (event.type === 'usage/foreign' && event.data.ref === spend.ref) {
+        throw new RangeError(`budget-policy: foreign spend "${spend.ref}" is already accounted for in session "${session.id}"`)
+      }
+    }
+    const rate = this.resolved.foreignCostEurPerUsd
+    const costEur = spend.costUsd === undefined || rate === undefined ? undefined : spend.costUsd * rate
+    if (spend.usage === undefined && costEur === undefined) return false
+    session.append('usage/foreign', {
+      ref: spend.ref,
+      source: spend.source,
+      inputTokens: spend.usage === undefined ? 0 : billedInputTokens(spend.usage),
+      outputTokens: spend.usage?.outputTokens ?? 0,
+      ...costEur === undefined ? {} : { costEur },
+    })
+    return true
+  }
+
+  /**
+   * Measure one session against its caps and, on the first cap it exceeds,
+   * record the breach and block the session's goal.
+   *
+   * The goal domain is optional: a composition without `ctx.goals`, without a
+   * current goal, or whose goal already left the `active` phase still gets the
+   * durable breach record. Spend never decreases, so a caller that keeps going
+   * records one breach per attempt it turned away, exactly as a stopped step
+   * does.
+   *
+   * @param agent - the agent whose session log carries the spend and its caps.
+   * @returns the caps measured, the breach recorded if any, and the wall budget left.
+   */
+  enforce(agent: Agent): BudgetEnforcement {
+    const { session } = agent
+    const caps = this.capsFor(session)
+    const remaining = remainingWallMs(session.events, caps, Date.now())
+    const breach = this.detect(session, caps)
+    if (breach === undefined) {
+      return { caps, ...remaining === undefined ? {} : { remainingWallMs: remaining } }
+    }
+    session.append('budget/breach', breach)
+    this.blockGoal(agent, breach)
+    return { caps, breach, ...remaining === undefined ? {} : { remainingWallMs: remaining } }
+  }
+
+  /** The first cap in {@link BUDGET_CAP_ORDER} the log exceeds, or `undefined` while every cap holds. */
+  private detect(session: Session, caps: readonly BudgetCap[]): BudgetBreach | undefined {
+    if (caps.length === 0) return undefined
+    const spend = foldBudgetSpend(session.events, this.resolved.pricing)
+    for (const [cap, limit] of caps) {
+      const measured = measuredFor(spend, cap)
+      if (measured > limit) return { cap, measured, limit }
+    }
+    return undefined
+  }
+
+  /** Block the session's goal so no goal-round driver continues it. */
+  private blockGoal(agent: Agent, breach: BudgetBreach): void {
+    const goals = this.ctx.get('goals')
+    if (goals === undefined) return
+    const goal = goals.get(agent)
+    if (goal === undefined || goal.phase !== 'active') return
+    goals.block(agent, { id: goal.id, revision: goal.revision }, {
+      code: BUDGET_EXHAUSTED,
+      message: `Session budget ${breach.cap} exceeded: ${breach.measured} of ${breach.limit}.`,
+    })
+  }
 }
 
 /**
- * Block the session's goal so no goal-round driver continues it. The goal
- * domain is optional: a composition without `ctx.goals`, without a current
- * goal, or whose goal already left the `active` phase still gets the durable
- * breach record and the stopped turn.
- */
-function blockGoal(ctx: Context, agent: Agent, breach: BudgetBreach): void {
-  const goals = ctx.get('goals')
-  if (goals === undefined) return
-  const goal = goals.get(agent)
-  if (goal === undefined || goal.phase !== 'active') return
-  goals.block(agent, { id: goal.id, revision: goal.revision }, {
-    code: BUDGET_EXHAUSTED,
-    message: `Session budget ${breach.cap} exceeded: ${breach.measured} of ${breach.limit}.`,
-  })
-}
-
-/**
- * Register the pre-step budget check and the pricing records for the lifetime
- * of `ctx`.
- * @param ctx - plugin context; both listeners are disposed with it.
+ * Register the `ctx.sessionBudgets` service, the pre-step budget check, and the
+ * pricing records for the lifetime of `ctx`.
+ * @param ctx - plugin context; the service and both listeners are disposed with it.
  * @param config - the per-session caps and pricing to enforce.
  * @throws {TypeError} when the configuration cannot express the caps it declares.
  */
 export function apply(ctx: Context, config: Config): void {
   const resolved = resolveBudgetConfig(config)
+  const budgets = new SessionBudgets(ctx, resolved)
 
   // Prepended so the budget decision precedes every listener that would build
   // request context or reserve continuation work for a step that cannot run.
@@ -221,11 +392,7 @@ export function apply(ctx: Context, config: Config): void {
     // Priced before the caps are read, so the last message before a breach is
     // priced by the same step that records the breach.
     priceUnpricedSteps(agent, resolved)
-    const breach = detectBreach(agent, resolved)
-    if (breach === undefined) return next()
-    agent.session.append('budget/breach', breach)
-    blockGoal(ctx, agent, breach)
-    return { kind: 'reject' }
+    return budgets.enforce(agent).breach === undefined ? next() : { kind: 'reject' }
   }, { prepend: true })
 
   // A turn that closes normally opens no further step, so its final message is
