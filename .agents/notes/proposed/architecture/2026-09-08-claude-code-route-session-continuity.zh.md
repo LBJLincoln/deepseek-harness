@@ -85,7 +85,8 @@ resume 需要 `persistSession: true`，它会在操作者的配置目录下写�
 - 不带 `sessionId` 的请求在任何模式下都不 resume；指明了 `purpose` 的请求绝不续用该会话自身的产品会话。
 - 答案的 `replayState` 标明每一步所走的连续性路径，使会话日志能区分被 resume 的步骤与全新步骤，并说明全新步骤为何是全新的。
 - 单元规格在 `src/` 上保持每文件 100% 覆盖，涵盖摘要、表的驱逐与销毁、续发渲染，以及两种模式的查询选项。
-- 可选的真实安装 e2e（`DSH_E2E_CLAUDE_CODE=1`）在一个 harness 会话上以 `'per-session'` 跑两步，并断言第二步所报的缓存读取超过其缓存写入。
+- 可选的真实安装 e2e（`DSH_E2E_CLAUDE_CODE=1`）在一个 harness 会话上以 `'per-session'` 跑两步，并断言第二步所报的缓存读取超过其缓存写入，且运行结束后安装的会话存储中不再留有该次运行创建的任何转录。
+- 本次变更不附带 keyless snapshot，理由[路由那篇 note](2026-09-06-llm-claude-code.md) 已经记下：snapshot harness 重放录制的 provider 转录，而本 provider 是一个答案未被录制的本地进程。可选的真实运行就是证据。
 
 ## Risks
 

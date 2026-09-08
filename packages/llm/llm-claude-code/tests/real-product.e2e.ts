@@ -13,6 +13,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { listSessions } from '@anthropic-ai/claude-agent-sdk'
 import { Context } from '@deepseek-ai/cordis'
 import LlmRuntime, {
   BlockAssembler,
@@ -39,6 +40,16 @@ const configPath = fileURLToPath(new URL(
 ))
 const tsconfigPath = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
 const enabled = process.env['DSH_E2E_CLAUDE_CODE'] === '1'
+
+/**
+ * Whether the installation's session store still holds one product session.
+ * @param productSessionId - the session the route reported running the step in.
+ * @returns true while the transcript is listed for this workspace.
+ */
+async function stored(productSessionId: string | undefined): Promise<boolean> {
+  const sessions = await listSessions({ dir: process.cwd() })
+  return sessions.some(session => session.sessionId === productSessionId)
+}
 
 describe.skipIf(!enabled)('one query on the operator\'s Claude Code installation', () => {
   it('answers a tool-offering request with one native call carrying JSON arguments', async () => {
@@ -89,6 +100,7 @@ describe.skipIf(!enabled)('two steps of one harness session on the operator\'s i
     }
 
     let usage: TokenUsage | undefined
+    let productSession: string | undefined
     try {
       const first = await step(request({
         sessionId,
@@ -99,6 +111,8 @@ describe.skipIf(!enabled)('two steps of one harness session on the operator\'s i
       const call = first.blocks().find(block => block.type === 'tool-call')
       expect(call).toBeDefined()
       if (call?.type !== 'tool-call') throw new Error('the first step requested no tool call')
+      productSession = (first.replayState as { productSessionId?: string }).productSessionId
+      expect(await stored(productSession)).toBe(true)
 
       const second = await step(request({
         sessionId,
@@ -117,13 +131,16 @@ describe.skipIf(!enabled)('two steps of one harness session on the operator\'s i
         ],
         tools: [BASH_TOOL],
       }))
-      expect(second.replayState).toMatchObject({ continuity: 'resumed' })
+      expect(second.replayState).toMatchObject({ continuity: 'resumed', productSessionId: productSession })
       usage = second.usage
     } finally {
       await ctx.fiber.dispose()
     }
 
     expect(usage?.cacheReadTokens ?? 0).toBeGreaterThan(usage?.cacheWriteTokens ?? 0)
+    // Unloading the route deletes what it created; the delete is fire and
+    // forget, so the assertion waits for the store rather than the request.
+    await expect.poll(() => stored(productSession), { timeout: 30_000 }).toBe(false)
   }, 600_000)
 })
 

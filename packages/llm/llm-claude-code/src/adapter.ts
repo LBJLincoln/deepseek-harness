@@ -54,7 +54,6 @@ import type {
   ClaudeCodeReplayState,
   ContinuityPlan,
   ConversationRendering,
-  RenderedRequest,
   ResolvedClaudeCodeOptions,
   ToolOffer,
 } from './types.ts'
@@ -106,9 +105,7 @@ export interface ClaudeCodeQuerySpec {
   readonly options: ResolvedClaudeCodeOptions
   /** Catalog entry the request selected. */
   readonly model: ClaudeCodeModel
-  /** The rendered system prompt and prompt text. */
-  readonly rendered: RenderedRequest
-  /** Which product session this step runs in, and whether it resumes one. */
+  /** Which product session this step runs in, whether it resumes one, and what it sends. */
   readonly plan: ContinuityPlan
   /** The request's tools as an in-process MCP server, absent when it offers none. */
   readonly offer: ToolOffer | undefined
@@ -169,7 +166,7 @@ export function replayState(plan: ContinuityPlan): ClaudeCodeReplayState {
  * `includePartialMessages` is what keeps the idle watchdog armed: the product
  * takes seconds to answer, and its partial assistant events are the only
  * evidence the installation is alive before the result arrives.
- * @param spec - resolved route facts, rendered prompt, continuity plan, tool offer, and process ownership.
+ * @param spec - resolved route facts, continuity plan, tool offer, and process ownership.
  * @returns options that give the product the harness prompt, the harness tools, and nothing else.
  */
 export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
@@ -180,7 +177,7 @@ export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
     env: { ...scrubbedParentEnv(), ...spec.options.env },
     // The harness prompt is the prompt: a custom string replaces the product's
     // own preset instead of appending to it.
-    systemPrompt: spec.rendered.systemPrompt,
+    systemPrompt: spec.plan.rendered.systemPrompt,
     includePartialMessages: true,
     maxTurns: MAX_TURNS,
     permissionMode: PERMISSION_MODE,
@@ -427,7 +424,6 @@ export class ClaudeCodeAdapter extends LlmAdapter {
         options: claudeQueryOptions({
           options: this.options,
           model,
-          rendered: plan.rendered,
           plan,
           offer,
           executable,

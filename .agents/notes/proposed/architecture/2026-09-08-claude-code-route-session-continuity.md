@@ -85,7 +85,8 @@ The configuration directory is the operator's own, not a scoped one. The probe m
 - A request without `sessionId` never resumes, whatever the mode; a request that names a `purpose` never continues the conversation's own session.
 - The answer's `replayState` names the continuity path each step took, so the session log distinguishes a resumed step from a fresh one and names why a fresh one was fresh.
 - Unit specs hold per-file 100 percent coverage over `src/`, covering the digest, the table's eviction and disposal, the continuation rendering, and both modes' query options.
-- The opt-in real-installation e2e (`DSH_E2E_CLAUDE_CODE=1`) runs two steps on one harness session under `'per-session'` and asserts the second step's reported cache read exceeds its cache write.
+- The opt-in real-installation e2e (`DSH_E2E_CLAUDE_CODE=1`) runs two steps on one harness session under `'per-session'` and asserts the second step's reported cache read exceeds its cache write, and the installation's session store holds none of the transcripts the run created once it ends.
+- No keyless snapshot accompanies this change, for the reason [the route's note](2026-09-06-llm-claude-code.md) already records: the snapshot harness replays recorded provider transcripts, and this provider is a local process whose answers are not recorded. The opt-in real run is the evidence.
 
 ## Risks
 

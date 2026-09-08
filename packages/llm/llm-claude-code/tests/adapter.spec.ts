@@ -613,7 +613,6 @@ describe('claudeQueryOptions', () => {
     const options = claudeQueryOptions({
       options: resolveAdapterOptions(BASE_CONFIG),
       model: { id: 'default' },
-      rendered,
       plan: { kind: 'fresh', productSessionId: 'p1', fallback: undefined, continuable: false, rendered },
       offer: undefined,
       executable: '/usr/bin/claude',
