@@ -1,15 +1,19 @@
 /**
- * Keyless REAL-composition coverage for the program ledger: three boots of one
+ * Keyless REAL-composition coverage for the program ledger: five boots of one
  * `cordis.yml` over one persistence root and one temporary git repository. The
  * first runs a two-goal program with a dependency to its release; the second
  * starts a different program and dies the moment its first department is
- * recorded certified; the third reconciles that program from the department's
- * own log, starts only the goal that never ran, and releases.
+ * recorded certified, and the third reconciles it from the department's own
+ * log, starts only the goal that never ran, and releases; the fourth starts a
+ * third program and dies inside its integration, and the fifth takes that
+ * integration back over and releases.
  *
- * The mock implementer commits nothing, so each department branch head is the
- * base revision and the integration merges are already up to date. What the
- * fixture proves is the ledger, the department sessions and worktrees, the
- * per-session caps, and the reconciliation — not what a model can build.
+ * The mock implementer writes before it commits, so every certified department
+ * is a department the program made commit, and the integration repairs a merged
+ * head that no department branch could satisfy. What the fixture proves is the
+ * ledger, the department sessions and worktrees, the per-session caps, the
+ * confinement of the integration session, and the reconciliation — not what a
+ * model can build.
  */
 
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -24,10 +28,11 @@ const binScript = fileURLToPath(new URL('../../../../examples/headless-agent/tes
 const configPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/program/cordis.yml', import.meta.url))
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
 
-/** Three boots, each a full mock-model program, need more than the default window. */
+/** Five boots, each a full mock-model program, need more than the default window. */
 const PHASE_TIMEOUT_MS = 180_000
 const KILLED = 9
 const RESTART_LABEL = 'restart'
+const INTEGRATION_LABEL = 'integration'
 
 interface LedgerLine {
   sessionId: string
@@ -43,11 +48,24 @@ interface MemberLine {
   caps: unknown
 }
 
+interface DenialLine {
+  sessionId: string
+  capability: string
+  displayPath: string
+}
+
 interface DriverResult {
   type: string
-  report: { programId: string; sessionId: string; outcome?: string; mergedRevision?: string; goals: { key: string; status: string }[] }
+  report: {
+    programId: string
+    sessionId: string
+    outcome?: string
+    mergedRevision?: string
+    goals: { key: string; status: string; revision?: string; tree?: string }[]
+  }
   ledgers: LedgerLine[]
   members: MemberLine[]
+  denials: DenialLine[]
 }
 
 const roots: string[] = []
@@ -100,6 +118,21 @@ function statuses(ledger: LedgerLine, key: string): string[] {
     .map(event => (event.data as ProgramGoalRecord).status)
 }
 
+/** Every `program/integration` one ledger recorded, in log order. */
+function integrations(ledger: LedgerLine): ProgramIntegrationRecord[] {
+  return ledger.events
+    .filter(event => event.type === 'program/integration')
+    .map(event => event.data as ProgramIntegrationRecord)
+}
+
+/** The record one ledger holds of what a goal was certified at. */
+function certifiedAt(ledger: LedgerLine, key: string): ProgramGoalRecord | undefined {
+  return ledger.events
+    .filter(event => event.type === 'program/goal')
+    .map(event => event.data as ProgramGoalRecord)
+    .find(record => record.key === key && record.status === 'certified')
+}
+
 describe('the program ledger through a real cordis.yml, killed and restarted', () => {
   it('releases a two-goal program, then reconciles a killed one and releases it too', async () => {
     const sessions = await mkdtemp(join(tmpdir(), 'program-sessions-'))
@@ -123,13 +156,33 @@ describe('the program ledger through a real cordis.yml, killed and restarted', (
     // The dependent goal only ever runs after the goal it depends on certified.
     expect(statuses(ledger, 'api')).toEqual(['pending', 'running', 'certified', 'merged'])
     expect(statuses(ledger, 'docs')).toEqual(['pending', 'running', 'certified', 'merged'])
-    const integrations = ledger.events.filter(event => event.type === 'program/integration')
-      .map(event => (event.data as ProgramIntegrationRecord).status)
-    expect(integrations).toEqual(['running', 'certified'])
+    expect(integrations(ledger).map(record => record.status)).toEqual(['running', 'certified'])
     const closing = ledger.events.at(-1)?.data as ProgramEnd
     expect(ledger.events.at(-1)?.type).toBe('program/end')
     expect(closing.outcome).toBe('released')
     expect(closing.mergedRevision).toMatch(/^[0-9a-f]{40}$/)
+
+    // Each department was certified over a committed tree: the mock wrote its
+    // file, was told the work was not delivered, committed it, and only then
+    // certified — so the recorded revision is a commit of its own rather than
+    // the base every worktree started at.
+    const delivered = certifiedAt(ledger, 'api') as ProgramGoalRecord
+    expect(delivered.revision).toMatch(/^[0-9a-f]{40}$/)
+    expect(delivered.tree).toMatch(/^[0-9a-f]{40}$/)
+    expect(delivered.revision).not.toBe(closing.mergedRevision)
+    expect(first.report.goals.map(goal => [goal.key, goal.revision === undefined, goal.tree === undefined]))
+      .toEqual([['api', false, false], ['docs', false, false]])
+
+    // The integration ran denied the worktrees root its own worktree sits in:
+    // its read of a department worktree was refused at the fs seam, and the
+    // read of its own worktree beneath that same root was not.
+    const certified = integrations(ledger).at(-1) as ProgramIntegrationRecord
+    expect(certified.denied).toEqual([join(repository, first.report.programId)])
+    expect(first.denials).toEqual([{
+      sessionId: `${first.report.programId}-@integration`,
+      capability: 'fs',
+      displayPath: join(repository, first.report.programId, 'api', 'api.md'),
+    }])
 
     // Every department and the integration is a member session of its program,
     // each carrying its own certificate and, for a department, its own caps.
@@ -168,5 +221,26 @@ describe('the program ledger through a real cordis.yml, killed and restarted', (
     const restartedMembers = third.members.filter(member => member.programId === third.report.programId)
     expect(restartedMembers.map(member => member.key).sort()).toEqual(['@integration', 'api', 'docs'])
     expect(new Set(restartedMembers.map(member => member.sessionId)).size).toBe(3)
-  }, PHASE_TIMEOUT_MS * 3 + LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+    // A third program dies inside its integration, after the session that owns
+    // the integration recorded its first run over the merged head.
+    await phase(sessions, repository, {
+      DSH_TEST_PROGRAM_LABEL: INTEGRATION_LABEL,
+      DSH_TEST_PROGRAM_KILL_AFTER_INTEGRATION_RUN: '1',
+    }, KILLED)
+
+    const fifth = result(await phase(sessions, repository, { DSH_TEST_PROGRAM_LABEL: INTEGRATION_LABEL }))
+    expect(fifth.report.outcome).toBe('released')
+
+    // The interrupted integration was taken back over on the session id it
+    // already owns: a second `running` record would be a second session for a
+    // derived id, which persistence refuses.
+    const resumedLedger = ledgerOf(fifth, fifth.report.programId)
+    const resumedIntegrations = integrations(resumedLedger)
+    expect(resumedIntegrations.map(record => record.status)).toEqual(['running', 'certified'])
+    expect(resumedIntegrations.at(-1)?.sessionId).toBe(`${fifth.report.programId}-@integration`)
+    const integrationMembers = fifth.members.filter(member =>
+      member.programId === fifth.report.programId && member.key === '@integration')
+    expect(integrationMembers).toHaveLength(1)
+  }, PHASE_TIMEOUT_MS * 5 + LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

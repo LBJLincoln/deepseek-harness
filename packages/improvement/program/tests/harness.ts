@@ -62,10 +62,11 @@ function runResult(scripted: ScriptedRun): ShellRunResult {
 /**
  * Build a registry-compatible agent around one concrete session.
  * @param session - the session the agent runs on.
- * @param onFollowup - what the agent's one turn does, called with the agent itself.
+ * @param onFollowup - what the agent's one turn does, called with the agent
+ *   itself and the text of the turn it was handed.
  * @returns the stub agent.
  */
-export function stubAgent(session: Session, onFollowup: (agent: Agent) => void = () => {}): Agent {
+export function stubAgent(session: Session, onFollowup: (agent: Agent, prompt: string) => void = () => {}): Agent {
   const inbox = new Inbox(session, { inserted: () => {}, discarded: () => {}, claimed: () => {} })
   const agent: Agent = {
     id: session.id,
@@ -75,7 +76,9 @@ export function stubAgent(session: Session, onFollowup: (agent: Agent) => void =
     ctx: new Context(),
     status: 'idle',
     send: () => {},
-    followup: () => { onFollowup(agent) },
+    followup: (message) => {
+      onFollowup(agent, message.content.map(block => (block.type === 'text' ? block.text : '')).join(''))
+    },
     steer: () => {},
     inject(input) { inbox.append('next-step', input) },
     cancel: () => {},
@@ -162,6 +165,16 @@ function spentChild(ctx: Context, id: string, totalTokens: number): Agent {
   return stubAgent(session)
 }
 
+/** One per-session denial the stubbed read barrier registered, reached through {@link ProgramHarness.denials}. */
+interface StubbedDenial {
+  /** The session the directory was denied to. */
+  readonly sessionId: SessionId
+  /** The denied directory. */
+  readonly path: string
+  /** Whether the registration was disposed. */
+  released: boolean
+}
+
 /** One signature a case records on a program session before the program starts. */
 interface HarnessSignature {
   readonly transition: SignoffTransition
@@ -183,6 +196,10 @@ export interface ProgramHarness {
   readonly commands: CommandLog
   /** Every delegated start the stubbed seam served, in order. */
   readonly starts: StubbedStart[]
+  /** Every per-session denial a composed read barrier registered, in order. */
+  readonly denials: StubbedDenial[]
+  /** The text of every turn the service delivered to a session it drives, in order. */
+  readonly prompts: string[]
   /** What each agent's turn appends to its own session before the checks run. */
   turn: (agent: Agent) => void
   /**
@@ -223,6 +240,11 @@ export interface HarnessOptions {
    * composes no seam at all, which is what a delegating program is refused for.
    */
   subagents?: readonly StubbedProvider[]
+  /**
+   * Whether a read barrier is composed. Omitting it composes none, which is the
+   * deployment whose integration records an empty denied list.
+   */
+  readBarrier?: boolean
 }
 
 /**
@@ -240,6 +262,8 @@ export async function programHarness(
   const sessions = options.sessions ?? mkdtempSync(join(tmpdir(), 'program-sessions-'))
   const commands: CommandLog = []
   const starts: StubbedStart[] = []
+  const denials: StubbedDenial[] = []
+  const prompts: string[] = []
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   await ctx.plugin(AgentRegistry)
@@ -255,12 +279,24 @@ export async function programHarness(
     sessions,
     commands,
     starts,
+    denials,
+    prompts,
     turn: () => {},
     sign: () => Promise.resolve(),
     unload: () => Promise.resolve(),
     dispose: async () => { await ctx.fiber.dispose() },
   }
   if (options.loader !== undefined) ctx.provide('loader', options.loader as never)
+  if (options.readBarrier === true) {
+    ctx.provide('readBarrier', {
+      reserve: (agent: Agent) => join(sessions, 'runs', agent.id),
+      denyFor: (session: Session, path: string) => {
+        const denial: StubbedDenial = { sessionId: session.id, path, released: false }
+        denials.push(denial)
+        return () => { denial.released = true }
+      },
+    } as never)
+  }
   if (options.subagents !== undefined) {
     const providers = new Map(options.subagents.map(provider => [provider.name, provider]))
     const attempts = new Map<string, number>()
@@ -322,7 +358,7 @@ export async function programHarness(
   const factory: AgentFactory = {
     async createAgent(_ownerCtx, created) {
       const session = ctx.sessions.create(created.sessionId, created.meta === undefined ? {} : { meta: created.meta })
-      const agent = stubAgent(session, (current) => { harness.turn(current) })
+      const agent = stubAgent(session, (current, prompt) => { prompts.push(prompt); harness.turn(current) })
       const agentCtx = ctx.extend({ agent })
       ;(agent as { ctx?: Context }).ctx = agentCtx
       await created.setup?.(agentCtx)
@@ -331,7 +367,7 @@ export async function programHarness(
     },
     async resume(_ownerCtx, resumed) {
       const preparation = await ctx.sessionPersistence.prepare(resumed.resumeSessionId)
-      const agent = stubAgent(preparation.session, (current) => { harness.turn(current) })
+      const agent = stubAgent(preparation.session, (current, prompt) => { prompts.push(prompt); harness.turn(current) })
       const agentCtx = ctx.extend({ agent })
       ;(agent as { ctx?: Context }).ctx = agentCtx
       await resumed.setup?.(agentCtx)

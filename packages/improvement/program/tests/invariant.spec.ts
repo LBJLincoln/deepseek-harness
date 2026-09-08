@@ -166,6 +166,11 @@ describe('merging and releasing follow a certified integration', () => {
     // a failed one is retried; a certified one is final.
     session.append('program/integration', { programId: PROGRAM, status: 'failed', reason: 'no worktree' })
     session.append('program/integration', { programId: PROGRAM, status: 'running' })
+    // One `running` record stands for one integration, which is what makes a
+    // later pass take that record over instead of starting a second one.
+    expect(() => {
+      session.append('program/integration', { programId: PROGRAM, status: 'running' })
+    }).toThrow('moves the integration from running to running, which the ledger does not admit')
     session.append('program/integration', { programId: PROGRAM, status: 'certified', mergedRevision: 'head' })
     expect(() => {
       session.append('program/integration', { programId: PROGRAM, status: 'running' })

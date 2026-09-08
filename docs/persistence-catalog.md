@@ -755,7 +755,7 @@ Source: [`packages/plan/plan-mode/src/index.ts:53`](../packages/plan/plan-mode/s
 'program/delegation': ProgramDelegation
 ```
 
-Source: [`packages/improvement/program/src/types.ts:307`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:328`](../packages/improvement/program/src/types.ts)
 
 <a id="programend--log-only"></a>
 
@@ -771,7 +771,7 @@ Source: [`packages/improvement/program/src/types.ts:307`](../packages/improvemen
 'program/end': ProgramEnd
 ```
 
-Source: [`packages/improvement/program/src/types.ts:290`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:311`](../packages/improvement/program/src/types.ts)
 
 <a id="programgoal--log-only"></a>
 
@@ -780,15 +780,16 @@ Source: [`packages/improvement/program/src/types.ts:290`](../packages/improvemen
 ```ts persistence-catalog
 /**
  * One goal of the program changed status: the key, the new status, and the
- * department session, worktree, branch head, or reason that status carries.
- * Appended after the fact it records is durable — the worktree exists, the
- * department session is flushed, the certificate is in the department's own
- * log — so the ledger never claims a state the departments cannot show.
+ * department session, worktree, committed revision and tree, or reason that
+ * status carries. Appended after the fact it records is durable — the
+ * worktree exists, the department session is flushed, the certificate is in
+ * the department's own log over a clean worktree — so the ledger never
+ * claims a state the departments cannot show.
  */
 'program/goal': ProgramGoalRecord
 ```
 
-Source: [`packages/improvement/program/src/types.ts:269`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:288`](../packages/improvement/program/src/types.ts)
 
 <a id="programintegration--log-only"></a>
 
@@ -798,13 +799,15 @@ Source: [`packages/improvement/program/src/types.ts:269`](../packages/improvemen
 /**
  * The integration of the program: `running` once the merged worktree
  * exists, then `certified` with the merged head its certificate covers, or
- * `failed` with the reason. Departments move to `merged` only after the
- * `certified` record.
+ * `failed` with the reason. One `running` record stands for one integration
+ * — a later process takes that record over rather than adding a second —
+ * and both closing records carry what the integration session was denied.
+ * Departments move to `merged` only after the `certified` record.
  */
 'program/integration': ProgramIntegrationRecord
 ```
 
-Source: [`packages/improvement/program/src/types.ts:276`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:297`](../packages/improvement/program/src/types.ts)
 
 <a id="programmember--log-only"></a>
 
@@ -820,7 +823,7 @@ Source: [`packages/improvement/program/src/types.ts:276`](../packages/improvemen
 'program/member': ProgramMember
 ```
 
-Source: [`packages/improvement/program/src/types.ts:297`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:318`](../packages/improvement/program/src/types.ts)
 
 <a id="programresume--log-only"></a>
 
@@ -836,7 +839,7 @@ Source: [`packages/improvement/program/src/types.ts:297`](../packages/improvemen
 'program/resume': ProgramResume
 ```
 
-Source: [`packages/improvement/program/src/types.ts:283`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:304`](../packages/improvement/program/src/types.ts)
 
 <a id="programstart--log-only"></a>
 
@@ -853,7 +856,7 @@ Source: [`packages/improvement/program/src/types.ts:283`](../packages/improvemen
 'program/start': ProgramStart
 ```
 
-Source: [`packages/improvement/program/src/types.ts:261`](../packages/improvement/program/src/types.ts)
+Source: [`packages/improvement/program/src/types.ts:279`](../packages/improvement/program/src/types.ts)
 
 ### `read-barrier/*`
 

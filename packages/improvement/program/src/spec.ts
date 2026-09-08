@@ -53,6 +53,7 @@ export type ProgramErrorCode =
   | 'PROGRAM_UNKNOWN_PRESET'
   | 'PROGRAM_IMPLEMENTER_UNAVAILABLE'
   | 'PROGRAM_IMPLEMENTER_ISOLATION'
+  | 'PROGRAM_INTEGRATION_UNRESUMABLE'
   | 'PROGRAM_GIT_FAILED'
 
 /** Error returned by the program boundary. */

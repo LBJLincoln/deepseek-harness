@@ -77,9 +77,15 @@ function delegated(provider: string, overrides: Partial<ProgramSpec> = {}, label
   })
 }
 
-/** The default script: every git command and every check succeeds. */
+/**
+ * The default script: every worktree is clean at the same commit, no branch is
+ * merged into the integration worktree yet, and every command succeeds.
+ */
 function passing(command: string): ScriptedRun {
-  return command.startsWith('git rev-parse') ? { stdout: 'headsha\n' } : {}
+  if (command === 'git rev-parse HEAD^{tree}') return { stdout: 'treesha\n' }
+  if (command.startsWith('git rev-parse')) return { stdout: 'headsha\n' }
+  if (command.startsWith('git merge-base')) return { exitCode: 1 }
+  return {}
 }
 
 /** A script that fails the named check command and passes everything else. */

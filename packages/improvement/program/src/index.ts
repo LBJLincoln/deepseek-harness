@@ -5,13 +5,19 @@
  * session whose certificate over the merged head is what a release claims.
  * Every ledger event is appended after the fact it records is durable, so a
  * restarted process reconciles each goal from its department's own log and
- * worktree and never runs a department twice. A department is staffed either by
- * the harness agent this service drives or, through the subagent seam, by an
- * external coding agent whose attempts this service records and whose tree it
- * certifies. The
- * [program-ledger](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)
+ * worktree and never runs a department twice, including an integration it
+ * interrupted. What a certificate covers is a commit: a session is certified
+ * only over a clean worktree, the record names the revision and tree it
+ * certified, and the integration merges each department branch only while that
+ * branch still points at it. The integration session is confined to its own
+ * worktree, so its repairs are commits of its own rather than edits in a
+ * department's. A department is staffed either by the harness agent this
+ * service drives or, through the subagent seam, by an external coding agent
+ * whose attempts this service records and whose tree it certifies. The
+ * [program-ledger](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md),
+ * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-program-external-implementer.md),
  * and
- * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-program-external-implementer.md)
+ * [workflow-integrity](../../../.agents/notes/proposed/architecture/2026-09-08-program-workflow-integrity.md)
  * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-program
  */
@@ -65,6 +71,7 @@ import type {
   FrozenProgramSpec,
   ProgramDelegationUsage,
   ProgramEnd,
+  ProgramGoalRecord,
   ProgramGoalSpec,
   ProgramGoalStatus,
   ProgramId,
@@ -138,10 +145,24 @@ export interface ProgramGoalOutcome {
   readonly status: ProgramGoalStatus
   /** The department's session, absent while it has none. */
   readonly sessionId?: SessionId
-  /** The department branch head at the latest recorded status. */
+  /** The commit the department branch carried at the latest recorded status. */
   readonly revision?: string
+  /** The tree object {@link ProgramGoalOutcome.revision} points at. */
+  readonly tree?: string
   /** The blocking code or failure text of the latest recorded status. */
   readonly reason?: string
+}
+
+/**
+ * What one department committed, read from its worktree when its checks
+ * certified it. The pair travels together: the revision is what the integration
+ * merges and the tree is what that revision delivers.
+ */
+interface CertifiedTree {
+  /** The commit the worktree had checked out, from `git rev-parse HEAD`. */
+  readonly revision: string
+  /** The tree that commit carries, from `git rev-parse HEAD^{tree}`. */
+  readonly tree: string
 }
 
 /** What one pass over a program produced, read back from the ledger it wrote. */
@@ -163,7 +184,8 @@ interface DepartmentState {
   status: ProgramGoalStatus
   sessionId: SessionId | undefined
   workspace: string | undefined
-  revision: string | undefined
+  /** What the department committed, present exactly while its status is `certified` or `merged`. */
+  certified: CertifiedTree | undefined
   reason: string | undefined
   /** Whether a department pass currently owns this state. */
   driving: boolean
@@ -177,6 +199,12 @@ interface ProgramRun {
   readonly session: Session
   readonly states: Map<string, DepartmentState>
   integration: ProgramIntegrationRecord | undefined
+  /**
+   * Whether persistence already holds the session of the `running` integration
+   * this pass took over. The integration session id is derived from the program
+   * id, so an interrupted integration is resumed rather than opened again.
+   */
+  resumingIntegration: boolean
   outcome: ProgramOutcome | undefined
 }
 
@@ -245,6 +273,29 @@ function outcomeOf(result: ShellRunResult): string {
 function retryText(failures: readonly CheckResult[]): string {
   const listed = failures.map(failure => `- ${failure.checkId}: ${failure.evidence}`).join('\n')
   return `<checks_failed>\n${String(failures.length)} of this goal's checks did not pass on the branch as it stands.\n${listed}\nKeep working and commit; the checks run again when you stop.\n</checks_failed>`
+}
+
+/**
+ * The one user turn a session receives when its worktree carries work no commit
+ * on the branch does. Only the branch is delivered, so the checks are not even
+ * run against files this goal would leave behind.
+ * @param uncommitted - `git status --porcelain` output of the worktree, bounded.
+ * @returns the turn text.
+ */
+function uncommittedText(uncommitted: string): string {
+  return `<uncommitted_work>\nThis goal delivers what is committed on its branch, and the worktree carries work that no commit does:\n${uncommitted}\nCommit all of it; work left uncommitted is not delivered and is not measured. The checks run again when you stop.\n</uncommitted_work>`
+}
+
+/**
+ * What one ledger record states its department committed.
+ * @param record - the latest `program/goal` the ledger holds for one key.
+ * @returns the committed revision and its tree, or `undefined` for a record
+ *   that states neither, which is every status before `certified`.
+ */
+function certifiedTreeOf(record: ProgramGoalRecord): CertifiedTree | undefined {
+  const { revision, tree } = record
+  if (revision === undefined || tree === undefined) return undefined
+  return { revision, tree }
 }
 
 /** Directory test that treats a missing or unreadable path as no directory. */
@@ -512,13 +563,19 @@ export class ProgramService extends Service {
       return await this.publish(preparation.session, async () => {
         const run = this.newRun(ledger.start.programId, ledger.start.spec, preparation.session)
         run.integration = ledger.integration
+        // An integration left `running` whose session persistence already holds
+        // is taken back over: the id is derived from the program, so opening a
+        // second session for it would be refused and the interrupted
+        // integration could never finish.
+        run.resumingIntegration = ledger.integration?.status === 'running'
+          && sessions.has(this.departmentSessionId(run.programId, INTEGRATION_KEY))
         for (const state of run.states.values()) {
           const recorded = ledger.goals.get(state.goal.key)
           if (recorded !== undefined) {
             state.status = recorded.status
             state.sessionId = recorded.sessionId
             state.workspace = recorded.workspace
-            state.revision = recorded.revision
+            state.certified = certifiedTreeOf(recorded)
             state.reason = recorded.reason
           }
           const reconciled = await this.reconcile(run, state, sessions)
@@ -550,11 +607,12 @@ export class ProgramService extends Service {
         status: 'pending',
         sessionId: undefined,
         workspace: undefined,
-        revision: undefined,
+        certified: undefined,
         reason: undefined,
         driving: false,
       }])),
       integration: undefined,
+      resumingIntegration: false,
       outcome: undefined,
     }
   }
@@ -588,7 +646,10 @@ export class ProgramService extends Service {
     const department = foldDepartmentLog(scanned.events)
     if (department.certified) {
       state.status = 'certified'
-      state.revision = await this.head(workspace)
+      // What the ledger already recorded is what the certificate covers; the
+      // worktree is read only when no record states it, which is a process that
+      // died between the department's certificate and the record of it.
+      state.certified ??= await this.certifiedTree(workspace)
       return before !== state.status
     }
     if (department.phase === 'blocked') {
@@ -608,7 +669,7 @@ export class ProgramService extends Service {
       status: state.status,
       ...state.sessionId === undefined ? {} : { sessionId: state.sessionId },
       ...state.workspace === undefined ? {} : { workspace: state.workspace },
-      ...state.revision === undefined ? {} : { revision: state.revision },
+      ...state.certified === undefined ? {} : { revision: state.certified.revision, tree: state.certified.tree },
       ...state.reason === undefined ? {} : { reason: state.reason },
     })
   }
@@ -709,13 +770,19 @@ export class ProgramService extends Service {
       await this.failIntegration(run, String(error))
       return
     }
-    run.integration = { programId: run.programId, status: 'running' }
-    run.session.append('program/integration', run.integration)
-    await this.ctx.sessions.flush(run.session)
+    // A `running` record already stands for the integration this pass took
+    // over, and the ledger admits one start per integration, so only a first
+    // pass records one.
+    if (run.integration?.status !== 'running') {
+      run.integration = { programId: run.programId, status: 'running' }
+      run.session.append('program/integration', run.integration)
+      await this.ctx.sessions.flush(run.session)
+    }
     try {
-      for (const key of dependencyOrder(run.spec.goals)) {
-        const departmentBranch = this.branchName(run.programId, key)
-        await this.git(['merge', '--no-ff', '-m', departmentBranch, departmentBranch], workspace)
+      const moved = await this.mergeDepartments(run, workspace)
+      if (moved !== undefined) {
+        await this.failIntegration(run, moved)
+        return
       }
     } catch (error: unknown) {
       await this.failIntegration(run, String(error))
@@ -725,31 +792,94 @@ export class ProgramService extends Service {
     if (certified) await this.markMerged(run)
   }
 
+  /**
+   * Merge every department branch into the integration worktree in dependency
+   * order, refusing a branch that no longer carries the commit its certificate
+   * covers and skipping one this worktree already merged.
+   * @param run - the program being integrated, whose states hold what each
+   *   department committed.
+   * @param workspace - the integration worktree the merges are made in.
+   * @returns why the integration cannot merge, or `undefined` once every branch
+   *   is in the worktree.
+   * @throws {@link ProgramError} when a git command fails.
+   */
+  private async mergeDepartments(run: ProgramRun, workspace: string): Promise<string | undefined> {
+    for (const key of dependencyOrder(run.spec.goals)) {
+      const branch = this.branchName(run.programId, key)
+      // Only a program whose every goal is certified is integrated, and every
+      // path to that status records what the department committed.
+      const certified = (run.states.get(key) as DepartmentState).certified as CertifiedTree
+      const head = await this.git(['rev-parse', branch], workspace)
+      if (head !== certified.revision) {
+        return `department "${key}" was certified at ${certified.revision}, and ${branch} now points at ${head}, so the branch is no longer what this program certified`
+      }
+      // A resumed integration finds the branches its interrupted pass already
+      // merged; merging one again would record a merge of nothing.
+      if (await this.contains(branch, workspace)) continue
+      await this.git(['merge', '--no-ff', '-m', branch, branch], workspace)
+    }
+    return undefined
+  }
+
+  /**
+   * Whether one worktree's head already contains a branch.
+   * @param branch - the branch to test for.
+   * @param workspace - the worktree whose head is tested.
+   * @returns whether the branch is an ancestor of that head.
+   */
+  private async contains(branch: string, workspace: string): Promise<boolean> {
+    const command = `git merge-base --is-ancestor ${branch} HEAD`
+    return passed(await this.ctx.shell.run(this.ctx.shell.resolve({ command, workdir: workspace })))
+  }
+
   /** Record every goal of a certified integration as merged. */
   private async markMerged(run: ProgramRun): Promise<void> {
     for (const state of run.states.values()) await this.transition(run, state, 'merged', undefined)
   }
 
-  /** Record an integration that could not produce a merged head to certify. */
-  private async failIntegration(run: ProgramRun, reason: string): Promise<void> {
-    run.integration = { programId: run.programId, status: 'failed', reason }
+  /**
+   * Record an integration that could not produce a merged head to certify.
+   * @param run - the program whose ledger records the failure.
+   * @param reason - why the integration cannot certify a merged head.
+   * @param denied - what the integration session was denied, absent for a
+   *   failure recorded before that session existed.
+   */
+  private async failIntegration(run: ProgramRun, reason: string, denied?: readonly string[]): Promise<void> {
+    run.integration = {
+      programId: run.programId,
+      status: 'failed',
+      reason,
+      ...denied === undefined ? {} : { denied },
+    }
     run.session.append('program/integration', run.integration)
     await this.ctx.sessions.flush(run.session)
   }
 
-  /** Certify the merged head, letting a model fix it when the checks do not pass as merged. */
+  /**
+   * Certify the merged head, letting a model fix it when the checks do not pass
+   * as merged. The session is confined to the integration worktree for as long
+   * as it runs, so the repair it makes is a commit on the integration branch
+   * rather than an edit in a department's worktree.
+   * @param run - the program being integrated.
+   * @param workspace - the integration worktree holding the merged head.
+   * @returns whether the merged head certified.
+   */
   private async driveIntegration(run: ProgramRun, workspace: string): Promise<boolean> {
     const sessionId = this.departmentSessionId(run.programId, INTEGRATION_KEY)
-    const handle = await this.createSession(sessionId, workspace, undefined, run.programId, INTEGRATION_KEY)
+    const resuming = run.resumingIntegration
+    const handle = resuming
+      ? await this.resumeSession(sessionId, undefined)
+      : await this.createSession(sessionId, workspace, undefined, run.programId, INTEGRATION_KEY)
+    const { agent } = handle
+    const seal = this.sealIntegration(agent, run.programId)
     try {
-      const { agent } = handle
-      const goal = this.ctx.goals.create(agent, {
-        objective: `Make the merged head of "${run.spec.objective}" pass its integration standard.`,
-        maxGoalRounds: this.config.maxGoalRounds,
-      })
-      this.ctx.goals.disarm(agent)
-      this.ctx.completionStandards.author(agent, { goalId: goal.id, checks: integrationChecks(run.spec.integration) })
-      await this.ctx.sessions.flush(agent.session)
+      let from: number
+      try {
+        from = resuming ? await this.resumeIntegrationGoal(agent) : await this.openIntegrationGoal(agent, run)
+      } catch (error: unknown) {
+        await this.failIntegration(run, String(error), seal.denied)
+        return false
+      }
       // The merge itself is the first candidate: a clean merge whose checks
       // pass needs no model turn at all. The integration is always driven
       // through the model route, whatever staffs the program's departments:
@@ -759,21 +889,82 @@ export class ProgramService extends Service {
         workspace,
         isolation: 'none',
         objective: undefined,
-        from: 1,
+        from,
         work: (prompt): Promise<boolean> => this.turn(agent, prompt),
       })
       if (!certified) {
-        await this.failIntegration(run, 'the merged head did not pass the integration standard')
+        await this.failIntegration(run, 'the merged head did not pass the integration standard', seal.denied)
         return false
       }
       const mergedRevision = await this.head(workspace)
-      run.integration = { programId: run.programId, status: 'certified', mergedRevision, sessionId }
+      run.integration = { programId: run.programId, status: 'certified', mergedRevision, sessionId, denied: seal.denied }
       run.session.append('program/integration', run.integration)
       await this.ctx.sessions.flush(run.session)
       return true
     } finally {
+      seal.release()
       await handle.dispose()
     }
+  }
+
+  /**
+   * Create the goal and the standard one fresh integration session is measured
+   * against.
+   * @param agent - the integration session.
+   * @param run - the program whose objective and integration spec they state.
+   * @returns the attempt this pass starts at, which is the first.
+   */
+  private async openIntegrationGoal(agent: Agent, run: ProgramRun): Promise<number> {
+    const goal = this.ctx.goals.create(agent, {
+      objective: `Make the merged head of "${run.spec.objective}" pass its integration standard.`,
+      maxGoalRounds: this.config.maxGoalRounds,
+    })
+    this.ctx.goals.disarm(agent)
+    this.ctx.completionStandards.author(agent, { goalId: goal.id, checks: integrationChecks(run.spec.integration) })
+    await this.ctx.sessions.flush(agent.session)
+    return 1
+  }
+
+  /**
+   * Take one interrupted integration's session back over: the resume edge is
+   * the durable record that this process owns it, and the disarm that follows
+   * keeps the attempts this service's rather than the goal-round driver's.
+   * @param agent - the resumed integration session, which already carries its
+   *   goal and its standard.
+   * @returns the attempt this pass continues at, after the validation runs the
+   *   session's own log records.
+   * @throws {@link ProgramError} when the session carries no goal to resume.
+   */
+  private async resumeIntegrationGoal(agent: Agent): Promise<number> {
+    const current = this.ctx.goals.get(agent)
+    if (current === undefined) {
+      throw new ProgramError('the integration session carries no goal to resume', 'PROGRAM_INTEGRATION_UNRESUMABLE')
+    }
+    this.ctx.goals.resume(agent, { id: current.id, revision: current.revision })
+    this.ctx.goals.disarm(agent)
+    await this.ctx.sessions.flush(agent.session)
+    return foldDepartmentLog(agent.session.events).runs + 1
+  }
+
+  /**
+   * Deny the integration session every worktree of its program but its own, for
+   * as long as the integration runs. The denied directory is the program's
+   * worktrees root: the barrier grants a session its own workspace beneath a
+   * denied ancestor, and every department worktree is a sibling of the
+   * integration's inside that root, so the one registration reaches every
+   * department worktree and nothing of the integration's own.
+   *
+   * A composition without a barrier denies nothing, which is what the
+   * integration's `none` isolation claim already states.
+   * @param agent - the integration agent whose session the denial binds.
+   * @param programId - the program whose worktrees root is denied.
+   * @returns the denied directories and the registration's disposer.
+   */
+  private sealIntegration(agent: Agent, programId: ProgramId): { denied: readonly string[]; release: () => void } {
+    const barrier = this.ctx.get('readBarrier')
+    if (barrier === undefined) return { denied: [], release: () => {} }
+    const worktrees = this.worktreesRoot(programId)
+    return { denied: [worktrees], release: barrier.denyFor(agent.session, worktrees) }
   }
 
   /** Create or resume one department, drive it, and record what it came to. */
@@ -918,7 +1109,9 @@ export class ProgramService extends Service {
       await this.transition(run, state, 'failed', `no certificate after ${String(this.config.maxGoalRounds)} rounds`)
       return
     }
-    state.revision = await this.head(workspace)
+    // The certifying attempt ran over a clean worktree, so the head it reads is
+    // the commit the checks measured and the integration will merge.
+    state.certified = await this.certifiedTree(workspace)
     await this.transition(run, state, 'certified', undefined)
   }
 
@@ -982,6 +1175,11 @@ export class ProgramService extends Service {
   /**
    * Run the session's standard against its workspace, letting the attempt's own
    * work happen between runs, until it certifies or the round cap is spent.
+   *
+   * An attempt whose worktree carries work no commit does is not measured at
+   * all: only the branch is delivered, so certifying files that no merge would
+   * carry would certify something the program cannot integrate. That attempt
+   * spends its round and directs the session to commit.
    * @param plan - the session, worktree, isolation claim, first prompt, first
    *   attempt, and the work one attempt does.
    * @returns whether a run certified the standard.
@@ -994,6 +1192,16 @@ export class ProgramService extends Service {
       const standard = this.ctx.completionStandards.get(agent)
       if (standard === undefined) return false
       const ref = { id: standard.id, revision: standard.revision }
+      const uncommitted = bounded(await this.git(['status', '--porcelain'], workspace), this.config.evidenceMaxChars)
+      if (uncommitted !== '') {
+        this.ctx.completionStandards.issueDirective(agent, ref, {
+          rootCause: 'the worktree carries work that no commit on this branch carries',
+          detail: uncommitted,
+        })
+        await this.ctx.sessions.flush(agent.session)
+        prompt = uncommittedText(uncommitted)
+        continue
+      }
       const results = await this.execute(standard.checks, workspace)
       const outcome = this.ctx.completionStandards.recordRun(agent, ref, plan.isolation, results, { executor: 'runner' })
       await this.ctx.sessions.flush(agent.session)
@@ -1061,8 +1269,14 @@ export class ProgramService extends Service {
     return handle
   }
 
-  /** Resume one department's session over the worktree its header already names. */
-  private async resumeSession(sessionId: SessionId, preset: string): Promise<AgentHandle> {
+  /**
+   * Resume one member session over the worktree its header already names.
+   * @param sessionId - the derived session id of the department or integration.
+   * @param preset - the preset to mount, or `undefined` for the roster's
+   *   default, which is what the integration runs under.
+   * @returns the resumed handle, already reserved with the barrier.
+   */
+  private async resumeSession(sessionId: SessionId, preset: string | undefined): Promise<AgentHandle> {
     const handle = await this.ctx.agents.resume({ resumeSessionId: sessionId, ...this.composition(preset) })
     await this.reserve(handle)
     return handle
@@ -1074,9 +1288,17 @@ export class ProgramService extends Service {
     this.ctx.get('readBarrier')?.reserve(handle.agent)
   }
 
+  /**
+   * The directory holding every worktree of one program: one per goal and the
+   * integration's own, as siblings.
+   */
+  private worktreesRoot(programId: ProgramId): string {
+    return join(this.config.workspaceRoot, programId)
+  }
+
   /** The absolute worktree path of one key of one program. */
   private worktreePath(programId: ProgramId, key: string): string {
-    return join(this.config.workspaceRoot, programId, key)
+    return join(this.worktreesRoot(programId), key)
   }
 
   /** The branch one key of one program is delivered on. */
@@ -1101,10 +1323,24 @@ export class ProgramService extends Service {
   }
 
   /**
+   * What one worktree's branch delivers right now. `HEAD^{tree}` needs no shell
+   * quoting in any dialect the shell seam composes, and it is a literal of this
+   * service rather than anything a spec can name.
+   * @param workspace - the worktree to read.
+   * @returns the checked-out commit and the tree it carries.
+   */
+  private async certifiedTree(workspace: string): Promise<CertifiedTree> {
+    const revision = await this.head(workspace)
+    return { revision, tree: await this.git(['rev-parse', 'HEAD^{tree}'], workspace) }
+  }
+
+  /**
    * Run one git command through the composed shell.
    * @param args - the command words, each already free of shell metacharacters.
    * @param workdir - the directory the command runs in.
-   * @returns the trimmed standard output.
+   * @returns the standard output without its trailing newlines. Leading
+   *   characters are kept, because `git status --porcelain` states in them
+   *   whether a path is staged, changed, or untracked.
    * @throws {@link ProgramError} when the command did not exit zero.
    */
   private async git(args: readonly string[], workdir: string): Promise<string> {
@@ -1113,7 +1349,7 @@ export class ProgramService extends Service {
     if (!passed(result)) {
       throw new ProgramError(`"${command}" in ${workdir} failed: ${outcomeOf(result)}`, 'PROGRAM_GIT_FAILED')
     }
-    return result.stdout.text.trim()
+    return result.stdout.text.trimEnd()
   }
 
   /**
@@ -1147,7 +1383,7 @@ export class ProgramService extends Service {
           key: goal.key,
           status: state.status,
           ...state.sessionId === undefined ? {} : { sessionId: state.sessionId },
-          ...state.revision === undefined ? {} : { revision: state.revision },
+          ...state.certified === undefined ? {} : { revision: state.certified.revision, tree: state.certified.tree },
           ...state.reason === undefined ? {} : { reason: state.reason },
         }
       }),
@@ -1169,6 +1405,7 @@ export class ProgramService extends Service {
           status: recorded?.status ?? 'pending',
           ...recorded?.sessionId === undefined ? {} : { sessionId: recorded.sessionId },
           ...recorded?.revision === undefined ? {} : { revision: recorded.revision },
+          ...recorded?.tree === undefined ? {} : { tree: recorded.tree },
           ...recorded?.reason === undefined ? {} : { reason: recorded.reason },
         }
       }),

@@ -20,9 +20,10 @@ import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 import type {} from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
-import { programIdFor, programSpecDigest, resolveProgramSpec } from '@deepseek-ai/dsh-program'
+import { INTEGRATION_KEY, programIdFor, programSpecDigest, resolveProgramSpec } from '@deepseek-ai/dsh-program'
 import type { ProgramSpec } from '@deepseek-ai/dsh-program'
 import type {} from '@deepseek-ai/dsh-program'
+import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
@@ -41,6 +42,16 @@ interface LedgerLine {
   readonly events: { readonly type: string; readonly data: unknown }[]
   /** Transitions the same session was signed for, in log order. */
   readonly signoffs: string[]
+}
+
+/** One refusal the read barrier recorded, as the e2e asserts on it. */
+interface DenialLine {
+  /** The session that was refused the read. */
+  readonly sessionId: string
+  /** The seam that refused it. */
+  readonly capability: string
+  /** The path as the refused tool call named it. */
+  readonly displayPath: string
 }
 
 /** One member session's stamp as the e2e asserts on it. */
@@ -87,7 +98,12 @@ function ensureRepository(root: string): void {
   git('tag', 'base')
 }
 
-/** The program the fixture runs: two goals, the second delivered after the first. */
+/**
+ * The program the fixture runs: two goals, the second delivered after the
+ * first. Each goal names the file its department writes, which is what the
+ * mock implementer writes and then commits, and the integration standard
+ * measures a file only the integration's own repair turn can create.
+ */
 function programSpec(label: string): ProgramSpec {
   const budget = { maxTotalTokens: 400_000, maxWallMs: 300_000 }
   return {
@@ -97,26 +113,28 @@ function programSpec(label: string): ProgramSpec {
     goals: [
       {
         key: 'api',
-        objective: 'Deliver the api of this program on its own branch.',
+        objective: 'Deliver the api of this program on its own branch. Write api.md and commit it.',
         preset: 'implementing',
         isolation: 'none',
         budget,
         dependsOn: [],
-        checks: [{ id: 'api-base-present' as CheckId, outcome: 'the branch still carries the base file', run: 'test -f base.txt' }],
+        checks: [{ id: 'api-present' as CheckId, outcome: 'the branch carries the api file', run: 'test -f api.md' }],
       },
       {
         key: 'docs',
-        objective: 'Document the api of this program on its own branch.',
+        objective: 'Document the api of this program on its own branch. Write docs.md and commit it.',
         preset: 'documenting',
         isolation: 'none',
         budget,
         dependsOn: ['api'],
-        checks: [{ id: 'docs-base-present' as CheckId, outcome: 'the branch still carries the base file', run: 'test -f base.txt' }],
+        checks: [{ id: 'docs-present' as CheckId, outcome: 'the branch carries the docs file', run: 'test -f docs.md' }],
       },
     ],
     integration: {
       checks: [{ id: 'merged-base-present' as CheckId, outcome: 'the merged head carries the base file', run: 'test -f base.txt' }],
-      gates: ['test -r base.txt'],
+      // The merge alone never satisfies this gate: no department branch carries
+      // the file, so the merged head is what the integration's own turn repairs.
+      gates: ['test -f integrated.md'],
     },
   }
 }
@@ -199,6 +217,20 @@ try {
       if (event.type === 'program/goal' && event.data.status === 'certified') process.exit(KILLED)
     })
   }
+  if (process.env.DSH_TEST_PROGRAM_KILL_AFTER_INTEGRATION_RUN === '1') {
+    // The directive follows the flushed run of the integration's first attempt,
+    // so the exit leaves persistence holding an integration session with a goal,
+    // a standard, and one recorded run — the state a resume takes back over.
+    ctx.on('session/event', (session, event) => {
+      if (event.type === 'verification/directive' && session.id.endsWith(INTEGRATION_KEY)) process.exit(KILLED)
+    })
+  }
+  const denials: DenialLine[] = []
+  ctx.on('session/event', (session, event) => {
+    if (event.type === 'read-barrier/denied') {
+      denials.push({ sessionId: session.id, capability: event.data.capability, displayPath: event.data.displayPath })
+    }
+  }, { global: true })
   const spec = programSpec(process.env.DSH_TEST_PROGRAM_LABEL ?? 'first')
   // The program id is the spec digest, so the two signatures the deployment
   // requires are recorded on that session before the program opens it. A second
@@ -206,7 +238,7 @@ try {
   await sign(ctx, spec, repository)
   const report = await programs.start(spec)
   const observed = await readRoot(persistence)
-  process.stdout.write(`${JSON.stringify({ type: 'result', report, ...observed })}\n`)
+  process.stdout.write(`${JSON.stringify({ type: 'result', report, denials, ...observed })}\n`)
 } finally {
   await ctx.fiber.dispose()
 }
