@@ -12,6 +12,15 @@
 # confined ripgrep spawn is what registers `subprocess` enforcement — without it
 # that capability is composed and unenforced, and a certificate over this
 # composition is refused for it.
+#
+# Measured on 2026-09-08: with the Claude Code LLM route composed, every cell
+# still fails its certificate with `VERIFICATION_ISOLATION_UNPROVEN` ("capability
+# "subprocess" is composed without read-barrier enforcement"), because the route
+# itself spawns the product CLI through the subprocess service outside the
+# sandbox, and the census attributes that spawn to the implementer session. Until
+# the census can tell the route's own spawn from a tool the implementer holds,
+# route arms run on the base composition: the same bwrap seal enforced, the
+# claim `none`. This overlay serves a route that spawns nothing.
 - id: base
   name: '@deepseek-ai/cordis-plugin-include'
   config:
