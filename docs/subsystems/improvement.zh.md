@@ -541,15 +541,16 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 /**
  * Run one environment as one fresh session and validate it.
  * @param request - environment id, absolute workspace directory, optional
- *   implementer, model route, repetition, group, district, policy version,
- *   sampling seed, and abort signal.
- * @returns the stamp, the attempts, the certificate when one run passed, the
- *   accumulated usage, and the caps the cell ran under.
+ *   implementer, model route, attempt ladder, repetition, group, district,
+ *   policy version, sampling seed, and abort signal.
+ * @returns the stamp, the attempts with the route each ran on, the
+ *   certificate when one run passed, the accumulated usage, and the caps the
+ *   cell ran under.
  * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
- *   is not a safe non-negative integer, an implementer provider the
- *   composition does not hold, cannot confine, or has no budget policy to
- *   bound, an unusable workspace or fixture, an implementer that replaced the
- *   goal, or a lost standard.
+ *   is not a safe non-negative integer, an empty or over-long attempt ladder,
+ *   an implementer provider the composition does not hold, cannot confine, or
+ *   has no budget policy to bound, an unusable workspace or fixture, an
+ *   implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -587,7 +588,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:857`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:981`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -635,7 +636,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:382`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:403`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -650,21 +651,23 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  * first cell runs; a cell the fleet kept as an error leaves its repetition
  * unpaired instead of failing the experiment.
  * @param plan - environments, repetitions, the two arms with their model
- *   routes and optional implementers, the workspace root, and an optional
- *   policy version, base seed, frozen digest, abort signal, and result sink.
- * @returns the digest, both arms with their stamp groups, one cell per
- *   environment, the pooled delta with its interval, the spend, the caps both
- *   arms ran under, and the verdict.
+ *   routes and optional attempt ladders and implementers, the workspace root,
+ *   and an optional policy version, base seed, frozen digest, abort signal,
+ *   and result sink.
+ * @returns the digest, both arms with their ladders and stamp groups, one
+ *   cell per environment, the pooled delta with its interval, the spend, the
+ *   caps both arms ran under, and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
  *   unregistered environment, asks for no repetition, sets a seed that is not
- *   a safe non-negative integer, whose two arms would run under different
- *   caps, declares a digest its content does not freeze to, or projects more
- *   tokens than the budget.
+ *   a safe non-negative integer, carries an arm ladder with no rung or one
+ *   whose first rung names another route, whose two arms would run under
+ *   different caps, declares a digest its content does not freeze to, or
+ *   projects more tokens than the budget.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:119`](../../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:130`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 
@@ -678,19 +681,20 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, an optional implementer,
- *   repetitions, an optional exact cell selection, workspace root, group,
- *   district, policy version, base seed, token ceiling, and abort signal.
+ * @param plan - environments, model routes, an optional attempt ladder and
+ *   implementer, repetitions, an optional exact cell selection, workspace
+ *   root, group, district, policy version, base seed, token ceiling, and
+ *   abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
  *   no repetition, names no or an unenumerated cell, sets a token ceiling
- *   that is not a positive integer, or sets a seed that is not a safe
- *   non-negative integer.
+ *   that is not a positive integer, sets a seed that is not a safe
+ *   non-negative integer, or carries an attempt ladder with no rung.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:301`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:307`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 
