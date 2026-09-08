@@ -4493,7 +4493,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ProgramGoalOutcome',
-    declaration: 'export interface ProgramGoalOutcome {\n    readonly key: string;\n    readonly status: ProgramGoalStatus;\n    readonly sessionId?: SessionId;\n    readonly revision?: string;\n    readonly reason?: string;\n}',
+    declaration: 'export interface ProgramGoalOutcome {\n    readonly key: string;\n    readonly status: ProgramGoalStatus;\n    readonly sessionId?: SessionId;\n    readonly revision?: string;\n    readonly tree?: string;\n    readonly reason?: string;\n}',
   },
   {
     name: 'ProgramGoalSpec',

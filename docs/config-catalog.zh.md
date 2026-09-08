@@ -1836,7 +1836,7 @@ export interface Config {
 }
 ```
 
-来源：[`packages/improvement/program/src/index.ts:120`](../packages/improvement/program/src/index.ts)
+来源：[`packages/improvement/program/src/index.ts:127`](../packages/improvement/program/src/index.ts)
 
 <a id="deepseek-aidsh-pwsh-local"></a>
 
