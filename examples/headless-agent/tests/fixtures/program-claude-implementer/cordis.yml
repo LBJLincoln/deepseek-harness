@@ -83,9 +83,18 @@
 
 # The provider name is fixed by the package. Its `env` stays empty: the child
 # runs on the host's own product settings and authentication, which this
-# composition neither supplies nor filters.
+# composition neither supplies nor filters. What the composition does decide
+# is what an unattended child may do without a prompt, since a `-p` child is
+# denied everything it would have asked for: file edits, and the git commands
+# the program requires of a department, because a certificate covers a commit.
 - id: subagent-claude-code
   name: '@deepseek-ai/dsh-subagent-claude-code'
+  config:
+    permissionMode: acceptEdits
+    allowedTools:
+      - 'Bash(git add:*)'
+      - 'Bash(git commit:*)'
+      - 'Bash(git status:*)'
 
 - id: program
   name: '@deepseek-ai/dsh-program'

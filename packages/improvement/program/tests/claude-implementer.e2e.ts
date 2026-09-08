@@ -5,15 +5,16 @@
  * `DSH_E2E_CLAUDE_CODE=1` after confirming that `claude -p "ok"` works in the
  * same shell; without it the suite self-skips.
  *
- * The program asks for one file and is certified on a check that reads it, so
- * what passes is the tree the external agent left in the department worktree —
- * nothing the agent says about itself. The provider deliberately leaves the
- * child under the host's native Claude settings, and those settings decide
- * whether an unattended run may write at all: on a host that denies it, every
- * attempt still ends `completed` and is recorded, and the program records the
- * department `failed` because the file the check reads is not there. Confirm
- * that `claude -p` can create a file in a scratch directory before reading a
- * failure here as a harness defect.
+ * The program asks for one file, committed, and is certified on a check that
+ * reads it from a clean worktree, so what passes is the commit the external
+ * agent left on the department branch — nothing the agent says about itself.
+ * The provider leaves the child under the host's native Claude settings and
+ * authentication; the composition grants only what an unattended child cannot
+ * ask for (file edits, `git add`, `git commit`, `git status`), and a host whose
+ * settings deny more than that still records every attempt as `completed` and
+ * the department as `failed`, because the file the check reads is not there.
+ * Confirm that `claude -p` can create a file in a scratch directory before
+ * reading a failure here as a harness defect.
  */
 
 import { mkdtemp, rm } from 'node:fs/promises'
