@@ -1,0 +1,1918 @@
+{
+  "type": "result",
+  "plan": "held-out-sonnet-all",
+  "environments": [
+    "code:glob-brace",
+    "code:ini-parse",
+    "code:kv-log-store",
+    "code:lru-ttl-cache",
+    "code:retry-policy",
+    "code:semver-ranges",
+    "code:topo-sort",
+    "code:wrap-justify"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-08T16:46:34.710Z",
+  "endedAt": "2026-09-08T17:24:53.797Z",
+  "report": {
+    "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:glob-brace",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:glob-brace",
+          "sessionId": "environment-ad7bf38c-e8e9-4fb9-a640-a04557ab68aa",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:glob-brace",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "e7e25bed424269491e9050500f007e2495c304624fdaf8a4b43f44904ea8f88e",
+            "checksSha256": "3a534a899b452269b294f46a49ef8cde972cbc872c68cb4ef3704b8f62713223",
+            "fixtureSha256": "e13eaf2bca1bc4ccb0e5909e6d3ae3870c57617167a71b7b62ff5fe55cff8a84",
+            "contentSha256": "9e09176c2f53d7d33a6d9ce36a74f57c5ad8625f048dbb8f413454b6a11ebb98",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… with neither a comma nor a range stays literal\nok 6 - a group with neither a comma nor a range stays literal\n  ---\n  duration_ms: 132.418538\n  type: 'test'\n  ...\n# Subtest: a pattern with no group expands to itself\nok 7 - a pattern with no group expands to itself\n  ---\n  duration_ms: 95.478184\n  type: 'test'\n  ...\n# Subtest: a star matches inside one segment only\nok 8 - a star matches inside one segment only\n  ---\n  duration_ms: 149.825425\n  type: 'test'\n  ...\n# Subtest: a question mark matches exactly one character\nok 9 - a question mark matches exactly one character\n  ---\n  duration_ms: 82.489384\n  type: 'test'\n  ...\n# Subtest: a bracket range matches one character of the range\nok 10 - a bracket range matches one character of the range\n  ---\n  duration_ms: 151.579799\n  type: 'test'\n  ...\n# Subtest: a globstar segment spans any number of segments\nok 11 - a globstar segment spans any number of segments\n  ---\n  duration_ms: 121.361792\n  type: 'test'\n  ...\n# Subtest: an at-group matches exactly one alternative\nok 12 - an at-group matches exactly one alternative\n  ---\n  duration_ms: 98.875847\n  type: 'test'\n  ...\n# Subtest: a bang-group matches anything but its alternatives\nok 13 - a bang-group matches anything but its alternatives\n  ---\n  duration_ms: 155.200513\n  type: 'test'\n  ...\n# Subtest: a backslash makes the next character literal\nok 14 - a backslash makes the next character literal\n  ---\n  duration_ms: 81.101042\n  type: 'test'\n  ...\n# Subtest: the pattern is brace-expanded before it matches\nok 15 - the pattern is brace-expanded before it matches\n  ---\n  duration_ms: 81.817432\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 66.168418\n  type: 'test'\n  ...\n# Subtest: a pattern with no paths prints nothing and succeeds\nok 17 - a pattern with no paths prints nothing and succeeds\n  ---\n  duration_ms: 77.766397\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2218.044685"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "fail",
+                  "evidence": "cases: 169 of 170 passed (weight 335 of 338)\ncase \"corner-012\" differed on exit, stdout, stderr; exit 2\nstderr: error: trailing backslash in pattern",
+                  "cases": {
+                    "passed": 169,
+                    "total": 170,
+                    "weightPassed": 335,
+                    "weightTotal": 338,
+                    "failed": [
+                      {
+                        "id": "corner-012",
+                        "weight": 3,
+                        "channels": [
+                          "exit",
+                          "stdout",
+                          "stderr"
+                        ],
+                        "exitClass": "nonzero"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "treeHash": "d847dafc867b98430ee697fe86beee7d220342c83743a4d1f640c8ed84946cf8"
+            },
+            {
+              "attempt": 2,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…p with neither a comma nor a range stays literal\nok 6 - a group with neither a comma nor a range stays literal\n  ---\n  duration_ms: 79.062741\n  type: 'test'\n  ...\n# Subtest: a pattern with no group expands to itself\nok 7 - a pattern with no group expands to itself\n  ---\n  duration_ms: 79.142033\n  type: 'test'\n  ...\n# Subtest: a star matches inside one segment only\nok 8 - a star matches inside one segment only\n  ---\n  duration_ms: 86.652421\n  type: 'test'\n  ...\n# Subtest: a question mark matches exactly one character\nok 9 - a question mark matches exactly one character\n  ---\n  duration_ms: 83.276415\n  type: 'test'\n  ...\n# Subtest: a bracket range matches one character of the range\nok 10 - a bracket range matches one character of the range\n  ---\n  duration_ms: 166.425729\n  type: 'test'\n  ...\n# Subtest: a globstar segment spans any number of segments\nok 11 - a globstar segment spans any number of segments\n  ---\n  duration_ms: 147.798463\n  type: 'test'\n  ...\n# Subtest: an at-group matches exactly one alternative\nok 12 - an at-group matches exactly one alternative\n  ---\n  duration_ms: 92.282476\n  type: 'test'\n  ...\n# Subtest: a bang-group matches anything but its alternatives\nok 13 - a bang-group matches anything but its alternatives\n  ---\n  duration_ms: 170.773364\n  type: 'test'\n  ...\n# Subtest: a backslash makes the next character literal\nok 14 - a backslash makes the next character literal\n  ---\n  duration_ms: 96.933752\n  type: 'test'\n  ...\n# Subtest: the pattern is brace-expanded before it matches\nok 15 - the pattern is brace-expanded before it matches\n  ---\n  duration_ms: 122.078172\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 83.528569\n  type: 'test'\n  ...\n# Subtest: a pattern with no paths prints nothing and succeeds\nok 17 - a pattern with no paths prints nothing and succeeds\n  ---\n  duration_ms: 70.740254\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2323.279558"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "fail",
+                  "evidence": "cases: 169 of 170 passed (weight 335 of 338)\ncase \"corner-012\" differed on exit, stdout, stderr; exit 2\nstderr: error: trailing backslash in pattern",
+                  "cases": {
+                    "passed": 169,
+                    "total": 170,
+                    "weightPassed": 335,
+                    "weightTotal": 338,
+                    "failed": [
+                      {
+                        "id": "corner-012",
+                        "weight": 3,
+                        "channels": [
+                          "exit",
+                          "stdout",
+                          "stderr"
+                        ],
+                        "exitClass": "nonzero"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "treeHash": "a3ed8736503df4d8874990083ed61a7c132cc587f039b324b3c4c41a675e3966"
+            },
+            {
+              "attempt": 3,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… neither a comma nor a range stays literal\nok 6 - a group with neither a comma nor a range stays literal\n  ---\n  duration_ms: 368.420029\n  type: 'test'\n  ...\n# Subtest: a pattern with no group expands to itself\nok 7 - a pattern with no group expands to itself\n  ---\n  duration_ms: 230.502879\n  type: 'test'\n  ...\n# Subtest: a star matches inside one segment only\nok 8 - a star matches inside one segment only\n  ---\n  duration_ms: 319.397046\n  type: 'test'\n  ...\n# Subtest: a question mark matches exactly one character\nok 9 - a question mark matches exactly one character\n  ---\n  duration_ms: 160.906006\n  type: 'test'\n  ...\n# Subtest: a bracket range matches one character of the range\nok 10 - a bracket range matches one character of the range\n  ---\n  duration_ms: 178.532526\n  type: 'test'\n  ...\n# Subtest: a globstar segment spans any number of segments\nok 11 - a globstar segment spans any number of segments\n  ---\n  duration_ms: 155.301735\n  type: 'test'\n  ...\n# Subtest: an at-group matches exactly one alternative\nok 12 - an at-group matches exactly one alternative\n  ---\n  duration_ms: 107.834515\n  type: 'test'\n  ...\n# Subtest: a bang-group matches anything but its alternatives\nok 13 - a bang-group matches anything but its alternatives\n  ---\n  duration_ms: 84.621552\n  type: 'test'\n  ...\n# Subtest: a backslash makes the next character literal\nok 14 - a backslash makes the next character literal\n  ---\n  duration_ms: 176.024294\n  type: 'test'\n  ...\n# Subtest: the pattern is brace-expanded before it matches\nok 15 - the pattern is brace-expanded before it matches\n  ---\n  duration_ms: 88.837204\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 106.425526\n  type: 'test'\n  ...\n# Subtest: a pattern with no paths prints nothing and succeeds\nok 17 - a pattern with no paths prints nothing and succeeds\n  ---\n  duration_ms: 107.337425\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4874.928275"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "fail",
+                  "evidence": "cases: 169 of 170 passed (weight 335 of 338)\ncase \"corner-012\" differed on exit, stdout, stderr; exit 2\nstderr: error: trailing backslash in pattern",
+                  "cases": {
+                    "passed": 169,
+                    "total": 170,
+                    "weightPassed": 335,
+                    "weightTotal": 338,
+                    "failed": [
+                      {
+                        "id": "corner-012",
+                        "weight": 3,
+                        "channels": [
+                          "exit",
+                          "stdout",
+                          "stderr"
+                        ],
+                        "exitClass": "nonzero"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "treeHash": "a3ed8736503df4d8874990083ed61a7c132cc587f039b324b3c4c41a675e3966"
+            }
+          ],
+          "certified": false,
+          "usage": {
+            "inputTokens": 56,
+            "outputTokens": 63019,
+            "cacheReadTokens": 1369095,
+            "cacheWriteTokens": 79192
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:glob-brace",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:glob-brace",
+          "sessionId": "environment-c0f264a5-7141-463d-bf4b-31a450c3d9f9",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:glob-brace",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "e7e25bed424269491e9050500f007e2495c304624fdaf8a4b43f44904ea8f88e",
+            "checksSha256": "3a534a899b452269b294f46a49ef8cde972cbc872c68cb4ef3704b8f62713223",
+            "fixtureSha256": "e13eaf2bca1bc4ccb0e5909e6d3ae3870c57617167a71b7b62ff5fe55cff8a84",
+            "contentSha256": "9e09176c2f53d7d33a6d9ce36a74f57c5ad8625f048dbb8f413454b6a11ebb98",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…group with neither a comma nor a range stays literal\nok 6 - a group with neither a comma nor a range stays literal\n  ---\n  duration_ms: 71.323479\n  type: 'test'\n  ...\n# Subtest: a pattern with no group expands to itself\nok 7 - a pattern with no group expands to itself\n  ---\n  duration_ms: 76.963954\n  type: 'test'\n  ...\n# Subtest: a star matches inside one segment only\nok 8 - a star matches inside one segment only\n  ---\n  duration_ms: 81.155136\n  type: 'test'\n  ...\n# Subtest: a question mark matches exactly one character\nok 9 - a question mark matches exactly one character\n  ---\n  duration_ms: 78.519085\n  type: 'test'\n  ...\n# Subtest: a bracket range matches one character of the range\nok 10 - a bracket range matches one character of the range\n  ---\n  duration_ms: 73.856127\n  type: 'test'\n  ...\n# Subtest: a globstar segment spans any number of segments\nok 11 - a globstar segment spans any number of segments\n  ---\n  duration_ms: 88.904398\n  type: 'test'\n  ...\n# Subtest: an at-group matches exactly one alternative\nok 12 - an at-group matches exactly one alternative\n  ---\n  duration_ms: 75.029621\n  type: 'test'\n  ...\n# Subtest: a bang-group matches anything but its alternatives\nok 13 - a bang-group matches anything but its alternatives\n  ---\n  duration_ms: 77.782661\n  type: 'test'\n  ...\n# Subtest: a backslash makes the next character literal\nok 14 - a backslash makes the next character literal\n  ---\n  duration_ms: 76.946505\n  type: 'test'\n  ...\n# Subtest: the pattern is brace-expanded before it matches\nok 15 - the pattern is brace-expanded before it matches\n  ---\n  duration_ms: 78.334451\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 72.012639\n  type: 'test'\n  ...\n# Subtest: a pattern with no paths prints nothing and succeeds\nok 17 - a pattern with no paths prints nothing and succeeds\n  ---\n  duration_ms: 77.829753\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1406.615268"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 170 of 170 passed (weight 338 of 338)",
+                  "cases": {
+                    "passed": 170,
+                    "total": 170,
+                    "weightPassed": 338,
+                    "weightTotal": 338,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "c9ab6a44c3e0fd56c88f6c0bc60fd031fcee62bb4c33bf46181410fd9a0e77cd"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-a3b4e596-eb9b-4cf7-ac6b-9c819324489c",
+              "revision": 1
+            },
+            "goalId": "goal-e4271519-ca07-4fd9-ad37-6ff8376d0a7b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…group with neither a comma nor a range stays literal\nok 6 - a group with neither a comma nor a range stays literal\n  ---\n  duration_ms: 71.323479\n  type: 'test'\n  ...\n# Subtest: a pattern with no group expands to itself\nok 7 - a pattern with no group expands to itself\n  ---\n  duration_ms: 76.963954\n  type: 'test'\n  ...\n# Subtest: a star matches inside one segment only\nok 8 - a star matches inside one segment only\n  ---\n  duration_ms: 81.155136\n  type: 'test'\n  ...\n# Subtest: a question mark matches exactly one character\nok 9 - a question mark matches exactly one character\n  ---\n  duration_ms: 78.519085\n  type: 'test'\n  ...\n# Subtest: a bracket range matches one character of the range\nok 10 - a bracket range matches one character of the range\n  ---\n  duration_ms: 73.856127\n  type: 'test'\n  ...\n# Subtest: a globstar segment spans any number of segments\nok 11 - a globstar segment spans any number of segments\n  ---\n  duration_ms: 88.904398\n  type: 'test'\n  ...\n# Subtest: an at-group matches exactly one alternative\nok 12 - an at-group matches exactly one alternative\n  ---\n  duration_ms: 75.029621\n  type: 'test'\n  ...\n# Subtest: a bang-group matches anything but its alternatives\nok 13 - a bang-group matches anything but its alternatives\n  ---\n  duration_ms: 77.782661\n  type: 'test'\n  ...\n# Subtest: a backslash makes the next character literal\nok 14 - a backslash makes the next character literal\n  ---\n  duration_ms: 76.946505\n  type: 'test'\n  ...\n# Subtest: the pattern is brace-expanded before it matches\nok 15 - the pattern is brace-expanded before it matches\n  ---\n  duration_ms: 78.334451\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 16 - an unknown mode is rejected\n  ---\n  duration_ms: 72.012639\n  type: 'test'\n  ...\n# Subtest: a pattern with no paths prints nothing and succeeds\nok 17 - a pattern with no paths prints nothing and succeeds\n  ---\n  duration_ms: 77.829753\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1406.615268"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 170 of 170 passed (weight 338 of 338)",
+                "cases": {
+                  "passed": 170,
+                  "total": 170,
+                  "weightPassed": 338,
+                  "weightTotal": 338,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1788886467521
+          },
+          "usage": {
+            "inputTokens": 22,
+            "outputTokens": 44141,
+            "cacheReadTokens": 367247,
+            "cacheWriteTokens": 55916
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:ini-parse",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:ini-parse",
+          "sessionId": "environment-78ec339c-bb60-4eba-8026-d5f2aeaff16f",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:ini-parse",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "407295e9f448cbf40b52f2fab31f65ba71e0e27a6e97b437376aaef949daa2ac",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "19cfd313bcf41367cd53bb6443fe91eb8e7d60e81e2d81738bfb64cee01d9b94",
+            "contentSha256": "b9b0ff21e0010afad14d29feba9a2c2ae79bd6dac9dcfda77e12ed6f482de8ec",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…test: malformed documents report the reason and the line\nok 15 - malformed documents report the reason and the line\n  ---\n  duration_ms: 0.745176\n  type: 'test'\n  ...\n# Subtest: non-string input and unknown policies are rejected\nok 16 - non-string input and unknown policies are rejected\n  ---\n  duration_ms: 0.546926\n  type: 'test'\n  ...\n# Subtest: formatValue quotes exactly the values that need it\nok 17 - formatValue quotes exactly the values that need it\n  ---\n  duration_ms: 0.420793\n  type: 'test'\n  ...\n# Subtest: formatKey quotes separators and bracket characters\nok 18 - formatKey quotes separators and bracket characters\n  ---\n  duration_ms: 0.149319\n  type: 'test'\n  ...\n# Subtest: stringify writes globals first and blank-line separated sections\nok 19 - stringify writes globals first and blank-line separated sections\n  ---\n  duration_ms: 0.243192\n  type: 'test'\n  ...\n# Subtest: stringify handles missing halves, empty documents and the eol option\nok 20 - stringify handles missing halves, empty documents and the eol option\n  ---\n  duration_ms: 0.164358\n  type: 'test'\n  ...\n# Subtest: stringify expands arrays into repeated entries\nok 21 - stringify expands arrays into repeated entries\n  ---\n  duration_ms: 0.141442\n  type: 'test'\n  ...\n# Subtest: stringify rejects empty names and non-string values\nok 22 - stringify rejects empty names and non-string values\n  ---\n  duration_ms: 0.325743\n  type: 'test'\n  ...\n# Subtest: a hand written document round-trips through both directions\nok 23 - a hand written document round-trips through both directions\n  ---\n  duration_ms: 0.214386\n  type: 'test'\n  ...\n# Subtest: round-trip holds for generated documents\nok 24 - round-trip holds for generated documents\n  ---\n  duration_ms: 17.255268\n  type: 'test'\n  ...\n# Subtest: generated values survive quoting in isolation\nok 25 - generated values survive quoting in isolation\n  ---\n  duration_ms: 1.152462\n  type: 'test'\n  ...\n1..25\n# tests 25\n# suites 0\n# pass 25\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 181.983638"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "8ca79d8254780c22db753afea91c90a6bfa7318ba50b45a138334f85773ed06a"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-f4315afa-e951-4ad4-b822-2f791803f060",
+              "revision": 1
+            },
+            "goalId": "goal-2755e656-bb73-457d-93c8-f7f3608ff825",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…test: malformed documents report the reason and the line\nok 15 - malformed documents report the reason and the line\n  ---\n  duration_ms: 0.745176\n  type: 'test'\n  ...\n# Subtest: non-string input and unknown policies are rejected\nok 16 - non-string input and unknown policies are rejected\n  ---\n  duration_ms: 0.546926\n  type: 'test'\n  ...\n# Subtest: formatValue quotes exactly the values that need it\nok 17 - formatValue quotes exactly the values that need it\n  ---\n  duration_ms: 0.420793\n  type: 'test'\n  ...\n# Subtest: formatKey quotes separators and bracket characters\nok 18 - formatKey quotes separators and bracket characters\n  ---\n  duration_ms: 0.149319\n  type: 'test'\n  ...\n# Subtest: stringify writes globals first and blank-line separated sections\nok 19 - stringify writes globals first and blank-line separated sections\n  ---\n  duration_ms: 0.243192\n  type: 'test'\n  ...\n# Subtest: stringify handles missing halves, empty documents and the eol option\nok 20 - stringify handles missing halves, empty documents and the eol option\n  ---\n  duration_ms: 0.164358\n  type: 'test'\n  ...\n# Subtest: stringify expands arrays into repeated entries\nok 21 - stringify expands arrays into repeated entries\n  ---\n  duration_ms: 0.141442\n  type: 'test'\n  ...\n# Subtest: stringify rejects empty names and non-string values\nok 22 - stringify rejects empty names and non-string values\n  ---\n  duration_ms: 0.325743\n  type: 'test'\n  ...\n# Subtest: a hand written document round-trips through both directions\nok 23 - a hand written document round-trips through both directions\n  ---\n  duration_ms: 0.214386\n  type: 'test'\n  ...\n# Subtest: round-trip holds for generated documents\nok 24 - round-trip holds for generated documents\n  ---\n  duration_ms: 17.255268\n  type: 'test'\n  ...\n# Subtest: generated values survive quoting in isolation\nok 25 - generated values survive quoting in isolation\n  ---\n  duration_ms: 1.152462\n  type: 'test'\n  ...\n1..25\n# tests 25\n# suites 0\n# pass 25\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 181.983638"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788886723521
+          },
+          "usage": {
+            "inputTokens": 12,
+            "outputTokens": 26232,
+            "cacheReadTokens": 74810,
+            "cacheWriteTokens": 37411
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:ini-parse",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:ini-parse",
+          "sessionId": "environment-f860714b-a7e7-48a1-bf51-38f0a38e4345",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:ini-parse",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "407295e9f448cbf40b52f2fab31f65ba71e0e27a6e97b437376aaef949daa2ac",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "19cfd313bcf41367cd53bb6443fe91eb8e7d60e81e2d81738bfb64cee01d9b94",
+            "contentSha256": "b9b0ff21e0010afad14d29feba9a2c2ae79bd6dac9dcfda77e12ed6f482de8ec",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…test: malformed documents report the reason and the line\nok 15 - malformed documents report the reason and the line\n  ---\n  duration_ms: 0.727725\n  type: 'test'\n  ...\n# Subtest: non-string input and unknown policies are rejected\nok 16 - non-string input and unknown policies are rejected\n  ---\n  duration_ms: 0.488008\n  type: 'test'\n  ...\n# Subtest: formatValue quotes exactly the values that need it\nok 17 - formatValue quotes exactly the values that need it\n  ---\n  duration_ms: 0.410414\n  type: 'test'\n  ...\n# Subtest: formatKey quotes separators and bracket characters\nok 18 - formatKey quotes separators and bracket characters\n  ---\n  duration_ms: 0.176773\n  type: 'test'\n  ...\n# Subtest: stringify writes globals first and blank-line separated sections\nok 19 - stringify writes globals first and blank-line separated sections\n  ---\n  duration_ms: 0.279277\n  type: 'test'\n  ...\n# Subtest: stringify handles missing halves, empty documents and the eol option\nok 20 - stringify handles missing halves, empty documents and the eol option\n  ---\n  duration_ms: 0.236007\n  type: 'test'\n  ...\n# Subtest: stringify expands arrays into repeated entries\nok 21 - stringify expands arrays into repeated entries\n  ---\n  duration_ms: 0.171355\n  type: 'test'\n  ...\n# Subtest: stringify rejects empty names and non-string values\nok 22 - stringify rejects empty names and non-string values\n  ---\n  duration_ms: 0.377122\n  type: 'test'\n  ...\n# Subtest: a hand written document round-trips through both directions\nok 23 - a hand written document round-trips through both directions\n  ---\n  duration_ms: 0.298303\n  type: 'test'\n  ...\n# Subtest: round-trip holds for generated documents\nok 24 - round-trip holds for generated documents\n  ---\n  duration_ms: 13.104241\n  type: 'test'\n  ...\n# Subtest: generated values survive quoting in isolation\nok 25 - generated values survive quoting in isolation\n  ---\n  duration_ms: 1.028602\n  type: 'test'\n  ...\n1..25\n# tests 25\n# suites 0\n# pass 25\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 176.729023"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "53ef69e0c4358d39795b32acaf5e215c1a7b7c26e7497a36de092d7066c669bc"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-3cb8c62a-f163-4e7e-9b55-e04e547e6565",
+              "revision": 1
+            },
+            "goalId": "goal-ac251e6f-b482-479b-ab15-978edae4ebcf",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…test: malformed documents report the reason and the line\nok 15 - malformed documents report the reason and the line\n  ---\n  duration_ms: 0.727725\n  type: 'test'\n  ...\n# Subtest: non-string input and unknown policies are rejected\nok 16 - non-string input and unknown policies are rejected\n  ---\n  duration_ms: 0.488008\n  type: 'test'\n  ...\n# Subtest: formatValue quotes exactly the values that need it\nok 17 - formatValue quotes exactly the values that need it\n  ---\n  duration_ms: 0.410414\n  type: 'test'\n  ...\n# Subtest: formatKey quotes separators and bracket characters\nok 18 - formatKey quotes separators and bracket characters\n  ---\n  duration_ms: 0.176773\n  type: 'test'\n  ...\n# Subtest: stringify writes globals first and blank-line separated sections\nok 19 - stringify writes globals first and blank-line separated sections\n  ---\n  duration_ms: 0.279277\n  type: 'test'\n  ...\n# Subtest: stringify handles missing halves, empty documents and the eol option\nok 20 - stringify handles missing halves, empty documents and the eol option\n  ---\n  duration_ms: 0.236007\n  type: 'test'\n  ...\n# Subtest: stringify expands arrays into repeated entries\nok 21 - stringify expands arrays into repeated entries\n  ---\n  duration_ms: 0.171355\n  type: 'test'\n  ...\n# Subtest: stringify rejects empty names and non-string values\nok 22 - stringify rejects empty names and non-string values\n  ---\n  duration_ms: 0.377122\n  type: 'test'\n  ...\n# Subtest: a hand written document round-trips through both directions\nok 23 - a hand written document round-trips through both directions\n  ---\n  duration_ms: 0.298303\n  type: 'test'\n  ...\n# Subtest: round-trip holds for generated documents\nok 24 - round-trip holds for generated documents\n  ---\n  duration_ms: 13.104241\n  type: 'test'\n  ...\n# Subtest: generated values survive quoting in isolation\nok 25 - generated values survive quoting in isolation\n  ---\n  duration_ms: 1.028602\n  type: 'test'\n  ...\n1..25\n# tests 25\n# suites 0\n# pass 25\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 176.729023"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887105403
+          },
+          "usage": {
+            "inputTokens": 18,
+            "outputTokens": 39187,
+            "cacheReadTokens": 241675,
+            "cacheWriteTokens": 51877
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:kv-log-store",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:kv-log-store",
+          "sessionId": "environment-02f00bc7-fa47-4ec5-9160-17d85b4121ab",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:kv-log-store",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "9bc6374ba770a2968ef4421e95de0cd2dd5e575cb22d8e96f4808982a8d94b9b",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "c853814f720f46f9e6999bad5e870e16f63e85fe4035a35d01993416be27cf22",
+            "contentSha256": "bbafa30a8ee1903583a353ef3a728ed8a00b51704f3bc9d21bb31f5f93721443",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…\n  duration_ms: 1.53238\n  type: 'test'\n  ...\n# Subtest: a fresh store is empty and readable\nok 9 - a fresh store is empty and readable\n  ---\n  duration_ms: 2.956532\n  type: 'test'\n  ...\n# Subtest: put and delete maintain the live map\nok 10 - put and delete maintain the live map\n  ---\n  duration_ms: 4.618986\n  type: 'test'\n  ...\n# Subtest: deleting an absent key writes nothing to the log\nok 11 - deleting an absent key writes nothing to the log\n  ---\n  duration_ms: 0.347187\n  type: 'test'\n  ...\n# Subtest: keys and values are validated\nok 12 - keys and values are validated\n  ---\n  duration_ms: 1.404011\n  type: 'test'\n  ...\n# Subtest: stored values do not alias caller values\nok 13 - stored values do not alias caller values\n  ---\n  duration_ms: 0.312501\n  type: 'test'\n  ...\n# Subtest: the log getter hands out a copy\nok 14 - the log getter hands out a copy\n  ---\n  duration_ms: 0.479711\n  type: 'test'\n  ...\n# Subtest: replay reconstructs the store from its own log\nok 15 - replay reconstructs the store from its own log\n  ---\n  duration_ms: 0.768226\n  type: 'test'\n  ...\n# Subtest: compaction keeps the state and removes every dead record\nok 16 - compaction keeps the state and removes every dead record\n  ---\n  duration_ms: 1.184933\n  type: 'test'\n  ...\n# Subtest: snapshots round-trip into a compact store\nok 17 - snapshots round-trip into a compact store\n  ---\n  duration_ms: 0.821526\n  type: 'test'\n  ...\n# Subtest: snapshot loading rejects malformed input\nok 18 - snapshot loading rejects malformed input\n  ---\n  duration_ms: 10.564992\n  type: 'test'\n  ...\n# Subtest: a log cut at any byte replays to a valid earlier state\nok 19 - a log cut at any byte replays to a valid earlier state\n  ---\n  duration_ms: 718.415882\n  type: 'test'\n  ...\n# Subtest: a long operation sequence stays consistent with its log\nok 20 - a long operation sequence stays consistent with its log\n  ---\n  duration_ms: 19.432243\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1032.72222"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "3859560b2e285da7a870bdd0318b92af8807a941de8aef92110ba1d7667698ce"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-b8da5c9d-5706-43ba-b37e-5b75c276c094",
+              "revision": 1
+            },
+            "goalId": "goal-3cb13eff-ef82-4905-b3d7-23d88fda2e88",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…\n  duration_ms: 1.53238\n  type: 'test'\n  ...\n# Subtest: a fresh store is empty and readable\nok 9 - a fresh store is empty and readable\n  ---\n  duration_ms: 2.956532\n  type: 'test'\n  ...\n# Subtest: put and delete maintain the live map\nok 10 - put and delete maintain the live map\n  ---\n  duration_ms: 4.618986\n  type: 'test'\n  ...\n# Subtest: deleting an absent key writes nothing to the log\nok 11 - deleting an absent key writes nothing to the log\n  ---\n  duration_ms: 0.347187\n  type: 'test'\n  ...\n# Subtest: keys and values are validated\nok 12 - keys and values are validated\n  ---\n  duration_ms: 1.404011\n  type: 'test'\n  ...\n# Subtest: stored values do not alias caller values\nok 13 - stored values do not alias caller values\n  ---\n  duration_ms: 0.312501\n  type: 'test'\n  ...\n# Subtest: the log getter hands out a copy\nok 14 - the log getter hands out a copy\n  ---\n  duration_ms: 0.479711\n  type: 'test'\n  ...\n# Subtest: replay reconstructs the store from its own log\nok 15 - replay reconstructs the store from its own log\n  ---\n  duration_ms: 0.768226\n  type: 'test'\n  ...\n# Subtest: compaction keeps the state and removes every dead record\nok 16 - compaction keeps the state and removes every dead record\n  ---\n  duration_ms: 1.184933\n  type: 'test'\n  ...\n# Subtest: snapshots round-trip into a compact store\nok 17 - snapshots round-trip into a compact store\n  ---\n  duration_ms: 0.821526\n  type: 'test'\n  ...\n# Subtest: snapshot loading rejects malformed input\nok 18 - snapshot loading rejects malformed input\n  ---\n  duration_ms: 10.564992\n  type: 'test'\n  ...\n# Subtest: a log cut at any byte replays to a valid earlier state\nok 19 - a log cut at any byte replays to a valid earlier state\n  ---\n  duration_ms: 718.415882\n  type: 'test'\n  ...\n# Subtest: a long operation sequence stays consistent with its log\nok 20 - a long operation sequence stays consistent with its log\n  ---\n  duration_ms: 19.432243\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1032.72222"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887260189
+          },
+          "usage": {
+            "inputTokens": 40,
+            "outputTokens": 9728,
+            "cacheReadTokens": 485921,
+            "cacheWriteTokens": 32882
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:kv-log-store",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:kv-log-store",
+          "sessionId": "environment-41a1e720-b7ee-4df4-b501-93cc0e0e02dc",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:kv-log-store",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "9bc6374ba770a2968ef4421e95de0cd2dd5e575cb22d8e96f4808982a8d94b9b",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "c853814f720f46f9e6999bad5e870e16f63e85fe4035a35d01993416be27cf22",
+            "contentSha256": "bbafa30a8ee1903583a353ef3a728ed8a00b51704f3bc9d21bb31f5f93721443",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…-\n  duration_ms: 12.856645\n  type: 'test'\n  ...\n# Subtest: a fresh store is empty and readable\nok 9 - a fresh store is empty and readable\n  ---\n  duration_ms: 2.803634\n  type: 'test'\n  ...\n# Subtest: put and delete maintain the live map\nok 10 - put and delete maintain the live map\n  ---\n  duration_ms: 1.207863\n  type: 'test'\n  ...\n# Subtest: deleting an absent key writes nothing to the log\nok 11 - deleting an absent key writes nothing to the log\n  ---\n  duration_ms: 0.331957\n  type: 'test'\n  ...\n# Subtest: keys and values are validated\nok 12 - keys and values are validated\n  ---\n  duration_ms: 1.31061\n  type: 'test'\n  ...\n# Subtest: stored values do not alias caller values\nok 13 - stored values do not alias caller values\n  ---\n  duration_ms: 0.473511\n  type: 'test'\n  ...\n# Subtest: the log getter hands out a copy\nok 14 - the log getter hands out a copy\n  ---\n  duration_ms: 0.44064\n  type: 'test'\n  ...\n# Subtest: replay reconstructs the store from its own log\nok 15 - replay reconstructs the store from its own log\n  ---\n  duration_ms: 0.880849\n  type: 'test'\n  ...\n# Subtest: compaction keeps the state and removes every dead record\nok 16 - compaction keeps the state and removes every dead record\n  ---\n  duration_ms: 1.205679\n  type: 'test'\n  ...\n# Subtest: snapshots round-trip into a compact store\nok 17 - snapshots round-trip into a compact store\n  ---\n  duration_ms: 0.854264\n  type: 'test'\n  ...\n# Subtest: snapshot loading rejects malformed input\nok 18 - snapshot loading rejects malformed input\n  ---\n  duration_ms: 3.040069\n  type: 'test'\n  ...\n# Subtest: a log cut at any byte replays to a valid earlier state\nok 19 - a log cut at any byte replays to a valid earlier state\n  ---\n  duration_ms: 679.078946\n  type: 'test'\n  ...\n# Subtest: a long operation sequence stays consistent with its log\nok 20 - a long operation sequence stays consistent with its log\n  ---\n  duration_ms: 19.492651\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 872.353858"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "dbb5768f56e62f73e926d02a0a6f1e4770c943a5932631c337c71da4c4a19230"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-5ad2a5ae-d7f6-495b-bc54-430dea84ed25",
+              "revision": 1
+            },
+            "goalId": "goal-f49b5c26-10d8-4b64-8040-398ebc6bc8ad",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…-\n  duration_ms: 12.856645\n  type: 'test'\n  ...\n# Subtest: a fresh store is empty and readable\nok 9 - a fresh store is empty and readable\n  ---\n  duration_ms: 2.803634\n  type: 'test'\n  ...\n# Subtest: put and delete maintain the live map\nok 10 - put and delete maintain the live map\n  ---\n  duration_ms: 1.207863\n  type: 'test'\n  ...\n# Subtest: deleting an absent key writes nothing to the log\nok 11 - deleting an absent key writes nothing to the log\n  ---\n  duration_ms: 0.331957\n  type: 'test'\n  ...\n# Subtest: keys and values are validated\nok 12 - keys and values are validated\n  ---\n  duration_ms: 1.31061\n  type: 'test'\n  ...\n# Subtest: stored values do not alias caller values\nok 13 - stored values do not alias caller values\n  ---\n  duration_ms: 0.473511\n  type: 'test'\n  ...\n# Subtest: the log getter hands out a copy\nok 14 - the log getter hands out a copy\n  ---\n  duration_ms: 0.44064\n  type: 'test'\n  ...\n# Subtest: replay reconstructs the store from its own log\nok 15 - replay reconstructs the store from its own log\n  ---\n  duration_ms: 0.880849\n  type: 'test'\n  ...\n# Subtest: compaction keeps the state and removes every dead record\nok 16 - compaction keeps the state and removes every dead record\n  ---\n  duration_ms: 1.205679\n  type: 'test'\n  ...\n# Subtest: snapshots round-trip into a compact store\nok 17 - snapshots round-trip into a compact store\n  ---\n  duration_ms: 0.854264\n  type: 'test'\n  ...\n# Subtest: snapshot loading rejects malformed input\nok 18 - snapshot loading rejects malformed input\n  ---\n  duration_ms: 3.040069\n  type: 'test'\n  ...\n# Subtest: a log cut at any byte replays to a valid earlier state\nok 19 - a log cut at any byte replays to a valid earlier state\n  ---\n  duration_ms: 679.078946\n  type: 'test'\n  ...\n# Subtest: a long operation sequence stays consistent with its log\nok 20 - a long operation sequence stays consistent with its log\n  ---\n  duration_ms: 19.492651\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 872.353858"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887466039
+          },
+          "usage": {
+            "inputTokens": 28,
+            "outputTokens": 18984,
+            "cacheReadTokens": 279040,
+            "cacheWriteTokens": 37448
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:lru-ttl-cache",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:lru-ttl-cache",
+          "sessionId": "environment-fa8ac9f7-bda1-423e-a7a0-a8ae2e43d620",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:lru-ttl-cache",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "ff1567d60012908cfdb985bf4d5c7eb708f5fb051695894c644848433f72d686",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "60e3b8980915cfb246455cf3fc23a1da90c726b60d8f43a44c4efc0ef41f94a5",
+            "contentSha256": "cddb8e8fad903a28b4efcf7b808cbd025f91643e364e7b662d74eee479f4f8f5",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…t: TAP version 13\n# Subtest: evicts the least recently used entry when the byte budget is exceeded\nok 1 - evicts the least recently used entry when the byte budget is exceeded\n  ---\n  duration_ms: 5.088763\n  type: 'test'\n  ...\n# Subtest: charges the sizer and evicts until the total fits\nok 2 - charges the sizer and evicts until the total fits\n  ---\n  duration_ms: 0.49988\n  type: 'test'\n  ...\n# Subtest: an entry expires once its lifetime has fully elapsed\nok 3 - an entry expires once its lifetime has fully elapsed\n  ---\n  duration_ms: 0.38762\n  type: 'test'\n  ...\n# Subtest: reading refreshes recency but never the lifetime\nok 4 - reading refreshes recency but never the lifetime\n  ---\n  duration_ms: 0.329083\n  type: 'test'\n  ...\n# Subtest: peek and has leave recency untouched\nok 5 - peek and has leave recency untouched\n  ---\n  duration_ms: 0.250007\n  type: 'test'\n  ...\n# Subtest: replacing a key reports the old value and restarts its lifetime\nok 6 - replacing a key reports the old value and restarts its lifetime\n  ---\n  duration_ms: 0.306002\n  type: 'test'\n  ...\n# Subtest: an expired victim is reported as expired even when the budget forced the removal\nok 7 - an expired victim is reported as expired even when the budget forced the removal\n  ---\n  duration_ms: 0.200825\n  type: 'test'\n  ...\n# Subtest: delete and clear remove entries silently\nok 8 - delete and clear remove entries silently\n  ---\n  duration_ms: 0.264274\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and keys\nok 9 - rejects malformed options and keys\n  ---\n  duration_ms: 1.486112\n  type: 'test'\n  ...\n# Subtest: a zero lifetime expires immediately\nok 10 - a zero lifetime expires immediately\n  ---\n  duration_ms: 0.745779\n  type: 'test'\n  ...\n# Subtest: holds every invariant across a long random operation sequence\nok 11 - holds every invariant across a long random operation sequence\n  ---\n  duration_ms: 24.574938\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 183.029873"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "87f6875dd77e223396b02538bf297a799d7c3b013c94eb720c3b2b298cf7cfc0"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-e0d2491c-077d-4754-8c4f-5602ab30ad32",
+              "revision": 1
+            },
+            "goalId": "goal-df4d0533-da75-445e-96f7-4b134182ae87",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…t: TAP version 13\n# Subtest: evicts the least recently used entry when the byte budget is exceeded\nok 1 - evicts the least recently used entry when the byte budget is exceeded\n  ---\n  duration_ms: 5.088763\n  type: 'test'\n  ...\n# Subtest: charges the sizer and evicts until the total fits\nok 2 - charges the sizer and evicts until the total fits\n  ---\n  duration_ms: 0.49988\n  type: 'test'\n  ...\n# Subtest: an entry expires once its lifetime has fully elapsed\nok 3 - an entry expires once its lifetime has fully elapsed\n  ---\n  duration_ms: 0.38762\n  type: 'test'\n  ...\n# Subtest: reading refreshes recency but never the lifetime\nok 4 - reading refreshes recency but never the lifetime\n  ---\n  duration_ms: 0.329083\n  type: 'test'\n  ...\n# Subtest: peek and has leave recency untouched\nok 5 - peek and has leave recency untouched\n  ---\n  duration_ms: 0.250007\n  type: 'test'\n  ...\n# Subtest: replacing a key reports the old value and restarts its lifetime\nok 6 - replacing a key reports the old value and restarts its lifetime\n  ---\n  duration_ms: 0.306002\n  type: 'test'\n  ...\n# Subtest: an expired victim is reported as expired even when the budget forced the removal\nok 7 - an expired victim is reported as expired even when the budget forced the removal\n  ---\n  duration_ms: 0.200825\n  type: 'test'\n  ...\n# Subtest: delete and clear remove entries silently\nok 8 - delete and clear remove entries silently\n  ---\n  duration_ms: 0.264274\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and keys\nok 9 - rejects malformed options and keys\n  ---\n  duration_ms: 1.486112\n  type: 'test'\n  ...\n# Subtest: a zero lifetime expires immediately\nok 10 - a zero lifetime expires immediately\n  ---\n  duration_ms: 0.745779\n  type: 'test'\n  ...\n# Subtest: holds every invariant across a long random operation sequence\nok 11 - holds every invariant across a long random operation sequence\n  ---\n  duration_ms: 24.574938\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 183.029873"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887417564
+          },
+          "usage": {
+            "inputTokens": 22,
+            "outputTokens": 14011,
+            "cacheReadTokens": 157965,
+            "cacheWriteTokens": 27535
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:lru-ttl-cache",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:lru-ttl-cache",
+          "sessionId": "environment-b4f1edf4-7ea1-45ab-9d1d-563f05dc1660",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:lru-ttl-cache",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "ff1567d60012908cfdb985bf4d5c7eb708f5fb051695894c644848433f72d686",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "60e3b8980915cfb246455cf3fc23a1da90c726b60d8f43a44c4efc0ef41f94a5",
+            "contentSha256": "cddb8e8fad903a28b4efcf7b808cbd025f91643e364e7b662d74eee479f4f8f5",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…ut: TAP version 13\n# Subtest: evicts the least recently used entry when the byte budget is exceeded\nok 1 - evicts the least recently used entry when the byte budget is exceeded\n  ---\n  duration_ms: 4.988569\n  type: 'test'\n  ...\n# Subtest: charges the sizer and evicts until the total fits\nok 2 - charges the sizer and evicts until the total fits\n  ---\n  duration_ms: 0.66812\n  type: 'test'\n  ...\n# Subtest: an entry expires once its lifetime has fully elapsed\nok 3 - an entry expires once its lifetime has fully elapsed\n  ---\n  duration_ms: 0.421055\n  type: 'test'\n  ...\n# Subtest: reading refreshes recency but never the lifetime\nok 4 - reading refreshes recency but never the lifetime\n  ---\n  duration_ms: 0.392435\n  type: 'test'\n  ...\n# Subtest: peek and has leave recency untouched\nok 5 - peek and has leave recency untouched\n  ---\n  duration_ms: 0.288678\n  type: 'test'\n  ...\n# Subtest: replacing a key reports the old value and restarts its lifetime\nok 6 - replacing a key reports the old value and restarts its lifetime\n  ---\n  duration_ms: 0.282926\n  type: 'test'\n  ...\n# Subtest: an expired victim is reported as expired even when the budget forced the removal\nok 7 - an expired victim is reported as expired even when the budget forced the removal\n  ---\n  duration_ms: 0.276639\n  type: 'test'\n  ...\n# Subtest: delete and clear remove entries silently\nok 8 - delete and clear remove entries silently\n  ---\n  duration_ms: 0.250593\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and keys\nok 9 - rejects malformed options and keys\n  ---\n  duration_ms: 1.477904\n  type: 'test'\n  ...\n# Subtest: a zero lifetime expires immediately\nok 10 - a zero lifetime expires immediately\n  ---\n  duration_ms: 0.63881\n  type: 'test'\n  ...\n# Subtest: holds every invariant across a long random operation sequence\nok 11 - holds every invariant across a long random operation sequence\n  ---\n  duration_ms: 22.30181\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 161.724402"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "cf6ce51554756acc8dce9c25fc803da90a42366781194ea31d64effed5427a9e"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-9013fe4f-87da-4b84-aba6-79d772017c90",
+              "revision": 1
+            },
+            "goalId": "goal-1d363447-b7e4-4468-a03a-52ce46976bd5",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…ut: TAP version 13\n# Subtest: evicts the least recently used entry when the byte budget is exceeded\nok 1 - evicts the least recently used entry when the byte budget is exceeded\n  ---\n  duration_ms: 4.988569\n  type: 'test'\n  ...\n# Subtest: charges the sizer and evicts until the total fits\nok 2 - charges the sizer and evicts until the total fits\n  ---\n  duration_ms: 0.66812\n  type: 'test'\n  ...\n# Subtest: an entry expires once its lifetime has fully elapsed\nok 3 - an entry expires once its lifetime has fully elapsed\n  ---\n  duration_ms: 0.421055\n  type: 'test'\n  ...\n# Subtest: reading refreshes recency but never the lifetime\nok 4 - reading refreshes recency but never the lifetime\n  ---\n  duration_ms: 0.392435\n  type: 'test'\n  ...\n# Subtest: peek and has leave recency untouched\nok 5 - peek and has leave recency untouched\n  ---\n  duration_ms: 0.288678\n  type: 'test'\n  ...\n# Subtest: replacing a key reports the old value and restarts its lifetime\nok 6 - replacing a key reports the old value and restarts its lifetime\n  ---\n  duration_ms: 0.282926\n  type: 'test'\n  ...\n# Subtest: an expired victim is reported as expired even when the budget forced the removal\nok 7 - an expired victim is reported as expired even when the budget forced the removal\n  ---\n  duration_ms: 0.276639\n  type: 'test'\n  ...\n# Subtest: delete and clear remove entries silently\nok 8 - delete and clear remove entries silently\n  ---\n  duration_ms: 0.250593\n  type: 'test'\n  ...\n# Subtest: rejects malformed options and keys\nok 9 - rejects malformed options and keys\n  ---\n  duration_ms: 1.477904\n  type: 'test'\n  ...\n# Subtest: a zero lifetime expires immediately\nok 10 - a zero lifetime expires immediately\n  ---\n  duration_ms: 0.63881\n  type: 'test'\n  ...\n# Subtest: holds every invariant across a long random operation sequence\nok 11 - holds every invariant across a long random operation sequence\n  ---\n  duration_ms: 22.30181\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 161.724402"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887539380
+          },
+          "usage": {
+            "inputTokens": 20,
+            "outputTokens": 10254,
+            "cacheReadTokens": 131043,
+            "cacheWriteTokens": 22341
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:retry-policy",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:retry-policy",
+          "sessionId": "environment-e2497e88-4e35-4fa5-852d-470009271120",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:retry-policy",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "4a2b9b5917f36fffc888c2c3e418fbd3b31fc260495effbaede5c5ce3bcbe95a",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "826cef77b2d9311a27350aef9f73b04ddb928786cbbde37ffd7500e2f33b637e",
+            "contentSha256": "d5335e722a2a7e48546a2310380e31ca01cab037b04b73645c083dbac1942368",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… - computeSchedule stops on the first delay that would overrun the budget\n  ---\n  duration_ms: 0.588742\n  type: 'test'\n  ...\n# Subtest: full jitter draws exactly one value per slot from the given source\nok 10 - full jitter draws exactly one value per slot from the given source\n  ---\n  duration_ms: 0.60089\n  type: 'test'\n  ...\n# Subtest: a slot rejected by the budget still consumes its draw\nok 11 - a slot rejected by the budget still consumes its draw\n  ---\n  duration_ms: 0.28748\n  type: 'test'\n  ...\n# Subtest: computeSchedule rejects a missing random source and invalid policies\nok 12 - computeSchedule rejects a missing random source and invalid policies\n  ---\n  duration_ms: 0.19855\n  type: 'test'\n  ...\n# Subtest: planAttempts stops at the first success\nok 13 - planAttempts stops at the first success\n  ---\n  duration_ms: 0.424784\n  type: 'test'\n  ...\n# Subtest: planAttempts gives up immediately on a permanent failure\nok 14 - planAttempts gives up immediately on a permanent failure\n  ---\n  duration_ms: 0.191018\n  type: 'test'\n  ...\n# Subtest: planAttempts exhausts the attempt count and then the budget\nok 15 - planAttempts exhausts the attempt count and then the budget\n  ---\n  duration_ms: 0.224038\n  type: 'test'\n  ...\n# Subtest: planAttempts validates its outcome list\nok 16 - planAttempts validates its outcome list\n  ---\n  duration_ms: 0.339268\n  type: 'test'\n  ...\n# Subtest: an all-retryable run reproduces the schedule exactly\nok 17 - an all-retryable run reproduces the schedule exactly\n  ---\n  duration_ms: 2.832704\n  type: 'test'\n  ...\n# Subtest: schedules respect their caps and budget for many seeded policies\nok 18 - schedules respect their caps and budget for many seeded policies\n  ---\n  duration_ms: 1.639932\n  type: 'test'\n  ...\n# Subtest: mixed outcome sequences keep the result invariants\nok 19 - mixed outcome sequences keep the result invariants\n  ---\n  duration_ms: 8.120853\n  type: 'test'\n  ...\n1..19\n# tests 19\n# suites 0\n# pass 19\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 254.873485"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "63ba1376f3a6e8350c410d33482573f572b8124bf4941901fe4645fcaee8ecf0"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-5166f13e-7f52-45db-833e-f1aa7bb60742",
+              "revision": 1
+            },
+            "goalId": "goal-f178fb3c-0b88-4d61-a1f1-d6da7422070f",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n… - computeSchedule stops on the first delay that would overrun the budget\n  ---\n  duration_ms: 0.588742\n  type: 'test'\n  ...\n# Subtest: full jitter draws exactly one value per slot from the given source\nok 10 - full jitter draws exactly one value per slot from the given source\n  ---\n  duration_ms: 0.60089\n  type: 'test'\n  ...\n# Subtest: a slot rejected by the budget still consumes its draw\nok 11 - a slot rejected by the budget still consumes its draw\n  ---\n  duration_ms: 0.28748\n  type: 'test'\n  ...\n# Subtest: computeSchedule rejects a missing random source and invalid policies\nok 12 - computeSchedule rejects a missing random source and invalid policies\n  ---\n  duration_ms: 0.19855\n  type: 'test'\n  ...\n# Subtest: planAttempts stops at the first success\nok 13 - planAttempts stops at the first success\n  ---\n  duration_ms: 0.424784\n  type: 'test'\n  ...\n# Subtest: planAttempts gives up immediately on a permanent failure\nok 14 - planAttempts gives up immediately on a permanent failure\n  ---\n  duration_ms: 0.191018\n  type: 'test'\n  ...\n# Subtest: planAttempts exhausts the attempt count and then the budget\nok 15 - planAttempts exhausts the attempt count and then the budget\n  ---\n  duration_ms: 0.224038\n  type: 'test'\n  ...\n# Subtest: planAttempts validates its outcome list\nok 16 - planAttempts validates its outcome list\n  ---\n  duration_ms: 0.339268\n  type: 'test'\n  ...\n# Subtest: an all-retryable run reproduces the schedule exactly\nok 17 - an all-retryable run reproduces the schedule exactly\n  ---\n  duration_ms: 2.832704\n  type: 'test'\n  ...\n# Subtest: schedules respect their caps and budget for many seeded policies\nok 18 - schedules respect their caps and budget for many seeded policies\n  ---\n  duration_ms: 1.639932\n  type: 'test'\n  ...\n# Subtest: mixed outcome sequences keep the result invariants\nok 19 - mixed outcome sequences keep the result invariants\n  ---\n  duration_ms: 8.120853\n  type: 'test'\n  ...\n1..19\n# tests 19\n# suites 0\n# pass 19\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 254.873485"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887530899
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 5444,
+            "cacheReadTokens": 69686,
+            "cacheWriteTokens": 20377
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:retry-policy",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:retry-policy",
+          "sessionId": "environment-e0831ac7-0a27-4d02-acde-8735ea6f746f",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:retry-policy",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "4a2b9b5917f36fffc888c2c3e418fbd3b31fc260495effbaede5c5ce3bcbe95a",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "826cef77b2d9311a27350aef9f73b04ddb928786cbbde37ffd7500e2f33b637e",
+            "contentSha256": "d5335e722a2a7e48546a2310380e31ca01cab037b04b73645c083dbac1942368",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…computeSchedule stops on the first delay that would overrun the budget\n  ---\n  duration_ms: 0.46526\n  type: 'test'\n  ...\n# Subtest: full jitter draws exactly one value per slot from the given source\nok 10 - full jitter draws exactly one value per slot from the given source\n  ---\n  duration_ms: 0.507851\n  type: 'test'\n  ...\n# Subtest: a slot rejected by the budget still consumes its draw\nok 11 - a slot rejected by the budget still consumes its draw\n  ---\n  duration_ms: 0.232849\n  type: 'test'\n  ...\n# Subtest: computeSchedule rejects a missing random source and invalid policies\nok 12 - computeSchedule rejects a missing random source and invalid policies\n  ---\n  duration_ms: 0.225369\n  type: 'test'\n  ...\n# Subtest: planAttempts stops at the first success\nok 13 - planAttempts stops at the first success\n  ---\n  duration_ms: 0.295869\n  type: 'test'\n  ...\n# Subtest: planAttempts gives up immediately on a permanent failure\nok 14 - planAttempts gives up immediately on a permanent failure\n  ---\n  duration_ms: 0.243205\n  type: 'test'\n  ...\n# Subtest: planAttempts exhausts the attempt count and then the budget\nok 15 - planAttempts exhausts the attempt count and then the budget\n  ---\n  duration_ms: 0.281641\n  type: 'test'\n  ...\n# Subtest: planAttempts validates its outcome list\nok 16 - planAttempts validates its outcome list\n  ---\n  duration_ms: 2.424193\n  type: 'test'\n  ...\n# Subtest: an all-retryable run reproduces the schedule exactly\nok 17 - an all-retryable run reproduces the schedule exactly\n  ---\n  duration_ms: 1.109583\n  type: 'test'\n  ...\n# Subtest: schedules respect their caps and budget for many seeded policies\nok 18 - schedules respect their caps and budget for many seeded policies\n  ---\n  duration_ms: 1.579232\n  type: 'test'\n  ...\n# Subtest: mixed outcome sequences keep the result invariants\nok 19 - mixed outcome sequences keep the result invariants\n  ---\n  duration_ms: 27.735154\n  type: 'test'\n  ...\n1..19\n# tests 19\n# suites 0\n# pass 19\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 245.775844"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "6fec4052d49c2153d87c4390c4f7135d7465c634962dc14fd96dac6942d7715c"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-6d7f0219-305d-474a-a831-b400489fe274",
+              "revision": 1
+            },
+            "goalId": "goal-3e865326-365e-46f8-8223-73a02add0cfe",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…computeSchedule stops on the first delay that would overrun the budget\n  ---\n  duration_ms: 0.46526\n  type: 'test'\n  ...\n# Subtest: full jitter draws exactly one value per slot from the given source\nok 10 - full jitter draws exactly one value per slot from the given source\n  ---\n  duration_ms: 0.507851\n  type: 'test'\n  ...\n# Subtest: a slot rejected by the budget still consumes its draw\nok 11 - a slot rejected by the budget still consumes its draw\n  ---\n  duration_ms: 0.232849\n  type: 'test'\n  ...\n# Subtest: computeSchedule rejects a missing random source and invalid policies\nok 12 - computeSchedule rejects a missing random source and invalid policies\n  ---\n  duration_ms: 0.225369\n  type: 'test'\n  ...\n# Subtest: planAttempts stops at the first success\nok 13 - planAttempts stops at the first success\n  ---\n  duration_ms: 0.295869\n  type: 'test'\n  ...\n# Subtest: planAttempts gives up immediately on a permanent failure\nok 14 - planAttempts gives up immediately on a permanent failure\n  ---\n  duration_ms: 0.243205\n  type: 'test'\n  ...\n# Subtest: planAttempts exhausts the attempt count and then the budget\nok 15 - planAttempts exhausts the attempt count and then the budget\n  ---\n  duration_ms: 0.281641\n  type: 'test'\n  ...\n# Subtest: planAttempts validates its outcome list\nok 16 - planAttempts validates its outcome list\n  ---\n  duration_ms: 2.424193\n  type: 'test'\n  ...\n# Subtest: an all-retryable run reproduces the schedule exactly\nok 17 - an all-retryable run reproduces the schedule exactly\n  ---\n  duration_ms: 1.109583\n  type: 'test'\n  ...\n# Subtest: schedules respect their caps and budget for many seeded policies\nok 18 - schedules respect their caps and budget for many seeded policies\n  ---\n  duration_ms: 1.579232\n  type: 'test'\n  ...\n# Subtest: mixed outcome sequences keep the result invariants\nok 19 - mixed outcome sequences keep the result invariants\n  ---\n  duration_ms: 27.735154\n  type: 'test'\n  ...\n1..19\n# tests 19\n# suites 0\n# pass 19\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 245.775844"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887585228
+          },
+          "usage": {
+            "inputTokens": 12,
+            "outputTokens": 4254,
+            "cacheReadTokens": 63235,
+            "cacheWriteTokens": 20033
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:semver-ranges",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:semver-ranges",
+          "sessionId": "environment-601e6fa2-786c-4594-9f69-3a7aaace4de2",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:semver-ranges",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "7cc1fbc301adec477ad031a79f0cf87c85d9f2b2d5eae9f32dad7efcca370554",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "efc76cd1f80a44408d9f6684f5f67f8592a6e955e15bfd717c2dc8721ee55e4c",
+            "contentSha256": "4259838644276bdafe342e89f52a7a8a89718a3b1fcee95636175564450a6ca2",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: versions parse into their parts\nok 1 - versions parse into their parts\n  ---\n  duration_ms: 6.394412\n  type: 'test'\n  ...\n# Subtest: malformed versions are rejected\nok 2 - malformed versions are rejected\n  ---\n  duration_ms: 0.822957\n  type: 'test'\n  ...\n# Subtest: precedence follows the prerelease rules\nok 3 - precedence follows the prerelease rules\n  ---\n  duration_ms: 0.76022\n  type: 'test'\n  ...\n# Subtest: sorting by precedence orders a whole release history\nok 4 - sorting by precedence orders a whole release history\n  ---\n  duration_ms: 0.628129\n  type: 'test'\n  ...\n# Subtest: ranges expand into comparator sets\nok 5 - ranges expand into comparator sets\n  ---\n  duration_ms: 2.943531\n  type: 'test'\n  ...\n# Subtest: malformed ranges are rejected\nok 6 - malformed ranges are rejected\n  ---\n  duration_ms: 0.806673\n  type: 'test'\n  ...\n# Subtest: satisfies applies the whole comparator set\nok 7 - satisfies applies the whole comparator set\n  ---\n  duration_ms: 3.188602\n  type: 'test'\n  ...\n# Subtest: prereleases only match ranges that mention one\nok 8 - prereleases only match ranges that mention one\n  ---\n  duration_ms: 0.609739\n  type: 'test'\n  ...\n# Subtest: maxSatisfying picks the highest match as it was written\nok 9 - maxSatisfying picks the highest match as it was written\n  ---\n  duration_ms: 1.3036\n  type: 'test'\n  ...\n# Subtest: generated versions agree with the comparator algebra\nok 10 - generated versions agree with the comparator algebra\n  ---\n  duration_ms: 34.285415\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 205.425085"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "734013b2109bc8829716f446e24c6121b1fd312ce9e8e6b1acf3bc0222528399"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-870d8d8d-1388-41f1-8ba2-a420e326a182",
+              "revision": 1
+            },
+            "goalId": "goal-4393101d-73e4-41ed-9bc1-94a07834ca97",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: versions parse into their parts\nok 1 - versions parse into their parts\n  ---\n  duration_ms: 6.394412\n  type: 'test'\n  ...\n# Subtest: malformed versions are rejected\nok 2 - malformed versions are rejected\n  ---\n  duration_ms: 0.822957\n  type: 'test'\n  ...\n# Subtest: precedence follows the prerelease rules\nok 3 - precedence follows the prerelease rules\n  ---\n  duration_ms: 0.76022\n  type: 'test'\n  ...\n# Subtest: sorting by precedence orders a whole release history\nok 4 - sorting by precedence orders a whole release history\n  ---\n  duration_ms: 0.628129\n  type: 'test'\n  ...\n# Subtest: ranges expand into comparator sets\nok 5 - ranges expand into comparator sets\n  ---\n  duration_ms: 2.943531\n  type: 'test'\n  ...\n# Subtest: malformed ranges are rejected\nok 6 - malformed ranges are rejected\n  ---\n  duration_ms: 0.806673\n  type: 'test'\n  ...\n# Subtest: satisfies applies the whole comparator set\nok 7 - satisfies applies the whole comparator set\n  ---\n  duration_ms: 3.188602\n  type: 'test'\n  ...\n# Subtest: prereleases only match ranges that mention one\nok 8 - prereleases only match ranges that mention one\n  ---\n  duration_ms: 0.609739\n  type: 'test'\n  ...\n# Subtest: maxSatisfying picks the highest match as it was written\nok 9 - maxSatisfying picks the highest match as it was written\n  ---\n  duration_ms: 1.3036\n  type: 'test'\n  ...\n# Subtest: generated versions agree with the comparator algebra\nok 10 - generated versions agree with the comparator algebra\n  ---\n  duration_ms: 34.285415\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 205.425085"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887957552
+          },
+          "usage": {
+            "inputTokens": 28,
+            "outputTokens": 42815,
+            "cacheReadTokens": 426940,
+            "cacheWriteTokens": 58293
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:semver-ranges",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:semver-ranges",
+          "sessionId": "environment-4c77ea99-d4f2-4a6e-8d23-54c14f4697fb",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:semver-ranges",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "7cc1fbc301adec477ad031a79f0cf87c85d9f2b2d5eae9f32dad7efcca370554",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "efc76cd1f80a44408d9f6684f5f67f8592a6e955e15bfd717c2dc8721ee55e4c",
+            "contentSha256": "4259838644276bdafe342e89f52a7a8a89718a3b1fcee95636175564450a6ca2",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: versions parse into their parts\nok 1 - versions parse into their parts\n  ---\n  duration_ms: 2.987992\n  type: 'test'\n  ...\n# Subtest: malformed versions are rejected\nok 2 - malformed versions are rejected\n  ---\n  duration_ms: 1.04353\n  type: 'test'\n  ...\n# Subtest: precedence follows the prerelease rules\nok 3 - precedence follows the prerelease rules\n  ---\n  duration_ms: 0.661534\n  type: 'test'\n  ...\n# Subtest: sorting by precedence orders a whole release history\nok 4 - sorting by precedence orders a whole release history\n  ---\n  duration_ms: 0.673282\n  type: 'test'\n  ...\n# Subtest: ranges expand into comparator sets\nok 5 - ranges expand into comparator sets\n  ---\n  duration_ms: 2.420924\n  type: 'test'\n  ...\n# Subtest: malformed ranges are rejected\nok 6 - malformed ranges are rejected\n  ---\n  duration_ms: 0.454138\n  type: 'test'\n  ...\n# Subtest: satisfies applies the whole comparator set\nok 7 - satisfies applies the whole comparator set\n  ---\n  duration_ms: 2.715688\n  type: 'test'\n  ...\n# Subtest: prereleases only match ranges that mention one\nok 8 - prereleases only match ranges that mention one\n  ---\n  duration_ms: 0.500933\n  type: 'test'\n  ...\n# Subtest: maxSatisfying picks the highest match as it was written\nok 9 - maxSatisfying picks the highest match as it was written\n  ---\n  duration_ms: 0.791262\n  type: 'test'\n  ...\n# Subtest: generated versions agree with the comparator algebra\nok 10 - generated versions agree with the comparator algebra\n  ---\n  duration_ms: 27.072441\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 189.29975"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "40e4b475cd929a1cfd24c99c5f818253ce739fd1cd7d73f5b6f6e69d254d8a42"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-090f76f4-4f92-436b-b55d-df51eb9bd11b",
+              "revision": 1
+            },
+            "goalId": "goal-71d9d224-6205-4b79-8729-cc296c963e60",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: versions parse into their parts\nok 1 - versions parse into their parts\n  ---\n  duration_ms: 2.987992\n  type: 'test'\n  ...\n# Subtest: malformed versions are rejected\nok 2 - malformed versions are rejected\n  ---\n  duration_ms: 1.04353\n  type: 'test'\n  ...\n# Subtest: precedence follows the prerelease rules\nok 3 - precedence follows the prerelease rules\n  ---\n  duration_ms: 0.661534\n  type: 'test'\n  ...\n# Subtest: sorting by precedence orders a whole release history\nok 4 - sorting by precedence orders a whole release history\n  ---\n  duration_ms: 0.673282\n  type: 'test'\n  ...\n# Subtest: ranges expand into comparator sets\nok 5 - ranges expand into comparator sets\n  ---\n  duration_ms: 2.420924\n  type: 'test'\n  ...\n# Subtest: malformed ranges are rejected\nok 6 - malformed ranges are rejected\n  ---\n  duration_ms: 0.454138\n  type: 'test'\n  ...\n# Subtest: satisfies applies the whole comparator set\nok 7 - satisfies applies the whole comparator set\n  ---\n  duration_ms: 2.715688\n  type: 'test'\n  ...\n# Subtest: prereleases only match ranges that mention one\nok 8 - prereleases only match ranges that mention one\n  ---\n  duration_ms: 0.500933\n  type: 'test'\n  ...\n# Subtest: maxSatisfying picks the highest match as it was written\nok 9 - maxSatisfying picks the highest match as it was written\n  ---\n  duration_ms: 0.791262\n  type: 'test'\n  ...\n# Subtest: generated versions agree with the comparator algebra\nok 10 - generated versions agree with the comparator algebra\n  ---\n  duration_ms: 27.072441\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 189.29975"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788887941033
+          },
+          "usage": {
+            "inputTokens": 28,
+            "outputTokens": 33902,
+            "cacheReadTokens": 373417,
+            "cacheWriteTokens": 51738
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:topo-sort",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:topo-sort",
+          "sessionId": "environment-54540f24-840b-4fdd-b414-3a95354afde4",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:topo-sort",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "fabb167edbf34a828ee09bd13c1aa4b433451f0a9a971fe0ea0cf8e7aa56c491",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "bc3bc13ff5bff780d69237ea7b7cb372246ec18c3cd01ed388fa653c4ea85953",
+            "contentSha256": "4a5f58e493633e2c25fb1b9140a4e4c6a5bd482c3adffbe740e2e5975641b5b8",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: kahnOrder always takes the smallest ready node\nok 1 - kahnOrder always takes the smallest ready node\n  ---\n  duration_ms: 5.390756\n  type: 'test'\n  ...\n# Subtest: dfsOrder reverses depth-first finishing times\nok 2 - dfsOrder reverses depth-first finishing times\n  ---\n  duration_ms: 0.715683\n  type: 'test'\n  ...\n# Subtest: layers place every node one level below its deepest predecessor\nok 3 - layers place every node one level below its deepest predecessor\n  ---\n  duration_ms: 0.972333\n  type: 'test'\n  ...\n# Subtest: findCycle names one cycle and starts it at the smallest member\nok 4 - findCycle names one cycle and starts it at the smallest member\n  ---\n  duration_ms: 0.357119\n  type: 'test'\n  ...\n# Subtest: cyclic graphs report the cycle instead of an order\nok 5 - cyclic graphs report the cycle instead of an order\n  ---\n  duration_ms: 0.315001\n  type: 'test'\n  ...\n# Subtest: malformed graphs raise the specified errors\nok 6 - malformed graphs raise the specified errors\n  ---\n  duration_ms: 0.816584\n  type: 'test'\n  ...\n# Subtest: kahnOrder equals the lexicographically smallest valid order on random graphs\nok 7 - kahnOrder equals the lexicographically smallest valid order on random graphs\n  ---\n  duration_ms: 214.533557\n  type: 'test'\n  ...\n# Subtest: both orderings and the layering stay consistent on larger random graphs\nok 8 - both orderings and the layering stay consistent on larger random graphs\n  ---\n  duration_ms: 17.177413\n  type: 'test'\n  ...\n# Subtest: reported cycles are real cycles of the graph\nok 9 - reported cycles are real cycles of the graph\n  ---\n  duration_ms: 3.13678\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 383.60942"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "6ee49dcb7f60b1ebebb358c3cebfcd83c9466135502e955f8c6c12085520e006"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-6e69534a-b506-4957-99a2-0f6d2b1ba0d9",
+              "revision": 1
+            },
+            "goalId": "goal-35946a0d-9b31-4a5d-8d10-d36dc8f7cc7b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: kahnOrder always takes the smallest ready node\nok 1 - kahnOrder always takes the smallest ready node\n  ---\n  duration_ms: 5.390756\n  type: 'test'\n  ...\n# Subtest: dfsOrder reverses depth-first finishing times\nok 2 - dfsOrder reverses depth-first finishing times\n  ---\n  duration_ms: 0.715683\n  type: 'test'\n  ...\n# Subtest: layers place every node one level below its deepest predecessor\nok 3 - layers place every node one level below its deepest predecessor\n  ---\n  duration_ms: 0.972333\n  type: 'test'\n  ...\n# Subtest: findCycle names one cycle and starts it at the smallest member\nok 4 - findCycle names one cycle and starts it at the smallest member\n  ---\n  duration_ms: 0.357119\n  type: 'test'\n  ...\n# Subtest: cyclic graphs report the cycle instead of an order\nok 5 - cyclic graphs report the cycle instead of an order\n  ---\n  duration_ms: 0.315001\n  type: 'test'\n  ...\n# Subtest: malformed graphs raise the specified errors\nok 6 - malformed graphs raise the specified errors\n  ---\n  duration_ms: 0.816584\n  type: 'test'\n  ...\n# Subtest: kahnOrder equals the lexicographically smallest valid order on random graphs\nok 7 - kahnOrder equals the lexicographically smallest valid order on random graphs\n  ---\n  duration_ms: 214.533557\n  type: 'test'\n  ...\n# Subtest: both orderings and the layering stay consistent on larger random graphs\nok 8 - both orderings and the layering stay consistent on larger random graphs\n  ---\n  duration_ms: 17.177413\n  type: 'test'\n  ...\n# Subtest: reported cycles are real cycles of the graph\nok 9 - reported cycles are real cycles of the graph\n  ---\n  duration_ms: 3.13678\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 383.60942"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788888031518
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 8389,
+            "cacheReadTokens": 64037,
+            "cacheWriteTokens": 18775
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:topo-sort",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:topo-sort",
+          "sessionId": "environment-2626771f-91b0-4b93-ab52-339f22c2f01b",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:topo-sort",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "fabb167edbf34a828ee09bd13c1aa4b433451f0a9a971fe0ea0cf8e7aa56c491",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "bc3bc13ff5bff780d69237ea7b7cb372246ec18c3cd01ed388fa653c4ea85953",
+            "contentSha256": "4a5f58e493633e2c25fb1b9140a4e4c6a5bd482c3adffbe740e2e5975641b5b8",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: kahnOrder always takes the smallest ready node\nok 1 - kahnOrder always takes the smallest ready node\n  ---\n  duration_ms: 5.282563\n  type: 'test'\n  ...\n# Subtest: dfsOrder reverses depth-first finishing times\nok 2 - dfsOrder reverses depth-first finishing times\n  ---\n  duration_ms: 0.682243\n  type: 'test'\n  ...\n# Subtest: layers place every node one level below its deepest predecessor\nok 3 - layers place every node one level below its deepest predecessor\n  ---\n  duration_ms: 0.780501\n  type: 'test'\n  ...\n# Subtest: findCycle names one cycle and starts it at the smallest member\nok 4 - findCycle names one cycle and starts it at the smallest member\n  ---\n  duration_ms: 0.413871\n  type: 'test'\n  ...\n# Subtest: cyclic graphs report the cycle instead of an order\nok 5 - cyclic graphs report the cycle instead of an order\n  ---\n  duration_ms: 0.3619\n  type: 'test'\n  ...\n# Subtest: malformed graphs raise the specified errors\nok 6 - malformed graphs raise the specified errors\n  ---\n  duration_ms: 0.940522\n  type: 'test'\n  ...\n# Subtest: kahnOrder equals the lexicographically smallest valid order on random graphs\nok 7 - kahnOrder equals the lexicographically smallest valid order on random graphs\n  ---\n  duration_ms: 192.779407\n  type: 'test'\n  ...\n# Subtest: both orderings and the layering stay consistent on larger random graphs\nok 8 - both orderings and the layering stay consistent on larger random graphs\n  ---\n  duration_ms: 13.439871\n  type: 'test'\n  ...\n# Subtest: reported cycles are real cycles of the graph\nok 9 - reported cycles are real cycles of the graph\n  ---\n  duration_ms: 6.224202\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 360.462576"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "c14332d5009178fd055bd1ee3525c2807ccf9049b0ac279848d6f1d9dadddeac"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-b3ce1129-f8a0-4e0b-8e2c-1cfd5ad42085",
+              "revision": 1
+            },
+            "goalId": "goal-e03a24fb-a8a0-4195-a003-5a7a36ea4d8b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: kahnOrder always takes the smallest ready node\nok 1 - kahnOrder always takes the smallest ready node\n  ---\n  duration_ms: 5.282563\n  type: 'test'\n  ...\n# Subtest: dfsOrder reverses depth-first finishing times\nok 2 - dfsOrder reverses depth-first finishing times\n  ---\n  duration_ms: 0.682243\n  type: 'test'\n  ...\n# Subtest: layers place every node one level below its deepest predecessor\nok 3 - layers place every node one level below its deepest predecessor\n  ---\n  duration_ms: 0.780501\n  type: 'test'\n  ...\n# Subtest: findCycle names one cycle and starts it at the smallest member\nok 4 - findCycle names one cycle and starts it at the smallest member\n  ---\n  duration_ms: 0.413871\n  type: 'test'\n  ...\n# Subtest: cyclic graphs report the cycle instead of an order\nok 5 - cyclic graphs report the cycle instead of an order\n  ---\n  duration_ms: 0.3619\n  type: 'test'\n  ...\n# Subtest: malformed graphs raise the specified errors\nok 6 - malformed graphs raise the specified errors\n  ---\n  duration_ms: 0.940522\n  type: 'test'\n  ...\n# Subtest: kahnOrder equals the lexicographically smallest valid order on random graphs\nok 7 - kahnOrder equals the lexicographically smallest valid order on random graphs\n  ---\n  duration_ms: 192.779407\n  type: 'test'\n  ...\n# Subtest: both orderings and the layering stay consistent on larger random graphs\nok 8 - both orderings and the layering stay consistent on larger random graphs\n  ---\n  duration_ms: 13.439871\n  type: 'test'\n  ...\n# Subtest: reported cycles are real cycles of the graph\nok 9 - reported cycles are real cycles of the graph\n  ---\n  duration_ms: 6.224202\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 360.462576"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1788888074090
+          },
+          "usage": {
+            "inputTokens": 16,
+            "outputTokens": 10903,
+            "cacheReadTokens": 98202,
+            "cacheWriteTokens": 21075
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:wrap-justify",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:wrap-justify",
+          "sessionId": "environment-1c05a30c-104c-4fe5-9b94-f1b6bcb1e5f9",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:wrap-justify",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "a20f99eb3550acba273a5618e95cff306012dc45535df657dd4a4a4c70476481",
+            "checksSha256": "10f80af2ccd824a055dc64aa2b3f5a8093d58ff2adfa51308baeb43f69c4b1ad",
+            "fixtureSha256": "4b84b7a2c015546b8830b5579c178bbf51d564801eb71d0cf49892c66ace1805",
+            "contentSha256": "9de60bfafc07ddf315656ebd0e10629ff5ab941798409421b8676ddc4433cbc0",
+            "repetition": 0,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 3,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…the text\n  ---\n  duration_ms: 130.873966\n  type: 'test'\n  ...\n# Subtest: wrap re-flows lines that the input had already broken\nok 5 - wrap re-flows lines that the input had already broken\n  ---\n  duration_ms: 75.934391\n  type: 'test'\n  ...\n# Subtest: justify pads the interior gaps to the exact width\nok 6 - justify pads the interior gaps to the exact width\n  ---\n  duration_ms: 77.891765\n  type: 'test'\n  ...\n# Subtest: justify leaves the last line of a paragraph alone\nok 7 - justify leaves the last line of a paragraph alone\n  ---\n  duration_ms: 67.262599\n  type: 'test'\n  ...\n# Subtest: justify leaves a one-word line alone\nok 8 - justify leaves a one-word line alone\n  ---\n  duration_ms: 74.580063\n  type: 'test'\n  ...\n# Subtest: a word longer than the width takes a line of its own\nok 9 - a word longer than the width takes a line of its own\n  ---\n  duration_ms: 74.634244\n  type: 'test'\n  ...\n# Subtest: a soft hyphen offers a break point and prints a hyphen\nok 10 - a soft hyphen offers a break point and prints a hyphen\n  ---\n  duration_ms: 69.578791\n  type: 'test'\n  ...\n# Subtest: an unused soft hyphen disappears from the output\nok 11 - an unused soft hyphen disappears from the output\n  ---\n  duration_ms: 74.261144\n  type: 'test'\n  ...\n# Subtest: a combining mark takes no column\nok 12 - a combining mark takes no column\n  ---\n  duration_ms: 81.462476\n  type: 'test'\n  ...\n# Subtest: a wide character takes two columns\nok 13 - a wide character takes two columns\n  ---\n  duration_ms: 69.399462\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 14 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 67.743158\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 81.814167\n  type: 'test'\n  ...\n# Subtest: a width of zero is rejected\nok 16 - a width of zero is rejected\n  ---\n  duration_ms: 79.765437\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1939.349705"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 160 of 160 passed (weight 300 of 300)",
+                  "cases": {
+                    "passed": 160,
+                    "total": 160,
+                    "weightPassed": 300,
+                    "weightTotal": 300,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "28ae966f009bcb20d0f28fe5d9338567addc64f76e019004f3b9c24379074326"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-a75d2f16-1c58-441c-a10b-68ec7c65482b",
+              "revision": 1
+            },
+            "goalId": "goal-474800ee-b2ac-4a4d-a395-597ae1c88b1a",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…the text\n  ---\n  duration_ms: 130.873966\n  type: 'test'\n  ...\n# Subtest: wrap re-flows lines that the input had already broken\nok 5 - wrap re-flows lines that the input had already broken\n  ---\n  duration_ms: 75.934391\n  type: 'test'\n  ...\n# Subtest: justify pads the interior gaps to the exact width\nok 6 - justify pads the interior gaps to the exact width\n  ---\n  duration_ms: 77.891765\n  type: 'test'\n  ...\n# Subtest: justify leaves the last line of a paragraph alone\nok 7 - justify leaves the last line of a paragraph alone\n  ---\n  duration_ms: 67.262599\n  type: 'test'\n  ...\n# Subtest: justify leaves a one-word line alone\nok 8 - justify leaves a one-word line alone\n  ---\n  duration_ms: 74.580063\n  type: 'test'\n  ...\n# Subtest: a word longer than the width takes a line of its own\nok 9 - a word longer than the width takes a line of its own\n  ---\n  duration_ms: 74.634244\n  type: 'test'\n  ...\n# Subtest: a soft hyphen offers a break point and prints a hyphen\nok 10 - a soft hyphen offers a break point and prints a hyphen\n  ---\n  duration_ms: 69.578791\n  type: 'test'\n  ...\n# Subtest: an unused soft hyphen disappears from the output\nok 11 - an unused soft hyphen disappears from the output\n  ---\n  duration_ms: 74.261144\n  type: 'test'\n  ...\n# Subtest: a combining mark takes no column\nok 12 - a combining mark takes no column\n  ---\n  duration_ms: 81.462476\n  type: 'test'\n  ...\n# Subtest: a wide character takes two columns\nok 13 - a wide character takes two columns\n  ---\n  duration_ms: 69.399462\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 14 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 67.743158\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 81.814167\n  type: 'test'\n  ...\n# Subtest: a width of zero is rejected\nok 16 - a width of zero is rejected\n  ---\n  duration_ms: 79.765437\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1939.349705"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 160 of 160 passed (weight 300 of 300)",
+                "cases": {
+                  "passed": 160,
+                  "total": 160,
+                  "weightPassed": 300,
+                  "weightTotal": 300,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1788888241361
+          },
+          "usage": {
+            "inputTokens": 30,
+            "outputTokens": 15765,
+            "cacheReadTokens": 273064,
+            "cacheWriteTokens": 25449
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:wrap-justify",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 1
+        },
+        "report": {
+          "environment": "code:wrap-justify",
+          "sessionId": "environment-e6c3a5dc-a763-46e1-bd20-3b436a8662d6",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:wrap-justify",
+            "environmentKind": "bench",
+            "heldOut": true,
+            "promptSha256": "a20f99eb3550acba273a5618e95cff306012dc45535df657dd4a4a4c70476481",
+            "checksSha256": "10f80af2ccd824a055dc64aa2b3f5a8093d58ff2adfa51308baeb43f69c4b1ad",
+            "fixtureSha256": "4b84b7a2c015546b8830b5579c178bbf51d564801eb71d0cf49892c66ace1805",
+            "contentSha256": "9de60bfafc07ddf315656ebd0e10629ff5ab941798409421b8676ddc4433cbc0",
+            "repetition": 1,
+            "group": "fleet-4fa3a319-1269-467b-b215-269b02960c3d",
+            "district": "bench-held-out",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 4,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n… the text\n  ---\n  duration_ms: 72.834806\n  type: 'test'\n  ...\n# Subtest: wrap re-flows lines that the input had already broken\nok 5 - wrap re-flows lines that the input had already broken\n  ---\n  duration_ms: 67.753111\n  type: 'test'\n  ...\n# Subtest: justify pads the interior gaps to the exact width\nok 6 - justify pads the interior gaps to the exact width\n  ---\n  duration_ms: 63.846646\n  type: 'test'\n  ...\n# Subtest: justify leaves the last line of a paragraph alone\nok 7 - justify leaves the last line of a paragraph alone\n  ---\n  duration_ms: 63.146168\n  type: 'test'\n  ...\n# Subtest: justify leaves a one-word line alone\nok 8 - justify leaves a one-word line alone\n  ---\n  duration_ms: 66.608277\n  type: 'test'\n  ...\n# Subtest: a word longer than the width takes a line of its own\nok 9 - a word longer than the width takes a line of its own\n  ---\n  duration_ms: 68.066027\n  type: 'test'\n  ...\n# Subtest: a soft hyphen offers a break point and prints a hyphen\nok 10 - a soft hyphen offers a break point and prints a hyphen\n  ---\n  duration_ms: 66.750866\n  type: 'test'\n  ...\n# Subtest: an unused soft hyphen disappears from the output\nok 11 - an unused soft hyphen disappears from the output\n  ---\n  duration_ms: 67.175839\n  type: 'test'\n  ...\n# Subtest: a combining mark takes no column\nok 12 - a combining mark takes no column\n  ---\n  duration_ms: 69.035277\n  type: 'test'\n  ...\n# Subtest: a wide character takes two columns\nok 13 - a wide character takes two columns\n  ---\n  duration_ms: 69.154023\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 14 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 70.543325\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 67.517708\n  type: 'test'\n  ...\n# Subtest: a width of zero is rejected\nok 16 - a width of zero is rejected\n  ---\n  duration_ms: 69.299548\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1272.296827"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                },
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 160 of 160 passed (weight 300 of 300)",
+                  "cases": {
+                    "passed": 160,
+                    "total": 160,
+                    "weightPassed": 300,
+                    "weightTotal": 300,
+                    "failed": []
+                  }
+                }
+              ],
+              "treeHash": "d327a984654cb0780a8f10fc4fdccaa08f3390da05412b9e764ef2bba86b82c3"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-8e65d38d-fc94-4dfa-bd83-a72b8964530a",
+              "revision": 1
+            },
+            "goalId": "goal-66eeb71a-d790-4493-a39c-f822409dbaf0",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n… the text\n  ---\n  duration_ms: 72.834806\n  type: 'test'\n  ...\n# Subtest: wrap re-flows lines that the input had already broken\nok 5 - wrap re-flows lines that the input had already broken\n  ---\n  duration_ms: 67.753111\n  type: 'test'\n  ...\n# Subtest: justify pads the interior gaps to the exact width\nok 6 - justify pads the interior gaps to the exact width\n  ---\n  duration_ms: 63.846646\n  type: 'test'\n  ...\n# Subtest: justify leaves the last line of a paragraph alone\nok 7 - justify leaves the last line of a paragraph alone\n  ---\n  duration_ms: 63.146168\n  type: 'test'\n  ...\n# Subtest: justify leaves a one-word line alone\nok 8 - justify leaves a one-word line alone\n  ---\n  duration_ms: 66.608277\n  type: 'test'\n  ...\n# Subtest: a word longer than the width takes a line of its own\nok 9 - a word longer than the width takes a line of its own\n  ---\n  duration_ms: 68.066027\n  type: 'test'\n  ...\n# Subtest: a soft hyphen offers a break point and prints a hyphen\nok 10 - a soft hyphen offers a break point and prints a hyphen\n  ---\n  duration_ms: 66.750866\n  type: 'test'\n  ...\n# Subtest: an unused soft hyphen disappears from the output\nok 11 - an unused soft hyphen disappears from the output\n  ---\n  duration_ms: 67.175839\n  type: 'test'\n  ...\n# Subtest: a combining mark takes no column\nok 12 - a combining mark takes no column\n  ---\n  duration_ms: 69.035277\n  type: 'test'\n  ...\n# Subtest: a wide character takes two columns\nok 13 - a wide character takes two columns\n  ---\n  duration_ms: 69.154023\n  type: 'test'\n  ...\n# Subtest: empty input prints nothing and succeeds\nok 14 - empty input prints nothing and succeeds\n  ---\n  duration_ms: 70.543325\n  type: 'test'\n  ...\n# Subtest: an unknown mode is rejected\nok 15 - an unknown mode is rejected\n  ---\n  duration_ms: 67.517708\n  type: 'test'\n  ...\n# Subtest: a width of zero is rejected\nok 16 - a width of zero is rejected\n  ---\n  duration_ms: 69.299548\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1272.296827"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              },
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 160 of 160 passed (weight 300 of 300)",
+                "cases": {
+                  "passed": 160,
+                  "total": 160,
+                  "weightPassed": 300,
+                  "weightTotal": 300,
+                  "failed": []
+                }
+              }
+            ],
+            "recordedAt": 1788888291617
+          },
+          "usage": {
+            "inputTokens": 30,
+            "outputTokens": 16236,
+            "cacheReadTokens": 274142,
+            "cacheWriteTokens": 26216
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:glob-brace",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 0.5,
+        "attemptsMean": 2,
+        "inputTokens": 78,
+        "outputTokens": 107160,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:ini-parse",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 30,
+        "outputTokens": 65419,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:kv-log-store",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 68,
+        "outputTokens": 28712,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:lru-ttl-cache",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 42,
+        "outputTokens": 24265,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:retry-policy",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 26,
+        "outputTokens": 9698,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:semver-ranges",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 56,
+        "outputTokens": 76717,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:topo-sort",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 30,
+        "outputTokens": 19292,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:wrap-justify",
+        "environmentKind": "bench",
+        "heldOut": true,
+        "runs": 2,
+        "errors": 0,
+        "certified": 2,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 60,
+        "outputTokens": 32001,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 390,
+      "outputTokens": 363264
+    }
+  },
+  "rows": [],
+  "facts": {
+    "sessions": 16,
+    "exported": 16,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 16,
+    "exported": 0,
+    "rewarded": 0,
+    "filtered": 0,
+    "heldOut": 16,
+    "withheld": 0,
+    "skipped": []
+  }
+}
