@@ -68,6 +68,7 @@ describe('a delegated cell through a real cordis.yml and headless process', () =
     expect(result.delegations['smoke:round-trip']).toEqual([
       {
         attempt: 1,
+        restatedTask: false,
         provider: 'spawn',
         runId: expect.any(String) as unknown as string,
         stopReason: 'completed',
@@ -76,8 +77,10 @@ describe('a delegated cell through a real cordis.yml and headless process', () =
       },
     ])
     const failing = result.delegations['smoke:unsatisfiable'] ?? []
-    expect(failing.map(delegation => [delegation.attempt, delegation.provider, delegation.stopReason]))
-      .toEqual([[1, 'spawn', 'completed'], [2, 'spawn', 'completed']])
+    // The second child holds none of the first one's transcript, so its prompt
+    // restated the task ahead of the directive.
+    expect(failing.map(delegation => [delegation.attempt, delegation.provider, delegation.stopReason, delegation.restatedTask]))
+      .toEqual([[1, 'spawn', 'completed', false], [2, 'spawn', 'completed', true]])
     expect(new Set(failing.map(delegation => delegation.runId)).size).toBe(2)
 
     // The cell session carries the delegation records and no model turn of its own.

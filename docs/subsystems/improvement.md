@@ -76,8 +76,17 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
    * across model or infrastructure versions.
    */
   readonly seed?: number
-  /** Model route the implementer ran on. */
+  /** Model route the run's first attempt ran on; every attempt of a run without a ladder ran on it. */
   readonly model: EnvironmentRunModel
+  /**
+   * Model route of each attempt in attempt order, present only for a run the
+   * caller laddered. It is part of the arm's identity: a cell whose second
+   * attempt escalated to another model measures something a single-model cell
+   * does not, so a fold that groups by {@link model} alone would count the two
+   * together. Its first entry always equals {@link model}, and its length is
+   * the attempt bound that run was given.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
@@ -89,6 +98,12 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly implementer?: string
 }
 ```
+
+### The attempt ladder and the transcript interface
+
+A run request may name one rung per attempt. Attempt `i` runs on `ladder[i - 1].model`, or on the run's own `model` when that rung names none, and the ladder's length is the run's attempt bound, overriding the composition's `maxAttempts`. The stamp records the resolved rungs beside `model`, which stays the first attempt's route, so a fold grouping by route sees where a run started and a fold grouping by arm sees the whole escalation; a fleet plan, an experiment arm, the scorekeeper's facts and rows, and the observatory's columns all carry it, so a laddered cell is never counted as a plain single-model one. Every attempt of the report states the route it ran on.
+
+The two implementers ladder differently, and the difference is named on every attempt as `transcript`. A route implementer keeps its transcript: each attempt is another user turn of the one cell session, so the model reads its own earlier work and receives the `<validation_failed>` directive alone. A subagent implementer drops it: each attempt is one fresh child, so a later attempt's prompt restates the task statement ahead of the directive and its `environment/delegation` records `restatedTask`. A `keep` arm on an out-of-process child would need provider resume support the subagent seam does not advertise, so the in-process `spawn` provider is the route's `drop` counterpart. The [runner README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) owns the rung ceiling, the refusals, and how each implementer changes route.
 
 ### The implementer of a run
 
@@ -138,6 +153,14 @@ The fleet folds one row per model route and environment from the reports of one 
 interface LeaderboardRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Model route of each attempt in attempt order, as the plan's ladder resolved
+   * it, absent for a row whose cells ran no ladder and for one whose cells all
+   * failed before a run. One plan runs one ladder, so a fleet row cannot mix a
+   * laddered cell with an unladdered one; the scoreboard, which folds across
+   * plans, keys its rows by it instead.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean
@@ -250,7 +273,7 @@ The observatory folds the scoreboard through the scorekeeper over every persiste
 ```ts type-equiv
 /** One fold over every persisted session, before rendering decides what it shows. */
 interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
+  /** Scoreboard rows that survived withholding, ordered by route, attempt ladder, environment, isolation, held-out split, and district. */
   readonly rows: readonly ScoreboardRow[]
   /** What withholding removed from those rows. */
   readonly withheld: ObservatoryWithheld
@@ -284,6 +307,14 @@ interface ObservatorySnapshot {
 interface ObservatoryPublishedRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Route of each attempt in attempt order, absent for a row whose sessions
+   * laddered none. It is published beside the route rather than folded into it:
+   * a cell that escalated to another model on its second attempt is not the
+   * same arm as one that stayed, and a page that showed only the first rung
+   * would read as if it were.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   /** District the row's sessions were stamped with, absent for a row outside every district. */
@@ -510,15 +541,16 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 /**
  * Run one environment as one fresh session and validate it.
  * @param request - environment id, absolute workspace directory, optional
- *   implementer, model route, repetition, group, district, policy version,
- *   sampling seed, and abort signal.
- * @returns the stamp, the attempts, the certificate when one run passed, the
- *   accumulated usage, and the caps the cell ran under.
+ *   implementer, model route, attempt ladder, repetition, group, district,
+ *   policy version, sampling seed, and abort signal.
+ * @returns the stamp, the attempts with the route each ran on, the
+ *   certificate when one run passed, the accumulated usage, and the caps the
+ *   cell ran under.
  * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
- *   is not a safe non-negative integer, an implementer provider the
- *   composition does not hold, cannot confine, or has no budget policy to
- *   bound, an unusable workspace or fixture, an implementer that replaced the
- *   goal, or a lost standard.
+ *   is not a safe non-negative integer, an empty or over-long attempt ladder,
+ *   an implementer provider the composition does not hold, cannot confine, or
+ *   has no budget policy to bound, an unusable workspace or fixture, an
+ *   implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -556,7 +588,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:857`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:981`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -604,7 +636,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:382`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:403`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -619,21 +651,23 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  * first cell runs; a cell the fleet kept as an error leaves its repetition
  * unpaired instead of failing the experiment.
  * @param plan - environments, repetitions, the two arms with their model
- *   routes and optional implementers, the workspace root, and an optional
- *   policy version, base seed, frozen digest, abort signal, and result sink.
- * @returns the digest, both arms with their stamp groups, one cell per
- *   environment, the pooled delta with its interval, the spend, the caps both
- *   arms ran under, and the verdict.
+ *   routes and optional attempt ladders and implementers, the workspace root,
+ *   and an optional policy version, base seed, frozen digest, abort signal,
+ *   and result sink.
+ * @returns the digest, both arms with their ladders and stamp groups, one
+ *   cell per environment, the pooled delta with its interval, the spend, the
+ *   caps both arms ran under, and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
  *   unregistered environment, asks for no repetition, sets a seed that is not
- *   a safe non-negative integer, whose two arms would run under different
- *   caps, declares a digest its content does not freeze to, or projects more
- *   tokens than the budget.
+ *   a safe non-negative integer, carries an arm ladder with no rung or one
+ *   whose first rung names another route, whose two arms would run under
+ *   different caps, declares a digest its content does not freeze to, or
+ *   projects more tokens than the budget.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:119`](../../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:130`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 
@@ -647,19 +681,20 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, an optional implementer,
- *   repetitions, an optional exact cell selection, workspace root, group,
- *   district, policy version, base seed, token ceiling, and abort signal.
+ * @param plan - environments, model routes, an optional attempt ladder and
+ *   implementer, repetitions, an optional exact cell selection, workspace
+ *   root, group, district, policy version, base seed, token ceiling, and
+ *   abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
  *   no repetition, names no or an unenumerated cell, sets a token ceiling
- *   that is not a positive integer, or sets a seed that is not a safe
- *   non-negative integer.
+ *   that is not a positive integer, sets a seed that is not a safe
+ *   non-negative integer, or carries an attempt ladder with no rung.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:301`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:307`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 

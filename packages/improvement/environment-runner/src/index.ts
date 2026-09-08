@@ -4,12 +4,14 @@
  * environment it runs, authors the completion standard from the environment's
  * checks, denies the cell everything above its own workspace for the length of
  * the run, has each attempt implemented either by the session's own model route
- * or by an out-of-band coding agent started through the subagent seam, restores
+ * or by an out-of-band coding agent started through the subagent seam, moves
+ * each attempt to its own rung of the request's attempt ladder, restores
  * the fixture's immutable paths and executes the checks through the shell
  * executor after each attempt, records the run, and completes the goal only
  * under a certificate. The
- * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)
- * and [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)
+ * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md),
+ * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md),
+ * and [attempt-ladder](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md)
  * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-environment-runner
  */
@@ -20,7 +22,7 @@ import { dirname, isAbsolute, join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
-import type { Agent, AgentSampling } from '@deepseek-ai/dsh-agent'
+import type { Agent, AgentSampling, ModelSelectionRef } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 // Also resolves the `usage/foreign` SessionEventMap merge the delegated caps write through.
 import type { BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
@@ -66,6 +68,8 @@ import type {
   EnvironmentRunImplementer,
   EnvironmentRunReport,
   EnvironmentRunRequest,
+  EnvironmentRunRung,
+  EnvironmentRunTranscript,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -80,6 +84,7 @@ declare module '@deepseek-ai/cordis' {
 export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT'
   | 'ENVIRONMENT_RUN_INVALID_SEED'
+  | 'ENVIRONMENT_RUN_INVALID_LADDER'
   | 'ENVIRONMENT_RUN_INVALID_WORKSPACE'
   | 'ENVIRONMENT_RUN_INVALID_FIXTURE'
   | 'ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT'
@@ -111,6 +116,12 @@ export interface Config {
   isolation: CertificateIsolation
   /** Implementer turns before the run is reported uncertified; each is followed by one validation. */
   maxAttempts?: number
+  /**
+   * Rungs one request's attempt ladder may name. A ladder is the attempt bound
+   * of the run that carries it, so an unbounded ladder in a plan file would be
+   * an unbounded run; this is the ceiling a deployment lets a plan reach.
+   */
+  maxLadderRungs?: number
   /** Round cap handed to goal creation; absent applies the goal service default. */
   maxGoalRounds?: number
   /** Timeout override for each check command and each case, capped by the executor; absent applies the executor default. */
@@ -132,6 +143,7 @@ export interface Config {
 export interface ResolvedConfig {
   readonly isolation: CertificateIsolation
   readonly maxAttempts: number
+  readonly maxLadderRungs: number
   readonly maxGoalRounds: number | undefined
   readonly checkTimeoutMs: number | undefined
   readonly evidenceMaxChars: number
@@ -140,14 +152,23 @@ export interface ResolvedConfig {
 }
 
 /**
+ * Rungs a ladder may reach where the deployment states no ceiling. The routing
+ * arms of the hypothesis program ladder three models, and the longest arm this
+ * runner has a consumer for is a repeated-attempt one; eight leaves that room
+ * without letting a plan file mint an arbitrarily long run.
+ */
+const DEFAULT_MAX_LADDER_RUNGS = 8
+
+/**
  * Apply the runner's defaults to a validated config.
  * @param config - validated deployment config.
- * @returns the resolved choices: one attempt, 2000 evidence characters, and 20 listed failed cases unless configured.
+ * @returns the resolved choices: one attempt, eight ladder rungs, 2000 evidence characters, and 20 listed failed cases unless configured.
  */
 export function resolveConfig(config: Config): ResolvedConfig {
   return {
     isolation: config.isolation,
     maxAttempts: config.maxAttempts ?? 1,
+    maxLadderRungs: config.maxLadderRungs ?? DEFAULT_MAX_LADDER_RUNGS,
     maxGoalRounds: config.maxGoalRounds,
     checkTimeoutMs: config.checkTimeoutMs,
     evidenceMaxChars: config.evidenceMaxChars ?? 2000,
@@ -182,6 +203,53 @@ export function implementerName(implementer: EnvironmentRunImplementer): string 
   }
 }
 
+/**
+ * What one implementer carries from an attempt into the next one. It is a
+ * property of the instrument rather than of the attempt: a route implementer
+ * works in the cell session, which every later attempt continues, and a
+ * subagent implementer starts one fresh child per attempt.
+ * @param implementer - the resolved implementer.
+ * @returns `kept` for the session's own route, `dropped` for a delegated run.
+ */
+export function implementerTranscript(implementer: EnvironmentRunImplementer): EnvironmentRunTranscript {
+  switch (implementer.kind) {
+    case 'route':
+      return 'kept'
+    case 'subagent':
+      return 'dropped'
+    /* v8 ignore next 2 -- EnvironmentRunImplementer is closed and every member is handled above */
+    default:
+      return assertNever(implementer, 'run implementer')
+  }
+}
+
+/**
+ * Resolve one request's attempt ladder against the run's stamped model: the
+ * concrete route of each attempt, in attempt order. It is the run's attempt
+ * bound as well as its routing, so an empty ladder would be a run with no
+ * attempt and a ladder past the deployment's ceiling a run the deployment never
+ * allowed; both are refused here, before any agent exists.
+ * @param ladder - the rungs the request named, absent for a run without one.
+ * @param model - the run's stamped route, which a rung naming no model runs on.
+ * @param maxRungs - rungs this deployment lets one ladder reach.
+ * @returns one model route per attempt, or `undefined` for a request that named no ladder.
+ * @throws {@link EnvironmentRunError} for an empty ladder and for one past the ceiling.
+ */
+export function resolveLadder(
+  ladder: readonly EnvironmentRunRung[] | undefined,
+  model: EnvironmentRunModel,
+  maxRungs: number,
+): readonly EnvironmentRunModel[] | undefined {
+  if (ladder === undefined) return undefined
+  if (ladder.length === 0) {
+    throw new EnvironmentRunError('an attempt ladder must name at least one rung', 'ENVIRONMENT_RUN_INVALID_LADDER')
+  }
+  if (ladder.length > maxRungs) {
+    throw new EnvironmentRunError(`an attempt ladder of ${ladder.length} rungs exceeds the configured ceiling of ${maxRungs}`, 'ENVIRONMENT_RUN_INVALID_LADDER')
+  }
+  return ladder.map(rung => rung.model ?? model)
+}
+
 /** One run's implementer with the services a delegated one needs already resolved. */
 type RunImplementer =
   | { readonly kind: 'route' }
@@ -189,12 +257,24 @@ type RunImplementer =
     readonly kind: 'subagent'
     readonly provider: string
     readonly label?: string
-    /** The stamped model every child run must be started on, so the arm's model is the one that works. */
-    readonly model: string
     readonly subagents: SubagentRuntime
     /** The budget policy whose caps bound every attempt this implementer runs. */
     readonly budgets: SessionBudgets
   }
+
+/** What one attempt hands its implementer, whichever implementer that is. */
+interface AttemptDelivery {
+  /** One-based attempt number. */
+  readonly attempt: number
+  /** The text the implementer receives: the task statement, the validation follow-up, or both. */
+  readonly text: string
+  /** Whether {@link text} restated the task ahead of a validation directive. */
+  readonly restatedTask: boolean
+  /** The attempt's ladder rung, which is the run's stamped model where it named no ladder. */
+  readonly model: EnvironmentRunModel
+  /** Cancellation of the enclosing run. */
+  readonly signal?: AbortSignal
+}
 
 /**
  * Characters a reserved check script's path may contain. The script is sourced
@@ -760,6 +840,47 @@ function followupText(directive: DirectiveRequest): string {
   return `<validation_failed>\n${directive.rootCause}\n${directive.detail}\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>`
 }
 
+/**
+ * The whole text one attempt of a fresh child receives: the task statement
+ * again, then the validator's follow-up. A child holds none of the earlier
+ * attempts' transcript, so the follow-up alone would ask it to continue work it
+ * has no statement of. Pinned by the runner README and its e2e.
+ */
+function restatedFollowupText(prompt: string, directive: DirectiveRequest): string {
+  return `${prompt}\n\n${followupText(directive)}`
+}
+
+/**
+ * The text one attempt hands its implementer, and whether that text restated
+ * the task ahead of a validation directive. The first attempt of either
+ * implementer receives the task statement alone. A later attempt receives what
+ * its transcript interface leaves it needing: a route implementer continues the
+ * session that already holds the task and the work, so the directive alone; a
+ * delegated one starts a child that holds neither, so the task statement again
+ * ahead of the directive. One decision answers both, because the record of what
+ * a child was asked must not be able to disagree with what it was asked.
+ * @param implementer - who does the work of this attempt.
+ * @param prompt - the environment's task statement.
+ * @param directive - the last failed validation's directive, absent on the first attempt.
+ * @returns the text the implementer receives and whether it restated the task.
+ */
+function attemptText(
+  implementer: RunImplementer,
+  prompt: string,
+  directive: DirectiveRequest | undefined,
+): Pick<AttemptDelivery, 'text' | 'restatedTask'> {
+  if (directive === undefined) return { text: prompt, restatedTask: false }
+  switch (implementer.kind) {
+    case 'route':
+      return { text: followupText(directive), restatedTask: false }
+    case 'subagent':
+      return { text: restatedFollowupText(prompt, directive), restatedTask: true }
+    /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
+    default:
+      return assertNever(implementer, 'run implementer')
+  }
+}
+
 /** The sampling one run pins on its agent, absent when the run pins neither scalar. */
 function pinnedSampling(seed: number | undefined, topP: number | undefined): AgentSampling | undefined {
   if (seed === undefined && topP === undefined) return undefined
@@ -863,6 +984,7 @@ export class EnvironmentRunner extends Service {
   static Config: z<Config> = z.object({
     isolation: z.union(['none', 'process', 'host'] as const).required(),
     maxAttempts: z.natural().min(1).default(1),
+    maxLadderRungs: z.natural().min(1).default(DEFAULT_MAX_LADDER_RUNGS),
     maxGoalRounds: z.natural().min(1),
     checkTimeoutMs: z.natural().min(1),
     evidenceMaxChars: z.natural().min(1).default(2000),
@@ -880,15 +1002,16 @@ export class EnvironmentRunner extends Service {
   /**
    * Run one environment as one fresh session and validate it.
    * @param request - environment id, absolute workspace directory, optional
-   *   implementer, model route, repetition, group, district, policy version,
-   *   sampling seed, and abort signal.
-   * @returns the stamp, the attempts, the certificate when one run passed, the
-   *   accumulated usage, and the caps the cell ran under.
+   *   implementer, model route, attempt ladder, repetition, group, district,
+   *   policy version, sampling seed, and abort signal.
+   * @returns the stamp, the attempts with the route each ran on, the
+   *   certificate when one run passed, the accumulated usage, and the caps the
+   *   cell ran under.
    * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
-   *   is not a safe non-negative integer, an implementer provider the
-   *   composition does not hold, cannot confine, or has no budget policy to
-   *   bound, an unusable workspace or fixture, an implementer that replaced the
-   *   goal, or a lost standard.
+   *   is not a safe non-negative integer, an empty or over-long attempt ladder,
+   *   an implementer provider the composition does not hold, cannot confine, or
+   *   has no budget policy to bound, an unusable workspace or fixture, an
+   *   implementer that replaced the goal, or a lost standard.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
@@ -899,7 +1022,11 @@ export class EnvironmentRunner extends Service {
       throw new EnvironmentRunError(`seed must be a non-negative integer, got ${String(request.seed)}`, 'ENVIRONMENT_RUN_INVALID_SEED')
     }
     const requested = resolveImplementer(request)
-    const model = request.model ?? this.defaultModel()
+    const requestedModel = request.model ?? this.defaultModel()
+    const ladder = resolveLadder(request.ladder, requestedModel, this.resolved.maxLadderRungs)
+    // The stamp names the route the run STARTS on, so a laddered arm and an
+    // unladdered one on the same first rung stay comparable at their first attempt.
+    const model = ladder?.[0] ?? requestedModel
     const implementer = this.requireImplementer(requested, model)
     const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const stamp: EnvironmentRunStamp = {
@@ -915,6 +1042,7 @@ export class EnvironmentRunner extends Service {
       ...request.policyVersion === undefined ? {} : { policyVersion: request.policyVersion },
       ...request.seed === undefined ? {} : { seed: request.seed },
       model,
+      ...ladder === undefined ? {} : { ladder },
       isolation: this.resolved.isolation,
       implementer: implementerName(requested),
     }
@@ -923,22 +1051,26 @@ export class EnvironmentRunner extends Service {
     // the logged request header states what was asked for. A run that pins
     // neither leaves the composition's own sampling alone.
     const sampling = pinnedSampling(request.seed, this.resolved.topP)
+    // The runner keeps the selection rather than installing and forgetting it:
+    // a ladder moves the cell agent to the next rung's route between attempts,
+    // which takes effect on the next step that enters prompt assembly.
+    const selection: ModelSelectionRef = {
+      current: { provider: model.provider, model: model.model },
+      assembled: undefined,
+      ...sampling === undefined ? {} : { sampling },
+    }
     const handle = await this.ctx.agents.create({
       sessionId: SessionId(`environment-${randomUUID()}`),
       meta: { cwd: request.workspace },
       agentOptions: { provider: model.provider, model: model.model },
       ...request.signal === undefined ? {} : { signal: request.signal },
       setup: (agentCtx) => {
-        installModelSelection(agentCtx, {
-          current: { provider: model.provider, model: model.model },
-          assembled: undefined,
-          ...sampling === undefined ? {} : { sampling },
-        })
+        installModelSelection(agentCtx, selection)
       },
     })
     const sealed = this.sealWorkspace(handle.agent, request.workspace)
     try {
-      return await this.drive(handle.agent, definition, stamp, request, implementer)
+      return await this.drive(handle.agent, definition, stamp, request, implementer, selection)
     } finally {
       sealed()
       await handle.dispose()
@@ -980,7 +1112,7 @@ export class EnvironmentRunner extends Service {
    * certify — or, for the model, would exist claiming an arm the child never
    * ran.
    * @param implementer - the implementer the request resolved to.
-   * @param model - the run's stamped route, whose model every child run is started on.
+   * @param model - the run's stamped route, which is the first rung a child run is started on.
    * @returns the run implementer with its services resolved.
    * @throws {@link EnvironmentRunError} when the named provider is not composed,
    *   runs outside this process under an isolation above `none`, does not
@@ -1009,7 +1141,6 @@ export class EnvironmentRunner extends Service {
       kind: 'subagent',
       provider: name,
       ...label === undefined ? {} : { label },
-      model: model.model,
       subagents,
       budgets: this.requireBudgets(name),
     }
@@ -1062,13 +1193,20 @@ export class EnvironmentRunner extends Service {
     }
   }
 
-  /** Stamp, goal, standard, then the attempt loop; the session is flushed on every path. */
+  /**
+   * Stamp, goal, standard, then the attempt loop; the session is flushed on
+   * every path. The stamp is the authority on the run's routing: its `ladder`
+   * gives both the attempt bound and the route of each attempt, and a run
+   * without one gives every attempt the stamped model under the configured
+   * `maxAttempts`.
+   */
   private async drive(
     agent: Agent,
     definition: EnvironmentDefinition,
     stamp: EnvironmentRunStamp,
     request: EnvironmentRunRequest,
     implementer: RunImplementer,
+    selection: ModelSelectionRef,
   ): Promise<EnvironmentRunReport> {
     const { goals, completionStandards, sessions } = this.ctx
     await agent.whenIdle()
@@ -1094,20 +1232,33 @@ export class EnvironmentRunner extends Service {
     let checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
     const attempts: EnvironmentRunAttempt[] = []
     let certificate: VerificationCertificate | undefined
-    let prompt = definition.task.prompt
+    let directive: DirectiveRequest | undefined
+    const transcript = implementerTranscript(implementer)
+    const maxAttempts = stamp.ladder?.length ?? this.resolved.maxAttempts
     try {
-      for (let attempt = 1; attempt <= this.resolved.maxAttempts; attempt += 1) {
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        const model = stamp.ladder?.[attempt - 1] ?? stamp.model
+        // The route implementer reads its selection as each step enters prompt
+        // assembly, so the rung is applied before the attempt's first step and
+        // the step's own request header records what it was asked for.
+        selection.current = { provider: model.provider, model: model.model }
+        const delivery: AttemptDelivery = {
+          attempt,
+          ...attemptText(implementer, definition.task.prompt, directive),
+          model,
+          ...request.signal === undefined ? {} : { signal: request.signal },
+        }
         // An exhausted budget blocks every attempt it did not pay for, which is
         // what makes a delegated cell that ran out a failed cell rather than a
         // longer one. A blocked attempt left the workspace exactly as the last
         // validation already measured it, so the run ends without measuring it
         // again.
-        const outcome = await this.implement(agent, implementer, prompt, attempt, request.signal)
+        const outcome = await this.implement(agent, implementer, delivery)
         if (outcome === 'blocked') break
         const standard = this.currentStandard(agent, goal.id)
         const ref = { id: standard.id, revision: standard.revision }
         if (await hashCheckOwned(request.workspace, runDirectory, immutable) !== checkOwned) {
-          attempts.push(await this.recordTamper(agent, implementer, standard, ref, request.workspace, attempt))
+          attempts.push(await this.recordTamper(agent, implementer, standard, ref, request.workspace, delivery, transcript))
           break
         }
         const treeHash = await restoreFixture(request.workspace, definition.task)
@@ -1120,7 +1271,7 @@ export class EnvironmentRunner extends Service {
           executor: 'runner',
           treeHash,
         })
-        attempts.push({ attempt, results, treeHash })
+        attempts.push({ attempt, model, transcript, results, treeHash })
         if (validation.certified) {
           certificate = validation.certificate
           const current = goals.get(agent)
@@ -1131,9 +1282,8 @@ export class EnvironmentRunner extends Service {
           break
         }
         if (outcome === 'cut-short') break
-        const directive = describeFailures(validation.failures, standard.checks, this.resolved.evidenceMaxChars)
+        directive = describeFailures(validation.failures, standard.checks, this.resolved.evidenceMaxChars)
         completionStandards.issueDirective(agent, ref, directive)
-        prompt = followupText(directive)
       }
     } finally {
       await sessions.flush(agent.session)
@@ -1156,23 +1306,24 @@ export class EnvironmentRunner extends Service {
    * Hand one attempt's text to the implementer and wait for its work to end:
    * one user turn on the cell agent for a route run, one child run on the
    * named provider for a delegated one.
+   * @param agent - the cell agent, which drives a route attempt and parents a delegated one.
+   * @param implementer - who does the work of this attempt.
+   * @param delivery - the attempt number, its text, its route, and the run's cancellation.
    * @returns how the attempt ended, which decides whether the run continues.
    */
   private async implement(
     agent: Agent,
     implementer: RunImplementer,
-    text: string,
-    attempt: number,
-    signal: AbortSignal | undefined,
+    delivery: AttemptDelivery,
   ): Promise<AttemptOutcome> {
     switch (implementer.kind) {
       case 'route':
         // A route attempt proposes steps, so the policy's own pre-step check
         // measures and stops it without the runner asking.
-        await this.deliver(agent, text)
+        await this.deliver(agent, delivery.text)
         return 'ran'
       case 'subagent':
-        return this.delegate(agent, implementer, text, attempt, signal)
+        return this.delegate(agent, implementer, delivery)
       /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
       default:
         return assertNever(implementer, 'run implementer')
@@ -1192,12 +1343,13 @@ export class EnvironmentRunner extends Service {
    * recorded rather than judged: whatever the child reports, the checks decide
    * what the tree it left is worth, so a refusal or a transport failure ends
    * the attempt exactly where a completed one does — at the validation.
-   * The child is started on the run's own stamped model, so the arm a cell is
-   * published under is the arm that did the work; what the child's backend then
-   * reports it ran, and what it says that run cost, are recorded beside it
-   * rather than assumed. The reported spend is the only spend an out-of-process
-   * implementer leaves here, and it is what separates two implementers that
-   * both certify on their first attempt.
+   * The child is started on the attempt's own rung — the stamped model for a
+   * run without a ladder — so the arm a cell is published under is the arm that
+   * did the work; what the child's backend then reports it ran, and what it
+   * says that run cost, are recorded beside it rather than assumed. The
+   * reported spend is the only spend an out-of-process implementer leaves here,
+   * and it is what separates two implementers that both certify on their first
+   * attempt.
    * The cell's budget bounds the attempt exactly as it bounds a step of a route
    * cell: the caps are measured before the child starts, so an exhausted budget
    * blocks the attempt without paying for it, and what the child reported
@@ -1209,25 +1361,21 @@ export class EnvironmentRunner extends Service {
    * recorded as `budget-deadline`, and followed by the breach it caused.
    *
    * @param agent - the cell agent, which is the delegating parent and holds the durable record.
-   * @param implementer - the provider, its optional label, the stamped model, and the resolved services.
-   * @param text - the task prompt on the first attempt, the directive follow-up on later ones.
-   * @param attempt - one-based attempt number, recorded on the delegation event.
-   * @param signal - the run's cancellation; a run that carries none delegates under one that never fires.
+   * @param implementer - the provider, its optional label, and the resolved services.
+   * @param delivery - the attempt number, its text, its rung, whether that text restated the task, and the run's cancellation.
    * @returns how the attempt ended, which decides whether the run continues.
    */
   private async delegate(
     agent: Agent,
     implementer: Extract<RunImplementer, { kind: 'subagent' }>,
-    text: string,
-    attempt: number,
-    signal: AbortSignal | undefined,
+    delivery: AttemptDelivery,
   ): Promise<AttemptOutcome> {
     const { budgets } = implementer
     const before = budgets.enforce(agent)
     if (before.breach !== undefined) return 'blocked'
-    const deadline = new DelegationDeadline(before.remainingWallMs, signal)
+    const deadline = new DelegationDeadline(before.remainingWallMs, delivery.signal)
     try {
-      await this.startAndRecord(agent, implementer, text, attempt, deadline)
+      await this.startAndRecord(agent, implementer, delivery, deadline)
     } catch (error: unknown) {
       // A provider rejects a start its signal already aborted. When the cell's
       // own deadline is what aborted it, the attempt ended at the wall cap with
@@ -1243,19 +1391,24 @@ export class EnvironmentRunner extends Service {
     return 'cut-short'
   }
 
-  /** Start one child run, wait for it, and record what it did and what it spent. */
+  /**
+   * Start one child run, wait for it, and record what it did and what it spent.
+   * The provider is told the rung's model id alone: a provider names its own
+   * models, so the rung's harness provider is what the stamp records and not
+   * what the child is started with.
+   */
   private async startAndRecord(
     agent: Agent,
     implementer: Extract<RunImplementer, { kind: 'subagent' }>,
-    text: string,
-    attempt: number,
+    delivery: AttemptDelivery,
     deadline: DelegationDeadline,
   ): Promise<void> {
+    const { attempt, restatedTask } = delivery
     const run = await implementer.subagents.start(implementer.provider, {
-      prompt: [{ type: 'text', text }],
+      prompt: [{ type: 'text', text: delivery.text }],
       parent: agent,
       signal: deadline.signal,
-      model: implementer.model,
+      model: delivery.model.model,
       ...implementer.label === undefined ? {} : { label: implementer.label },
     })
     try {
@@ -1265,6 +1418,7 @@ export class EnvironmentRunner extends Service {
       const usage = run.localAgent === undefined ? undefined : totalUsage(run.localAgent.session.events)
       agent.session.append('environment/delegation', {
         attempt,
+        restatedTask,
         provider: implementer.provider,
         runId: run.id,
         stopReason: deadline.expired ? 'budget-deadline' : result.stopReason,
@@ -1300,7 +1454,8 @@ export class EnvironmentRunner extends Service {
    * @param standard - the standard the attempt would have measured.
    * @param ref - that standard's exact revision.
    * @param workspace - the run's workspace, digested as the attempt left it.
-   * @param attempt - one-based attempt number.
+   * @param delivery - the attempt this was, and the rung it ran on.
+   * @param transcript - what this implementer carries between attempts, restated on the attempt record.
    * @returns the attempt the report carries.
    */
   private async recordTamper(
@@ -1309,7 +1464,8 @@ export class EnvironmentRunner extends Service {
     standard: StandardView,
     ref: StandardRef,
     workspace: string,
-    attempt: number,
+    delivery: AttemptDelivery,
+    transcript: EnvironmentRunTranscript,
   ): Promise<EnvironmentRunAttempt> {
     const results: CheckResult[] = standard.checks.map(check => ({
       checkId: check.id,
@@ -1327,7 +1483,7 @@ export class EnvironmentRunner extends Service {
     // starting one more external run over a void attempt would buy work no
     // certificate can follow; the recorded directive is the whole record there.
     if (implementer.kind === 'route') await this.deliver(agent, followupText(TAMPER_DIRECTIVE))
-    return { attempt, results, treeHash }
+    return { attempt: delivery.attempt, model: delivery.model, transcript, results, treeHash }
   }
 
   /** The standard the run measures; the implementer cannot mutate it, so another goal's standard or none is an anomaly. */

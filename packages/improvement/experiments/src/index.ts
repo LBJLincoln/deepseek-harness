@@ -16,14 +16,23 @@ import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type {} from '@deepseek-ai/dsh-environment-runner'
 // Also resolves ctx.environments for the registry lookups below.
 import { isSeed } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 // Type-only: resolves ctx.fleet.
 import type {} from '@deepseek-ai/dsh-fleet'
 import type { FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { foldExperiment } from './fold.ts'
-import { armImplementer, capsAgree, describeCaps, experimentGroup, planDigest, projectedTokens } from './plan.ts'
+import {
+  armImplementer,
+  capsAgree,
+  describeCaps,
+  EXPERIMENT_ARM_ROLES,
+  experimentGroup,
+  ladderConflicts,
+  planDigest,
+  projectedTokens,
+} from './plan.ts'
 import type {
   ExperimentArm,
   ExperimentArmPlan,
@@ -43,6 +52,7 @@ export {
   EXPERIMENT_ARM_ROLES,
   EXPERIMENT_GROUP_PREFIX,
   experimentGroup,
+  ladderConflicts,
   parseExperimentGroup,
   planDigest,
   projectedTokens,
@@ -62,6 +72,7 @@ export type ExperimentErrorCode =
   | 'EXPERIMENT_PLAN_NOT_FROZEN'
   | 'EXPERIMENT_OVER_BUDGET'
   | 'EXPERIMENT_UNEQUAL_CAPS'
+  | 'EXPERIMENT_LADDER_CONFLICT'
 
 /** Error returned by the experiment boundary for a plan that cannot run. */
 export class ExperimentError extends HarnessError {
@@ -140,16 +151,18 @@ export class ExperimentService extends Service {
    * first cell runs; a cell the fleet kept as an error leaves its repetition
    * unpaired instead of failing the experiment.
    * @param plan - environments, repetitions, the two arms with their model
-   *   routes and optional implementers, the workspace root, and an optional
-   *   policy version, base seed, frozen digest, abort signal, and result sink.
-   * @returns the digest, both arms with their stamp groups, one cell per
-   *   environment, the pooled delta with its interval, the spend, the caps both
-   *   arms ran under, and the verdict.
+   *   routes and optional attempt ladders and implementers, the workspace root,
+   *   and an optional policy version, base seed, frozen digest, abort signal,
+   *   and result sink.
+   * @returns the digest, both arms with their ladders and stamp groups, one
+   *   cell per environment, the pooled delta with its interval, the spend, the
+   *   caps both arms ran under, and the verdict.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
    *   unregistered environment, asks for no repetition, sets a seed that is not
-   *   a safe non-negative integer, whose two arms would run under different
-   *   caps, declares a digest its content does not freeze to, or projects more
-   *   tokens than the budget.
+   *   a safe non-negative integer, carries an arm ladder with no rung or one
+   *   whose first rung names another route, whose two arms would run under
+   *   different caps, declares a digest its content does not freeze to, or
+   *   projects more tokens than the budget.
    */
   async run(plan: ExperimentPlan): Promise<ExperimentResult> {
     const { digest, caps } = this.freeze(plan)
@@ -185,6 +198,16 @@ export class ExperimentService extends Service {
       throw new ExperimentError(`seed must be a non-negative integer, got ${String(plan.seed)}`, 'EXPERIMENT_INVALID_PLAN')
     }
     if (plan.environments.length === 0) throw new ExperimentError('the plan names no environment', 'EXPERIMENT_INVALID_PLAN')
+    for (const role of EXPERIMENT_ARM_ROLES) {
+      const arm = plan[role]
+      if (arm.ladder?.length === 0) {
+        throw new ExperimentError(`the ${role} arm's attempt ladder names no rung`, 'EXPERIMENT_INVALID_PLAN')
+      }
+      if (ladderConflicts(arm)) {
+        const first = arm.ladder?.[0]?.model as EnvironmentRunModel
+        throw new ExperimentError(`the ${role} arm runs ${arm.provider}/${arm.model} but its first ladder rung names ${first.provider}/${first.model}, so its first attempt would not be the arm it is published under`, 'EXPERIMENT_LADDER_CONFLICT')
+      }
+    }
     const named = new Set<EnvironmentId>()
     for (const environment of plan.environments) {
       if (named.has(environment)) throw new ExperimentError(`environment "${environment}" is named twice`, 'EXPERIMENT_INVALID_PLAN')
@@ -227,6 +250,7 @@ export class ExperimentService extends Service {
     return this.ctx.fleet.run({
       environments: { ids: plan.environments },
       models: [arm.model],
+      ...arm.ladder === undefined ? {} : { ladder: arm.ladder },
       implementer: arm.implementer,
       repetitions: plan.repetitions,
       workspaceRoot: plan.workspaceRoot,
@@ -249,6 +273,7 @@ export class ExperimentService extends Service {
 function resolveArm(arm: ExperimentArmPlan, digest: string, role: ExperimentArmRole): ExperimentArm {
   return {
     model: { provider: arm.provider, model: arm.model },
+    ...arm.ladder === undefined ? {} : { ladder: arm.ladder },
     implementer: armImplementer(arm),
     group: experimentGroup(digest, role),
   }

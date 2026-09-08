@@ -7,17 +7,23 @@
  *   fleet-driver.ts <config> <plan.json>
  *
  * The plan file holds `{ name, environments?, tier?, domain?, heldOut?,
- * models: [{ provider, model }], implementer?, repetitions, seed?,
+ * models: [{ provider, model }], ladder?, implementer?, repetitions, seed?,
  * policyVersion?, district? }`. Environment selection follows the experiment
  * driver's rules. A fleet plan runs every model over every selected
  * environment, which is how one run compares several product models, or one
  * implementer against the same cells another run measured.
+ *
+ * `ladder` is one rung per attempt — `[{}, { "model": { "provider": "…",
+ * "model": "…" } }]` runs the first attempt on the cell's own route and the
+ * second on the named one — and its length is each cell's attempt bound. A rung
+ * that names no model runs the cell's own route, which is how a repeated-attempt
+ * arm is written.
  */
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
-import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner'
+import type { EnvironmentRunImplementer, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentId as EnvironmentIdType } from '@deepseek-ai/dsh-environments/types'
 import type { FleetPlan } from '@deepseek-ai/dsh-fleet'
@@ -32,6 +38,7 @@ interface PlanFile {
   readonly domain?: string
   readonly heldOut?: boolean
   readonly models: readonly { readonly provider: string; readonly model: string }[]
+  readonly ladder?: readonly EnvironmentRunRung[]
   readonly implementer?: EnvironmentRunImplementer
   readonly repetitions: number
   readonly seed?: number
@@ -70,6 +77,7 @@ try {
     models: plan.models,
     repetitions: plan.repetitions,
     workspaceRoot: process.cwd(),
+    ...(plan.ladder === undefined ? {} : { ladder: plan.ladder }),
     ...(plan.implementer === undefined ? {} : { implementer: plan.implementer }),
     ...(plan.seed === undefined ? {} : { seed: plan.seed }),
     ...(plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion }),
@@ -87,6 +95,7 @@ try {
     plan: plan.name,
     environments: selected,
     implementer: plan.implementer ?? { kind: 'route' },
+    ...(plan.ladder === undefined ? {} : { ladder: plan.ladder }),
     startedAt,
     endedAt: new Date().toISOString(),
     report,

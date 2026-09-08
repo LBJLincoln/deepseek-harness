@@ -94,6 +94,14 @@ describe('foldSessionFacts', () => {
       requestProvider: 'cli-mock',
       requestModel: 'cli-mock',
     })
+    // A stamp that ladders states the route of every attempt beside the first one's.
+    const laddered = foldSessionFacts(header('laddered'), cellLog({
+      stamp: stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'large' }] }),
+      certified: true,
+      runs: 1,
+    }))
+    expect(laddered.identity.environment?.ladder)
+      .toEqual([{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'large' }])
     expect(facts.outcome).toEqual({
       reward: 1,
       rewardBasis: 'certificate',

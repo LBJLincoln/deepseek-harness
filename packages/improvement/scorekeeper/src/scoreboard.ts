@@ -1,6 +1,7 @@
 /**
  * Pure fold of session facts into scoreboard rows: one row per model route,
- * environment, isolation level, implementer, held-out split, and district, each carrying the
+ * attempt ladder, environment, isolation level, implementer, held-out split,
+ * and district, each carrying the
  * unbiased pass@k estimate over the repetition batches its sessions belong to,
  * the cost its sessions logged, and the mean weighted pass rate of the sessions
  * that measured cases.
@@ -71,12 +72,15 @@ export interface ScoreboardFold {
 /**
  * Key of the row one stamped session belongs to. Serialized rather than
  * concatenated so no field value can spell a separator and merge two cells —
- * two districts above all — into one row.
+ * two districts above all — into one row. The attempt ladder is part of the key
+ * because a laddered cell and a plain single-model cell on the same first rung
+ * measure different arms.
  */
 function rowKey(environment: SessionFactsEnvironment): string {
   return JSON.stringify([
     environment.provider,
     environment.model,
+    environment.ladder?.map(rung => [rung.provider, rung.model]) ?? null,
     environment.environmentId,
     environment.isolation,
     environment.implementer,
@@ -196,6 +200,7 @@ function finish(row: RowAccumulator, ks: readonly number[]): ScoreboardRow {
   return {
     provider: row.environment.provider,
     model: row.environment.model,
+    ...row.environment.ladder === undefined ? {} : { ladder: row.environment.ladder },
     environmentId: row.environment.environmentId,
     environmentKind: row.environment.environmentKind,
     heldOut: row.environment.heldOut,

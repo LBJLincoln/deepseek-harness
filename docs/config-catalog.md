@@ -717,6 +717,12 @@ export interface Config {
   isolation: CertificateIsolation
   /** Implementer turns before the run is reported uncertified; each is followed by one validation. */
   maxAttempts?: number
+  /**
+   * Rungs one request's attempt ladder may name. A ladder is the attempt bound
+   * of the run that carries it, so an unbounded ladder in a plan file would be
+   * an unbounded run; this is the ceiling a deployment lets a plan reach.
+   */
+  maxLadderRungs?: number
   /** Round cap handed to goal creation; absent applies the goal service default. */
   maxGoalRounds?: number
   /** Timeout override for each check command and each case, capped by the executor; absent applies the executor default. */
@@ -737,7 +743,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:109`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:114`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -760,7 +766,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:199`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:220`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -784,7 +790,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:80`](../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:91`](../packages/improvement/experiments/src/index.ts)
 
 <a id="deepseek-aidsh-fleet"></a>
 

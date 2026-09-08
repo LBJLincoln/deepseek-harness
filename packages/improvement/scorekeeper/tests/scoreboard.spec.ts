@@ -37,6 +37,7 @@ function cell(id: string, options: {
   readonly environmentId?: string
   readonly isolation?: string
   readonly implementer?: string
+  readonly ladder?: readonly { readonly provider: string; readonly model: string }[]
   readonly district?: string
   readonly verdict?: RunVerdict
   readonly weightPassed?: number
@@ -51,6 +52,7 @@ function cell(id: string, options: {
     ...options.environmentId === undefined ? {} : { environmentId: options.environmentId },
     ...options.isolation === undefined ? {} : { isolation: options.isolation },
     ...options.implementer === undefined ? {} : { implementer: options.implementer },
+    ...options.ladder === undefined ? {} : { ladder: options.ladder },
     ...options.district === undefined ? {} : { district: options.district },
   }
   return foldSessionFacts(header(id), cellLog({
@@ -139,6 +141,21 @@ describe('foldScoreboard', () => {
       cell('delegated', { certified: false, runs: 1, implementer: 'claude-code' }),
     ], {}, [1])
     expect(fold.rows.map(row => [row.implementer, row.certified])).toEqual([['route', 1], ['claude-code', 0]])
+  })
+
+  it('splits rows by attempt ladder, so a laddered cell never averages with a plain one on its first rung', () => {
+    const escalating = [{ ...MOCK_ROUTE }, { provider: 'mock', model: 'large' }]
+    const fold = foldScoreboard([
+      cell('plain', { certified: true, runs: 1 }),
+      cell('escalated', { certified: false, runs: 1, ladder: escalating }),
+      cell('downshifted', { certified: false, runs: 1, ladder: [{ ...MOCK_ROUTE }, { ...MOCK_ROUTE }] }),
+    ], {}, [1])
+    expect(fold.rows.map(row => [row.model, row.ladder, row.certified])).toEqual([
+      [MOCK_ROUTE.model, undefined, 1],
+      [MOCK_ROUTE.model, escalating, 0],
+      [MOCK_ROUTE.model, [MOCK_ROUTE, MOCK_ROUTE], 0],
+    ])
+    expect(fold.rows[0]).not.toHaveProperty('ladder')
   })
 
   it('splits rows by district and never merges two districts of the same cell', () => {

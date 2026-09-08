@@ -37,8 +37,10 @@ import EnvironmentRunner, {
   caseExpectation,
   EnvironmentRunError,
   implementerName,
+  implementerTranscript,
   resolveConfig,
   resolveImplementer,
+  resolveLadder,
 } from '@deepseek-ai/dsh-environment-runner'
 import type { Config, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner'
 import * as invariantCompanion from '@deepseek-ai/dsh-environment-runner/invariant'
@@ -388,6 +390,17 @@ class StubSubagents extends Service {
   }
 }
 
+/**
+ * The route one more step of the cell agent would take. The installed selection
+ * names the model it will assemble under in the prompt variables, so driving
+ * that one waterfall states the rung the ladder left the agent on.
+ */
+async function applied(ctx: Context): Promise<Record<string, string | undefined>> {
+  const assembly = { sections: [], contexts: [], tools: [], variables: {} }
+  const assembled = await ctx.waterfall('system-prompt/assemble', assembly, {}, () => Promise.resolve(assembly))
+  return assembled.variables
+}
+
 const MARKER = 'test -f MARKER'
 
 function environment(rest: Partial<EnvironmentDefinition> = {}): EnvironmentDefinition {
@@ -464,6 +477,8 @@ describe('EnvironmentRunner', () => {
     expect(report.certified).toBe(true)
     expect(report.attempts).toEqual([{
       attempt: 1,
+      model: { provider: 'mock', model: 'mock-default' },
+      transcript: 'kept',
       results: [{ checkId: 'marker', status: 'pass', evidence: 'exit 0\nstdout: present' }],
       treeHash: expect.stringMatching(/^[0-9a-f]{64}$/) as unknown as string,
     }])
@@ -481,6 +496,7 @@ describe('EnvironmentRunner', () => {
     expect(stamp).not.toHaveProperty('district')
     expect(stamp).not.toHaveProperty('policyVersion')
     expect(stamp).not.toHaveProperty('seed')
+    expect(stamp).not.toHaveProperty('ladder')
     const agent = StubAgents.current.agent
     expect(agent.session.events[0]).toMatchObject({ type: 'environment/run', data: stamp })
     expect(agent.turns).toEqual(['Create a file named MARKER in the workspace.'])
@@ -713,6 +729,50 @@ describe('EnvironmentRunner', () => {
     expect(StubAgents.current.created[0]?.agentOptions).toEqual({ provider: 'other', model: 'candidate-7' })
   })
 
+  it('runs each attempt on its rung, states it per attempt, and stamps the ladder', async () => {
+    const small = { provider: 'mock', model: 'small' }
+    const large = { provider: 'mock', model: 'large' }
+    const { ctx, run } = await harness({ config: { maxAttempts: 1 } })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult({ exitCode: 1 }), shellResult())
+    // Three rungs override a composition that allows one attempt.
+    const report = await run({ model: small, ladder: [{}, { model: large }, { model: large }] })
+
+    expect(report.certified).toBe(true)
+    expect(report.attempts.map(attempt => attempt.model)).toEqual([small, large, large])
+    expect(report.attempts.map(attempt => attempt.transcript)).toEqual(['kept', 'kept', 'kept'])
+    // The stamp names the first rung as the run's route and the whole ladder beside it.
+    expect(report.stamp.model).toEqual(small)
+    expect(report.stamp.ladder).toEqual([small, large, large])
+    expect(StubAgents.current.created[0]?.agentOptions).toEqual({ provider: 'mock', model: 'small' })
+    // The cell agent was left on the last rung, which is what a step entering
+    // prompt assembly after it would have been routed to.
+    await expect(applied(ctx)).resolves.toMatchObject(large)
+  })
+
+  it('leaves an unladdered run on its stamped route for every attempt', async () => {
+    const { ctx, run } = await harness({ config: { maxAttempts: 2 } })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    const report = await run({ model: { provider: 'other', model: 'candidate-7' } })
+
+    expect(report.attempts.map(attempt => attempt.model))
+      .toEqual([{ provider: 'other', model: 'candidate-7' }, { provider: 'other', model: 'candidate-7' }])
+    await expect(applied(ctx)).resolves.toMatchObject({ provider: 'other', model: 'candidate-7' })
+  })
+
+  it('refuses a ladder no run could have, before any agent exists', async () => {
+    const empty = await harness()
+    await expect(empty.run({ ladder: [] })).rejects.toThrow(
+      new EnvironmentRunError('an attempt ladder must name at least one rung', 'ENVIRONMENT_RUN_INVALID_LADDER'),
+    )
+    expect(StubAgents.current.created).toEqual([])
+
+    const long = await harness({ config: { maxLadderRungs: 2 } })
+    await expect(long.run({ ladder: [{}, {}, {}] })).rejects.toThrow(
+      new EnvironmentRunError('an attempt ladder of 3 rungs exceeds the configured ceiling of 2', 'ENVIRONMENT_RUN_INVALID_LADDER'),
+    )
+    expect(StubAgents.current.created).toEqual([])
+  })
+
   it('stamps the policy version and the seed, and samples every request of the cell with them', async () => {
     const { ctx, run } = await harness({ config: { topP: 0.9 } })
     StubShell.current.script(MARKER, shellResult())
@@ -819,6 +879,8 @@ describe('EnvironmentRunner', () => {
     expect(report.certified).toBe(false)
     expect(report.attempts).toEqual([{
       attempt: 1,
+      model: { provider: 'mock', model: 'mock-default' },
+      transcript: 'kept',
       results: [{
         checkId: 'marker',
         status: 'fail',
@@ -922,21 +984,36 @@ describe('EnvironmentRunner', () => {
     }
   })
 
-  it('resolves the implementer default and names it once, at the boundary', () => {
+  it('resolves the implementer default, names it, and states its transcript interface, at the boundary', () => {
     const request = { environment: EnvironmentId('smoke:marker'), workspace: '/tmp' }
     expect(resolveImplementer(request)).toEqual({ kind: 'route' })
     const delegated = { kind: 'subagent', provider: 'claude-code' } as const
     expect(resolveImplementer({ ...request, implementer: delegated })).toBe(delegated)
     expect(implementerName({ kind: 'route' })).toBe('route')
     expect(implementerName(delegated)).toBe('claude-code')
+    expect(implementerTranscript({ kind: 'route' })).toBe('kept')
+    expect(implementerTranscript(delegated)).toBe('dropped')
+  })
+
+  it('resolves one rung per attempt and refuses a ladder no run could have, at the boundary', () => {
+    const stamped = { provider: 'mock', model: 'small' }
+    const large = { provider: 'mock', model: 'large' }
+    expect(resolveLadder(undefined, stamped, 8)).toBeUndefined()
+    expect(resolveLadder([{}, { model: large }, {}], stamped, 8)).toEqual([stamped, large, stamped])
+    expect(() => resolveLadder([], stamped, 8)).toThrow(
+      new EnvironmentRunError('an attempt ladder must name at least one rung', 'ENVIRONMENT_RUN_INVALID_LADDER'),
+    )
+    expect(() => resolveLadder([{}, {}, {}], stamped, 2)).toThrow(
+      new EnvironmentRunError('an attempt ladder of 3 rungs exceeds the configured ceiling of 2', 'ENVIRONMENT_RUN_INVALID_LADDER'),
+    )
   })
 
   it('resolves defaults once, at the boundary', () => {
     expect(resolveConfig({ isolation: 'host' })).toEqual({
-      isolation: 'host', maxAttempts: 1, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20, topP: undefined,
+      isolation: 'host', maxAttempts: 1, maxLadderRungs: 8, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20, topP: undefined,
     })
-    expect(resolveConfig({ isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3, topP: 0.95 })).toEqual({
-      isolation: 'none', maxAttempts: 3, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3, topP: 0.95,
+    expect(resolveConfig({ isolation: 'none', maxAttempts: 3, maxLadderRungs: 4, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3, topP: 0.95 })).toEqual({
+      isolation: 'none', maxAttempts: 3, maxLadderRungs: 4, maxGoalRounds: 5, checkTimeoutMs: 10, evidenceMaxChars: 50, maxFailedCases: 3, topP: 0.95,
     })
   })
 
@@ -974,18 +1051,21 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     expect(StubAgents.current.agent.turns).toEqual([])
     const starts = StubSubagents.current.started
     expect(starts.map(start => start.name)).toEqual(['spawn', 'spawn'])
+    // The second child holds none of the first one's transcript, so its prompt
+    // restates the task ahead of the directive.
     expect(starts.map(start => start.request.prompt)).toEqual([
       [{ type: 'text', text: 'Create a file named MARKER in the workspace.' }],
-      [{ type: 'text', text: "<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nstderr: no MARKER\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>" }],
+      [{ type: 'text', text: "Create a file named MARKER in the workspace.\n\n<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nstderr: no MARKER\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>" }],
     ])
     expect(starts[0]?.request).toMatchObject({ label: 'external', parent: StubAgents.current.agent })
     expect(StubSubagents.current.disposed).toBe(2)
 
     const delegations = StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation')
     expect(delegations.map(event => event.data)).toEqual([
-      { attempt: 1, provider: 'spawn', runId: 'child-1', stopReason: 'completed', usage: { inputTokens: 21, outputTokens: 4 } },
+      { attempt: 1, restatedTask: false, provider: 'spawn', runId: 'child-1', stopReason: 'completed', usage: { inputTokens: 21, outputTokens: 4 } },
       {
         attempt: 2,
+        restatedTask: true,
         provider: 'spawn',
         runId: 'child-2',
         stopReason: 'completed',
@@ -993,6 +1073,9 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
         usage: { inputTokens: 9, outputTokens: 2 },
       },
     ])
+    // Both attempts are recorded as dropping the transcript, which is what the
+    // fresh child per attempt makes them.
+    expect(report.attempts.map(attempt => attempt.transcript)).toEqual(['dropped', 'dropped'])
     // The runner still executed the checks itself over the restored tree.
     expect(StubStandards.current.runs.map(recorded => recorded.evidence.executor)).toEqual(['runner', 'runner'])
     expect(StubShell.current.requests.map(request => request.workdir)).toEqual([workspace, workspace])
@@ -1012,7 +1095,7 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     expect(StubSubagents.current.started[0]?.request).not.toHaveProperty('label')
     // A refusal is recorded and validated like any other ending; only the tree decides.
     expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
-      .toEqual([{ attempt: 1, provider: 'claude-code', runId: 'child-1', stopReason: 'refusal' }])
+      .toEqual([{ attempt: 1, restatedTask: false, provider: 'claude-code', runId: 'child-1', stopReason: 'refusal' }])
   })
 
   it('starts every child on the stamped model and records what the child reported running and spending', async () => {
@@ -1046,6 +1129,7 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data)).toEqual([
       {
         attempt: 1,
+        restatedTask: false,
         provider: 'claude-code',
         runId: 'child-1',
         stopReason: 'completed',
@@ -1053,10 +1137,38 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
         reportedUsage: { inputTokens: 31, outputTokens: 7 },
         reportedCostUsd: 0.0412,
       },
-      { attempt: 2, provider: 'claude-code', runId: 'child-2', stopReason: 'error' },
+      { attempt: 2, restatedTask: true, provider: 'claude-code', runId: 'child-2', stopReason: 'error' },
     ])
     // The cell drove no turn of its own, so its own session accounts for nothing.
     expect(report).not.toHaveProperty('usage')
+  })
+
+  it('starts each child on its own rung and restates the task for the one that follows a directive', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 1 },
+      providers: { spawn: IN_PROCESS_CAPABILITIES },
+    })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1, stderr: 'no MARKER\n' }), shellResult())
+    const report = await run({
+      implementer: SPAWN,
+      model: { provider: 'mock', model: 'small' },
+      ladder: [{}, { model: { provider: 'mock', model: 'large' } }],
+    })
+
+    expect(report.certified).toBe(true)
+    expect(report.attempts.map(attempt => [attempt.model.model, attempt.transcript]))
+      .toEqual([['small', 'dropped'], ['large', 'dropped']])
+    // Each child is started on its own rung's model id; the rung's harness
+    // provider is what the stamp records, never what a provider is told.
+    expect(StubSubagents.current.started.map(start => start.request.model)).toEqual(['small', 'large'])
+    expect(StubSubagents.current.started[1]?.request.prompt).toEqual([{
+      type: 'text',
+      text: "Create a file named MARKER in the workspace.\n\n<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nstderr: no MARKER\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>",
+    }])
+    expect(StubAgents.current.agent.session.events
+      .filter(event => event.type === 'environment/delegation')
+      .map(event => [event.data.attempt, event.data.restatedTask]))
+      .toEqual([[1, false], [2, true]])
   })
 
   it('forwards the composition default when the request names no model', async () => {
@@ -1245,7 +1357,7 @@ describe('EnvironmentRunner delegated cell budgets', () => {
     // The child settled because the cell's own deadline cancelled it, which is
     // recorded apart from the cancellation an operator would cause.
     expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
-      .toEqual([{ attempt: 1, provider: 'claude-code', runId: 'child-1', stopReason: 'budget-deadline' }])
+      .toEqual([{ attempt: 1, restatedTask: false, provider: 'claude-code', runId: 'child-1', stopReason: 'budget-deadline' }])
     const [breach] = budgetEvents('budget/breach') as { cap: string; limit: number }[]
     expect(breach).toMatchObject({ cap: 'maxWallMs', limit: 0 })
     expect(StubGoals.current.blocked).toHaveLength(1)

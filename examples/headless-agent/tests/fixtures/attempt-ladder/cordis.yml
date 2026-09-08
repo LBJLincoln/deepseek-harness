@@ -1,0 +1,76 @@
+# Test-only composition: run one environment twice over a two-rung attempt ladder — once on the session's own route, once delegated to an in-process child per attempt — then read both cell logs back.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../environment-run/register-environments.ts'
+
+# The runner creates its own agent per run from this selection; the ladder moves
+# it to another model of the same registered adapter between attempts.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock-small
+
+- id: subagents
+  name: '@deepseek-ai/dsh-subagent'
+
+# The `drop` arm of the ladder: `spawn` runs the child in this process on the
+# parent cell agent's own composition, so a delegated ladder replays keylessly
+# over the mock adapter instead of needing a foreign product and its account.
+- id: subagent-spawn
+  name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+
+# maxAttempts is one, which every laddered run of this fixture overrides with
+# the length of its own ladder.
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 1
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run registered environments as validated sessions.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'

@@ -8,7 +8,7 @@
 
 import { createHash } from 'node:crypto'
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
-import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
+import type { EnvironmentRunImplementer, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner/types'
 import { assertNever } from '@deepseek-ai/dsh-llm'
 import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentThresholds } from './types.ts'
 
@@ -19,7 +19,7 @@ import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentTh
 export const EXPERIMENT_GROUP_PREFIX = 'experiment-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const EXPERIMENT_PLAN_VERSION = 4
+const EXPERIMENT_PLAN_VERSION = 5
 
 /** Arm roles in the order the digest and the runs take them. */
 export const EXPERIMENT_ARM_ROLES: readonly ExperimentArmRole[] = ['baseline', 'candidate']
@@ -53,11 +53,37 @@ function digestedImplementer(implementer: EnvironmentRunImplementer): readonly (
 }
 
 /**
+ * One arm's attempt ladder as the digest takes it: the model of each rung in
+ * attempt order, with `null` for a rung that names none and therefore runs the
+ * arm's own route. Two arms that ladder differently measure different routing,
+ * so the rungs are part of what the digest freezes.
+ */
+function digestedLadder(ladder: readonly EnvironmentRunRung[] | undefined): readonly (readonly string[] | null)[] | null {
+  if (ladder === undefined) return null
+  return ladder.map(rung => (rung.model === undefined ? null : [rung.model.provider, rung.model.model]))
+}
+
+/**
+ * Whether one arm's first rung names a route other than the arm's own. The arm
+ * is what a result and every scoreboard row are published under, so a first
+ * rung naming another route would publish the arm's identity over an attempt it
+ * never ran.
+ * @param arm - one arm as the plan names it.
+ * @returns `true` when the arm ladders and its first rung names another route.
+ */
+export function ladderConflicts(arm: ExperimentArmPlan): boolean {
+  const first = arm.ladder?.[0]?.model
+  if (first === undefined) return false
+  return first.provider !== arm.provider || first.model !== arm.model
+}
+
+/**
  * Content digest of the fields that decide what an experiment measures: the
- * two arms in role order, each with its model route and its implementer, the
- * environment ids sorted so a caller's listing order cannot change the
- * identity, the repetition count, the policy version and base seed both arms
- * ran under, the thresholds, and the caps every cell of both arms ran under.
+ * two arms in role order, each with its model route, its attempt ladder, and
+ * its implementer, the environment ids sorted so a caller's listing order
+ * cannot change the identity, the repetition count, the policy version and base
+ * seed both arms ran under, the thresholds, and the caps every cell of both
+ * arms ran under.
  * The caps are digested because a cell cut off at one wall or token ceiling
  * measures something different from the same cell cut off at another, so two
  * comparisons run under different budgets are two experiments. The deployment's
@@ -82,6 +108,7 @@ export function planDigest(
       plan[role].provider,
       plan[role].model,
       digestedImplementer(armImplementer(plan[role])),
+      digestedLadder(plan[role].ladder),
     ]),
     environments: [...plan.environments].sort(),
     repetitions: plan.repetitions,

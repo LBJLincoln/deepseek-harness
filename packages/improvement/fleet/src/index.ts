@@ -205,7 +205,7 @@ class PlanLedger {
 
 /** Key of the leaderboard row a cell belongs to. */
 function rowKey(cell: FleetCell): string {
-  return `${cell.model.provider} ${cell.model.model} ${cell.environment}`
+  return `${cell.model.provider}\0${cell.model.model}\0${cell.environment}`
 }
 
 /**
@@ -272,6 +272,7 @@ function withReport(row: LeaderboardRow, report: EnvironmentRunReport): Leaderbo
   const attempts = row.attemptsMean * row.runs + report.attempts.length
   return {
     ...row,
+    ...report.stamp.ladder === undefined ? {} : { ladder: report.stamp.ladder },
     isolation: report.stamp.isolation,
     implementer: report.stamp.implementer ?? ROUTE_IMPLEMENTER,
     runs,
@@ -289,12 +290,17 @@ function withReport(row: LeaderboardRow, report: EnvironmentRunReport): Leaderbo
  * @returns one table with a header row and one row per leaderboard entry.
  */
 export function leaderboardMarkdown(report: FleetRunReport): string {
-  const header = '| Model | Implementer | Environment | Held out | Isolation | Runs | Errors | Certified | Rate | Attempts | Tokens in / out |'
-  const rule = '|---|---|---|---|---|---|---|---|---|---|---|'
+  const header = '| Model | Ladder | Implementer | Environment | Held out | Isolation | Runs | Errors | Certified | Rate | Attempts | Tokens in / out |'
+  const rule = '|---|---|---|---|---|---|---|---|---|---|---|---|'
   const lines = report.leaderboard.map(row => (
-    `| ${row.provider}/${row.model} | ${row.implementer ?? '-'} | ${row.environmentId} | ${row.heldOut ? 'yes' : 'no'} | ${row.isolation ?? '-'} | ${row.runs} | ${row.errors} | ${row.certified} | ${row.certificateRate.toFixed(2)} | ${row.attemptsMean.toFixed(2)} | ${row.inputTokens} / ${row.outputTokens} |`
+    `| ${row.provider}/${row.model} | ${ladderCell(row.ladder)} | ${row.implementer ?? '-'} | ${row.environmentId} | ${row.heldOut ? 'yes' : 'no'} | ${row.isolation ?? '-'} | ${row.runs} | ${row.errors} | ${row.certified} | ${row.certificateRate.toFixed(2)} | ${row.attemptsMean.toFixed(2)} | ${row.inputTokens} / ${row.outputTokens} |`
   ))
   return [`Fleet run \`${report.group}\``, '', header, rule, ...lines].join('\n') + '\n'
+}
+
+/** One row's ladder as its Markdown cell: the rungs in attempt order, or the dash of a row that ran none. */
+function ladderCell(ladder: readonly EnvironmentRunModel[] | undefined): string {
+  return ladder === undefined ? '-' : ladder.map(routeName).join(' > ')
 }
 
 /** Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard. */
@@ -323,14 +329,15 @@ export class FleetService extends Service {
    * throws is kept as an error outcome, as is a cell the route breaker or the
    * token ceiling refused to start; the fleet run itself rejects only for a
    * plan it cannot start.
-   * @param plan - environments, model routes, an optional implementer,
-   *   repetitions, an optional exact cell selection, workspace root, group,
-   *   district, policy version, base seed, token ceiling, and abort signal.
+   * @param plan - environments, model routes, an optional attempt ladder and
+   *   implementer, repetitions, an optional exact cell selection, workspace
+   *   root, group, district, policy version, base seed, token ceiling, and
+   *   abort signal.
    * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
    * @throws {@link FleetError} when the plan selects no environment, asks for
    *   no repetition, names no or an unenumerated cell, sets a token ceiling
-   *   that is not a positive integer, or sets a seed that is not a safe
-   *   non-negative integer.
+   *   that is not a positive integer, sets a seed that is not a safe
+   *   non-negative integer, or carries an attempt ladder with no rung.
    */
   async run(plan: FleetPlan): Promise<FleetRunReport> {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
@@ -343,6 +350,11 @@ export class FleetService extends Service {
     // fleet performs, so a bad base would otherwise surface as every cell failing.
     if (plan.seed !== undefined && !isSeed(plan.seed)) {
       throw new FleetError(`seed must be a non-negative integer, got ${String(plan.seed)}`, 'FLEET_INVALID_PLAN')
+    }
+    // An empty ladder is the whole plan's, so it is refused once here instead of
+    // once per cell; the runner still owns the rung ceiling, which is its config.
+    if (plan.ladder !== undefined && plan.ladder.length === 0) {
+      throw new FleetError('the plan\'s attempt ladder names no rung', 'FLEET_INVALID_PLAN')
     }
     const definitions = this.select(plan)
     if (definitions.size === 0) throw new FleetError('the plan selects no environment', 'FLEET_EMPTY_PLAN')
@@ -434,6 +446,7 @@ export class FleetService extends Service {
         environment: cell.environment,
         workspace,
         model: cell.model,
+        ...plan.ladder === undefined ? {} : { ladder: plan.ladder },
         ...plan.implementer === undefined ? {} : { implementer: plan.implementer },
         repetition: cell.repetition,
         group,

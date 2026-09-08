@@ -94,7 +94,13 @@ function runReport(cell: FleetCell, group: string, shape: CellShape): Environmen
       model: cell.model,
       isolation: 'none',
     },
-    attempts: Array.from({ length: attempts }, (_, index) => ({ attempt: index + 1, results: [], treeHash: HEX })),
+    attempts: Array.from({ length: attempts }, (_, index) => ({
+      attempt: index + 1,
+      model: cell.model,
+      transcript: 'kept' as const,
+      results: [],
+      treeHash: HEX,
+    })),
     certified: shape.certified,
     ...shape.usage === undefined ? {} : { usage: shape.usage },
     caps: CAPS,
@@ -348,6 +354,48 @@ describe('ExperimentService', () => {
 
     const written = JSON.parse(sink.lines[0] as string) as ExperimentResult
     expect(written.arms.candidate.implementer).toEqual(DELEGATED)
+  })
+
+  it('runs each arm over the ladder it names, restates it, and refuses a first rung that is another route', async () => {
+    const { ctx, plan } = await harness()
+    const ladder = [{}, { model: CANDIDATE }]
+    const result = await ctx.experiments.run(plan({ candidate: { ...CANDIDATE, ladder } }))
+
+    expect(StubFleet.current.plans.map(fleet => fleet.ladder)).toEqual([undefined, ladder])
+    expect(result.arms.baseline).not.toHaveProperty('ladder')
+    expect(result.arms.candidate).toEqual({ model: CANDIDATE, ladder, implementer: ROUTE, group: result.arms.candidate.group })
+
+    // The arm is what the result is published under, so its first attempt must
+    // be the arm's own route.
+    const conflicting = plan({ candidate: { ...CANDIDATE, ladder: [{ model: BASELINE }, {}] } })
+    await expect(ctx.experiments.run(conflicting)).rejects.toThrow(new ExperimentError(
+      'the candidate arm runs mock/next but its first ladder rung names mock/base, so its first attempt would not be the arm it is published under',
+      'EXPERIMENT_LADDER_CONFLICT',
+    ))
+    await expect(ctx.experiments.run(plan({ baseline: { ...BASELINE, ladder: [] } }))).rejects.toThrow(new ExperimentError(
+      'the baseline arm\'s attempt ladder names no rung',
+      'EXPERIMENT_INVALID_PLAN',
+    ))
+    expect(StubFleet.current.plans).toHaveLength(2)
+  })
+
+  it('freezes each arm ladder in role order, taking an omitted rung model as the arm route', async () => {
+    const { plan } = await harness()
+    const thresholds = resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds
+    const routes = plan()
+    const laddered = plan({ candidate: { ...CANDIDATE, ladder: [{}, { model: BASELINE }] } })
+    expect(planDigest(laddered, thresholds, CAPS)).not.toBe(planDigest(routes, thresholds, CAPS))
+
+    // A rung naming the arm's own route and one naming no model are two ways of
+    // writing one rung, and the digest keeps them apart because only the
+    // written model decides what a later reader can compare.
+    const spelledOut = plan({ candidate: { ...CANDIDATE, ladder: [{ model: CANDIDATE }, { model: BASELINE }] } })
+    expect(planDigest(spelledOut, thresholds, CAPS)).not.toBe(planDigest(laddered, thresholds, CAPS))
+
+    const longer = plan({ candidate: { ...CANDIDATE, ladder: [{}, { model: BASELINE }, { model: BASELINE }] } })
+    expect(planDigest(longer, thresholds, CAPS)).not.toBe(planDigest(laddered, thresholds, CAPS))
+    expect(planDigest(plan({ baseline: { ...BASELINE, ladder: [{}, { model: CANDIDATE }] } }), thresholds, CAPS))
+      .not.toBe(planDigest(laddered, thresholds, CAPS))
   })
 
   it('freezes each arm implementer in role order, taking an omitted one as the route', async () => {
