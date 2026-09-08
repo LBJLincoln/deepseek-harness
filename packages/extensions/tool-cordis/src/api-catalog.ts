@@ -682,8 +682,15 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
         description: 'Run one environment as one fresh session and validate it.',
         parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, model route, repetition, group, district, policy version, sampling seed, and abort signal.' }],
-        returns: 'the stamp, the attempts, the certificate when one run passed, and the accumulated usage.',
-        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an implementer provider the composition does not hold or cannot confine, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+        returns: 'the stamp, the attempts, the certificate when one run passed, the accumulated usage, and the caps the cell ran under.',
+        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+      },
+      {
+        signature: 'cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[]',
+        description: 'The caps one cell runs under, before the cell\'s own session tightens them. A planner compares two arms with it: arms whose cells run under different caps measure different things, however identical the rest of the plan is.\n\nA cell on the session\'s own route runs under every cap the deployment configured. A delegated cell runs under the caps this runner can measure for an implementer that spends outside this process, which is every one of them except a cost cap the deployment states no foreign exchange rate for.',
+        parameters: [{ name: 'implementer', description: 'who does the work of the cell\'s attempts.' }],
+        returns: 'the caps in cap evaluation order; empty without a composed budget policy.',
+        throws: ['{@link EnvironmentRunError} when a delegated implementer has no budget policy to bound it.'],
       },
       {
         signature: 'async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>',
@@ -735,8 +742,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
         description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
         parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional implementers, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
-        returns: 'the digest, both arms with their stamp groups, one cell per environment, the pooled delta with its interval, the spend, and the verdict.',
-        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
+        returns: 'the digest, both arms with their stamp groups, one cell per environment, the pooled delta with its interval, the spend, the caps both arms ran under, and the verdict.',
+        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
       },
     ],
   },
@@ -1407,6 +1414,44 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Write one JSON line per session\'s facts record. A session that cannot be read or folded is reported and the export continues; the sink is closed exactly once when every session has been handled.',
         parameters: [{ name: 'request', description: 'sessions to export and the destination sink.' }],
         returns: 'counts of sessions, written lines, and skips with reasons.',
+      },
+    ],
+  },
+  {
+    key: 'sessionBudgets',
+    summary: 'Session budgets (`ctx.sessionBudgets`): the caps a session runs under and the enforcement that stops it.',
+    description: 'Session budgets (`ctx.sessionBudgets`): the caps a session runs under and the enforcement that stops it.\n\nThe pre-step listener of this package is one consumer; the other is a driver whose session never proposes a step of its own because an implementer outside this process does its work. Both go through SessionBudgets.enforce, so a delegated session records the same `budget/breach` and blocks its goal the same way, and the caps a run is bounded by are read here rather than restated by each driver.',
+    methods: [
+      {
+        signature: 'configuredCaps(): readonly BudgetCap[]',
+        description: 'The caps this deployment enforces before any session tightens them.',
+        parameters: [],
+        returns: 'the enforced caps in {@link BUDGET_CAP_ORDER}; empty for a policy that caps nothing.',
+      },
+      {
+        signature: 'capsFor(session: Session): readonly BudgetCap[]',
+        description: 'The caps one session runs under: the configured caps tightened by the latest `budget/caps` its own log records.',
+        parameters: [{ name: 'session', description: 'the session whose log carries its recorded caps.' }],
+        returns: 'the caps to measure that session against, in {@link BUDGET_CAP_ORDER}.',
+      },
+      {
+        signature: 'pricesForeignCost(): boolean',
+        description: 'Whether this deployment can express a foreign implementer\'s reported price in the currency `maxCostEur` caps. A deployment that states no rate cannot, so a cost cap does not bound work such an implementer does.',
+        parameters: [],
+        returns: '`true` when a foreign exchange rate is configured.',
+      },
+      {
+        signature: 'recordForeignSpend(session: Session, spend: ForeignSpendRequest): boolean',
+        description: 'Record spend an implementer outside the session\'s own model route incurred for it, so the caps measure it with the session\'s own steps. Nothing is recorded for work whose implementer reported neither tokens nor a price: an empty record would add nothing to any cap.',
+        parameters: [{ name: 'session', description: 'the session the work was done for.' }, { name: 'spend', description: 'what did the work and what its own backend reported for it.' }],
+        returns: '`true` when a record was appended.',
+        throws: ['{RangeError} when the session\'s log already accounts for `spend.ref`.'],
+      },
+      {
+        signature: 'enforce(agent: Agent): BudgetEnforcement',
+        description: 'Measure one session against its caps and, on the first cap it exceeds, record the breach and block the session\'s goal.\n\nThe goal domain is optional: a composition without `ctx.goals`, without a current goal, or whose goal already left the `active` phase still gets the durable breach record. Spend never decreases, so a caller that keeps going records one breach per attempt it turned away, exactly as a stopped step does.',
+        parameters: [{ name: 'agent', description: 'the agent whose session log carries the spend and its caps.' }],
+        returns: 'the caps measured, the breach recorded if any, and the wall budget left.',
       },
     ],
   },
@@ -3237,8 +3282,20 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type Branded<B extends string> = string & {\n    readonly [BRAND]: B;\n};',
   },
   {
+    name: 'BudgetBreach',
+    declaration: 'export interface BudgetBreach {\n    readonly cap: BudgetCapId;\n    readonly measured: number;\n    readonly limit: number;\n}',
+  },
+  {
+    name: 'BudgetCap',
+    declaration: 'export type BudgetCap = readonly [\n    BudgetCapId,\n    number\n];',
+  },
+  {
     name: 'BudgetCapId',
     declaration: 'export type BudgetCapId = \'maxInputTokens\' | \'maxOutputTokens\' | \'maxTotalTokens\' | \'maxWallMs\' | \'maxCostEur\';',
+  },
+  {
+    name: 'BudgetEnforcement',
+    declaration: 'export interface BudgetEnforcement {\n    readonly caps: readonly BudgetCap[];\n    readonly breach?: BudgetBreach;\n    readonly remainingWallMs?: number;\n}',
   },
   {
     name: 'CancelOptions',
@@ -3718,7 +3775,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunReport',
-    declaration: 'export interface EnvironmentRunReport {\n    readonly environment: EnvironmentId;\n    readonly sessionId: SessionId;\n    readonly stamp: EnvironmentRunStamp;\n    readonly attempts: readonly EnvironmentRunAttempt[];\n    readonly certified: boolean;\n    readonly certificate?: VerificationCertificate;\n    readonly usage?: TokenUsage;\n}',
+    declaration: 'export interface EnvironmentRunReport {\n    readonly environment: EnvironmentId;\n    readonly sessionId: SessionId;\n    readonly stamp: EnvironmentRunStamp;\n    readonly attempts: readonly EnvironmentRunAttempt[];\n    readonly certified: boolean;\n    readonly certificate?: VerificationCertificate;\n    readonly usage?: TokenUsage;\n    readonly caps: readonly BudgetCap[];\n}',
   },
   {
     name: 'EnvironmentRunRequest',
@@ -3762,7 +3819,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentResult',
-    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly seedsPaired: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly verdict: ExperimentVerdict;\n}',
+    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly seedsPaired: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly caps: readonly BudgetCap[];\n    readonly verdict: ExperimentVerdict;\n}',
   },
   {
     name: 'ExperimentSpend',
@@ -3847,6 +3904,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'FleetSpend',
     declaration: 'export interface FleetSpend {\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
+  },
+  {
+    name: 'ForeignSpendRequest',
+    declaration: 'export interface ForeignSpendRequest {\n    readonly ref: string;\n    readonly source: string;\n    readonly usage?: TokenUsage;\n    readonly costUsd?: number;\n}',
   },
   {
     name: 'FsDirEntry',

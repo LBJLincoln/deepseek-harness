@@ -16,6 +16,7 @@ import type { UserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
+import * as budgetPolicy from '@deepseek-ai/dsh-budget-policy'
 import { NO_START_CAPABILITIES } from '@deepseek-ai/dsh-subagent'
 import type { SubagentProvider, SubagentResult, SubagentRun, SubagentStartRequest } from '@deepseek-ai/dsh-subagent'
 import { caseChannelDigest, CheckCaseId, checkCasesRef, CheckId, hashWorkspaceTree, StandardId } from '@deepseek-ai/dsh-verification'
@@ -48,13 +49,17 @@ declare module '@deepseek-ai/dsh-environments/types' {
   }
 }
 
-/** The live-agent surface the runner drives, with a log that records what the runner appends. */
+/**
+ * The live-agent surface the runner drives, with a log that records what the
+ * runner appends. Event times are wall-clock, like the real store's, so the
+ * budget policy's wall measurement means the same thing here.
+ */
 class FakeSession {
   readonly events: SessionEvent[] = []
   seq = 0
   constructor(readonly id: SessionId) {}
   append(type: string, data: unknown): SessionEvent {
-    const event = { type, seq: this.seq, time: this.seq, data } as unknown as SessionEvent
+    const event = { type, seq: this.seq, time: Date.now(), data } as unknown as SessionEvent
     this.seq += 1
     this.events.push(event)
     return event
@@ -127,6 +132,7 @@ class StubGoals extends Service {
   static current: StubGoals
   readonly created: CreateGoalRequest[] = []
   readonly completed: GoalRef[] = []
+  readonly blocked: { ref: GoalRef; reason: { code: string; message: string } }[] = []
   disarmed = 0
   goal: GoalView | undefined
   readMode: 'same' | 'other' | 'none' = 'same'
@@ -160,6 +166,11 @@ class StubGoals extends Service {
   complete(_agent: Agent, ref: GoalRef): GoalView {
     this.completed.push(ref)
     return { ...(this.goal as GoalView), phase: 'complete', revision: ref.revision + 1 }
+  }
+  block(_agent: Agent, ref: GoalRef, reason: { code: string; message: string }): GoalView {
+    this.blocked.push({ ref, reason })
+    this.goal = { ...(this.goal as GoalView), phase: 'blocked', revision: ref.revision + 1 }
+    return this.goal
   }
 }
 
@@ -310,6 +321,18 @@ interface ScriptedChild {
   readonly childUsage?: { inputTokens: number; outputTokens: number }
   /** What the child did to the workspace before it settled. */
   readonly work?: (workspace: string) => void
+  /** Settle only once the start signal aborts, as a provider whose child runs until cancelled does. */
+  readonly untilAborted?: true
+  /** Reject the start once the signal aborts, as a provider refusing to start an already-cancelled run does. */
+  readonly failsToStart?: true
+}
+
+/** A promise that settles when `signal` aborts, or at once when it already has. */
+function whenAborted(signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.resolve()
+  return new Promise((resolve) => {
+    signal.addEventListener('abort', () => { resolve() }, { once: true })
+  })
 }
 
 /** The subagent seam as the runner reads it: a provider registry and one published run per start. */
@@ -334,20 +357,27 @@ class StubSubagents extends Service {
     return this.providers.get(name)
   }
 
-  start(name: string, request: SubagentStartRequest): Promise<SubagentRun> {
+  async start(name: string, request: SubagentStartRequest): Promise<SubagentRun> {
     this.started.push({ name, request })
     const scripted = this.children[this.started.length - 1] ?? {}
+    if (scripted.failsToStart === true) {
+      await whenAborted(request.signal)
+      throw new Error('stub-subagents: the run was cancelled before startup')
+    }
     scripted.work?.(this.workspace)
     const child = new FakeAgent(`child-${this.started.length}`, () => {})
     if (scripted.childUsage !== undefined) {
       child.session.append('assistant/message', { turn: 1, step: 1, usage: scripted.childUsage, message: { content: [] } })
     }
-    return Promise.resolve({
+    const settled: SubagentResult = scripted.result ?? { output: [], stopReason: 'completed' }
+    return {
       id: SessionId(`child-${this.started.length}`),
       localAgent: scripted.childUsage === undefined ? undefined : asAgent(child),
-      result: Promise.resolve(scripted.result ?? { output: [], stopReason: 'completed' }),
+      result: scripted.untilAborted === true
+        ? whenAborted(request.signal).then(() => settled)
+        : Promise.resolve(settled),
       dispose: async () => { this.disposed += 1 },
-    })
+    }
   }
 }
 
@@ -377,6 +407,10 @@ interface Scenario {
   barrierPrefix?: string
   /** Mount the subagent seam and register these providers under their names. */
   providers?: Readonly<Record<string, SubagentProvider['capabilities']>>
+  /** Caps the composed budget policy enforces; omitted composes it uncapped. */
+  budget?: budgetPolicy.Config
+  /** Compose no budget policy at all, which is what an unbounded delegated run needs. */
+  unbudgeted?: true
 }
 
 interface Harness {
@@ -401,6 +435,9 @@ async function harness(scenario: Scenario = {}): Promise<Harness> {
     await ctx.plugin(StubSubagents)
     for (const [name, capabilities] of Object.entries(scenario.providers)) StubSubagents.current.register(name, capabilities)
   }
+  // Village rule: a composition running unattended cells carries a session
+  // budget, and a delegated run is refused without one.
+  if (scenario.unbudgeted !== true) await ctx.plugin(budgetPolicy, scenario.budget ?? {})
   await ctx.plugin(EnvironmentRunner, { isolation: 'process', ...scenario.config })
   const definition = scenario.definition ?? environment()
   StubEnvironments.current.definitions.set(definition.id, definition)
@@ -909,7 +946,7 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
       [{ type: 'text', text: 'Create a file named MARKER in the workspace.' }],
       [{ type: 'text', text: "<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nstderr: no MARKER\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>" }],
     ])
-    expect(starts[0]?.request).toMatchObject({ label: 'external', parent: StubAgents.current.agent, signal })
+    expect(starts[0]?.request).toMatchObject({ label: 'external', parent: StubAgents.current.agent })
     expect(StubSubagents.current.disposed).toBe(2)
 
     const delegations = StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation')
@@ -1069,6 +1106,189 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     const report = await run()
     expect(report.stamp.implementer).toBe('route')
     expect(StubAgents.current.agent.turns).toHaveLength(1)
+  })
+})
+
+describe('EnvironmentRunner delegated cell budgets', () => {
+  const SPAWN = { kind: 'subagent', provider: 'spawn' } as const
+  const PRODUCT = { kind: 'subagent', provider: 'claude-code' } as const
+
+  /** The budget records one cell session carries, in log order. */
+  function budgetEvents(type: 'budget/breach' | 'usage/foreign'): unknown[] {
+    return StubAgents.current.agent.session.events.filter(event => event.type === type).map(event => event.data)
+  }
+
+  it('refuses a delegated run no budget policy could bound, before any agent exists', async () => {
+    const { run } = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES }, unbudgeted: true })
+    await expect(run({ implementer: SPAWN })).rejects.toThrow(new EnvironmentRunError(
+      'implementer provider "spawn" does the work of its attempts outside this session\'s own model route, where only the budget policy\'s caps can bound it, and this composition has none',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED',
+    ))
+    expect(StubAgents.current.created).toEqual([])
+    expect(StubSubagents.current.started).toEqual([])
+
+    // A route cell reaches the policy's own pre-step check whenever one is
+    // composed, so a deployment composing none has chosen no budgets.
+    StubShell.current.script(MARKER, shellResult())
+    expect((await run()).certified).toBe(true)
+  })
+
+  it('charges what the child reported and blocks the attempts the token cap did not pay for', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 3, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 30, foreignCostEurPerUsd: 0.5 },
+    })
+    StubSubagents.current.children = [{
+      result: {
+        output: [],
+        stopReason: 'completed',
+        reportedUsage: { inputTokens: 20, outputTokens: 6, cacheReadTokens: 5 },
+        reportedCostUsd: 3,
+      },
+    }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    const report = await run({ implementer: PRODUCT })
+
+    expect(budgetEvents('usage/foreign')).toEqual([
+      { ref: 'child-1', source: 'claude-code', inputTokens: 25, outputTokens: 6, costEur: 1.5 },
+    ])
+    expect(budgetEvents('budget/breach')).toEqual([{ cap: 'maxTotalTokens', measured: 31, limit: 30 }])
+    // One child ran; the two attempts its spend did not pay for never started,
+    // and the tree the blocked attempt would have left is never measured twice.
+    expect(StubSubagents.current.started).toHaveLength(1)
+    expect(StubStandards.current.runs).toHaveLength(1)
+    expect(report.attempts).toHaveLength(1)
+    expect(report.certified).toBe(false)
+    expect(report.caps).toEqual([['maxTotalTokens', 30]])
+  })
+
+  it('completes a cell that certified on the attempt that exhausted its budget', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 5 },
+    })
+    StubSubagents.current.children = [{
+      result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 40, outputTokens: 8 } },
+    }]
+    StubShell.current.script(MARKER, shellResult())
+    const report = await run({ implementer: PRODUCT })
+
+    // The budget is measured before an attempt, exactly as the pre-step check
+    // is, so the work already done still certifies and nothing blocks the goal.
+    expect(report.certified).toBe(true)
+    expect(budgetEvents('budget/breach')).toEqual([])
+    expect(StubGoals.current.blocked).toEqual([])
+    expect(StubGoals.current.completed).toHaveLength(1)
+  })
+
+  it('charges an in-process child through the log this process does keep', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2 },
+      providers: { spawn: IN_PROCESS_CAPABILITIES },
+      budget: { maxTotalTokens: 20 },
+    })
+    StubSubagents.current.children = [{ childUsage: { inputTokens: 18, outputTokens: 4 } }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    await run({ implementer: SPAWN })
+
+    expect(budgetEvents('usage/foreign')).toEqual([
+      { ref: 'child-1', source: 'spawn', inputTokens: 18, outputTokens: 4 },
+    ])
+    expect(budgetEvents('budget/breach')).toEqual([{ cap: 'maxTotalTokens', measured: 22, limit: 20 }])
+    expect(StubSubagents.current.started).toHaveLength(1)
+  })
+
+  it('ends an attempt at the wall deadline, records it as the budget deadline, and blocks the rest', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 3, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxWallMs: 0 },
+    })
+    StubSubagents.current.children = [{ untilAborted: true, result: { output: [], stopReason: 'aborted' } }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    const report = await run({ implementer: PRODUCT })
+
+    // The child settled because the cell's own deadline cancelled it, which is
+    // recorded apart from the cancellation an operator would cause.
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
+      .toEqual([{ attempt: 1, provider: 'claude-code', runId: 'child-1', stopReason: 'budget-deadline' }])
+    const [breach] = budgetEvents('budget/breach') as { cap: string; limit: number }[]
+    expect(breach).toMatchObject({ cap: 'maxWallMs', limit: 0 })
+    expect(StubGoals.current.blocked).toHaveLength(1)
+    expect(StubSubagents.current.started).toHaveLength(1)
+    expect(report.certified).toBe(false)
+  })
+
+  it('takes a start its own deadline cancelled as the end of the attempt, and rethrows any other failure', async () => {
+    const deadlined = await harness({
+      config: { isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxWallMs: 0 },
+    })
+    StubSubagents.current.children = [{ failsToStart: true }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    // A child the deadline cancelled before it started leaves no delegation
+    // record; the run still ends at the validation of the tree it never touched.
+    await expect(deadlined.run({ implementer: PRODUCT })).resolves.toMatchObject({ certified: false })
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation')).toEqual([])
+
+    const failing = await harness({ config: { isolation: 'none' }, providers: { 'claude-code': PRODUCT_CAPABILITIES } })
+    StubSubagents.current.children = [{ failsToStart: true }]
+    const request = failing.run({ implementer: PRODUCT, signal: AbortSignal.abort() })
+    await expect(request).rejects.toThrow('stub-subagents: the run was cancelled before startup')
+  })
+
+  it('blocks the first attempt of a cell whose budget is already spent', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 0 },
+    })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    StubAgents.current.agent = new FakeAgent('spent-cell', assistantTurns)
+    StubAgents.current.agent.session.append('usage/foreign', { ref: 'earlier', source: 'claude-code', inputTokens: 1, outputTokens: 0 })
+    const report = await run({ implementer: PRODUCT })
+
+    expect(StubSubagents.current.started).toEqual([])
+    expect(budgetEvents('budget/breach')).toEqual([{ cap: 'maxTotalTokens', measured: 1, limit: 0 }])
+    expect(report.certified).toBe(false)
+  })
+
+  it('answers the caps one cell of an arm runs under, dropping a cost cap it cannot measure for a delegated one', async () => {
+    const priced = {
+      maxTotalTokens: 100,
+      maxCostEur: 5,
+      pricing: { 'mock/mock-default': { inputEurPerMillionTokens: 1, outputEurPerMillionTokens: 2 } },
+    }
+    const unconvertible = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES }, budget: priced })
+    expect(unconvertible.ctx.environmentRuns.cellCaps({ kind: 'route' }))
+      .toEqual([['maxTotalTokens', 100], ['maxCostEur', 5]])
+    expect(unconvertible.ctx.environmentRuns.cellCaps(SPAWN)).toEqual([['maxTotalTokens', 100]])
+
+    const convertible = await harness({
+      providers: { spawn: IN_PROCESS_CAPABILITIES },
+      budget: { ...priced, foreignCostEurPerUsd: 0.9 },
+    })
+    expect(convertible.ctx.environmentRuns.cellCaps(SPAWN)).toEqual([['maxTotalTokens', 100], ['maxCostEur', 5]])
+
+    // Without a policy a route cell is simply uncapped, and a delegated one is refused.
+    const bare = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES }, unbudgeted: true })
+    expect(bare.ctx.environmentRuns.cellCaps({ kind: 'route' })).toEqual([])
+    expect(() => bare.ctx.environmentRuns.cellCaps(SPAWN)).toThrow(EnvironmentRunError)
+  })
+
+  it('reports the caps of a route cell and leaves a run under no wall cap uncancelled', async () => {
+    const { run, ctx } = await harness({
+      providers: { spawn: IN_PROCESS_CAPABILITIES },
+      budget: { maxTotalTokens: 1_000 },
+    })
+    StubShell.current.script(MARKER, shellResult())
+    expect((await run({ implementer: SPAWN })).caps).toEqual([['maxTotalTokens', 1_000]])
+    // No wall cap arms no deadline, so the child's signal only follows the run's.
+    expect(StubSubagents.current.started[0]?.request.signal.aborted).toBe(false)
+    expect(ctx.environmentRuns.cellCaps(SPAWN)).toEqual([['maxTotalTokens', 1_000]])
   })
 })
 

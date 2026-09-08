@@ -102,6 +102,29 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
 
 种子记录的是一次运行**请求了什么**，绝不是提供方做了什么。线路上没有 `seed` 字段的适配器会丢弃它，接受它的提供方仍可以忽略它，而且没有任何一家承诺跨模型或基础设施版本产出相同的 token。会话日志复现的是它自己的 transcript——提示词、工具、header 和已记录的轮次——而不是一次新的模型采样。
 
+## 运行实现方
+
+由谁完成一个 cell 各次尝试的工作。两种实现方的校验方式完全相同——运行器编写标准、亲自执行检查，并为它所看到的树颁发证书——因此改变的只是工作区如何到达它的下一个状态。[运行器 README](../../packages/improvement/environment-runner/README.md#the-two-implementers) 拥有高于 `none` 的隔离声明会拒绝哪些 provider，以及被委派的证书证明了什么。
+
+```ts type-equiv
+/**
+ * Who implements the work of one run: the session's own model route, driven
+ * turn by turn as the runner has always driven it, or one out-of-band coding
+ * agent started per attempt through the subagent seam.
+ */
+type EnvironmentRunImplementer =
+  | { readonly kind: 'route' }
+  | {
+    readonly kind: 'subagent'
+    /** Registered `ctx.subagents` provider each attempt's child run starts on. */
+    readonly provider: string
+    /** Short display label persisted with a session-backed child; absent leaves the provider's own naming. */
+    readonly label?: string
+  }
+```
+
+只有当两个 arm 的 cell 在同一预算下运行时，一份计划才能比较它们，因此 `ctx.environmentRuns.cellCaps(implementer)` 回答某个 arm 的 cell 的上限是什么，而实验会拒绝两个 arm 不一致的计划；[guard 页面](guard.md)拥有这套上限用语。
+
 ## 排行榜行
 
 fleet 从一次 fleet 运行的报告中折叠出每个模型路由与环境一行。行绝不会跨隔离级别或跨留出划分求平均：`isolation` 与 `heldOut` 是消费者据以分区的列，全部 cell 在运行前失败的行既不携带隔离声明也不携带实现者。一个计划只跑一个实现者，因此 fleet 的行不可能混合两者；跨计划折叠的记分板则改为按实现者给行建键。
@@ -208,6 +231,14 @@ interface ExperimentResult {
   readonly spend: ExperimentSpend
   /** Thresholds the digest froze, restated so a stored result is readable alone. */
   readonly thresholds: ExperimentThresholds
+  /**
+   * The ceilings every cell of both arms ran under, in cap evaluation order.
+   * The plan is refused unless the two arms resolve to the same list, so one
+   * entry states the budget the whole comparison was measured inside and a
+   * reader of a stored result never has to find the composition that produced
+   * it. Empty for a comparison whose deployment caps nothing.
+   */
+  readonly caps: readonly BudgetCap[]
   readonly verdict: ExperimentVerdict
 }
 ```
@@ -474,13 +505,31 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
  * @param request - environment id, absolute workspace directory, optional
  *   implementer, model route, repetition, group, district, policy version,
  *   sampling seed, and abort signal.
- * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
+ * @returns the stamp, the attempts, the certificate when one run passed, the
+ *   accumulated usage, and the caps the cell ran under.
  * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
  *   is not a safe non-negative integer, an implementer provider the
- *   composition does not hold or cannot confine, an unusable workspace or
- *   fixture, an implementer that replaced the goal, or a lost standard.
+ *   composition does not hold, cannot confine, or has no budget policy to
+ *   bound, an unusable workspace or fixture, an implementer that replaced the
+ *   goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
+
+/**
+ * The caps one cell runs under, before the cell's own session tightens them.
+ * A planner compares two arms with it: arms whose cells run under different
+ * caps measure different things, however identical the rest of the plan is.
+ *
+ * A cell on the session's own route runs under every cap the deployment
+ * configured. A delegated cell runs under the caps this runner can measure for
+ * an implementer that spends outside this process, which is every one of them
+ * except a cost cap the deployment states no foreign exchange rate for.
+ *
+ * @param implementer - who does the work of the cell's attempts.
+ * @returns the caps in cap evaluation order; empty without a composed budget policy.
+ * @throws {@link EnvironmentRunError} when a delegated implementer has no budget policy to bound it.
+ */
+cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[]
 
 /**
  * Mint one agent's reservation and copy the environment's reference program
@@ -498,9 +547,9 @@ async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 ```
 
-Types: [Agent](core.md)
+Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:784`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:845`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -566,16 +615,18 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  *   routes and optional implementers, the workspace root, and an optional
  *   policy version, base seed, frozen digest, abort signal, and result sink.
  * @returns the digest, both arms with their stamp groups, one cell per
- *   environment, the pooled delta with its interval, the spend, and the verdict.
+ *   environment, the pooled delta with its interval, the spend, the caps both
+ *   arms ran under, and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
  *   unregistered environment, asks for no repetition, sets a seed that is not
- *   a safe non-negative integer, declares a digest its content does not
- *   freeze to, or projects more tokens than the budget.
+ *   a safe non-negative integer, whose two arms would run under different
+ *   caps, declares a digest its content does not freeze to, or projects more
+ *   tokens than the budget.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:110`](../../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:119`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 

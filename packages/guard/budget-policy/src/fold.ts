@@ -11,7 +11,7 @@
 import { assertNever } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { billedInputTokens, costEurFor, routeKey } from './pricing.ts'
-import type { AccountedMessage, BudgetCapId, BudgetCaps, BudgetRoutePricing, BudgetSpend } from './types.ts'
+import type { AccountedMessage, BudgetCap, BudgetCapId, BudgetCaps, BudgetRoutePricing, BudgetSpend } from './types.ts'
 
 /**
  * Evaluation order of the caps. The first cap the log exceeds is the one
@@ -41,11 +41,16 @@ function isAccounted(event: SessionEvent): event is AccountedMessage {
  * Fold billed spend and elapsed wall time out of one session log.
  *
  * Only `assistant/message` carries a step's final provider accounting, so it is
- * the single usage source: the earlier `assistant/chunk` usage sample for the
- * same step is deliberately ignored rather than counted twice. Each message
- * prices against its own `provider/model` provenance, so a route switch mid
- * session bills each step at the rate configured for the route that served it;
- * a route absent from `pricing` contributes tokens but no cost.
+ * the single usage source for the session's own route: the earlier
+ * `assistant/chunk` usage sample for the same step is deliberately ignored
+ * rather than counted twice. Each message prices against its own
+ * `provider/model` provenance, so a route switch mid session bills each step at
+ * the rate configured for the route that served it; a route absent from
+ * `pricing` contributes tokens but no cost.
+ *
+ * `usage/foreign` adds the spend of work done outside that route, already
+ * billed and already priced by whoever recorded it, so a session that makes no
+ * model request of its own is still measured against the same caps.
  *
  * @param events - the session events to fold, oldest first.
  * @param pricing - EUR-per-million rates keyed by `provider/model`.
@@ -59,6 +64,12 @@ export function foldBudgetSpend(
   let outputTokens = 0
   let costEur = 0
   for (const event of events) {
+    if (event.type === 'usage/foreign') {
+      inputTokens += event.data.inputTokens
+      outputTokens += event.data.outputTokens
+      costEur += event.data.costEur ?? 0
+      continue
+    }
     if (!isAccounted(event)) continue
     const input = billedInputTokens(event.data.usage)
     inputTokens += input
@@ -143,9 +154,9 @@ export function foldSessionCaps(events: readonly SessionEvent[]): BudgetCaps {
  * @returns the caps to measure this session against, in {@link BUDGET_CAP_ORDER}.
  */
 export function tightenedCaps(
-  configured: readonly (readonly [BudgetCapId, number])[],
+  configured: readonly BudgetCap[],
   session: BudgetCaps,
-): readonly (readonly [BudgetCapId, number])[] {
+): readonly BudgetCap[] {
   const byCap = new Map<BudgetCapId, number>(configured)
   for (const cap of BUDGET_CAP_ORDER) {
     const recorded = session[cap]
@@ -157,6 +168,31 @@ export function tightenedCaps(
     const value = byCap.get(cap)
     return value === undefined ? [] : [[cap, value] as const]
   })
+}
+
+/**
+ * Wall-clock budget one session has left at a given instant.
+ *
+ * The anchor is the log's first event, which is the same instant `maxWallMs` is
+ * measured from, so a deadline armed at this value expires exactly when the
+ * measured span would reach the cap. Time already spent past the cap yields a
+ * negative result rather than zero, so a caller can tell an exhausted budget
+ * from an exactly-spent one.
+ *
+ * @param events - the session events to read, oldest first.
+ * @param caps - the caps this session runs under.
+ * @param now - the instant to measure to, in epoch milliseconds.
+ * @returns milliseconds of wall budget left, or `undefined` when no wall cap applies.
+ */
+export function remainingWallMs(
+  events: readonly SessionEvent[],
+  caps: readonly BudgetCap[],
+  now: number,
+): number | undefined {
+  const wall = caps.find(([cap]) => cap === 'maxWallMs')
+  if (wall === undefined) return undefined
+  const first = events[0]
+  return first === undefined ? wall[1] : wall[1] - (now - first.time)
 }
 
 /**

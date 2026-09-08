@@ -21,6 +21,8 @@ import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentSampling } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
+// Also resolves the `usage/foreign` SessionEventMap merge the delegated caps write through.
+import type { BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
 import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import type {
   EnvironmentDefinition,
@@ -87,6 +89,7 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE'
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED'
   | 'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED'
+  | 'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED'
 
 /** Error returned by the environment runner boundary. */
 export class EnvironmentRunError extends HarnessError {
@@ -178,7 +181,7 @@ export function implementerName(implementer: EnvironmentRunImplementer): string 
   }
 }
 
-/** One run's implementer with the service a delegated one starts its children on already resolved. */
+/** One run's implementer with the services a delegated one needs already resolved. */
 type RunImplementer =
   | { readonly kind: 'route' }
   | {
@@ -188,6 +191,8 @@ type RunImplementer =
     /** The stamped model every child run must be started on, so the arm's model is the one that works. */
     readonly model: string
     readonly subagents: SubagentRuntime
+    /** The budget policy whose caps bound every attempt this implementer runs. */
+    readonly budgets: SessionBudgets
   }
 
 /**
@@ -760,6 +765,62 @@ function pinnedSampling(seed: number | undefined, topP: number | undefined): Age
   }
 }
 
+/**
+ * Milliseconds a delegated attempt is given past the wall budget it has left.
+ * `maxWallMs` is exceeded only by a span strictly greater than it, so a deadline
+ * armed exactly at the remaining budget could expire on a span that equals the
+ * cap and records no breach. Fixed by that comparison, not a deployment choice.
+ */
+const DEADLINE_OVERSHOOT_MS = 1
+
+/**
+ * The cancellation one delegated attempt runs under: the run's own signal, plus
+ * the wall budget its cell has left. One controller owns both, so a caller
+ * reads `expired` to tell which of the two ended the attempt and disposes the
+ * timer on every path.
+ */
+class DelegationDeadline {
+  /** Cancellation to start the child under. */
+  readonly signal: AbortSignal
+
+  private readonly controller = new AbortController()
+  private readonly timer: ReturnType<typeof setTimeout> | undefined
+  private fired = false
+
+  /**
+   * @param remainingWallMs - wall budget the cell has left, absent when no wall cap applies.
+   * @param signal - the run's own cancellation, absent for a run that carries none.
+   */
+  constructor(remainingWallMs: number | undefined, signal: AbortSignal | undefined) {
+    this.timer = remainingWallMs === undefined ? undefined : setTimeout(() => {
+      this.fired = true
+      this.controller.abort()
+    }, Math.max(remainingWallMs, 0) + DEADLINE_OVERSHOOT_MS)
+    this.signal = signal === undefined ? this.controller.signal : AbortSignal.any([signal, this.controller.signal])
+  }
+
+  /** Whether the cell's wall budget, rather than the run's own signal, ended the attempt. */
+  get expired(): boolean {
+    return this.fired
+  }
+
+  /** Release the timer; safe to call more than once. */
+  dispose(): void {
+    if (this.timer !== undefined) clearTimeout(this.timer)
+  }
+}
+
+/**
+ * How one attempt ended, as the cell's budget decided.
+ *
+ * `blocked` is the delegated counterpart of the stopped step a route cell gets:
+ * no implementer ran, so the workspace is exactly what the previous attempt's
+ * validation already measured and the run ends without measuring it again.
+ * `cut-short` ran an implementer the wall deadline then cancelled, so the tree
+ * it left is validated before the run ends.
+ */
+type AttemptOutcome = 'ran' | 'cut-short' | 'blocked'
+
 /** Sum the usage of every assistant message in a session log. */
 function totalUsage(events: readonly SessionEvent[]): TokenUsage | undefined {
   const steps = events.flatMap(event => (
@@ -806,11 +867,13 @@ export class EnvironmentRunner extends Service {
    * @param request - environment id, absolute workspace directory, optional
    *   implementer, model route, repetition, group, district, policy version,
    *   sampling seed, and abort signal.
-   * @returns the stamp, the attempts, the certificate when one run passed, and the accumulated usage.
+   * @returns the stamp, the attempts, the certificate when one run passed, the
+   *   accumulated usage, and the caps the cell ran under.
    * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
    *   is not a safe non-negative integer, an implementer provider the
-   *   composition does not hold or cannot confine, an unusable workspace or
-   *   fixture, an implementer that replaced the goal, or a lost standard.
+   *   composition does not hold, cannot confine, or has no budget policy to
+   *   bound, an unusable workspace or fixture, an implementer that replaced the
+   *   goal, or a lost standard.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
@@ -881,10 +944,11 @@ export class EnvironmentRunner extends Service {
    * ran.
    * @param implementer - the implementer the request resolved to.
    * @param model - the run's stamped route, whose model every child run is started on.
-   * @returns the run implementer with its service resolved.
+   * @returns the run implementer with its services resolved.
    * @throws {@link EnvironmentRunError} when the named provider is not composed,
-   *   runs outside this process under an isolation above `none`, or does not
-   *   support the subagent seam's `model` capability.
+   *   runs outside this process under an isolation above `none`, does not
+   *   support the subagent seam's `model` capability, or has no budget policy to
+   *   bound its attempts.
    */
   private requireImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): RunImplementer {
     if (implementer.kind === 'route') return implementer
@@ -904,7 +968,61 @@ export class EnvironmentRunner extends Service {
     if (!provider.capabilities.model) {
       throw new EnvironmentRunError(`implementer provider "${name}" cannot be told which model to run, so a run stamped with model "${model.model}" would measure whichever model that provider defaults to`, 'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED')
     }
-    return { kind: 'subagent', provider: name, ...label === undefined ? {} : { label }, model: model.model, subagents }
+    return {
+      kind: 'subagent',
+      provider: name,
+      ...label === undefined ? {} : { label },
+      model: model.model,
+      subagents,
+      budgets: this.requireBudgets(name),
+    }
+  }
+
+  /**
+   * The budget policy a delegated run is bounded by. A cell whose attempts run
+   * on the session's own route reaches the policy's own pre-step check, so a
+   * deployment that composes none has simply chosen no budgets; a delegated
+   * attempt reaches no step here at all, so without the policy nothing would
+   * bound it and the run is refused instead.
+   * @param name - the implementer provider, named in the refusal.
+   * @returns the composed budget policy.
+   * @throws {@link EnvironmentRunError} when no budget policy is composed.
+   */
+  private requireBudgets(name: string): SessionBudgets {
+    const budgets = this.ctx.get('sessionBudgets')
+    if (budgets === undefined) {
+      throw new EnvironmentRunError(`implementer provider "${name}" does the work of its attempts outside this session's own model route, where only the budget policy's caps can bound it, and this composition has none`, 'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED')
+    }
+    return budgets
+  }
+
+  /**
+   * The caps one cell runs under, before the cell's own session tightens them.
+   * A planner compares two arms with it: arms whose cells run under different
+   * caps measure different things, however identical the rest of the plan is.
+   *
+   * A cell on the session's own route runs under every cap the deployment
+   * configured. A delegated cell runs under the caps this runner can measure for
+   * an implementer that spends outside this process, which is every one of them
+   * except a cost cap the deployment states no foreign exchange rate for.
+   *
+   * @param implementer - who does the work of the cell's attempts.
+   * @returns the caps in cap evaluation order; empty without a composed budget policy.
+   * @throws {@link EnvironmentRunError} when a delegated implementer has no budget policy to bound it.
+   */
+  cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[] {
+    switch (implementer.kind) {
+      case 'route':
+        return this.ctx.get('sessionBudgets')?.configuredCaps() ?? []
+      case 'subagent': {
+        const budgets = this.requireBudgets(implementer.provider)
+        const caps = budgets.configuredCaps()
+        return budgets.pricesForeignCost() ? caps : caps.filter(([cap]) => cap !== 'maxCostEur')
+      }
+      /* v8 ignore next 2 -- EnvironmentRunImplementer is closed and every member is handled above */
+      default:
+        return assertNever(implementer, 'run implementer')
+    }
   }
 
   /** Stamp, goal, standard, then the attempt loop; the session is flushed on every path. */
@@ -942,7 +1060,13 @@ export class EnvironmentRunner extends Service {
     let prompt = definition.task.prompt
     try {
       for (let attempt = 1; attempt <= this.resolved.maxAttempts; attempt += 1) {
-        await this.implement(agent, implementer, prompt, attempt, request.signal)
+        // An exhausted budget blocks every attempt it did not pay for, which is
+        // what makes a delegated cell that ran out a failed cell rather than a
+        // longer one. A blocked attempt left the workspace exactly as the last
+        // validation already measured it, so the run ends without measuring it
+        // again.
+        const outcome = await this.implement(agent, implementer, prompt, attempt, request.signal)
+        if (outcome === 'blocked') break
         const standard = this.currentStandard(agent, goal.id)
         const ref = { id: standard.id, revision: standard.revision }
         if (await hashCheckOwned(request.workspace, runDirectory, immutable) !== checkOwned) {
@@ -955,13 +1079,13 @@ export class EnvironmentRunner extends Service {
         // is the baseline the next attempt must still find.
         checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
         const results = await this.execute(standard.checks, request, scripts, bodies)
-        const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
+        const validation = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
           executor: 'runner',
           treeHash,
         })
         attempts.push({ attempt, results, treeHash })
-        if (outcome.certified) {
-          certificate = outcome.certificate
+        if (validation.certified) {
+          certificate = validation.certificate
           const current = goals.get(agent)
           if (current === undefined || current.id !== goal.id) {
             throw new EnvironmentRunError(`the implementer replaced goal "${goal.id}"`, 'ENVIRONMENT_RUN_GOAL_REPLACED')
@@ -969,7 +1093,8 @@ export class EnvironmentRunner extends Service {
           goals.complete(agent, { id: current.id, revision: current.revision })
           break
         }
-        const directive = describeFailures(outcome.failures, standard.checks, this.resolved.evidenceMaxChars)
+        if (outcome === 'cut-short') break
+        const directive = describeFailures(validation.failures, standard.checks, this.resolved.evidenceMaxChars)
         completionStandards.issueDirective(agent, ref, directive)
         prompt = followupText(directive)
       }
@@ -985,6 +1110,7 @@ export class EnvironmentRunner extends Service {
       certified: certificate !== undefined,
       ...certificate === undefined ? {} : { certificate },
       ...usage === undefined ? {} : { usage },
+      caps: this.cellCaps(implementer),
     }
   }
 
@@ -992,6 +1118,7 @@ export class EnvironmentRunner extends Service {
    * Hand one attempt's text to the implementer and wait for its work to end:
    * one user turn on the cell agent for a route run, one child run on the
    * named provider for a delegated one.
+   * @returns how the attempt ended, which decides whether the run continues.
    */
   private async implement(
     agent: Agent,
@@ -999,14 +1126,15 @@ export class EnvironmentRunner extends Service {
     text: string,
     attempt: number,
     signal: AbortSignal | undefined,
-  ): Promise<void> {
+  ): Promise<AttemptOutcome> {
     switch (implementer.kind) {
       case 'route':
+        // A route attempt proposes steps, so the policy's own pre-step check
+        // measures and stops it without the runner asking.
         await this.deliver(agent, text)
-        return
+        return 'ran'
       case 'subagent':
-        await this.delegate(agent, implementer, text, attempt, signal)
-        return
+        return this.delegate(agent, implementer, text, attempt, signal)
       /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
       default:
         return assertNever(implementer, 'run implementer')
@@ -1032,11 +1160,22 @@ export class EnvironmentRunner extends Service {
    * rather than assumed. The reported spend is the only spend an out-of-process
    * implementer leaves here, and it is what separates two implementers that
    * both certify on their first attempt.
+   * The cell's budget bounds the attempt exactly as it bounds a step of a route
+   * cell: the caps are measured before the child starts, so an exhausted budget
+   * blocks the attempt without paying for it, and what the child reported
+   * spending is charged to the session so the next attempt's measurement sees
+   * it. Measuring only before an attempt is what the pre-step check does, and
+   * it is why a cell that certifies on the attempt that exhausted its budget
+   * still completes. The wall budget left is armed as a deadline on the child's
+   * signal, so an attempt that would outlast the cap is cancelled at it,
+   * recorded as `budget-deadline`, and followed by the breach it caused.
+   *
    * @param agent - the cell agent, which is the delegating parent and holds the durable record.
-   * @param implementer - the provider, its optional label, the stamped model, and the resolved subagent service.
+   * @param implementer - the provider, its optional label, the stamped model, and the resolved services.
    * @param text - the task prompt on the first attempt, the directive follow-up on later ones.
    * @param attempt - one-based attempt number, recorded on the delegation event.
    * @param signal - the run's cancellation; a run that carries none delegates under one that never fires.
+   * @returns how the attempt ended, which decides whether the run continues.
    */
   private async delegate(
     agent: Agent,
@@ -1044,11 +1183,40 @@ export class EnvironmentRunner extends Service {
     text: string,
     attempt: number,
     signal: AbortSignal | undefined,
+  ): Promise<AttemptOutcome> {
+    const { budgets } = implementer
+    const before = budgets.enforce(agent)
+    if (before.breach !== undefined) return 'blocked'
+    const deadline = new DelegationDeadline(before.remainingWallMs, signal)
+    try {
+      await this.startAndRecord(agent, implementer, text, attempt, deadline)
+    } catch (error: unknown) {
+      // A provider rejects a start its signal already aborted. When the cell's
+      // own deadline is what aborted it, the attempt ended at the wall cap with
+      // no child to record; anything else is the provider's failure.
+      if (!deadline.expired) throw error
+    } finally {
+      deadline.dispose()
+    }
+    if (!deadline.expired) return 'ran'
+    // The deadline, not the next measurement, is what ended this run, so the
+    // breach is recorded here rather than before an attempt that never starts.
+    budgets.enforce(agent)
+    return 'cut-short'
+  }
+
+  /** Start one child run, wait for it, and record what it did and what it spent. */
+  private async startAndRecord(
+    agent: Agent,
+    implementer: Extract<RunImplementer, { kind: 'subagent' }>,
+    text: string,
+    attempt: number,
+    deadline: DelegationDeadline,
   ): Promise<void> {
     const run = await implementer.subagents.start(implementer.provider, {
       prompt: [{ type: 'text', text }],
       parent: agent,
-      signal: signal ?? new AbortController().signal,
+      signal: deadline.signal,
       model: implementer.model,
       ...implementer.label === undefined ? {} : { label: implementer.label },
     })
@@ -1061,12 +1229,22 @@ export class EnvironmentRunner extends Service {
         attempt,
         provider: implementer.provider,
         runId: run.id,
-        stopReason: result.stopReason,
+        stopReason: deadline.expired ? 'budget-deadline' : result.stopReason,
         ...result.structured === undefined ? {} : { structured: result.structured },
         ...usage === undefined ? {} : { usage },
         ...result.reportedModel === undefined ? {} : { reportedModel: result.reportedModel },
         ...result.reportedUsage === undefined ? {} : { reportedUsage: result.reportedUsage },
         ...result.reportedCostUsd === undefined ? {} : { reportedCostUsd: result.reportedCostUsd },
+      })
+      // At most one of the two accounts for the child — a backend that reports
+      // its own usage runs where this process keeps no log — so the charge is
+      // what the child spent, never a sum of two views of the same tokens.
+      const spent = result.reportedUsage ?? usage
+      implementer.budgets.recordForeignSpend(agent.session, {
+        ref: run.id,
+        source: implementer.provider,
+        ...spent === undefined ? {} : { usage: spent },
+        ...result.reportedCostUsd === undefined ? {} : { costUsd: result.reportedCostUsd },
       })
     } finally {
       await run.dispose()

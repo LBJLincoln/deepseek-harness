@@ -413,6 +413,13 @@ export interface Config {
   maxCostEur?: number
   /** EUR-per-million-token rates keyed by `provider/model`; a route absent here is never cost-capped. */
   pricing?: Record<string, BudgetRoutePricing>
+  /**
+   * EUR per one US dollar, applied to the price a foreign implementer's own
+   * backend reported for work it did for a session here. Absent leaves foreign
+   * spend priced in no currency this policy can compare, so it contributes
+   * tokens alone and `maxCostEur` cannot be enforced over it.
+   */
+  foreignCostEurPerUsd?: number
 }
 
 /** EUR per one million tokens for one `provider/model` route. */
@@ -424,7 +431,7 @@ export interface BudgetRoutePricing {
 }
 ```
 
-Source: [`packages/guard/budget-policy/src/index.ts:55`](../packages/guard/budget-policy/src/index.ts)
+Source: [`packages/guard/budget-policy/src/index.ts:83`](../packages/guard/budget-policy/src/index.ts)
 
 <a id="deepseek-aidsh-client-connection"></a>
 
@@ -730,7 +737,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:105`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:108`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -759,7 +766,7 @@ Source: [`packages/improvement/environments/src/index.ts:199`](../packages/impro
 
 ## `@deepseek-ai/dsh-experiments`
 
-Requires: `environments` · `fleet`
+Requires: `environments` · `environmentRuns` · `fleet`
 
 ```ts config-catalog
 /** Deployment choices of the experiment service, validated from `cordis.yml`. */
@@ -777,7 +784,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:71`](../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:80`](../packages/improvement/experiments/src/index.ts)
 
 <a id="deepseek-aidsh-fleet"></a>
 
@@ -2425,7 +2432,7 @@ export interface ShiftSpendWindowConfig {
 }
 ```
 
-Depends on: `EnvironmentRunImplementer` (`@deepseek-ai/dsh-environment-runner/types`) · `EnvironmentRunModel` (`@deepseek-ai/dsh-environments/types`) · `FleetEnvironmentSelection` (`@deepseek-ai/dsh-fleet/types`)
+Depends on: [`EnvironmentRunImplementer`](subsystems/improvement.md) · `EnvironmentRunModel` (`@deepseek-ai/dsh-environments/types`) · `FleetEnvironmentSelection` (`@deepseek-ai/dsh-fleet/types`)
 
 Source: [`packages/improvement/shifts/src/index.ts:88`](../packages/improvement/shifts/src/index.ts)
 

@@ -25,10 +25,11 @@ import {
   foldSessionCaps,
   measuredFor,
   pricingTableDigest,
+  remainingWallMs,
   tightenedCaps,
   unpricedUsage,
 } from '@deepseek-ai/dsh-budget-policy'
-import type { BudgetRoutePricing, BudgetSpend, UsagePriced } from '@deepseek-ai/dsh-budget-policy'
+import type { BudgetRoutePricing, BudgetSpend, SessionBudgets, UsagePriced } from '@deepseek-ai/dsh-budget-policy'
 
 const PRICING: Record<string, BudgetRoutePricing> = {
   'cli-mock/cli-mock': { inputEurPerMillionTokens: 1_000_000, outputEurPerMillionTokens: 2_000_000 },
@@ -352,6 +353,125 @@ describe('budget-policy configuration', () => {
     await expect(harness({ maxCostEur: 5 })).rejects.toThrow(
       'budget-policy: maxCostEur needs a non-empty pricing table; an unpriced route has no cost cap',
     )
+  })
+
+  it('rejects a foreign exchange rate that cannot convert a price', async () => {
+    await expect(harness({ foreignCostEurPerUsd: 0 })).rejects.toThrow(
+      'budget-policy: foreignCostEurPerUsd must be a finite positive number, got 0',
+    )
+    await expect(harness({ foreignCostEurPerUsd: Number.NaN })).rejects.toThrow(
+      'budget-policy: foreignCostEurPerUsd must be a finite positive number, got NaN',
+    )
+  })
+})
+
+describe('ctx.sessionBudgets', () => {
+  it('publishes the deployment caps and the caps a session log tightens them to', async () => {
+    const { ctx, session } = await harness({ maxTotalTokens: 100, maxWallMs: 9_000 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    expect(budgets.configuredCaps()).toEqual([['maxTotalTokens', 100], ['maxWallMs', 9_000]])
+    expect(budgets.capsFor(session)).toEqual([['maxTotalTokens', 100], ['maxWallMs', 9_000]])
+    session.append('budget/caps', { maxWallMs: 500 })
+    expect(budgets.capsFor(session)).toEqual([['maxTotalTokens', 100], ['maxWallMs', 500]])
+    expect(budgets.configuredCaps()).toEqual([['maxTotalTokens', 100], ['maxWallMs', 9_000]])
+  })
+
+  it('states whether it can price the cost a foreign implementer reported', async () => {
+    const bare = await harness()
+    expect((bare.ctx.get('sessionBudgets') as SessionBudgets).pricesForeignCost()).toBe(false)
+    const priced = await harness({ foreignCostEurPerUsd: 0.9 })
+    expect((priced.ctx.get('sessionBudgets') as SessionBudgets).pricesForeignCost()).toBe(true)
+  })
+
+  it('charges foreign spend to the caps and refuses to account for one unit of work twice', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 20, foreignCostEurPerUsd: 0.5 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    expect(budgets.recordForeignSpend(session, {
+      ref: 'child-1',
+      source: 'external-agent',
+      usage: { inputTokens: 4, outputTokens: 6, cacheReadTokens: 2 },
+      costUsd: 3,
+    })).toBe(true)
+    expect(session.events.filter(event => event.type === 'usage/foreign').map(event => event.data)).toEqual([
+      { ref: 'child-1', source: 'external-agent', inputTokens: 6, outputTokens: 6, costEur: 1.5 },
+    ])
+    expect(foldBudgetSpend(session.events, {})).toMatchObject({ inputTokens: 6, outputTokens: 6, totalTokens: 12, costEur: 1.5 })
+    expect(budgets.enforce(agent).breach).toBeUndefined()
+
+    expect(() => budgets.recordForeignSpend(session, { ref: 'child-1', source: 'external-agent', usage: { inputTokens: 1, outputTokens: 1 } }))
+      .toThrow(/foreign spend "child-1" is already accounted for/)
+
+    budgets.recordForeignSpend(session, { ref: 'child-2', source: 'external-agent', usage: { inputTokens: 5, outputTokens: 5 } })
+    const enforced = budgets.enforce(agent)
+    expect(enforced.breach).toEqual({ cap: 'maxTotalTokens', measured: 22, limit: 20 })
+    expect(breaches(session).map(event => event.data)).toEqual([enforced.breach])
+  })
+
+  it('records a price its implementer reported no tokens for', async () => {
+    const { ctx, session } = await harness({ foreignCostEurPerUsd: 2 })
+    expect((ctx.get('sessionBudgets') as SessionBudgets).recordForeignSpend(session, {
+      ref: 'child-1',
+      source: 'external-agent',
+      costUsd: 1.25,
+    })).toBe(true)
+    expect(session.events.filter(event => event.type === 'usage/foreign').map(event => event.data)).toEqual([
+      { ref: 'child-1', source: 'external-agent', inputTokens: 0, outputTokens: 0, costEur: 2.5 },
+    ])
+  })
+
+  it('records nothing for work whose implementer reported neither tokens nor a price', async () => {
+    const { ctx, session } = await harness({ maxTotalTokens: 20 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    expect(budgets.recordForeignSpend(session, { ref: 'silent', source: 'external-agent' })).toBe(false)
+    // A price with no rate to convert it is spend this deployment cannot compare.
+    expect(budgets.recordForeignSpend(session, { ref: 'unpriced', source: 'external-agent', costUsd: 4 })).toBe(false)
+    expect(session.events.filter(event => event.type === 'usage/foreign')).toHaveLength(0)
+  })
+
+  it('reports the wall budget left, and nothing when no wall cap applies', async () => {
+    const { ctx, agent, session } = await harness({ maxWallMs: 60_000 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    expect(remainingWallMs([], budgets.capsFor(session), Date.now())).toBe(60_000)
+    session.append('budget/caps', { maxWallMs: 1_000 })
+    const left = budgets.enforce(agent).remainingWallMs as number
+    expect(left).toBeGreaterThan(0)
+    expect(left).toBeLessThanOrEqual(1_000)
+
+    const uncapped = await harness({ maxTotalTokens: 10 })
+    expect(uncapped.ctx.get('sessionBudgets')?.enforce(uncapped.agent)).not.toHaveProperty('remainingWallMs')
+  })
+
+  it('states the wall budget left beside a breach on another cap', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 5, maxWallMs: 600_000 })
+    appendPricedStep(session, 1, { inputTokens: 4, outputTokens: 6 })
+    const enforced = (ctx.get('sessionBudgets') as SessionBudgets).enforce(agent)
+    expect(enforced.breach).toEqual({ cap: 'maxTotalTokens', measured: 10, limit: 5 })
+    expect(enforced.remainingWallMs).toBeLessThanOrEqual(600_000)
+    expect(enforced.remainingWallMs).toBeGreaterThan(0)
+  })
+
+  it('measures an uncapped session without reading its log', async () => {
+    const { ctx, agent, session } = await harness()
+    appendPricedStep(session, 1, { inputTokens: 500, outputTokens: 500 })
+    expect(ctx.get('sessionBudgets')?.enforce(agent)).toEqual({ caps: [] })
+    expect(breaches(session)).toHaveLength(0)
+  })
+
+  it('blocks the goal and records the breach exactly as a stopped step does', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 5 })
+    const goal = ctx.goals.create(agent, { objective: 'Spend the budget.' })
+    appendPricedStep(session, 1, { inputTokens: 4, outputTokens: 6 })
+    expect((ctx.get('sessionBudgets') as SessionBudgets).enforce(agent).breach)
+      .toEqual({ cap: 'maxTotalTokens', measured: 10, limit: 5 })
+    expect(ctx.goals.get(agent)).toMatchObject({
+      id: goal.id,
+      phase: 'blocked',
+      blockedReason: { code: BUDGET_EXHAUSTED, message: 'Session budget maxTotalTokens exceeded: 10 of 5.' },
+    })
+    // The breach explains the block, so it is durable first, exactly as a stopped step records it.
+    const change = session.events.findIndex(event => event.type === 'goal/change'
+      && decodeGoalChange(event.data)?.operation === 'block')
+    expect(breaches(session)[0]?.seq).toBeLessThan(change)
   })
 })
 

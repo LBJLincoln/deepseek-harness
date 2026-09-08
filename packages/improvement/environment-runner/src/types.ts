@@ -6,6 +6,7 @@
  * @module @deepseek-ai/dsh-environment-runner/types
  */
 
+import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentId, EnvironmentRunModel, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { TokenUsage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
@@ -48,6 +49,19 @@ export type EnvironmentRunImplementer =
   }
 
 /**
+ * How one delegated attempt ended: in the subagent seam's terminal vocabulary
+ * when the child settled on its own, or `budget-deadline` when the cell's wall
+ * budget ran out first.
+ *
+ * The runner cancels a child at that deadline, so the seam would report the
+ * cancellation as its own `aborted`. Recording it apart is what lets a reader
+ * tell an operator's cancellation from a cell that ran out of the wall budget
+ * its arm was measured under; a `budget-deadline` attempt is always followed by
+ * the `budget/breach` that stopped the run.
+ */
+export type EnvironmentDelegationStopReason = SubagentStopReason | 'budget-deadline'
+
+/**
  * Durable record of one delegated attempt. It is what the cell session states
  * about an implementer that produced no model-visible history of its own.
  */
@@ -58,8 +72,8 @@ export interface EnvironmentDelegation {
   readonly provider: string
   /** Parent-scoped id of the child run; the child's session id for an in-process provider. */
   readonly runId: SessionId
-  /** How the child run ended, in the subagent seam's terminal vocabulary. */
-  readonly stopReason: SubagentStopReason
+  /** How the child run ended. */
+  readonly stopReason: EnvironmentDelegationStopReason
   /** Structured result the child returned, absent when it returned none. */
   readonly structured?: unknown
   /**
@@ -164,4 +178,11 @@ export interface EnvironmentRunReport {
   readonly certificate?: VerificationCertificate
   /** Model usage summed over every assistant message of the session, absent when the model produced none. */
   readonly usage?: TokenUsage
+  /**
+   * The caps this cell ran under, in cap evaluation order, as
+   * {@link EnvironmentRunner.cellCaps} resolved them for its implementer.
+   * Empty when the deployment composes no budget policy, which only a run on
+   * the session's own route is allowed to be.
+   */
+  readonly caps: readonly BudgetCap[]
 }

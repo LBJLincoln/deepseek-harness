@@ -7,6 +7,7 @@
  */
 
 import { createHash } from 'node:crypto'
+import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
 import { assertNever } from '@deepseek-ai/dsh-llm'
 import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentThresholds } from './types.ts'
@@ -18,7 +19,7 @@ import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentTh
 export const EXPERIMENT_GROUP_PREFIX = 'experiment-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const EXPERIMENT_PLAN_VERSION = 3
+const EXPERIMENT_PLAN_VERSION = 4
 
 /** Arm roles in the order the digest and the runs take them. */
 export const EXPERIMENT_ARM_ROLES: readonly ExperimentArmRole[] = ['baseline', 'candidate']
@@ -56,16 +57,24 @@ function digestedImplementer(implementer: EnvironmentRunImplementer): readonly (
  * two arms in role order, each with its model route and its implementer, the
  * environment ids sorted so a caller's listing order cannot change the
  * identity, the repetition count, the policy version and base seed both arms
- * ran under, and the thresholds. The deployment's token budget is deliberately
- * absent: it bounds what a deployment pays for, not what the comparison
- * measures. The policy version and the seed are present because both arms'
- * sessions are found in the logs by the groups this digest mints, so two
- * comparisons that differ in either must not collide on one group.
+ * ran under, the thresholds, and the caps every cell of both arms ran under.
+ * The caps are digested because a cell cut off at one wall or token ceiling
+ * measures something different from the same cell cut off at another, so two
+ * comparisons run under different budgets are two experiments. The deployment's
+ * token budget stays absent: it bounds what a deployment pays for across plans,
+ * not what one comparison measures. The policy version and the seed are present
+ * because both arms' sessions are found in the logs by the groups this digest
+ * mints, so two comparisons that differ in either must not collide on one group.
  * @param plan - the arms, environments, repetitions, policy version, and seed to freeze.
  * @param thresholds - the resolved statistical choices to freeze with them.
+ * @param caps - the caps both arms resolve to, in cap evaluation order.
  * @returns the SHA-256 hex digest; identical inputs give identical digests.
  */
-export function planDigest(plan: ExperimentPlan, thresholds: ExperimentThresholds): string {
+export function planDigest(
+  plan: ExperimentPlan,
+  thresholds: ExperimentThresholds,
+  caps: readonly BudgetCap[],
+): string {
   const content = JSON.stringify({
     version: EXPERIMENT_PLAN_VERSION,
     arms: EXPERIMENT_ARM_ROLES.map(role => [
@@ -84,8 +93,34 @@ export function planDigest(plan: ExperimentPlan, thresholds: ExperimentThreshold
       thresholds.minimumDelta,
       thresholds.cellTokenCap,
     ],
+    caps,
   })
   return createHash('sha256').update(content).digest('hex')
+}
+
+/**
+ * Whether two arms would run their cells under the same ceilings.
+ * @param baseline - caps resolved for the baseline arm, in cap evaluation order.
+ * @param candidate - caps resolved for the candidate arm, in the same order.
+ * @returns `true` when both lists name the same caps at the same values.
+ */
+export function capsAgree(baseline: readonly BudgetCap[], candidate: readonly BudgetCap[]): boolean {
+  return baseline.length === candidate.length
+    && baseline.every(([cap, limit], index) => {
+      // The length check above makes every index of `baseline` an index of
+      // `candidate`, which the element type does not say.
+      const [otherCap, otherLimit] = candidate[index] as BudgetCap
+      return otherCap === cap && otherLimit === limit
+    })
+}
+
+/**
+ * Render one arm's caps for a diagnostic.
+ * @param caps - the caps to render, in cap evaluation order.
+ * @returns `cap=limit` pairs separated by commas, or `none` for an uncapped arm.
+ */
+export function describeCaps(caps: readonly BudgetCap[]): string {
+  return caps.length === 0 ? 'none' : caps.map(([cap, limit]) => `${cap}=${limit}`).join(', ')
 }
 
 /**

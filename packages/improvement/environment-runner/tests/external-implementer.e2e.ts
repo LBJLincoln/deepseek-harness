@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import type { BudgetBreach, BudgetCap, UsageForeign } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentDelegation } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { LeaderboardRow } from '@deepseek-ai/dsh-fleet/types'
@@ -8,6 +9,8 @@ import type { ScoreboardBatch, SessionFactsRecord } from '@deepseek-ai/dsh-score
 
 const binScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/external-implementer/driver.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/external-implementer/cordis.yml', import.meta.url))
+const budgetBinScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/external-implementer-budget/driver.ts', import.meta.url))
+const budgetConfigPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/external-implementer-budget/cordis.yml', import.meta.url))
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
 
 interface DriverResult {
@@ -17,6 +20,23 @@ interface DriverResult {
   delegations: Record<string, EnvironmentDelegation[]>
   facts: SessionFactsRecord
   scoreboard: ScoreboardBatch
+}
+
+/** One cell of the budgeted run as its driver reports it. */
+interface BudgetedCell {
+  certified: boolean
+  caps: BudgetCap[]
+  attempts: number
+  delegations: EnvironmentDelegation[]
+  foreign: UsageForeign[]
+  breaches: BudgetBreach[]
+  breachCap?: string
+}
+
+interface BudgetDriverResult {
+  type: string
+  leaderboard: LeaderboardRow[]
+  cells: Record<string, BudgetedCell>
 }
 
 describe('a delegated cell through a real cordis.yml and headless process', () => {
@@ -78,5 +98,51 @@ describe('a delegated cell through a real cordis.yml and headless process', () =
       .toEqual([['route', 1, 1], ['spawn', 1, 1]])
     // The delegated children are sessions of their own that no runner stamped.
     expect(result.scoreboard.unstamped).toBeGreaterThan(0)
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('charges the child\'s reported spend to the cell and blocks the attempts its budget did not pay for', async () => {
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'external-implementer-budget',
+      tempDirPrefix: 'external-implementer-budget-e2e-',
+      binScript: budgetBinScript,
+      libBinScript: budgetBinScript,
+      configPath: budgetConfigPath,
+      binArgs: [budgetConfigPath],
+      tsconfigPath: repoTsconfig,
+    })
+    expect(stderr).toBe('')
+    const result = JSON.parse(stdout.trimEnd().split('\n').at(-1) ?? '') as BudgetDriverResult
+    expect(result.type).toBe('result')
+
+    // Both cells ran one attempt on a budget of 20 total tokens, which one
+    // child's reported spend exceeds; every cell states the caps it ran under.
+    for (const cell of Object.values(result.cells)) {
+      expect(cell.caps).toEqual([['maxTotalTokens', 20], ['maxWallMs', 600_000]])
+      expect(cell.delegations).toHaveLength(1)
+      expect(cell.foreign).toHaveLength(1)
+      expect(cell.foreign[0]).toMatchObject({ ref: cell.delegations[0]?.runId, source: 'spawn' })
+      expect((cell.foreign[0]?.inputTokens ?? 0) + (cell.foreign[0]?.outputTokens ?? 0)).toBeGreaterThan(20)
+    }
+
+    // The cell that certified on its first attempt is not blocked by the budget
+    // that attempt exhausted; the one that did not gets no second attempt.
+    const certified = result.cells['smoke:round-trip'] as BudgetedCell
+    expect(certified).toMatchObject({ certified: true, attempts: 1, breaches: [] })
+    expect(certified).not.toHaveProperty('breachCap')
+
+    const stopped = result.cells['smoke:unsatisfiable'] as BudgetedCell
+    expect(stopped.certified).toBe(false)
+    expect(stopped.attempts).toBe(1)
+    expect(stopped.breaches).toHaveLength(1)
+    expect(stopped.breaches[0]).toMatchObject({ cap: 'maxTotalTokens', limit: 20 })
+    expect(stopped.breaches[0]?.measured).toBeGreaterThan(20)
+    // The scorekeeper reads a delegated cell's breach through the same fold a
+    // route cell's breach goes through.
+    expect(stopped.breachCap).toBe('maxTotalTokens')
+
+    expect(result.leaderboard.map(row => [row.environmentId, row.implementer, row.certified, row.attemptsMean])).toEqual([
+      ['smoke:round-trip', 'spawn', 1, 1],
+      ['smoke:unsatisfiable', 'spawn', 0, 1],
+    ])
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

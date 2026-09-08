@@ -304,7 +304,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'budget/breach': BudgetBreach
 ```
 
-来源：[`packages/guard/budget-policy/src/types.ts:125`](../packages/guard/budget-policy/src/types.ts)
+来源：[`packages/guard/budget-policy/src/types.ts:164`](../packages/guard/budget-policy/src/types.ts)
 
 <a id="budgetcaps--log-only"></a>
 
@@ -322,7 +322,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'budget/caps': BudgetCaps
 ```
 
-来源：[`packages/guard/budget-policy/src/types.ts:117`](../packages/guard/budget-policy/src/types.ts)
+来源：[`packages/guard/budget-policy/src/types.ts:156`](../packages/guard/budget-policy/src/types.ts)
 
 ### `command/*`
 
@@ -545,7 +545,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'environment/delegation': EnvironmentDelegation
 ```
 
-来源：[`packages/improvement/environment-runner/src/types.ts:31`](../packages/improvement/environment-runner/src/types.ts)
+来源：[`packages/improvement/environment-runner/src/types.ts:32`](../packages/improvement/environment-runner/src/types.ts)
 
 <a id="environmentrun--log-only"></a>
 
@@ -1388,6 +1388,26 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 ### `usage/*`
 
+<a id="usageforeign--log-only"></a>
+
+#### `usage/foreign` — log-only
+
+```ts persistence-catalog
+/**
+ * Spend one session incurred outside its own model route, as the
+ * implementer that did the work reported it: the `ref` the work is
+ * identified by, the `source` that did it, its billed `inputTokens` and
+ * `outputTokens`, and its `costEur` where the deployment could convert the
+ * price its backend stated. The fold adds every record to the spend the
+ * caps are measured against, so a delegated session breaches the same caps,
+ * in the same order, and records the same `budget/breach` as one that ran
+ * its own route.
+ */
+'usage/foreign': UsageForeign
+```
+
+来源：[`packages/guard/budget-policy/src/types.ts:185`](../packages/guard/budget-policy/src/types.ts)
+
 <a id="usagepriced--log-only"></a>
 
 #### `usage/priced` — log-only
@@ -1405,7 +1425,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'usage/priced': UsagePriced
 ```
 
-来源：[`packages/guard/budget-policy/src/types.ts:109`](../packages/guard/budget-policy/src/types.ts)
+来源：[`packages/guard/budget-policy/src/types.ts:174`](../packages/guard/budget-policy/src/types.ts)
 
 ### `user/*`
 

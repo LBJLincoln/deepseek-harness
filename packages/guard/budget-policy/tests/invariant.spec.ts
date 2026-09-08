@@ -263,3 +263,42 @@ describe('usage pricing invariants', () => {
     expect(session.seq).toBe(6)
   })
 })
+
+describe('foreign spend invariants', () => {
+  it('accepts one record per unit of work and folds it into the breach the same log reproduces', async () => {
+    const seed: readonly SessionEvent[] = [
+      { type: 'usage/foreign', seq: 0, time: 1_000, data: { ref: 'child-1', source: 'external-agent', inputTokens: 4, outputTokens: 2 } },
+      { type: 'usage/foreign', seq: 1, time: 1_500, data: { ref: 'child-2', source: 'external-agent', inputTokens: 1, outputTokens: 1, costEur: 2 } },
+      { type: 'budget/breach', seq: 2, time: 2_000, data: { cap: 'maxTotalTokens', measured: 8, limit: 5 } },
+    ]
+    await expect(setup(seed)).resolves.toBeDefined()
+  })
+
+  it('rejects a second record of work the log already accounts for', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('foreign-twice'))
+    session.append('turn/start', { turn: 1 })
+    session.append('usage/foreign', { ref: 'child-1', source: 'external-agent', inputTokens: 4, outputTokens: 2 })
+    // Work under another ref is a new record rather than a repeat.
+    session.append('usage/foreign', { ref: 'child-2', source: 'external-agent', inputTokens: 4, outputTokens: 2 })
+    expect(() => {
+      session.append('usage/foreign', { ref: 'child-1', source: 'external-agent', inputTokens: 1, outputTokens: 1 })
+    }).toThrow('usage/foreign accounts for "child-1", which seq 1 already accounts for')
+    expect(session.seq).toBe(3)
+  })
+
+  it('rejects a record stating spend no work can have incurred', async () => {
+    const ctx = await setup()
+    const session = ctx.sessions.create(SessionId('foreign-negative'))
+    expect(() => {
+      session.append('usage/foreign', { ref: 'child-1', source: 'external-agent', inputTokens: -1, outputTokens: 2 })
+    }).toThrow('usage/foreign records inputTokens -1 for "child-1", which no spend can be')
+    expect(() => {
+      session.append('usage/foreign', { ref: 'child-1', source: 'external-agent', inputTokens: 1, outputTokens: -2 })
+    }).toThrow('usage/foreign records outputTokens -2 for "child-1", which no spend can be')
+    expect(() => {
+      session.append('usage/foreign', { ref: 'child-1', source: 'external-agent', inputTokens: 1, outputTokens: 2, costEur: -0.5 })
+    }).toThrow('usage/foreign records costEur -0.5 for "child-1", which no spend can be')
+    expect(session.seq).toBe(0)
+  })
+})

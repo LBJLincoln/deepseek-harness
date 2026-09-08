@@ -70,6 +70,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   e2b: 'subprocess.md',
   fs: 'filesystem.md',
   goals: 'goal.md',
+  sessionBudgets: 'guard.md',
   signoffs: 'governance.md',
   dataUse: 'governance.md',
   curator: 'governance.md',
@@ -232,6 +233,10 @@ export const EVENT_WALK_EXEMPTIONS: Record<string, string> = {
  */
 export const LINK_MAP: Readonly<Record<string, string>> = {
   Agent: 'core.md',
+  BudgetCap: 'guard.md',
+  BudgetEnforcement: 'guard.md',
+  ForeignSpendRequest: 'guard.md',
+  EnvironmentRunImplementer: 'improvement.md',
   FleetCellEvent: 'improvement.md',
   ObservatorySnapshot: 'improvement.md',
   ProgramSpec: 'improvement.md',

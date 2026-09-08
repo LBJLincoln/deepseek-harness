@@ -65,6 +65,9 @@ const result = foldExperiment({
   environments: environments as unknown as readonly EnvironmentId[],
   repetitions,
   thresholds,
+  // An offline fold reads two recorded runs; the caps each ran under are in
+  // their own session logs, and this driver states none of its own.
+  caps: [],
   baseline: baseline.report,
   candidate: candidate.report,
 })

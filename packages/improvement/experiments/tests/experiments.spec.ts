@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
+import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
@@ -8,6 +9,8 @@ import { SessionId } from '@deepseek-ai/dsh-session'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { CheckId } from '@deepseek-ai/dsh-verification'
 import ExperimentService, {
+  capsAgree,
+  describeCaps,
   EXPERIMENT_ARM_ROLES,
   EXPERIMENT_GROUP_PREFIX,
   ExperimentError,
@@ -33,6 +36,8 @@ const BASELINE = { provider: 'mock', model: 'base' }
 const CANDIDATE = { provider: 'mock', model: 'next' }
 const ROUTE: EnvironmentRunImplementer = { kind: 'route' }
 const DELEGATED: EnvironmentRunImplementer = { kind: 'subagent', provider: 'external-agent' }
+/** The caps the stub runner resolves for every implementer unless a test narrows one. */
+const CAPS: readonly BudgetCap[] = [['maxTotalTokens', 5000], ['maxWallMs', 60_000]]
 /** The digest this file's default plan freezes to at plan format version 2; the current version must never reproduce it. */
 const PRE_SLICE_DIGEST = '619c25f5f81d0f75fda33381464b9c41f8383dc19100dc400d1804b28bf868b2'
 
@@ -92,6 +97,7 @@ function runReport(cell: FleetCell, group: string, shape: CellShape): Environmen
     attempts: Array.from({ length: attempts }, (_, index) => ({ attempt: index + 1, results: [], treeHash: HEX })),
     certified: shape.certified,
     ...shape.usage === undefined ? {} : { usage: shape.usage },
+    caps: CAPS,
   }
 }
 
@@ -119,6 +125,20 @@ function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
       inputTokens: reports.reduce((sum, entry) => sum + (entry.usage?.inputTokens ?? 0), 0),
       outputTokens: reports.reduce((sum, entry) => sum + (entry.usage?.outputTokens ?? 0), 0),
     },
+  }
+}
+
+/** The runner as the experiment reads it: the caps one implementer's cells run under. */
+class StubEnvironmentRuns extends Service {
+  static current: StubEnvironmentRuns
+  /** Caps per implementer kind; the unequal-caps case narrows the delegated one. */
+  caps: (implementer: EnvironmentRunImplementer) => readonly BudgetCap[] = () => CAPS
+  constructor(ctx: Context) {
+    super(ctx, 'environmentRuns')
+    StubEnvironmentRuns.current = this
+  }
+  cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[] {
+    return this.caps(implementer)
   }
 }
 
@@ -160,7 +180,7 @@ interface Harness {
 
 async function harness(config: Partial<Config> = {}): Promise<Harness> {
   const ctx = new Context()
-  for (const stub of [StubEnvironments, StubFleet]) await ctx.plugin(stub)
+  for (const stub of [StubEnvironments, StubEnvironmentRuns, StubFleet]) await ctx.plugin(stub)
   await ctx.plugin(ExperimentService, { cellTokenCap: 1000, tokenBudget: 1_000_000, ...config })
   const plan = (overrides: Partial<ExperimentPlan> = {}): ExperimentPlan => ({
     environments: [ROUND_TRIP, UNSATISFIABLE],
@@ -183,7 +203,7 @@ describe('ExperimentService', () => {
     const { ctx, plan } = await harness()
     const result = await ctx.experiments.run(plan({ baseline: BASELINE, candidate: BASELINE }))
 
-    const digest = planDigest(plan({ baseline: BASELINE, candidate: BASELINE }), result.thresholds)
+    const digest = planDigest(plan({ baseline: BASELINE, candidate: BASELINE }), result.thresholds, CAPS)
     expect(result.digest).toBe(digest)
     expect(result.arms).toEqual({
       baseline: { model: BASELINE, implementer: ROUTE, group: `${EXPERIMENT_GROUP_PREFIX}${digest}-baseline` },
@@ -303,14 +323,14 @@ describe('ExperimentService', () => {
       .toEqual([['policy-2026-09', 100], ['policy-2026-09', 100]])
 
     // Two comparisons that differ only in policy version or seed are two experiments.
-    expect(result.digest).not.toBe(planDigest(plan(), result.thresholds))
-    expect(result.digest).not.toBe(planDigest(plan({ policyVersion: 'policy-2026-09', seed: 101 }), result.thresholds))
-    expect(result.digest).toBe(planDigest(versioned, result.thresholds))
+    expect(result.digest).not.toBe(planDigest(plan(), result.thresholds, CAPS))
+    expect(result.digest).not.toBe(planDigest(plan({ policyVersion: 'policy-2026-09', seed: 101 }), result.thresholds, CAPS))
+    expect(result.digest).toBe(planDigest(versioned, result.thresholds, CAPS))
 
     const bare = await ctx.experiments.run(plan())
     expect(StubFleet.current.plans[2]).not.toHaveProperty('policyVersion')
     expect(StubFleet.current.plans[2]).not.toHaveProperty('seed')
-    expect(bare.digest).toBe(planDigest(plan(), bare.thresholds))
+    expect(bare.digest).toBe(planDigest(plan(), bare.thresholds, CAPS))
   })
 
   it('runs each arm under the implementer it names and states it beside the arm route in the written result', async () => {
@@ -334,23 +354,65 @@ describe('ExperimentService', () => {
     const thresholds = resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds
     const routes = plan()
     const spelledOut = plan({ baseline: { ...BASELINE, implementer: ROUTE }, candidate: { ...CANDIDATE, implementer: ROUTE } })
-    expect(planDigest(spelledOut, thresholds)).toBe(planDigest(routes, thresholds))
-    expect(planDigest(routes, thresholds)).not.toBe(PRE_SLICE_DIGEST)
+    expect(planDigest(spelledOut, thresholds, CAPS)).toBe(planDigest(routes, thresholds, CAPS))
+    expect(planDigest(routes, thresholds, CAPS)).not.toBe(PRE_SLICE_DIGEST)
 
     const delegated = plan({ candidate: { ...CANDIDATE, implementer: DELEGATED } })
-    expect(planDigest(delegated, thresholds)).not.toBe(planDigest(routes, thresholds))
-    expect(planDigest(plan({ baseline: { ...BASELINE, implementer: DELEGATED } }), thresholds))
-      .not.toBe(planDigest(delegated, thresholds))
+    expect(planDigest(delegated, thresholds, CAPS)).not.toBe(planDigest(routes, thresholds, CAPS))
+    expect(planDigest(plan({ baseline: { ...BASELINE, implementer: DELEGATED } }), thresholds, CAPS))
+      .not.toBe(planDigest(delegated, thresholds, CAPS))
 
     const labelled = plan({ candidate: { ...CANDIDATE, implementer: { ...DELEGATED, label: 'nightly' } } })
-    expect(planDigest(labelled, thresholds)).not.toBe(planDigest(delegated, thresholds))
+    expect(planDigest(labelled, thresholds, CAPS)).not.toBe(planDigest(delegated, thresholds, CAPS))
     const elsewhere = plan({ candidate: { ...CANDIDATE, implementer: { kind: 'subagent', provider: 'other-agent' } } })
-    expect(planDigest(elsewhere, thresholds)).not.toBe(planDigest(delegated, thresholds))
+    expect(planDigest(elsewhere, thresholds, CAPS)).not.toBe(planDigest(delegated, thresholds, CAPS))
+  })
+
+  it('states the caps both arms ran under and freezes them into the digest', async () => {
+    const { ctx, plan } = await harness()
+    const sink = recordingSink()
+    const result = await ctx.experiments.run(plan({ sink }))
+    expect(result.caps).toEqual(CAPS)
+
+    const written = JSON.parse(sink.lines[0] as string) as ExperimentResult
+    expect(written.caps).toEqual([['maxTotalTokens', 5000], ['maxWallMs', 60_000]])
+
+    // Two comparisons under different ceilings are two experiments.
+    const looser: readonly BudgetCap[] = [['maxTotalTokens', 5000], ['maxWallMs', 120_000]]
+    expect(planDigest(plan(), result.thresholds, looser)).not.toBe(result.digest)
+  })
+
+  it('refuses a plan whose two arms would run under different caps, before either arm starts', async () => {
+    const { ctx, plan } = await harness()
+    // The delegated arm's cost cap is one the runner cannot measure for it.
+    StubEnvironmentRuns.current.caps = implementer => (
+      implementer.kind === 'route' ? [...CAPS, ['maxCostEur', 5]] : CAPS
+    )
+    const unequal = ctx.experiments.run(plan({ candidate: { ...CANDIDATE, implementer: DELEGATED } }))
+    await expect(unequal).rejects.toBeInstanceOf(ExperimentError)
+    await expect(unequal).rejects.toMatchObject({ code: 'EXPERIMENT_UNEQUAL_CAPS' })
+    await expect(unequal).rejects.toThrow(/maxTotalTokens=5000, maxWallMs=60000, maxCostEur=5/)
+    expect(StubFleet.current.plans).toHaveLength(0)
+
+    // Two delegated arms agree again, so the same deployment still compares them.
+    await expect(ctx.experiments.run(plan({
+      baseline: { ...BASELINE, implementer: DELEGATED },
+      candidate: { ...CANDIDATE, implementer: DELEGATED },
+    }))).resolves.toMatchObject({ caps: CAPS })
+  })
+
+  it('compares and renders cap lists by value', () => {
+    expect(capsAgree(CAPS, [['maxTotalTokens', 5000], ['maxWallMs', 60_000]])).toBe(true)
+    expect(capsAgree(CAPS, [['maxTotalTokens', 5000]])).toBe(false)
+    expect(capsAgree(CAPS, [['maxTotalTokens', 5000], ['maxWallMs', 60_001]])).toBe(false)
+    expect(capsAgree(CAPS, [['maxTotalTokens', 5000], ['maxInputTokens', 60_000]])).toBe(false)
+    expect(describeCaps(CAPS)).toBe('maxTotalTokens=5000, maxWallMs=60000')
+    expect(describeCaps([])).toBe('none')
   })
 
   it('accepts a digest the caller froze earlier and refuses one the plan no longer freezes to', async () => {
     const { ctx, plan } = await harness()
-    const frozen = planDigest(plan(), resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds)
+    const frozen = planDigest(plan(), resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds, CAPS)
     await expect(ctx.experiments.run(plan({ digest: frozen }))).resolves.toMatchObject({ digest: frozen })
 
     const edited = ctx.experiments.run(plan({ digest: frozen, repetitions: 3 }))
@@ -409,6 +471,7 @@ describe('ExperimentService', () => {
       environments: [ROUND_TRIP, UNSATISFIABLE],
       repetitions: 4,
       thresholds: result.thresholds,
+      caps: CAPS,
       baseline: fleetReport(StubFleet.current.plans[0] as FleetPlan, cell => ({ certified: cell.repetition % 2 === 1 })),
       candidate: fleetReport(StubFleet.current.plans[1] as FleetPlan, cell => ({ certified: cell.repetition % 2 === 0 })),
     }
@@ -439,8 +502,8 @@ describe('ExperimentService', () => {
       workspaceRoot: '/tmp/one',
     }
     const reordered: ExperimentPlan = { ...ordered, environments: [UNSATISFIABLE, ROUND_TRIP], workspaceRoot: '/tmp/other' }
-    expect(planDigest(ordered, thresholds)).toBe(planDigest(reordered, thresholds))
-    expect(planDigest(ordered, thresholds)).not.toBe(planDigest({ ...ordered, baseline: CANDIDATE }, thresholds))
-    expect(planDigest(ordered, thresholds)).not.toBe(planDigest(ordered, { ...thresholds, minimumDelta: 0.1 }))
+    expect(planDigest(ordered, thresholds, CAPS)).toBe(planDigest(reordered, thresholds, CAPS))
+    expect(planDigest(ordered, thresholds, CAPS)).not.toBe(planDigest({ ...ordered, baseline: CANDIDATE }, thresholds, CAPS))
+    expect(planDigest(ordered, thresholds, CAPS)).not.toBe(planDigest(ordered, { ...thresholds, minimumDelta: 0.1 }, CAPS))
   })
 })

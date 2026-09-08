@@ -13,6 +13,12 @@
  * its own recorded rates, and is the first record of that step — the rates come
  * from the record itself, so cost is recomputable from the log alone.
  *
+ * Every `usage/foreign` accounts for work no earlier record of the same log
+ * accounts for, and states no negative spend; what an implementer outside this
+ * process actually spent is that implementer's own accounting, which the log
+ * cannot recompute, so the record's agreement with it belongs to whoever wrote
+ * it.
+ *
  * Every `budget/caps` only ever tightens the caps the same log already carries.
  * The deployment's configured caps are not in the log, so widening one of those
  * is invisible here and is refused by the enforcing fold instead; what this
@@ -29,7 +35,7 @@ import type { InvariantFailure, InvariantInstaller } from '@deepseek-ai/dsh-inva
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { BUDGET_CAP_ORDER, foldBudgetSpend, foldSessionCaps, measuredFor } from './fold.ts'
 import { billedInputTokens, costEurFor, routeKey } from './pricing.ts'
-import type { BudgetBreach, BudgetCaps, UsagePriced } from './types.ts'
+import type { BudgetBreach, BudgetCaps, UsageForeign, UsagePriced } from './types.ts'
 
 const PACKAGE_NAME = '@deepseek-ai/dsh-budget-policy'
 
@@ -88,6 +94,28 @@ function validatePriced(
   }
 }
 
+/** Validate one recorded foreign spend against the records the same log already carries. */
+function validateForeign(
+  prior: readonly SessionEvent[],
+  foreign: UsageForeign,
+  fail: InvariantFailure,
+): void {
+  for (const earlier of prior) {
+    if (earlier.type !== 'usage/foreign') continue
+    if (earlier.data.ref !== foreign.ref) continue
+    fail(`usage/foreign accounts for "${foreign.ref}", which seq ${earlier.seq} already accounts for`)
+  }
+  // A non-finite number is not JSON-serializable, so the session refuses it
+  // before this runs; a negative one serializes and would refund the caps.
+  for (const [field, value] of [
+    ['inputTokens', foreign.inputTokens],
+    ['outputTokens', foreign.outputTokens],
+    ['costEur', foreign.costEur ?? 0],
+  ] as const) {
+    if (value < 0) fail(`usage/foreign records ${field} ${value} for "${foreign.ref}", which no spend can be`)
+  }
+}
+
 /** Validate one recorded set of caps against the caps the same log already carries. */
 function validateCaps(
   prior: readonly SessionEvent[],
@@ -121,6 +149,10 @@ function validateEvent(
   }
   if (event.type === 'budget/caps') {
     validateCaps(prior, event.data, fail)
+    return
+  }
+  if (event.type === 'usage/foreign') {
+    validateForeign(prior, event.data, fail)
     return
   }
   if (event.type === 'usage/priced') validatePriced(prior, event.data, fail)

@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)与[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md) Agent Note 承载设计理由。
+环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)与[预算对等](../../../.agents/notes/proposed/architecture/2026-09-08-budget-parity-for-delegated-cells.md) Agent Note 承载设计理由。
 
 ## Config
 
@@ -40,7 +40,7 @@
 
 ## Service contract
 
-`ctx.environmentRuns.run({ environment, workspace, implementer?, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由、配置的隔离级别，以及 `implementer` 名称。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
+`ctx.environmentRuns.run({ environment, workspace, implementer?, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 返回 stamp、每次尝试一条记录、某次运行通过时的证书、累计的 `usage`，以及该 cell 运行所处的 `caps`。它从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由、配置的隔离级别，以及 `implementer` 名称。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
 
 组合了屏障时，本次运行在写入 stamp 之前预留 `<barrier root>/runs/<sessionId>/`，把留出环境的夹具复制到其中的 `fixture/`、把任何[已声明的参考程序](#the-staged-reference)复制到其中的 `reference/`，并把每次尝试的检查命令改写为 source 该预留目录中的一个脚本。预留目录在实现者的第一个轮次之前以及每次尝试时都会被写入 `standard.json` 以及每个活动检查一个 `checks/<checkId>/` 目录，其中存放该检查的 `run` 脚本，若该检查携带用例，还存放这些用例所在的 `cases.jsonl`——因此实现者看到的命令行指向一个屏障拒绝它读取内容的文件。检查 id 不是单个路径段，或预留路径无法被检查命令行以不加引号的方式承载时，本次运行都会以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。
 
@@ -63,6 +63,18 @@
 被命名的 provider 在任何 agent 存在之前就被解析。`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE` 在 `ctx.subagents` 未组合时、以及其中没有同名 provider 时点名该 provider。`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED` 拒绝在本进程之外运行其子进程的 provider——即那四个[不声明任何由父方强制的启动期能力](../../subagent/subagent/README.md)的进程外后端——只要配置的 `isolation` 高于 `none`：读取屏障的普查无法约束一个自带工具栈的外来 agent。进程内 provider 不被拒绝任何东西，因为它的子 agent 加入父方既有的组合，保留部署自身的隔离级别。在 `isolation: none` 的部署下，组合了进程外 provider 的会话在其 scope 普查中把 `subagent` 记为 `unenforced`，这正是屏障本就为它写下的状态；点名跑了哪个 provider 的是 stamp。
 
 被篡改的委派尝试记录其指令并结束本次运行，不再启动另一个子进程：该 cell 没有属于自己的转录去承载跟进，而且没有任何证书能跟在一次无效尝试之后。
+
+### The budget a delegated attempt runs under
+
+route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/README.md)无需运行器过问，就会按部署的上限度量并停止它。委派尝试不发起任何步骤，因此由运行器过问：它从 `ctx.sessionBudgets` 读取同一批上限并自行应用，而 `ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED` 会在 agent 存在之前拒绝在没有预算策略的组合中进行委派运行。这类组合中的 route 运行只是不设上限，因为没有组合策略的部署是选择了不设预算；而委派运行会在同一部署下的 route 运行受约束时不受约束，这正是该拒绝所防止的。
+
+每次尝试前后，运行器都通过 `ctx.sessionBudgets` 做三件事：
+
+1. **在尝试之前度量。** `enforce(agent)` 在子进程启动之前运行，pre-step 检查也在同一位置。该 cell 已超出的上限会记录 `budget/breach`、阻塞 goal，并结束运行：不启动任何子进程，也不再度量工作区，因为上一次尝试的验证度量的正是这棵树。耗尽预算的 cell 是失败的 cell，而不是耗时更久的 cell——而在耗尽预算的那次尝试中通过认证的 cell 仍然完成，因为工作做完之后没有任何环节再度量它。
+2. **设置挂钟预算。** `remainingWallMs` 成为子进程取消信号上的截止时限，比上限多一毫秒，使记录下来的跨度严格超过它。被截止时限终止的尝试记录 `stopReason: 'budget-deadline'`，这正是把该 cell 自身的预算与操作者取消同样会产生的 seam `aborted` 区分开的标志。这次尝试做过工作，因此它留下的树会被验证，而截止时限触发时记录的 `budget/breach` 随后结束本次运行。因截止时限已触发而被 provider 拒绝启动的子进程不留下委派记录；越限就是那条记录。
+3. **计入子进程的花费。** `recordForeignSpend` 为每次子运行写入一条 `usage/foreign`——进程外子进程用 `reportedUsage`，其余用进程内子进程求和得到的 `usage`，并把 `reportedCostUsd` 按部署的 `foreignCostEurPerUsd` 换算。预算折叠会把它计入，因此从下一次尝试的度量起，`maxTotalTokens` 与成本上限约束委派 cell 的方式，与它们约束 route cell 完全相同。
+
+`ctx.environmentRuns.cellCaps(implementer)` 回答某个臂的单个 cell 在什么约束下运行，每份报告都以 `caps` 陈述它。route cell 在每一项已配置上限之下运行；委派 cell 在同一列表之下运行，但去掉部署未声明 `foreignCostEurPerUsd` 的 `maxCostEur`，因为一种货币的上限无法约束另一种货币的价格。[实验](../experiments/README.md)会拒绝两个臂解析出不同列表的计划。
 
 ## Sampling and what a replay reproduces
 
@@ -137,7 +149,9 @@ Continue working on the task; the validator runs again when you stop.
 ## Known Limitations and Deferred Work
 
 - **屏障只覆盖文件系统读取**——组合了日志读取工具的实现者 preset，或运行检查的 bash 执行器，仍能通过屏障未设围栏的 seam 触及标准；本运行器的证书强度等于配置的 `isolation` 声明，而此处没有任何环节去验证它。
-- **外部实现者只被点名，不被刻画**——stamp 记录 provider，不记录产品版本、设置或其背后的账户，因此跑着同一 provider 的两台主机并不是同一个实现者，哪怕它们的行读起来一样。它自己的工具栈、权限与花费在本 harness 所强制的每一项限额之外，计划的 token 上限也包括在内。
+- **外部实现者只被点名，不被刻画**——stamp 记录 provider，不记录产品版本、设置或其背后的账户，因此跑着同一 provider 的两台主机并不是同一个实现者，哪怕它们的行读起来一样。它自己的工具栈与权限仍在本 harness 所强制的每一项限额之外；只有它的[花费受到约束](#the-budget-a-delegated-attempt-runs-under)，而且只约束到它自己的后端所上报的程度。
+- **不上报花费的 provider 只受挂钟上限约束**——`usage/foreign` 陈述的是子进程后端所发布的内容，因此既不发布 token 也不发布价格的后端，会让 token 与成本上限对那部分工作度量为零。这里无法观察到外部产品不上报的花费。
+- **挂钟截止时限是时钟，挂钟上限是日志跨度**——截止时限以 cell 日志首条事件为锚点设置，与 `maxWallMs` 所度量的锚点相同，但委派 cell 在其子进程运行期间不追加任何事件。因此两者的一致程度，取决于该 cell 最新事件与子进程结束之间的间隔。
 - **被预留的检查以 source 方式运行**——命令行是 `. <script>`，POSIX shell 执行器运行它的方式与运行原来的内联指令完全一致；组合的 PowerShell 执行器无法 source 无扩展名文件，因此这类部署不使用屏障。
 - **只有不可变路径这一种还原**——每次验证都会把声明的不可变路径从 fixture 复制回来；其他每个 fixture 文件以及实现者新增的每个文件都会留在工作区并到达检查，因此实现者不得改动的 fixture 文件必须声明为不可变。
 - **篡改检测是一次摘要比较**——它只报告检查方拥有的集合发生了变化，从不报告是谁改的或怎么改的，因此一个正当的构建步骤若改写了不可变集合内的文件，就会作废其所在的那次运行；环境作者应把该集合声明得足够窄，误判的代价是一次运行，而不是一张错误的证书。

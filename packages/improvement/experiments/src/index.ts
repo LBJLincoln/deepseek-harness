@@ -11,6 +11,9 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
+// Type-only: resolves ctx.environmentRuns, whose cellCaps answers what an arm runs under.
+import type {} from '@deepseek-ai/dsh-environment-runner'
 // Also resolves ctx.environments for the registry lookups below.
 import { isSeed } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
@@ -20,7 +23,7 @@ import type { FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { foldExperiment } from './fold.ts'
-import { armImplementer, experimentGroup, planDigest, projectedTokens } from './plan.ts'
+import { armImplementer, capsAgree, describeCaps, experimentGroup, planDigest, projectedTokens } from './plan.ts'
 import type {
   ExperimentArm,
   ExperimentArmPlan,
@@ -35,6 +38,8 @@ export type * from './types.ts'
 export { foldExperiment } from './fold.ts'
 export type { ExperimentFoldRequest } from './fold.ts'
 export {
+  capsAgree,
+  describeCaps,
   EXPERIMENT_ARM_ROLES,
   EXPERIMENT_GROUP_PREFIX,
   experimentGroup,
@@ -52,7 +57,11 @@ declare module '@deepseek-ai/cordis' {
 }
 
 /** Stable error codes of a refused plan. */
-export type ExperimentErrorCode = 'EXPERIMENT_INVALID_PLAN' | 'EXPERIMENT_PLAN_NOT_FROZEN' | 'EXPERIMENT_OVER_BUDGET'
+export type ExperimentErrorCode =
+  | 'EXPERIMENT_INVALID_PLAN'
+  | 'EXPERIMENT_PLAN_NOT_FROZEN'
+  | 'EXPERIMENT_OVER_BUDGET'
+  | 'EXPERIMENT_UNEQUAL_CAPS'
 
 /** Error returned by the experiment boundary for a plan that cannot run. */
 export class ExperimentError extends HarnessError {
@@ -108,7 +117,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
 
 /** Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two arms. */
 export class ExperimentService extends Service {
-  static inject = ['environments', 'fleet']
+  static inject = ['environments', 'environmentRuns', 'fleet']
 
   static Config: z<Config> = z.object({
     bootstrapResamples: z.natural().min(1).default(1000),
@@ -134,14 +143,16 @@ export class ExperimentService extends Service {
    *   routes and optional implementers, the workspace root, and an optional
    *   policy version, base seed, frozen digest, abort signal, and result sink.
    * @returns the digest, both arms with their stamp groups, one cell per
-   *   environment, the pooled delta with its interval, the spend, and the verdict.
+   *   environment, the pooled delta with its interval, the spend, the caps both
+   *   arms ran under, and the verdict.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
    *   unregistered environment, asks for no repetition, sets a seed that is not
-   *   a safe non-negative integer, declares a digest its content does not
-   *   freeze to, or projects more tokens than the budget.
+   *   a safe non-negative integer, whose two arms would run under different
+   *   caps, declares a digest its content does not freeze to, or projects more
+   *   tokens than the budget.
    */
   async run(plan: ExperimentPlan): Promise<ExperimentResult> {
-    const digest = this.freeze(plan)
+    const { digest, caps } = this.freeze(plan)
     const arms: ExperimentArms = {
       baseline: resolveArm(plan.baseline, digest, 'baseline'),
       candidate: resolveArm(plan.candidate, digest, 'candidate'),
@@ -154,6 +165,7 @@ export class ExperimentService extends Service {
       environments: plan.environments,
       repetitions: plan.repetitions,
       thresholds: this.resolved.thresholds,
+      caps,
       baseline,
       candidate,
     })
@@ -161,8 +173,11 @@ export class ExperimentService extends Service {
     return result
   }
 
-  /** Validate the plan, compute its digest, and check the projection against the budget. */
-  private freeze(plan: ExperimentPlan): string {
+  /**
+   * Validate the plan, resolve the caps both arms run under, compute the digest
+   * over them, and check the projection against the budget.
+   */
+  private freeze(plan: ExperimentPlan): { digest: string; caps: readonly BudgetCap[] } {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
       throw new ExperimentError(`repetitions must be a positive integer, got ${String(plan.repetitions)}`, 'EXPERIMENT_INVALID_PLAN')
     }
@@ -178,7 +193,8 @@ export class ExperimentService extends Service {
       }
       named.add(environment)
     }
-    const digest = planDigest(plan, this.resolved.thresholds)
+    const caps = this.agreedCaps(plan)
+    const digest = planDigest(plan, this.resolved.thresholds, caps)
     if (plan.digest !== undefined && plan.digest !== digest) {
       throw new ExperimentError(`the plan declares digest ${plan.digest} but freezes to ${digest}`, 'EXPERIMENT_PLAN_NOT_FROZEN')
     }
@@ -186,7 +202,24 @@ export class ExperimentService extends Service {
     if (projected > this.resolved.tokenBudget) {
       throw new ExperimentError(`the plan projects ${projected} tokens over a budget of ${this.resolved.tokenBudget}`, 'EXPERIMENT_OVER_BUDGET')
     }
-    return digest
+    return { digest, caps }
+  }
+
+  /**
+   * The caps both arms run their cells under. A comparison whose arms stop at
+   * different ceilings measures the ceilings as much as the arms, so the plan is
+   * refused before either arm starts rather than reported with a caveat.
+   * @param plan - the frozen plan, supplying the implementer of each arm.
+   * @returns the caps every cell of both arms runs under, in cap evaluation order.
+   * @throws {@link ExperimentError} when the two arms resolve to different caps.
+   */
+  private agreedCaps(plan: ExperimentPlan): readonly BudgetCap[] {
+    const baseline = this.ctx.environmentRuns.cellCaps(armImplementer(plan.baseline))
+    const candidate = this.ctx.environmentRuns.cellCaps(armImplementer(plan.candidate))
+    if (!capsAgree(baseline, candidate)) {
+      throw new ExperimentError(`the arms would run under different caps — baseline ${describeCaps(baseline)}, candidate ${describeCaps(candidate)} — so their cells would not be comparable`, 'EXPERIMENT_UNEQUAL_CAPS')
+    }
+    return baseline
   }
 
   /** Run one arm as one fleet run over the plan's environments under the arm's group. */

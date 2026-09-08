@@ -12,6 +12,7 @@
 | [scope.md](scope.md) | 作用域注册标识、dispatch 载体，以及拥有的 `Scope` 上下文 |
 | [typert.md](typert.md) | 远程调用描述符、lookup/Context 声明、Typert 注册表，以及 Host Gateway/Client API 边界 |
 | [goal.md](goal.md) | 持久 goal 标识、生命周期快照、激活、变更记录与 Round 归属 |
+| [guard.md](guard.md) | 会话运行所处的上限、外部实现方为它产生的开销，以及一次强制执行度量到了什么 |
 | [verification.md](verification.md) | 完成标准：每个 goal 的检查清单、来自完全通过运行的证书，以及运行所处的隔离级别 |
 | [governance.md](governance.md) | 五类签署转变上的具名人类签名，以及每份会话日志对自身所述的数据使用条款 |
 | [components.md](components.md) | 组件注册表的描述符：类别、来源、谱系、成员关系，以及到达每个可寻址单元的可调用路径 |

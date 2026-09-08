@@ -300,6 +300,7 @@ const subsystemGroups = [
     ['user-questions.md', '用户交互', 'User interaction'],
     ['commands.md', '命令', 'Human commands'],
     ['goal.md', '目标', 'Goals'],
+    ['guard.md', '循环护栏', 'Loop guards'],
     ['verification.md', '完成标准', 'Completion standards'],
     ['governance.md', '治理', 'Governance'],
     ['schedule.md', '定时提醒', 'Scheduled reminders'],
