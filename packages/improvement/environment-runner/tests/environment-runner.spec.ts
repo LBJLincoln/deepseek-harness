@@ -1583,7 +1583,9 @@ describe('EnvironmentRunner weighted cases', () => {
     StubShell.current.script(`. ${join(directory, 'run')} --crlf-ok`, shellResult({ stdout: 'expected\n' }))
     const report = await run()
     expect(report.certified).toBe(true)
-    expect(await readFile(join(directory, 'run'), 'utf8')).toBe(`${REVERSE}\n`)
+    // The script is sourced once per case with that case's argv as its positional
+    // parameters, so it forwards them; without "$@" every case would run the bare command.
+    expect(await readFile(join(directory, 'run'), 'utf8')).toBe(`${REVERSE} "$@"\n`)
     expect(await readFile(join(directory, 'cases.jsonl'), 'utf8')).toBe(`${JSON.stringify(bodies[0])}\n`)
   })
 })

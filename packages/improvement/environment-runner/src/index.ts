@@ -423,8 +423,11 @@ async function materializeChecks(
     const directory = checkDirectory(runDirectory, check.id)
     await mkdir(directory, { recursive: true, mode: 0o700 })
     const script = join(directory, RUN_FILE)
-    await writeFile(script, `${check.run}\n`, { mode: 0o600 })
     const cases = bodies.get(check.id)
+    // A cased check is sourced once per case with that case's argv as the
+    // script's positional parameters, so the script forwards them; a caseless
+    // check's command is complete as written and is sourced with none.
+    await writeFile(script, cases === undefined ? `${check.run}\n` : `${check.run} "$@"\n`, { mode: 0o600 })
     if (cases !== undefined) {
       await writeFile(
         join(directory, CASES_FILE),
