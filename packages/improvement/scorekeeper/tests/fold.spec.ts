@@ -257,6 +257,14 @@ describe('foldSessionFacts', () => {
     bare.push('environment/run', stamp())
     bare.push('environment/delegation', { attempt: 1, provider: 'acp', runId: 'child-1', stopReason: 'aborted' })
     expect(foldSessionFacts(header('bare'), bare.events).efficiency.delegated).toBeUndefined()
+
+    // A provider that prices its run without counting its tokens states the
+    // cost alone, and the four token buckets stay at zero rather than absent.
+    const priced = new Log()
+    priced.push('environment/run', stamp())
+    priced.push('environment/delegation', { attempt: 1, provider: 'acp', runId: 'child-1', stopReason: 'completed', reportedCostUsd: 0.02 })
+    expect(foldSessionFacts(header('priced'), priced.events).efficiency.delegated)
+      .toEqual({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.02 })
   })
 
   it('records the cap of the last budget breach', () => {
