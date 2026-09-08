@@ -2,7 +2,9 @@
  * What the runner's per-run denial is worth against a real sandbox backend, through
  * a real `cordis.yml` and a headless process: a cell laid out the way a fleet
  * lays one out — a `cell-*` workspace beside a sibling cell, a plan, and a run
- * log — reads and writes its own workspace and reaches nothing above it.
+ * log — reads and writes its own workspace and reaches nothing above it, and the
+ * cased check the barrier makes the runner source from its reserved script still
+ * feeds every case its argv, its stdin, and its staged files.
  *
  * The suite runs on the backend `dsh-sandbox-local` resolves here, probed in the
  * provider's own chain order, and skips with a named reason only when this host
@@ -15,6 +17,7 @@ import { describe, expect, it } from 'vitest'
 import { launcherPath, probe as probeLandlock } from '@deepseek-ai/node-addon-landlock-run'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
 import type { ReadBarrierDenial } from '@deepseek-ai/dsh-read-barrier'
+import type { CheckResult, RunParity } from '@deepseek-ai/dsh-verification'
 
 const fixture = new URL('../../../../examples/headless-agent/tests/fixtures/sealed-cell/', import.meta.url)
 const binScript = fileURLToPath(new URL('./driver.ts', fixture))
@@ -29,12 +32,14 @@ const SIBLING_LEAKED_MARKER = 'SIBLING-LEAKED'
 const SIBLING_DENIED_MARKER = 'SIBLING-DENIED'
 const OWN_READ_MARKER = 'OWN-READ-OK'
 const OWN_WRITE_MARKER = 'OWN-WRITE-OK'
+const CANDIDATE_WRITTEN_MARKER = 'CANDIDATE-WRITTEN'
 
 interface DriverResult {
   type: string
   certified: boolean
   escapesDenied: number
   denials: ReadBarrierDenial[]
+  validations: { parity: RunParity | undefined; results: CheckResult[] }[]
   toolOutputs: string[]
   leakedPlan: string
   leakedSibling: string
@@ -79,11 +84,23 @@ describe.skipIf(backend === undefined)(`a sealed cell under ${backend ?? 'no bac
     const output = result.toolOutputs.join('\n')
 
     // The cell's own workspace is whole: it read the file the fixture staged
-    // there and created the one its check measures.
+    // there and created the ones its checks measure.
     expect(output).toContain(OWN_READ_MARKER)
     expect(output).toContain(OWN_WRITE_MARKER)
+    expect(output).toContain(CANDIDATE_WRITTEN_MARKER)
     expect(result.marker).toBe(true)
     expect(result.certified).toBe(true)
+
+    // Under the barrier the cased check ran from the runner's reserved script,
+    // and every case reached the candidate through all three input channels:
+    // one validation, both checks passed, every case and all of the weight.
+    expect(result.validations).toHaveLength(1)
+    expect(result.validations[0]?.parity).toEqual({ weightPassed: 6, weightTotal: 6 })
+    expect(result.validations[0]?.results.map(check => [check.checkId, check.status])).toEqual([
+      ['marker-file', 'pass'],
+      ['echo-channels', 'pass'],
+    ])
+    expect(result.validations[0]?.results[1]?.cases).toEqual({ passed: 3, total: 3, weightPassed: 6, weightTotal: 6, failed: [] })
 
     // Nothing above it is. The listing is read by name rather than by count:
     // bubblewrap mounts an empty run directory and binds the workspace back into

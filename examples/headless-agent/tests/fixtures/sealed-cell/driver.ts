@@ -3,7 +3,8 @@
  * Test driver: lay out one run directory the way a fleet does — a plan, a run
  * log, and two `cell-*` workspaces side by side — then run the registered
  * environment in one of them. It reports what the confined shell reached, the
- * refusals the cell session recorded, and the count the run report carries.
+ * refusals the cell session recorded, the count the run report carries, and
+ * every check result of every validation the run recorded.
  */
 
 import { existsSync } from 'node:fs'
@@ -14,6 +15,7 @@ import type {} from '@deepseek-ai/cordis-plugin-loader'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { ReadBarrierDenial } from '@deepseek-ai/dsh-read-barrier'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
+import type { CheckResult, RunParity } from '@deepseek-ai/dsh-verification'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('sealed-cell driver requires a config path')
@@ -48,8 +50,10 @@ try {
 
   const toolOutputs: string[] = []
   const denials: ReadBarrierDenial[] = []
+  const validations: { parity: RunParity | undefined; results: CheckResult[] }[] = []
   const stopStreaming = ctx.on('session/event', (_session, event: SessionEvent) => {
     if (event.type === 'read-barrier/denied') denials.push(event.data)
+    if (event.type === 'verification/run') validations.push({ parity: event.data.parity, results: [...event.data.results] })
     if (event.type !== 'tool/result') return
     for (const block of event.data.message.content) {
       for (const part of block.content) {
@@ -66,6 +70,7 @@ try {
     certified: report.certified,
     escapesDenied: report.escapesDenied,
     denials,
+    validations,
     toolOutputs,
     leakedPlan: await readIfPresent(join(workspace, 'leaked-plan.txt')),
     leakedSibling: await readIfPresent(join(workspace, 'leaked-sibling.txt')),

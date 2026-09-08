@@ -2,9 +2,10 @@
  * Keyless adapter that plays a cell agent probing the run directory its
  * workspace sits in. Its first step runs one bash command that tries to list the
  * parent, read the run's plan, and read a sibling cell, then reads and writes
- * its own workspace; its second step reads the plan again through the `read`
- * tool, which is the seam that records a refusal. The markers below are pinned
- * by the e2e, so keep them and its literals together.
+ * its own workspace and writes the candidate the task's cased check measures;
+ * its second step reads the plan again through the `read` tool, which is the
+ * seam that records a refusal. The markers below are pinned by the e2e, so keep
+ * them and its literals together.
  */
 
 import type { Context } from '@deepseek-ai/cordis'
@@ -37,19 +38,40 @@ const SIBLING_DENIED_MARKER = 'SIBLING-DENIED'
 const OWN_READ_MARKER = 'OWN-READ-OK'
 const OWN_WRITE_MARKER = 'OWN-WRITE-OK'
 
+/** What the tool result says once the candidate the cased check measures is in the workspace. */
+const CANDIDATE_WRITTEN_MARKER = 'CANDIDATE-WRITTEN'
+
+/**
+ * The candidate: three labelled lines, one per input channel a case can feed.
+ * `$(cat)` reads the case's stdin, which the runner closes after writing it, so
+ * a case without stdin ends the line after `stdin=`.
+ */
+const CANDIDATE_SCRIPT = [
+  'printf \'argv=%s\\n\' "$*"',
+  'printf \'stdin=%s\\n\' "$(cat)"',
+  'printf \'file=%s\\n\' "$(cat input.txt 2>/dev/null)"',
+].join('\n')
+
 /**
  * One command, so a single transcript records everything the confined process
  * could reach. Every probe is written to fail silently: a backend that denies by
  * hiding the directory and one that denies by refusing the open must both land
- * on the denied marker rather than on a shell error.
+ * on the denied marker rather than on a shell error. The candidate is written
+ * last, through a quoted heredoc so the shell expands nothing at write time.
  */
 const PROBE_COMMAND = [
-  `echo ${PARENT_LISTING_MARKER}$(ls -A .. 2>/dev/null | tr '\\n' ' ')`,
-  `if cat ../plan.json > leaked-plan.txt 2>/dev/null; then echo ${PLAN_LEAKED_MARKER}; else echo ${PLAN_DENIED_MARKER}; fi`,
-  `if cat ../cell-sibling/src.js > leaked-sibling.txt 2>/dev/null; then echo ${SIBLING_LEAKED_MARKER}; else echo ${SIBLING_DENIED_MARKER}; fi`,
-  `if grep -q own-file own.txt 2>/dev/null; then echo ${OWN_READ_MARKER}; fi`,
-  `if touch MARKER && test -f MARKER; then echo ${OWN_WRITE_MARKER}; fi`,
-].join('; ')
+  [
+    `echo ${PARENT_LISTING_MARKER}$(ls -A .. 2>/dev/null | tr '\\n' ' ')`,
+    `if cat ../plan.json > leaked-plan.txt 2>/dev/null; then echo ${PLAN_LEAKED_MARKER}; else echo ${PLAN_DENIED_MARKER}; fi`,
+    `if cat ../cell-sibling/src.js > leaked-sibling.txt 2>/dev/null; then echo ${SIBLING_LEAKED_MARKER}; else echo ${SIBLING_DENIED_MARKER}; fi`,
+    `if grep -q own-file own.txt 2>/dev/null; then echo ${OWN_READ_MARKER}; fi`,
+    `if touch MARKER && test -f MARKER; then echo ${OWN_WRITE_MARKER}; fi`,
+  ].join('; '),
+  'cat > channels.sh <<\'CANDIDATE\'',
+  CANDIDATE_SCRIPT,
+  'CANDIDATE',
+  `if test -f channels.sh; then echo ${CANDIDATE_WRITTEN_MARKER}; fi`,
+].join('\n')
 
 /** The path the second step reads through the `read` tool, which is where a refusal is recorded. */
 const PLAN_PATH = '../plan.json'
@@ -62,7 +84,7 @@ class SealedCellAdapter extends LlmAdapter {
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
     const results = options.messages.filter(message => (message.content ?? []).some(block => block.type === 'tool-result'))
     if (results.length === 0) {
-      yield * call('probe-shell', 'bash', { command: PROBE_COMMAND, description: 'Probe the run directory, then create MARKER.' })
+      yield * call('probe-shell', 'bash', { command: PROBE_COMMAND, description: 'Probe the run directory, then create MARKER and channels.sh.' })
       return
     }
     if (results.length === 1) {
