@@ -6,6 +6,7 @@
  * @module @deepseek-ai/dsh-experiments/types
  */
 
+import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
@@ -159,5 +160,13 @@ export interface ExperimentResult {
   readonly spend: ExperimentSpend
   /** Thresholds the digest froze, restated so a stored result is readable alone. */
   readonly thresholds: ExperimentThresholds
+  /**
+   * The ceilings every cell of both arms ran under, in cap evaluation order.
+   * The plan is refused unless the two arms resolve to the same list, so one
+   * entry states the budget the whole comparison was measured inside and a
+   * reader of a stored result never has to find the composition that produced
+   * it. Empty for a comparison whose deployment caps nothing.
+   */
+  readonly caps: readonly BudgetCap[]
   readonly verdict: ExperimentVerdict
 }
