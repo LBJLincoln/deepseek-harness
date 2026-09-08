@@ -1,0 +1,109 @@
+{
+  "type": "offline-repeatability",
+  "note": "Run-to-run agreement of one arm, the middle product model on the harness loop over the eight audited tier-5 environments at seed 2, across three recorded runs: sonnet-e1a (2026-09-08-bench-e1-haiku-vs-sonnet-t5, sealed), sonnet-e1b (2026-09-08-bench-e1-sonnet-vs-opus-t5, sealed), sonnet-e2-unsealed (2026-09-08-bench-e2-harness-vs-product-t5, route arm, unsealed). Cells are paired by environment and repetition; a flip is a cell certified in one run and not in the other. The flip rate between two runs of the same arm is the smallest paired delta the bench can tell from noise at sixteen cells.",
+  "arms": [
+    {
+      "cells": 16,
+      "label": "sonnet-e1a",
+      "certified": 14
+    },
+    {
+      "cells": 16,
+      "label": "sonnet-e1b",
+      "certified": 13
+    },
+    {
+      "cells": 16,
+      "label": "sonnet-e2-unsealed",
+      "certified": 12
+    }
+  ],
+  "pairs": [
+    {
+      "a": "sonnet-e1a",
+      "b": "sonnet-e1b",
+      "cells": 16,
+      "both": 13,
+      "neither": 2,
+      "onlyA": 1,
+      "onlyB": 0,
+      "flips": 1,
+      "flipRate": 0.0625,
+      "delta": 0.0625
+    },
+    {
+      "a": "sonnet-e1a",
+      "b": "sonnet-e2-unsealed",
+      "cells": 16,
+      "both": 12,
+      "neither": 2,
+      "onlyA": 2,
+      "onlyB": 0,
+      "flips": 2,
+      "flipRate": 0.125,
+      "delta": 0.125
+    },
+    {
+      "a": "sonnet-e1b",
+      "b": "sonnet-e2-unsealed",
+      "cells": 16,
+      "both": 11,
+      "neither": 2,
+      "onlyA": 2,
+      "onlyB": 1,
+      "flips": 3,
+      "flipRate": 0.1875,
+      "delta": 0.0625
+    }
+  ],
+  "perEnvironment": [
+    {
+      "env": "code:build-schedule",
+      "sonnet-e1a": "yes@2,yes@1",
+      "sonnet-e1b": "yes@1,yes@1",
+      "sonnet-e2-unsealed": "yes@1,yes@1"
+    },
+    {
+      "env": "code:conf-canon",
+      "sonnet-e1a": "yes@1,yes@1",
+      "sonnet-e1b": "yes@1,yes@1",
+      "sonnet-e2-unsealed": "no,no"
+    },
+    {
+      "env": "code:diff3-merge",
+      "sonnet-e1a": "yes@1,yes@2",
+      "sonnet-e1b": "yes@2,yes@1",
+      "sonnet-e2-unsealed": "yes@2,yes@1"
+    },
+    {
+      "env": "code:lex-states",
+      "sonnet-e1a": "yes@2,yes@1",
+      "sonnet-e1b": "yes@1,no",
+      "sonnet-e2-unsealed": "yes@2,yes@1"
+    },
+    {
+      "env": "code:ranked-choice",
+      "sonnet-e1a": "yes@1,yes@1",
+      "sonnet-e1b": "yes@1,yes@1",
+      "sonnet-e2-unsealed": "yes@1,yes@1"
+    },
+    {
+      "env": "code:rate-limit-sim",
+      "sonnet-e1a": "yes@2,yes@2",
+      "sonnet-e1b": "yes@1,yes@2",
+      "sonnet-e2-unsealed": "yes@2,yes@1"
+    },
+    {
+      "env": "code:sheet-eval",
+      "sonnet-e1a": "no,no",
+      "sonnet-e1b": "no,no",
+      "sonnet-e2-unsealed": "no,no"
+    },
+    {
+      "env": "code:uri-resolve",
+      "sonnet-e1a": "yes@1,yes@1",
+      "sonnet-e1b": "yes@1,yes@1",
+      "sonnet-e2-unsealed": "yes@1,yes@1"
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "type": "offline-routing",
+  "note": "Offline reading over three single-model harness-loop arms on the sealed tier-5 bench, seed 2: haiku and sonnet from 2026-09-08-bench-e1-haiku-vs-sonnet-t5, opus from 2026-09-08-bench-e1-sonnet-vs-opus-t5. Cells are paired by environment and repetition. The oracle certifies when any model certified and charges the cheapest certifying model; a cascade runs the models in order until one certifies and charges every stage run, as a router that restarts from the task prompt would. Spend is in the units the route reports: output tokens, cache-write tokens, model steps, seconds of cell time.",
+  "sources": {
+    "haiku": "2026-09-08-bench-e1-haiku-vs-sonnet-t5",
+    "sonnet": "2026-09-08-bench-e1-haiku-vs-sonnet-t5",
+    "opus": "2026-09-08-bench-e1-sonnet-vs-opus-t5"
+  },
+  "cells": 16,
+  "labels": [
+    "haiku",
+    "sonnet",
+    "opus"
+  ],
+  "results": [
+    {
+      "router": "haiku",
+      "cells": 16,
+      "certified": 1,
+      "rate": 0.0625,
+      "output": 736856,
+      "cacheWrite": 1077050,
+      "steps": 604,
+      "secs": 11227,
+      "costUsd": 0
+    },
+    {
+      "router": "sonnet",
+      "cells": 16,
+      "certified": 14,
+      "rate": 0.875,
+      "output": 481591,
+      "cacheWrite": 669507,
+      "steps": 262,
+      "secs": 6337,
+      "costUsd": 0
+    },
+    {
+      "router": "opus",
+      "cells": 16,
+      "certified": 16,
+      "rate": 1,
+      "output": 189169,
+      "cacheWrite": 317394,
+      "steps": 164,
+      "secs": 3572,
+      "costUsd": 0
+    },
+    {
+      "router": "oracle(haiku|sonnet|opus)",
+      "cells": 16,
+      "certified": 16,
+      "rate": 1,
+      "output": 189169,
+      "cacheWrite": 317394,
+      "steps": 164,
+      "secs": 3572,
+      "costUsd": 0
+    },
+    {
+      "router": "cascade(haiku>sonnet>opus)",
+      "cells": 16,
+      "certified": 16,
+      "rate": 1,
+      "output": 1248222,
+      "cacheWrite": 1784209,
+      "steps": 880,
+      "secs": 18028,
+      "costUsd": 0
+    },
+    {
+      "router": "cascade(opus>sonnet>haiku)",
+      "cells": 16,
+      "certified": 16,
+      "rate": 1,
+      "output": 189169,
+      "cacheWrite": 317394,
+      "steps": 164,
+      "secs": 3572,
+      "costUsd": 0
+    },
+    {
+      "router": "cascade(sonnet>opus)",
+      "cells": 16,
+      "certified": 16,
+      "rate": 1,
+      "output": 525564,
+      "cacheWrite": 731181,
+      "steps": 289,
+      "secs": 7006,
+      "costUsd": 0
+    },
+    {
+      "router": "cascade(haiku>opus)",
+      "cells": 16,
+      "certified": 16,
+      "rate": 1,
+      "output": 920827,
+      "cacheWrite": 1382756,
+      "steps": 761,
+      "secs": 14667,
+      "costUsd": 0
+    },
+    {
+      "router": "cascade(haiku>sonnet)",
+      "cells": 16,
+      "certified": 14,
+      "rate": 0.875,
+      "output": 1204249,
+      "cacheWrite": 1722535,
+      "steps": 853,
+      "secs": 17359,
+      "costUsd": 0
+    }
+  ],
+  "perCell": [
+    {
+      "cell": "code:build-schedule#0",
+      "haiku": "no",
+      "sonnet": "yes@2",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:build-schedule#1",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:conf-canon#0",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:conf-canon#1",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:diff3-merge#0",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:diff3-merge#1",
+      "haiku": "no",
+      "sonnet": "yes@2",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:lex-states#0",
+      "haiku": "no",
+      "sonnet": "yes@2",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:lex-states#1",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:ranked-choice#0",
+      "haiku": "yes@1",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:ranked-choice#1",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:rate-limit-sim#0",
+      "haiku": "no",
+      "sonnet": "yes@2",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:rate-limit-sim#1",
+      "haiku": "no",
+      "sonnet": "yes@2",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:sheet-eval#0",
+      "haiku": "no",
+      "sonnet": "no",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:sheet-eval#1",
+      "haiku": "no",
+      "sonnet": "no",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:uri-resolve#0",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    },
+    {
+      "cell": "code:uri-resolve#1",
+      "haiku": "no",
+      "sonnet": "yes@1",
+      "opus": "yes@1"
+    }
+  ]
+}
