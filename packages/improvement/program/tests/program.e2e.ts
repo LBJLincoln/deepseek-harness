@@ -166,10 +166,10 @@ describe('the program ledger through a real cordis.yml, killed and restarted', (
     // file, was told the work was not delivered, committed it, and only then
     // certified — so the recorded revision is a commit of its own rather than
     // the base every worktree started at.
-    const base = certifiedAt(ledger, 'api') as ProgramGoalRecord
-    expect(base.revision).toMatch(/^[0-9a-f]{40}$/)
-    expect(base.tree).toMatch(/^[0-9a-f]{40}$/)
-    expect(base.revision).not.toBe(closing.mergedRevision)
+    const delivered = certifiedAt(ledger, 'api') as ProgramGoalRecord
+    expect(delivered.revision).toMatch(/^[0-9a-f]{40}$/)
+    expect(delivered.tree).toMatch(/^[0-9a-f]{40}$/)
+    expect(delivered.revision).not.toBe(closing.mergedRevision)
     expect(first.report.goals.map(goal => [goal.key, goal.revision === undefined, goal.tree === undefined]))
       .toEqual([['api', false, false], ['docs', false, false]])
 
