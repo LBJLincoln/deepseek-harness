@@ -23,6 +23,7 @@ import type {
   EnvironmentDefinition,
   EnvironmentFilter,
   EnvironmentId as EnvironmentIdType,
+  EnvironmentRunModel,
   EnvironmentRunStamp,
 } from './types.ts'
 
@@ -32,8 +33,9 @@ declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
     /**
      * Environment run stamp: the environment, its content hashes, the
-     * repetition, group, and district, the model route, and the declared
-     * isolation of one run, appended once before the run's first turn.
+     * repetition, group, and district, the model route and the attempt ladder
+     * over it, and the declared isolation of one run, appended once before the
+     * run's first turn.
      */
     'environment/run': EnvironmentRunStamp
   }
@@ -119,6 +121,24 @@ function stampSeed(value: unknown): number {
   return value
 }
 
+/** Require one model route of a durable stamp. */
+function stampModel(value: unknown, key: string): EnvironmentRunModel {
+  if (!isRecord(value)) throw new Error(`environment/run ${key} must be a record`)
+  return { provider: stampText(value, 'provider'), model: stampText(value, 'model') }
+}
+
+/**
+ * Require a durable stamp's attempt ladder to be a non-empty list of model
+ * routes. A stamp carrying an empty one would claim a laddered run that no
+ * attempt could belong to.
+ */
+function stampLadder(value: unknown): readonly EnvironmentRunModel[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error('environment/run ladder must be a non-empty array of model routes')
+  }
+  return value.map(rung => stampModel(rung, 'ladder rung'))
+}
+
 /**
  * Whether a value is a usable sampling seed: a safe non-negative integer, the
  * only form every provider that accepts a seed can carry on its wire.
@@ -147,8 +167,8 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
   if (typeof repetition !== 'number' || !Number.isSafeInteger(repetition) || repetition < 0) {
     throw new Error('environment/run repetition must be a non-negative integer')
   }
-  const model = value['model']
-  if (!isRecord(model)) throw new Error('environment/run model must be a record')
+  const model = stampModel(value['model'], 'model')
+  const ladder = value['ladder'] === undefined ? {} : { ladder: stampLadder(value['ladder']) }
   const isolation = value['isolation']
   if (typeof isolation !== 'string' || !ISOLATIONS.has(isolation)) {
     throw new Error('environment/run isolation must be none, process, or host')
@@ -174,7 +194,8 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
     ...district,
     ...policyVersion,
     ...seed,
-    model: { provider: stampText(model, 'provider'), model: stampText(model, 'model') },
+    model,
+    ...ladder,
     isolation: isolation as EnvironmentRunStamp['isolation'],
     ...implementer,
   }

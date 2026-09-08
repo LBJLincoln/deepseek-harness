@@ -50,7 +50,7 @@
 
 ## Run stamp
 
-`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、该次运行所属的可选 `district`、点名路由所服务检查点的可选 `policyVersion` 与该次运行的请求所要求的可选 `seed`、模型路由、部署方声明的隔离级别，以及点名由谁完成工作的可选 `implementer`——会话自身模型路由为 `ROUTE_IMPLEMENTER`（`route`），被委派的运行为 subagent provider 名，二者都不陈述的载荷中缺席，那就是路由。种子记录的是请求而非结果：提供方可以忽略它，也没有任何一家承诺跨模型或基础设施版本产出相同的 token，因此 replay 复现的是会话日志而不是一次新的采样。`isSeed(value)` 是每个种子生产方共用的导出判定。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；`checksSha256` 覆盖每个检查的树作用域、用例引用与用例正文，因此改动一个用例就会改变合并摘要，而合并摘要正是策展者用来与留出环境比对的去污染键。不带用例的检查恰好对每个检查一直携带的三个字段求摘要。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
+`environment/run` 会话事件是会话与其所运行环境之间的持久链接。运行器在运行的第一个轮次之前追加一条 `EnvironmentRunStamp`：环境 id 与 kind、`heldOut` 标志、内容哈希、该次运行在批次内从零开始的 `repetition` 与可选的 `group`、该次运行所属的可选 `district`、点名路由所服务检查点的可选 `policyVersion` 与该次运行的请求所要求的可选 `seed`、第一次尝试的模型路由与其上每次尝试一个模型路由的可选 `ladder`、部署方声明的隔离级别，以及点名由谁完成工作的可选 `implementer`——会话自身模型路由为 `ROUTE_IMPLEMENTER`（`route`），被委派的运行为 subagent provider 名，二者都不陈述的载荷中缺席，那就是路由。种子记录的是请求而非结果：提供方可以忽略它，也没有任何一家承诺跨模型或基础设施版本产出相同的 token，因此 replay 复现的是会话日志而不是一次新的采样。`isSeed(value)` 是每个种子生产方共用的导出判定。`environmentContentHashes(environment, fixtureSha256?)` 确定性地计算提示词、检查清单与合并后的 `contentSha256` 摘要；`checksSha256` 覆盖每个检查的树作用域、用例引用与用例正文，因此改动一个用例就会改变合并摘要，而合并摘要正是策展者用来与留出环境比对的去污染键。不带用例的检查恰好对每个检查一直携带的三个字段求摘要。`decodeEnvironmentRun(value)` 在日志边界校验持久载荷：无关的值返回 `undefined`，畸形的 stamp 抛出异常，因此折叠永远不会读到半截 stamp。
 
 ## Extension points
 

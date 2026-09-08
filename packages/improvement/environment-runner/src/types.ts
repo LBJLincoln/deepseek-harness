@@ -24,10 +24,11 @@ declare module '@deepseek-ai/dsh-session/types' {
      * history, and it is the cell session's only record of an implementer whose
      * own transcript stays in its product.
      *
-     * The model the cell ASKED for is on the `environment/run` stamp, which the
-     * runner also passes to the provider, so a reader comparing the two sees
-     * whether the child ran the arm's model and which concrete version an alias
-     * resolved to.
+     * The model the cell ASKED for is on the `environment/run` stamp — its
+     * `ladder` rung for this attempt, or its `model` for a run without one —
+     * which the runner also passes to the provider, so a reader comparing the
+     * two sees whether the child ran the arm's model and which concrete version
+     * an alias resolved to.
      */
     'environment/delegation': EnvironmentDelegation
   }
@@ -49,6 +50,16 @@ export type EnvironmentRunImplementer =
   }
 
 /**
+ * What one implementer carries from an attempt into the next one. A route
+ * implementer works in the cell session itself, so every later attempt reads
+ * the whole transcript of the earlier ones (`kept`); a subagent implementer
+ * runs one fresh child per attempt, which starts from the text it is given and
+ * nothing else (`dropped`). The two therefore measure different instruments on
+ * the same ladder, which is why every attempt states which it ran under.
+ */
+export type EnvironmentRunTranscript = 'kept' | 'dropped'
+
+/**
  * How one delegated attempt ended: in the subagent seam's terminal vocabulary
  * when the child settled on its own, or `budget-deadline` when the cell's wall
  * budget ran out first.
@@ -68,6 +79,14 @@ export type EnvironmentDelegationStopReason = SubagentStopReason | 'budget-deadl
 export interface EnvironmentDelegation {
   /** One-based attempt this child run implemented. */
   readonly attempt: number
+  /**
+   * Whether this attempt's prompt restated the task statement ahead of the
+   * validation directive. A child holds no transcript of the earlier attempts,
+   * so every attempt after the first restates the task; `false` on the first
+   * attempt, whose prompt is the task statement alone. It is what tells a
+   * reader that a later child was given the work and not only the complaint.
+   */
+  readonly restatedTask: boolean
   /** Subagent provider that ran the child. */
   readonly provider: string
   /** Parent-scoped id of the child run; the child's session id for an in-process provider. */
@@ -108,6 +127,22 @@ export interface EnvironmentDelegation {
   readonly reportedCostUsd?: number
 }
 
+/**
+ * One rung of an attempt ladder: what the attempt at that index runs on. A rung
+ * is an object rather than a bare model so a later per-attempt choice extends it
+ * without changing the position a rung already means.
+ */
+export interface EnvironmentRunRung {
+  /**
+   * Model route this attempt runs on; absent runs the run's own
+   * {@link EnvironmentRunRequest.model}. A delegated attempt is started on the
+   * rung's `model` id alone, because a provider names its own models; the
+   * rung's `provider` is the harness route the same rung names and is what the
+   * stamp records either way.
+   */
+  readonly model?: EnvironmentRunModel
+}
+
 /** One request to run a registered environment as one fresh session. */
 export interface EnvironmentRunRequest {
   /** Registered environment to run. */
@@ -116,6 +151,17 @@ export interface EnvironmentRunRequest {
   readonly workspace: string
   /** Model route for this run; absent uses the composition's default model selection. */
   readonly model?: EnvironmentRunModel
+  /**
+   * One rung per attempt, in attempt order: attempt `i` runs on
+   * `ladder[i - 1].model`, or on {@link model} for a rung that names none.
+   * Present, the ladder's length is this run's attempt bound and overrides the
+   * composition's `maxAttempts`, because the caller that chose a model per
+   * attempt is the caller that chose how many attempts there are. An empty
+   * ladder, and one longer than the deployment's configured rung ceiling, are
+   * refused before any agent exists. Absent runs every attempt on {@link model}
+   * under the configured `maxAttempts`.
+   */
+  readonly ladder?: readonly EnvironmentRunRung[]
   /**
    * Who does the work of each attempt; absent runs the session's own model
    * route. A delegated run is validated identically: only the way the
@@ -152,6 +198,14 @@ export interface EnvironmentRunRequest {
 export interface EnvironmentRunAttempt {
   /** One-based attempt number. */
   readonly attempt: number
+  /**
+   * Model route this attempt ran on: its ladder rung, or the run's stamped
+   * model for a run without a ladder. What the model was ASKED to be — the
+   * request header of each step the attempt drove states what was sent.
+   */
+  readonly model: EnvironmentRunModel
+  /** What the implementer carried into this attempt from the earlier ones. */
+  readonly transcript: EnvironmentRunTranscript
   /** One result per active check, in the standard's check order; a tampered attempt executed none of them. */
   readonly results: readonly CheckResult[]
   /**
@@ -170,7 +224,7 @@ export interface EnvironmentRunReport {
   readonly sessionId: SessionId
   /** The `environment/run` stamp the session log carries, exactly as appended. */
   readonly stamp: EnvironmentRunStamp
-  /** Every attempt in order; the last one decided `certified`. */
+  /** Every attempt in order, each stating the route it ran on; the last one decided `certified`. */
   readonly attempts: readonly EnvironmentRunAttempt[]
   /** Whether a run of the standard passed completely and the goal completed. */
   readonly certified: boolean

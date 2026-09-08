@@ -156,8 +156,17 @@ export interface EnvironmentRunStamp extends EnvironmentContentHashes {
    * across model or infrastructure versions.
    */
   readonly seed?: number
-  /** Model route the implementer ran on. */
+  /** Model route the run's first attempt ran on; every attempt of a run without a ladder ran on it. */
   readonly model: EnvironmentRunModel
+  /**
+   * Model route of each attempt in attempt order, present only for a run the
+   * caller laddered. It is part of the arm's identity: a cell whose second
+   * attempt escalated to another model measures something a single-model cell
+   * does not, so a fold that groups by {@link model} alone would count the two
+   * together. Its first entry always equals {@link model}, and its length is
+   * the attempt bound that run was given.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
