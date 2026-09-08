@@ -1295,6 +1295,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the registration\'s disposer.',
       },
       {
+        signature: 'denyFor(session: Session, path: string): () => void',
+        description: 'Deny one more directory for ONE session, for as long as the registration lives. It is the per-session sibling of protect, for a directory a caller owns only while one run lasts: a runner denies each cell the directory its workspace sits in, which the sessions of the other cells and of the runner itself keep reading.\n\nThe session\'s own workspace survives the registration whenever the denied directory is a strict ancestor of it — see ReadBarrierPolicy.granted.',
+        parameters: [{ name: 'session', description: 'the session the directory is denied to.' }, { name: 'path', description: 'absolute or `~`-prefixed directory to deny.' }],
+        returns: 'the registration\'s disposer.',
+      },
+      {
         signature: 'enforce(capability: ReadBarrierEnforcedCapability): () => void',
         description: 'Record that one capability denies the barrier\'s directories in the operation that opens paths, for as long as the registration lives. The scope census reports a composed capability without one as `unenforced`, and an isolation claim above `none` is refused while any such entry stands.',
         parameters: [{ name: 'capability', description: 'the path-opening capability that enforces.' }],
@@ -1327,7 +1333,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy',
         description: 'Resolve the complete policy for one capability call. A session whose preset declared a role holds that role; otherwise a session holding a reservation is the implementer, and every other session and every agentless call is unrestricted.',
         parameters: [{ name: 'request', description: 'the calling session, when there is one.' }],
-        returns: 'the role, the barrier root, and every denied directory.',
+        returns: 'the role, the barrier root, every denied directory, and the session\'s granted workspace.',
       },
       {
         signature: 'enforcementCensus(): ReadBarrierEnforcementEntry[]',
@@ -1337,7 +1343,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async denies(policy: ReadBarrierPolicy, target: FsTarget): Promise<boolean>',
-        description: 'Decide whether the policy denies reading one resolved target. Each denied directory is canonicalized through the filesystem seam immediately before its containment test, so an ancestor symlink swapped since the target was resolved is caught. A target whose containment cannot be decided is denied.',
+        description: 'Decide whether the policy denies reading one resolved target. Each denied directory is canonicalized through the filesystem seam immediately before its containment test, so an ancestor symlink swapped since the target was resolved is caught. A target whose containment cannot be decided is denied.\n\nThe policy\'s granted workspace outranks a denied directory that is a strict ancestor of it, and only that one: the rest of the ancestor\'s subtree stays denied, and a denied directory that IS the workspace or lies inside it denies as it would without a grant.',
         parameters: [{ name: 'policy', description: 'the policy {@link resolve} returned for this call.' }, { name: 'target', description: 'the already-resolved target the caller is about to read.' }],
         returns: 'true when the read must be refused.',
       },
@@ -3775,7 +3781,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunReport',
-    declaration: 'export interface EnvironmentRunReport {\n    readonly environment: EnvironmentId;\n    readonly sessionId: SessionId;\n    readonly stamp: EnvironmentRunStamp;\n    readonly attempts: readonly EnvironmentRunAttempt[];\n    readonly certified: boolean;\n    readonly certificate?: VerificationCertificate;\n    readonly usage?: TokenUsage;\n    readonly caps: readonly BudgetCap[];\n}',
+    declaration: 'export interface EnvironmentRunReport {\n    readonly environment: EnvironmentId;\n    readonly sessionId: SessionId;\n    readonly stamp: EnvironmentRunStamp;\n    readonly attempts: readonly EnvironmentRunAttempt[];\n    readonly certified: boolean;\n    readonly certificate?: VerificationCertificate;\n    readonly usage?: TokenUsage;\n    readonly caps: readonly BudgetCap[];\n    readonly escapesDenied: number;\n}',
   },
   {
     name: 'EnvironmentRunRequest',
@@ -4399,7 +4405,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ObservatoryPublishedRow',
-    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
+    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
   },
   {
     name: 'ObservatoryRanking',
@@ -4591,7 +4597,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ReadBarrierPolicy',
-    declaration: 'export interface ReadBarrierPolicy {\n    readonly role: ReadBarrierRole;\n    readonly root: string;\n    readonly denied: readonly string[];\n}',
+    declaration: 'export interface ReadBarrierPolicy {\n    readonly role: ReadBarrierRole;\n    readonly root: string;\n    readonly denied: readonly string[];\n    readonly granted?: string;\n}',
   },
   {
     name: 'ReadBarrierRequest',
@@ -4727,7 +4733,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SandboxExecutionPolicy',
-    declaration: 'export interface SandboxExecutionPolicy {\n    mode: SandboxMode;\n    workspaceRoot: string;\n    deniedReadRoots: readonly string[];\n    sessionId?: SessionId;\n}',
+    declaration: 'export interface SandboxExecutionPolicy {\n    mode: SandboxMode;\n    workspaceRoot: string;\n    deniedReadRoots: readonly string[];\n    grantedReadRoot?: string;\n    sessionId?: SessionId;\n}',
   },
   {
     name: 'SandboxMode',
@@ -4771,7 +4777,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4899,7 +4905,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsTools',
-    declaration: 'export interface SessionFactsTools {\n    readonly toolCalls: number;\n    readonly toolCallsByName: Readonly<Record<string, number>>;\n    readonly toolErrors: number;\n    readonly toolTimeouts: number;\n    readonly toolAborts: number;\n}',
+    declaration: 'export interface SessionFactsTools {\n    readonly toolCalls: number;\n    readonly toolCallsByName: Readonly<Record<string, number>>;\n    readonly toolErrors: number;\n    readonly toolTimeouts: number;\n    readonly toolAborts: number;\n    readonly escapesDenied: number;\n}',
   },
   {
     name: 'SessionForkSource',

@@ -14,6 +14,8 @@
 
 策略中的 `deniedReadRoots` 由施加限制的那一级用自己的方言表达。`bwrap` 在每个根目录上挂载空 tmpfs，且排在只读根绑定与任何工作区绑定之后，因此进程看到的是后挂载的那一层。Landlock ruleset 是 allow-list，既没有 deny 形式也无法移除规则，所以每个被授权的根都要「挖空」：launcher 收到的是该授权与被禁目录之间每一层的同级目录，而不是该授权本身；这也意味着 ruleset 构建之后在被挖空层级下新建的目录同样未获授权。Seatbelt profile 为每个根目录追加一条 `(deny file-read* (subpath …))` 形式并置于末尾，因为 SBPL 中最后匹配的形式胜出，而该禁读必须优先于写入 allow-list。
 
+策略中的 `grantedReadRoot` 由同一级表达，位置在「位于其之上的那些根目录的拒绝」与「其余所有拒绝」之间：`bwrap` 在遮住工作区的 tmpfs 之后，从宿主把该工作区重新 bind 回来；Landlock 把挖空后的工作区作为独立的读授权加入（对 `/` 的挖空已连同被禁祖先子树的其余部分一起将其丢弃）；Seatbelt 在其余 deny 形式之前，对其允许 `file-read*`。因此，**就是**该工作区、或位于其内部的禁读根目录，在每种方言中依然被拒绝。
+
 Windows ACL 那一级根本无法表达禁读，因此非空的 `deniedReadRoots` 会以 `SandboxReadDenialUnavailableError` 拒绝包装，并指明后端与目录：它的 `WRITE_RESTRICTED` 令牌只在写访问时查询受限 SID，而目录上的 deny ACE 会同时作用于拥有该目录的 validator（校验方）和受限子进程。因此在 Windows 上，依赖该禁读的 `isolation` 声明会失败，而不是让禁读悄悄失效。
 
 Seatbelt profile 默认允许，但带 `(deny file-write*)` 和写入 allow-list，因此恰好约束相应模式承诺的文件操作：`read-only` 只授予 `/dev/null` 字面路径；`workspace-write` 另加工作区根目录、`/tmp` 和逐用户 darwin 临时目录（`os.tmpdir()`，即平台供 mkstemp 家族工具使用的真实临时区域）。每个根目录都经过规范化，因为 Seatbelt 匹配解析后的路径（`/tmp` 就是 `/private/tmp`）。Apple 将 `sandbox-exec` CLI（命令行界面）标为 deprecated，但所有 macOS 系统仍会提供它；若情况发生变化，功能探测会使执行被拒绝。

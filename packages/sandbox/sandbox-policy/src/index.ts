@@ -23,7 +23,8 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-agent'
 import { canonicalPath, normalizeDeniedReadRoots, type SandboxExecutionPolicy, type SandboxMode } from '@deepseek-ai/dsh-sandbox'
-import { deniedReadRoots } from '@deepseek-ai/dsh-read-barrier'
+import { deniedReadRoots, grantedReadRoot } from '@deepseek-ai/dsh-read-barrier'
+import type { ReadBarrierPolicy } from '@deepseek-ai/dsh-read-barrier'
 import type { Session } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { effectiveSandboxMode } from './session-mode.ts'
@@ -136,27 +137,29 @@ export class SandboxPolicyService extends Service {
    */
   resolve(request: SandboxPolicyRequest = {}): SandboxExecutionPolicy {
     const { session } = request
+    const barrier = this.barrierPolicy(session)
+    const granted = barrier === undefined ? undefined : grantedReadRoot(barrier)
     return {
       mode: request.mode ?? (session === undefined ? undefined : this.overrideOf(session)) ?? this.defaultMode,
       workspaceRoot: resolveWorkspaceRoot(session?.header.cwd ?? this.workspaceRoot),
-      deniedReadRoots: this.deniedReadRoots(session),
+      deniedReadRoots: barrier === undefined ? [] : normalizeDeniedReadRoots(deniedReadRoots(barrier)),
+      ...granted === undefined ? {} : { grantedReadRoot: resolveWorkspaceRoot(granted) },
       ...session === undefined ? {} : { sessionId: session.id },
     }
   }
 
   /**
-   * The read barrier's denied directories for one session, normalized as the
-   * policy field promises them. A composition without a barrier denies nothing,
-   * which is what its `isolation: none` claim already says.
+   * The read barrier's policy for one session, from which this policy's denied
+   * directories and granted workspace both come. A composition without a barrier
+   * denies nothing and grants nothing, which is what its `isolation: none` claim
+   * already says.
    * @param session - the calling session; absent for an agentless call.
-   * @returns the canonical denied directories, empty without a barrier.
+   * @returns the barrier's resolved policy, or undefined without a barrier.
    */
-  private deniedReadRoots(session: Session | undefined): readonly string[] {
+  private barrierPolicy(session: Session | undefined): ReadBarrierPolicy | undefined {
     // Optional service: a deployment composes the barrier only for runs whose
     // certificates must name what an executor could not reach.
-    const barrier = this.ctx.get('readBarrier')
-    if (barrier === undefined) return []
-    return normalizeDeniedReadRoots(deniedReadRoots(barrier.resolve(session === undefined ? {} : { session })))
+    return this.ctx.get('readBarrier')?.resolve(session === undefined ? {} : { session })
   }
 
   /**

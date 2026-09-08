@@ -137,6 +137,7 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
     certified: shape.certified,
     ...shape.usage === undefined ? {} : { usage: shape.usage },
     caps: [],
+    escapesDenied: 0,
   }
 }
 

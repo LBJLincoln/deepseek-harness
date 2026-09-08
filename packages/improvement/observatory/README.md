@@ -63,6 +63,7 @@ One table row per scoreboard row, in this order:
 | Composition digest | The digest every session of the row states, `pending` when a session states none or two disagree. |
 | Held out | Whether the environment is reserved for evaluation. |
 | Tamper | `not instrumented` for a row whose sessions recorded no run, `tampered <n> of <runs>` when a run found the check-owned files changed, `no tamper` otherwise. |
+| Escapes denied | Reads the barrier refused, summed over the row's sessions: the attempts to read outside the workspace, `0` for a row whose sessions ran unconfined. It is published beside the tamper column and never merged with it. |
 | Resolved | The certificate rate under its own name, with its certified-over-runs counts; `no run` for a row that recorded none. |
 | Parity | The mean weighted pass rate over the sessions that measured cases, `none` when none did. |
 | Cost per certified session | The mean cost beside the one pricing digest that priced the row, `not published` otherwise. |

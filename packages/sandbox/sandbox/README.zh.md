@@ -10,6 +10,8 @@
 
 **禁读根目录（denied read roots）是策略中与模式无关的另一半。** `deniedReadRoots` 列出受限进程不得读取的目录，它们是绝对、规范化且无重复的；无论 `SandboxMode` 对写入作何规定，这些目录始终禁读。[`dsh-sandbox-policy`](../sandbox-policy/README.md) 按调用方 session 从 read barrier（读屏障）填充该字段，并通过 `normalizeDeniedReadRoots` 归一化；对于 read barrier 不禁止任何目录的 session，该字段为空，未组合 read barrier 的部署中每个 session 都是如此。若某后端能限制文件操作但无法表达非空条目，它会以 `SandboxReadDenialUnavailableError` 拒绝包装；该错误携带 `SANDBOX_UNAVAILABLE`，并指明后端与目录——请求该禁读的隔离级别声明会失败，而不是让禁读悄悄失效。
 
+**`grantedReadRoot` 为禁读根目录定序。** 它是 read barrier（读屏障）为调用方 session 授予的工作区：作为其**严格祖先**的禁读根目录会拒绝该祖先子树的其余部分，同时保持该工作区可读；**就是**该工作区、或位于其内部的禁读根目录则照常拒绝。各后端以自己的方言表达这一先后关系，因此父目录被禁读的进程仍能读写自己的工作区。
+
 **只支持与宿主共享文件系统和内核的限制。** 后端与宿主共享文件系统和内核（`bwrap`、Landlock、Seatbelt）；`workspaceRoot` 指向文件系统规范化后的真实主机目录。系统先解析工作区所指的目录，再做词法规范化，因此包含 `symlink/..` 的有效 cwd 会授权 `chdir` 实际到达的目录，而非无关的词法父目录。容器、microVM 与远程执行器都不是该 seam 的后端：它们会以环境一致的分组替换整个能力 seam 的 Service Provider（`ctx.shell`、`ctx.fs`）。边界及其设计理由见[沙箱 Agent Note](../../../.agents/notes/implemented/feature/2026-07-06-sandbox.md)。
 
 实现：[`@deepseek-ai/dsh-sandbox-local`](../sandbox-local/)（Linux：`bwrap`，否则使用相应平台的 Landlock launcher；macOS：`sandbox-exec`／Seatbelt）。消费方：[`@deepseek-ai/dsh-bash-sandbox`](../../shell/bash-sandbox/)（包装 `['bash', '-c', command]`）。

@@ -18,12 +18,41 @@
         contextWindow: 200000
 
 # Managed child-process groups for the bash executor and for the product CLI the
-# Claude Code provider spawns.
+# Claude Code provider spawns. The provider's spawn is not confined: the product
+# brings its own tool stack and its own account state, which is why a delegated
+# cell can only claim `isolation: none`.
 - id: subprocess
   name: '@deepseek-ai/dsh-subprocess-local'
 
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+# The cell agent's own bash runs confined to the cell workspace even though the
+# work of each cell happens in the product: the harness-side session is the one
+# this process can fence. The configured root is the fallback for agentless
+# calls, which is what the runner's own check commands make.
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.cwd()
+
 - id: bash
-  name: '@deepseek-ai/dsh-bash-local'
+  name: '@deepseek-ai/dsh-bash-sandbox'
+
+# The filesystem provider is composed for the barrier and the sandbox policy,
+# not for the model: no `dsh-tool-fs` here, so a cell agent still holds bash
+# alone. The barrier denies each cell the run directory its workspace sits in —
+# the plan, the shift's log, and the other cells of the same slot — for the
+# length of its run, and the confined bash is where that denial lands.
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
 
 - id: goal
   name: '@deepseek-ai/dsh-goal'

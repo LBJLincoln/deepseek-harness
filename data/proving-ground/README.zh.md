@@ -41,6 +41,10 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 
 一个被委托的 cell 的证书证明：runner 在任何工作开始之前就编写了标准，在外部 agent 留下的目录树上从 fixture 恢复了不可变路径，确认由检查拥有的文件集未被改动，并亲自运行了检查。它不证明工作是如何完成的：外部 agent 的提示、工具调用和推理都留在它自己的产品里，因此 cell 会话只保存 stamp、标准、委托记录、运行和证书，而没有任何助手轮次。导出的 trajectory 因此不含任何步骤。它是一次测量，而不是训练数据，stamp 上的 `implementer` 字段就是经策展的导出所要过滤的依据。[外部实现者说明](../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)拥有这些规则。
 
+## 一个 cell 在自己工作区之外触及了什么
+
+这里的每份记录都以并列布局运行其 cell——每个 cell 工作区都直接位于运行目录之下，与 `plan.json`、运行日志以及同一 fleet 的其他所有 cell 并排——而日期在 2026-09-08 及更早的记录都是无约束运行的，因此没有任何东西阻止一个 cell 读取其中任何内容。[`tools/census-escapes.mjs`](tools/census-escapes.mjs) 读取一份记录，按 cell 报告其路径参数指向运行目录或另一个 cell 的工具调用，以及屏障拒绝的读取；[`tools/record-run.mjs`](tools/record-run.mjs) 在写出每份记录时打印该普查。在这份语料上，它在十份记录中发现了离开自己工作区的 cell：`2026-09-07-bench-h1-harness-loop-t2` 中 12 之 4，`2026-09-07-bench-h1-harness-loop-t4` 中 18 之 11，`2026-09-07-bench-e2-harness-vs-product-t3` 中 36 之 3，`2026-09-08-bench-e1-haiku-vs-sonnet-t3` 中 36 之 8，`2026-09-08-bench-e1-sonnet-vs-opus-t3` 中 36 之 7，`2026-09-08-bench-e2-harness-vs-product-t5` 中 32 之 6，`2026-09-08-bench-e3-attempts1-t3` 中 18 之 7，`2026-09-08-bench-e3-baseline-t3` 中 18 之 3，`2026-09-08-bench-e4-knowledge-pack-t3` 中 18 之 15，以及 `2026-09-08-bench-h1-harness-loop-t5` 中 16 之 9；其余八份记录计数为零，其中七份是因为每个 cell 都被委托给了产品，harness 会话本身不保存任何工具调用，普查看不到受托方做过什么，第八份则是一份单 cell 的冒烟记录。有两次外出改变了一行所测量的东西：在 `2026-09-07-bench-h1-harness-loop-t2` 中，`code:csv-codec` 的 cell `cell-cUuWY2` 运行了 `cp cell-cUuWY2/src/csv.js cell-R8QtdK/src/csv.js`，把自己的解答放进了同一任务另一次重复的工作区；在 `2026-09-08-bench-e2-harness-vs-product-t5` 中，第一个 `code:sheet-eval` 的 cell `cell-Cr3CtN` 把自己的整份解答写进了第二个 cell 的工作区 `cell-XNKQXT`。在一个约束其 cell 的组合下产生的记录——runner 在一次运行期间拒绝每个 cell 访问自己工作区之上的一切——会把这些拒绝作为 `escapesDenied` 带在每一行 scoreboard 与 observatory 行上，因此这个计数从行中读出，而不必从日志重建。
+
 ## 运行列表
 
 | 运行 | Head | 实现者 | 环境 | 已认证 | 尝试次数 | 耗时 |

@@ -45,6 +45,8 @@ interface RowAccumulator {
   paritySessions: number
   /** Sessions whose last recorded run carried the `tampered` verdict. */
   tampered: number
+  /** Reads the barrier refused, summed over the row's sessions. */
+  escapesDenied: number
   /** Composition digest every session so far stated, absent until the first session. */
   compositionSha256: string | undefined
   /** Whether a session stated no digest or a second one, which withholds the row's digest for good. */
@@ -149,6 +151,7 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     parityRateSum: 0,
     paritySessions: 0,
     tampered: 0,
+    escapesDenied: 0,
     compositionSha256: undefined,
     compositionMixed: false,
     digests: new Set<string>(),
@@ -165,6 +168,7 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     row.attemptSum += outcome.runsRecorded
   }
   if (outcome.tamper === 'tampered') row.tampered += 1
+  row.escapesDenied += record.tools.escapesDenied
   agreeComposition(row, record.identity.compositionSha256, first)
   if (outcome.certified) {
     row.certified += 1
@@ -201,6 +205,7 @@ function finish(row: RowAccumulator, ks: readonly number[]): ScoreboardRow {
     runs: row.runs,
     errors: row.errors,
     tampered: row.tampered,
+    escapesDenied: row.escapesDenied,
     ...row.compositionSha256 === undefined || row.compositionMixed
       ? {}
       : { compositionSha256: row.compositionSha256 },

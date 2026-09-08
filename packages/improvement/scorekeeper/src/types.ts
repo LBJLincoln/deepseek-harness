@@ -222,6 +222,14 @@ export interface SessionFactsTools {
   readonly toolTimeouts: number
   /** Tool errors whose recorded `error.code` is the tool runtime's `ABORTED` or `ABORTED_BEFORE_DISPATCH`. */
   readonly toolAborts: number
+  /**
+   * `read-barrier/denied` events: reads a path-opening capability refused
+   * because the barrier denies the directory to this session's role. For a cell
+   * denied everything above its workspace it counts the attempts to leave it,
+   * which is why the column is not a tool-error count: a refused read is
+   * recorded whether or not the tool that asked reported an error.
+   */
+  readonly escapesDenied: number
 }
 
 /** One session log folded into the four fact groups. */
@@ -298,6 +306,13 @@ export interface ScoreboardRow {
    * session that recorded no run carries no verdict to read.
    */
   readonly tampered: number
+  /**
+   * Reads the barrier refused, summed over every session of the row. It counts
+   * attempts rather than sessions, because one cell that reads the run
+   * directory ten times is a different fact from ten cells reading it once; it
+   * is `0` for a row whose sessions ran without a composed barrier.
+   */
+  readonly escapesDenied: number
   /**
    * `compositionSha256` every session of the row states, absent when a session
    * states none or two disagree. A digest covering only part of a row would

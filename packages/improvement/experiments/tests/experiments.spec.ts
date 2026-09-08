@@ -98,6 +98,7 @@ function runReport(cell: FleetCell, group: string, shape: CellShape): Environmen
     certified: shape.certified,
     ...shape.usage === undefined ? {} : { usage: shape.usage },
     caps: CAPS,
+    escapesDenied: 0,
   }
 }
 

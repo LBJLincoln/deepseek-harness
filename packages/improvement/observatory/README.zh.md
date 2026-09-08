@@ -63,6 +63,7 @@
 | Composition digest | 该行每个会话都陈述的摘要；某个会话没有陈述或两者不一致时为 `pending`。 |
 | Held out | 该环境是否保留用于评估。 |
 | Tamper | 会话未记录任何运行的行为 `not instrumented`；有运行发现检查所属文件被改动时为 `tampered <n> of <runs>`；其余为 `no tamper`。 |
+| Escapes denied | 屏障拒绝的读取在该行各会话上的求和：即读取工作区之外的尝试次数；未受限运行的行为 `0`。它与篡改列并列发布，绝不与之合并。 |
 | Resolved | 以自己的名字出现的证书率，带已认证/运行数计数；未记录任何运行的行为 `no run`。 |
 | Parity | 度量了用例的会话上的加权通过率均值，无一度量时为 `none`。 |
 | Cost per certified session | 与为该行定价的那一个价格表摘要并列的成本均值，否则为 `not published`。 |

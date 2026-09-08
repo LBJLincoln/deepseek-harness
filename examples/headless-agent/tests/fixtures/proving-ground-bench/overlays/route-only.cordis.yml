@@ -1,0 +1,48 @@
+# The bench for a plan whose arms all run on the session's own route: the same
+# cells, claiming the isolation this host's executors actually enforce. The base
+# composition claims `none` because its E2 candidate arm delegates to the
+# product, and the runner refuses an out-of-process implementer under any higher
+# claim; an arm set without one can claim what it enforces.
+#
+# Three patches make the claim provable rather than only declared. The runner
+# states `process`; the barrier raises `isolationClaim` to the same level, which
+# is what turns the composed subagent seam's refusal-to-start into
+# `denied-at-executor` in the census and refuses every child start in an
+# implementer session; and the search tool joins the composition because its
+# confined ripgrep spawn is what registers `subprocess` enforcement — without it
+# that capability is composed and unenforced, and a certificate over this
+# composition is refused for it.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - id: environment-runner
+        name: '@deepseek-ai/dsh-environment-runner'
+        config:
+          isolation: process
+          maxAttempts: 3
+          evidenceMaxChars: 2048
+      - id: read-barrier
+        name: '@deepseek-ai/dsh-read-barrier'
+        config:
+          isolationClaim: process
+      - id: tool-fs-search
+        name: '@deepseek-ai/dsh-tool-fs-search'
+        config:
+          sampleOverCapGlobResults: false
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

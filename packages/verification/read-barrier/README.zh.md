@@ -34,6 +34,8 @@
 
 `ctx.readBarrier.protect(path)` 在登记存续期间再拒绝一个目录并返回其 disposer，因此拥有某个目录的插件把它作为 effect 贡献出来，而不是由部署在配置中重复一遍。同一路径的两次登记同时成立；最后一次被释放时该目录才离开被拒集合。
 
+`ctx.readBarrier.denyFor(session, path)` 在登记存续期间对**单个会话**拒绝一个目录，并返回其 disposer。它是 `protect()` 的按会话版本，用于调用方只在一次运行期间持有的目录：[environment runner](../../improvement/environment-runner/README.md) 为每个 cell 拒绝其工作区所在的那个目录，而所有同级 cell 与 runner 自身的会话仍可读取它。对同一会话就同一路径登记两次，两次都生效。
+
 `ctx.readBarrier.enforce(capability)` 记录某个开放路径的能力——`fs`、`shell`、`subprocess`、`terminal`、`subagent` 或 `workflow`——在开放路径的那次操作中拒绝屏障的目录，在登记存续期间有效，并返回其 disposer。被组合却没有登记的能力在普查中记为 `unenforced`，只要还存在这样一条记录，高于 `none` 的隔离声明就会被拒绝。每个消费沙箱的执行器都通过 [`enforceReadBarrier`](../../sandbox/sandbox-policy/README.md) 发起这次调用，因此没有能力会主张其后端从不施加的强制执行。
 
 `ctx.readBarrier.enforceByRefusal(capability)` 是它面向本进程无法围住的执行器的同类方法：worker 线程会取回宿主进程的权限，进程外 agent 自带工具栈，二者都无法在开放路径处拒绝读取。普查取值随 `isolationClaim` 变化——在 `process` 或 `host` 下为 `denied-at-executor`，此时 `startRefusal` 拒绝每一次 implementer 启动；在 `none` 下为带该原因的 `unenforced`，此时该能力照常运行且不执行任何拒绝。
@@ -42,13 +44,15 @@
 
 `ctx.readBarrier.startRefusal(capability, session)` 给出无法在本进程内围住的能力必须返回、以取代启动的确切拒绝文本，可以启动时返回 `undefined`。此类能力的每次启动都在此询问，因此拒绝是在本该开放路径的那次操作中作出的。文案由 `startRefusalMessage(capability, claim)` 拥有。
 
-`deniedReadRoots(policy)` 给出已解析策略实际对其持有者禁止的目录：对 `DENIED_ROLES` 中的角色——`implementer` 与 `judge`——是全部被拒目录，对其他任何角色都为空。由一处判定被拒集合约束哪些角色，因此填充自身拒绝的进程 runner 与进程内的 `denies()` 判定不会产生分歧。
+`deniedReadRoots(policy)` 给出已解析策略实际对其持有者禁止的目录：对 `DENIED_ROLES` 中的角色——`implementer` 与 `judge`——是全部被拒目录，对其他任何角色都为空。由一处判定被拒集合约束哪些角色，因此填充自身拒绝的进程 runner 与进程内的 `denies()` 判定不会产生分歧。`grantedReadRoot(policy)` 是它在被授予工作区一侧的对应物：按同一规则给出该工作区，对其他任何角色为 `undefined`。
+
+**被拒的祖先目录绝不会连带移除会话自己的工作区。** 策略在 `denied` 旁携带 `granted`——会话的 cwd——二者之间有先后：作为该工作区**严格祖先**的被拒目录，拒绝该祖先子树的其余部分，而完整保留该工作区；**就是**该工作区、或位于其内部的被拒目录，则与没有该授予时一样被拒绝。每个施加强制的能力都以自己的方言表达同一先后关系，因此被拒绝读取所在运行目录的 cell 仍能读写自己的文件。
 
 `ctx.readBarrier.declareComposition(agent, { presetId, role })` 记录 preset 名册为某个 agent 组合了什么。声明的角色高于预留，因为只有组合本身知道实际挂载了什么；未作声明的 preset 把判定交回预留。[`dsh-agent-presets`](../../preset/agent-presets/README.md) 是唯一的调用方：会话自身运行的任何东西都不能抬高自己的角色。
 
-`ctx.readBarrier.resolve({ session })` 给出一份 `ReadBarrierPolicy { role, root, denied }`。preset 声明了角色的会话持有该角色；否则持有预留的会话是 `implementer`，其他所有会话以及所有无 agent 的调用都是 `unrestricted`。`denied` 先列出根目录，再列出配置的附加项，最后是各次登记，且不重复。
+`ctx.readBarrier.resolve({ session })` 给出一份 `ReadBarrierPolicy { role, root, denied, granted? }`。preset 声明了角色的会话持有该角色；否则持有预留的会话是 `implementer`，其他所有会话以及所有无 agent 的调用都是 `unrestricted`。`denied` 先列出根目录，再列出配置的附加项，然后是各次 `protect()` 登记，最后是本会话的各次 `denyFor()` 登记，且不重复。`granted` 是该会话自己的 cwd；创建时没有 cwd 的会话以及无 agent 的调用没有该字段。
 
-`ctx.readBarrier.denies(policy, target)` 对已解析的 `FsTarget` 判定包含关系。角色 `validator` 和 `unrestricted` 不被拒绝任何内容。对 `implementer` 或 `judge`，每个被拒目录都在 `ctx.fs.contains` 判定之前立即经 `ctx.fs.resolve` 规范化，因此目标解析之后被替换的祖先符号链接会被抓住；后端无法解析的目录使包含关系无法判定，该读取被拒绝。
+`ctx.readBarrier.denies(policy, target)` 对已解析的 `FsTarget` 判定包含关系。角色 `validator` 和 `unrestricted` 不被拒绝任何内容。对 `implementer` 或 `judge`，每个被拒目录都在 `ctx.fs.contains` 判定之前立即经 `ctx.fs.resolve` 规范化，因此目标解析之后被替换的祖先符号链接会被抓住；后端无法解析的目录使包含关系无法判定，该读取被拒绝。被授予的工作区以同样方式解析，并且只对位于其之上的拒绝起挖空作用；后端无法解析的授予不挖空任何内容，因此拒绝依然成立。
 
 两个被拒角色被拒的是同一集合，理由却不同。`implementer` 不得读取度量它的那份标准；`judge` 同样不得读取，因为交给它的证据背后的检查指令，正是盲审所要扣留的内容——这一安排由 [`@deepseek-ai/dsh-judge`](../judge/README.md) 拥有。
 
@@ -58,7 +62,7 @@
 
 ### 组合普查
 
-在会话的第一条 `request/header` 之前，屏障追加一条仅记录日志的 `read-barrier/scope`，携带 `{ version, role, presetId?, root, denied, census, enforcement }`。`census` 为该会话注册表视图解析出的每个工具各一条 `{ name, authority }`，按工具名排序，因为注册表顺序取决于 Loader 的并发挂载，否则同一组合的两次运行会记录出不同的普查；它使组合的权限成为持久事实而不仅存在于组合时刻。`enforcement` 为每个开放路径的能力各一条，取值 `denied-at-executor`、`unenforced` 或 `not-composed`，能力顺序固定；`unenforced` 条目会带上其能力所记录的 `reason`（若有记录）。当配置了 `hostAttestation` 且校验通过——是一个由另一个操作系统账户拥有、且本账户不可写入的常规文件——屏障在其旁追加一条仅记录日志的 `read-barrier/attestation`，携带 `{ version, path, owner, sha256 }`。文件缺失或无法校验时不记录任何内容并给出一条警告；被拒绝的是它本可支撑的那个声明，而不是整次运行。
+在会话的第一条 `request/header` 之前，屏障追加一条仅记录日志的 `read-barrier/scope`，携带 `{ version, role, presetId?, root, denied, granted?, census, enforcement }`。`granted` 是被拒集合围绕其排序的那个工作区：没有它，一份拒绝了工作区祖先的普查会被读成连该工作区也一并拒绝。`census` 为该会话注册表视图解析出的每个工具各一条 `{ name, authority }`，按工具名排序，因为注册表顺序取决于 Loader 的并发挂载，否则同一组合的两次运行会记录出不同的普查；它使组合的权限成为持久事实而不仅存在于组合时刻。`enforcement` 为每个开放路径的能力各一条，取值 `denied-at-executor`、`unenforced` 或 `not-composed`，能力顺序固定；`unenforced` 条目会带上其能力所记录的 `reason`（若有记录）。当配置了 `hostAttestation` 且校验通过——是一个由另一个操作系统账户拥有、且本账户不可写入的常规文件——屏障在其旁追加一条仅记录日志的 `read-barrier/attestation`，携带 `{ version, path, owner, sha256 }`。文件缺失或无法校验时不记录任何内容并给出一条警告；被拒绝的是它本可支撑的那个声明，而不是整次运行。
 
 屏障还在 `agent/created` 时于每个 agent 自己的 context 上登记一个 `ctx.tools.guard()`，拒绝任何其定义携带了该会话角色所禁权限的执行。守卫在所有 `tools/pre-execute` 监听器之后运行且是单调的，因此后续监听器无法把拒绝翻转回允许。`mountPreset` 审计覆盖 preset 的组合；守卫覆盖此后注册进 agent 自身层的工具。
 

@@ -185,4 +185,11 @@ export interface EnvironmentRunReport {
    * the session's own route is allowed to be.
    */
   readonly caps: readonly BudgetCap[]
+  /**
+   * Reads the barrier refused this cell, counted from the `read-barrier/denied`
+   * records its own session log carries. `0` for a run that stayed inside its
+   * workspace and for every run in a composition without a barrier, where
+   * nothing is denied and nothing is recorded.
+   */
+  readonly escapesDenied: number
 }

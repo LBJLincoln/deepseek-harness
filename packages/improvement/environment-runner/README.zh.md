@@ -36,17 +36,19 @@
 | `maxFailedCases`（默认 `20`） | 一条检查结果列名的失败用例数量。其余失败用例仍计入统计与权重，只是不再逐条列名，这正是让数百用例的运行不撑满日志的手段。 |
 | `topP`（可选） | 每次运行的每一次请求所要求的核采样质量，取值 0 到 1。它是部署选择而非逐次运行的选择：只有在每个 cell 都以同样方式采样时套件才可比。不配置则保持组合自身的采样。 |
 
-该服务需要 `environments`、`agents`、`agentDefaultModel`、`goals`、`completionStandards`、`shell` 与 `sessions`。当组合提供 [`ctx.readBarrier`](../../verification/read-barrier/README.md) 时它也会使用；没有它时本次运行不预留任何目录，检查就地执行其指令，这正是 `isolation: none` 声明已经表达的含义。命名了 subagent 实现者的运行还会使用 [`ctx.subagents`](../../subagent/subagent/README.md)。
+该服务需要 `environments`、`agents`、`agentDefaultModel`、`goals`、`completionStandards`、`shell` 与 `sessions`。当组合提供 [`ctx.readBarrier`](../../verification/read-barrier/README.md) 时它也会使用；没有它时本次运行不预留任何目录、不拒绝工作区之上的任何内容，检查就地执行其指令，这正是 `isolation: none` 声明已经表达的含义。命名了 subagent 实现者的运行还会使用 [`ctx.subagents`](../../subagent/subagent/README.md)。
 
 ## Service contract
 
 `ctx.environmentRuns.run({ environment, workspace, implementer?, model?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 返回 stamp、每次尝试一条记录、某次运行通过时的证书、累计的 `usage`，以及该 cell 运行所处的 `caps`。它从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由、配置的隔离级别，以及 `implementer` 名称。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
 
+组合了屏障时，本次运行还会在整个运行期间，通过 `ctx.readBarrier.denyFor` 对该 cell 拒绝其工作区所在的目录——`dirname(workspace)`——并在运行结束时释放该登记。fleet 把每个 cell 的工作区都布置为运行目录下的同级目录，因此这一条拒绝同时覆盖该次运行的 plan、日志以及其他所有 cell；改为逐个列出同级目录，会让运行目录本身仍可列举，而这本身就说明了该 cell 所属的实验。屏障在该拒绝之下授予会话自己的工作区，因此 cell 读写自己的文件不受影响。未组合屏障时不拒绝任何内容，这正是 `isolation: none` 声明本就表达的含义。
+
 组合了屏障时，本次运行在写入 stamp 之前预留 `<barrier root>/runs/<sessionId>/`，把留出环境的夹具复制到其中的 `fixture/`、把任何[已声明的参考程序](#the-staged-reference)复制到其中的 `reference/`，并把每次尝试的检查命令改写为 source 该预留目录中的一个脚本。预留目录在实现者的第一个轮次之前以及每次尝试时都会被写入 `standard.json` 以及每个活动检查一个 `checks/<checkId>/` 目录，其中存放该检查的 `run` 脚本，若该检查携带用例，还存放这些用例所在的 `cases.jsonl`——因此实现者看到的命令行指向一个屏障拒绝它读取内容的文件。检查 id 不是单个路径段，或预留路径无法被检查命令行以不加引号的方式承载时，本次运行都会以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。
 
 每次尝试把提示词交给实现者并等待其工作结束，随后[对检查方拥有的集合求摘要](#tamper-on-check-owned-paths)，再次把 `task.immutable` 所列的每个路径从 fixture 复制到工作区，使实现者对验证者所有文件的改动绝不会到达检查，而其他文件保持实现者留下的样子，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查。不带用例的检查只运行一次：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。带用例的检查[每个用例运行一次](#weighted-cases-and-the-reservation)。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件，任一检查带用例时携带 `parity`——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 [directive](#the-clustered-directive)，在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带它。
 
-报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果与工作区摘要、`certified`、某次运行通过时的证书，以及对会话全部 assistant 消息求和的模型用量。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
+报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其检查结果与工作区摘要、`certified`、某次运行通过时的证书、对会话全部 assistant 消息求和的模型用量，以及 `escapesDenied`——该 cell 自身日志中的 `read-barrier/denied` 记录条数；对停留在自己工作区内的 cell，以及所有没有屏障的运行，它为 `0`。scorekeeper（记分员）从持久化日志中折叠出同样的记录，因此报告与其计分板列不会产生分歧。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
 
 `EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE`、`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED`、`ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写；`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 拒绝环境或组合无法支持的参考程序预置。`resolveConfig(config)` 是导出的默认值解析步骤。
 

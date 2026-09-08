@@ -87,12 +87,13 @@
 | `toolErrors` | 模型可见块报告错误的 `tool/result` 事件 |
 | `toolTimeouts` | 其中 `error.code` 为 `TOOL_TIMEOUT` 的（`@deepseek-ai/dsh-tool-call-timeout-policy`） |
 | `toolAborts` | 其中 `error.code` 为 `ABORTED` 或 `ABORTED_BEFORE_DISPATCH` 的（`@deepseek-ai/dsh-tools`） |
+| `escapesDenied` | `read-barrier/denied` 事件：开放路径的能力对该会话拒绝的读取（[`dsh-read-barrier`](../../verification/read-barrier/README.md)） |
 
 ## Scoreboard rows
 
 一行是一个模型路由与一个实现者在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨实现者、隔离级别、该划分或跨区求平均，因此同一环境上的外部 coding agent 与 harness 自身路由保持为两行，按区扣留的发布也是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而不是缺失的行。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；token 求和覆盖该行的每个会话，含出错的会话。
 
-另有三列陈述发布在这些比率之外所需要的东西。`tampered` 统计最后一次记录运行带 `tampered` 裁决的会话；一行的 `errors` 恰好就是它的未插桩会话，因为没有记录运行的会话没有裁决可读。`compositionSha256` 是该行每个会话都陈述的摘要，某个会话没有陈述或两者不一致时缺席，因此只覆盖一行中一部分的摘要绝不归因整行。`certificateExecutors` 按首次出现顺序保存该行已认证会话的去重 executor：没有认证任何东西的行为空，有两个或更多则表示该行的证书彼此不一致，任何单一 executor 都不得与其比率并列发布。
+另有四列陈述发布在这些比率之外所需要的东西。`escapesDenied` 把屏障拒绝的读取在该行各会话上求和，因此「一个 cell 十次尝试读取工作区之外」与「十个 cell 各尝试一次」是不同的事实；对未组合屏障运行的行，它为 `0`——那里既没有拒绝，也没有记录。`tampered` 统计最后一次记录运行带 `tampered` 裁决的会话；一行的 `errors` 恰好就是它的未插桩会话，因为没有记录运行的会话没有裁决可读。`compositionSha256` 是该行每个会话都陈述的摘要，某个会话没有陈述或两者不一致时缺席，因此只覆盖一行中一部分的摘要绝不归因整行。`certificateExecutors` 按首次出现顺序保存该行已认证会话的去重 executor：没有认证任何东西的行为空，有两个或更多则表示该行的证书彼此不一致，任何单一 executor 都不得与其比率并列发布。
 
 `certificateRate` 与 `parity` 是两列，并且始终是两列。证书度量——`certified`、`certificateRate` 以及建立在它之上的 `stats` 估计——说的是每个活动检查的每个用例都通过了。`parity` 是该行度量了用例的会话上 `weightPassed / weightTotal` 的均值，没有任何这样的会话的行没有它；无论一个会话被多少用例采样，它都只计一次。本包渲染的任何东西都不把二者合并成一个分数，也不跨它们排名：达到了标准大部分用例权重的行与取得证书的行，是关于这份工作的两个不同事实，做排名的消费方只读其中一列。[ProgramBench 的区分](../../../.agents/notes/proposed/architecture/2026-09-06-competitive-baselines.md)正是同一个。
 

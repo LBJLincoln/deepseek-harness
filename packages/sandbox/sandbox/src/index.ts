@@ -51,6 +51,18 @@ export interface SandboxExecutionPolicy {
    */
   deniedReadRoots: readonly string[]
   /**
+   * Absolute canonical directory this execution READS whatever
+   * {@link deniedReadRoots} says about an ancestor of it — the read barrier's
+   * granted workspace as `ctx.sandboxPolicy` resolved it for the calling
+   * session, absent for a session that is granted none. A denied root that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory whole; a denied root that IS this directory, or that lies
+   * inside it, denies as it would without the grant. Each backend expresses the
+   * precedence in its own dialect, so a cell that may not read the run directory
+   * it sits in still reads its own workspace.
+   */
+  grantedReadRoot?: string
+  /**
    * Opaque identity of the calling session (the branded `dsh-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives
    * each live session/workspace pair a random private temp directory and SID,

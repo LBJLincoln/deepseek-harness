@@ -34,8 +34,33 @@
 - id: subprocess
   name: '@deepseek-ai/dsh-subprocess-local'
 
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+# workspace-write over the cell session's own cwd, which the runner sets to the
+# cell workspace. The configured root is the fallback for the agentless calls
+# the runner itself makes: the checks run outside every session, so they still
+# read the reservation the cells are denied.
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.cwd()
+
 - id: bash
-  name: '@deepseek-ai/dsh-bash-local'
+  name: '@deepseek-ai/dsh-bash-sandbox'
+
+# A cell reads its own workspace and nothing above it: the runner registers the
+# run directory — the cells' shared parent, which also holds the plan and the
+# run log — as a denied root for the length of each run, and the barrier grants
+# the cell's own workspace beneath it. The claim stays `none` because the E2
+# candidate arm delegates to the product, which runs outside every fence this
+# process installs.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
 
 # The filesystem tools resolve paths against the cell session's cwd, which the
 # runner sets to the cell workspace; the policy loads first so writes and edits

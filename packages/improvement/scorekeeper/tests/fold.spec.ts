@@ -63,7 +63,7 @@ describe('foldSessionFacts', () => {
         costEur: 0,
         pricingDigests: [],
       },
-      tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0 },
+      tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0, escapesDenied: 0 },
     })
   })
 
@@ -257,6 +257,14 @@ describe('foldSessionFacts', () => {
     bare.push('environment/run', stamp())
     bare.push('environment/delegation', { attempt: 1, provider: 'acp', runId: 'child-1', stopReason: 'aborted' })
     expect(foldSessionFacts(header('bare'), bare.events).efficiency.delegated).toBeUndefined()
+
+    // A provider that prices its run without counting its tokens states the
+    // cost alone, and the four token buckets stay at zero rather than absent.
+    const priced = new Log()
+    priced.push('environment/run', stamp())
+    priced.push('environment/delegation', { attempt: 1, provider: 'acp', runId: 'child-1', stopReason: 'completed', reportedCostUsd: 0.02 })
+    expect(foldSessionFacts(header('priced'), priced.events).efficiency.delegated)
+      .toEqual({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.02 })
   })
 
   it('records the cap of the last budget breach', () => {
@@ -296,7 +304,15 @@ describe('foldSessionFacts', () => {
       toolErrors: 4,
       toolTimeouts: 1,
       toolAborts: 2,
+      escapesDenied: 0,
     })
+  })
+
+  it('counts every read the barrier refused, whatever seam refused it', () => {
+    const log = new Log()
+    log.push('read-barrier/denied', { version: 1, role: 'implementer', capability: 'fs', displayPath: '../plan.json', root: '/barrier' })
+    log.push('read-barrier/denied', { version: 1, role: 'implementer', capability: 'shell', displayPath: '..', root: '/barrier' })
+    expect(foldSessionFacts(header('escapes'), log.events).tools).toMatchObject({ escapesDenied: 2, toolErrors: 0 })
   })
 
   it('rejects a verification change the strict stream refuses', () => {

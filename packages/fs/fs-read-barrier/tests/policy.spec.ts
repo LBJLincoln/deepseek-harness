@@ -5,7 +5,7 @@
  */
 
 import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
-import { writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -14,7 +14,8 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { FsReadDenial, FsTarget } from '@deepseek-ai/dsh-fs'
 import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
 import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
-import { Session, SessionId } from '@deepseek-ai/dsh-session'
+import { Session, SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
+import type { SessionHeader } from '@deepseek-ai/dsh-session'
 import * as FsReadBarrier from '../src/index.ts'
 import { readBarrierDenialMessage } from '../src/index.ts'
 
@@ -38,9 +39,16 @@ async function setup() {
   return { ctx, root, workspace }
 }
 
-function agentWithSession(id: string): Agent & { session: Session } {
-  const session = Session.create(SessionId(id))
-  return { id: SessionId(id), session } as unknown as Agent & { session: Session }
+function agentWithSession(id: string, cwd?: string): Agent & { session: Session } {
+  const sessionId = SessionId(id)
+  const header: SessionHeader = {
+    version: SESSION_FORMAT_VERSION,
+    id: sessionId,
+    createdAt: 0,
+    ...cwd === undefined ? {} : { cwd },
+  }
+  const session = Session.create(sessionId, undefined, header)
+  return { id: sessionId, session } as unknown as Agent & { session: Session }
 }
 
 /** Dispatch the waterfall exactly as a read executor does, with a recorded fallthrough. */
@@ -110,6 +118,49 @@ describe('fs/read-intent decisions', () => {
     expect((await decide(ctx, target, { agent })).denial?.code).toBe('FS_READ_BARRIER_DENIED')
     await fiber.dispose()
     expect(await decide(ctx, target, { agent })).toEqual({ denial: undefined, delegated: true })
+  })
+})
+
+describe('a cell denied everything above its workspace', () => {
+  it('reads its own workspace, and nothing in the run directory around it', async () => {
+    const { ctx, root } = await setup()
+    const run = tempRoot('dsh-fs-read-barrier-run-')
+    const workspace = join(run, 'cell-a')
+    const sibling = join(run, 'cell-b')
+    await mkdir(workspace, { recursive: true })
+    await mkdir(sibling, { recursive: true })
+    await writeFile(join(run, 'plan.json'), '{}\n')
+    await writeFile(join(workspace, 'src.txt'), 'work\n')
+    await writeFile(join(sibling, 'src.txt'), 'theirs\n')
+    const agent = agentWithSession('cell', workspace)
+    ctx.readBarrier.reserve(agent)
+    ctx.readBarrier.denyFor(agent.session, run)
+
+    const own = await ctx.fs.resolve(join(workspace, 'src.txt'))
+    expect(await decide(ctx, own, { agent })).toEqual({ denial: undefined, delegated: true })
+    for (const path of [join(run, 'plan.json'), join(sibling, 'src.txt'), run, join(root, 'standard.json')]) {
+      const target = await ctx.fs.resolve(path)
+      expect((await decide(ctx, target, { agent })).denial?.code, path).toBe('FS_READ_BARRIER_DENIED')
+    }
+    // One record per refusal, and none for the read that was allowed.
+    expect(agent.session.events.filter(event => event.type === 'read-barrier/denied')).toHaveLength(4)
+  })
+
+  it('leaves a sibling cell reading the run directory the other cell may not', async () => {
+    const { ctx } = await setup()
+    const run = tempRoot('dsh-fs-read-barrier-sibling-')
+    await writeFile(join(run, 'plan.json'), '{}\n')
+    const sealed = agentWithSession('sealed', run)
+    const other = agentWithSession('other', run)
+    ctx.readBarrier.reserve(sealed)
+    ctx.readBarrier.reserve(other)
+    const dispose = ctx.readBarrier.denyFor(sealed.session, run)
+    const target = await ctx.fs.resolve(join(run, 'plan.json'))
+
+    expect((await decide(ctx, target, { agent: sealed })).denial?.code).toBe('FS_READ_BARRIER_DENIED')
+    expect(await decide(ctx, target, { agent: other })).toEqual({ denial: undefined, delegated: true })
+    dispose()
+    expect(await decide(ctx, target, { agent: sealed })).toEqual({ denial: undefined, delegated: true })
   })
 })
 

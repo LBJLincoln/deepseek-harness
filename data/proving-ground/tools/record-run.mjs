@@ -16,12 +16,15 @@
 //   --elapsed-seconds wall time of the run when the driver did not record it
 //
 // The run directory is written once; an existing target is refused so a
-// recorded run is never rewritten in place.
+// recorded run is never rewritten in place. Recording prints the escape census
+// of the new record (`census-escapes.mjs`), so what each cell reached outside
+// its own workspace is read at the moment the run enters the corpus.
 
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
+import { censusRecord, formatCensus } from './census-escapes.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const RUNS_DIR = resolve(import.meta.dirname, '..')
@@ -166,6 +169,9 @@ function main() {
   }
   writeFileSync(join(target, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
   console.log(`recorded ${relative(REPO_DIR, target)}: ${files.length} files, ${logs.length} session logs, implementers ${stamps.implementers.join(', ') || 'none'}`)
+  // The census reads the run as recorded, so what it prints is what any later
+  // reader of this directory gets from `census-escapes.mjs`.
+  console.log(formatCensus(censusRecord(target)))
 }
 
 main()

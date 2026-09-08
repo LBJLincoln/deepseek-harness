@@ -193,7 +193,7 @@ Messages are projected from the session surface after compaction replacements, e
 
 ## Session facts
 
-The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, implementer, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one. The outcome group carries the last run's `parity` beside `certified`, and a row means it over the sessions that measured cases: the certificate and the weighted pass rate are separate columns, never merged into one score and never ranked across. Two facts a publication reads sit beside them: `tamper` is the last run's verdict, `not-instrumented` for a session that recorded none, and the identity group's `compositionSha256` is the digest of the last `composition/manifest` in the log; a row states the digest only when every session of it states the same one, counts its `tampered` sessions, and lists the distinct executors of its certificates.
+The scorekeeper folds one session log into four groups, served both as the `sessionFacts` projection value of a live session and as the record `ctx.scorekeeper.facts()` reads out of persistence. Every field folds from a named session event; the source event of each one is tabulated in [the package README](../../packages/improvement/scorekeeper/README.md). Cost is one of them: the efficiency group sums the `costEur` the `usage/priced` records themselves state and keeps their `pricingDigests`, taking no pricing table of its own, and withholds the sum entirely when a usage-bearing step went unpriced. A scoreboard row is these records grouped by model route, environment, isolation level, implementer, held-out split, and district, and it carries a cost per certified session only when every certified session of the row states one. The outcome group carries the last run's `parity` beside `certified`, and a row means it over the sessions that measured cases: the certificate and the weighted pass rate are separate columns, never merged into one score and never ranked across. Two facts a publication reads sit beside them: `tamper` is the last run's verdict, `not-instrumented` for a session that recorded none, and the identity group's `compositionSha256` is the digest of the last `composition/manifest` in the log; a row states the digest only when every session of it states the same one, counts its `tampered` sessions and the reads the barrier refused across them, and lists the distinct executors of its certificates.
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -299,6 +299,13 @@ interface ObservatoryPublishedRow {
   readonly tamper: ObservatoryTamper
   /** Sessions of the row whose last recorded run carried the `tampered` verdict. */
   readonly tampered: number
+  /**
+   * Reads the barrier refused, summed over the row's sessions. It is published
+   * beside the tamper column and never merged with it: a refused read is a cell
+   * that tried to leave its workspace, while a tamper is one that changed the
+   * files it was measured with.
+   */
+  readonly escapesDenied: number
   /** Sessions that recorded at least one run. */
   readonly runs: number
   /** Sessions that ended without recording one. */
@@ -549,7 +556,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:845`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:857`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -751,7 +758,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:189`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:190`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxshifts--shiftservice"></a>
 

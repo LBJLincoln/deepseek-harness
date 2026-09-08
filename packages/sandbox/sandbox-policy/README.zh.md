@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-沙箱策略解析的唯一归属位置：部署默认 [`SandboxMode`](../sandbox/README.md) 与回退根目录，每个会话的持久模式覆盖和不可变工作区根目录，以及 read barrier（读屏障）对该会话禁读的目录。每项负责强制执行的能力在每次调用时都会收到一项解析完成的策略；模型在每次请求前会收到当前策略，而不会另收一份能力清单。
+沙箱策略解析的唯一归属位置：部署默认 [`SandboxMode`](../sandbox/README.md) 与回退根目录，每个会话的持久模式覆盖和不可变工作区根目录，以及 read barrier（读屏障）对该会话禁读的目录及其授予的工作区。每项负责强制执行的能力在每次调用时都会收到一项解析完成的策略；模型在每次请求前会收到当前策略，而不会另收一份能力清单。
 
 ## 为何需要共享归属位置
 
@@ -15,7 +15,7 @@
 
 ## 接口
 
-- `ctx.sandboxPolicy.resolve({ session?, mode? })`：解析一项完整的逐调用策略。显式批准的模式优先于会话最后一条 `sandbox/mode` 事件，后者又优先于 `defaultMode`；会话不可变的 `cwd` 会先按文件系统语义规范化，再成为 `workspaceRoot`，否则使用配置的回退值。规范化先于词法归一化，因此 `symlink/..` 与进程工作目录解析保持一致。组合了 [`ctx.readBarrier`](../../verification/read-barrier/README.md) 时，`deniedReadRoots` 来自该服务，并归一化为绝对、规范化且无重复的路径；对其他所有 session 以及未组合 read barrier 的组合，该字段为空。
+- `ctx.sandboxPolicy.resolve({ session?, mode? })`：解析一项完整的逐调用策略。显式批准的模式优先于会话最后一条 `sandbox/mode` 事件，后者又优先于 `defaultMode`；会话不可变的 `cwd` 会先按文件系统语义规范化，再成为 `workspaceRoot`，否则使用配置的回退值。规范化先于词法归一化，因此 `symlink/..` 与进程工作目录解析保持一致。组合了 [`ctx.readBarrier`](../../verification/read-barrier/README.md) 时，`deniedReadRoots` 来自该服务，并归一化为绝对、规范化且无重复的路径；对其他所有 session 以及未组合 read barrier 的组合，该字段为空。`grantedReadRoot` 在其旁携带该屏障授予的工作区，以同样方式规范化，并在同样条件下缺省：作为其严格祖先的禁读根目录会让它保持可读，各后端以自己的方言表达这一点。
 - `ctx.sandboxPolicy.defaultMode`／`ctx.sandboxPolicy.workspaceRoot`：`resolve()` 使用的部署默认值与回退根目录。
 - `enforceReadBarrier(ctx, capability, wrap)`：消费沙箱的执行器调用它，read barrier 的 scope 普查才能把该能力报告为 `denied-at-executor`。它同时等待 `readBarrier`、`sandboxPolicy` 与 `sandbox`，以 read barrier 自身的根目录作为禁读目录来探测 `wrap`，仅在探测成功时登记该主张；探测被拒绝或部署模式不施加限制时，改为登记带原因的 `unenforced`。能力不得主张其后端从不施加的强制执行，因此探测运行的正是真实调用会用的那次包装。
 - `sandbox:policy`：直接派生自 `resolve({ session })` 的请求时缓存安全上下文贡献。它说明该模式中与具体能力无关的文件操作约定，以及 `workspace-write` 下规范化的会话工作区；工具归属方仍负责特定于操作的拒绝与升权引导。

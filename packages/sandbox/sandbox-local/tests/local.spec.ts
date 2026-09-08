@@ -19,7 +19,7 @@ import {
   LocalSandboxProvider,
 } from '@deepseek-ai/dsh-sandbox-local'
 import type { Config } from '@deepseek-ai/dsh-sandbox-local'
-import { bwrapProfileArgs, carveGrant, landlockProfileArgs, seatbeltProfileArgs } from '../src/profiles.ts'
+import { bwrapProfileArgs, carveGrant, landlockProfileArgs, partitionDenied, seatbeltProfileArgs } from '../src/profiles.ts'
 
 const RO: SandboxPolicy = { mode: 'read-only', workspaceRoot: '/ws', deniedReadRoots: [] }
 const WW: SandboxPolicy = { mode: 'workspace-write', workspaceRoot: '/ws', deniedReadRoots: [] }
@@ -162,6 +162,96 @@ describe('the denied read roots each dialect expresses', () => {
     expect(grants).toContain(join(dir, 'sibling'))
     expect(grants.some(grant => grant.startsWith(join(dir, 'blocker')))).toBe(false)
     expect(grants).not.toContain('/')
+  })
+
+  it('landlock leaves a grant whole when a denied root is its ANCESTOR', () => {
+    expect(carveGrant('/run/cell-a', ['/run'], () => ['unreached'])).toEqual(['/run/cell-a'])
+  })
+})
+
+describe('the granted read root each dialect restores', () => {
+  /** A cell under a denied run directory, with one denied directory inside the cell. */
+  const SEALED: SandboxPolicy = {
+    mode: 'workspace-write',
+    workspaceRoot: '/run/cell-a',
+    deniedReadRoots: ['/run', '/run/cell-a/held-out'],
+    grantedReadRoot: '/run/cell-a',
+  }
+
+  it('splits the denied roots into those above the grant and the rest', () => {
+    expect(partitionDenied(SEALED)).toEqual({
+      aboveGrant: ['/run'],
+      rest: ['/run/cell-a/held-out'],
+      grant: '/run/cell-a',
+    })
+  })
+
+  it('states no grant when no denied root is above it, and none when the grant IS denied', () => {
+    expect(partitionDenied({ ...SEALED, deniedReadRoots: ['/srv/standards'] }))
+      .toEqual({ aboveGrant: [], rest: ['/srv/standards'] })
+    expect(partitionDenied({ ...SEALED, deniedReadRoots: ['/run/cell-a'] }))
+      .toEqual({ aboveGrant: [], rest: ['/run/cell-a'] })
+    const { mode, workspaceRoot, deniedReadRoots } = SEALED
+    expect(partitionDenied({ mode, workspaceRoot, deniedReadRoots }))
+      .toEqual({ aboveGrant: [], rest: ['/run', '/run/cell-a/held-out'] })
+  })
+
+  it('bwrap binds the workspace back between the ancestor tmpfs and every other one', () => {
+    expect(bwrapProfileArgs(SEALED)).toEqual([
+      '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--die-with-parent',
+      '--tmpfs', '/tmp', '--bind', '/run/cell-a', '/run/cell-a',
+      '--tmpfs', '/run',
+      '--bind', '/run/cell-a', '/run/cell-a',
+      '--tmpfs', '/run/cell-a/held-out',
+    ])
+  })
+
+  it('bwrap restores a read-only grant under read-only, and nothing when the grant IS denied', () => {
+    expect(bwrapProfileArgs({ ...SEALED, mode: 'read-only' })).toEqual([
+      '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--die-with-parent',
+      '--tmpfs', '/run',
+      '--ro-bind', '/run/cell-a', '/run/cell-a',
+      '--tmpfs', '/run/cell-a/held-out',
+    ])
+    expect(bwrapProfileArgs({ ...SEALED, deniedReadRoots: ['/run/cell-a'] })).toEqual([
+      '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--die-with-parent',
+      '--tmpfs', '/tmp', '--bind', '/run/cell-a', '/run/cell-a',
+      '--tmpfs', '/run/cell-a',
+    ])
+  })
+
+  it('seatbelt allows the workspace after the ancestor deny and before every other deny', () => {
+    const profile = seatbeltProfileArgs(SEALED)[1] as string
+    expect(profile.endsWith(
+      '(deny file-read* (subpath "/run")) '
+      + '(allow file-read* (subpath "/run/cell-a")) '
+      + '(deny file-read* (subpath "/run/cell-a/held-out"))',
+    )).toBe(true)
+  })
+
+  it('seatbelt keeps the deny last when the workspace itself is denied', () => {
+    const profile = seatbeltProfileArgs({ ...SEALED, deniedReadRoots: ['/run/cell-a'] })[1] as string
+    expect(profile.endsWith('(deny file-read* (subpath "/run/cell-a"))')).toBe(true)
+    expect(profile).not.toContain('(allow file-read*')
+  })
+
+  it('landlock grants the carved workspace back, without the denied directory inside it', () => {
+    const tree: Record<string, string[]> = {
+      '/': ['bin', 'run'],
+      '/run': ['cell-a', 'cell-b'],
+      '/run/cell-a': ['src', 'held-out'],
+    }
+    const grants = landlockProfileArgs(SEALED, path => tree[path] ?? [])
+    expect(grants).toEqual([
+      '--ro', '/bin', '--ro', '/run/cell-a/src',
+      '--rw', '/dev/null', '--rw', '/tmp', '--rw', '/run/cell-a/src',
+    ])
+  })
+
+  it('landlock grants nothing back when the workspace itself is denied', () => {
+    const tree: Record<string, string[]> = { '/': ['bin', 'run'], '/run': ['cell-a', 'cell-b'] }
+    const grants = landlockProfileArgs({ ...SEALED, deniedReadRoots: ['/run/cell-a'] }, path => tree[path] ?? [])
+    expect(grants).toEqual(['--ro', '/bin', '--ro', '/run/cell-b', '--rw', '/dev/null', '--rw', '/tmp'])
   })
 
   it('windows-acl refuses the wrap, naming the backend and the root it cannot deny', async () => {

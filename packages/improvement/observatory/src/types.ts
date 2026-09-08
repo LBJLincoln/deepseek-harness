@@ -96,6 +96,13 @@ export interface ObservatoryPublishedRow {
   readonly tamper: ObservatoryTamper
   /** Sessions of the row whose last recorded run carried the `tampered` verdict. */
   readonly tampered: number
+  /**
+   * Reads the barrier refused, summed over the row's sessions. It is published
+   * beside the tamper column and never merged with it: a refused read is a cell
+   * that tried to leave its workspace, while a tamper is one that changed the
+   * files it was measured with.
+   */
+  readonly escapesDenied: number
   /** Sessions that recorded at least one run. */
   readonly runs: number
   /** Sessions that ended without recording one. */

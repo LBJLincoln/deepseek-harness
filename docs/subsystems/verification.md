@@ -189,7 +189,7 @@ The five durable events (`verification/standard`, `verification/relaxation`, `ve
 
 ## The read barrier
 
-Types the read barrier decides from, declared by [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md). A session's role decides what it may read; a reservation is what makes a session the implementer.
+Types the read barrier decides from, declared by [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md). A session's role decides what it may read; a reservation is what makes a session the implementer. A policy carries the session's own workspace beside the denied set, and the two are ordered: a denied directory that is a strict ancestor of the workspace denies the rest of that ancestor's subtree and leaves the workspace whole, which is what lets a runner deny a cell everything above its own directory.
 
 ```ts type-equiv
 /**
@@ -232,8 +232,16 @@ interface ReadBarrierPolicy {
   readonly role: ReadBarrierRole
   /** The barrier's own validator-owned root, always the first denied directory. */
   readonly root: string
-  /** Every denied directory: the root, the configured extras, and the registered ones. */
+  /** Every denied directory: the root, the configured extras, the registered ones, and those registered for this session. */
   readonly denied: readonly string[]
+  /**
+   * The session's own workspace, granted whole. A denied directory that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory readable; a denied directory that IS this one, or that lies
+   * inside it, denies as it would without the grant. Absent for a session
+   * created without a cwd and for every agentless call, which grant nothing.
+   */
+  readonly granted?: string
 }
 ```
 
@@ -479,6 +487,21 @@ reservation(agent: Agent): string | undefined
 protect(path: string): () => void
 
 /**
+ * Deny one more directory for ONE session, for as long as the registration
+ * lives. It is the per-session sibling of {@link protect}, for a directory a
+ * caller owns only while one run lasts: a runner denies each cell the
+ * directory its workspace sits in, which the sessions of the other cells and
+ * of the runner itself keep reading.
+ *
+ * The session's own workspace survives the registration whenever the denied
+ * directory is a strict ancestor of it — see {@link ReadBarrierPolicy.granted}.
+ * @param session - the session the directory is denied to.
+ * @param path - absolute or `~`-prefixed directory to deny.
+ * @returns the registration's disposer.
+ */
+denyFor(session: Session, path: string): () => void
+
+/**
  * Record that one capability denies the barrier's directories in the
  * operation that opens paths, for as long as the registration lives. The
  * scope census reports a composed capability without one as `unenforced`, and
@@ -541,7 +564,7 @@ declareComposition(agent: Agent, composition: ReadBarrierComposition): void
  * is the implementer, and every other session and every agentless call is
  * unrestricted.
  * @param request - the calling session, when there is one.
- * @returns the role, the barrier root, and every denied directory.
+ * @returns the role, the barrier root, every denied directory, and the session's granted workspace.
  */
 resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy
 
@@ -561,6 +584,11 @@ enforcementCensus(): ReadBarrierEnforcementEntry[]
  * directory is canonicalized through the filesystem seam immediately before
  * its containment test, so an ancestor symlink swapped since the target was
  * resolved is caught. A target whose containment cannot be decided is denied.
+ *
+ * The policy's granted workspace outranks a denied directory that is a strict
+ * ancestor of it, and only that one: the rest of the ancestor's subtree stays
+ * denied, and a denied directory that IS the workspace or lies inside it
+ * denies as it would without a grant.
  * @param policy - the policy {@link resolve} returned for this call.
  * @param target - the already-resolved target the caller is about to read.
  * @returns true when the read must be refused.
@@ -581,5 +609,5 @@ recordDenial( session: Session, policy: ReadBarrierPolicy, capability: ReadBarri
 
 Types: [Agent](core.md) · [FsTarget](filesystem.md) · [Session](session.md)
 
-Source: [`packages/verification/read-barrier/src/index.ts:308`](../../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:322`](../../packages/verification/read-barrier/src/index.ts)
 <!-- END GENERATED cordis-surface -->

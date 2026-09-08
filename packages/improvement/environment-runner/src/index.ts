@@ -2,7 +2,8 @@
  * Environment runner: the automated validator that runs one registered
  * environment as one fresh session. It stamps the session with the
  * environment it runs, authors the completion standard from the environment's
- * checks, has each attempt implemented either by the session's own model route
+ * checks, denies the cell everything above its own workspace for the length of
+ * the run, has each attempt implemented either by the session's own model route
  * or by an out-of-band coding agent started through the subagent seam, restores
  * the fixture's immutable paths and executes the checks through the shell
  * executor after each attempt, records the run, and completes the goal only
@@ -821,6 +822,17 @@ class DelegationDeadline {
  */
 type AttemptOutcome = 'ran' | 'cut-short' | 'blocked'
 
+/**
+ * Count the reads the barrier refused in one session log. It is the cell's own
+ * record of leaving its workspace, so a scorekeeper that folds the log and a
+ * caller that reads the report agree without a second source.
+ * @param events - the cell session's log.
+ * @returns the `read-barrier/denied` records it carries.
+ */
+function deniedReads(events: readonly SessionEvent[]): number {
+  return events.filter(event => event.type === 'read-barrier/denied').length
+}
+
 /** Sum the usage of every assistant message in a session log. */
 function totalUsage(events: readonly SessionEvent[]): TokenUsage | undefined {
   const steps = events.flatMap(event => (
@@ -921,11 +933,33 @@ export class EnvironmentRunner extends Service {
         })
       },
     })
+    const sealed = this.sealWorkspace(handle.agent, request.workspace)
     try {
       return await this.drive(handle.agent, definition, stamp, request, implementer)
     } finally {
+      sealed()
       await handle.dispose()
     }
+  }
+
+  /**
+   * Deny this cell everything above its own workspace for as long as the run
+   * lasts. The parent directory is what the denial names rather than each
+   * sibling: it holds the run's plan and log as well as the other cells, so
+   * listing it or reading one file in it leaks the experiment the cell is part
+   * of. The barrier grants the session's own workspace beneath it, so the
+   * denial reaches everything above the cell and nothing inside it.
+   *
+   * A composition without a barrier denies nothing, exactly as its `isolation`
+   * claim says, and the registration is a disposer either way.
+   * @param agent - the cell agent whose session the denial binds.
+   * @param workspace - the run's workspace; its parent is the denied directory.
+   * @returns the registration's disposer, a no-op without a composed barrier.
+   */
+  private sealWorkspace(agent: Agent, workspace: string): () => void {
+    const barrier = this.ctx.get('readBarrier')
+    if (barrier === undefined) return () => {}
+    return barrier.denyFor(agent.session, dirname(workspace))
   }
 
   /** The composition's default model route, detached from the selection service. */
@@ -1111,6 +1145,7 @@ export class EnvironmentRunner extends Service {
       ...certificate === undefined ? {} : { certificate },
       ...usage === undefined ? {} : { usage },
       caps: this.cellCaps(implementer),
+      escapesDenied: deniedReads(agent.session.events),
     }
   }
 

@@ -37,6 +37,7 @@ const COLUMNS: readonly string[] = [
   'Composition digest',
   'Held out',
   'Tamper',
+  'Escapes denied',
   'Resolved',
   'Parity',
   'Cost per certified session',
@@ -106,7 +107,7 @@ function costCell(row: ObservatoryPublishedRow): string {
   return `€${row.costEurPerCertified.toFixed(6)} · ${row.pricingDigest}`
 }
 
-/** The twelve cells of one published row, in column order. */
+/** The thirteen cells of one published row, in column order. */
 function cells(row: ObservatoryPublishedRow): readonly string[] {
   return [
     `${row.provider}/${row.model}`,
@@ -118,6 +119,7 @@ function cells(row: ObservatoryPublishedRow): readonly string[] {
     row.compositionSha256 ?? 'pending',
     row.heldOut ? 'yes' : 'no',
     tamperCell(row),
+    String(row.escapesDenied),
     resolvedCell(row),
     row.parity === undefined ? 'none' : percent(row.parity),
     costCell(row),
