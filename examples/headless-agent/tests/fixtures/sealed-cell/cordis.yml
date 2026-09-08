@@ -1,0 +1,88 @@
+# Test-only composition: the bench's confinement over one cell, without the
+# bench. It is the proving-ground-bench stack — the local sandbox, the
+# workspace-write policy, the sandbox-confined bash, the read barrier, and the
+# filesystem tools — around a runner that stays at `isolation: none`, exactly as
+# the bench's base composition does for its delegated arm.
+- id: sealed-cell-llm
+  name: './sealed-cell-llm.ts'
+
+# Managed child-process groups for the confined bash executor.
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+# The configured root is the fallback for the agentless calls the runner makes
+# for its checks; a cell's own calls resolve its session cwd instead.
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.cwd()
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-sandbox'
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environment
+  name: './register-environment.ts'
+
+# The runner creates its own agent per run from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: sealed-cell
+    model: sealed-cell
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 1
+    evidenceMaxChars: 512
+
+# Village rule: a composition that runs unattended sessions carries a session
+# budget. The caps are far out of reach of the mock route, so no run breaches them.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 5000000
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run the registered environment as a validated session.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
