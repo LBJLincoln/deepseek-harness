@@ -16,6 +16,7 @@ data/proving-ground/
     observatory.json     the observatory snapshot the page was rendered from
     observatory.html     the rendered observatory page
     sessions/            the cell session logs, one JSONL file per cell, named by session id
+  folds/<date>-<candidate>-against-<baseline>-<tier>.json   an offline paired fold of two recorded fleets that differ by a composition overlay
 ```
 
 ## Running one
@@ -141,6 +142,11 @@ A delegated cell's certificate proves that the runner authored the standard befo
 | [2026-09-08-bench-e1-sonnet-vs-opus-t3](2026-09-08-bench-e1-sonnet-vs-opus-t3/manifest.json) | `e35ec6490` | `route`, `sonnet` vs `opus` | `code:trie-index` | 2 of 2 vs 2 of 2 | 1 each | 70, 116 s vs 85, 82 s |
 | [2026-09-08-bench-e1-sonnet-vs-opus-t3](2026-09-08-bench-e1-sonnet-vs-opus-t3/manifest.json) | `e35ec6490` | `route`, `sonnet` vs `opus` | `code:union-find-rollback` | 2 of 2 vs 2 of 2 | 1 each | 166, 137 s vs 76, 69 s |
 | [2026-09-08-bench-e1-sonnet-vs-opus-t3](2026-09-08-bench-e1-sonnet-vs-opus-t3/manifest.json) | `e35ec6490` | `route`, `sonnet` vs `opus` | `code:url-template` | 2 of 2 vs 2 of 2 | 1 and 2 vs 1 each | 573, 525 s vs 137, 137 s |
+
+| [2026-09-08-bench-e3-baseline-t3](2026-09-08-bench-e3-baseline-t3/manifest.json) | `f6b1eb781` | `route` (harness loop on `claude-code`/`sonnet`), three attempts allowed | nine tier-3 environments | 18 of 18 | 1 each | 3959 s of cell time, median 169 s |
+| [2026-09-08-bench-e3-attempts1-t3](2026-09-08-bench-e3-attempts1-t3/manifest.json) | `f6b1eb781` | `route` (harness loop on `claude-code`/`sonnet`), one attempt allowed | nine tier-3 environments | 18 of 18 | 1 each | 4356 s of cell time, median 195 s |
+
+The fifteenth and sixteenth records are the first offline fold, the attempt-cap hypothesis: the same nine tier-3 environments and two repetitions run twice as fleets that differ only by the composition overlay that caps the runner at one attempt instead of three, then folded by the bench's fold driver into the same paired certificate-rate delta an experiment computes ([folds/2026-09-08-e3-attempts1-against-baseline-t3.json](folds/2026-09-08-e3-attempts1-against-baseline-t3.json)). Both fleets certified 18 of 18 at the first attempt, so the delta is 0 with interval [0, 0] and the fold says nothing about attempts: the baseline never used its second or third attempt, and a cap on attempts cannot show an effect where no attempt beyond the first is taken. The tier where attempts were taken is tier 5, where the eleventh record's harness loop certified three cells at the second attempt; the attempt-cap comparison belongs there and is queued behind the budget-parity slice.
 
 The fourteenth record is the third frozen paired experiment, the largest product model as the candidate arm against the middle one, on the same nine tier-3 environments and the harness loop: 36 cells, 3,024 s of wall time. Both arms certified 18 of 18, so the verdict is inconclusive on certificates for the third time on this tier, and the baseline arm needed a second attempt on two cells this time where its earlier runs needed none, which is the run-to-run variance a paired design absorbs. The largest model was the cheaper implementer on every other measure: 156 model steps against 208, 2,070 s of cell time against 3,948 (median 118 s against 165), 166,606 output tokens against 367,172, and 2,071,448 cache-write tokens against 3,635,010. Across the thirteenth and fourteenth records the three product models order by spend, not by certificates: the largest spends the least on the harness loop because it takes the fewest steps, and every step of this route rewrites the prefix.
 

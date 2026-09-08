@@ -5,9 +5,17 @@
 # The route below is never sampled: a delegated cell drives no turn of its own
 # model. It is composed because the runner still creates one cell agent per
 # cell, and that agent's session is where the stamp, the standard, the
-# delegation records, and the certificate live.
-- id: cli-mock-llm
-  name: '../cli-mock-llm.ts'
+# delegation records, and the certificate live; its catalog names the product
+# model the cell is stamped with, which the delegation forwards to the child.
+- id: llm-claude-code
+  name: '@deepseek-ai/dsh-llm-claude-code'
+  config:
+    provider: claude-code
+    models:
+      - id: sonnet
+        name: Claude Code sonnet
+        productModel: sonnet
+        contextWindow: 200000
 
 # Managed child-process groups for the bash executor and for the product CLI the
 # Claude Code provider spawns.
@@ -37,8 +45,8 @@
 - id: agent-default-model
   name: '@deepseek-ai/dsh-agent-default-model'
   config:
-    provider: cli-mock
-    model: cli-mock
+    provider: claude-code
+    model: sonnet
 
 - id: subagents
   name: '@deepseek-ai/dsh-subagent'
@@ -155,8 +163,8 @@
             filter:
               heldOut: false
           models:
-            - provider: cli-mock
-              model: cli-mock
+            - provider: claude-code
+              model: sonnet
           implementer:
             kind: subagent
             provider: claude-code

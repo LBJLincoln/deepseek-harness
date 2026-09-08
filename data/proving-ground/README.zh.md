@@ -16,6 +16,7 @@ data/proving-ground/
     observatory.json     the observatory snapshot the page was rendered from
     observatory.html     the rendered observatory page
     sessions/            the cell session logs, one JSONL file per cell, named by session id
+  folds/<date>-<candidate>-against-<baseline>-<tier>.json   an offline paired fold of two recorded fleets that differ by a composition overlay
 ```
 
 ## 运行一次
@@ -141,6 +142,11 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-08-bench-e1-sonnet-vs-opus-t3](2026-09-08-bench-e1-sonnet-vs-opus-t3/manifest.json) | `e35ec6490` | `route`，`sonnet` 对 `opus` | `code:trie-index` | 2 之 2 对 2 之 2 | 各 1 | 70、116 s 对 85、82 s |
 | [2026-09-08-bench-e1-sonnet-vs-opus-t3](2026-09-08-bench-e1-sonnet-vs-opus-t3/manifest.json) | `e35ec6490` | `route`，`sonnet` 对 `opus` | `code:union-find-rollback` | 2 之 2 对 2 之 2 | 各 1 | 166、137 s 对 76、69 s |
 | [2026-09-08-bench-e1-sonnet-vs-opus-t3](2026-09-08-bench-e1-sonnet-vs-opus-t3/manifest.json) | `e35ec6490` | `route`，`sonnet` 对 `opus` | `code:url-template` | 2 之 2 对 2 之 2 | 1 与 2 对 各 1 | 573、525 s 对 137、137 s |
+
+| [2026-09-08-bench-e3-baseline-t3](2026-09-08-bench-e3-baseline-t3/manifest.json) | `f6b1eb781` | `route`（harness 循环，走 `claude-code`/`sonnet`），允许三次尝试 | 九个第 3 层环境 | 18 之 18 | 各 1 | 单元合计 3959 s，中位数 169 s |
+| [2026-09-08-bench-e3-attempts1-t3](2026-09-08-bench-e3-attempts1-t3/manifest.json) | `f6b1eb781` | `route`（harness 循环，走 `claude-code`/`sonnet`），只允许一次尝试 | 九个第 3 层环境 | 18 之 18 | 各 1 | 单元合计 4356 s，中位数 195 s |
+
+第十五与第十六份记录是第一个离线折叠，即尝试次数上限假设：同样九个第 3 层环境与两次重复，作为两支舰队各运行一次，两者只在把运行器的尝试次数从三次限制为一次的组合叠加层上不同，然后由基准的折叠驱动折成与实验相同的配对证书率差值（[folds/2026-09-08-e3-attempts1-against-baseline-t3.json](folds/2026-09-08-e3-attempts1-against-baseline-t3.json)）。两支舰队都以第一次尝试认证了 18 之 18 个单元，因此差值为 0，区间为 [0, 0]，这个折叠对尝试次数没有任何说明：基线从未用到第二或第三次尝试，而在没有任何超出首次的尝试被使用之处，尝试上限不可能显示出效应。真正用到多次尝试的是第 5 层，第十一份记录中 harness 循环有三个单元在第二次尝试获得认证；尝试上限的比较属于那里，排在预算对等切片之后。
 
 第十四份记录是第三个冻结配对实验：以最大的产品模型为候选臂、中等模型为基线臂，同样九个第 3 层环境与 harness 循环，36 个单元，用时 3,024 s。两臂都认证了 18 之 18 个单元，因此就证书而言这一层第三次得到不确定的结论；基线臂这次有两个单元需要第二次尝试，而它之前的运行一次都不需要，这正是配对设计所吸收的运行间波动。在其他每一项度量上，最大的模型都是更省的实现者：156 个模型步骤（对方 208），单元用时合计 2,070 s（对方 3,948，中位数 118 s 对 165 s），输出 token 166,606 个（对方 367,172），缓存写入 token 2,071,448 个（对方 3,635,010）。综合第十三与第十四份记录，三个产品模型按花费而非按证书排序：最大的模型在 harness 循环上花费最少，因为它走的步骤最少，而这条路由的每一步都要重写前缀。
 
