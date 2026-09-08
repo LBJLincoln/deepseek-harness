@@ -16,7 +16,7 @@ data/proving-ground/
     observatory.json     the observatory snapshot the page was rendered from
     observatory.html     the rendered observatory page
     sessions/            the cell session logs, one JSONL file per cell, named by session id
-  folds/<date>-<candidate>-against-<baseline>-<tier>.json   an offline paired fold of two recorded fleets that differ by a composition overlay
+  folds/<date>-<candidate>-against-<baseline>-<tier>.json   an offline paired fold of two recorded fleets that differ by a composition overlay, or a counterfactual of one recorded fleet re-read under a cap
 ```
 
 ## 运行一次
@@ -147,6 +147,8 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-08-bench-e3-attempts1-t3](2026-09-08-bench-e3-attempts1-t3/manifest.json) | `f6b1eb781` | `route`（harness 循环，走 `claude-code`/`sonnet`），只允许一次尝试 | 九个第 3 层环境 | 18 之 18 | 各 1 | 单元合计 4356 s，中位数 195 s |
 
 | [2026-09-08-bench-e4-knowledge-pack-t3](2026-09-08-bench-e4-knowledge-pack-t3/manifest.json) | `490eb48bc` | `route`（harness 循环，走 `claude-code`/`sonnet`），挂载 2026-q3 知识包 | 九个第 3 层环境 | 18 之 18 | 各 1 | 单元合计 5433 s，中位数 336 s |
+
+第十一与第十二份记录的一个反事实折叠，写于第 5 层的确认性配对运行之前，把尝试次数上限假设带到真正用到多次尝试的层级（[folds/2026-09-08-attempts1-counterfactual-against-harness-loop-t5.json](folds/2026-09-08-attempts1-counterfactual-against-harness-loop-t5.json)、[folds/2026-09-08-attempts1-counterfactual-against-product-loop-t5.json](folds/2026-09-08-attempts1-counterfactual-against-product-loop-t5.json)）：每个单元的结果被替换为其第一次尝试单独的结果，这正是同一次运行在上限为一次尝试时会记录下的结果，因为第一次尝试无法观察到其后的尝试。在 harness 循环上，这个上限使 11 张证书损失 3 张（`code:diff3-merge` 两次、`code:lex-states` 一次，均在一条指令之后于第二次尝试中挽回），delta −0.1875，区间 [−0.25, −0.125]，对受限候选方的裁决为 reject；在产品循环上，这个上限没有任何代价，delta 0，区间 [0, 0]，因为它失败的五个单元没有一个在第二或第三次尝试中挽回。两个区间各自只对一次运行的 16 个单元重采样，不包含运行间方差，因此比配对运行得到的区间更窄；在经过审计的第 5 层任务上运行配对的尝试次数上限舰队才是确认步骤，在它落地之前，这个折叠是运行器的指令在 harness 循环上把失败转化为证书、而在产品循环上没有的证据，不是一次晋升。
 
 第十七份记录是知识包折叠：同样九个第 3 层环境与两次重复，使用把八个主题的 2026-q3 知识包作为会话技能目录提供的组合叠加层运行，并与第十五份记录的基线折叠（[folds/2026-09-08-e4-knowledge-pack-against-baseline-t3.json](folds/2026-09-08-e4-knowledge-pack-against-baseline-t3.json)）：两侧都以第一次尝试认证了 18 之 18 个单元，差值为 0，区间为 [0, 0]。知识包从未被打开：2,778 个字符的目录出现在每个请求中，而没有任何单元发出过技能调用，因此这个折叠度量的是一个模型读到却忽略的目录，而不是被使用的知识。该舰队的单元合计用时 5,433 s，基线为 3,959 s；输出 token 482,920 个，基线为 339,331 个，高于记录在案的其他四支 sonnet 第 3 层舰队（339,331 至 367,172）；单独一支舰队无法说明这是目录造成的还是运行间波动。这个知识包原本要检验的假设，即作为技能提供的与任务相关的知识会改变结果，需要一个其主题为任务所需的知识包；这个包保存的是研究语料，而这些任务并不需要它。
 

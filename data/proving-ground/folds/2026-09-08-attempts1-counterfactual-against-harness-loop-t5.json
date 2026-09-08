@@ -1,0 +1,186 @@
+{
+  "type": "offline-fold",
+  "baseline": "h1-harness-loop-sonnet-t5",
+  "candidate": "h1-harness-loop-sonnet-t5-attempts1-counterfactual",
+  "environments": [
+    "code:build-schedule",
+    "code:conf-canon",
+    "code:diff3-merge",
+    "code:lex-states",
+    "code:ranked-choice",
+    "code:rate-limit-sim",
+    "code:sheet-eval",
+    "code:uri-resolve"
+  ],
+  "repetitions": 2,
+  "thresholds": {
+    "bootstrapResamples": 2000,
+    "confidenceLevel": 0.95,
+    "minimumDelta": 0.05,
+    "cellTokenCap": 600000
+  },
+  "result": {
+    "digest": "1d32935e14cd7eec8d00753f0d8525c7c37e6f29b96ec30a74b75514494882a3",
+    "arms": {
+      "baseline": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "offline-1d32935e14cd7eec8d00753f0d8525c7c37e6f29b96ec30a74b75514494882a3-baseline"
+      },
+      "candidate": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "offline-1d32935e14cd7eec8d00753f0d8525c7c37e6f29b96ec30a74b75514494882a3-candidate"
+      }
+    },
+    "cells": [
+      {
+        "environment": "code:build-schedule",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:conf-canon",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0,
+        "candidateRate": 0,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": -2,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:diff3-merge",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 0,
+        "delta": -1,
+        "interval": {
+          "lower": -1,
+          "upper": -1
+        },
+        "attemptsDelta": -1,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:lex-states",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0.5,
+        "candidateRate": 0,
+        "delta": -0.5,
+        "interval": {
+          "lower": -1,
+          "upper": 0
+        },
+        "attemptsDelta": -1.5,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:ranked-choice",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:rate-limit-sim",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:sheet-eval",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0,
+        "candidateRate": 0,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": -2,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "code:uri-resolve",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      }
+    ],
+    "seedsPaired": 16,
+    "delta": -0.1875,
+    "interval": {
+      "lower": -0.25,
+      "upper": -0.125
+    },
+    "spend": {
+      "inputTokens": 1084,
+      "outputTokens": 1721192
+    },
+    "thresholds": {
+      "bootstrapResamples": 2000,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0.05,
+      "cellTokenCap": 600000
+    },
+    "verdict": "reject"
+  }
+}
