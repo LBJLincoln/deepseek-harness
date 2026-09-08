@@ -1,15 +1,20 @@
 /**
  * Serve the harness LLM seam from a Claude Code installation the operator has
  * already authenticated. One plugin instance registers one provider route on
- * `ctx.llm`; every `generate()` on that route is one stateless query to the
- * installation through the official Agent SDK, with the harness system prompt
- * and conversation rendered into the query's inputs, the harness tools offered
- * as native tools of an in-process MCP server, and the reply's text and tool
- * calls returned as the seam's chunks.
+ * `ctx.llm`; every `generate()` on that route is one query to the installation
+ * through the official Agent SDK, with the harness system prompt and
+ * conversation rendered into the query's inputs, the harness tools offered as
+ * native tools of an in-process MCP server, and the reply's text and tool calls
+ * returned as the seam's chunks.
  *
  * The product runs no harness tool and reads no workspace, so tool calls
  * return to the harness agent loop and run under the harness's own tools,
  * session log, read barrier, budget policy, and approvals.
+ *
+ * By default a harness session's steps share one product session, resumed with
+ * the newest turn alone so the installation reads the conversation prefix from
+ * its prompt cache; `sessionContinuity: per-query` sends the whole conversation
+ * in a fresh query every step instead.
  *
  * ```yaml
  * - id: llm-claude-code
@@ -38,6 +43,7 @@ export {
   MAX_TURNS,
   MISSING_EXECUTABLE_CODE,
   PERMISSION_MODE,
+  replayState,
   STREAM_IDLE_TIMEOUT_CODE,
 } from './adapter.ts'
 export type { ClaudeCodeAdapterDependencies, ClaudeCodeQuerySpec } from './adapter.ts'
@@ -46,10 +52,21 @@ export {
   Config,
   DEFAULT_DISPOSE_GRACE_MS,
   DEFAULT_QUERY_TIMEOUT_MS,
+  DEFAULT_RESUMABLE_SESSION_LIMIT,
+  DEFAULT_SESSION_CONTINUITY,
   resolveAdapterOptions,
+  SESSION_CONTINUITIES,
 } from './config.ts'
+export {
+  continuityKey,
+  conversationDigest,
+  planContinuity,
+  ProductSessionTable,
+  resumeRefusal,
+} from './continuity.ts'
+export type { TranscriptRelease } from './continuity.ts'
 export { claudeSpawnSpec, ManagedClaudeCodeProcess, sdkEnvironmentOverlay } from './process.ts'
-export { TAG_BASE, renderRequest, tagNamespace } from './render.ts'
+export { TAG_BASE, renderConversation, tagNamespace } from './render.ts'
 export {
   answerChunks,
   deliversAnswer,
@@ -86,8 +103,14 @@ export function apply(ctx: Context, config: Config): void {
       ctx.subprocess.resolveExecutable(CLAUDE_CODE_COMMAND, env, signal),
     spawn: spec => ctx.subprocess.spawn(spec),
     // The query reads no workspace; the directory only anchors the CLI process
-    // to the one the harness itself was launched in.
+    // to the one the harness itself was launched in, and locates the product
+    // sessions a resumable route creates there.
     cwd: () => process.cwd(),
   })
   ctx.llm.registerAdapter([options.provider], adapter)
+  // Unloading the route releases every product session it created, so a
+  // resumable route leaves no transcript behind in the operator's store.
+  ctx.effect(function* () {
+    yield () => { adapter.dispose() }
+  }, 'llm-claude-code product sessions')
 }

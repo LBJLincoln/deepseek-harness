@@ -14,6 +14,7 @@ import type {
   ClaudeCodeModel,
   ClaudeCodeThinking,
   ResolvedClaudeCodeOptions,
+  SessionContinuity,
 } from './types.ts'
 
 /**
@@ -34,6 +35,27 @@ export const CLAUDE_CODE_EFFORTS: readonly ClaudeCodeEffort[] = Object.freeze([
   'xhigh',
   'max',
 ])
+
+/** Selectable relationships between a harness session and the product's own. */
+export const SESSION_CONTINUITIES: readonly SessionContinuity[] = Object.freeze(['per-query', 'per-session'])
+
+/**
+ * Default continuity. Resuming reads the conversation prefix from the
+ * installation's prompt cache instead of rewriting it every step, which a
+ * ten-step probe measured as an 83 percent cache-read share against zero for a
+ * fresh query per step.
+ */
+export const DEFAULT_SESSION_CONTINUITY: SessionContinuity = 'per-session'
+
+/**
+ * Product sessions kept resumable at once by default.
+ *
+ * One entry per harness session that is between steps, and each entry owns a
+ * transcript on disk until it is evicted. The widest fan-out a current consumer
+ * runs is the Proving Ground bench's 18 concurrent cells, so this leaves room
+ * for several such runs sharing one harness process.
+ */
+export const DEFAULT_RESUMABLE_SESSION_LIMIT = 64
 
 /**
  * Deployment-owned route facts. The model catalog is configuration with no
@@ -60,6 +82,16 @@ export interface Config {
   queryTimeoutMs?: number
   /** Grace in milliseconds for CLI process-tree termination (default 3000). */
   disposeGraceMs?: number
+  /**
+   * Whether a harness session's steps share one product session
+   * (default `per-session`), or each step is its own query (`per-query`).
+   */
+  sessionContinuity?: SessionContinuity
+  /**
+   * Product sessions kept resumable at once under `per-session` (default 64).
+   * Evicting one releases its transcript from the installation's store.
+   */
+  resumableSessionLimit?: number
   /** Provider-owned model-request retry policy; omission uses normal defaults. */
   retryPolicy?: RetryPolicyConfig
 }
@@ -90,6 +122,8 @@ export const Config: z<Config> = z.object({
   thinking: thinkingSchema,
   queryTimeoutMs: z.number().min(Number.MIN_VALUE).max(MAX_TIMER_DELAY_MS).default(DEFAULT_QUERY_TIMEOUT_MS),
   disposeGraceMs: z.number().min(Number.MIN_VALUE).max(MAX_TIMER_DELAY_MS).default(DEFAULT_DISPOSE_GRACE_MS),
+  sessionContinuity: z.union([...SESSION_CONTINUITIES]).default(DEFAULT_SESSION_CONTINUITY),
+  resumableSessionLimit: z.number().step(1).min(1).default(DEFAULT_RESUMABLE_SESSION_LIMIT),
   retryPolicy: RetryPolicySchema,
 })
 
@@ -172,6 +206,12 @@ export function resolveAdapterOptions(config: Config): ResolvedClaudeCodeOptions
   const disposeGraceMs = config.disposeGraceMs ?? DEFAULT_DISPOSE_GRACE_MS
   assertTimer(queryTimeoutMs, 'queryTimeoutMs')
   assertTimer(disposeGraceMs, 'disposeGraceMs')
+  const sessionContinuity = config.sessionContinuity ?? DEFAULT_SESSION_CONTINUITY
+  if (!SESSION_CONTINUITIES.includes(sessionContinuity)) {
+    throw new Error(`llm-claude-code: sessionContinuity must be one of ${SESSION_CONTINUITIES.join(', ')}`)
+  }
+  const resumableSessionLimit = config.resumableSessionLimit ?? DEFAULT_RESUMABLE_SESSION_LIMIT
+  assertPositiveInteger(resumableSessionLimit, 'resumableSessionLimit')
   const thinking = resolveThinking(config.thinking)
   return Object.freeze({
     provider: config.provider,
@@ -182,6 +222,8 @@ export function resolveAdapterOptions(config: Config): ResolvedClaudeCodeOptions
     ...thinking === undefined ? {} : { thinking },
     queryTimeoutMs,
     disposeGraceMs,
+    sessionContinuity,
+    resumableSessionLimit,
     retryPolicy: resolveRetryPolicy(config.retryPolicy, 'llm-claude-code: retryPolicy'),
   })
 }

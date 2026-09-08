@@ -1138,6 +1138,16 @@ export interface Config {
   queryTimeoutMs?: number
   /** Grace in milliseconds for CLI process-tree termination (default 3000). */
   disposeGraceMs?: number
+  /**
+   * Whether a harness session's steps share one product session
+   * (default `per-session`), or each step is its own query (`per-query`).
+   */
+  sessionContinuity?: SessionContinuity
+  /**
+   * Product sessions kept resumable at once under `per-session` (default 64).
+   * Evicting one releases its transcript from the installation's store.
+   */
+  resumableSessionLimit?: number
   /** Provider-owned model-request retry policy; omission uses normal defaults. */
   retryPolicy?: RetryPolicyConfig
 }
@@ -1182,11 +1192,21 @@ export type ClaudeCodeThinking =
     /** The model does not think. */
     type: 'disabled'
   }
+
+/**
+ * How a harness session's steps relate to the installation's own sessions.
+ *
+ * `per-query` sends the whole conversation in a fresh query every step, which
+ * rewrites the growing prefix into the prompt cache and reads none of it back.
+ * `per-session` keeps one product session per harness session and resumes it
+ * with the newest turn alone, which reads that prefix instead.
+ */
+export type SessionContinuity = 'per-query' | 'per-session'
 ```
 
 Depends on: [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts)
 
-Source: [`packages/llm/llm-claude-code/src/config.ts:43`](../packages/llm/llm-claude-code/src/config.ts)
+Source: [`packages/llm/llm-claude-code/src/config.ts:65`](../packages/llm/llm-claude-code/src/config.ts)
 
 <a id="deepseek-aidsh-llm-deepseek"></a>
 

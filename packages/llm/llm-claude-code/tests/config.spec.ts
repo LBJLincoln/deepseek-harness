@@ -10,15 +10,18 @@ import {
   Config,
   DEFAULT_DISPOSE_GRACE_MS,
   DEFAULT_QUERY_TIMEOUT_MS,
+  DEFAULT_RESUMABLE_SESSION_LIMIT,
+  DEFAULT_SESSION_CONTINUITY,
   resolveAdapterOptions,
 } from '../src/config.ts'
 import { BASE_CONFIG, routeConfig } from './fixture.ts'
 
 describe('resolveAdapterOptions', () => {
-  it('resolves the route, the catalog, and the timer defaults', () => {
+  it('resolves the route, the catalog, and the timer and continuity defaults', () => {
     const resolved = resolveAdapterOptions(BASE_CONFIG)
     expect(Object.keys(resolved).sort()).toEqual([
-      'displayName', 'disposeGraceMs', 'env', 'models', 'provider', 'queryTimeoutMs', 'retryPolicy',
+      'displayName', 'disposeGraceMs', 'env', 'models', 'provider', 'queryTimeoutMs',
+      'resumableSessionLimit', 'retryPolicy', 'sessionContinuity',
     ])
     expect(resolved).toMatchObject({
       provider: 'claude-code',
@@ -27,8 +30,27 @@ describe('resolveAdapterOptions', () => {
       env: {},
       queryTimeoutMs: DEFAULT_QUERY_TIMEOUT_MS,
       disposeGraceMs: DEFAULT_DISPOSE_GRACE_MS,
+      sessionContinuity: DEFAULT_SESSION_CONTINUITY,
+      resumableSessionLimit: DEFAULT_RESUMABLE_SESSION_LIMIT,
       retryPolicy: { mode: 'normal' },
     })
+  })
+
+  it('keeps a declared continuity and its resumable bound', () => {
+    expect(resolveAdapterOptions(routeConfig({
+      sessionContinuity: 'per-query',
+      resumableSessionLimit: 3,
+    }))).toMatchObject({ sessionContinuity: 'per-query', resumableSessionLimit: 3 })
+  })
+
+  it('refuses a continuity this route does not serve', () => {
+    expect(() => resolveAdapterOptions(routeConfig({ sessionContinuity: 'per-turn' as never })))
+      .toThrow('sessionContinuity must be one of per-query, per-session')
+  })
+
+  it('refuses a resumable bound that keeps no session', () => {
+    expect(() => resolveAdapterOptions(routeConfig({ resumableSessionLimit: 0 })))
+      .toThrow('resumableSessionLimit must be a positive safe integer')
   })
 
   it('keeps every declared field, including the product model and passthrough knobs', () => {

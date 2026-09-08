@@ -32,6 +32,16 @@ export interface ClaudeCodeModel {
 /** Response effort passed through to the product's `effort` option. */
 export type ClaudeCodeEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
+/**
+ * How a harness session's steps relate to the installation's own sessions.
+ *
+ * `per-query` sends the whole conversation in a fresh query every step, which
+ * rewrites the growing prefix into the prompt cache and reads none of it back.
+ * `per-session` keeps one product session per harness session and resumes it
+ * with the newest turn alone, which reads that prefix instead.
+ */
+export type SessionContinuity = 'per-query' | 'per-session'
+
 /** Thinking policy passed through to the product's `thinking` option. */
 export type ClaudeCodeThinking =
   | {
@@ -70,9 +80,74 @@ export interface ResolvedClaudeCodeOptions {
   readonly queryTimeoutMs: number
   /** Grace between process-tree termination tiers, in milliseconds. */
   readonly disposeGraceMs: number
+  /** Whether a harness session's steps share one product session. */
+  readonly sessionContinuity: SessionContinuity
+  /** Product sessions the route keeps resumable at once under `per-session`. */
+  readonly resumableSessionLimit: number
   /** Retry policy captured with the route registration. */
   readonly retryPolicy: ResolvedRetryPolicy
 }
+
+/**
+ * What one harness conversation's product session holds, recorded when the
+ * route sends a step and checked before the next one resumes it.
+ */
+export interface ProductSessionRecord {
+  /** Product session id the route created for this harness conversation. */
+  readonly productSessionId: string
+  /**
+   * Messages of the request whose prompt the product session now holds. The
+   * product's own answer to that prompt is the message at this index of the
+   * next request.
+   */
+  readonly heldMessages: number
+  /** Digest of everything the route sent for those messages. */
+  readonly digest: string
+}
+
+/** Why a request could not resume the product session recorded for it. */
+export type ContinuityFallback =
+  | 'no-session-id'
+  | 'no-record'
+  | 'history-rewound'
+  | 'answer-missing'
+  | 'prefix-changed'
+
+/**
+ * How one request reached the installation, recorded on the answer's finish
+ * chunk so the session log distinguishes a resumed step from a fresh one.
+ */
+export interface ClaudeCodeReplayState {
+  /** Which of the two paths this step took. */
+  readonly continuity: 'fresh' | 'resumed'
+  /** Product session the step ran in, resumed or newly created. */
+  readonly productSessionId: string
+  /** Why a `per-session` route still ran a fresh query; absent when it resumed. */
+  readonly fallback?: ContinuityFallback
+}
+
+/** How one request reaches the installation, decided before the query starts. */
+export type ContinuityPlan =
+  | {
+    /** The whole conversation goes to a new product session. */
+    readonly kind: 'fresh'
+    /** Product session id the query is asked to use. */
+    readonly productSessionId: string
+    /** Set when a `per-session` route could not resume; drives the logged reason. */
+    readonly fallback: ContinuityFallback | undefined
+    /** Whether the route will resume this session later, requiring persistence. */
+    readonly continuable: boolean
+    /** The rendered system prompt and prompt text. */
+    readonly rendered: RenderedRequest
+  }
+  | {
+    /** The newest turn alone goes to the product session that holds the rest. */
+    readonly kind: 'resumed'
+    /** Product session the query resumes. */
+    readonly productSessionId: string
+    /** The rendered system prompt and continuation prompt text. */
+    readonly rendered: RenderedRequest
+  }
 
 /**
  * The harness tools of one request, offered to the product as native tools of
@@ -107,6 +182,33 @@ export interface ClaudeCodeAnswer {
   content: string
   /** Tool calls the harness agent loop executes, in returned order. */
   toolCalls: ClaudeCodeToolCall[]
+}
+
+/**
+ * One harness request rendered under a single tag prefix, in every form the
+ * route may send or hash it in.
+ */
+export interface ConversationRendering {
+  /** Custom system prompt replacing the product's own preset. */
+  readonly systemPrompt: string
+  /** Tag prefix framing every element of this request. */
+  readonly namespace: string
+  /** The whole conversation as one prompt: the reading guide, then every element. */
+  readonly whole: string
+  /**
+   * The framed elements of the first `count` messages and nothing else, which
+   * is what the continuity digest is taken over.
+   * @param count - messages to include, counted from the start of the conversation.
+   * @returns the elements, newline-joined with a trailing newline.
+   */
+  prefix(count: number): string
+  /**
+   * The framed elements from `from` onward as a standalone prompt for a
+   * product session that already holds the messages before it.
+   * @param from - index of the first message to send.
+   * @returns the elements, newline-joined with a trailing newline.
+   */
+  continuation(from: number): string
 }
 
 /** One harness request rendered into the product's prompt inputs. */

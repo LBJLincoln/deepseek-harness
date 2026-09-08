@@ -1,6 +1,6 @@
 /**
- * The adapter that serves this route: every `stream()` is one stateless query
- * to the operator's Claude Code installation through the official Agent SDK.
+ * The adapter that serves this route: every `stream()` is one query to the
+ * operator's Claude Code installation through the official Agent SDK.
  *
  * The product executes no harness tool and reads no workspace — its built-in
  * tools and filesystem settings are switched off, and the only tools it is
@@ -8,10 +8,15 @@
  * call comes back to the harness agent loop, which runs it exactly as it does
  * for any other route.
  *
+ * Whether the query carries the whole conversation or resumes the product
+ * session that already holds it is this route's own choice, made per request
+ * under the configured `sessionContinuity` and recorded on the answer.
+ *
  * @module @deepseek-ai/dsh-llm-claude-code/adapter
  */
 
 import {
+  deleteSession,
   query as officialQuery,
   type Options,
   type Query,
@@ -34,13 +39,21 @@ import {
   type SubprocessSpawnSpec,
 } from '@deepseek-ai/dsh-subprocess'
 import { idleWatchdog, timeoutOf } from '@deepseek-ai/dsh-timeout'
+import {
+  continuityKey,
+  conversationDigest,
+  planContinuity,
+  ProductSessionTable,
+} from './continuity.ts'
 import { claudeSpawnSpec, ManagedClaudeCodeProcess } from './process.ts'
-import { renderRequest } from './render.ts'
+import { renderConversation } from './render.ts'
 import { answerChunks, deliversAnswer, parseAnswer, resultFailure, TRANSPORT_CODE } from './response.ts'
 import { MCP_SERVER_NAME, toolOffer } from './tools.ts'
 import type {
   ClaudeCodeModel,
-  RenderedRequest,
+  ClaudeCodeReplayState,
+  ContinuityPlan,
+  ConversationRendering,
   ResolvedClaudeCodeOptions,
   ToolOffer,
 } from './types.ts'
@@ -92,8 +105,8 @@ export interface ClaudeCodeQuerySpec {
   readonly options: ResolvedClaudeCodeOptions
   /** Catalog entry the request selected. */
   readonly model: ClaudeCodeModel
-  /** The rendered system prompt and prompt text. */
-  readonly rendered: RenderedRequest
+  /** Which product session this step runs in, whether it resumes one, and what it sends. */
+  readonly plan: ContinuityPlan
   /** The request's tools as an in-process MCP server, absent when it offers none. */
   readonly offer: ToolOffer | undefined
   /** Exact CLI path resolved through the subprocess seam. */
@@ -109,12 +122,51 @@ export interface ClaudeCodeQuerySpec {
 }
 
 /**
+ * Session options for one query: which product session it runs in, and whether
+ * the installation keeps that session on disk for a later step to resume.
+ *
+ * A resumed query names the session it continues; a query that a later step may
+ * resume names the session it is creating so the route can address it again.
+ * A query nothing will resume persists nothing, which is what leaves a
+ * `per-query` route with no transcript to clean up.
+ */
+function sessionOptions(plan: ContinuityPlan): Options {
+  if (plan.kind === 'resumed') {
+    return { persistSession: true, resume: plan.productSessionId }
+  }
+  return plan.continuable
+    ? { persistSession: true, sessionId: plan.productSessionId }
+    : { persistSession: false }
+}
+
+/**
+ * Record how one step reached the installation on the answer it produced.
+ *
+ * The seam logs the finish chunk verbatim and carries its adapter state onto
+ * the assembled assistant message, so the session log distinguishes a step
+ * that resumed a product session from one that sent the whole conversation,
+ * and names why whenever a `per-session` route could not resume.
+ * @param plan - the continuity this step ran under.
+ * @returns the adapter-private state for this step's finish chunk.
+ */
+export function replayState(plan: ContinuityPlan): ClaudeCodeReplayState {
+  if (plan.kind === 'resumed') {
+    return { continuity: 'resumed', productSessionId: plan.productSessionId }
+  }
+  return {
+    continuity: 'fresh',
+    productSessionId: plan.productSessionId,
+    ...plan.fallback === undefined ? {} : { fallback: plan.fallback },
+  }
+}
+
+/**
  * Build the fixed SDK options for one query.
  *
  * `includePartialMessages` is what keeps the idle watchdog armed: the product
  * takes seconds to answer, and its partial assistant events are the only
  * evidence the installation is alive before the result arrives.
- * @param spec - resolved route facts, rendered prompt, tool offer, and process ownership.
+ * @param spec - resolved route facts, continuity plan, tool offer, and process ownership.
  * @returns options that give the product the harness prompt, the harness tools, and nothing else.
  */
 export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
@@ -125,20 +177,20 @@ export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
     env: { ...scrubbedParentEnv(), ...spec.options.env },
     // The harness prompt is the prompt: a custom string replaces the product's
     // own preset instead of appending to it.
-    systemPrompt: spec.rendered.systemPrompt,
+    systemPrompt: spec.plan.rendered.systemPrompt,
     includePartialMessages: true,
     maxTurns: MAX_TURNS,
     permissionMode: PERMISSION_MODE,
     // The product's own tools stay off, and the only names it may call are the
-    // harness tools this request offered. No filesystem settings and no
-    // persisted session: the query reads nothing else and leaves nothing.
+    // harness tools this request offered. No filesystem settings: the query
+    // reads nothing but the prompt and the tools this route hands it.
     tools: [],
     allowedTools: spec.offer === undefined ? [] : [...spec.offer.allowedTools],
     disallowedTools: ['AskUserQuestion'],
     mcpServers: spec.offer === undefined ? {} : { [MCP_SERVER_NAME]: spec.offer.server },
     strictMcpConfig: true,
     settingSources: [],
-    persistSession: false,
+    ...sessionOptions(spec.plan),
     ...spec.model.productModel === undefined ? {} : { model: spec.model.productModel },
     ...spec.options.effort === undefined ? {} : { effort: spec.options.effort },
     ...spec.options.thinking === undefined ? {} : { thinking: spec.options.thinking },
@@ -206,11 +258,41 @@ export async function disposeQuery(
  * environment, and timeouts.
  */
 export class ClaudeCodeAdapter extends LlmAdapter {
+  private readonly sessions: ProductSessionTable
+
   constructor(
     private readonly options: ResolvedClaudeCodeOptions,
     private readonly deps: ClaudeCodeAdapterDependencies,
   ) {
     super()
+    this.sessions = new ProductSessionTable(
+      this.options.resumableSessionLimit,
+      (productSessionId) => { this.releaseTranscript(productSessionId) },
+    )
+  }
+
+  /**
+   * Release every product session this route created, which is what the
+   * installation's store is left without when the plugin unloads.
+   */
+  dispose(): void {
+    this.sessions.clear()
+  }
+
+  /**
+   * Delete one product session's transcript from the installation's store.
+   *
+   * The deletion runs against the operator's own directory and outlives the
+   * request that triggered it, so a store that refuses — a transcript the
+   * operator already removed, a directory gone read-only — leaves the route
+   * with one file it did not clean up rather than a failed harness step.
+   */
+  private releaseTranscript(productSessionId: string): void {
+    // Swallows every rejection the installation's store can raise for one
+    // delete — a transcript the operator already removed, a directory gone
+    // read-only — because the deletion outlives the request that triggered it
+    // and nothing downstream is waiting on it.
+    void deleteSession(productSessionId, { dir: this.deps.cwd() }).catch(() => {})
   }
 
   /** Select the catalog entry a request named, or refuse the request. */
@@ -269,13 +351,55 @@ export class ClaudeCodeAdapter extends LlmAdapter {
   }
 
   /**
-   * Run one query to completion and map its result onto the seam. Cancellation,
-   * idle expiry, and every product failure become a coded `LlmError`, which the
-   * seam turns into the stream's terminal finish.
+   * Plan one step's continuity, run its query, and keep the route's record of
+   * the product session in step with what that query left behind.
+   *
+   * A step that does not deliver an answer may still have written its prompt
+   * into the product session, so what that session holds is no longer what any
+   * record describes: the record goes, and with it the transcript.
    */
   private async runQuery(options: GenerateOptions): Promise<StreamChunk[]> {
+    const rendering = renderConversation(options)
+    const plan = planContinuity(this.options.sessionContinuity, options, rendering, this.sessions)
+    const key = continuityKey(options)
+    try {
+      const chunks = await this.runPlannedQuery(options, plan)
+      this.record(options, rendering, plan, key)
+      return chunks
+    } catch (error: unknown) {
+      if (key !== undefined) this.sessions.retire(key)
+      if (plan.kind === 'fresh' && plan.continuable) this.releaseTranscript(plan.productSessionId)
+      throw error
+    }
+  }
+
+  /**
+   * Record what the product session holds now that this step's prompt reached
+   * it, so the next step can resume it. A step no later step can resume — a
+   * `per-query` route, or a request with no session identity — records nothing.
+   */
+  private record(
+    options: GenerateOptions,
+    rendering: ConversationRendering,
+    plan: ContinuityPlan,
+    key: string | undefined,
+  ): void {
+    if (key === undefined || (plan.kind === 'fresh' && !plan.continuable)) return
+    const heldMessages = options.messages.length
+    this.sessions.set(key, {
+      productSessionId: plan.productSessionId,
+      heldMessages,
+      digest: conversationDigest(options, rendering, heldMessages),
+    })
+  }
+
+  /**
+   * Run one planned query to completion and map its result onto the seam.
+   * Cancellation, idle expiry, and every product failure become a coded
+   * `LlmError`, which the seam turns into the stream's terminal finish.
+   */
+  private async runPlannedQuery(options: GenerateOptions, plan: ContinuityPlan): Promise<StreamChunk[]> {
     const model = this.entry(options.model)
-    const rendered = renderRequest(options)
     const offer = toolOffer(options.tools ?? [])
     const executable = await this.resolveExecutable(options.signal)
     const consumer = new AbortController()
@@ -296,11 +420,11 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     const assistants: SDKAssistantMessage[] = []
     try {
       query = officialQuery({
-        prompt: rendered.prompt,
+        prompt: plan.rendered.prompt,
         options: claudeQueryOptions({
           options: this.options,
           model,
-          rendered,
+          plan,
           offer,
           executable,
           cwd: this.deps.cwd(),
@@ -335,7 +459,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     }
     if (!deliversAnswer(result, assistants)) throw resultFailure(result)
     const answer = parseAnswer(assistants, offer?.names ?? NO_OFFERED_TOOLS)
-    return answerChunks(answer, result.usage, result.uuid)
+    return answerChunks(answer, result.usage, result.uuid, replayState(plan))
   }
 
   /** Resolve the installation's CLI, naming the fix when the host has none. */
