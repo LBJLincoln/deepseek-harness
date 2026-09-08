@@ -109,6 +109,9 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
+  pkg_budget_policy["budget-policy"]
+  svc_sessionBudgets["ctx.sessionBudgets<br/>Session spend ceilings"]
+  pkg_environment_runner["environment-runner"]
   pkg_signoff["signoff"]
   svc_signoffs["ctx.signoffs<br/>Attributed human signatures"]
   pkg_program["program"]
@@ -123,7 +126,6 @@ flowchart LR
   pkg_read_barrier["read-barrier"]
   svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
   pkg_fs_read_barrier["fs-read-barrier"]
-  pkg_environment_runner["environment-runner"]
   pkg_judge["judge"]
   svc_judge["ctx.judge<br/>Blind judge"]
   pkg_components["components"]
@@ -248,6 +250,7 @@ flowchart LR
   pkg_attachment_local --> svc_attachments
   pkg_bash_local --> svc_shell
   pkg_bash_sandbox --> svc_shell
+  pkg_budget_policy --> svc_sessionBudgets
   pkg_code_runtime --> svc_codeRuntime
   pkg_code_runtime_worker --> svc_codeRuntime
   pkg_commands --> svc_commands
@@ -417,6 +420,7 @@ flowchart LR
   svc_sandboxPolicy --> pkg_terminal_bash
   svc_scorekeeper --> pkg_headless_agent
   svc_scorekeeper --> pkg_observatory
+  svc_sessionBudgets --> pkg_environment_runner
   svc_sessionPersistence --> pkg_agent_loop
   svc_sessionPersistence --> pkg_hooks_claude_code
   svc_sessionPersistence --> pkg_hooks_codex
@@ -531,6 +535,7 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | Layers the default ModelSelection through settings so direct and Host-backed Agent entry points share one state owner. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | The one concrete loop plugin; extension packages depend on dsh-agent events and services, not on this package. |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
+| `ctx.sessionBudgets` | `core` | [`budget-policy`](../packages/guard/budget-policy) | - | [`environment-runner`](../packages/improvement/environment-runner) | - | Folds the caps a session runs under from its own log and records the one breach that stops it, for the pre-step check and for a driver whose session proposes no step of its own. |
 | `ctx.signoffs` | `core` | [`signoff`](../packages/governance/signoff) | - | [`program`](../packages/improvement/program) | - | Records one signoff/recorded per signed transition and folds the newest one back out of the log; the program ledger reads the fold rather than injecting the service. |
 | `ctx.dataUse` | `core` | [`data-use`](../packages/governance/data-use) | - | - | - | Pins the contract terms a session transcript is held under at session start and refuses a later pin that widens its purposes. |
 | `ctx.curator` | `core` | [`curator`](../packages/governance/curator) | - | [`trajectories`](../packages/improvement/trajectories) | - | Refuses an export without a redaction profile, withholds every session whose pinned terms do not admit the purpose, redacts each record before the sink, and writes the export manifest. |

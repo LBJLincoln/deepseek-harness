@@ -358,6 +358,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Folds revisioned objective state from the session log and keeps live continuation activation process-local.',
   },
   {
+    key: 'sessionBudgets',
+    pkg: 'budget-policy',
+    title: 'Session spend ceilings',
+    mode: 'core',
+    consumers: ['environment-runner'],
+    note: 'Folds the caps a session runs under from its own log and records the one breach that stops it, for the pre-step check and for a driver whose session proposes no step of its own.',
+  },
+  {
     key: 'signoffs',
     pkg: 'signoff',
     title: 'Attributed human signatures',

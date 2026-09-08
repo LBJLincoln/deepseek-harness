@@ -12,6 +12,7 @@ One page per subsystem of the DeepSeek Harness: what it is, the data structures 
 | [scope.md](scope.md) | scoped registration identity, dispatch carriers, and the owned `Scope` context |
 | [typert.md](typert.md) | Remote invocation descriptors, lookup/Context declarations, Typert registries, and the Host Gateway/Client API boundaries |
 | [goal.md](goal.md) | persisted goal identity, lifecycle snapshots, activation, change records, and round attribution |
+| [guard.md](guard.md) | the caps a session runs under, the spend a foreign implementer incurred for it, and what one enforcement pass measured |
 | [verification.md](verification.md) | completion standards: check inventories per goal, certificates from fully passing runs, and the isolation level they ran under |
 | [governance.md](governance.md) | attributed human signatures over the five signed transitions, and the data-use terms every session log states about itself |
 | [components.md](components.md) | the component registry's descriptor: kind, provenance, lineage, membership, and the callable route to every addressable unit |

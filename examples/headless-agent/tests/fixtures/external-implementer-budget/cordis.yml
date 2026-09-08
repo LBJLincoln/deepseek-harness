@@ -1,0 +1,93 @@
+# Test-only composition: the external-implementer fleet run under a session budget a delegated cell exhausts, so the runner's own enforcement of the budget policy's caps is observed end to end.
+- id: cli-mock-llm
+  name: '../cli-mock-llm.ts'
+
+# Managed child-process groups for the bash executor (spawn/kill/output plumbing).
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 2048
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../environment-run/register-environments.ts'
+
+# The runner creates its own agent per cell from this selection; the spine composes no agent of its own.
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: cli-mock
+    model: cli-mock
+
+- id: subagents
+  name: '@deepseek-ai/dsh-subagent'
+
+# The external implementer of this fixture. `spawn` runs the child in this
+# process on the parent cell agent's own composition and route, so the whole
+# delegation replays keylessly over the mock adapter; an out-of-process provider
+# would need the real product and its account.
+- id: subagent-spawn
+  name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 3
+    evidenceMaxChars: 512
+
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 1
+    workspaceRetention: keep
+
+# Village rule: a composition that runs unattended cells carries a session
+# budget. This one caps a cell at fewer tokens than one mock child spends, so
+# the delegated cell's first attempt is charged, the rest are blocked, and the
+# breach is the durable record the runner and the scorekeeper both read.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 20
+    maxWallMs: 600000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: 'Run registered environments as validated sessions.'
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# The registry the scorekeeper's sessionFacts unit registers on; the driver reads
+# the same facts back from the persisted logs instead of from a live session.
+- id: session-projection
+  name: '@deepseek-ai/dsh-session-projection'
+
+- id: scorekeeper
+  name: '@deepseek-ai/dsh-scorekeeper'
+  config:
+    passAtK:
+      - 1

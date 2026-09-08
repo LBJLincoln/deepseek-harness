@@ -106,7 +106,12 @@ export function planDigest(
  */
 export function capsAgree(baseline: readonly BudgetCap[], candidate: readonly BudgetCap[]): boolean {
   return baseline.length === candidate.length
-    && baseline.every(([cap, limit], index) => candidate[index]?.[0] === cap && candidate[index]?.[1] === limit)
+    && baseline.every(([cap, limit], index) => {
+      // The length check above makes every index of `baseline` an index of
+      // `candidate`, which the element type does not say.
+      const [otherCap, otherLimit] = candidate[index] as BudgetCap
+      return otherCap === cap && otherLimit === limit
+    })
 }
 
 /**

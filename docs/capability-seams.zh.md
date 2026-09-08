@@ -111,6 +111,9 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
+  pkg_budget_policy["budget-policy"]
+  svc_sessionBudgets["ctx.sessionBudgets<br/>Session spend ceilings"]
+  pkg_environment_runner["environment-runner"]
   pkg_signoff["signoff"]
   svc_signoffs["ctx.signoffs<br/>Attributed human signatures"]
   pkg_program["program"]
@@ -125,7 +128,6 @@ flowchart LR
   pkg_read_barrier["read-barrier"]
   svc_readBarrier["ctx.readBarrier<br/>Read barrier"]
   pkg_fs_read_barrier["fs-read-barrier"]
-  pkg_environment_runner["environment-runner"]
   pkg_judge["judge"]
   svc_judge["ctx.judge<br/>Blind judge"]
   pkg_components["components"]
@@ -250,6 +252,7 @@ flowchart LR
   pkg_attachment_local --> svc_attachments
   pkg_bash_local --> svc_shell
   pkg_bash_sandbox --> svc_shell
+  pkg_budget_policy --> svc_sessionBudgets
   pkg_code_runtime --> svc_codeRuntime
   pkg_code_runtime_worker --> svc_codeRuntime
   pkg_commands --> svc_commands
@@ -419,6 +422,7 @@ flowchart LR
   svc_sandboxPolicy --> pkg_terminal_bash
   svc_scorekeeper --> pkg_headless_agent
   svc_scorekeeper --> pkg_observatory
+  svc_sessionBudgets --> pkg_environment_runner
   svc_sessionPersistence --> pkg_agent_loop
   svc_sessionPersistence --> pkg_hooks_claude_code
   svc_sessionPersistence --> pkg_hooks_codex
@@ -533,6 +537,7 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | 通过 settings 分层默认 `ModelSelection`，让直接入口与 Host 支撑的 Agent 入口共享同一个状态所有者。 |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | 唯一的具体循环插件；扩展包依赖 dsh-agent 的事件和服务，而不依赖此包。 |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
+| `ctx.sessionBudgets` | `core` | [`budget-policy`](../packages/guard/budget-policy) | - | [`environment-runner`](../packages/improvement/environment-runner) | - | 从会话自身的日志折叠出它运行所处的上限，并记录停止它的那一条越限，既服务于 pre-step 检查，也服务于自身不发起任何步骤的会话的驱动方。 |
 | `ctx.signoffs` | `core` | [`signoff`](../packages/governance/signoff) | - | [`program`](../packages/improvement/program) | - | 每次签署的转变记录一条 signoff/recorded，并把最新的一条从日志折叠回来；程序账本读取该折叠结果，而不是注入本服务。 |
 | `ctx.dataUse` | `core` | [`data-use`](../packages/governance/data-use) | - | - | - | 在会话启动时钉定该会话转录所处的合同条款，并拒绝此后任何拓宽其用途的钉定。 |
 | `ctx.curator` | `core` | [`curator`](../packages/governance/curator) | - | [`trajectories`](../packages/improvement/trajectories) | - | 在没有脱敏配置时拒绝导出，扣留其被钉定条款不接纳该用途的每一个会话，在记录到达 sink 之前对其脱敏，并写出导出 manifest。 |

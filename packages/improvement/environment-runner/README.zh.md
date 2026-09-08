@@ -70,9 +70,9 @@ route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/REA
 
 每次尝试前后，运行器都通过 `ctx.sessionBudgets` 做三件事：
 
-1. **先度量。** `enforce(agent)` 在子进程启动之前运行。该 cell 已超出的上限会记录 `budget/breach`、阻塞 goal，并在不为又一次尝试付费的情况下结束运行——与被停止的步骤相同的记录、相同的上限顺序。上一次尝试留下的树仍会被验证；耗尽预算的 cell 是失败的 cell，而不是耗时更久的 cell。
-2. **设置挂钟预算。** `remainingWallMs` 成为子进程取消信号上的截止时限，比上限多一毫秒，使记录下来的跨度严格超过它。被截止时限终止的尝试记录 `stopReason: 'budget-deadline'`，这正是把该 cell 自身的预算与操作者取消同样会产生的 seam `aborted` 区分开的标志，随之而来的 `budget/breach` 停止本次运行。因截止时限已触发而被 provider 拒绝启动的子进程不留下委派记录；越限就是那条记录。
-3. **计入子进程的花费。** `recordForeignSpend` 为每次子运行写入一条 `usage/foreign`——进程外子进程用 `reportedUsage`，其余用进程内子进程求和得到的 `usage`，并把 `reportedCostUsd` 按部署的 `foreignCostEurPerUsd` 换算。预算折叠会把它计入，因此 `maxTotalTokens` 与成本上限约束委派 cell 的方式，与它们约束 route cell 完全相同。
+1. **在尝试之前度量。** `enforce(agent)` 在子进程启动之前运行，pre-step 检查也在同一位置。该 cell 已超出的上限会记录 `budget/breach`、阻塞 goal，并结束运行：不启动任何子进程，也不再度量工作区，因为上一次尝试的验证度量的正是这棵树。耗尽预算的 cell 是失败的 cell，而不是耗时更久的 cell——而在耗尽预算的那次尝试中通过认证的 cell 仍然完成，因为工作做完之后没有任何环节再度量它。
+2. **设置挂钟预算。** `remainingWallMs` 成为子进程取消信号上的截止时限，比上限多一毫秒，使记录下来的跨度严格超过它。被截止时限终止的尝试记录 `stopReason: 'budget-deadline'`，这正是把该 cell 自身的预算与操作者取消同样会产生的 seam `aborted` 区分开的标志。这次尝试做过工作，因此它留下的树会被验证，而截止时限触发时记录的 `budget/breach` 随后结束本次运行。因截止时限已触发而被 provider 拒绝启动的子进程不留下委派记录；越限就是那条记录。
+3. **计入子进程的花费。** `recordForeignSpend` 为每次子运行写入一条 `usage/foreign`——进程外子进程用 `reportedUsage`，其余用进程内子进程求和得到的 `usage`，并把 `reportedCostUsd` 按部署的 `foreignCostEurPerUsd` 换算。预算折叠会把它计入，因此从下一次尝试的度量起，`maxTotalTokens` 与成本上限约束委派 cell 的方式，与它们约束 route cell 完全相同。
 
 `ctx.environmentRuns.cellCaps(implementer)` 回答某个臂的单个 cell 在什么约束下运行，每份报告都以 `caps` 陈述它。route cell 在每一项已配置上限之下运行；委派 cell 在同一列表之下运行，但去掉部署未声明 `foreignCostEurPerUsd` 的 `maxCostEur`，因为一种货币的上限无法约束另一种货币的价格。[实验](../experiments/README.md)会拒绝两个臂解析出不同列表的计划。
 

@@ -302,7 +302,7 @@ Source: [`packages/subagent/subagent-claude-code/src/types.ts:73`](../packages/s
 'budget/breach': BudgetBreach
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:125`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:164`](../packages/guard/budget-policy/src/types.ts)
 
 <a id="budgetcaps--log-only"></a>
 
@@ -320,7 +320,7 @@ Source: [`packages/guard/budget-policy/src/types.ts:125`](../packages/guard/budg
 'budget/caps': BudgetCaps
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:117`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:156`](../packages/guard/budget-policy/src/types.ts)
 
 ### `command/*`
 
@@ -543,7 +543,7 @@ Source: [`packages/governance/data-use/src/types.ts:19`](../packages/governance/
 'environment/delegation': EnvironmentDelegation
 ```
 
-Source: [`packages/improvement/environment-runner/src/types.ts:31`](../packages/improvement/environment-runner/src/types.ts)
+Source: [`packages/improvement/environment-runner/src/types.ts:32`](../packages/improvement/environment-runner/src/types.ts)
 
 <a id="environmentrun--log-only"></a>
 
@@ -1386,6 +1386,26 @@ Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/
 
 ### `usage/*`
 
+<a id="usageforeign--log-only"></a>
+
+#### `usage/foreign` — log-only
+
+```ts persistence-catalog
+/**
+ * Spend one session incurred outside its own model route, as the
+ * implementer that did the work reported it: the `ref` the work is
+ * identified by, the `source` that did it, its billed `inputTokens` and
+ * `outputTokens`, and its `costEur` where the deployment could convert the
+ * price its backend stated. The fold adds every record to the spend the
+ * caps are measured against, so a delegated session breaches the same caps,
+ * in the same order, and records the same `budget/breach` as one that ran
+ * its own route.
+ */
+'usage/foreign': UsageForeign
+```
+
+Source: [`packages/guard/budget-policy/src/types.ts:185`](../packages/guard/budget-policy/src/types.ts)
+
 <a id="usagepriced--log-only"></a>
 
 #### `usage/priced` — log-only
@@ -1403,7 +1423,7 @@ Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/
 'usage/priced': UsagePriced
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:135`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:174`](../packages/guard/budget-policy/src/types.ts)
 
 ### `user/*`
 

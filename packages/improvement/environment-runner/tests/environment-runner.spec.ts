@@ -330,7 +330,9 @@ interface ScriptedChild {
 /** A promise that settles when `signal` aborts, or at once when it already has. */
 function whenAborted(signal: AbortSignal): Promise<void> {
   if (signal.aborted) return Promise.resolve()
-  return new Promise(resolve => signal.addEventListener('abort', () => resolve(), { once: true }))
+  return new Promise((resolve) => {
+    signal.addEventListener('abort', () => { resolve() }, { once: true })
+  })
 }
 
 /** The subagent seam as the runner reads it: a provider registry and one published run per start. */
@@ -1152,11 +1154,33 @@ describe('EnvironmentRunner delegated cell budgets', () => {
       { ref: 'child-1', source: 'claude-code', inputTokens: 25, outputTokens: 6, costEur: 1.5 },
     ])
     expect(budgetEvents('budget/breach')).toEqual([{ cap: 'maxTotalTokens', measured: 31, limit: 30 }])
-    // One child ran; the two attempts its spend did not pay for never started.
+    // One child ran; the two attempts its spend did not pay for never started,
+    // and the tree the blocked attempt would have left is never measured twice.
     expect(StubSubagents.current.started).toHaveLength(1)
     expect(StubStandards.current.runs).toHaveLength(1)
+    expect(report.attempts).toHaveLength(1)
     expect(report.certified).toBe(false)
     expect(report.caps).toEqual([['maxTotalTokens', 30]])
+  })
+
+  it('completes a cell that certified on the attempt that exhausted its budget', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 5 },
+    })
+    StubSubagents.current.children = [{
+      result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 40, outputTokens: 8 } },
+    }]
+    StubShell.current.script(MARKER, shellResult())
+    const report = await run({ implementer: PRODUCT })
+
+    // The budget is measured before an attempt, exactly as the pre-step check
+    // is, so the work already done still certifies and nothing blocks the goal.
+    expect(report.certified).toBe(true)
+    expect(budgetEvents('budget/breach')).toEqual([])
+    expect(StubGoals.current.blocked).toEqual([])
+    expect(StubGoals.current.completed).toHaveLength(1)
   })
 
   it('charges an in-process child through the log this process does keep', async () => {

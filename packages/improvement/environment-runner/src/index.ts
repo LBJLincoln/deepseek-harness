@@ -810,6 +810,17 @@ class DelegationDeadline {
   }
 }
 
+/**
+ * How one attempt ended, as the cell's budget decided.
+ *
+ * `blocked` is the delegated counterpart of the stopped step a route cell gets:
+ * no implementer ran, so the workspace is exactly what the previous attempt's
+ * validation already measured and the run ends without measuring it again.
+ * `cut-short` ran an implementer the wall deadline then cancelled, so the tree
+ * it left is validated before the run ends.
+ */
+type AttemptOutcome = 'ran' | 'cut-short' | 'blocked'
+
 /** Sum the usage of every assistant message in a session log. */
 function totalUsage(events: readonly SessionEvent[]): TokenUsage | undefined {
   const steps = events.flatMap(event => (
@@ -1051,8 +1062,11 @@ export class EnvironmentRunner extends Service {
       for (let attempt = 1; attempt <= this.resolved.maxAttempts; attempt += 1) {
         // An exhausted budget blocks every attempt it did not pay for, which is
         // what makes a delegated cell that ran out a failed cell rather than a
-        // longer one; the validation below still measures the tree it left.
-        const exhausted = await this.implement(agent, implementer, prompt, attempt, request.signal)
+        // longer one. A blocked attempt left the workspace exactly as the last
+        // validation already measured it, so the run ends without measuring it
+        // again.
+        const outcome = await this.implement(agent, implementer, prompt, attempt, request.signal)
+        if (outcome === 'blocked') break
         const standard = this.currentStandard(agent, goal.id)
         const ref = { id: standard.id, revision: standard.revision }
         if (await hashCheckOwned(request.workspace, runDirectory, immutable) !== checkOwned) {
@@ -1065,13 +1079,13 @@ export class EnvironmentRunner extends Service {
         // is the baseline the next attempt must still find.
         checkOwned = await hashCheckOwned(request.workspace, runDirectory, immutable)
         const results = await this.execute(standard.checks, request, scripts, bodies)
-        const outcome = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
+        const validation = completionStandards.recordRun(agent, ref, this.resolved.isolation, results, {
           executor: 'runner',
           treeHash,
         })
         attempts.push({ attempt, results, treeHash })
-        if (outcome.certified) {
-          certificate = outcome.certificate
+        if (validation.certified) {
+          certificate = validation.certificate
           const current = goals.get(agent)
           if (current === undefined || current.id !== goal.id) {
             throw new EnvironmentRunError(`the implementer replaced goal "${goal.id}"`, 'ENVIRONMENT_RUN_GOAL_REPLACED')
@@ -1079,8 +1093,8 @@ export class EnvironmentRunner extends Service {
           goals.complete(agent, { id: current.id, revision: current.revision })
           break
         }
-        if (exhausted) break
-        const directive = describeFailures(outcome.failures, standard.checks, this.resolved.evidenceMaxChars)
+        if (outcome === 'cut-short') break
+        const directive = describeFailures(validation.failures, standard.checks, this.resolved.evidenceMaxChars)
         completionStandards.issueDirective(agent, ref, directive)
         prompt = followupText(directive)
       }
@@ -1104,7 +1118,7 @@ export class EnvironmentRunner extends Service {
    * Hand one attempt's text to the implementer and wait for its work to end:
    * one user turn on the cell agent for a route run, one child run on the
    * named provider for a delegated one.
-   * @returns `true` when the cell's budget stopped the run and no further attempt may start.
+   * @returns how the attempt ended, which decides whether the run continues.
    */
   private async implement(
     agent: Agent,
@@ -1112,13 +1126,13 @@ export class EnvironmentRunner extends Service {
     text: string,
     attempt: number,
     signal: AbortSignal | undefined,
-  ): Promise<boolean> {
+  ): Promise<AttemptOutcome> {
     switch (implementer.kind) {
       case 'route':
         // A route attempt proposes steps, so the policy's own pre-step check
         // measures and stops it without the runner asking.
         await this.deliver(agent, text)
-        return false
+        return 'ran'
       case 'subagent':
         return this.delegate(agent, implementer, text, attempt, signal)
       /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
@@ -1147,19 +1161,21 @@ export class EnvironmentRunner extends Service {
    * implementer leaves here, and it is what separates two implementers that
    * both certify on their first attempt.
    * The cell's budget bounds the attempt exactly as it bounds a step of a route
-   * cell. The caps are measured before the child starts, so an exhausted budget
-   * blocks the attempt without paying for it; the wall budget left is armed as a
-   * deadline on the child's signal, so an attempt that would outlast the cap is
-   * cancelled at it and recorded as `budget-deadline`; and what the child
-   * reported spending is charged to the session before the caps are measured
-   * again, so a delegated cell breaches its token and cost caps too.
+   * cell: the caps are measured before the child starts, so an exhausted budget
+   * blocks the attempt without paying for it, and what the child reported
+   * spending is charged to the session so the next attempt's measurement sees
+   * it. Measuring only before an attempt is what the pre-step check does, and
+   * it is why a cell that certifies on the attempt that exhausted its budget
+   * still completes. The wall budget left is armed as a deadline on the child's
+   * signal, so an attempt that would outlast the cap is cancelled at it,
+   * recorded as `budget-deadline`, and followed by the breach it caused.
    *
    * @param agent - the cell agent, which is the delegating parent and holds the durable record.
    * @param implementer - the provider, its optional label, the stamped model, and the resolved services.
    * @param text - the task prompt on the first attempt, the directive follow-up on later ones.
    * @param attempt - one-based attempt number, recorded on the delegation event.
    * @param signal - the run's cancellation; a run that carries none delegates under one that never fires.
-   * @returns `true` when the cell's budget stopped the run and no further attempt may start.
+   * @returns how the attempt ended, which decides whether the run continues.
    */
   private async delegate(
     agent: Agent,
@@ -1167,10 +1183,10 @@ export class EnvironmentRunner extends Service {
     text: string,
     attempt: number,
     signal: AbortSignal | undefined,
-  ): Promise<boolean> {
+  ): Promise<AttemptOutcome> {
     const { budgets } = implementer
     const before = budgets.enforce(agent)
-    if (before.breach !== undefined) return true
+    if (before.breach !== undefined) return 'blocked'
     const deadline = new DelegationDeadline(before.remainingWallMs, signal)
     try {
       await this.startAndRecord(agent, implementer, text, attempt, deadline)
@@ -1182,7 +1198,11 @@ export class EnvironmentRunner extends Service {
     } finally {
       deadline.dispose()
     }
-    return budgets.enforce(agent).breach !== undefined
+    if (!deadline.expired) return 'ran'
+    // The deadline, not the next measurement, is what ended this run, so the
+    // breach is recorded here rather than before an attempt that never starts.
+    budgets.enforce(agent)
+    return 'cut-short'
   }
 
   /** Start one child run, wait for it, and record what it did and what it spent. */
