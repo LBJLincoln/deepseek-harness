@@ -1022,10 +1022,11 @@ export class EnvironmentRunner extends Service {
       throw new EnvironmentRunError(`seed must be a non-negative integer, got ${String(request.seed)}`, 'ENVIRONMENT_RUN_INVALID_SEED')
     }
     const requested = resolveImplementer(request)
-    const ladder = resolveLadder(request.ladder, request.model ?? this.defaultModel(), this.resolved.maxLadderRungs)
+    const requestedModel = request.model ?? this.defaultModel()
+    const ladder = resolveLadder(request.ladder, requestedModel, this.resolved.maxLadderRungs)
     // The stamp names the route the run STARTS on, so a laddered arm and an
     // unladdered one on the same first rung stay comparable at their first attempt.
-    const model = ladder?.[0] ?? request.model ?? this.defaultModel()
+    const model = ladder?.[0] ?? requestedModel
     const implementer = this.requireImplementer(requested, model)
     const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const stamp: EnvironmentRunStamp = {
