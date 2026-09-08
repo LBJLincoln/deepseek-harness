@@ -11,8 +11,13 @@
   config:
     path: ../cordis.yml
     patches:
-      - id: subagent-spawn
-        name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+      # The base has no entry under this id, so the provider is inserted: a
+      # non-insert patch only overrides an entry the base already names and an
+      # unmatched one is warned about and skipped, which left the arm without
+      # its provider once.
+      - insert:
+          - id: subagent-spawn
+            name: '@deepseek-ai/dsh-subagent-spawn-in-process'
       # The village rule reads this file on its own: a composition that names the
       # runner must also name the session budget, the persistence backend, and
       # the checkpoint policy, so the base's three are restated unchanged.
