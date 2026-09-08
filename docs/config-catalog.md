@@ -737,7 +737,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:108`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:109`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -1939,7 +1939,7 @@ export interface Config {
 export type ReadBarrierIsolationClaim = 'none' | 'process' | 'host'
 ```
 
-Source: [`packages/verification/read-barrier/src/index.ts:228`](../packages/verification/read-barrier/src/index.ts)
+Source: [`packages/verification/read-barrier/src/index.ts:242`](../packages/verification/read-barrier/src/index.ts)
 
 <a id="deepseek-aidsh-repeat-tool-reminder"></a>
 
@@ -2032,7 +2032,7 @@ export interface Config {
 
 Depends on: [`SandboxMode`](subsystems/sandbox.md)
 
-Source: [`packages/sandbox/sandbox-policy/src/index.ts:69`](../packages/sandbox/sandbox-policy/src/index.ts)
+Source: [`packages/sandbox/sandbox-policy/src/index.ts:70`](../packages/sandbox/sandbox-policy/src/index.ts)
 
 <a id="deepseek-aidsh-scorekeeper"></a>
 
@@ -2048,7 +2048,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:160`](../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:161`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 

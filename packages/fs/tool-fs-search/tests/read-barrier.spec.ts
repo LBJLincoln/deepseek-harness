@@ -153,10 +153,13 @@ describe('the search spawn under a read barrier', () => {
     expect(result.isError).toBe(false)
     expect(subprocess.spawns[0]?.argv.slice(0, 2)).toEqual(['/confine', '--'])
     expect(subprocess.spawns[0]?.argv[2]).toContain('rg')
+    // The session's own workspace rides the policy beside the denied root, so a
+    // backend that denies an ancestor of it still leaves the workspace whole.
     expect(sandbox?.policies).toEqual([{
       mode: 'read-only',
       workspaceRoot: realpathSync(tmpdir()),
       deniedReadRoots: [root],
+      grantedReadRoot: realpathSync(tmpdir()),
       sessionId: 'implementer',
     }])
   })
