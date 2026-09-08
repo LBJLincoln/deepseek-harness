@@ -1,0 +1,30 @@
+# The bench with the in-process spawn subagent provider composed: the `drop`
+# arm of the transcript hypothesis. A cell whose implementer names `spawn`
+# runs every attempt as a fresh child agent of this process, on the rung's
+# model, with the same confined tools as a route cell and the task restated
+# before the directive, so the arm differs from the route arm in exactly one
+# thing: the child carries no transcript from the attempt before it. Being
+# in-process, the provider serves any isolation claim, and the cell's caps
+# bound its attempts through the composed budget policy.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - id: subagent-spawn
+        name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'
