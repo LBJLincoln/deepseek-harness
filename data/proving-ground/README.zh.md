@@ -104,6 +104,17 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 | [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:text-diff` | 2 之 2 | 各 1 | 255 与 216 s |
 | [2026-09-07-bench-h1-harness-loop-t4](2026-09-07-bench-h1-harness-loop-t4/manifest.json) | `88ffa9d08` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:token-bucket` | 2 之 2 | 各 1 | 252 与 204 s |
 
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:build-schedule` | 2 之 2 | 各 1 | 560 与 391 s |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:conf-canon` | 0 之 2 | 各 3，用例 146 之 150 | 1288 与 1235 s，突破墙上时间预算 |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:diff3-merge` | 2 之 2 | 各 2 | 337 与 296 s |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:lex-states` | 1 之 2 | 2 与 3，未过者停在用例 159 之 160 | 497 与 1136 s |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:ranked-choice` | 2 之 2 | 各 1 | 219 与 177 s |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:rate-limit-sim` | 2 之 2 | 各 1 | 490 与 599 s |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:sheet-eval` | 0 之 2 | 各 3，可见测试套件未通过 | 1293 与 1289 s，突破墙上时间预算 |
+| [2026-09-08-bench-h1-harness-loop-t5](2026-09-08-bench-h1-harness-loop-t5/manifest.json) | `5bf1520dd` | `route`（harness 循环，走 `claude-code`/`sonnet`） | `code:uri-resolve` | 2 之 2 | 各 1 | 226 与 150 s |
+
+第十一份记录是 harness 循环在第 5 层上的运行，这一层由实现者永远看不到的用例来裁定：未被保留的八个第 5 层环境，十六个单元，11 个获认证（8 个在第一次尝试，3 个在第二次），同时运行两个单元共用时 5,117 s，平均每个单元 16.9 个模型步骤，860,596 个输出 token，745,264 个缓存读取与 4,778,361 个缓存写入 token。这一层能够区分：五次未过分为两类。三次是聚类指令没有把模型引向的规范角落（conf-canon 两次都在每次尝试停在 146 之 150 个用例，四个失败全在 stderr 通道；lex-states 一次在每次尝试停在 159 之 160）。两次是预算耗尽：在 sheet-eval 上，第一次尝试在写出非常大的模块时就已超过组合的 1,200,000 ms 墙上时间上限；在 conf-canon 上，第一次尝试在达到 146 之 150 之后同样如此，于是预算策略在模型能够依据指令行动之前就阻止了其余尝试。路由的每步成本在两类情形中都可见：每一步都是一个新的产品会话，突破墙上时间上限的两次未过在第一次尝试中分别花了 12 步与 35 步。
+
 第十份记录完成了 harness 循环对第 2 至 4 层的一遍运行：九个第 4 层环境，十八个单元，每个都在一次尝试内获得认证，每个单元 68 至 293 s，中位数 175 s，同时运行两个单元共用时 1467 s，平均每个单元 13.2 个模型步骤，214,397 个输出 token，655,134 个缓存读取与 4,024,446 个缓存写入 token。在这一层上产品自身循环是更快的实现者：与第六份记录逐单元对照，harness 循环在 18 对中只有 6 对更快，其单元合计用时 2915 s，对方为 2292 s。第 4 层交给实现者的是一个带预埋缺陷的模块，harness 循环在其上花费的短步骤比其他层更多；而每一步都是一个新的产品进程，把整个前缀重新写入缓存，墙上时间与缓存写入 token 都耗在这里。三层合计，两种实现者都以每个一次尝试认证了 48 之 48 个单元，harness 循环在第 2、3 层更快，在第 4 层更慢。
 
 第九份记录是 harness 循环在第四份记录用产品自身循环测过的同六个第 2 层环境上的舰队运行：十二个单元，每个都在一次尝试内获得认证，每个单元 37 至 481 s，中位数 116 s，同时运行两个单元共用时 979 s，平均每个单元 7.6 个模型步骤，158,899 个输出 token，255,502 个缓存读取与 884,168 个缓存写入 token。与第四份记录逐单元对照（同一环境与同一重复，但来自不同舰队而非同一个冻结计划），harness 循环在 12 对中的 9 对更快，其单元合计用时 1786 s，产品自身循环为 1932 s。
