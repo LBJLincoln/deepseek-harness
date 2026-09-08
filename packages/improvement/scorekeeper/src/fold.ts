@@ -259,6 +259,7 @@ function withStamp(state: SessionFactsState, event: SessionEvent<'environment/ru
       contentSha256: stamp.contentSha256,
       provider: stamp.model.provider,
       model: stamp.model.model,
+      ...stamp.ladder === undefined ? {} : { ladder: stamp.ladder },
       isolation: stamp.isolation,
       // A stamp that names no implementer was written for a run its own model
       // route implemented, which is what the reserved name states.

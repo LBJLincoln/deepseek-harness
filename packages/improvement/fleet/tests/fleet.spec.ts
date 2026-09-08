@@ -7,7 +7,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunReport, EnvironmentRunRequest } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
@@ -101,11 +101,19 @@ interface ReportShape {
   unstampedImplementer?: boolean
 }
 
+/** The rungs a laddered request resolves to, or `undefined` for a request that named none. */
+function ladderOf(request: EnvironmentRunRequest, model: EnvironmentRunModel): EnvironmentRunModel[] | undefined {
+  return request.ladder?.map(rung => rung.model ?? model)
+}
+
 function report(request: EnvironmentRunRequest, shape: ReportShape): EnvironmentRunReport {
   const model = request.model ?? DEFAULT_MODEL
   const count = shape.attempts ?? 1
+  const ladder = ladderOf(request, model)
   const attempts = Array.from({ length: count }, (_, index) => ({
     attempt: index + 1,
+    model: ladder?.[index] ?? model,
+    transcript: request.implementer?.kind === 'subagent' ? 'dropped' as const : 'kept' as const,
     results: [{
       checkId: CheckId('check'),
       status: shape.certified && index === count - 1 ? 'pass' as const : 'fail' as const,
@@ -127,7 +135,8 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
       contentSha256: HEX,
       repetition: request.repetition ?? 0,
       ...request.group === undefined ? {} : { group: request.group },
-      model,
+      model: ladder?.[0] ?? model,
+      ...ladder === undefined ? {} : { ladder },
       isolation: 'process',
       ...shape.unstampedImplementer === true
         ? {}
@@ -237,7 +246,7 @@ describe('FleetService', () => {
 
     expect(StubRuns.current.requests.map(request => request.implementer)).toEqual([implementer, implementer])
     expect(result.leaderboard.map(entry => entry.implementer)).toEqual(['claude-code', 'claude-code'])
-    expect(leaderboardMarkdown(result)).toContain('| mock/a | claude-code | smoke:round-trip |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | - | claude-code | smoke:round-trip |')
 
     // A plan that names none leaves every cell on its own route, and the row
     // states that rather than leaving the column empty.
@@ -255,6 +264,36 @@ describe('FleetService', () => {
     expect(legacy.leaderboard.map(entry => entry.implementer)).toEqual(['route', 'route'])
   })
 
+  it('forwards the plan\'s attempt ladder to every cell and folds the rungs onto the row', async () => {
+    const { ctx, plan } = await harness()
+    StubRuns.current.script = request => report(request, { certified: true, attempts: 2 })
+    const ladder = [{}, { model: MODEL_B }]
+    const result = await ctx.fleet.run(plan({ ladder, models: [MODEL_A], repetitions: 1 }))
+
+    expect(StubRuns.current.requests.map(request => request.ladder)).toEqual([ladder, ladder])
+    // The row states the escalation, so a laddered row never reads as a
+    // single-model one; the route column stays the first rung.
+    expect(result.leaderboard.map(entry => [entry.model, entry.ladder])).toEqual([
+      ['a', [MODEL_A, MODEL_B]],
+      ['a', [MODEL_A, MODEL_B]],
+    ])
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | mock/a > mock/b | route | smoke:round-trip |')
+
+    // A plan that names none leaves the column off the row entirely.
+    const plain = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    const unladdered = await plain.ctx.fleet.run(plain.plan({ models: [MODEL_A], repetitions: 1 }))
+    expect(StubRuns.current.requests[0]).not.toHaveProperty('ladder')
+    expect(unladdered.leaderboard[0]).not.toHaveProperty('ladder')
+  })
+
+  it('refuses an attempt ladder with no rung before running any cell', async () => {
+    const { ctx, plan } = await harness()
+    await expect(ctx.fleet.run(plan({ ladder: [], models: [MODEL_A], repetitions: 1 })))
+      .rejects.toThrow(new FleetError('the plan\'s attempt ladder names no rung', 'FLEET_INVALID_PLAN'))
+    expect(StubRuns.current.requests).toEqual([])
+  })
+
   it('selects by registry filter, runs the default route when no model is named, and mints a group', async () => {
     const { ctx, plan } = await harness()
     const result = await ctx.fleet.run(plan({ environments: { filter: { heldOut: true } }, models: [], repetitions: 1 }, null))
@@ -265,7 +304,7 @@ describe('FleetService', () => {
     expect(result.leaderboard).toEqual([
       row({ model: 'mock-default', environmentId: RESERVED, heldOut: true, runs: 1, certified: 1 }),
     ])
-    expect(leaderboardMarkdown(result)).toContain('| mock/mock-default | route | smoke:reserved | yes | process | 1 | 0 | 1 | 1.00 | 1.00 | 0 / 0 |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/mock-default | - | route | smoke:reserved | yes | process | 1 | 0 | 1 | 1.00 | 1.00 | 0 / 0 |')
   })
 
   it('keeps a failing cell as an error outcome and leaves its row without an isolation claim', async () => {
@@ -303,8 +342,8 @@ describe('FleetService', () => {
     expect(failed).not.toHaveProperty('implementer')
     const markdown = leaderboardMarkdown(result)
     expect(markdown.split('\n')[0]).toBe('Fleet run `batch-1`')
-    expect(markdown).toContain('| mock/a | route | smoke:round-trip | no | process | 3 | 0 | 3 | 1.00 | 1.00 | 0 / 0 |')
-    expect(markdown).toContain('| mock/a | - | smoke:unsatisfiable | no | - | 0 | 3 | 0 | 0.00 | 0.00 | 0 / 0 |')
+    expect(markdown).toContain('| mock/a | - | route | smoke:round-trip | no | process | 3 | 0 | 3 | 1.00 | 1.00 | 0 / 0 |')
+    expect(markdown).toContain('| mock/a | - | - | smoke:unsatisfiable | no | - | 0 | 3 | 0 | 0.00 | 0.00 | 0 / 0 |')
     expect(markdown.endsWith('|\n')).toBe(true)
   })
 

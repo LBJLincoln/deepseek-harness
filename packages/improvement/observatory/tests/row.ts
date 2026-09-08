@@ -15,6 +15,7 @@ export interface RowOverrides {
   readonly district?: string
   readonly isolation?: CertificateIsolation
   readonly implementer?: string
+  readonly ladder?: readonly { readonly provider: string; readonly model: string }[]
   readonly runs?: number
   readonly errors?: number
   readonly tampered?: number
@@ -36,6 +37,7 @@ export function row(overrides: RowOverrides = {}): ScoreboardRow {
   const {
     environmentId = 'smoke:round-trip',
     district,
+    ladder,
     parity,
     compositionSha256,
     costEurPerCertified,
@@ -63,6 +65,7 @@ export function row(overrides: RowOverrides = {}): ScoreboardRow {
     ...rest,
     environmentId: EnvironmentId(environmentId),
     ...district === undefined ? {} : { district },
+    ...ladder === undefined ? {} : { ladder },
     ...parity === undefined ? {} : { parity },
     ...compositionSha256 === undefined ? {} : { compositionSha256 },
     ...costEurPerCertified === undefined ? {} : { costEurPerCertified },

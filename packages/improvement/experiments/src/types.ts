@@ -7,7 +7,7 @@
  */
 
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
-import type { EnvironmentRunImplementer } from '@deepseek-ai/dsh-environment-runner/types'
+import type { EnvironmentRunImplementer, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 
@@ -28,6 +28,15 @@ export interface ExperimentArmPlan extends EnvironmentRunModel {
    * that delegates is comparable with one that does not.
    */
   readonly implementer?: EnvironmentRunImplementer
+  /**
+   * One rung per attempt for every cell of this arm, in attempt order, and the
+   * arm's attempt bound. The first rung is the arm's own route: it names either
+   * no model or exactly the arm's `provider` and `model`, and a plan whose
+   * first rung names another route is refused, because the arm the result is
+   * published under would not be the arm the first attempt ran. Absent runs
+   * every attempt on the arm's route under the composition's own attempt bound.
+   */
+  readonly ladder?: readonly EnvironmentRunRung[]
 }
 
 /**
@@ -81,10 +90,16 @@ export interface ExperimentPlan {
   readonly sink?: TrajectorySink
 }
 
-/** One arm as it ran: its model route, its implementer, and the stamp `group` its sessions carry. */
+/** One arm as it ran: its model route, its ladder, its implementer, and the stamp `group` its sessions carry. */
 export interface ExperimentArm {
-  /** Model route every cell of this arm ran. */
+  /** Model route every cell of this arm ran its first attempt on. */
   readonly model: EnvironmentRunModel
+  /**
+   * Rungs every cell of this arm laddered over, in attempt order, absent for an
+   * arm that ran no ladder. Restated on the result so a stored comparison names
+   * the routing that produced it without the plan file that froze it.
+   */
+  readonly ladder?: readonly EnvironmentRunRung[]
   /** Implementer every cell of this arm ran under, with the plan's default applied, so a stored result tells the arms apart alone. */
   readonly implementer: EnvironmentRunImplementer
   /** `experiment-<digest>-<role>`, written into the `environment/run` stamp of every session of this arm. */

@@ -38,7 +38,7 @@ Every key is required. What a deployment withholds, how old is too old, and how 
 
 `ctx.observatory.snapshot({ experiments? })` lists every persisted session header, folds the scoreboard through `ctx.scorekeeper.leaderboard()` over exactly those sessions, and partitions the rows. Withholding is a row operation because it is already a session operation: the scoreboard key carries `district` and `heldOut`, so every session of a withheld row is withheld and no withheld session can reach a published row. A row withheld for both reasons is counted under its district, which is checked first.
 
-Rows come back ordered by route, environment, isolation, held-out split, and district. The scoreboard's own order is the order its session store listed the sessions in, which no backend promises to keep, so an unordered page would reshuffle between folds that measured the same thing.
+Rows come back ordered by route, attempt ladder, environment, isolation, held-out split, and district. The scoreboard's own order is the order its session store listed the sessions in, which no backend promises to keep, so an unordered page would reshuffle between folds that measured the same thing.
 
 `foldedAt` is when the fold ran; `newestSessionAt` is the newest `createdAt` among the session headers the fold read, absent when the store held none. `refreshIntervalMs` travels in the snapshot so the rendered page names the cadence it was produced under.
 
@@ -54,7 +54,8 @@ One table row per scoreboard row, in this order:
 
 | Column | What it states |
 |---|---|
-| Route | `provider/model` of the row's stamp. |
+| Route | `provider/model` of the row's stamp: the route its first attempt ran on. |
+| Ladder | The route of each attempt in attempt order, `provider/model` joined by arrows, or `none` for a row whose sessions laddered none. Rows never average across it: a cell that escalated on its second attempt is not the same arm as one that stayed. |
 | Implementer | Who did the work: `route` for the session's own model route, or the subagent provider name of a delegated cell. Rows never average across it. |
 | Environment | The environment id the row's sessions ran. |
 | District | The district every session of the row was stamped with, `none` for a row outside every district. |

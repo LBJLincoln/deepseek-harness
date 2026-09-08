@@ -76,8 +76,17 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
    * across model or infrastructure versions.
    */
   readonly seed?: number
-  /** Model route the implementer ran on. */
+  /** Model route the run's first attempt ran on; every attempt of a run without a ladder ran on it. */
   readonly model: EnvironmentRunModel
+  /**
+   * Model route of each attempt in attempt order, present only for a run the
+   * caller laddered. It is part of the arm's identity: a cell whose second
+   * attempt escalated to another model measures something a single-model cell
+   * does not, so a fold that groups by {@link model} alone would count the two
+   * together. Its first entry always equals {@link model}, and its length is
+   * the attempt bound that run was given.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
@@ -89,6 +98,12 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly implementer?: string
 }
 ```
+
+### 尝试阶梯与记录稿接口
+
+一次运行请求可以为每次尝试命名一个档位。第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该次运行自己的 `model` 上；阶梯的长度就是该次运行的尝试上界，并覆盖组合的 `maxAttempts`。stamp 在 `model` 旁记录解析后的档位，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠看到该次运行从哪里开始，按 arm 分组的折叠看到整条升级路径；fleet 计划、实验 arm、记分员的事实与行，以及天文台的列都携带它，于是使用阶梯的 cell 绝不会被当作朴素的单模型 cell 计数。报告中的每次尝试都陈述它所运行的路由。
+
+两种实现者在阶梯上的行为不同，而这一差别以 `transcript` 记在每次尝试上。route 实现者保留其记录稿：每次尝试都是同一个 cell 会话的又一轮用户消息，因此模型读到自己此前的工作，并只收到 `<validation_failed>` 指令。subagent 实现者丢弃它：每次尝试都是一个全新的子进程，因此后续尝试的提示词会在指令之前重述任务陈述，其 `environment/delegation` 记录 `restatedTask`。进程外子进程上的 `keep` arm 需要 subagent 缝并未宣告的 provider 恢复能力，因此进程内的 `spawn` provider 充当 route 的 `drop` 对照。[运行器 README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) 拥有档位数上限、各项拒绝，以及每种实现者如何切换路由。
 
 ### 一次运行的实现者
 
@@ -138,6 +153,14 @@ fleet 从一次 fleet 运行的报告中折叠出每个模型路由与环境一�
 interface LeaderboardRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Model route of each attempt in attempt order, as the plan's ladder resolved
+   * it, absent for a row whose cells ran no ladder and for one whose cells all
+   * failed before a run. One plan runs one ladder, so a fleet row cannot mix a
+   * laddered cell with an unladdered one; the scoreboard, which folds across
+   * plans, keys its rows by it instead.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean
@@ -250,7 +273,7 @@ interface ExperimentResult {
 ```ts type-equiv
 /** One fold over every persisted session, before rendering decides what it shows. */
 interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
+  /** Scoreboard rows that survived withholding, ordered by route, attempt ladder, environment, isolation, held-out split, and district. */
   readonly rows: readonly ScoreboardRow[]
   /** What withholding removed from those rows. */
   readonly withheld: ObservatoryWithheld
@@ -284,6 +307,14 @@ interface ObservatorySnapshot {
 interface ObservatoryPublishedRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Route of each attempt in attempt order, absent for a row whose sessions
+   * laddered none. It is published beside the route rather than folded into it:
+   * a cell that escalated to another model on its second attempt is not the
+   * same arm as one that stayed, and a page that showed only the first rung
+   * would read as if it were.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   /** District the row's sessions were stamped with, absent for a row outside every district. */

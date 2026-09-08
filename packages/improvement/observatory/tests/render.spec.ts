@@ -71,6 +71,13 @@ describe('renderHtml', () => {
     expect(page({ rows: [row({ implementer: 'claude-code' })] })).toContain('<td>claude-code</td>')
   })
 
+  it('names the ladder of every row, so an escalating arm is not read as a single-model one', () => {
+    expect(page({ rows: [row()] })).toContain('<th scope="col">Ladder</th>')
+    expect(page({ rows: [row()] })).toContain('<td>none</td>')
+    const escalating = [{ provider: 'cli-mock', model: 'small' }, { provider: 'cli-mock', model: 'large' }]
+    expect(page({ rows: [row({ ladder: escalating })] })).toContain('<td>cli-mock/small → cli-mock/large</td>')
+  })
+
   it('prints pending where no composition digest covers the row and the digest where one does', () => {
     expect(page({ rows: [row()] })).toContain('<td>pending</td>')
     expect(page({ rows: [row({ compositionSha256: COMPOSITION })] })).toContain(`<td>${COMPOSITION}</td>`)

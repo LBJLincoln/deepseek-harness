@@ -12,7 +12,7 @@ import type { EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/ds
 import { GoalId } from '@deepseek-ai/dsh-goal'
 import type { CreateGoalRequest, GoalRef, GoalView } from '@deepseek-ai/dsh-goal'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
-import type { LlmCallConfig, UserMessage } from '@deepseek-ai/dsh-llm'
+import type { UserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ShellExecRequest, ShellExecSpec, ShellRunResult } from '@deepseek-ai/dsh-shell'
@@ -391,19 +391,14 @@ class StubSubagents extends Service {
 }
 
 /**
- * The route one more step of the cell agent would take: prompt assembly
- * captures the selected model, and the request waterfall then applies what it
- * captured, which is the pair the installed selection puts on the wire.
+ * The route one more step of the cell agent would take. The installed selection
+ * names the model it will assemble under in the prompt variables, so driving
+ * that one waterfall states the rung the ladder left the agent on.
  */
-async function applied(ctx: Context, agent: Agent): Promise<LlmCallConfig> {
-  const events = agentEvents(ctx, agent)
+async function applied(ctx: Context): Promise<Record<string, string | undefined>> {
   const assembly = { sections: [], contexts: [], tools: [], variables: {} }
-  await events.waterfall('system-prompt/assemble', assembly, {}, () => Promise.resolve(assembly))
-  return events.waterfall(
-    'agent/request',
-    { turn: 1, step: 0, signal: new AbortController().signal },
-    () => Promise.resolve({ provider: 'unrouted', model: 'unrouted' }),
-  )
+  const assembled = await ctx.waterfall('system-prompt/assemble', assembly, {}, () => Promise.resolve(assembly))
+  return assembled.variables
 }
 
 const MARKER = 'test -f MARKER'
@@ -751,7 +746,7 @@ describe('EnvironmentRunner', () => {
     expect(StubAgents.current.created[0]?.agentOptions).toEqual({ provider: 'mock', model: 'small' })
     // The cell agent was left on the last rung, which is what a step entering
     // prompt assembly after it would have been routed to.
-    await expect(applied(ctx, asAgent(StubAgents.current.agent))).resolves.toMatchObject(large)
+    await expect(applied(ctx)).resolves.toMatchObject(large)
   })
 
   it('leaves an unladdered run on its stamped route for every attempt', async () => {
@@ -761,8 +756,7 @@ describe('EnvironmentRunner', () => {
 
     expect(report.attempts.map(attempt => attempt.model))
       .toEqual([{ provider: 'other', model: 'candidate-7' }, { provider: 'other', model: 'candidate-7' }])
-    await expect(applied(ctx, asAgent(StubAgents.current.agent)))
-      .resolves.toMatchObject({ provider: 'other', model: 'candidate-7' })
+    await expect(applied(ctx)).resolves.toMatchObject({ provider: 'other', model: 'candidate-7' })
   })
 
   it('refuses a ladder no run could have, before any agent exists', async () => {

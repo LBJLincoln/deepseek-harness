@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import type { ScoreboardRow } from '@deepseek-ai/dsh-scorekeeper/types'
 import { isStale, orderRows, publishDocument, publishRow, rankable, withhold } from '@deepseek-ai/dsh-observatory'
 import { experiment, row, snapshot } from './row.ts'
 
@@ -45,22 +46,28 @@ describe('withhold', () => {
 })
 
 describe('orderRows', () => {
-  it('orders by route, environment, isolation, implementer, held-out split, and district whatever order the fold produced', () => {
+  it('orders by route, attempt ladder, environment, isolation, implementer, held-out split, and district whatever order the fold produced', () => {
+    const escalating = [{ provider: 'cli-mock', model: 'a' }, { provider: 'cli-mock', model: 'b' }]
     const ordered = orderRows([
       row({ model: 'b', environmentId: 'smoke:round-trip' }),
       row({ model: 'a', environmentId: 'smoke:unsatisfiable', district: 'proving-ground' }),
       row({ model: 'a', environmentId: 'smoke:round-trip', heldOut: true }),
       row({ model: 'a', environmentId: 'smoke:round-trip', isolation: 'host' }),
       row({ model: 'a', environmentId: 'smoke:round-trip', implementer: 'claude-code' }),
+      row({ model: 'a', environmentId: 'smoke:round-trip', ladder: escalating }),
       row({ model: 'a', environmentId: 'smoke:round-trip' }),
     ])
-    expect(ordered.map(entry => [entry.model, entry.environmentId, entry.isolation, entry.implementer, entry.heldOut])).toEqual([
-      ['a', 'smoke:round-trip', 'host', 'route', false],
-      ['a', 'smoke:round-trip', 'none', 'claude-code', false],
-      ['a', 'smoke:round-trip', 'none', 'route', false],
-      ['a', 'smoke:round-trip', 'none', 'route', true],
-      ['a', 'smoke:unsatisfiable', 'none', 'route', false],
-      ['b', 'smoke:round-trip', 'none', 'route', false],
+    const key = (entry: ScoreboardRow): unknown[] => (
+      [entry.model, entry.ladder?.length ?? 0, entry.environmentId, entry.isolation, entry.implementer, entry.heldOut]
+    )
+    expect(ordered.map(key)).toEqual([
+      ['a', 2, 'smoke:round-trip', 'none', 'route', false],
+      ['a', 0, 'smoke:round-trip', 'host', 'route', false],
+      ['a', 0, 'smoke:round-trip', 'none', 'claude-code', false],
+      ['a', 0, 'smoke:round-trip', 'none', 'route', false],
+      ['a', 0, 'smoke:round-trip', 'none', 'route', true],
+      ['a', 0, 'smoke:unsatisfiable', 'none', 'route', false],
+      ['b', 0, 'smoke:round-trip', 'none', 'route', false],
     ])
   })
 })

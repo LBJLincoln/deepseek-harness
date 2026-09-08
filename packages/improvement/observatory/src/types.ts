@@ -46,7 +46,7 @@ export interface ObservatorySnapshotRequest {
 
 /** One fold over every persisted session, before rendering decides what it shows. */
 export interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
+  /** Scoreboard rows that survived withholding, ordered by route, attempt ladder, environment, isolation, held-out split, and district. */
   readonly rows: readonly ScoreboardRow[]
   /** What withholding removed from those rows. */
   readonly withheld: ObservatoryWithheld
@@ -81,6 +81,14 @@ export type ObservatoryTamper = 'not-instrumented' | 'tampered' | 'none'
 export interface ObservatoryPublishedRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Route of each attempt in attempt order, absent for a row whose sessions
+   * laddered none. It is published beside the route rather than folded into it:
+   * a cell that escalated to another model on its second attempt is not the
+   * same arm as one that stayed, and a page that showed only the first rung
+   * would read as if it were.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   /** District the row's sessions were stamped with, absent for a row outside every district. */

@@ -76,8 +76,17 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
    * across model or infrastructure versions.
    */
   readonly seed?: number
-  /** Model route the implementer ran on. */
+  /** Model route the run's first attempt ran on; every attempt of a run without a ladder ran on it. */
   readonly model: EnvironmentRunModel
+  /**
+   * Model route of each attempt in attempt order, present only for a run the
+   * caller laddered. It is part of the arm's identity: a cell whose second
+   * attempt escalated to another model measures something a single-model cell
+   * does not, so a fold that groups by {@link model} alone would count the two
+   * together. Its first entry always equals {@link model}, and its length is
+   * the attempt bound that run was given.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
@@ -89,6 +98,12 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   readonly implementer?: string
 }
 ```
+
+### The attempt ladder and the transcript interface
+
+A run request may name one rung per attempt. Attempt `i` runs on `ladder[i - 1].model`, or on the run's own `model` when that rung names none, and the ladder's length is the run's attempt bound, overriding the composition's `maxAttempts`. The stamp records the resolved rungs beside `model`, which stays the first attempt's route, so a fold grouping by route sees where a run started and a fold grouping by arm sees the whole escalation; a fleet plan, an experiment arm, the scorekeeper's facts and rows, and the observatory's columns all carry it, so a laddered cell is never counted as a plain single-model one. Every attempt of the report states the route it ran on.
+
+The two implementers ladder differently, and the difference is named on every attempt as `transcript`. A route implementer keeps its transcript: each attempt is another user turn of the one cell session, so the model reads its own earlier work and receives the `<validation_failed>` directive alone. A subagent implementer drops it: each attempt is one fresh child, so a later attempt's prompt restates the task statement ahead of the directive and its `environment/delegation` records `restatedTask`. A `keep` arm on an out-of-process child would need provider resume support the subagent seam does not advertise, so the in-process `spawn` provider is the route's `drop` counterpart. The [runner README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) owns the rung ceiling, the refusals, and how each implementer changes route.
 
 ### The implementer of a run
 
@@ -138,6 +153,14 @@ The fleet folds one row per model route and environment from the reports of one 
 interface LeaderboardRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Model route of each attempt in attempt order, as the plan's ladder resolved
+   * it, absent for a row whose cells ran no ladder and for one whose cells all
+   * failed before a run. One plan runs one ladder, so a fleet row cannot mix a
+   * laddered cell with an unladdered one; the scoreboard, which folds across
+   * plans, keys its rows by it instead.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean
@@ -250,7 +273,7 @@ The observatory folds the scoreboard through the scorekeeper over every persiste
 ```ts type-equiv
 /** One fold over every persisted session, before rendering decides what it shows. */
 interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, environment, isolation, held-out split, and district. */
+  /** Scoreboard rows that survived withholding, ordered by route, attempt ladder, environment, isolation, held-out split, and district. */
   readonly rows: readonly ScoreboardRow[]
   /** What withholding removed from those rows. */
   readonly withheld: ObservatoryWithheld
@@ -284,6 +307,14 @@ interface ObservatorySnapshot {
 interface ObservatoryPublishedRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Route of each attempt in attempt order, absent for a row whose sessions
+   * laddered none. It is published beside the route rather than folded into it:
+   * a cell that escalated to another model on its second attempt is not the
+   * same arm as one that stayed, and a page that showed only the first rung
+   * would read as if it were.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   /** District the row's sessions were stamped with, absent for a row outside every district. */

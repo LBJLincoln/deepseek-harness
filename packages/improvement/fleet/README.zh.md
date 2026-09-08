@@ -37,7 +37,7 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 
 ## Service contract
 
-`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、`models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、可选的、运行每个 cell 的 `implementer`、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的 `policyVersion`、可选的基准 `seed`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、`seed` 不是安全的非负整数、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
+`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、每个 cell **第一次**尝试所运行的 `models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、可选的、每次尝试一个档位的 `ladder`、可选的、运行每个 cell 的 `implementer`、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的 `policyVersion`、可选的基准 `seed`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、`seed` 不是安全的非负整数、没有任何档位的 `ladder`、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
 
 ## Policy version and the base seed
 
@@ -47,9 +47,11 @@ cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举�
 
 有两种情况在 cell 启动之前拒绝它，因此每个计划都为每个 cell 保留一行，runs 与 errors 两列也保持诚实。一条模型路由连续产生 `routeBreaker.consecutiveErrors` 个错误结果之后，它余下的 cell 被记录为 `FLEET_ROUTE_BREAKER_OPEN` 错误，消息点名该路由与该计数；有报告的 cell 会重置该路由的计数，且熔断器按计划生效。已在手的报告的输入加输出 token 之和越过 `tokenCeiling` 之后，每个尚未启动的 cell 被记录为 `FLEET_TOKEN_CEILING_REACHED` 错误，而已经在途的 cell 照常完成。被拒绝的 cell 不铸造工作区，也既不折叠进熔断器也不折叠进 spend。
 
+`ladder` 被原样转发给每个 cell，因此一个计划就是一条阶梯：每个 cell 的第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该 cell 自己的路由上，而阶梯的长度就是每个 cell 的尝试上界。档位数上限属于运行器的配置，因此超过它的阶梯让每个 cell 失败而非让计划失败；只有完全没有档位的阶梯在这里被拒绝一次，因为那是任何 cell 都无法完成的算术。[运行器 README](../environment-runner/README.md#the-attempt-ladder) 拥有一个档位意味着什么，以及每种实现者如何切换路由。
+
 `implementer` 被原样转发给每个 cell，因此一个计划就是一个实现者，由它折叠出来的行绝不混合两者：`{ kind: 'route' }`（默认）让每个 cell 跑在自己的模型路由上，而 `{ kind: 'subagent', provider, label? }` 把每个 cell 的每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
 
-报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所声明的 `isolation` 与其被盖上的 `implementer`（该行全部 cell 在运行前失败时二者都缺省）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
+报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所升级经过的 `ladder`、运行所声明的 `isolation` 与其被盖上的 `implementer`（该行全部 cell 在运行前失败时三者都缺省，且计划未命名阶梯时 ladder 同样缺省）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
 
 工作区保留在 cell 的结果到手之后执行：`remove-certified` 删除运行已认证的 cell 的 `cell-*` 目录，`remove-all` 无论该 cell 是有报告还是失败都删除，`keep` 什么都不删除。
 

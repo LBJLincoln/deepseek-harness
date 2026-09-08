@@ -7,7 +7,7 @@
  */
 
 import type { BudgetCapId } from '@deepseek-ai/dsh-budget-policy'
-import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import type { GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { TrajectoryRewardBasis, TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
@@ -39,10 +39,17 @@ export interface SessionFactsEnvironment {
   readonly district?: string
   /** SHA-256 hex over the prompt, fixture, and check digests; the decontamination key. */
   readonly contentSha256: string
-  /** Provider route the run declared. */
+  /** Provider route the run declared for its first attempt. */
   readonly provider: string
-  /** Provider-owned model id the run declared. */
+  /** Provider-owned model id the run declared for its first attempt. */
   readonly model: string
+  /**
+   * Route of each attempt in attempt order, from the stamp's attempt ladder,
+   * absent for a run that laddered none. A row is keyed by it: a cell that
+   * escalated to another model on a later attempt measures something the same
+   * first-rung cell without a ladder does not, so the two are never one row.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
@@ -279,15 +286,21 @@ export interface EnvironmentStats {
 }
 
 /**
- * One scoreboard row: one model route and implementer on one environment at
- * one isolation level, one side of the held-out split, and one district. Rows
- * never average across the implementer, isolation, the split, or districts;
- * all four are columns a consumer partitions by, and a publication that
- * withholds a district drops whole rows.
+ * One scoreboard row: one model route, attempt ladder, and implementer on one
+ * environment at one isolation level, one side of the held-out split, and one
+ * district. Rows never average across the ladder, the implementer, isolation,
+ * the split, or districts; all five are columns a consumer partitions by, and a
+ * publication that withholds a district drops whole rows.
  */
 export interface ScoreboardRow {
   readonly provider: string
   readonly model: string
+  /**
+   * Route of each attempt in attempt order, absent for a row whose sessions
+   * laddered none. Every session of a row ladders the same way, because the row
+   * is keyed by it.
+   */
+  readonly ladder?: readonly EnvironmentRunModel[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean
