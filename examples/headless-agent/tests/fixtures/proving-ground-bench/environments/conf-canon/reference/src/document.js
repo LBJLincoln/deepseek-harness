@@ -65,7 +65,8 @@ export function parse(lines) {
           parent.value.set(last, list)
           current = fresh
         } else {
-          if (held !== undefined && (held.type !== 'table' || held.explicit)) throw new ConfError(`table ${parts.join('.')} is defined twice`)
+          if (held !== undefined && held.type !== 'table') throw new ConfError(`${parts.join('.')} is not a table`)
+          if (held !== undefined && held.explicit) throw new ConfError(`table ${parts.join('.')} is defined twice`)
           const fresh = held ?? table()
           fresh.explicit = true
           parent.value.set(last, fresh)
@@ -77,7 +78,7 @@ export function parse(lines) {
       const parts = reader.name()
       reader.skip()
       if (!reader.eat('=')) throw new ConfError('expected key = value')
-      const held = reader.value()
+      const held = reader.value([...currentPath, ...parts].join('.'))
       endOfLine(reader, 'a value')
       const target = descend(current, parts.slice(0, -1), currentPath)
       const last = parts[parts.length - 1]

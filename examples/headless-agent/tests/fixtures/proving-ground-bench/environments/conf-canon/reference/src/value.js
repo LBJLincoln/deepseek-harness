@@ -23,6 +23,11 @@ const FLOAT = /^[+-]?[0-9]+(?:_[0-9]+)*(?:\.[0-9]+(?:_[0-9]+)*)?(?:[eE][+-]?[0-9
 /** The escapes a basic string carries. */
 const ESCAPES = { '"': '"', '\\': '\\', n: '\n', t: '\t', r: '\r', 0: '\0' }
 
+/** Join a path counted from the root with the name of something under it. */
+function under(path, rest) {
+  return path === '' ? rest : `${path}.${rest}`
+}
+
 /** A cursor over one line's text, shared by the name reader and the value reader. */
 export class Reader {
   /**
@@ -107,19 +112,21 @@ export class Reader {
 
   /**
    * Read one value: a scalar, an array, or an inline table.
+   * @param path - this value's own path counted from the root, so an inline table names its keys in full.
    * @returns the value as `{ type, value }`, with `table` and `array` carrying their contents.
-   * @throws {ConfError} when the value is malformed.
+   * @throws {ConfError} when the value is malformed, or when no value is written where one is required.
    */
-  value() {
+  value(path) {
     this.skip()
     const character = this.peek()
     if (character === undefined) throw new ConfError('expected a value')
     if (character === '"' || character === "'") return { type: 'string', value: this.string() }
-    if (character === '[') return this.array()
-    if (character === '{') return this.inline()
+    if (character === '[') return this.array(path)
+    if (character === '{') return this.inline(path)
     const start = this.at
     while (this.peek() !== undefined && !' \t,]}'.includes(this.peek())) this.at += 1
     const word = this.text.slice(start, this.at)
+    if (word === '') throw new ConfError('expected a value')
     if (word === 'true' || word === 'false') return { type: 'boolean', value: word === 'true' }
     const plain = word.replaceAll('_', '')
     if (INTEGER.test(word)) return { type: 'integer', value: Number(plain) }
@@ -127,15 +134,18 @@ export class Reader {
     throw new ConfError(`invalid value ${word}`)
   }
 
-  /** Read a bracketed array, whose items may themselves be arrays or inline tables. */
-  array() {
+  /**
+   * Read a bracketed array, whose items may themselves be arrays or inline tables.
+   * @param path - the array's own path counted from the root; an item extends it with its index.
+   */
+  array(path) {
     this.at += 1
     const items = []
     for (;;) {
       this.skip()
       if (this.peek() === undefined) throw new ConfError('unterminated array')
       if (this.eat(']')) return { type: 'array', value: items }
-      items.push(this.value())
+      items.push(this.value(`${path}[${items.length}]`))
       this.skip()
       if (this.eat(',')) continue
       this.skip()
@@ -144,8 +154,11 @@ export class Reader {
     }
   }
 
-  /** Read a braced inline table, whose keys may be dotted. */
-  inline() {
+  /**
+   * Read a braced inline table, whose keys may be dotted.
+   * @param path - the table's own path counted from the root, which its errors name their keys under.
+   */
+  inline(path) {
     this.at += 1
     const table = { type: 'table', value: new Map() }
     this.skip()
@@ -154,16 +167,16 @@ export class Reader {
       const parts = this.name()
       this.skip()
       if (!this.eat('=')) throw new ConfError('expected = in an inline table')
-      const held = this.value()
+      const held = this.value(under(path, parts.join('.')))
       let target = table
-      for (const part of parts.slice(0, -1)) {
+      for (const [index, part] of parts.slice(0, -1).entries()) {
         const next = target.value.get(part) ?? { type: 'table', value: new Map() }
-        if (next.type !== 'table') throw new ConfError(`${part} is not a table`)
+        if (next.type !== 'table') throw new ConfError(`${under(path, parts.slice(0, index + 1).join('.'))} is not a table`)
         target.value.set(part, next)
         target = next
       }
       const last = parts[parts.length - 1]
-      if (target.value.has(last)) throw new ConfError(`key ${parts.join('.')} is defined twice`)
+      if (target.value.has(last)) throw new ConfError(`key ${under(path, parts.join('.'))} is defined twice`)
       target.value.set(last, held)
       this.skip()
       if (this.eat(',')) continue

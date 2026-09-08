@@ -136,7 +136,7 @@
   "stdin": "a = []\nb = [[]]\nc = [1, \"x\", true, 2.5]\nd = [1,]\ne = [,]\nf = [1 2]\n",
   "exitCode": 2,
   "stdout": "",
-  "stderr": "error: line 5: invalid value \n",
+  "stderr": "error: line 5: expected a value\n",
   "channels": [
    "exit",
    "stdout",
@@ -152,7 +152,7 @@
   "stdin": "a = []\nb = [[]]\nc = [1, \"x\", true, 2.5]\nd = [1,]\ne = [,]\nf = [1 2]\n",
   "exitCode": 2,
   "stdout": "",
-  "stderr": "error: line 5: invalid value \n",
+  "stderr": "error: line 5: expected a value\n",
   "channels": [
    "exit",
    "stdout",
@@ -168,7 +168,7 @@
   "stdin": "a = {}\nb = { x = 1 }\nc = { x = 1, x = 2 }\nd = { x = 1,, }\ne = { x = }\n",
   "exitCode": 2,
   "stdout": "",
-  "stderr": "error: line 3: key x is defined twice\n",
+  "stderr": "error: line 3: key c.x is defined twice\n",
   "channels": [
    "exit",
    "stdout",
@@ -184,7 +184,7 @@
   "stdin": "a = {}\nb = { x = 1 }\nc = { x = 1, x = 2 }\nd = { x = 1,, }\ne = { x = }\n",
   "exitCode": 2,
   "stdout": "",
-  "stderr": "error: line 3: key x is defined twice\n",
+  "stderr": "error: line 3: key c.x is defined twice\n",
   "channels": [
    "exit",
    "stdout",
@@ -328,7 +328,7 @@
   "stdin": "a = 1\n[a]\nb = 2\n",
   "exitCode": 2,
   "stdout": "",
-  "stderr": "error: line 2: table a is defined twice\n",
+  "stderr": "error: line 2: a is not a table\n",
   "channels": [
    "exit",
    "stdout",
@@ -344,7 +344,7 @@
   "stdin": "a = 1\n[a]\nb = 2\n",
   "exitCode": 2,
   "stdout": "",
-  "stderr": "error: line 2: table a is defined twice\n",
+  "stderr": "error: line 2: a is not a table\n",
   "channels": [
    "exit",
    "stdout",
