@@ -191,7 +191,8 @@ describe('the granted read root each dialect restores', () => {
       .toEqual({ aboveGrant: [], rest: ['/srv/standards'] })
     expect(partitionDenied({ ...SEALED, deniedReadRoots: ['/run/cell-a'] }))
       .toEqual({ aboveGrant: [], rest: ['/run/cell-a'] })
-    expect(partitionDenied({ ...SEALED, grantedReadRoot: undefined }))
+    const { mode, workspaceRoot, deniedReadRoots } = SEALED
+    expect(partitionDenied({ mode, workspaceRoot, deniedReadRoots }))
       .toEqual({ aboveGrant: [], rest: ['/run', '/run/cell-a/held-out'] })
   })
 
