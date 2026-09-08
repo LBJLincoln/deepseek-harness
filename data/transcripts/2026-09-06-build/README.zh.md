@@ -19,7 +19,7 @@
 ## 数据质量说明
 
 - 101 个 subagent transcript 文件中有 0 个是指向活动 Claude Code 项目目录的符号链接而非冻结副本；导出时仍在运行的 subagent，在稍后重新运行 `transcripts-to-dataset.mjs` 时会显示比这里更多的行。
-- 2 个 subagent transcript 在动作中途结束：最后记录的一行是一次没有伴随文本也没有结果的工具调用，而不是收尾报告——id：`a17ce67a3847d0595`, `ac1d0180b6ef3cf0a`。对这些 transcript，`finalAssistantExcerpt` 和 `commitShasMentioned` 反映的是 transcript 在此处停止，而不是该 agent 没有产出最终报告。
+- 1 个 subagent transcript 在动作中途结束：最后记录的一行是一次没有伴随文本也没有结果的工具调用，而不是收尾报告——id：`ac1d0180b6ef3cf0a`。对这些 transcript，`finalAssistantExcerpt` 和 `commitShasMentioned` 反映的是 transcript 在此处停止，而不是该 agent 没有产出最终报告。
 
 ## 来源
 
@@ -27,7 +27,7 @@
 - 原始 transcript：`data/transcripts/2026-09-06-build/raw`
 - 导出日期：2026-09-08
 - 导出时 harness 仓库分支：`claude/coding-agent-harness-u9l4gt`
-- 导出时 harness 仓库 HEAD 提交：`7dc3aac4bb883a30439e7a251d2ab4c7d809d251`
+- 导出时 harness 仓库 HEAD 提交：`9a07da9d2a0d68b07068a541d13c304b95e93829`
 
 ## 使用
 
