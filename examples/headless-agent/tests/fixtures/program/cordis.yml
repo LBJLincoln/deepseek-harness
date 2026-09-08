@@ -1,8 +1,8 @@
 # Test-only composition: one program of the Daliesk Village — a department
 # session and git worktree per goal, an integration over the merged head, and a
 # ledger in the program's own session that a restart reconciles from.
-- id: cli-mock-llm
-  name: '../cli-mock-llm.ts'
+- id: program-llm
+  name: './program-llm.ts'
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
@@ -10,6 +10,22 @@
 
 - id: bash
   name: '@deepseek-ai/dsh-bash-local'
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.cwd()
+
+# The barrier the program denies its integration session the other worktrees
+# with; the fs gate is what refuses the read in the operation that opens paths.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
 
 - id: goal
   name: '@deepseek-ai/dsh-goal'
@@ -43,8 +59,8 @@
 - id: agent-default-model
   name: '@deepseek-ai/dsh-agent-default-model'
   config:
-    provider: cli-mock
-    model: cli-mock
+    provider: program-mock
+    model: program-mock
 
 # Village rule: a composition that runs unattended sessions carries a session
 # budget. The caps are far out of reach of the mock route, so no department
@@ -86,6 +102,8 @@
     workspaceRoot: !!js process.env.DSH_TEST_PROGRAM_REPO
     requireSignoff: true
     maxConcurrentGoals: 2
-    maxGoalRounds: 2
+    # A department spends one round writing and one committing; the integration
+    # spends one on the merged head as it stands and one on its repair.
+    maxGoalRounds: 3
     branchPrefix: program
     evidenceMaxChars: 512

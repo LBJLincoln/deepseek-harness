@@ -80,7 +80,9 @@ function programSpec(): ProgramSpec {
     implementer: { kind: 'subagent', provider: 'claude-code', label: 'external implementer' },
     goals: [{
       key: 'greeting',
-      objective: `Add a \`${DELIVERABLE}\` containing \`hello\` at the root of this worktree, and nothing else.`,
+      // The program certifies a branch, so the objective asks for the commit
+      // as well: an uncommitted tree is refused before the checks are run.
+      objective: `Add a \`${DELIVERABLE}\` containing \`hello\` at the root of this worktree, and nothing else, then commit it.`,
       preset: 'implementing',
       isolation: 'none',
       budget: { maxTotalTokens: 400_000, maxWallMs: 600_000 },
