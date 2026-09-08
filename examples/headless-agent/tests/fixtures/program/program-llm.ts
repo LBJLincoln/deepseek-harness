@@ -36,6 +36,9 @@ const INTEGRATED_FILE = 'integrated.md'
 /** The department worktree file the integration tries to read, relative to its own worktree. */
 const DEPARTMENT_FILE = '../api/api.md'
 
+/** A file of the integration's own worktree, which the barrier grants it beneath the denied root. */
+const OWN_FILE = 'base.txt'
+
 /** Where in one session's turn the adapter is: the turn's text and the tool results it already has. */
 interface Position {
   /** Text of the newest turn the session was handed, empty for a session that was handed none. */
@@ -84,20 +87,31 @@ class ProgramAdapter extends LlmAdapter {
 
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
     const { text, results } = position(options)
-    if (results > 0) {
-      // Every step but the last of a turn is one tool call; the answer ends it.
-      if (!text.includes(CHECKS_FAILED_MARKER) || results > 1) {
-        yield * reply('TURN COMPLETE')
+    if (text.includes(CHECKS_FAILED_MARKER)) {
+      // The integration probes the department worktree, which the barrier
+      // refuses, then its own, which the barrier grants beneath the same denied
+      // root, and only then repairs the merged head.
+      if (results === 0) {
+        yield * call('integration-probe', 'read', { file_path: DEPARTMENT_FILE })
         return
       }
-      yield * call('integration-repair', 'bash', {
-        command: `printf 'merged\\n' > ${INTEGRATED_FILE} && git add -A && git commit -qm 'integrate the departments'`,
-        description: 'Create and commit the file the integration standard measures.',
-      })
+      if (results === 1) {
+        yield * call('integration-own-read', 'read', { file_path: OWN_FILE })
+        return
+      }
+      if (results === 2) {
+        yield * call('integration-repair', 'bash', {
+          command: `printf 'merged\\n' > ${INTEGRATED_FILE} && git add -A && git commit -qm 'integrate the departments'`,
+          description: 'Create and commit the file the integration standard measures.',
+        })
+        return
+      }
+      yield * reply('TURN COMPLETE')
       return
     }
-    if (text.includes(CHECKS_FAILED_MARKER)) {
-      yield * call('integration-probe', 'read', { file_path: DEPARTMENT_FILE })
+    if (results > 0) {
+      // A department's turn is one tool call, then the answer that ends it.
+      yield * reply('TURN COMPLETE')
       return
     }
     const file = departmentFile(options) ?? INTEGRATED_FILE

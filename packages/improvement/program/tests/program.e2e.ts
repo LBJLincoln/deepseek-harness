@@ -173,8 +173,9 @@ describe('the program ledger through a real cordis.yml, killed and restarted', (
     expect(first.report.goals.map(goal => [goal.key, goal.revision === undefined, goal.tree === undefined]))
       .toEqual([['api', false, false], ['docs', false, false]])
 
-    // The integration ran denied the worktrees root its own worktree sits in,
-    // and its read of a department worktree was refused at the fs seam.
+    // The integration ran denied the worktrees root its own worktree sits in:
+    // its read of a department worktree was refused at the fs seam, and the
+    // read of its own worktree beneath that same root was not.
     const certified = integrations(ledger).at(-1) as ProgramIntegrationRecord
     expect(certified.denied).toEqual([join(repository, first.report.programId)])
     expect(first.denials).toEqual([{

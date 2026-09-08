@@ -11,13 +11,13 @@
  * certified, and the integration merges each department branch only while that
  * branch still points at it. The integration session is confined to its own
  * worktree, so its repairs are commits of its own rather than edits in a
- * department's. A department is staffed either by
- * the harness agent this service drives or, through the subagent seam, by an
- * external coding agent whose attempts this service records and whose tree it
- * certifies. The
- * [program-ledger](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)
+ * department's. A department is staffed either by the harness agent this
+ * service drives or, through the subagent seam, by an external coding agent
+ * whose attempts this service records and whose tree it certifies. The
+ * [program-ledger](../../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md),
+ * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-program-external-implementer.md),
  * and
- * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-program-external-implementer.md)
+ * [workflow-integrity](../../../.agents/notes/proposed/architecture/2026-09-08-program-workflow-integrity.md)
  * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-program
  */
