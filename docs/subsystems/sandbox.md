@@ -40,7 +40,7 @@ type SandboxEnforcement = 'full' | 'partial'
 
 ## Per-call policy
 
-The complete execution policy is resolved and carried per capability call. It includes `danger-full-access` so a consumer can resolve policy once before deciding whether to bypass confinement. Normal tool calls derive `workspaceRoot` from the calling session's immutable cwd; deployment configuration is the agentless fallback. The root is canonicalized with filesystem semantics before lexical normalization, so a cwd containing `symlink/..` identifies the directory where a spawned process actually runs. `deniedReadRoots` is the policy's second, mode-independent half: the read barrier's denied directories for that session, normalized the same way, and empty for every session the barrier denies nothing.
+The complete execution policy is resolved and carried per capability call. It includes `danger-full-access` so a consumer can resolve policy once before deciding whether to bypass confinement. Normal tool calls derive `workspaceRoot` from the calling session's immutable cwd; deployment configuration is the agentless fallback. The root is canonicalized with filesystem semantics before lexical normalization, so a cwd containing `symlink/..` identifies the directory where a spawned process actually runs. `deniedReadRoots` is the policy's second, mode-independent half: the read barrier's denied directories for that session, normalized the same way, and empty for every session the barrier denies nothing. `grantedReadRoot` orders them: a denied root that is a strict ancestor of it denies the rest of that ancestor's subtree while the granted directory stays readable, and each backend expresses that order in its own dialect.
 
 ```ts type-equiv
 /**
@@ -62,6 +62,18 @@ interface SandboxExecutionPolicy {
    * than running the command with the denial unenforced.
    */
   deniedReadRoots: readonly string[]
+  /**
+   * Absolute canonical directory this execution READS whatever
+   * {@link deniedReadRoots} says about an ancestor of it — the read barrier's
+   * granted workspace as `ctx.sandboxPolicy` resolved it for the calling
+   * session, absent for a session that is granted none. A denied root that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory whole; a denied root that IS this directory, or that lies
+   * inside it, denies as it would without the grant. Each backend expresses the
+   * precedence in its own dialect, so a cell that may not read the run directory
+   * it sits in still reads its own workspace.
+   */
+  grantedReadRoot?: string
   /**
    * Opaque identity of the calling session (the branded `dsh-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives

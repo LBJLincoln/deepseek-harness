@@ -5,7 +5,7 @@
  * `goal/change`, the five `verification/*` events and `budget/breach`, the
  * efficiency group from `turn/start`, `step/start`, the usage of
  * `assistant/message` and the `usage/priced` records, and the tool group from
- * `tool/call` and `tool/result`.
+ * `tool/call`, `tool/result`, and `read-barrier/denied`.
  *
  * The fold takes no pricing table: cost is the sum the `usage/priced` events
  * themselves state, so a deployment that re-rates its routes cannot change what
@@ -27,6 +27,8 @@ import type {} from '@deepseek-ai/dsh-budget-policy'
 import type {} from '@deepseek-ai/dsh-components-manifest'
 // Type-only: the `environment/delegation` SessionEventMap merge this fold reads.
 import type {} from '@deepseek-ai/dsh-environment-runner/types'
+// Type-only: the `read-barrier/denied` SessionEventMap merge this fold reads.
+import type {} from '@deepseek-ai/dsh-read-barrier'
 import { TOOL_TIMEOUT } from '@deepseek-ai/dsh-tool-call-timeout-policy'
 import { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@deepseek-ai/dsh-tools'
 import { foldTrajectoryReward } from '@deepseek-ai/dsh-trajectories'
@@ -99,7 +101,7 @@ const EMPTY_FACTS: SessionFacts = {
     costEur: 0,
     pricingDigests: [],
   },
-  tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0 },
+  tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0, escapesDenied: 0 },
 }
 
 /**
@@ -371,6 +373,8 @@ export function applySessionFacts(state: SessionFactsState, event: SessionEvent)
     }
     case 'tool/result':
       return withToolResult(timed, event)
+    case 'read-barrier/denied':
+      return withTools(timed, { escapesDenied: timed.facts.tools.escapesDenied + 1 })
     // SessionEventMap is merge-extensible: every other event moves only the time span.
     default:
       return timed

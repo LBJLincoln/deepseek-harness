@@ -51,6 +51,7 @@ export function row(overrides: RowOverrides = {}): ScoreboardRow {
     runs: 2,
     errors: 0,
     tampered: 0,
+    escapesDenied: 0,
     certificateExecutors: ['runner'],
     certified: 2,
     certificateRate: 1,

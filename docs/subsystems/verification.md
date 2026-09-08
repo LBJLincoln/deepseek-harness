@@ -189,7 +189,7 @@ The five durable events (`verification/standard`, `verification/relaxation`, `ve
 
 ## The read barrier
 
-Types the read barrier decides from, declared by [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md). A session's role decides what it may read; a reservation is what makes a session the implementer.
+Types the read barrier decides from, declared by [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md). A session's role decides what it may read; a reservation is what makes a session the implementer. A policy carries the session's own workspace beside the denied set, and the two are ordered: a denied directory that is a strict ancestor of the workspace denies the rest of that ancestor's subtree and leaves the workspace whole, which is what lets a runner deny a cell everything above its own directory.
 
 ```ts type-equiv
 /**
@@ -232,8 +232,16 @@ interface ReadBarrierPolicy {
   readonly role: ReadBarrierRole
   /** The barrier's own validator-owned root, always the first denied directory. */
   readonly root: string
-  /** Every denied directory: the root, the configured extras, and the registered ones. */
+  /** Every denied directory: the root, the configured extras, the registered ones, and those registered for this session. */
   readonly denied: readonly string[]
+  /**
+   * The session's own workspace, granted whole. A denied directory that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory readable; a denied directory that IS this one, or that lies
+   * inside it, denies as it would without the grant. Absent for a session
+   * created without a cwd and for every agentless call, which grant nothing.
+   */
+  readonly granted?: string
 }
 ```
 

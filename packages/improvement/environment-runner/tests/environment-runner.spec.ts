@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { agentEvents } from '@deepseek-ai/dsh-agent'
@@ -289,6 +289,8 @@ class StubReadBarrier extends Service {
   static current: StubReadBarrier
   root = ''
   readonly reserved: string[] = []
+  /** One entry per session-scoped denial the runner registered, in registration order. */
+  readonly denied: { readonly session: string; readonly path: string; disposed: boolean }[] = []
   constructor(ctx: Context) {
     super(ctx, 'readBarrier')
     StubReadBarrier.current = this
@@ -298,6 +300,11 @@ class StubReadBarrier extends Service {
     const directory = join(this.root, 'runs', agent.id)
     mkdirSync(directory, { recursive: true })
     return directory
+  }
+  denyFor(session: FakeSession, path: string): () => void {
+    const entry = { session: session.id as string, path, disposed: false }
+    this.denied.push(entry)
+    return () => { entry.disposed = true }
   }
 }
 
@@ -508,6 +515,31 @@ describe('EnvironmentRunner', () => {
       .toMatchObject({ id: 'standard-1', revision: 1, checks: [{ id: 'marker', run: MARKER }] })
     // The command line names the script, never the instruction it carries.
     expect(StubShell.current.requests).toEqual([{ command: `. ${script}`, workdir: workspace, timeoutMs: undefined, signal: undefined }])
+  })
+
+  it('denies the cell everything above its workspace for the length of the run, and counts what it refused', async () => {
+    const { run, workspace, barrierRoot } = await harness({
+      barrierPrefix: 'environment-runner-seal-',
+      onTurn: (_turn, session) => {
+        session.append('read-barrier/denied', { version: 1, role: 'implementer', capability: 'shell', displayPath: '../plan.json', root: '/barrier' })
+        session.append('read-barrier/denied', { version: 1, role: 'implementer', capability: 'fs', displayPath: '../cell-b/src.js', root: '/barrier' })
+      },
+    })
+    StubShell.current.script(`. ${join(barrierRoot ?? '', 'runs', 'environment-test', 'checks', 'marker', 'run')}`, shellResult({ stdout: 'present\n' }))
+    const report = await run()
+
+    expect(StubReadBarrier.current.denied).toEqual([
+      { session: 'environment-test', path: dirname(workspace), disposed: true },
+    ])
+    expect(report.escapesDenied).toBe(2)
+  })
+
+  it('registers no denial without a composed barrier and reports no refused read', async () => {
+    const { ctx, run } = await harness()
+    StubShell.current.script(MARKER, shellResult({ stdout: 'present\n' }))
+    const report = await run()
+    expect(ctx.get('readBarrier')).toBeUndefined()
+    expect(report.escapesDenied).toBe(0)
   })
 
   it('copies a held-out environment fixture into the reservation', async () => {

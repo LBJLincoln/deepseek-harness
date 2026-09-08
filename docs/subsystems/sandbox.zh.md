@@ -40,7 +40,7 @@ type SandboxEnforcement = 'full' | 'partial'
 
 ## 逐调用策略
 
-完整执行策略会按每次能力调用解析并携带。它包括 `danger-full-access`，因此消费方可以只解析一次策略，再决定是否绕过约束。普通工具调用从调用会话的不可变 cwd 派生 `workspaceRoot`；部署配置是没有 agent（智能体）时的回退值。root 会先按文件系统语义规范化，再做词法规范化，因此包含 `symlink/..` 的 cwd 会标识 spawn 出的进程实际运行的目录。`deniedReadRoots` 是该策略与模式无关的另一半：read barrier（读屏障）对该会话禁读的目录，按同样方式归一化；对 read barrier 不禁止任何目录的会话，它为空。
+完整执行策略会按每次能力调用解析并携带。它包括 `danger-full-access`，因此消费方可以只解析一次策略，再决定是否绕过约束。普通工具调用从调用会话的不可变 cwd 派生 `workspaceRoot`；部署配置是没有 agent（智能体）时的回退值。root 会先按文件系统语义规范化，再做词法规范化，因此包含 `symlink/..` 的 cwd 会标识 spawn 出的进程实际运行的目录。`deniedReadRoots` 是该策略与模式无关的另一半：read barrier（读屏障）对该会话禁读的目录，按同样方式归一化；对 read barrier 不禁止任何目录的会话，它为空。`grantedReadRoot` 为它们定序：作为其严格祖先的禁读根目录会拒绝该祖先子树的其余部分，而被授予的目录保持可读；各后端以自己的方言表达这一先后关系。
 
 ```ts type-equiv
 /**
@@ -62,6 +62,18 @@ interface SandboxExecutionPolicy {
    * than running the command with the denial unenforced.
    */
   deniedReadRoots: readonly string[]
+  /**
+   * Absolute canonical directory this execution READS whatever
+   * {@link deniedReadRoots} says about an ancestor of it — the read barrier's
+   * granted workspace as `ctx.sandboxPolicy` resolved it for the calling
+   * session, absent for a session that is granted none. A denied root that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory whole; a denied root that IS this directory, or that lies
+   * inside it, denies as it would without the grant. Each backend expresses the
+   * precedence in its own dialect, so a cell that may not read the run directory
+   * it sits in still reads its own workspace.
+   */
+  grantedReadRoot?: string
   /**
    * Opaque identity of the calling session (the branded `dsh-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives

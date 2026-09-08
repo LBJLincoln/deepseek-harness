@@ -1,7 +1,7 @@
 /**
  * Tests for the sandbox-policy home: the deployment default (mode +
- * workspaceRoot) the service exposes, the read barrier's denied directories the
- * resolved policy carries, the enforcement each sandbox-consuming executor
+ * workspaceRoot) the service exposes, the read barrier's denied directories and
+ * granted workspace the resolved policy carries, the enforcement each sandbox-consuming executor
  * registers, and the per-session `sandbox/mode` override kit (fold + write path)
  * every enforcing capability reads.
  */
@@ -288,6 +288,28 @@ describe('the read barrier the policy carries', () => {
     const active = session('sess-normalized', '/projects/normalized')
     ctx.readBarrier.reserve(agentFor(active))
     expect(ctx.sandboxPolicy.resolve({ session: active }).deniedReadRoots).toEqual([root, extra])
+  })
+
+  it('carries the granted workspace beside the directory the run denies it', async () => {
+    const { ctx, root } = await withBarrier()
+    const run = barrierRoot('dsh-policy-run-')
+    const workspace = join(run, 'cell-a')
+    mkdirSync(workspace)
+    const active = session('sess-cell', workspace)
+    ctx.readBarrier.reserve(agentFor(active))
+    ctx.readBarrier.denyFor(active, run)
+    const policy = ctx.sandboxPolicy.resolve({ session: active })
+    expect(policy.deniedReadRoots).toEqual([root, run])
+    expect(policy.grantedReadRoot).toBe(workspace)
+  })
+
+  it('grants nothing to a session the barrier denies nothing, and nothing without a barrier', async () => {
+    const { ctx } = await withBarrier()
+    const run = barrierRoot('dsh-policy-open-')
+    // A session with a cwd but no denied role: the grant exists only to carve a denial.
+    expect(ctx.sandboxPolicy.resolve({ session: session('sess-open-cell', run) }).grantedReadRoot).toBeUndefined()
+    const bare = await mounted({ mode: 'workspace-write' })
+    expect(bare.sandboxPolicy.resolve({ session: session('sess-bare', run) }).grantedReadRoot).toBeUndefined()
   })
 })
 

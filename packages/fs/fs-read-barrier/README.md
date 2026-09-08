@@ -24,6 +24,8 @@ await ctx.plugin(FsReadBarrier)
 
 The slot delegates rather than deciding alone, because a barrier that owned it would stop every later read policy from deciding. An actor with no agent session — a direct plugin call — delegates too: the barrier resolves roles per session, and a call without one is unrestricted.
 
+The containment test grants the session's own workspace before it denies an ancestor, exactly as [`ctx.readBarrier.denies`](../../verification/read-barrier/README.md) orders the two: a session denied the directory its workspace sits in keeps reading its own files, while every other path under that directory — a sibling workspace, a file beside it — is refused.
+
 Beside the listener the plugin calls `ctx.readBarrier.enforce('fs')`, which is what makes a composition's scope census report `fs` as `denied-at-executor` instead of `unenforced`. The registration lives exactly as long as the listener, so a composition that drops this plugin drops the claim with it and can no longer certify `process` isolation.
 
 The refusal is dispatched before any metadata round-trip. [`dsh-tool-fs`](../tool-fs/README.md) dispatches inside `resolveRegularReadTarget` before `ctx.fs.stat`, covering `read` and `read_image`, and [`dsh-tool-str-replace-editor`](../tool-str-replace-editor/README.md) dispatches on the `view` command before its own stat, so a denied path never reveals presence or absence.

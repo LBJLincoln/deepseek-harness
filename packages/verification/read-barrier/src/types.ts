@@ -37,8 +37,16 @@ export interface ReadBarrierPolicy {
   readonly role: ReadBarrierRole
   /** The barrier's own validator-owned root, always the first denied directory. */
   readonly root: string
-  /** Every denied directory: the root, the configured extras, and the registered ones. */
+  /** Every denied directory: the root, the configured extras, the registered ones, and those registered for this session. */
   readonly denied: readonly string[]
+  /**
+   * The session's own workspace, granted whole. A denied directory that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory readable; a denied directory that IS this one, or that lies
+   * inside it, denies as it would without the grant. Absent for a session
+   * created without a cwd and for every agentless call, which grant nothing.
+   */
+  readonly granted?: string
 }
 
 /**
@@ -139,6 +147,12 @@ export interface ReadBarrierScope {
   readonly root: string
   /** Every denied directory at census time. */
   readonly denied: readonly string[]
+  /**
+   * The session's granted workspace at census time, absent when it has none.
+   * Without it a census that denies an ancestor of the workspace would read as
+   * denying the workspace too, which is the one directory the session keeps.
+   */
+  readonly granted?: string
   /**
    * One entry per tool visible to the agent, sorted by tool name. Registry
    * order follows concurrent Loader mounts, which would make two runs of one

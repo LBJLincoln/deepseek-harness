@@ -189,7 +189,7 @@ interface VerificationCertificate {
 
 ## 读取屏障
 
-读取屏障据以判定的类型，由 [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md) 声明。会话的角色决定它可以读取什么；预留是使会话成为实现者的原因。
+读取屏障据以判定的类型，由 [`packages/verification/read-barrier`](../../packages/verification/read-barrier/README.md) 声明。会话的角色决定它可以读取什么；预留是使会话成为实现者的原因。策略在被拒集合旁携带会话自己的工作区，二者之间有先后：作为该工作区严格祖先的被拒目录，拒绝该祖先子树的其余部分并完整保留该工作区——正是这一点让 runner 可以对一个 cell 拒绝其自身目录之上的一切。
 
 ```ts type-equiv
 /**
@@ -232,8 +232,16 @@ interface ReadBarrierPolicy {
   readonly role: ReadBarrierRole
   /** The barrier's own validator-owned root, always the first denied directory. */
   readonly root: string
-  /** Every denied directory: the root, the configured extras, and the registered ones. */
+  /** Every denied directory: the root, the configured extras, the registered ones, and those registered for this session. */
   readonly denied: readonly string[]
+  /**
+   * The session's own workspace, granted whole. A denied directory that is a
+   * STRICT ancestor of it denies the rest of that ancestor's subtree and leaves
+   * this directory readable; a denied directory that IS this one, or that lies
+   * inside it, denies as it would without the grant. Absent for a session
+   * created without a cwd and for every agentless call, which grant nothing.
+   */
+  readonly granted?: string
 }
 ```
 

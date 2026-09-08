@@ -373,6 +373,22 @@ describe('the scope census', () => {
       .toEqual(['bash', 'interrupt_agent', 'ralph', 'send_message', 'workflow'])
   })
 
+  it('records the granted workspace beside the directories the session is denied', async () => {
+    const ctx = new Context()
+    await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
+    const root = tempRoot('dsh-read-barrier-census-grant-')
+    await ctx.plugin(ReadBarrierService, { root })
+    const run = tempRoot('dsh-read-barrier-census-run-')
+    const workspace = join(run, 'cell-a')
+    const sessionId = SessionId('census-cell')
+    const session = Session.create(sessionId, undefined, { version: 0, id: sessionId, createdAt: 0, cwd: workspace })
+    const agent = { id: sessionId, session, ctx } as unknown as Agent & { session: Session }
+    ctx.readBarrier.reserve(agent)
+    ctx.readBarrier.denyFor(session, run)
+    await request(ctx, agent)
+    expect(session.events[0]?.data).toMatchObject({ role: 'implementer', denied: [root, run], granted: workspace })
+  })
+
   it('records an empty census and no preset when the composition has neither roster nor registry', async () => {
     const ctx = new Context()
     await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
@@ -383,6 +399,8 @@ describe('the scope census', () => {
     expect(session.events.map(event => event.type)).toEqual(['read-barrier/scope'])
     expect(session.events[0]?.data).toMatchObject({ role: 'unrestricted', census: [] })
     expect(session.events[0]?.data).not.toHaveProperty('presetId')
+    // No cwd, so the census states no grant rather than an empty one.
+    expect(session.events[0]?.data).not.toHaveProperty('granted')
   })
 
   it('takes a fresh census after the agent is disposed and a new one takes its id', async () => {

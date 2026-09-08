@@ -193,7 +193,7 @@ interface TrajectoryReward {
 
 ## 会话事实
 
-记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、实现者、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。与它们并列的还有发布所读取的两个事实：`tamper` 是最后一次运行的裁决，会话一次运行也没有记录时为 `not-instrumented`；identity 分组的 `compositionSha256` 是日志中最后一条 `composition/manifest` 的摘要。只有当一行的每个会话都陈述同一个摘要时该行才陈述它，同时该行统计自己的 `tampered` 会话，并列出自己证书的去重 executor。
+记分员把一个会话日志折叠为四个分组，既作为活动会话的 `sessionFacts` 投影值，也作为 `ctx.scorekeeper.facts()` 从持久化中读出的记录。每个字段都折叠自一个具名会话事件；各字段的来源事件在[包 README](../../packages/improvement/scorekeeper/README.md) 中列表说明。成本也是其中之一：效率分组对 `usage/priced` 记录自身所述的 `costEur` 求和并保留它们的 `pricingDigests`，自身不接受任何定价表；只要有一个携带 usage 的步骤未定价，这个和就完全不给出。记分板的一行就是这些记录按模型路由、环境、隔离级别、实现者、留出划分与区分组后的结果，并且只有当该行取得证书的每个会话都陈述成本时，该行才带每证书成本。outcome 分组在 `certified` 旁携带最后一次运行的 `parity`，一行在度量了用例的会话上对它求均值：证书与加权通过率是两个各自独立的列，既不合并成一个分数，也不跨它们排名。与它们并列的还有发布所读取的两个事实：`tamper` 是最后一次运行的裁决，会话一次运行也没有记录时为 `not-instrumented`；identity 分组的 `compositionSha256` 是日志中最后一条 `composition/manifest` 的摘要。只有当一行的每个会话都陈述同一个摘要时该行才陈述它，同时该行统计自己的 `tampered` 会话以及这些会话上被屏障拒绝的读取次数，并列出自己证书的去重 executor。
 
 ```ts type-equiv
 /** One session log folded into the four fact groups. */
@@ -299,6 +299,13 @@ interface ObservatoryPublishedRow {
   readonly tamper: ObservatoryTamper
   /** Sessions of the row whose last recorded run carried the `tampered` verdict. */
   readonly tampered: number
+  /**
+   * Reads the barrier refused, summed over the row's sessions. It is published
+   * beside the tamper column and never merged with it: a refused read is a cell
+   * that tried to leave its workspace, while a tamper is one that changed the
+   * files it was measured with.
+   */
+  readonly escapesDenied: number
   /** Sessions that recorded at least one run. */
   readonly runs: number
   /** Sessions that ended without recording one. */

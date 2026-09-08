@@ -63,7 +63,7 @@ describe('foldSessionFacts', () => {
         costEur: 0,
         pricingDigests: [],
       },
-      tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0 },
+      tools: { toolCalls: 0, toolCallsByName: {}, toolErrors: 0, toolTimeouts: 0, toolAborts: 0, escapesDenied: 0 },
     })
   })
 
@@ -296,7 +296,15 @@ describe('foldSessionFacts', () => {
       toolErrors: 4,
       toolTimeouts: 1,
       toolAborts: 2,
+      escapesDenied: 0,
     })
+  })
+
+  it('counts every read the barrier refused, whatever seam refused it', () => {
+    const log = new Log()
+    log.push('read-barrier/denied', { version: 1, role: 'implementer', capability: 'fs', displayPath: '../plan.json', root: '/barrier' })
+    log.push('read-barrier/denied', { version: 1, role: 'implementer', capability: 'shell', displayPath: '..', root: '/barrier' })
+    expect(foldSessionFacts(header('escapes'), log.events).tools).toMatchObject({ escapesDenied: 2, toolErrors: 0 })
   })
 
   it('rejects a verification change the strict stream refuses', () => {

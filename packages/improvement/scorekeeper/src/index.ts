@@ -134,6 +134,7 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     toolErrors: zod.number().int().nonnegative(),
     toolTimeouts: zod.number().int().nonnegative(),
     toolAborts: zod.number().int().nonnegative(),
+    escapesDenied: zod.number().int().nonnegative(),
   }),
 }) as unknown as ZodType<SessionFacts>
 

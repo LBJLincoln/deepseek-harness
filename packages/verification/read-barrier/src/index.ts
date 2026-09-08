@@ -189,6 +189,20 @@ export function deniedReadRoots(policy: ReadBarrierPolicy): readonly string[] {
   return DENIED_ROLES.includes(policy.role) ? policy.denied : []
 }
 
+/**
+ * The directory a resolved policy grants its holder against its own denied set:
+ * the session's workspace for a role in {@link DENIED_ROLES}, `undefined` for
+ * any other role and for a session that has no workspace. It is the companion of
+ * {@link deniedReadRoots}, and every enforcing dialect reads both: a denied
+ * directory that is a strict ancestor of this one denies the rest of that
+ * ancestor's subtree and leaves this one whole.
+ * @param policy - the policy {@link ReadBarrierService.resolve} returned.
+ * @returns the granted directory in force for that policy's role, or undefined.
+ */
+export function grantedReadRoot(policy: ReadBarrierPolicy): string | undefined {
+  return DENIED_ROLES.includes(policy.role) ? policy.granted : undefined
+}
+
 /** The attestation file's decision inputs, read once per verification. */
 export interface AttestationFile {
   /** Numeric owner reported by `stat`. */
@@ -333,6 +347,14 @@ export class ReadBarrierService extends Service {
   /** Registered denied directories, keyed per registration so two registrations of one path both hold. */
   private readonly protectedRoots = new Map<object, string>()
 
+  /**
+   * Denied directories registered for ONE session, keyed per registration for
+   * the same reason as {@link protectedRoots}. A directory belongs here when it
+   * is denied only for as long as one run of one session lasts — a cell's parent
+   * directory, which every other session of the same process still reads.
+   */
+  private readonly sessionDeniedRoots = new Map<object, { readonly sessionId: SessionId; readonly directory: string }>()
+
   /** Reserved run directory per session; holding one is what makes a session the implementer. */
   private readonly reservations = new Map<SessionId, string>()
 
@@ -440,6 +462,30 @@ export class ReadBarrierService extends Service {
   }
 
   /**
+   * Deny one more directory for ONE session, for as long as the registration
+   * lives. It is the per-session sibling of {@link protect}, for a directory a
+   * caller owns only while one run lasts: a runner denies each cell the
+   * directory its workspace sits in, which the sessions of the other cells and
+   * of the runner itself keep reading.
+   *
+   * The session's own workspace survives the registration whenever the denied
+   * directory is a strict ancestor of it — see {@link ReadBarrierPolicy.granted}.
+   * @param session - the session the directory is denied to.
+   * @param path - absolute or `~`-prefixed directory to deny.
+   * @returns the registration's disposer.
+   */
+  denyFor(session: Session, path: string): () => void {
+    const directory = absoluteDirectory(path, 'denyFor path')
+    const registration = {}
+    const entry = { sessionId: session.id, directory }
+    // oxlint-disable-next-line typescript/no-misused-promises -- synchronous cleanup; direct return preserves disposer identity
+    return this.ctx.effect(() => {
+      this.sessionDeniedRoots.set(registration, entry)
+      return () => { this.sessionDeniedRoots.delete(registration) }
+    }, `read-barrier session denied root ${directory}`)
+  }
+
+  /**
    * Record that one capability denies the barrier's directories in the
    * operation that opens paths, for as long as the registration lives. The
    * scope census reports a composed capability without one as `unenforced`, and
@@ -529,14 +575,30 @@ export class ReadBarrierService extends Service {
    * is the implementer, and every other session and every agentless call is
    * unrestricted.
    * @param request - the calling session, when there is one.
-   * @returns the role, the barrier root, and every denied directory.
+   * @returns the role, the barrier root, every denied directory, and the session's granted workspace.
    */
   resolve(request: ReadBarrierRequest = {}): ReadBarrierPolicy {
+    const { session } = request
+    const granted = session?.header.cwd
     return {
-      role: this.roleOf(request.session),
+      role: this.roleOf(session),
       root: this.root,
-      denied: [...new Set([this.root, ...this.configuredDenyRoots, ...this.protectedRoots.values()])],
+      denied: [...new Set([
+        this.root,
+        ...this.configuredDenyRoots,
+        ...this.protectedRoots.values(),
+        ...this.deniedForSession(session),
+      ])],
+      ...granted === undefined ? {} : { granted },
     }
+  }
+
+  /** Directories registered for exactly this session, in registration order. */
+  private deniedForSession(session: Session | undefined): string[] {
+    if (session === undefined) return []
+    return [...this.sessionDeniedRoots.values()]
+      .filter(entry => entry.sessionId === session.id)
+      .map(entry => entry.directory)
   }
 
   /** The role one session holds: the preset's declaration first, then the reservation. */
@@ -605,12 +667,14 @@ export class ReadBarrierService extends Service {
     if (this.censused.has(agent.id)) return
     this.censused.add(agent.id)
     const composition = this.compositions.get(agent.id)
+    const policy = this.resolve({ session: agent.session })
     const scope: ReadBarrierScope = {
       version: READ_BARRIER_SCOPE_VERSION,
-      role: this.roleOf(agent.session),
+      role: policy.role,
       ...composition === undefined ? {} : { presetId: composition.presetId },
       root: this.root,
-      denied: this.resolve({ session: agent.session }).denied,
+      denied: policy.denied,
+      ...policy.granted === undefined ? {} : { granted: policy.granted },
       census: this.toolCensus(agent),
       enforcement: this.enforcementCensus(),
     }
@@ -683,11 +747,17 @@ export class ReadBarrierService extends Service {
    * directory is canonicalized through the filesystem seam immediately before
    * its containment test, so an ancestor symlink swapped since the target was
    * resolved is caught. A target whose containment cannot be decided is denied.
+   *
+   * The policy's granted workspace outranks a denied directory that is a strict
+   * ancestor of it, and only that one: the rest of the ancestor's subtree stays
+   * denied, and a denied directory that IS the workspace or lies inside it
+   * denies as it would without a grant.
    * @param policy - the policy {@link resolve} returned for this call.
    * @param target - the already-resolved target the caller is about to read.
    * @returns true when the read must be refused.
    */
   async denies(policy: ReadBarrierPolicy, target: FsTarget): Promise<boolean> {
+    const granted = await this.grantedTarget(grantedReadRoot(policy))
     for (const denied of deniedReadRoots(policy)) {
       let directory: FsTarget
       try {
@@ -697,9 +767,40 @@ export class ReadBarrierService extends Service {
         // undecidable, and an undecidable read fails closed.
         return true
       }
-      if (this.ctx.fs.contains(directory, target)) return true
+      if (!this.ctx.fs.contains(directory, target)) continue
+      // A grant carves this ancestor and nothing else, so a later denied
+      // directory inside the workspace still refuses the same target.
+      if (granted !== undefined && this.carves(directory, granted, target)) continue
+      return true
     }
     return false
+  }
+
+  /**
+   * Resolve the granted workspace through the filesystem seam, once per call and
+   * beside the denied directories it is compared against.
+   * @returns the resolved target, or undefined when the policy grants none or
+   *   the backend cannot resolve it — an unresolvable grant carves nothing, so
+   *   the denial it would have carved still holds.
+   */
+  private async grantedTarget(granted: string | undefined): Promise<FsTarget | undefined> {
+    if (granted === undefined) return undefined
+    try {
+      return await this.ctx.fs.resolve(granted)
+    } catch {
+      // The workspace is gone or unreadable: without a resolvable grant there is
+      // nothing to carve out of the denial, which fails closed like the denied side.
+      return undefined
+    }
+  }
+
+  /** Whether `granted` carves `target` out of the denial `directory` imposes on it. */
+  private carves(directory: FsTarget, granted: FsTarget, target: FsTarget): boolean {
+    const { fs } = this.ctx
+    // Strict ancestry: a denied directory that is the workspace contains it both
+    // ways and grants nothing, which is what makes denying a workspace outright
+    // still deny it.
+    return fs.contains(directory, granted) && !fs.contains(granted, directory) && fs.contains(granted, target)
   }
 
   /**

@@ -1,21 +1,24 @@
 /**
  * Service tests over the real local filesystem provider: root creation, run
- * reservations and the role they confer, registered denied directories, the
- * containment decision, and the durable refusal record.
+ * reservations and the role they confer, registered denied directories both
+ * global and per session, the granted workspace, the containment decision and
+ * the precedence a denied ancestor of that workspace has, and the durable
+ * refusal record.
  */
 
 import { mkdtempSync, realpathSync, rmSync, statSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { FileSystem, FsError, FsTargetKey, FsVersion } from '@deepseek-ai/dsh-fs'
 import type { FsDirEntry, FsEditOutcome, FsInfo, FsPathInfo, FsTarget, FsWriteOutcome } from '@deepseek-ai/dsh-fs'
 import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
-import { Session, SessionId } from '@deepseek-ai/dsh-session'
-import ReadBarrierService, { READ_BARRIER_DENIED_VERSION, RUNS_DIR } from '../src/index.ts'
+import { Session, SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
+import type { SessionHeader } from '@deepseek-ai/dsh-session'
+import ReadBarrierService, { grantedReadRoot, READ_BARRIER_DENIED_VERSION, RUNS_DIR } from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 
 const roots: string[] = []
@@ -55,9 +58,16 @@ async function setup(config: Config, provider: typeof LocalFileSystem | typeof U
   return ctx
 }
 
-function agentWithSession(id: string): Agent & { session: Session } {
-  const session = Session.create(SessionId(id))
-  return { id: SessionId(id), session } as unknown as Agent & { session: Session }
+function agentWithSession(id: string, cwd?: string): Agent & { session: Session } {
+  const sessionId = SessionId(id)
+  const header: SessionHeader = {
+    version: SESSION_FORMAT_VERSION,
+    id: sessionId,
+    createdAt: 0,
+    ...cwd === undefined ? {} : { cwd },
+  }
+  const session = Session.create(sessionId, undefined, header)
+  return { id: sessionId, session } as unknown as Agent & { session: Session }
 }
 
 afterEach(() => {
@@ -166,6 +176,55 @@ describe('denied directories', () => {
       'read-barrier: protect path "sessions" must be an absolute or "~"-prefixed directory',
     )
   })
+
+  it('denies a registered directory to one session and leaves every other session reading it', async () => {
+    const root = tempRoot('dsh-read-barrier-session-deny-')
+    const run = tempRoot('dsh-read-barrier-run-')
+    const ctx = await setup({ root })
+    const cell = agentWithSession('cell', join(run, 'cell-a'))
+    const sibling = agentWithSession('sibling', join(run, 'cell-b'))
+
+    const first = ctx.readBarrier.denyFor(cell.session, run)
+    const second = ctx.readBarrier.denyFor(cell.session, run)
+    expect(ctx.readBarrier.resolve({ session: cell.session }).denied).toEqual([root, run])
+    expect(ctx.readBarrier.resolve({ session: sibling.session }).denied).toEqual([root])
+    expect(ctx.readBarrier.resolve().denied).toEqual([root])
+    first()
+    expect(ctx.readBarrier.resolve({ session: cell.session }).denied).toEqual([root, run])
+    second()
+    expect(ctx.readBarrier.resolve({ session: cell.session }).denied).toEqual([root])
+  })
+
+  it('refuses a relative session-scoped directory', async () => {
+    const ctx = await setup({ root: tempRoot('dsh-read-barrier-deny-for-') })
+    const agent = agentWithSession('relative')
+    expect(() => ctx.readBarrier.denyFor(agent.session, 'runs')).toThrow(
+      'read-barrier: denyFor path "runs" must be an absolute or "~"-prefixed directory',
+    )
+  })
+})
+
+describe('the granted workspace', () => {
+  it('grants a denied role its session cwd and every other role nothing', async () => {
+    const root = tempRoot('dsh-read-barrier-grant-')
+    const workspace = tempRoot('dsh-read-barrier-grant-ws-')
+    const ctx = await setup({ root })
+    const agent = agentWithSession('granted', workspace)
+
+    expect(ctx.readBarrier.resolve({ session: agent.session }).granted).toBe(workspace)
+    expect(grantedReadRoot(ctx.readBarrier.resolve({ session: agent.session }))).toBeUndefined()
+    ctx.readBarrier.reserve(agent)
+    expect(grantedReadRoot(ctx.readBarrier.resolve({ session: agent.session }))).toBe(workspace)
+  })
+
+  it('grants nothing to a session without a cwd and to an agentless call', async () => {
+    const root = tempRoot('dsh-read-barrier-no-grant-')
+    const ctx = await setup({ root })
+    const agent = agentWithSession('cwdless')
+    ctx.readBarrier.reserve(agent)
+    expect(ctx.readBarrier.resolve({ session: agent.session }).granted).toBeUndefined()
+    expect(ctx.readBarrier.resolve().granted).toBeUndefined()
+  })
 })
 
 describe('the deny decision', () => {
@@ -202,6 +261,69 @@ describe('the deny decision', () => {
     const ctx = await setup({ root }, UnresolvableFs)
     const target = { targetKey: FsTargetKey('unrelated'), displayPath: '/unrelated' }
     expect(await ctx.readBarrier.denies({ role: 'implementer', root, denied: [root] }, target)).toBe(true)
+  })
+})
+
+describe('a denied ancestor of the granted workspace', () => {
+  /**
+   * One run directory holding two cell workspaces, a file in each, and one
+   * directory inside the granted cell that the run also denies.
+   */
+  async function runTree() {
+    const root = tempRoot('dsh-read-barrier-seal-root-')
+    const run = tempRoot('dsh-read-barrier-seal-run-')
+    const ctx = await setup({ root })
+    const workspace = join(run, 'nested', 'cell-a')
+    const sibling = join(run, 'nested', 'cell-b')
+    const secret = join(workspace, 'held-out')
+    await mkdir(secret, { recursive: true })
+    await mkdir(sibling, { recursive: true })
+    await writeFile(join(run, 'plan.json'), '{}\n')
+    await writeFile(join(workspace, 'src.txt'), 'work\n')
+    await writeFile(join(sibling, 'src.txt'), 'theirs\n')
+    await writeFile(join(secret, 'cases.jsonl'), '{}\n')
+    return { ctx, root, run, workspace, sibling, secret }
+  }
+
+  it('leaves the workspace whole when its parent is denied', async () => {
+    const { ctx, root, run, workspace, sibling } = await runTree()
+    const policy = { role: 'implementer' as const, root, denied: [root, dirname(workspace)], granted: workspace }
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(workspace, 'src.txt')))).toBe(false)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(workspace))).toBe(false)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(sibling, 'src.txt')))).toBe(true)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(dirname(workspace)))).toBe(true)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(run, 'plan.json')))).toBe(false)
+  })
+
+  it('leaves the workspace whole when a grandparent is denied', async () => {
+    const { ctx, root, run, workspace, sibling } = await runTree()
+    const policy = { role: 'implementer' as const, root, denied: [root, run], granted: workspace }
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(workspace, 'src.txt')))).toBe(false)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(run, 'plan.json')))).toBe(true)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(sibling, 'src.txt')))).toBe(true)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(run))).toBe(true)
+  })
+
+  it('grants nothing when the workspace itself is the denied directory', async () => {
+    const { ctx, root, workspace } = await runTree()
+    const policy = { role: 'implementer' as const, root, denied: [root, workspace], granted: workspace }
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(workspace))).toBe(true)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(workspace, 'src.txt')))).toBe(true)
+  })
+
+  it('keeps denying a directory inside the granted workspace', async () => {
+    const { ctx, root, run, workspace, secret } = await runTree()
+    const policy = { role: 'implementer' as const, root, denied: [root, run, secret], granted: workspace }
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(secret, 'cases.jsonl')))).toBe(true)
+    expect(await ctx.readBarrier.denies(policy, await ctx.fs.resolve(join(workspace, 'src.txt')))).toBe(false)
+  })
+
+  it('carves nothing when the grant cannot be resolved, so the denial holds', async () => {
+    const root = tempRoot('dsh-read-barrier-grant-undecidable-')
+    const ctx = await setup({ root }, UnresolvableFs)
+    const target = { targetKey: FsTargetKey('workspace/src.txt'), displayPath: '/run/cell-a/src.txt' }
+    const policy = { role: 'implementer' as const, root, denied: [root, '/run'], granted: '/run/cell-a' }
+    expect(await ctx.readBarrier.denies(policy, target)).toBe(true)
   })
 })
 
