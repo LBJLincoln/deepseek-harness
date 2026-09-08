@@ -165,8 +165,8 @@ function spentChild(ctx: Context, id: string, totalTokens: number): Agent {
   return stubAgent(session)
 }
 
-/** One per-session denial the stubbed read barrier registered, in registration order. */
-export interface StubbedDenial {
+/** One per-session denial the stubbed read barrier registered, reached through {@link ProgramHarness.denials}. */
+interface StubbedDenial {
   /** The session the directory was denied to. */
   readonly sessionId: SessionId
   /** The denied directory. */
