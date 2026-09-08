@@ -24,6 +24,10 @@ The slate, in the order it runs, each with its arms, its measurement, and what r
 
 Every arm runs at isolation none, because the external arm can serve no higher claim; every routing decision is a logged session event; and the held-out six never enter an experiment until a change is proposed for promotion.
 
+## Results
+
+The program ran on 2026-09-07 and 2026-09-08 and every reading is in the [results note](2026-09-08-hypothesis-program-results.md), with thirty records and eleven folds under `data/proving-ground/`: E1 to E4 and the three E5 readings each ended with a verdict and an interval, the refutations are listed there first, the two supported claims (the largest model over the middle one on tier 5 from a frozen pair; a fresh child per rung over a kept transcript from an offline fold) carry their caveats, and the held-out estimate closes it. E6 did not run: the offline routing reading found the oracle over the three single-model arms to be the largest model alone, so the routing arm it was to beat is dominated before any budget is spent, and it waits on a bench where the models do not order strictly per cell.
+
 ## Slices the slate needs
 
 1. An experiment arm names its implementer, so E2 is one frozen experiment (in flight).
