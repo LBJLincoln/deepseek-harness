@@ -41,7 +41,9 @@
 
 `ctx.experiments.run(plan)` 接受 `environments`（已注册的 id，每个只指名一次）、正整数 `repetitions`、`baseline` 与 `candidate` 两个 arm、一个已存在的绝对路径 `workspaceRoot`，以及可选的、两条 arm 路由共同服务的 `policyVersion`、基准 `seed`、调用方更早冻结的 `digest`、一个 `signal` 与一个 `sink`。
 
-每个 arm 都是它第一次尝试所运行的一条模型路由——`provider` 与 `model`——外加一个可选的、每次尝试一个档位的 `ladder` 与一个可选的 `implementer`，其取值与 fleet 计划所接受的相同：`{ kind: 'route' }` 是不指名 implementer 的 arm 所运行的取值，它让该 arm 每个 cell 的每次尝试都跑在该 arm 自己的路由上；而 `{ kind: 'subagent', provider, label? }` 把每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。这里不会再次校验该 provider：组合无法兑现的 implementer 会经运行器让其所属 arm 的每个 cell 失败，于是该 arm 的每次重复都落单，判定为 `inconclusive`。
+每个 arm 都是它第一次尝试所运行的一条模型路由——`provider` 与 `model`——外加一个可选的、每次尝试一个档位的 `ladder` 与一个可选的 `implementer`，其取值与 fleet 计划所接受的相同：`{ kind: 'route' }` 是不指名 implementer 的 arm 所运行的取值，它让该 arm 每个 cell 的每次尝试都跑在该 arm 自己的路由上；而 `{ kind: 'subagent', provider, label? }` 把每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
+
+两个 arm 的 implementer 都在冻结时经 `ctx.environmentRuns.checkImplementer` 针对各自 arm 的路由检查，运行器的 `EnvironmentRunError` 原样向上传递。正是它让「每一次拒绝都发生在第一个 cell 运行之前」对组合无法兑现的 provider 同样成立：两个 arm 按角色顺序运行，因此 candidate arm 的 provider 缺失时，否则就会先把 baseline arm 整个花光，再让每次重复都落单，最后得到 `inconclusive` 判定。
 
 一个 arm 的 `ladder` 与 fleet 计划所接受的是同一份列表，并原样传到该 arm 的每个 cell；它的第一个档位就是该 arm 自己的路由：要么不命名模型，要么恰好命名该 arm 的 `provider` 与 `model`。第一个档位命名了别的路由会以 `EXPERIMENT_LADDER_CONFLICT` 被拒绝，因为结果与每一行计分板都发布在该 arm 之下，而跑在别的路由上的第一次尝试会把这一身份发布到它从未运行过的路由上。其余档位不受限制，先便宜后强与降档正是由此而来。
 

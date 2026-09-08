@@ -163,6 +163,9 @@ export class ExperimentService extends Service {
    *   whose first rung names another route, whose two arms would run under
    *   different caps, declares a digest its content does not freeze to, or
    *   projects more tokens than the budget.
+   * @throws {@link EnvironmentRunError} unchanged from
+   *   {@link EnvironmentRunner.checkImplementer}, when either arm names an
+   *   implementer provider this composition cannot honor.
    */
   async run(plan: ExperimentPlan): Promise<ExperimentResult> {
     const { digest, caps } = this.freeze(plan)
@@ -187,8 +190,9 @@ export class ExperimentService extends Service {
   }
 
   /**
-   * Validate the plan, resolve the caps both arms run under, compute the digest
-   * over them, and check the projection against the budget.
+   * Validate the plan and both arms' implementers, resolve the caps both arms
+   * run under, compute the digest over them, and check the projection against
+   * the budget.
    */
   private freeze(plan: ExperimentPlan): { digest: string; caps: readonly BudgetCap[] } {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
@@ -207,6 +211,13 @@ export class ExperimentService extends Service {
         const first = arm.ladder?.[0]?.model as EnvironmentRunModel
         throw new ExperimentError(`the ${role} arm runs ${arm.provider}/${arm.model} but its first ladder rung names ${first.provider}/${first.model}, so its first attempt would not be the arm it is published under`, 'EXPERIMENT_LADDER_CONFLICT')
       }
+      // Both arms are checked here, so an implementer this composition cannot
+      // honor refuses the plan rather than failing every cell of the arm that
+      // names it — which, for a candidate arm, would spend the baseline arm in
+      // full first and then fold to `inconclusive` with nothing paired. The
+      // arm's own route is the stamped one: a first rung naming another route
+      // was refused above.
+      this.ctx.environmentRuns.checkImplementer(armImplementer(arm), { provider: arm.provider, model: arm.model })
     }
     const named = new Set<EnvironmentId>()
     for (const environment of plan.environments) {

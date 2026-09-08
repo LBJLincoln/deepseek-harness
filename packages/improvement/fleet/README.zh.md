@@ -51,6 +51,8 @@ cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举�
 
 `implementer` 被原样转发给每个 cell，因此一个计划就是一个实现者，由它折叠出来的行绝不混合两者：`{ kind: 'route' }`（默认）让每个 cell 跑在自己的模型路由上，而 `{ kind: 'subagent', provider, label? }` 把每个 cell 的每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
 
+计划的实现者在任何 cell 被枚举之前、任何工作区被铸出之前，经由 `ctx.environmentRuns.checkImplementer` 针对计划点名的每一条路由接受检查——计划的第一级阶梯档位点名了模型时就是它，否则就是计划自身的每一条路由，这也正是运行器为每个 cell 盖章的东西。运行器的 `EnvironmentRunError` 原样向上传递，于是组合并不持有的 provider 拒掉的是整份计划，而不是它的每一个 cell：一份全是错误 cell 的计划会把整轮运行花光，只为产出一块没有任何东西跑过的排行榜。
+
 报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所升级经过的 `ladder`、运行所声明的 `isolation` 与其被盖上的 `implementer`（该行全部 cell 在运行前失败时三者都缺省，且计划未命名阶梯时 ladder 同样缺省）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
 
 工作区保留在 cell 的结果到手之后执行：`remove-certified` 删除运行已认证的 cell 的 `cell-*` 目录，`remove-all` 无论该 cell 是有报告还是失败都删除，`keep` 什么都不删除。

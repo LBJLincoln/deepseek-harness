@@ -36,10 +36,13 @@
         name: '@deepseek-ai/dsh-read-barrier'
         config:
           isolationClaim: process
-      - id: tool-fs-search
-        name: '@deepseek-ai/dsh-tool-fs-search'
-        config:
-          sampleOverCapGlobResults: false
+      # The base composes no search tool, so this one is inserted: a non-insert
+      # patch only overrides an entry the base already names.
+      - insert:
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
       # The village rule reads this file on its own: a composition that names the
       # runner must also name the session budget, the persistence backend, and
       # the checkpoint policy, so the base's three are restated unchanged.

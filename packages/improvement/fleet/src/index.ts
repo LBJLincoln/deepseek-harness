@@ -338,6 +338,9 @@ export class FleetService extends Service {
    *   no repetition, names no or an unenumerated cell, sets a token ceiling
    *   that is not a positive integer, sets a seed that is not a safe
    *   non-negative integer, or carries an attempt ladder with no rung.
+   * @throws {@link EnvironmentRunError} unchanged from
+   *   {@link EnvironmentRunner.checkImplementer}, when the plan's implementer
+   *   is a provider this composition cannot honor for a route the plan names.
    */
   async run(plan: FleetPlan): Promise<FleetRunReport> {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
@@ -359,6 +362,7 @@ export class FleetService extends Service {
     const definitions = this.select(plan)
     if (definitions.size === 0) throw new FleetError('the plan selects no environment', 'FLEET_EMPTY_PLAN')
     const models = plan.models.length === 0 ? [this.defaultModel()] : plan.models
+    this.checkImplementer(plan, models)
     const group = plan.group ?? `fleet-${randomUUID()}`
     const enumerated: FleetCell[] = []
     for (const environment of definitions.keys()) {
@@ -371,6 +375,31 @@ export class FleetService extends Service {
     const tasks = cells.map(cell => () => this.runCell(cell, plan, group, ledger))
     const outcomes = await bounded(tasks, this.resolved.maxConcurrent)
     return { group, cells: outcomes, leaderboard: foldLeaderboard(outcomes, definitions), spend: ledger.spend }
+  }
+
+  /**
+   * Refuse the plan's implementer before any cell of it is enumerated. A
+   * provider the composition cannot honor refuses every cell it is given, so
+   * without this the whole plan runs as a plan of errors and its leaderboard
+   * reports rows nothing ran; the runner's own refusal names the provider once
+   * instead, before a workspace exists.
+   *
+   * The stamped route of a laddered plan is its first rung's model, which is
+   * what the runner stamps and what a delegated cell's first child is started
+   * on; a rung naming none, and a plan without a ladder, stamp the cell's own
+   * route. The plan asks about every route it names, because the runner answers
+   * for one stamped route and those are every route its cells would carry.
+   * @param plan - the plan being validated.
+   * @param models - the routes the plan's cells run on, already defaulted.
+   * @throws {@link EnvironmentRunError} for a provider the composition does not
+   *   hold, cannot confine under its isolation, cannot tell which model to run,
+   *   or has no budget policy to bound.
+   */
+  private checkImplementer(plan: FleetPlan, models: readonly EnvironmentRunModel[]): void {
+    const implementer = plan.implementer ?? { kind: 'route' }
+    for (const model of models) {
+      this.ctx.environmentRuns.checkImplementer(implementer, plan.ladder?.[0]?.model ?? model)
+    }
   }
 
   /** Resolve the plan's environment selection against the registry, in registry order. */

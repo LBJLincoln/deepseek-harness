@@ -539,6 +539,24 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 
 ```ts cordis-catalog
 /**
+ * Run the implementer refusals of {@link run} against one implementer and
+ * stamped route, without running anything. A planner calls it while it is
+ * still validating a plan, so a provider this composition cannot honor
+ * refuses the plan instead of every cell of it: the refusals are the same
+ * ones, raised from the same resolution, before the first workspace exists.
+ * A route implementer is refused nothing, because the session's own model
+ * route is what a run without an implementer already uses.
+ * @param implementer - who would do the work of each attempt.
+ * @param model - the route the runs would be stamped with, which is the first
+ *   rung a child run is started on.
+ * @throws {@link EnvironmentRunError} when the named provider is not composed,
+ *   runs outside this process under an isolation above `none`, does not
+ *   support the subagent seam's `model` capability, or has no budget policy to
+ *   bound its attempts.
+ */
+checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): void
+
+/**
  * Run one environment as one fresh session and validate it.
  * @param request - environment id, absolute workspace directory, optional
  *   implementer, model route, attempt ladder, repetition, group, district,
@@ -663,6 +681,9 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  *   whose first rung names another route, whose two arms would run under
  *   different caps, declares a digest its content does not freeze to, or
  *   projects more tokens than the budget.
+ * @throws {@link EnvironmentRunError} unchanged from
+ *   {@link EnvironmentRunner.checkImplementer}, when either arm names an
+ *   implementer provider this composition cannot honor.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
@@ -690,6 +711,9 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  *   no repetition, names no or an unenumerated cell, sets a token ceiling
  *   that is not a positive integer, sets a seed that is not a safe
  *   non-negative integer, or carries an attempt ladder with no rung.
+ * @throws {@link EnvironmentRunError} unchanged from
+ *   {@link EnvironmentRunner.checkImplementer}, when the plan's implementer
+ *   is a provider this composition cannot honor for a route the plan names.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 ```

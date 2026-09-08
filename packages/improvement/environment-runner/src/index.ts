@@ -1000,6 +1000,26 @@ export class EnvironmentRunner extends Service {
   }
 
   /**
+   * Run the implementer refusals of {@link run} against one implementer and
+   * stamped route, without running anything. A planner calls it while it is
+   * still validating a plan, so a provider this composition cannot honor
+   * refuses the plan instead of every cell of it: the refusals are the same
+   * ones, raised from the same resolution, before the first workspace exists.
+   * A route implementer is refused nothing, because the session's own model
+   * route is what a run without an implementer already uses.
+   * @param implementer - who would do the work of each attempt.
+   * @param model - the route the runs would be stamped with, which is the first
+   *   rung a child run is started on.
+   * @throws {@link EnvironmentRunError} when the named provider is not composed,
+   *   runs outside this process under an isolation above `none`, does not
+   *   support the subagent seam's `model` capability, or has no budget policy to
+   *   bound its attempts.
+   */
+  checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): void {
+    this.requireImplementer(implementer, model)
+  }
+
+  /**
    * Run one environment as one fresh session and validate it.
    * @param request - environment id, absolute workspace directory, optional
    *   implementer, model route, attempt ladder, repetition, group, district,

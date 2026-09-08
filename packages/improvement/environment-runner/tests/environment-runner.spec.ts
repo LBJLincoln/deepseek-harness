@@ -42,7 +42,7 @@ import EnvironmentRunner, {
   resolveImplementer,
   resolveLadder,
 } from '@deepseek-ai/dsh-environment-runner'
-import type { Config, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner'
+import type { Config, EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner'
 import * as invariantCompanion from '@deepseek-ai/dsh-environment-runner/invariant'
 
 declare module '@deepseek-ai/dsh-environments/types' {
@@ -1433,6 +1433,61 @@ describe('EnvironmentRunner delegated cell budgets', () => {
     // No wall cap arms no deadline, so the child's signal only follows the run's.
     expect(StubSubagents.current.started[0]?.request.signal.aborted).toBe(false)
     expect(ctx.environmentRuns.cellCaps(SPAWN)).toEqual([['maxTotalTokens', 1_000]])
+  })
+})
+
+describe('EnvironmentRunner.checkImplementer', () => {
+  const SPAWN = { kind: 'subagent', provider: 'spawn' } as const
+  const MODEL = { provider: 'mock', model: 'mock-default' }
+
+  /** Ask one composition's runner about one implementer, as a planner does. */
+  function check(ctx: Context, implementer: EnvironmentRunImplementer, model = MODEL): () => void {
+    return () => { ctx.environmentRuns.checkImplementer(implementer, model) }
+  }
+
+  it('raises every refusal a run raises, without creating an agent', async () => {
+    const bare = await harness()
+    expect(check(bare.ctx, SPAWN)).toThrow(new EnvironmentRunError(
+      'implementer provider "spawn" is unavailable: this composition has no subagent service',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    ))
+
+    const composed = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES } })
+    expect(check(composed.ctx, { kind: 'subagent', provider: 'absent' })).toThrow(new EnvironmentRunError(
+      'implementer provider "absent" is unavailable: no subagent provider is registered under that name',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    ))
+
+    const confined = await harness({ config: { isolation: 'host' }, providers: { 'claude-code': PRODUCT_CAPABILITIES } })
+    expect(check(confined.ctx, { kind: 'subagent', provider: 'claude-code' })).toThrow(new EnvironmentRunError(
+      'implementer provider "claude-code" runs outside this process, where the read-barrier census cannot confine it, so it cannot implement a run declaring "host" isolation',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED',
+    ))
+
+    const unroutable = await harness({ config: { isolation: 'none' }, providers: { codex: NO_START_CAPABILITIES } })
+    expect(check(unroutable.ctx, { kind: 'subagent', provider: 'codex' }, { provider: 'mock', model: 'large' })).toThrow(new EnvironmentRunError(
+      'implementer provider "codex" cannot be told which model to run, so a run stamped with model "large" would measure whichever model that provider defaults to',
+      'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED',
+    ))
+
+    const unbudgeted = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES }, unbudgeted: true })
+    expect(check(unbudgeted.ctx, SPAWN)).toThrow(new EnvironmentRunError(
+      'implementer provider "spawn" does the work of its attempts outside this session\'s own model route, where only the budget policy\'s caps can bound it, and this composition has none',
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED',
+    ))
+
+    expect(StubAgents.current.created).toEqual([])
+    expect(StubSubagents.current.started).toEqual([])
+  })
+
+  it('accepts a composed provider and the session\'s own route', async () => {
+    const { ctx } = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES } })
+    expect(check(ctx, SPAWN)).not.toThrow()
+
+    // A route implementer is what a run without one already uses, so an
+    // unbudgeted composition refuses it nothing either.
+    const bare = await harness({ unbudgeted: true })
+    expect(check(bare.ctx, { kind: 'route' })).not.toThrow()
   })
 })
 
