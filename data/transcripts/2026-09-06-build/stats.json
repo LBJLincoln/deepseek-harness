@@ -1,32 +1,32 @@
 {
-  "generatedAt": "2026-09-08T11:45:16.074Z",
+  "generatedAt": "2026-09-08T12:59:20.357Z",
   "totals": {
-    "transcripts": 101,
-    "messages": 48949,
+    "transcripts": 102,
+    "messages": 50185,
     "toolCallsByName": {
-      "Bash": 10055,
-      "Edit": 3398,
-      "Read": 2262,
-      "Write": 1121,
+      "Bash": 10482,
+      "Edit": 3422,
+      "Read": 2280,
+      "Write": 1125,
       "WebFetch": 1062,
       "WebSearch": 323,
-      "Grep": 300,
+      "Grep": 302,
       "mcp__alphaXiv__answer_pdf_queries": 170,
-      "TaskUpdate": 159,
-      "Agent": 100,
-      "TaskCreate": 87,
-      "ToolSearch": 85,
+      "TaskUpdate": 165,
+      "Agent": 101,
+      "Monitor": 95,
+      "TaskCreate": 89,
+      "ToolSearch": 87,
       "mcp__Firecrawl__firecrawl_search": 84,
-      "Monitor": 79,
       "Artifact": 44,
       "Glob": 41,
       "mcp__Hugging_Face__hf_fs": 39,
       "mcp__alphaXiv__discover_papers": 37,
-      "ReadNotifications": 26,
+      "ReadNotifications": 27,
       "mcp__Hugging_Face__hub_repo_search": 26,
       "mcp__alphaXiv__get_paper_content": 24,
       "mcp__Firecrawl__firecrawl_developer_search": 15,
-      "TaskStop": 12,
+      "TaskStop": 14,
       "mcp__Hugging_Face__hub_repo_details": 11,
       "Skill": 10,
       "SendMessage": 10,
@@ -48,29 +48,29 @@
       "mcp__alphaXiv__create_folder": 1
     },
     "tokensByKind": {
-      "input": 224944,
-      "output": 17090579,
-      "cacheRead": 8654282106
+      "input": 232286,
+      "output": 17359202,
+      "cacheRead": 9036227852
     },
-    "wallTimeMs": 830100678,
+    "wallTimeMs": 834559099,
     "wallTimeStart": "2026-08-29T21:09:49.200Z",
-    "wallTimeEnd": "2026-09-08T11:44:49.878Z"
+    "wallTimeEnd": "2026-09-08T12:59:08.299Z"
   },
   "subagentDurations": {
-    "count": 100,
-    "minMs": 91548,
+    "count": 101,
+    "minMs": 47960,
     "maxMs": 14495393,
-    "meanMs": 2826802,
+    "meanMs": 2819411,
     "medianMs": 1956585,
     "p10Ms": 510002,
     "p25Ms": 792383,
-    "p75Ms": 3848689,
+    "p75Ms": 3887975,
     "p90Ms": 6932014,
     "p95Ms": 7575321,
     "histogramByMinutes": [
       {
         "rangeMinutes": "0-1",
-        "count": 0
+        "count": 1
       },
       {
         "rangeMinutes": "1-5",
@@ -86,11 +86,11 @@
       },
       {
         "rangeMinutes": "30-60",
-        "count": 25
+        "count": 24
       },
       {
         "rangeMinutes": "60-120",
-        "count": 21
+        "count": 22
       },
       {
         "rangeMinutes": "120+",
@@ -99,15 +99,14 @@
     ]
   },
   "sourceDataQuality": {
-    "subagentOutputFilesFound": 100,
-    "subagentTranscriptsIncluded": 100,
+    "subagentOutputFilesFound": 101,
+    "subagentTranscriptsIncluded": 101,
     "subagentNonJsonlFilesExcluded": 0,
     "subagentEmptyFilesExcluded": 0,
     "subagentNonTranscriptJsonlFilesExcluded": 0,
     "subagentExcludedFilesTotalBytes": 0,
     "subagentTranscriptsBackedBySymlink": 0,
     "subagentTranscriptsEndingMidAction": [
-      "a21b2acb7cbb3657d",
       "ac1d0180b6ef3cf0a"
     ],
     "note": "Only subagents/ files whose every line parses as JSON and that carry at least one real user/assistant message were counted as transcripts; the rest are subagent descriptors or captured tool output. subagentTranscriptsBackedBySymlink counts transcript files that were symlinks into a live Claude Code project directory rather than frozen copies. subagentTranscriptsEndingMidAction lists agent ids whose last recorded line is a tool call with no accompanying text and no result - captured mid-action rather than at a natural stopping point. See README.md next to this file."
