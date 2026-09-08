@@ -1,0 +1,202 @@
+{
+  "type": "offline-fold",
+  "baseline": "h3-baseline-sonnet-t3",
+  "candidate": "h4-knowledge-pack-sonnet-t3",
+  "environments": [
+    "code:dep-resolver",
+    "code:double-entry-ledger",
+    "code:expr-eval",
+    "code:json-patch",
+    "code:order-lifecycle",
+    "code:priority-queue",
+    "code:trie-index",
+    "code:union-find-rollback",
+    "code:url-template"
+  ],
+  "repetitions": 2,
+  "thresholds": {
+    "bootstrapResamples": 2000,
+    "confidenceLevel": 0.95,
+    "minimumDelta": 0.05,
+    "cellTokenCap": 600000
+  },
+  "result": {
+    "digest": "d680acc6bb67fbd5332b015a479c59e0c49b4bdc8c63e5f59ab300a85fbeee4e",
+    "arms": {
+      "baseline": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "offline-d680acc6bb67fbd5332b015a479c59e0c49b4bdc8c63e5f59ab300a85fbeee4e-baseline"
+      },
+      "candidate": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "offline-d680acc6bb67fbd5332b015a479c59e0c49b4bdc8c63e5f59ab300a85fbeee4e-candidate"
+      }
+    },
+    "cells": [
+      {
+        "environment": "code:dep-resolver",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 18,
+        "outputTokenDelta": 28103
+      },
+      {
+        "environment": "code:double-entry-ledger",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 8,
+        "outputTokenDelta": 1943
+      },
+      {
+        "environment": "code:expr-eval",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 2,
+        "outputTokenDelta": 32375
+      },
+      {
+        "environment": "code:json-patch",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 4,
+        "outputTokenDelta": 21138
+      },
+      {
+        "environment": "code:order-lifecycle",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -14,
+        "outputTokenDelta": 7939
+      },
+      {
+        "environment": "code:priority-queue",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -2,
+        "outputTokenDelta": 626
+      },
+      {
+        "environment": "code:trie-index",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 16,
+        "outputTokenDelta": 6709
+      },
+      {
+        "environment": "code:union-find-rollback",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 30,
+        "outputTokenDelta": 52683
+      },
+      {
+        "environment": "code:url-template",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -14,
+        "outputTokenDelta": -7927
+      }
+    ],
+    "seedsPaired": 18,
+    "delta": 0,
+    "interval": {
+      "lower": 0,
+      "upper": 0
+    },
+    "spend": {
+      "inputTokens": 896,
+      "outputTokens": 822251
+    },
+    "thresholds": {
+      "bootstrapResamples": 2000,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0.05,
+      "cellTokenCap": 600000
+    },
+    "verdict": "inconclusive"
+  }
+}
