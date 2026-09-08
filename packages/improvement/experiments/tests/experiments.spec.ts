@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
+import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
@@ -35,7 +36,7 @@ const UNSATISFIABLE = EnvironmentId('smoke:unsatisfiable')
 const BASELINE = { provider: 'mock', model: 'base' }
 const CANDIDATE = { provider: 'mock', model: 'next' }
 const ROUTE: EnvironmentRunImplementer = { kind: 'route' }
-const DELEGATED: EnvironmentRunImplementer = { kind: 'subagent', provider: 'external-agent' }
+const DELEGATED = { kind: 'subagent', provider: 'external-agent' } as const satisfies EnvironmentRunImplementer
 /** The caps the stub runner resolves for every implementer unless a test narrows one. */
 const CAPS: readonly BudgetCap[] = [['maxTotalTokens', 5000], ['maxWallMs', 60_000]]
 /** The digest this file's default plan freezes to at plan format version 2; the current version must never reproduce it. */
@@ -135,14 +136,26 @@ function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
   }
 }
 
-/** The runner as the experiment reads it: the caps one implementer's cells run under. */
+/** The runner as the experiment reads it: the implementer preflight and the caps one implementer's cells run under. */
 class StubEnvironmentRuns extends Service {
   static current: StubEnvironmentRuns
   /** Caps per implementer kind; the unequal-caps case narrows the delegated one. */
   caps: (implementer: EnvironmentRunImplementer) => readonly BudgetCap[] = () => CAPS
+  /** Every preflight the experiment ran, with the arm route it stamped. */
+  readonly checked: { implementer: EnvironmentRunImplementer; model: EnvironmentRunModel }[] = []
+  /** Providers this composition holds; a subagent implementer naming another is refused. */
+  providers = new Set<string>([DELEGATED.provider])
   constructor(ctx: Context) {
     super(ctx, 'environmentRuns')
     StubEnvironmentRuns.current = this
+  }
+  checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): void {
+    this.checked.push({ implementer, model })
+    if (implementer.kind === 'route' || this.providers.has(implementer.provider)) return
+    throw new EnvironmentRunError(
+      `implementer provider "${implementer.provider}" is unavailable: no subagent provider is registered under that name`,
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    )
   }
   cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[] {
     return this.caps(implementer)
@@ -448,6 +461,27 @@ describe('ExperimentService', () => {
       baseline: { ...BASELINE, implementer: DELEGATED },
       candidate: { ...CANDIDATE, implementer: DELEGATED },
     }))).resolves.toMatchObject({ caps: CAPS })
+  })
+
+  it('refuses an arm implementer the composition cannot honor, before the baseline arm runs a cell', async () => {
+    const { ctx, plan } = await harness()
+    const absent = { kind: 'subagent', provider: 'spawn' } as const
+    await expect(ctx.experiments.run(plan({ candidate: { ...CANDIDATE, implementer: absent } })))
+      .rejects.toThrow(new EnvironmentRunError(
+        'implementer provider "spawn" is unavailable: no subagent provider is registered under that name',
+        'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+      ))
+    // The candidate arm's provider is missing, and the baseline arm — which
+    // would otherwise run in full first — never reaches the fleet.
+    expect(StubFleet.current.plans).toHaveLength(0)
+
+    // Both arms are checked, each against its own route.
+    const checked = await harness()
+    await checked.ctx.experiments.run(checked.plan({ candidate: { ...CANDIDATE, implementer: DELEGATED } }))
+    expect(StubEnvironmentRuns.current.checked).toEqual([
+      { implementer: ROUTE, model: BASELINE },
+      { implementer: DELEGATED, model: CANDIDATE },
+    ])
   })
 
   it('compares and renders cap lists by value', () => {

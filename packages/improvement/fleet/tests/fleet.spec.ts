@@ -5,7 +5,7 @@ import { basename, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
-import type { EnvironmentRunReport, EnvironmentRunRequest } from '@deepseek-ai/dsh-environment-runner'
+import type { EnvironmentRunImplementer, EnvironmentRunReport, EnvironmentRunRequest } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
@@ -74,12 +74,24 @@ type Script = (request: EnvironmentRunRequest) => EnvironmentRunReport | Promise
 class StubRuns extends Service {
   static current: StubRuns
   readonly requests: EnvironmentRunRequest[] = []
+  /** Every implementer preflight the fleet ran, with the route it stamped. */
+  readonly checked: { implementer: EnvironmentRunImplementer; model: EnvironmentRunModel }[] = []
+  /** Providers this composition holds; a subagent implementer naming another is refused. */
+  providers = new Set<string>()
   script: Script = request => report(request, { certified: true })
   inFlight = 0
   maxInFlight = 0
   constructor(ctx: Context) {
     super(ctx, 'environmentRuns')
     StubRuns.current = this
+  }
+  checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): void {
+    this.checked.push({ implementer, model })
+    if (implementer.kind === 'route' || this.providers.has(implementer.provider)) return
+    throw new EnvironmentRunError(
+      `implementer provider "${implementer.provider}" is unavailable: no subagent provider is registered under that name`,
+      'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    )
   }
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     this.requests.push(request)
@@ -241,9 +253,11 @@ describe('FleetService', () => {
   it('forwards the plan\'s implementer to every cell and folds it onto the row', async () => {
     const { ctx, plan } = await harness()
     StubRuns.current.script = request => report(request, { certified: true })
+    StubRuns.current.providers = new Set(['claude-code'])
     const implementer = { kind: 'subagent', provider: 'claude-code', label: 'external' } as const
     const result = await ctx.fleet.run(plan({ implementer, models: [MODEL_A], repetitions: 1 }))
 
+    expect(StubRuns.current.checked).toEqual([{ implementer, model: MODEL_A }])
     expect(StubRuns.current.requests.map(request => request.implementer)).toEqual([implementer, implementer])
     expect(result.leaderboard.map(entry => entry.implementer)).toEqual(['claude-code', 'claude-code'])
     expect(leaderboardMarkdown(result)).toContain('| mock/a | - | claude-code | smoke:round-trip |')
@@ -292,6 +306,44 @@ describe('FleetService', () => {
     await expect(ctx.fleet.run(plan({ ladder: [], models: [MODEL_A], repetitions: 1 })))
       .rejects.toThrow(new FleetError('the plan\'s attempt ladder names no rung', 'FLEET_INVALID_PLAN'))
     expect(StubRuns.current.requests).toEqual([])
+  })
+
+  it('refuses an implementer the composition cannot honor before minting a workspace', async () => {
+    const { ctx, root, plan } = await harness()
+    await expect(ctx.fleet.run(plan({ implementer: { kind: 'subagent', provider: 'spawn' } })))
+      .rejects.toThrow(new EnvironmentRunError(
+        'implementer provider "spawn" is unavailable: no subagent provider is registered under that name',
+        'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+      ))
+    // The whole plan is refused: no cell ran, no cell was recorded as an error,
+    // and the run minted nothing under the workspace root.
+    expect(StubRuns.current.requests).toEqual([])
+    expect(await readdir(root)).toEqual([])
+  })
+
+  it('checks each route the plan names, stamping a laddered plan with its first rung', async () => {
+    const { ctx, plan } = await harness()
+    StubRuns.current.providers = new Set(['spawn'])
+    const implementer = { kind: 'subagent', provider: 'spawn' } as const
+    await ctx.fleet.run(plan({ implementer, repetitions: 1 }))
+    expect(StubRuns.current.checked).toEqual([
+      { implementer, model: MODEL_A },
+      { implementer, model: MODEL_B },
+    ])
+
+    // A ladder whose first rung names a model is what the runner stamps, so
+    // that is the route the preflight asks the provider about.
+    const laddered = await harness()
+    StubRuns.current.providers = new Set(['spawn'])
+    await laddered.ctx.fleet.run(laddered.plan({ implementer, ladder: [{ model: MODEL_B }, {}], models: [MODEL_A], repetitions: 1 }))
+    expect(StubRuns.current.checked).toEqual([{ implementer, model: MODEL_B }])
+
+    // A plan naming no model checks the composition's default route, which is
+    // the one its cells run on.
+    const defaulted = await harness()
+    StubRuns.current.providers = new Set(['spawn'])
+    await defaulted.ctx.fleet.run(defaulted.plan({ implementer, models: [], repetitions: 1 }))
+    expect(StubRuns.current.checked).toEqual([{ implementer, model: DEFAULT_MODEL }])
   })
 
   it('selects by registry filter, runs the default route when no model is named, and mints a group', async () => {

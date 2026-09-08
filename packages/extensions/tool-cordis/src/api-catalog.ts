@@ -679,6 +679,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     description: 'Environment runner (`ctx.environmentRuns`): one registered environment as one validated session.',
     methods: [
       {
+        signature: 'checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): void',
+        description: 'Run the implementer refusals of run against one implementer and stamped route, without running anything. A planner calls it while it is still validating a plan, so a provider this composition cannot honor refuses the plan instead of every cell of it: the refusals are the same ones, raised from the same resolution, before the first workspace exists. A route implementer is refused nothing, because the session\'s own model route is what a run without an implementer already uses.',
+        parameters: [{ name: 'implementer', description: 'who would do the work of each attempt.' }, { name: 'model', description: 'the route the runs would be stamped with, which is the first rung a child run is started on.' }],
+        throws: ['{@link EnvironmentRunError} when the named provider is not composed, runs outside this process under an isolation above `none`, does not support the subagent seam\'s `model` capability, or has no budget policy to bound its attempts.'],
+      },
+      {
         signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
         description: 'Run one environment as one fresh session and validate it.',
         parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, model route, attempt ladder, repetition, group, district, policy version, sampling seed, and abort signal.' }],
@@ -743,7 +749,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
         parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional attempt ladders and implementers, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
         returns: 'the digest, both arms with their ladders and stamp groups, one cell per environment, the pooled delta with its interval, the spend, the caps both arms ran under, and the verdict.',
-        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, carries an arm ladder with no rung or one whose first rung names another route, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.'],
+        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, carries an arm ladder with no rung or one whose first rung names another route, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either arm names an implementer provider this composition cannot honor.'],
       },
     ],
   },
@@ -757,7 +763,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
         parameters: [{ name: 'plan', description: 'environments, model routes, an optional attempt ladder and implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
-        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.'],
+        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names.'],
       },
     ],
   },

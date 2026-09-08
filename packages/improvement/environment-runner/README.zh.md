@@ -85,6 +85,8 @@ stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由�
 
 被命名的 provider 在任何 agent 存在之前就被解析。`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE` 在 `ctx.subagents` 未组合时、以及其中没有同名 provider 时点名该 provider。`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED` 拒绝在本进程之外运行其子进程的 provider——即那四个[不声明任何由父方强制的启动期能力](../../subagent/subagent/README.md)的进程外后端——只要配置的 `isolation` 高于 `none`：读取屏障的普查无法约束一个自带工具栈的外来 agent。进程内 provider 不被拒绝任何东西，因为它的子 agent 加入父方既有的组合，保留部署自身的隔离级别。在 `isolation: none` 的部署下，组合了进程外 provider 的会话在其 scope 普查中把 `subagent` 记为 `unenforced`，这正是屏障本就为它写下的状态；点名跑了哪个 provider 的是 stamp。
 
+`ctx.environmentRuns.checkImplementer(implementer, model)` 针对一个实现者与一条盖章路由抛出同样这四条拒绝并且不返回任何东西，走的是 `run()` 所做的同一次解析。它正是给计划方在校验计划期间调用的：[fleet](../fleet/README.md#service-contract) 针对计划点名的每一条路由检查计划的实现者，[实验](../experiments/README.md#service-contract)在冻结时检查两个臂，于是本组合无法兑现的 provider 拒掉的是整份计划，而不是逐个拖垮它的每一个 cell。route 实现者不被拒绝任何东西，因为会话自身的模型路由本就是未命名实现者的运行所使用的东西。
+
 被篡改的委派尝试记录其指令并结束本次运行，不再启动另一个子进程：该 cell 没有属于自己的转录去承载跟进，而且没有任何证书能跟在一次无效尝试之后。
 
 ### The budget a delegated attempt runs under
