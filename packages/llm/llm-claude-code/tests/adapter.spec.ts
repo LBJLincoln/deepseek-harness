@@ -11,8 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Options, Query, SDKMessage } from '@anthropic-ai/claude-agent-sdk'
 import { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
-import LlmRuntime, { BlockAssembler } from '@deepseek-ai/dsh-llm'
-import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
+import LlmRuntime, { BlockAssembler, createAssistantMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
+import type { GenerateOptions, Message, StreamChunk } from '@deepseek-ai/dsh-llm'
+import { SessionId } from '@deepseek-ai/dsh-session'
 import SubprocessRuntime from '@deepseek-ai/dsh-subprocess'
 import type {
   SubprocessHandle,
@@ -44,10 +45,14 @@ import {
 type QueryFactory = (params: { prompt: string; options: Options }) => Query
 
 const queryMock = vi.hoisted(() => vi.fn<QueryFactory>())
+const deleteSessionMock = vi.hoisted(() => vi.fn<(id: string, options?: unknown) => Promise<void>>(
+  () => Promise.resolve(),
+))
 
 vi.mock('@anthropic-ai/claude-agent-sdk', async importOriginal => ({
   ...await importOriginal<typeof import('@anthropic-ai/claude-agent-sdk')>(),
   query: queryMock,
+  deleteSession: deleteSessionMock,
 }))
 
 interface QueryScript {
@@ -165,6 +170,7 @@ async function failureOf(options: GenerateOptions, instance = adapter()): Promis
 beforeEach(() => {
   capturedOptions = undefined
   closes.mockClear()
+  deleteSessionMock.mockClear()
   spawnCalls.length = 0
   StubSubprocess.executable = '/usr/bin/claude'
   StubSubprocess.spawned = []
@@ -230,7 +236,7 @@ describe('one query per request', () => {
   it('finishes a text-only reply with a plain stop', async () => {
     script({ messages: [assistantMessage(textBlock('hello')), successResult()] })
     const chunks = await collect(adapter().stream(request()))
-    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'stop' } })
+    expect(chunks.at(-1)).toMatchObject({ type: 'finish', reason: { kind: 'stop' } })
   })
 
   it('gives the product the harness prompt and no settings or session of its own', async () => {
@@ -344,7 +350,7 @@ describe('failure classification', () => {
     })
 
     const chunks = await collect(adapter().stream(request({ tools: [BASH_TOOL] })))
-    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'tool-calls' } })
+    expect(chunks.at(-1)).toMatchObject({ type: 'finish', reason: { kind: 'tool-calls' } })
   })
 
   it('keeps caller cancellation over a result the product had already published', async () => {
@@ -389,7 +395,173 @@ describe('failure classification', () => {
     })
     const instance = adapter(routeConfig({ queryTimeoutMs: 60 }))
     const chunks = await collect(instance.stream(request()))
-    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'stop' } })
+    expect(chunks.at(-1)).toMatchObject({ type: 'finish', reason: { kind: 'stop' } })
+  })
+})
+
+describe('session continuity', () => {
+  const SESSION = SessionId('sess-1')
+
+  /** Run one step and return the query's prompt and SDK session options. */
+  async function step(
+    instance: ClaudeCodeAdapter,
+    overrides: Partial<GenerateOptions> = {},
+  ): Promise<{ prompt: string; options: Options; chunks: StreamChunk[] }> {
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    const chunks = await collect(instance.stream(request({ sessionId: SESSION, ...overrides })))
+    const call = queryMock.mock.calls.at(-1)?.[0]
+    if (call === undefined) throw new Error('the fixture ran no query')
+    return { prompt: call.prompt, options: call.options, chunks }
+  }
+
+  /** The conversation after `rounds` completed steps, newest turn last. */
+  function history(rounds: number): Message[] {
+    const messages: Message[] = [
+      createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'start' }] }),
+    ]
+    for (let round = 0; round < rounds; round += 1) {
+      messages.push(createAssistantMessage({
+        source: { provider: 'claude-code', model: 'default' },
+        content: [{ type: 'text', text: `answer ${round}` }],
+      }))
+      messages.push(createUserMessage({
+        source: { kind: 'user' },
+        content: [{ type: 'text', text: `next ${round}` }],
+      }))
+    }
+    return messages
+  }
+
+  it('resumes the product session it created and sends only the newest turn', async () => {
+    const instance = adapter()
+    const first = await step(instance, { messages: history(0) })
+    expect(first.options.persistSession).toBe(true)
+    expect(first.options.sessionId).toMatch(/^[0-9a-f-]{36}$/)
+    expect(first.prompt).toContain('Answer the last turn of the conversation below.')
+
+    const second = await step(instance, { messages: history(1) })
+    expect(second.options.resume).toBe(first.options.sessionId)
+    expect(second.options.persistSession).toBe(true)
+    expect(second.options).not.toHaveProperty('sessionId')
+    expect(second.prompt).toBe('<dsh-user>\nnext 0\n</dsh-user>\n')
+    expect(second.prompt).not.toContain('start')
+  })
+
+  it('records the continuity of each step on the answer it delivered', async () => {
+    const instance = adapter()
+    const first = await step(instance, { messages: history(0) })
+    const second = await step(instance, { messages: history(1) })
+
+    expect(first.chunks.at(-1)).toMatchObject({
+      type: 'finish',
+      replayState: { continuity: 'fresh', fallback: 'no-record' },
+    })
+    expect(second.chunks.at(-1)).toMatchObject({
+      type: 'finish',
+      replayState: { continuity: 'resumed', productSessionId: first.options.sessionId },
+    })
+  })
+
+  it('falls back to a fresh query and names why when the harness edited history', async () => {
+    const instance = adapter()
+    await step(instance, { messages: history(0) })
+    await step(instance, { messages: history(1) })
+
+    const compacted = await step(instance, {
+      messages: [
+        createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'summary' }] }),
+        ...history(2).slice(1),
+      ],
+    })
+
+    expect(compacted.options).not.toHaveProperty('resume')
+    expect(compacted.prompt).toContain('summary')
+    expect(compacted.chunks.at(-1)).toMatchObject({
+      replayState: { continuity: 'fresh', fallback: 'prefix-changed' },
+    })
+  })
+
+  it('starts a fresh query when a step retried the turn the product session already holds', async () => {
+    const instance = adapter()
+    await step(instance, { messages: history(0) })
+    await step(instance, { messages: history(1) })
+    const retried = await step(instance, { messages: history(0) })
+
+    expect(retried.options).not.toHaveProperty('resume')
+    expect(retried.chunks.at(-1)).toMatchObject({
+      replayState: { continuity: 'fresh', fallback: 'history-rewound' },
+    })
+  })
+
+  it('releases the product session of a step that delivered no answer', async () => {
+    const instance = adapter()
+    const first = await step(instance, { messages: history(0) })
+
+    script({ failWith: new Error('the CLI died') })
+    await failureOf(request({ sessionId: SESSION, messages: history(1) }), instance)
+    expect(deleteSessionMock).toHaveBeenCalledWith(first.options.sessionId, { dir: process.cwd() })
+
+    const next = await step(instance, { messages: history(2) })
+    expect(next.options).not.toHaveProperty('resume')
+  })
+
+  it('releases the product session a first step created before it failed', async () => {
+    const instance = adapter()
+    script({ failWith: new Error('the CLI died') })
+    await failureOf(request({ sessionId: SESSION, messages: history(0) }), instance)
+
+    expect(deleteSessionMock).toHaveBeenCalledTimes(1)
+    expect(deleteSessionMock.mock.calls[0]?.[0]).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
+  it('keeps a step that succeeded when the store refuses to release a transcript', async () => {
+    deleteSessionMock.mockRejectedValueOnce(new Error('store refused'))
+    const instance = adapter()
+    await step(instance, { messages: history(0) })
+    instance.dispose()
+    await Promise.resolve()
+
+    expect(deleteSessionMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('never resumes and never persists under per-query continuity', async () => {
+    const instance = adapter(routeConfig({ sessionContinuity: 'per-query' }))
+    await step(instance, { messages: history(0) })
+    const second = await step(instance, { messages: history(1) })
+
+    expect(second.options.persistSession).toBe(false)
+    expect(second.options).not.toHaveProperty('resume')
+    expect(second.prompt).toContain('start')
+    expect(second.chunks.at(-1)).toMatchObject({ replayState: { continuity: 'fresh' } })
+    expect(deleteSessionMock).not.toHaveBeenCalled()
+  })
+
+  it('keeps a request with no session identity out of the resumable set', async () => {
+    const instance = adapter()
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    const chunks = await collect(instance.stream(request({ messages: history(0) })))
+
+    expect(capturedOptions?.persistSession).toBe(false)
+    expect(chunks.at(-1)).toMatchObject({
+      replayState: { continuity: 'fresh', fallback: 'no-session-id' },
+    })
+  })
+
+  it('separates an auxiliary call from the conversation it belongs to', async () => {
+    const instance = adapter()
+    const conversation = await step(instance, { messages: history(0) })
+    const auxiliary = await step(instance, { messages: history(1), purpose: 'compaction' })
+
+    expect(auxiliary.options).not.toHaveProperty('resume')
+    expect(auxiliary.options.sessionId).not.toBe(conversation.options.sessionId)
+  })
+
+  it('releases every product session it created when the route unloads', async () => {
+    const instance = adapter()
+    const first = await step(instance, { messages: history(0) })
+    instance.dispose()
+
+    expect(deleteSessionMock).toHaveBeenCalledWith(first.options.sessionId, { dir: process.cwd() })
   })
 })
 
@@ -437,10 +609,12 @@ describe('catalog and route metadata', () => {
 describe('claudeQueryOptions', () => {
   it('hands the SDK spawn request to the shared owner and returns the managed view', () => {
     const child = fakeChild()
+    const rendered = { systemPrompt: 'system', prompt: 'prompt' }
     const options = claudeQueryOptions({
       options: resolveAdapterOptions(BASE_CONFIG),
       model: { id: 'default' },
-      rendered: { systemPrompt: 'system', prompt: 'prompt' },
+      rendered,
+      plan: { kind: 'fresh', productSessionId: 'p1', fallback: undefined, continuable: false, rendered },
       offer: undefined,
       executable: '/usr/bin/claude',
       cwd: '/workspace',

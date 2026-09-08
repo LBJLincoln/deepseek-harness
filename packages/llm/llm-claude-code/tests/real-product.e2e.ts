@@ -2,9 +2,11 @@
  * Drives the real Claude Code installation on the host's own authentication,
  * so it is opt-in rather than key-gated: set `DSH_E2E_CLAUDE_CODE=1` and run it
  * by hand on a host where `claude -p` already answers. One case is a single
- * query over the mounted route; the other is the headless-agent example, whose
- * agent must reach the workspace through the harness's own bash and editor
- * tools, never through the product's.
+ * query over the mounted route; one drives two steps of one harness session to
+ * prove the second reads the conversation prefix from the installation's cache
+ * instead of rewriting it; the last is the headless-agent example, whose agent
+ * must reach the workspace through the harness's own bash and editor tools,
+ * never through the product's.
  */
 
 import { readFile } from 'node:fs/promises'
@@ -12,8 +14,16 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import LlmRuntime, { BlockAssembler, createUserMessage } from '@deepseek-ai/dsh-llm'
+import LlmRuntime, {
+  BlockAssembler,
+  CallId,
+  createAssistantMessage,
+  createToolResultMessage,
+  createUserMessage,
+} from '@deepseek-ai/dsh-llm'
+import type { GenerateOptions, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
+import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
 import * as LlmClaudeCode from '../src/index.ts'
@@ -58,6 +68,63 @@ describe.skipIf(!enabled)('one query on the operator\'s Claude Code installation
     expect(typeof args.command).toBe('string')
     expect(assembler.finish).toEqual({ kind: 'tool-calls' })
   }, 300_000)
+})
+
+describe.skipIf(!enabled)('two steps of one harness session on the operator\'s installation', () => {
+  it('reads more of the second step\'s prompt from cache than it writes', async () => {
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    await ctx.plugin(LocalSubprocessRuntime)
+    await ctx.plugin(LlmClaudeCode, { provider: 'claude-code', models: [{ id: 'default' }] })
+
+    const sessionId = SessionId(`e2e-continuity-${Date.now()}`)
+    const system = 'You are a coding agent driven by a harness. Use the tools you have; never answer from memory.'
+    // Long enough that the installation's prompt cache has a prefix worth
+    // reading: below its minimum, a resumed step reports no cache read at all.
+    const task = `List the files in the current directory. ${'The workspace is a TypeScript monorepo. '.repeat(60)}`
+    const step = async (options: GenerateOptions): Promise<BlockAssembler> => {
+      const assembler = new BlockAssembler()
+      for await (const chunk of ctx.llm.stream(options)) assembler.push(chunk)
+      return assembler
+    }
+
+    let usage: TokenUsage | undefined
+    try {
+      const first = await step(request({
+        sessionId,
+        system,
+        messages: [createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: task }] })],
+        tools: [BASH_TOOL],
+      }))
+      const call = first.blocks().find(block => block.type === 'tool-call')
+      expect(call).toBeDefined()
+      if (call?.type !== 'tool-call') throw new Error('the first step requested no tool call')
+
+      const second = await step(request({
+        sessionId,
+        system,
+        messages: [
+          createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: task }] }),
+          createAssistantMessage({
+            source: { provider: 'claude-code', model: 'default', replayState: first.replayState },
+            content: first.blocks(),
+          }),
+          createToolResultMessage({
+            callId: CallId(call.id),
+            isError: false,
+            content: [{ type: 'text', text: 'a.txt\nb.txt\n' }],
+          }),
+        ],
+        tools: [BASH_TOOL],
+      }))
+      expect(second.replayState).toMatchObject({ continuity: 'resumed' })
+      usage = second.usage
+    } finally {
+      await ctx.fiber.dispose()
+    }
+
+    expect(usage?.cacheReadTokens ?? 0).toBeGreaterThan(usage?.cacheWriteTokens ?? 0)
+  }, 600_000)
 })
 
 describe.skipIf(!enabled)('headless-agent on the operator\'s Claude Code installation', () => {

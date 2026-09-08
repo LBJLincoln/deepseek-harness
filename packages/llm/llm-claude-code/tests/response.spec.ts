@@ -17,6 +17,9 @@ import {
 
 const OFFERED = new Set(['bash'])
 
+/** The continuity record a step that started its own product session carries. */
+const FRESH_STATE = { continuity: 'fresh', productSessionId: 'p1' } as const
+
 describe('parseAnswer', () => {
   it('joins text across messages and keeps the calls in published order', () => {
     expect(parseAnswer([
@@ -139,6 +142,7 @@ describe('answerChunks', () => {
       { content: 'done', toolCalls: [{ name: 'bash', arguments: '{"command":"ls"}' }] },
       usage(),
       'r7',
+      FRESH_STATE,
     )
 
     expect(chunks).toEqual([
@@ -159,13 +163,13 @@ describe('answerChunks', () => {
         block: { type: 'tool-call', id: 'r7-0', name: 'bash', arguments: '{"command":"ls"}' },
       },
       { type: 'usage', usage: { inputTokens: 11, outputTokens: 7, cacheReadTokens: 3, cacheWriteTokens: 2 } },
-      { type: 'finish', reason: { kind: 'tool-calls' } },
+      { type: 'finish', reason: { kind: 'tool-calls' }, replayState: FRESH_STATE },
     ])
   })
 
   it('finishes a text-only answer with a plain stop', () => {
-    const chunks = answerChunks({ content: 'hello', toolCalls: [] }, usage(), 'r8')
-    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'stop' } })
+    const chunks = answerChunks({ content: 'hello', toolCalls: [] }, usage(), 'r8', FRESH_STATE)
+    expect(chunks.at(-1)).toEqual({ type: 'finish', reason: { kind: 'stop' }, replayState: FRESH_STATE })
     expect(chunks.filter(chunk => chunk.type === 'block-start')).toHaveLength(1)
   })
 
@@ -174,12 +178,13 @@ describe('answerChunks', () => {
       { content: '', toolCalls: [{ name: 'bash', arguments: '{}' }] },
       usage(),
       'r9',
+      FRESH_STATE,
     )
     expect(chunks[0]).toEqual({ type: 'block-start', index: 0, blockType: 'tool-call' })
   })
 
   it('refuses a completion that carried nothing at all', () => {
-    expect(() => answerChunks({ content: '', toolCalls: [] }, usage(), 'r0'))
+    expect(() => answerChunks({ content: '', toolCalls: [] }, usage(), 'r0', FRESH_STATE))
       .toThrow(expect.objectContaining({ code: 'EMPTY_RESPONSE' }))
   })
 })

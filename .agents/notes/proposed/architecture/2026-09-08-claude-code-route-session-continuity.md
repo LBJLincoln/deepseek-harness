@@ -34,7 +34,9 @@ Design C ran with a per-query turn bound of one. Under that bound the SDK's stre
 
 Give the route an explicit `sessionContinuity` config field, `'per-session' | 'per-query'`, defaulting to `'per-session'`.
 
-Under `'per-session'` the route keeps, per harness session, the product session id it started and a digest of the conversation prefix that session already holds. A request whose prefix matches resumes that product session with `resume` and sends only the newest turn as its prompt; a request that does not match starts a fresh query and replaces the entry. Under `'per-query'` every request renders the whole conversation and starts a fresh query, which is today's behavior kept as the escape hatch for an installation where resume misbehaves.
+Under `'per-session'` the route keeps, per harness conversation, the product session id it started and a digest of the conversation prefix that session already holds. A request whose prefix matches resumes that product session with `resume` and sends only the newest turn as its prompt; a request that does not match starts a fresh query and replaces the entry. Under `'per-query'` every request renders the whole conversation and starts a fresh query, which is today's behavior kept as the escape hatch for an installation where resume misbehaves.
+
+A second field, `resumableSessionLimit`, bounds how many product sessions stay resumable at once. It is a cleanup policy as much as a memory bound: evicting the least recently used entry is what deletes its transcript, so a harness process whose sessions never end still releases what it created. The default of 64 leaves room for several concurrent runs of the widest fan-out a current consumer has, the Proving Ground bench's 18 cells.
 
 `generate()`'s contract and the seam's `StreamChunk` protocol are unchanged. The turn bound stays one assistant message, the tool offer is still rebuilt per request and mounted per query, the answer is still read out of the query's assistant messages, and usage is still whatever the product reported for that step — so the scorekeeper sees cache reads and writes per step exactly as it does today.
 
@@ -46,15 +48,19 @@ Under `'per-session'` the route keeps, per harness session, the product session 
 
 ### The equivalence check
 
-A resumed product session must show the model exactly the conversation the harness log holds. The route therefore records, with each product session id, a digest over everything that reaches the model and is not the newest turn: the system prompt, the offered tool definitions, the model entry, and every rendered message except the last. On the next request it recomputes that digest from the request itself. Equal means the product session already holds this exact prefix and the newest turn alone may be sent. Unequal means the harness edited history — compaction replaced the prefix with a summary, an inbox message was spliced in, a retry rewound a step — and the route runs a fresh query for that step and starts a new product session from it.
+A resumed product session must show the model exactly the conversation the harness log holds. The route therefore records, with each product session id, how many of that request's messages the session was sent and a SHA-256 digest over everything it sent for them: the system prompt, the offered tool definitions, the model id, and those messages' framed elements. The next request recomputes the digest from itself and resumes only when four things hold — it grew past the recorded count, the message at exactly that index is the product's own answer, no later message is an assistant message the product did not write, and the digest matches.
 
-The fallback is logged, not silent: the request's `llm/route` event carries a `continuity` field naming which of the two paths this step took and, when it fell back, why. A step whose model-visible input differs from the previous step's prefix is exactly the case a reader of the log must be able to see.
+Each failure names itself. A request no longer than the record is `history-rewound`, which is what a retried step looks like: the route already sent that turn, so the product session holds one the harness log no longer does. A missing or misplaced answer is `answer-missing`. A moved prefix — compaction replacing it with a summary, a spliced inbox message, a changed system prompt or tool set — is `prefix-changed`. Each of them runs a fresh query and starts a new product session.
+
+The fallback is logged, not silent. The answer's finish chunk carries `{ continuity, productSessionId, fallback? }` as its `replayState`, the seam's existing adapter-private slot, which the session log records verbatim as an `assistant/chunk` and again on the assembled `assistant/message`. A step whose model-visible input differs from the previous step's prefix is exactly the case a reader of the log must be able to see, and it needs no new session event to see it.
 
 The product's own transcript holds one thing the harness log does not: the fixed sentence the offered MCP server answers a call with. It is a constant of this package, inserted at positions the log's tool calls already determine, so the conversation the resumed model reads stays reconstructable from the log plus that constant. The README states it.
 
 ### The on-disk transcript
 
-Resume requires `persistSession: true`, which writes `~/.claude/projects/<cwd-slug>/<session-uuid>.jsonl` under the operator's configuration directory. The ten-step probe conversation left 88.9 KB. The route deletes each product session it started through the SDK's `deleteSession`, at the point the entry leaves its table: when the equivalence check fails and the entry is replaced, and when the plugin is disposed. Sessions the route did not start are never touched.
+Resume requires `persistSession: true`, which writes `~/.claude/projects/<cwd-slug>/<session-uuid>.jsonl` under the operator's configuration directory. The ten-step probe conversation left 88.9 KB. The route deletes each product session it started through the SDK's `deleteSession`, at the point the entry leaves its table: replaced after a failed check, evicted past `resumableSessionLimit`, dropped after a step that delivered no answer, and released when the plugin is disposed. Sessions the route did not start are never touched, and a store that refuses the delete leaves one file behind rather than failing the step.
+
+A step that fails drops its entry rather than keeping it, because a query that did not deliver an answer may still have written its prompt into the product session; the next step of that conversation starts fresh.
 
 The configuration directory is the operator's own, not a scoped one. The probe measured what scoping costs — one full prefix rewrite on the first resume after a cold directory — and it would also hide the operator's authentication and settings from the CLI the route drives.
 
@@ -72,13 +78,13 @@ The configuration directory is the operator's own, not a scoped one. The probe m
 
 ## Acceptance criteria
 
-- `sessionContinuity` is a validated `Config` field with both values reachable from `cordis.yml`, and `resolveAdapterOptions` rejects any other value at load.
+- `sessionContinuity` and `resumableSessionLimit` are validated `Config` fields reachable from `cordis.yml`, and `resolveAdapterOptions` rejects an unknown continuity and a limit that keeps no session, at load.
 - Under `'per-session'`, a second request on the same harness session whose prefix matches the first resumes the product session and sends only the newest turn; the SDK receives `resume` with the recorded id and a prompt that does not contain the earlier turns.
 - Under `'per-session'`, a second request whose system prompt, tool definitions, model, or any earlier message differs runs a fresh query with the whole conversation rendered, and the previous product session is deleted.
 - Under `'per-query'`, every request renders the whole conversation and no product session is recorded or deleted.
-- A request without `sessionId` never resumes, whatever the mode.
-- The `llm/route` event names the continuity path each step took, so the session log distinguishes a resumed step from a fresh one.
-- Unit specs hold per-file 100 percent coverage over `src/`, covering the digest, the table's eviction and disposal, the delta rendering, and both modes' query options.
+- A request without `sessionId` never resumes, whatever the mode; a request that names a `purpose` never continues the conversation's own session.
+- The answer's `replayState` names the continuity path each step took, so the session log distinguishes a resumed step from a fresh one and names why a fresh one was fresh.
+- Unit specs hold per-file 100 percent coverage over `src/`, covering the digest, the table's eviction and disposal, the continuation rendering, and both modes' query options.
 - The opt-in real-installation e2e (`DSH_E2E_CLAUDE_CODE=1`) runs two steps on one harness session under `'per-session'` and asserts the second step's reported cache read exceeds its cache write.
 
 ## Risks
@@ -87,6 +93,6 @@ The configuration directory is the operator's own, not a scoped one. The probe m
 
 **Cleanup is best-effort against a directory the operator owns.** A harness process killed between steps leaves one transcript per live session behind. The route deletes what it started when it can; it does not sweep the operator's directory for orphans, because a transcript it did not start may be the operator's own work.
 
-**One extra failure mode per step.** A resume whose recorded session id no longer exists on disk fails the query rather than the request. The route treats a failed resume as a fresh-query step and replaces the entry, which turns the failure into one wasted process start rather than a failed harness step, but it is a path the fresh-query mode does not have.
+**One extra failure mode per step.** A resume whose recorded session id no longer exists on disk — an operator who cleared the directory between steps — fails that step through the seam's normal retry policy rather than being repaired in place. The route drops the record and its transcript on any failed step, so the retry and every step after it runs fresh, but the first such step is a failure the `per-query` mode does not have.
 
 **The evidence is one probe generation on one installation.** Two runs per design, ten steps each, on one product version. The bench figures the problem statement cites are the independent confirmation of design A's behavior; designs B and C rest on the probe and on the opt-in e2e a maintainer must run.

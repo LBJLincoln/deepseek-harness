@@ -22,7 +22,7 @@ import {
 } from '@deepseek-ai/dsh-llm'
 import type { StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { harnessToolName } from './tools.ts'
-import type { ClaudeCodeAnswer, ClaudeCodeToolCall } from './types.ts'
+import type { ClaudeCodeAnswer, ClaudeCodeReplayState, ClaudeCodeToolCall } from './types.ts'
 
 /** Code for a reply the seam cannot read as one model response. */
 export const MALFORMED_RESPONSE_CODE = 'MALFORMED_RESPONSE'
@@ -182,12 +182,14 @@ export function resultFailure(message: SDKResultMessage): LlmError {
  * @param answer - the answer read from the query's assistant messages.
  * @param usage - the product's token accounting for this query.
  * @param responseId - the result's own identity, which makes call ids unique per response.
+ * @param replayState - how this step reached the installation, carried on the finish chunk.
  * @returns the chunks in protocol order.
  */
 export function answerChunks(
   answer: ClaudeCodeAnswer,
   usage: NonNullableUsage,
   responseId: string,
+  replayState: ClaudeCodeReplayState,
 ): StreamChunk[] {
   if (answer.content.length === 0 && answer.toolCalls.length === 0) {
     throw new LlmError(
@@ -222,6 +224,7 @@ export function answerChunks(
   chunks.push({
     type: 'finish',
     reason: answer.toolCalls.length > 0 ? { kind: 'tool-calls' } : { kind: 'stop' },
+    replayState,
   })
   return chunks
 }

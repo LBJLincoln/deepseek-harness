@@ -1,9 +1,14 @@
 /**
  * Render one harness request into the product's prompt inputs: the harness
- * system prompt becomes the query's custom system prompt, and the whole
- * conversation becomes one prompt text in log order. The request's tools are
- * not rendered here — they reach the model as native tools of the query's
- * in-process MCP server.
+ * system prompt becomes the query's custom system prompt, and the conversation
+ * becomes prompt text in log order. The request's tools are not rendered here —
+ * they reach the model as native tools of the query's in-process MCP server.
+ *
+ * A request reaches the installation whole, as one prompt carrying every
+ * message, or as a continuation carrying only the messages a resumed product
+ * session does not yet hold. Both forms come from one rendering of the request
+ * under one tag prefix, so the framing a continuation uses is the framing the
+ * conversation already carries.
  *
  * Every output here is a pure function of the request the seam hands over, and
  * that request is itself derived from the session log, so a rendered query is
@@ -14,7 +19,7 @@
 
 import { contentHasImage, LlmError } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock, GenerateOptions, Message } from '@deepseek-ai/dsh-llm'
-import type { RenderedRequest } from './types.ts'
+import type { ConversationRendering } from './types.ts'
 
 /** Tag prefix framing the rendered conversation when no content already uses it. */
 export const TAG_BASE = 'dsh'
@@ -120,15 +125,9 @@ function writeUser(writer: PromptWriter, message: Message): void {
   }
 }
 
-/** Render the whole prompt text under one tag prefix. */
-function renderPass(options: GenerateOptions, ns: string): RenderPass {
-  const writer = new PromptWriter(ns)
-  writer.structure(
-    `Answer the last turn of the conversation below. Elements tagged \`<${ns}-…>\` are the harness's`
-    + ' framing; everything between them is the conversation.',
-  )
-  writer.open('conversation')
-  for (const message of options.messages) {
+/** Write the framed elements of one slice of the conversation, in log order. */
+function writeMessages(writer: PromptWriter, messages: readonly Message[]): void {
+  for (const message of messages) {
     assertTextOnly(message)
     switch (message.role) {
       case 'system':
@@ -144,6 +143,24 @@ function renderPass(options: GenerateOptions, ns: string): RenderPass {
         break
     }
   }
+}
+
+/** Render one slice of the conversation as framed elements and nothing else. */
+function elementPass(messages: readonly Message[], ns: string): RenderPass {
+  const writer = new PromptWriter(ns)
+  writeMessages(writer, messages)
+  return writer.finish()
+}
+
+/** Render the whole prompt text under one tag prefix. */
+function renderPass(options: GenerateOptions, ns: string): RenderPass {
+  const writer = new PromptWriter(ns)
+  writer.structure(
+    `Answer the last turn of the conversation below. Elements tagged \`<${ns}-…>\` are the harness's`
+    + ' framing; everything between them is the conversation.',
+  )
+  writer.open('conversation')
+  writeMessages(writer, options.messages)
   writer.close('conversation')
   return writer.finish()
 }
@@ -167,17 +184,27 @@ export function tagNamespace(contents: readonly string[]): string {
 }
 
 /**
- * Render one harness request into the product's system prompt and prompt text.
+ * Render one harness request under a single tag prefix, in every form the
+ * route may send or hash it in.
+ *
+ * The prefix is chosen from the whole request, so a continuation frames its
+ * messages exactly as the conversation already in the product session frames
+ * its own. Content that introduces a collision therefore moves the prefix for
+ * the whole request, which the continuity digest sees as a changed prefix and
+ * answers with a fresh query.
  * @param options - the fully assembled harness request.
- * @returns the custom system prompt and the single prompt text carrying the conversation.
+ * @returns the system prompt, the chosen prefix, and the whole/prefix/continuation renderings.
  */
-export function renderRequest(options: GenerateOptions): RenderedRequest {
+export function renderConversation(options: GenerateOptions): ConversationRendering {
   const first = renderPass(options, TAG_BASE)
-  const ns = tagNamespace(first.contents)
+  const namespace = tagNamespace(first.contents)
   return {
     // An absent harness system prompt still replaces the product's preset: the
     // harness owns every standing instruction this route's model reads.
     systemPrompt: options.system ?? '',
-    prompt: ns === TAG_BASE ? first.text : renderPass(options, ns).text,
+    namespace,
+    whole: namespace === TAG_BASE ? first.text : renderPass(options, namespace).text,
+    prefix: (count: number): string => elementPass(options.messages.slice(0, count), namespace).text,
+    continuation: (from: number): string => elementPass(options.messages.slice(from), namespace).text,
   }
 }
