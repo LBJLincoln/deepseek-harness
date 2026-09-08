@@ -1,0 +1,536 @@
+{
+  "type": "result",
+  "plan": "e1-sonnet-vs-opus-t3",
+  "environments": [
+    "code:dep-resolver",
+    "code:double-entry-ledger",
+    "code:expr-eval",
+    "code:json-patch",
+    "code:order-lifecycle",
+    "code:priority-queue",
+    "code:trie-index",
+    "code:union-find-rollback",
+    "code:url-template"
+  ],
+  "startedAt": "2026-09-08T01:06:01.619Z",
+  "endedAt": "2026-09-08T01:56:25.184Z",
+  "result": {
+    "digest": "270041ce5bc098251264e04f240ac8c437d24a167f490fdd5119faf2c64b3d16",
+    "arms": {
+      "baseline": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "experiment-270041ce5bc098251264e04f240ac8c437d24a167f490fdd5119faf2c64b3d16-baseline"
+      },
+      "candidate": {
+        "model": {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "experiment-270041ce5bc098251264e04f240ac8c437d24a167f490fdd5119faf2c64b3d16-candidate"
+      }
+    },
+    "cells": [
+      {
+        "environment": "code:dep-resolver",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -8,
+        "outputTokenDelta": -18499
+      },
+      {
+        "environment": "code:double-entry-ledger",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": -0.5,
+        "inputTokenDelta": 6,
+        "outputTokenDelta": -7522
+      },
+      {
+        "environment": "code:expr-eval",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -16,
+        "outputTokenDelta": -34742
+      },
+      {
+        "environment": "code:json-patch",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -6,
+        "outputTokenDelta": -34605
+      },
+      {
+        "environment": "code:order-lifecycle",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 2,
+        "outputTokenDelta": -8874
+      },
+      {
+        "environment": "code:priority-queue",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -10,
+        "outputTokenDelta": 3432
+      },
+      {
+        "environment": "code:trie-index",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -10,
+        "outputTokenDelta": -426
+      },
+      {
+        "environment": "code:union-find-rollback",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -28,
+        "outputTokenDelta": -13594
+      },
+      {
+        "environment": "code:url-template",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": -0.5,
+        "inputTokenDelta": -34,
+        "outputTokenDelta": -85736
+      }
+    ],
+    "seedsPaired": 18,
+    "delta": 0,
+    "interval": {
+      "lower": 0,
+      "upper": 0
+    },
+    "spend": {
+      "inputTokens": 728,
+      "outputTokens": 533778
+    },
+    "thresholds": {
+      "bootstrapResamples": 2000,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0.05,
+      "cellTokenCap": 600000
+    },
+    "verdict": "inconclusive"
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:dep-resolver",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:double-entry-ledger",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:expr-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:json-patch",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:order-lifecycle",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:priority-queue",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:trie-index",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:union-find-rollback",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "environmentId": "code:url-template",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:dep-resolver",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:double-entry-ledger",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:expr-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:json-patch",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:order-lifecycle",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:priority-queue",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:trie-index",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:union-find-rollback",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:url-template",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1
+    }
+  ],
+  "facts": {
+    "sessions": 36,
+    "exported": 36,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 36,
+    "exported": 36,
+    "rewarded": 36,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}
