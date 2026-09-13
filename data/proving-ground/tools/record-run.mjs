@@ -25,6 +25,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { join, relative, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { censusRecord, formatCensus } from './census-escapes.mjs'
+import { formatTotals, summarizeRun } from './summarize-run.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const RUNS_DIR = resolve(import.meta.dirname, '..')
@@ -169,9 +170,11 @@ function main() {
   }
   writeFileSync(join(target, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
   console.log(`recorded ${relative(REPO_DIR, target)}: ${files.length} files, ${logs.length} session logs, implementers ${stamps.implementers.join(', ') || 'none'}`)
-  // The census reads the run as recorded, so what it prints is what any later
-  // reader of this directory gets from `census-escapes.mjs`.
+  // The census and the totals read the run as recorded, so what they print is
+  // what any later reader of this directory gets from `census-escapes.mjs`
+  // and `summarize-run.mjs`.
   console.log(formatCensus(censusRecord(target)))
+  console.log(formatTotals(summarizeRun(target)))
 }
 
 main()
