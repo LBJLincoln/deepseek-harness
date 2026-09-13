@@ -9,7 +9,9 @@
 //
 // Usage: node summarize-run.mjs <record-directory> [--json]
 //
-//   <record-directory>  a directory under data/proving-ground/ holding sessions/
+//   <record-directory>  a directory under data/proving-ground/ holding sessions/,
+//                       or a driver's run directory not yet recorded, whose cell
+//                       logs sit under .sessions/
 //   --json              print the rows and the totals as JSON instead of a table
 //
 // A cell is a session log carrying an `environment/run` stamp; a session
@@ -93,8 +95,21 @@ function cellRow(events) {
   }
 }
 
+/** A record keeps its logs under `sessions/`; a run directory the driver is still writing keeps them under `.sessions/`. */
+function logsRoot(directory) {
+  for (const name of ['sessions', '.sessions']) {
+    const candidate = join(directory, name)
+    try {
+      if (statSync(candidate).isDirectory()) return candidate
+    } catch {
+      // Absent candidates fall through to the next name; any other failure surfaces when the chosen root is walked.
+    }
+  }
+  throw new Error(`${directory} holds neither sessions/ nor .sessions/`)
+}
+
 const rows = []
-for (const path of sessionLogs(join(root, 'sessions'))) {
+for (const path of sessionLogs(logsRoot(root))) {
   const events = readFileSync(path, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line))
   const row = cellRow(events)
   if (row) rows.push(row)
