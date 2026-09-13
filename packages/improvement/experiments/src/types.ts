@@ -145,6 +145,21 @@ export interface ExperimentCell {
   readonly outputTokenDelta: number
 }
 
+/**
+ * One cell an arm produced no report for, as the fleet recorded it. Each entry
+ * is one repetition counted as `unpaired` on its environment's
+ * {@link ExperimentCell}, with the reason the fleet kept, so a stored result
+ * says why a repetition did not pair without the process that ran it.
+ */
+export interface ExperimentCellError {
+  readonly arm: ExperimentArmRole
+  readonly environment: EnvironmentId
+  readonly repetition: number
+  /** The runner's or the fleet's stable error code, absent when the failure carried none. */
+  readonly code?: string
+  readonly message: string
+}
+
 /** Model usage summed over every reported cell of both arms, paired or not. */
 export interface ExperimentSpend {
   readonly inputTokens: number
@@ -165,6 +180,11 @@ export interface ExperimentResult {
   readonly arms: ExperimentArms
   /** One entry per environment, in plan order. */
   readonly cells: readonly ExperimentCell[]
+  /**
+   * Every cell either arm kept as an error, baseline arm first, each arm in its
+   * fleet's cell order. Empty when every cell of both arms reported.
+   */
+  readonly errors: readonly ExperimentCellError[]
   /** Paired repetition indexes over every environment; the bootstrap's units. */
   readonly seedsPaired: number
   /** Certificate-rate delta over every paired repetition, `0` without pairs. */

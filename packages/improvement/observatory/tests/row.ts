@@ -122,6 +122,7 @@ export function experiment(
       candidate: { model: { provider: 'cli-mock', model: candidate }, implementer: { kind: 'route' }, group: `experiment-${digest}-candidate` },
     },
     cells: [],
+    errors: [],
     seedsPaired: 4,
     delta: 0.25,
     spend: { inputTokens: 40, outputTokens: 10 },

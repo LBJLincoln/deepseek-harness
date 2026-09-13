@@ -51,7 +51,7 @@
 
 两条 arm 都被转发同一个 `policyVersion` 与同一个基准 `seed`，每条 arm 的 cell 以 `seed + repetition` 采样，因此两条 arm 的配对重复只在 arm 本身——它的路由与它的 implementer——上不同——[fleet README](../fleet/README.md#policy-version-and-the-base-seed) 拥有这套算术，[运行器 README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) 拥有 replay 能复现什么。
 
-随后两个 arm 作为两次 `ctx.fleet.run` 调用在相同的 id 上以相同的重复次数运行，baseline 在先，每次调用各自携带该 arm 的路由与 implementer。被 fleet 保留为错误的 cell 会让它那次重复落单，而不是让整场实验失败。结果会作为一行 JSON 写入 `sink`，且该 sink 恰好被关闭一次；这个 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务于两种导出。
+随后两个 arm 作为两次 `ctx.fleet.run` 调用在相同的 id 上以相同的重复次数运行，baseline 在先，每次调用各自携带该 arm 的路由与 implementer。被 fleet 保留为错误的 cell 会让它那次重复落单，而不是让整场实验失败，并且结果会在 `errors` 下列出它，带着它的 arm、environment、重复序号以及 fleet 的代码与消息，使一份存下来的结果无需运行它的进程就能说明某次重复为何没有配对。结果会作为一行 JSON 写入 `sink`，且该 sink 恰好被关闭一次；这个 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务于两种导出。
 
 结果在每个 arm 的 stamp group 旁重述该 arm：`arms.baseline` 与 `arms.candidate` 携带该 arm 运行时的 `model` 路由、该 arm 命名阶梯时其升级经过的 `ladder`，以及 `implementer`，缺省的 implementer 被陈述为 `{ kind: 'route' }`，因此一份已存储的结果无需产生它的计划，也能分辨 harness 原生的 arm 与被委派的 arm。`caps` 按上限求值顺序陈述两个 arm 的每个 cell 运行所处的上限，因此一份已存储结果的读者无需找到它背后的组合，就能看到这场比较是在什么预算内被度量的。
 

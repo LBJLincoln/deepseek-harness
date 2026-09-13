@@ -5,7 +5,7 @@ import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
-import type { FleetCell, FleetCellOutcome, FleetPlan, FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
+import type { FleetCell, FleetCellError, FleetCellOutcome, FleetPlan, FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { CheckId } from '@deepseek-ai/dsh-verification'
@@ -42,12 +42,15 @@ const CAPS: readonly BudgetCap[] = [['maxTotalTokens', 5000], ['maxWallMs', 60_0
 /** The digest this file's default plan freezes to at plan format version 2; the current version must never reproduce it. */
 const PRE_SLICE_DIGEST = '619c25f5f81d0f75fda33381464b9c41f8383dc19100dc400d1804b28bf868b2'
 
-/** One cell's run as the stub fleet reports it; `undefined` makes the cell an error outcome. */
-interface CellShape {
+/** One cell's run as the stub fleet reports it. */
+interface CellRun {
   certified: boolean
   attempts?: number
   usage?: { inputTokens: number; outputTokens: number }
 }
+
+/** What the script gives one cell: a run, the error the fleet kept for it, or `undefined` for an error outcome without a code. */
+type CellShape = CellRun | { error: FleetCellError }
 
 type CellScript = (cell: FleetCell) => CellShape | undefined
 
@@ -76,7 +79,7 @@ class StubEnvironments extends Service {
   }
 }
 
-function runReport(cell: FleetCell, group: string, shape: CellShape): EnvironmentRunReport {
+function runReport(cell: FleetCell, group: string, shape: CellRun): EnvironmentRunReport {
   const attempts = shape.attempts ?? 1
   return {
     environment: cell.environment,
@@ -121,7 +124,9 @@ function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
       const shape = script(cell)
       cells.push(shape === undefined
         ? { cell, error: { message: 'the cell could not boot' } }
-        : { cell, report: runReport(cell, group, shape) })
+        : 'error' in shape
+          ? { cell, error: shape.error }
+          : { cell, report: runReport(cell, group, shape) })
     }
   }
   const reports = cells.flatMap(outcome => ('report' in outcome ? [outcome.report] : []))
@@ -321,6 +326,31 @@ describe('ExperimentService', () => {
     expect(result.cells[1]).not.toHaveProperty('interval')
     expect(result.spend).toEqual({ inputTokens: 21, outputTokens: 6 })
     expect(result.verdict).toBe('promote')
+    const couldNotBoot = { message: 'the cell could not boot' }
+    expect(result.errors).toEqual([
+      { arm: 'baseline', environment: UNSATISFIABLE, repetition: 0, ...couldNotBoot },
+      { arm: 'baseline', environment: UNSATISFIABLE, repetition: 1, ...couldNotBoot },
+      { arm: 'candidate', environment: ROUND_TRIP, repetition: 1, ...couldNotBoot },
+      { arm: 'candidate', environment: UNSATISFIABLE, repetition: 0, ...couldNotBoot },
+      { arm: 'candidate', environment: UNSATISFIABLE, repetition: 1, ...couldNotBoot },
+    ])
+    expect(result.errors.every(error => !('code' in error))).toBe(true)
+  })
+
+  it('carries the fleet\'s error code on a cell it refused to start', async () => {
+    const { ctx, plan } = await harness()
+    StubFleet.current.script = cell => (
+      cell.model.model === CANDIDATE.model && cell.environment === UNSATISFIABLE
+        ? { error: { code: 'FLEET_TOKEN_CEILING_REACHED', message: 'the plan reached its token ceiling' } }
+        : { certified: true }
+    )
+    const result = await ctx.experiments.run(plan())
+
+    expect(result.errors).toEqual([
+      { arm: 'candidate', environment: UNSATISFIABLE, repetition: 0, code: 'FLEET_TOKEN_CEILING_REACHED', message: 'the plan reached its token ceiling' },
+      { arm: 'candidate', environment: UNSATISFIABLE, repetition: 1, code: 'FLEET_TOKEN_CEILING_REACHED', message: 'the plan reached its token ceiling' },
+    ])
+    expect(result.cells.map(cell => [cell.pairs, cell.unpaired])).toEqual([[2, 0], [0, 2]])
   })
 
   it('stays inconclusive with no interval when nothing paired at all', async () => {
@@ -333,6 +363,8 @@ describe('ExperimentService', () => {
     expect(result).not.toHaveProperty('interval')
     expect(result.verdict).toBe('inconclusive')
     expect(result.cells.every(cell => cell.pairs === 0 && cell.unpaired === 2)).toBe(true)
+    expect(result.errors).toHaveLength(8)
+    expect(result.errors.map(error => error.arm)).toEqual([...Array<string>(4).fill('baseline'), ...Array<string>(4).fill('candidate')])
   })
 
   it('forwards the policy version and the base seed to both arms and freezes both into the digest', async () => {

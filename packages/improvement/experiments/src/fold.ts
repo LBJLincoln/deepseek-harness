@@ -14,8 +14,10 @@ import { bootstrapIntervals } from './statistics.ts'
 import type { DeltaStratum } from './statistics.ts'
 import type {
   ConfidenceInterval,
+  ExperimentArmRole,
   ExperimentArms,
   ExperimentCell,
+  ExperimentCellError,
   ExperimentResult,
   ExperimentSpend,
   ExperimentThresholds,
@@ -64,6 +66,22 @@ function reportsOf(report: FleetRunReport): Map<string, EnvironmentRunReport> {
     if ('report' in outcome) reports.set(cellKey(outcome.cell.environment, outcome.cell.repetition), outcome.report)
   }
   return reports
+}
+
+/** The cells one arm kept as errors, in the fleet's cell order, each named by the arm it belongs to. */
+function errorsOf(arm: ExperimentArmRole, report: FleetRunReport): ExperimentCellError[] {
+  const errors: ExperimentCellError[] = []
+  for (const outcome of report.cells) {
+    if ('report' in outcome) continue
+    errors.push({
+      arm,
+      environment: outcome.cell.environment,
+      repetition: outcome.cell.repetition,
+      ...outcome.error.code === undefined ? {} : { code: outcome.error.code },
+      message: outcome.error.message,
+    })
+  }
+  return errors
 }
 
 /** Model usage summed over every reported cell of both arms. */
@@ -132,7 +150,8 @@ function verdictOf(interval: ConfidenceInterval | undefined, minimumDelta: numbe
 /**
  * Fold both arms' fleet reports into the experiment's record.
  * @param request - the frozen digest and arms, the environments and repetitions that were run, the thresholds, and the two reports.
- * @returns one cell per environment in plan order, the pooled delta and its interval, the spend, and the verdict.
+ * @returns one cell per environment in plan order, every cell an arm kept as an
+ *   error, the pooled delta and its interval, the spend, and the verdict.
  */
 export function foldExperiment(request: ExperimentFoldRequest): ExperimentResult {
   const baseline = reportsOf(request.baseline)
@@ -172,6 +191,10 @@ export function foldExperiment(request: ExperimentFoldRequest): ExperimentResult
     digest: request.digest,
     arms: request.arms,
     cells,
+    errors: [
+      ...errorsOf('baseline', request.baseline),
+      ...errorsOf('candidate', request.candidate),
+    ],
     seedsPaired,
     delta: perPair(pooled, seedsPaired),
     ...bootstrap.overall === undefined ? {} : { interval: bootstrap.overall },

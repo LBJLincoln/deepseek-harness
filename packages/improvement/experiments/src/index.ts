@@ -155,8 +155,9 @@ export class ExperimentService extends Service {
    *   and an optional policy version, base seed, frozen digest, abort signal,
    *   and result sink.
    * @returns the digest, both arms with their ladders and stamp groups, one
-   *   cell per environment, the pooled delta with its interval, the spend, the
-   *   caps both arms ran under, and the verdict.
+   *   cell per environment, every cell an arm kept as an error, the pooled
+   *   delta with its interval, the spend, the caps both arms ran under, and
+   *   the verdict.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
    *   unregistered environment, asks for no repetition, sets a seed that is not
    *   a safe non-negative integer, carries an arm ladder with no rung or one
