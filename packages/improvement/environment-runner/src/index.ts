@@ -957,11 +957,19 @@ function deniedReads(events: readonly SessionEvent[]): number {
   return events.filter(event => event.type === 'read-barrier/denied').length
 }
 
-/** Sum the usage of every assistant message in a session log. */
+/**
+ * Sum the usage a session's own assistant messages report and the usage its
+ * delegations charged the cell: `reportedUsage` for an out-of-process child,
+ * the in-process child's own summed `usage` otherwise, which is the charge the
+ * budget fold counts. A run drives its turns or delegates them, never both.
+ */
 function totalUsage(events: readonly SessionEvent[]): TokenUsage | undefined {
-  const steps = events.flatMap(event => (
-    event.type === 'assistant/message' && event.data.usage !== undefined ? [event.data.usage] : []
-  ))
+  const steps = events.flatMap((event) => {
+    if (event.type === 'assistant/message') return event.data.usage === undefined ? [] : [event.data.usage]
+    if (event.type !== 'environment/delegation') return []
+    const spent = event.data.reportedUsage ?? event.data.usage
+    return spent === undefined ? [] : [spent]
+  })
   if (steps.length === 0) return undefined
   const total: TokenUsage = {
     inputTokens: steps.reduce((sum, step) => sum + step.inputTokens, 0),

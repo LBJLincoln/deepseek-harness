@@ -1079,8 +1079,8 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     // The runner still executed the checks itself over the restored tree.
     expect(StubStandards.current.runs.map(recorded => recorded.evidence.executor)).toEqual(['runner', 'runner'])
     expect(StubShell.current.requests.map(request => request.workdir)).toEqual([workspace, workspace])
-    // No assistant message reaches the cell log, so the run reports no usage of its own.
-    expect(report).not.toHaveProperty('usage')
+    // No assistant message reaches the cell log; the run's usage is what its two children spent.
+    expect(report.usage).toEqual({ inputTokens: 30, outputTokens: 6 })
   })
 
   it('records a child that produced no local agent and delegates under a signal of its own', async () => {
@@ -1139,8 +1139,8 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
       },
       { attempt: 2, restatedTask: true, provider: 'claude-code', runId: 'child-2', stopReason: 'error' },
     ])
-    // The cell drove no turn of its own, so its own session accounts for nothing.
-    expect(report).not.toHaveProperty('usage')
+    // The cell drove no turn of its own; its usage is what the product reported for the child that answered.
+    expect(report.usage).toEqual({ inputTokens: 31, outputTokens: 7 })
   })
 
   it('starts each child on its own rung and restates the task for the one that follows a directive', async () => {

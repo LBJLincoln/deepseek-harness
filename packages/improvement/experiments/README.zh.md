@@ -88,7 +88,7 @@ None; the service neither adds to nor changes any model request.
 ## Known Limitations and Deferred Work
 
 - **preset 无法成为 arm** —— 一个 arm 指名一条模型路由与一个 implementer，而 `EnvironmentRunRequest` 不携带 agent（智能体）preset，因此在运行器与 fleet cell 携带 preset 之前，同一条路由上的两种组合无从比较；计划会随该字段一起为每个 arm 增加一个可选 preset，绝不在此之前。
-- **被委派的 arm 不报告 token** —— 外部 implementer 花费在另一个产品里，因此它的 cell 不携带 `usage`：`spend` 与 token delta 度量的只是 harness 原生的那一侧，而预计花费仍为两个 arm 的每个 cell 各预留 `cellTokenCap`。子进程上报的花费通过它的 `usage/foreign` 记录约束该 cell，但本折叠不读取它。
+- **被委派的 arm 的 token 是子进程自己的账目** —— 外部 implementer 花费在另一个产品里，因此被委派的 cell 的 `usage` 是每个子进程上报的量（进程内子进程则是本进程为它求和的量），如[运行器](../environment-runner/README.md#the-two-implementers)在 `environment/delegation` 上所记录的：`spend` 与 token delta 比较的是一个产品公布的计数与一份 harness 日志的计数，预计花费仍为两个 arm 的每个 cell 各预留 `cellTokenCap`，而后端不公布用量的子进程会让它的 cell 没有任何用量。
 - **两个 arm 顺序运行** —— baseline 跑完之后 candidate 才开始，因此二者之间提供方一侧的漂移会全部落在 candidate 上。把两条路由交错进同一次 fleet 调用会得到同样的配对，且对调用方始终可用。
 - **配对的重复索引不是配对的种子** —— `environment/run` stamp 不携带种子，因此配对消除的是环境方差，而不是运行间方差。
 - **计划的 token 预算是预计的，不是被强制的** —— 拒绝逻辑把 `cellTokenCap` 乘以 cell 数量，而一个 cell 实际花费多少由 `caps` 所陈述上限的[预算策略](../../guard/budget-policy/README.md)限制。两者是彼此独立的数字：没有任何环节把计划的 `cellTokenCap` 写进每 cell 的策略，因此一份计划可以预计得比它的 cell 被允许花费的更少。

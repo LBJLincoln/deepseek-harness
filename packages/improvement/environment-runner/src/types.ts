@@ -230,7 +230,13 @@ export interface EnvironmentRunReport {
   readonly certified: boolean
   /** Certificate of the passing run, present exactly when `certified` is `true`. */
   readonly certificate?: VerificationCertificate
-  /** Model usage summed over every assistant message of the session, absent when the model produced none. */
+  /**
+   * Model usage of the run: summed over every assistant message of the session
+   * for a route run, and over what each child spent as its
+   * `environment/delegation` records it (`reportedUsage` for an out-of-process
+   * child, the in-process child's own summed usage otherwise) for a delegated
+   * run. Absent when no message and no child reported any.
+   */
   readonly usage?: TokenUsage
   /**
    * The caps this cell ran under, in cap evaluation order, as
