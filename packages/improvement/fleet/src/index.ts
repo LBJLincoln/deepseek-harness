@@ -3,7 +3,8 @@
  * plan of environment × model × repetition cells runs through the environment
  * runner, every cell's report or failure is kept in plan order, and a
  * leaderboard is folded from the reports without averaging across isolation
- * levels or the held-out split. The
+ * levels or the held-out split. Two plans can run as one batch whose cells
+ * alternate, so neither plan's cells are confounded with the hour they ran in. The
  * [four-goal-workflows Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)
  * owns the design rationale.
  * @module @deepseek-ai/dsh-fleet
@@ -26,6 +27,7 @@ import type {
   FleetCellErrorCode,
   FleetCellEvent,
   FleetCellOutcome,
+  FleetPairedReports,
   FleetPlan,
   FleetRunReport,
   FleetSpend,
@@ -122,19 +124,17 @@ function cellError(error: unknown): FleetCellError {
   return { message: error instanceof Error ? error.message : String(error) }
 }
 
-/** Run `tasks` with at most `limit` in flight, keeping results in task order. */
-async function bounded<T>(tasks: readonly (() => Promise<T>)[], limit: number): Promise<T[]> {
-  const results = new Array<T>(tasks.length)
+/** Run `tasks` in task order with at most `limit` in flight. */
+async function bounded(tasks: readonly (() => Promise<void>)[], limit: number): Promise<void> {
   let next = 0
   const worker = async (): Promise<void> => {
     while (next < tasks.length) {
       const index = next
       next += 1
-      results[index] = await (tasks[index] as () => Promise<T>)()
+      await (tasks[index] as () => Promise<void>)()
     }
   }
   await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker))
-  return results
 }
 
 /** Human-readable identity of one model route, used in a breaker message. */
@@ -285,6 +285,81 @@ function withReport(row: LeaderboardRow, report: EnvironmentRunReport): Leaderbo
 }
 
 /**
+ * One plan prepared to run: what its validation resolved, the cells it
+ * enumerates in plan order, the ledger those cells fold into, and the slot each
+ * cell's outcome lands in. A single run and a paired run both fill the slots and
+ * read the report off this record, so a plan interleaved with another still
+ * reports what it reports alone.
+ */
+interface PlanRun {
+  readonly plan: FleetPlan
+  readonly group: string
+  readonly definitions: ReadonlyMap<EnvironmentId, EnvironmentDefinition>
+  readonly cells: readonly FleetCell[]
+  readonly ledger: PlanLedger
+  /** Each cell's outcome, at that cell's index in {@link PlanRun.cells}. */
+  readonly outcomes: FleetCellOutcome[]
+}
+
+/** Fold one prepared plan's report, once every cell of it has settled. */
+function planReport(run: PlanRun): FleetRunReport {
+  return {
+    group: run.group,
+    cells: run.outcomes,
+    leaderboard: foldLeaderboard(run.outcomes, run.definitions),
+    spend: run.ledger.spend,
+  }
+}
+
+/** One cell awaiting the pool: the prepared plan that owns it and its index in that plan's cell order. */
+interface ScheduledCell {
+  readonly run: PlanRun
+  readonly index: number
+}
+
+/**
+ * Order two prepared plans' cells pairwise: environment-major, then repetition,
+ * then the plan, so the two plans' cells of one environment and repetition are
+ * adjacent and enter the pool together. Each cell's position packs those three
+ * into one number, and the sort is stable, so a plan that names several routes
+ * keeps their relative order inside each pair.
+ */
+function pairwise(first: PlanRun, second: PlanRun): ScheduledCell[] {
+  const rank = new Map([...first.definitions.keys()].map((id, position) => [id, position] as const))
+  const placed = [first, second].flatMap((run, plan) => run.cells.map((cell, index) => ({
+    scheduled: { run, index },
+    position: ((rank.get(cell.environment) as number) * first.plan.repetitions + cell.repetition) * 2 + plan,
+  })))
+  return placed.sort((left, right) => left.position - right.position).map(entry => entry.scheduled)
+}
+
+/** The environments a prepared plan enumerates, in enumeration order. */
+function selection(run: PlanRun): string {
+  return [...run.definitions.keys()].join(', ')
+}
+
+/**
+ * Refuse two plans a paired run cannot interleave.
+ * @throws {@link FleetError} when the plans do not select the same environments
+ *   in the same order, or do not ask for the same repetitions.
+ */
+function checkPairable(first: PlanRun, second: PlanRun): void {
+  const [selected, other] = [selection(first), selection(second)]
+  if (selected !== other) {
+    throw new FleetError(
+      `a paired run needs both plans to select the same environments, but they select ${selected} and ${other}`,
+      'FLEET_INVALID_PLAN',
+    )
+  }
+  if (first.plan.repetitions !== second.plan.repetitions) {
+    throw new FleetError(
+      `a paired run needs both plans to ask for the same repetitions, but they ask for ${first.plan.repetitions} and ${second.plan.repetitions}`,
+      'FLEET_INVALID_PLAN',
+    )
+  }
+}
+
+/**
  * Render a leaderboard as a Markdown table for people; the report stays the record.
  * @param report - a fleet run report.
  * @returns one table with a header row and one row per leaderboard entry.
@@ -343,6 +418,45 @@ export class FleetService extends Service {
    *   is a provider this composition cannot honor for a route the plan names.
    */
   async run(plan: FleetPlan): Promise<FleetRunReport> {
+    const prepared = this.prepare(plan)
+    await this.runSchedule(prepared.cells.map((_, index) => ({ run: prepared, index })))
+    return planReport(prepared)
+  }
+
+  /**
+   * Run two plans as one batch whose cells alternate, and fold each plan's
+   * leaderboard. The cells run environment-major, then repetition, then plan,
+   * so the two plans' cells of one environment and repetition are adjacent and
+   * neither plan is confounded with the hour it ran in; both plans draw on the
+   * configured `maxConcurrent` pool, so a bound of two runs the two cells of a
+   * pair at the same time. Each plan keeps its own group, district, ledger, and
+   * workspace retention, so every report, `fleet/cell` event, route breaker,
+   * and token ceiling is what the plan's own {@link FleetService.run} produces.
+   * @param first - the plan whose cell of a pair is scheduled first.
+   * @param second - the plan whose cell of a pair is scheduled beside it.
+   * @returns one report per plan, in the order the plans were given, each with
+   *   its own group, its cells in its own plan order, its leaderboard, and its spend.
+   * @throws {@link FleetError} for either plan exactly as
+   *   {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two
+   *   plans select different environments or ask for different repetitions.
+   * @throws {@link EnvironmentRunError} unchanged from
+   *   {@link EnvironmentRunner.checkImplementer}, when either plan's
+   *   implementer is a provider this composition cannot honor for a route that
+   *   plan names.
+   */
+  async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports> {
+    const runs = [this.prepare(first), this.prepare(second)] as const
+    checkPairable(runs[0], runs[1])
+    await this.runSchedule(pairwise(runs[0], runs[1]))
+    return [planReport(runs[0]), planReport(runs[1])]
+  }
+
+  /**
+   * Validate a plan, resolve its environment selection, enumerate the cells it
+   * runs, and open the ledger they fold into. Every refusal a plan earns
+   * happens here, before any cell of it — or of a plan paired with it — starts.
+   */
+  private prepare(plan: FleetPlan): PlanRun {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
       throw new FleetError(`repetitions must be a positive integer, got ${String(plan.repetitions)}`, 'FLEET_INVALID_PLAN')
     }
@@ -372,9 +486,15 @@ export class FleetService extends Service {
     }
     const cells = plan.cells === undefined ? enumerated : restrict(enumerated, plan.cells)
     const ledger = new PlanLedger(this.resolved.routeBreaker, plan.tokenCeiling)
-    const tasks = cells.map(cell => () => this.runCell(cell, plan, group, ledger))
-    const outcomes = await bounded(tasks, this.resolved.maxConcurrent)
-    return { group, cells: outcomes, leaderboard: foldLeaderboard(outcomes, definitions), spend: ledger.spend }
+    return { plan, group, definitions, cells, ledger, outcomes: new Array<FleetCellOutcome>(cells.length) }
+  }
+
+  /** Run one schedule under a single bounded pool, leaving each outcome in its own plan's slot. */
+  private async runSchedule(schedule: readonly ScheduledCell[]): Promise<void> {
+    const tasks = schedule.map(({ run, index }) => async (): Promise<void> => {
+      run.outcomes[index] = await this.runCell(run.cells[index] as FleetCell, run.plan, run.group, run.ledger)
+    })
+    await bounded(tasks, this.resolved.maxConcurrent)
   }
 
   /**

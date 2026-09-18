@@ -190,3 +190,11 @@ export interface FleetRunReport {
   /** Model usage of the whole run; the same sum `tokenCeiling` is measured against. */
   readonly spend: FleetSpend
 }
+
+/**
+ * Outcome of one paired run: one report per plan, in the order the plans were
+ * given. Each is what the plan's own fleet run produces — its group, its cells
+ * in its own plan order, its leaderboard, and its own spend — so interleaving
+ * the two plans' cells changes when a cell runs and nothing a report states.
+ */
+export type FleetPairedReports = readonly [FleetRunReport, FleetRunReport]

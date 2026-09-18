@@ -746,7 +746,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     methods: [
       {
         signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
-        description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
+        description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. The arms run as one paired fleet run whose cells alternate, so neither arm is confounded with the hour it ran in. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
         parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional attempt ladders and implementers, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
         returns: 'the digest, both arms with their ladders and stamp groups, one cell per environment, every cell an arm kept as an error, the pooled delta with its interval, the spend, the caps both arms ran under, and the verdict.',
         throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, carries an arm ladder with no rung or one whose first rung names another route, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either arm names an implementer provider this composition cannot honor.'],
@@ -764,6 +764,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'plan', description: 'environments, model routes, an optional attempt ladder and implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
         throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names.'],
+      },
+      {
+        signature: 'async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>',
+        description: 'Run two plans as one batch whose cells alternate, and fold each plan\'s leaderboard. The cells run environment-major, then repetition, then plan, so the two plans\' cells of one environment and repetition are adjacent and neither plan is confounded with the hour it ran in; both plans draw on the configured `maxConcurrent` pool, so a bound of two runs the two cells of a pair at the same time. Each plan keeps its own group, district, ledger, and workspace retention, so every report, `fleet/cell` event, route breaker, and token ceiling is what the plan\'s own FleetService.run produces.',
+        parameters: [{ name: 'first', description: 'the plan whose cell of a pair is scheduled first.' }, { name: 'second', description: 'the plan whose cell of a pair is scheduled beside it.' }],
+        returns: 'one report per plan, in the order the plans were given, each with its own group, its cells in its own plan order, its leaderboard, and its spend.',
+        throws: ['{@link FleetError} for either plan exactly as {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two plans select different environments or ask for different repetitions.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either plan\'s implementer is a provider this composition cannot honor for a route that plan names.'],
       },
     ],
   },
@@ -3920,6 +3927,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'FleetEnvironmentSelection',
     declaration: 'export type FleetEnvironmentSelection = {\n    readonly ids: readonly EnvironmentId[];\n} | {\n    readonly filter: EnvironmentFilter;\n};',
+  },
+  {
+    name: 'FleetPairedReports',
+    declaration: 'export type FleetPairedReports = readonly [\n    FleetRunReport,\n    FleetRunReport\n];',
   },
   {
     name: 'FleetPlan',

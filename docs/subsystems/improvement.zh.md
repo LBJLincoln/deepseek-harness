@@ -670,9 +670,11 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
 ```ts cordis-catalog
 /**
  * Freeze a plan, run both arms through the fleet at the same repetition
- * indexes, and fold the paired comparison. Every refusal happens before the
- * first cell runs; a cell the fleet kept as an error leaves its repetition
- * unpaired instead of failing the experiment.
+ * indexes, and fold the paired comparison. The arms run as one paired fleet
+ * run whose cells alternate, so neither arm is confounded with the hour it
+ * ran in. Every refusal happens before the first cell runs; a cell the fleet
+ * kept as an error leaves its repetition unpaired instead of failing the
+ * experiment.
  * @param plan - environments, repetitions, the two arms with their model
  *   routes and optional attempt ladders and implementers, the workspace root,
  *   and an optional policy version, base seed, frozen digest, abort signal,
@@ -722,9 +724,32 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  *   is a provider this composition cannot honor for a route the plan names.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
+
+/**
+ * Run two plans as one batch whose cells alternate, and fold each plan's
+ * leaderboard. The cells run environment-major, then repetition, then plan,
+ * so the two plans' cells of one environment and repetition are adjacent and
+ * neither plan is confounded with the hour it ran in; both plans draw on the
+ * configured `maxConcurrent` pool, so a bound of two runs the two cells of a
+ * pair at the same time. Each plan keeps its own group, district, ledger, and
+ * workspace retention, so every report, `fleet/cell` event, route breaker,
+ * and token ceiling is what the plan's own {@link FleetService.run} produces.
+ * @param first - the plan whose cell of a pair is scheduled first.
+ * @param second - the plan whose cell of a pair is scheduled beside it.
+ * @returns one report per plan, in the order the plans were given, each with
+ *   its own group, its cells in its own plan order, its leaderboard, and its spend.
+ * @throws {@link FleetError} for either plan exactly as
+ *   {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two
+ *   plans select different environments or ask for different repetitions.
+ * @throws {@link EnvironmentRunError} unchanged from
+ *   {@link EnvironmentRunner.checkImplementer}, when either plan's
+ *   implementer is a provider this composition cannot honor for a route that
+ *   plan names.
+ */
+async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:307`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:382`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 
@@ -900,5 +925,5 @@ One cell of a running plan settled: the fleet has recorded its outcome and appli
 'fleet/cell'(payload: FleetCellEvent): void
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:55`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:57`](../../packages/improvement/fleet/src/index.ts)
 <!-- END GENERATED cordis-surface -->

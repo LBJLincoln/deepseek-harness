@@ -169,15 +169,19 @@ class StubEnvironmentRuns extends Service {
 
 class StubFleet extends Service {
   static current: StubFleet
+  /** Both arms' plans of every paired run, in the order the experiment gave them. */
   readonly plans: FleetPlan[] = []
+  /** Paired runs asked for; one experiment is one call. */
+  pairedRuns = 0
   script: CellScript = () => ({ certified: true })
   constructor(ctx: Context) {
     super(ctx, 'fleet')
     StubFleet.current = this
   }
-  run(plan: FleetPlan): Promise<FleetRunReport> {
-    this.plans.push(plan)
-    return Promise.resolve(fleetReport(plan, cell => this.script(cell)))
+  runPaired(first: FleetPlan, second: FleetPlan): Promise<[FleetRunReport, FleetRunReport]> {
+    this.pairedRuns += 1
+    this.plans.push(first, second)
+    return Promise.resolve([first, second].map(plan => fleetReport(plan, cell => this.script(cell))) as [FleetRunReport, FleetRunReport])
   }
 }
 
@@ -261,6 +265,29 @@ describe('ExperimentService', () => {
     ])
     expect(result.spend).toEqual({ inputTokens: 0, outputTokens: 0 })
     expect(result.thresholds).toEqual({ bootstrapResamples: 1000, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 1000 })
+  })
+
+  it('runs both arms as one paired fleet run and folds what two separate reports fold to', async () => {
+    const { ctx, plan } = await harness()
+    const script: CellScript = cell => ({
+      certified: cell.model.model === CANDIDATE.model && cell.repetition === 0,
+      usage: { inputTokens: 11, outputTokens: 2 },
+    })
+    StubFleet.current.script = script
+    const result = await ctx.experiments.run(plan())
+
+    expect(StubFleet.current.pairedRuns).toBe(1)
+    expect(StubFleet.current.plans.map(fleet => fleet.group)).toEqual([result.arms.baseline.group, result.arms.candidate.group])
+    expect(foldExperiment({
+      digest: result.digest,
+      arms: result.arms,
+      environments: [ROUND_TRIP, UNSATISFIABLE],
+      repetitions: 2,
+      thresholds: result.thresholds,
+      caps: CAPS,
+      baseline: fleetReport(StubFleet.current.plans[0] as FleetPlan, script),
+      candidate: fleetReport(StubFleet.current.plans[1] as FleetPlan, script),
+    })).toEqual(result)
   })
 
   it('promotes a candidate that certifies everywhere the baseline fails, and reports its attempts and token deltas', async () => {

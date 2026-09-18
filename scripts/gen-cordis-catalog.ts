@@ -590,6 +590,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   EnvironmentRunReport: 'environment run contract is owned by packages/improvement/environment-runner/README.md',
   EnvironmentRunRequest: 'environment run contract is owned by packages/improvement/environment-runner/README.md',
   NearestEnvironment: 'near-duplicate admission vocabulary is owned by packages/improvement/environments/README.md',
+  FleetPairedReports: 'fleet run contract is owned by packages/improvement/fleet/README.md',
   FleetPlan: 'fleet run contract is owned by packages/improvement/fleet/README.md',
   FleetRunReport: 'fleet run contract is owned by packages/improvement/fleet/README.md',
   ProgramReport: 'program pass report is owned by packages/improvement/program/README.md',

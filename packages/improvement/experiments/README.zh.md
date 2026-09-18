@@ -43,7 +43,7 @@
 
 每个 arm 都是它第一次尝试所运行的一条模型路由——`provider` 与 `model`——外加一个可选的、每次尝试一个档位的 `ladder` 与一个可选的 `implementer`，其取值与 fleet 计划所接受的相同：`{ kind: 'route' }` 是不指名 implementer 的 arm 所运行的取值，它让该 arm 每个 cell 的每次尝试都跑在该 arm 自己的路由上；而 `{ kind: 'subagent', provider, label? }` 把每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
 
-两个 arm 的 implementer 都在冻结时经 `ctx.environmentRuns.checkImplementer` 针对各自 arm 的路由检查，运行器的 `EnvironmentRunError` 原样向上传递。正是它让「每一次拒绝都发生在第一个 cell 运行之前」对组合无法兑现的 provider 同样成立：两个 arm 按角色顺序运行，因此 candidate arm 的 provider 缺失时，否则就会先把 baseline arm 整个花光，再让每次重复都落单，最后得到 `inconclusive` 判定。
+两个 arm 的 implementer 都在冻结时经 `ctx.environmentRuns.checkImplementer` 针对各自 arm 的路由检查，运行器的 `EnvironmentRunError` 原样向上传递。正是它让「每一次拒绝都发生在第一个 cell 运行之前」对组合无法兑现的 provider 同样成立：两个 arm 作为一个批次运行，因此 candidate arm 的 provider 缺失时，否则就会在它自己那些失败的 cell 旁边把 baseline arm 的 cell 一并花掉，再让每次重复都落单，最后得到 `inconclusive` 判定。
 
 一个 arm 的 `ladder` 与 fleet 计划所接受的是同一份列表，并原样传到该 arm 的每个 cell；它的第一个档位就是该 arm 自己的路由：要么不命名模型，要么恰好命名该 arm 的 `provider` 与 `model`。第一个档位命名了别的路由会以 `EXPERIMENT_LADDER_CONFLICT` 被拒绝，因为结果与每一行计分板都发布在该 arm 之下，而跑在别的路由上的第一次尝试会把这一身份发布到它从未运行过的路由上。其余档位不受限制，先便宜后强与降档正是由此而来。
 
@@ -51,7 +51,7 @@
 
 两条 arm 都被转发同一个 `policyVersion` 与同一个基准 `seed`，每条 arm 的 cell 以 `seed + repetition` 采样，因此两条 arm 的配对重复只在 arm 本身——它的路由与它的 implementer——上不同——[fleet README](../fleet/README.md#policy-version-and-the-base-seed) 拥有这套算术，[运行器 README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) 拥有 replay 能复现什么。
 
-随后两个 arm 作为两次 `ctx.fleet.run` 调用在相同的 id 上以相同的重复次数运行，baseline 在先，每次调用各自携带该 arm 的路由与 implementer。被 fleet 保留为错误的 cell 会让它那次重复落单，而不是让整场实验失败，并且结果会在 `errors` 下列出它，带着它的 arm、environment、重复序号以及 fleet 的代码与消息，使一份存下来的结果无需运行它的进程就能说明某次重复为何没有配对。结果会作为一行 JSON 写入 `sink`，且该 sink 恰好被关闭一次；这个 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务于两种导出。
+随后两个 arm 作为一次 `ctx.fleet.runPaired` 调用在相同的 id 上以相同的重复次数运行，各自携带该 arm 的路由与 implementer。fleet 把两个 arm 的 cell 交错开来——同一个环境、同一个重复序号上的 baseline cell 紧挨着 candidate cell，然后是下一个重复序号，再然后是下一个环境——因此一个 arm 不会与它运行所处的那个小时混杂在一起，两个 arm 之间提供方一侧的漂移会落在双方身上，而每个 arm 回来时仍是它自己那份计划单独运行时会产出的报告。被 fleet 保留为错误的 cell 会让它那次重复落单，而不是让整场实验失败，并且结果会在 `errors` 下列出它，带着它的 arm、environment、重复序号以及 fleet 的代码与消息，使一份存下来的结果无需运行它的进程就能说明某次重复为何没有配对。结果会作为一行 JSON 写入 `sink`，且该 sink 恰好被关闭一次；这个 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务于两种导出。
 
 结果在每个 arm 的 stamp group 旁重述该 arm：`arms.baseline` 与 `arms.candidate` 携带该 arm 运行时的 `model` 路由、该 arm 命名阶梯时其升级经过的 `ladder`，以及 `implementer`，缺省的 implementer 被陈述为 `{ kind: 'route' }`，因此一份已存储的结果无需产生它的计划，也能分辨 harness 原生的 arm 与被委派的 arm。`caps` 按上限求值顺序陈述两个 arm 的每个 cell 运行所处的上限，因此一份已存储结果的读者无需找到它背后的组合，就能看到这场比较是在什么预算内被度量的。
 
@@ -89,7 +89,6 @@ None; the service neither adds to nor changes any model request.
 
 - **preset 无法成为 arm** —— 一个 arm 指名一条模型路由与一个 implementer，而 `EnvironmentRunRequest` 不携带 agent（智能体）preset，因此在运行器与 fleet cell 携带 preset 之前，同一条路由上的两种组合无从比较；计划会随该字段一起为每个 arm 增加一个可选 preset，绝不在此之前。
 - **被委派的 arm 的 token 是子进程自己的账目** —— 外部 implementer 花费在另一个产品里，因此被委派的 cell 的 `usage` 是每个子进程上报的量（进程内子进程则是本进程为它求和的量），如[运行器](../environment-runner/README.md#the-two-implementers)在 `environment/delegation` 上所记录的：`spend` 与 token delta 比较的是一个产品公布的计数与一份 harness 日志的计数，预计花费仍为两个 arm 的每个 cell 各预留 `cellTokenCap`，而后端不公布用量的子进程会让它的 cell 没有任何用量。
-- **两个 arm 顺序运行** —— baseline 跑完之后 candidate 才开始，因此二者之间提供方一侧的漂移会全部落在 candidate 上。把两条路由交错进同一次 fleet 调用会得到同样的配对，且对调用方始终可用。
 - **配对的重复索引不是配对的种子** —— `environment/run` stamp 不携带种子，因此配对消除的是环境方差，而不是运行间方差。
 - **计划的 token 预算是预计的，不是被强制的** —— 拒绝逻辑把 `cellTokenCap` 乘以 cell 数量，而一个 cell 实际花费多少由 `caps` 所陈述上限的[预算策略](../../guard/budget-policy/README.md)限制。两者是彼此独立的数字：没有任何环节把计划的 `cellTokenCap` 写进每 cell 的策略，因此一份计划可以预计得比它的 cell 被允许花费的更少。
 - **摘要冻结的是计划，不是世界** —— harness 的 commit、环境内容哈希，以及一条路由背后提供方的模型版本都在它之外，因此同一个摘要的两次运行只有在 harness 与注册表未变的前提下才可比。
