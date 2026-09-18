@@ -183,6 +183,10 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
       <div id="repeatability"></div>
     </section>
   </section>
+  <section class="panel" id="dataset-section" hidden>
+    <div class="section-head"><h2>Training corpus</h2><p id="dataset-lede"></p></div>
+    <div class="two" id="dataset"></div>
+  </section>
   <section class="panel">
     <div class="section-head"><h2>How to read this page</h2></div>
     <div class="notes" id="notes"></div>
@@ -391,6 +395,26 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
   if (D.readings.repeatability) {
     const rp = D.readings.repeatability
     $('repeatability').innerHTML = `<table class="plain"><thead><tr><th>arms compared</th><th class="num">both</th><th class="num">neither</th><th class="num">flips</th><th class="num">flip rate</th></tr></thead><tbody>${rp.pairs.map(p => `<tr><td>${esc(p.a)} · ${esc(p.b)}</td><td class="num">${p.both}</td><td class="num">${p.neither}</td><td class="num">${p.flips}</td><td class="num">${(p.flipRate * 100).toFixed(1)} %</td></tr>`).join('')}</tbody></table><p style="color:var(--muted);font-size:.8rem;margin:.6rem 0 0">${esc(rp.note)}</p>`
+  }
+
+  // ---- training corpus
+  if (D.dataset) {
+    const ds = D.dataset, c = ds.counts ?? {}, dist = ds.distributions ?? {}
+    $('dataset-section').hidden = false
+    $('dataset-lede').textContent = `${ds.name}: every recorded trajectory folded into one RLVR-ready set, built ${when(ds.builtAt)} from ${ds.records} records. A trajectory's reward is 1 for a certificate and 0 for a run whose checks failed; delegated cells carry no model turns and stay out; tampered runs stay out.`
+    const distBars = (title, entries, colorOf) => {
+      const rows = Object.entries(entries ?? {}).sort((a, b) => b[1] - a[1])
+      const max = Math.max(1, ...rows.map(([, n]) => n))
+      return `<h3>${esc(title)}</h3>` + barChart(rows.map(([k, n]) => ({ label: k, n })), 'n', max, colorOf, r => fmt(r.n))
+    }
+    const rewardColor = (r) => r.label === '1' ? 'var(--good)' : r.label === '0' ? 'var(--critical)' : 'var(--neutral)'
+    const modelColor = (r) => SERIES[D.routeSlots[String(r.label).split('/').pop()] ?? 3]
+    $('dataset').innerHTML = `<div>
+        <div class="stats" style="border:none;padding-block:0 .75rem">${[[c.train, 'trajectories in train'], [c.seen, 'seen'], [c.delegatedExcluded, 'delegated, excluded'], [c.duplicatesDropped, 'duplicates dropped'], [c.tamperedExcluded, 'tampered, excluded'], [c.withheldHeldOut, 'held out, withheld']].map(([n, l]) => `<div class="stat"><b>${fmt(n)}</b><span>${l}</span></div>`).join('')}</div>
+        ${distBars('reward', dist.reward, rewardColor)}
+        <p class="arms" style="margin:.75rem 0 0;color:var(--muted);font-size:.8rem">Tokens over the training steps: ${fmt(ds.tokens?.outputTokens)} output, ${fmt(ds.tokens?.cacheReadTokens)} cache-read, ${fmt(ds.tokens?.cacheWriteTokens)} cache-write, over ${fmt(ds.tokens?.stepsWithUsage)} of ${fmt(ds.tokens?.steps)} steps. Files: ${(ds.files ?? []).map(f => `${esc(f.path)} (${fmt(f.bytes)} bytes)`).join(', ')}.</p>
+      </div>
+      <div class="bars" style="gap:1rem">${distBars('model route', dist.model, modelColor)}${distBars('tier', dist.tier, () => 'var(--accent)')}${distBars('arm', dist.arm, () => 'var(--accent)')}</div>`
   }
 
   // ---- notes + footer

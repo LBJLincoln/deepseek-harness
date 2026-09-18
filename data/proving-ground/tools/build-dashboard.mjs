@@ -368,6 +368,12 @@ function build(options) {
     cells: matrixCells,
   }
 
+  const datasetsDir = join(PROVING_GROUND, 'datasets')
+  const datasets = existsSync(datasetsDir)
+    ? readdirSync(datasetsDir).filter(name => existsSync(join(datasetsDir, name, 'manifest.json'))).sort().map(name => ({ name, manifest: readJson(join(datasetsDir, name, 'manifest.json')) }))
+    : []
+  const dataset = datasets.length ? datasets[datasets.length - 1] : undefined
+
   const live = options.live.map(directory => loadLive(directory, environments))
   const timeline = [
     ...records.map(record => ({ name: record.name, kind: record.kind, start: record.ranAt, end: record.endedAt, note: record.certifiedLabel })),
@@ -395,6 +401,7 @@ function build(options) {
   return {
     builtAt: new Date().toISOString(), head, branch, linkBase, summary,
     records, experiments, tier5Models, routeSlots: MODEL_SLOTS, matrix, timeline, live,
+    dataset: dataset ? { name: dataset.name, counts: dataset.manifest.counts, distributions: dataset.manifest.distributions, tokens: dataset.manifest.tokens, files: dataset.manifest.files, records: (dataset.manifest.records ?? []).length, builtAt: dataset.manifest.builtAt } : undefined,
     readings: { routing: routing ? { note: routing.note, results: routing.results } : undefined, repeatability: repeatability ? { note: repeatability.note, pairs: repeatability.pairs } : undefined },
     notes: pageNotes,
   }
