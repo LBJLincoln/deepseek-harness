@@ -46,6 +46,17 @@ A delegated cell's certificate proves that the runner authored the standard befo
 
 Every record here ran its cells in a sibling layout — each cell workspace directly under the run directory, beside `plan.json`, the run log, and every other cell of the same fleet — and the records dated 2026-09-08 and earlier ran them unconfined, so nothing stopped a cell from reading any of it. [`tools/census-escapes.mjs`](tools/census-escapes.mjs) reads one record and reports, per cell, the tool calls whose path arguments name the run directory or another cell and the reads the barrier refused; [`tools/record-run.mjs`](tools/record-run.mjs) prints that census, and the per-arm totals below, with every record it writes. [`tools/summarize-run.mjs`](tools/summarize-run.mjs) reads one record the same way, or a run directory a driver is still writing, and prints, per cell, the arm, the implementer and route, the certificate, the attempts, the wall seconds, the steps, and the usage (a delegated cell's from its delegation records, as the runner reports it), then one line of totals per arm; the certificate counts, attempts, and usage the paragraphs below state are read from it. Over this corpus it finds cells that left their own workspace in ten records: 4 of 12 in `2026-09-07-bench-h1-harness-loop-t2`, 11 of 18 in `2026-09-07-bench-h1-harness-loop-t4`, 3 of 36 in `2026-09-07-bench-e2-harness-vs-product-t3`, 8 of 36 in `2026-09-08-bench-e1-haiku-vs-sonnet-t3`, 7 of 36 in `2026-09-08-bench-e1-sonnet-vs-opus-t3`, 6 of 32 in `2026-09-08-bench-e2-harness-vs-product-t5`, 7 of 18 in `2026-09-08-bench-e3-attempts1-t3`, 3 of 18 in `2026-09-08-bench-e3-baseline-t3`, 15 of 18 in `2026-09-08-bench-e4-knowledge-pack-t3`, and 9 of 16 in `2026-09-08-bench-h1-harness-loop-t5`; the other eight records count none, seven of them because every cell was delegated to the product, where the harness session holds no tool call of its own and the census can see nothing the delegate did, and the eighth because it is a one-cell smoke. Two escapes changed what a row measures: in `2026-09-07-bench-h1-harness-loop-t2` the `code:csv-codec` cell `cell-cUuWY2` ran `cp cell-cUuWY2/src/csv.js cell-R8QtdK/src/csv.js`, putting its own solution into the other repetition of its task, and in `2026-09-08-bench-e2-harness-vs-product-t5` the first `code:sheet-eval` cell `cell-Cr3CtN` wrote its whole solution into the second cell's workspace, `cell-XNKQXT`. A record made under a composition that confines its cells — where the runner denies each cell everything above its own workspace for the length of its run — carries the refusals as `escapesDenied` on every scoreboard and observatory row, so the count is read from the row rather than reconstructed from the log.
 
+## Running the bench
+
+Run one fleet or one frozen experiment from a checked-in plan with the wrapper in `scripts/proving-ground.ts` (`pnpm run bench -- --help` lists every subcommand, `pnpm run bench -- plans` lists the checked-in plans). The route implementer is the operator's own Claude Code installation: log in with the `claude` CLI and have the product installed; no `DEEPSEEK_API_KEY` is required.
+
+```sh
+pnpm run bench -- fleet h1-fleet-harness-loop-sonnet-t2
+pnpm run bench -- experiment e3-attempts-t5
+pnpm run bench -- summarize <dir>
+pnpm run bench -- record <dir> <name> --composition <composition path>
+```
+
 ## Runs
 
 | Run | Head | Implementer | Environment | Certified | Attempts | Elapsed |
