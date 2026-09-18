@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-09-08T20:16:34.130Z",
+  "generatedAt": "2026-09-18T21:49:35.911Z",
   "totals": {
-    "transcripts": 105,
-    "messages": 53191,
+    "transcripts": 110,
+    "messages": 55272,
     "toolCallsByName": {
-      "Bash": 11096,
-      "Edit": 3634,
-      "Read": 2341,
-      "Write": 1138,
+      "Bash": 11533,
+      "Edit": 3830,
+      "Read": 2448,
+      "Write": 1172,
       "WebFetch": 1062,
       "WebSearch": 323,
-      "Grep": 305,
-      "TaskUpdate": 181,
+      "Grep": 320,
+      "TaskUpdate": 182,
       "mcp__alphaXiv__answer_pdf_queries": 170,
-      "Monitor": 146,
-      "Agent": 104,
+      "Monitor": 150,
+      "Agent": 109,
+      "TaskCreate": 94,
       "ToolSearch": 91,
-      "TaskCreate": 90,
       "mcp__Firecrawl__firecrawl_search": 84,
-      "Artifact": 56,
+      "Artifact": 58,
       "Glob": 41,
       "mcp__Hugging_Face__hf_fs": 39,
       "mcp__alphaXiv__discover_papers": 37,
-      "ReadNotifications": 34,
+      "ReadNotifications": 35,
       "mcp__Hugging_Face__hub_repo_search": 26,
       "mcp__alphaXiv__get_paper_content": 24,
       "TaskStop": 16,
+      "Skill": 15,
       "mcp__Firecrawl__firecrawl_developer_search": 15,
-      "Skill": 11,
       "mcp__Hugging_Face__hub_repo_details": 11,
       "SendMessage": 10,
       "mcp__Firecrawl__firecrawl_research_search_papers": 10,
       "mcp__github__search_repositories": 5,
       "mcp__alphaXiv__save_papers_to_folder": 4,
+      "mcp__Claude_Code_Remote__update_trigger": 4,
       "SendUserFile": 3,
       "mcp__alphaXiv__list_library": 2,
-      "mcp__Claude_Code_Remote__update_trigger": 2,
       "mcp__Claude_Code_Remote__send_later": 2,
       "AskUserQuestion": 1,
       "TaskList": 1,
@@ -48,23 +48,23 @@
       "mcp__alphaXiv__create_folder": 1
     },
     "tokensByKind": {
-      "input": 248508,
-      "output": 18229802,
-      "cacheRead": 9671819575
+      "input": 258572,
+      "output": 19130436,
+      "cacheRead": 10057467709
     },
-    "wallTimeMs": 860795046,
+    "wallTimeMs": 1730370422,
     "wallTimeStart": "2026-08-29T21:09:49.200Z",
-    "wallTimeEnd": "2026-09-08T20:16:24.246Z"
+    "wallTimeEnd": "2026-09-18T21:49:19.622Z"
   },
   "subagentDurations": {
-    "count": 104,
+    "count": 109,
     "minMs": 91548,
     "maxMs": 14495393,
-    "meanMs": 2894078,
-    "medianMs": 1987964,
+    "meanMs": 2832499,
+    "medianMs": 1943522,
     "p10Ms": 562083,
-    "p25Ms": 855684,
-    "p75Ms": 4021172,
+    "p25Ms": 878256,
+    "p75Ms": 3887975,
     "p90Ms": 6932014,
     "p95Ms": 7575321,
     "histogramByMinutes": [
@@ -78,15 +78,15 @@
       },
       {
         "rangeMinutes": "5-15",
-        "count": 23
+        "count": 24
       },
       {
         "rangeMinutes": "15-30",
-        "count": 21
+        "count": 22
       },
       {
         "rangeMinutes": "30-60",
-        "count": 25
+        "count": 28
       },
       {
         "rangeMinutes": "60-120",
@@ -99,15 +99,19 @@
     ]
   },
   "sourceDataQuality": {
-    "subagentOutputFilesFound": 104,
-    "subagentTranscriptsIncluded": 104,
+    "subagentOutputFilesFound": 109,
+    "subagentTranscriptsIncluded": 109,
     "subagentNonJsonlFilesExcluded": 0,
     "subagentEmptyFilesExcluded": 0,
     "subagentNonTranscriptJsonlFilesExcluded": 0,
     "subagentExcludedFilesTotalBytes": 0,
     "subagentTranscriptsBackedBySymlink": 0,
     "subagentTranscriptsEndingMidAction": [
-      "ac1d0180b6ef3cf0a"
+      "a455e62259dd0270c",
+      "a51ff12701b9e94d6",
+      "aa236da340eccea10",
+      "ac1d0180b6ef3cf0a",
+      "acfccbd111be16f60"
     ],
     "note": "Only subagents/ files whose every line parses as JSON and that carry at least one real user/assistant message were counted as transcripts; the rest are subagent descriptors or captured tool output. subagentTranscriptsBackedBySymlink counts transcript files that were symlinks into a live Claude Code project directory rather than frozen copies. subagentTranscriptsEndingMidAction lists agent ids whose last recorded line is a tool call with no accompanying text and no result - captured mid-action rather than at a natural stopping point. See README.md next to this file."
   }
