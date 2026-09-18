@@ -56,8 +56,13 @@ function sumUsage(usages) {
   return total
 }
 
-/** The arm a stamp group names: the role suffix of an experiment group, `fleet` for a fleet batch, the group otherwise. */
-function armOf(group) {
+/**
+ * The arm a stamp group names: the role suffix of an experiment group, `fleet`
+ * for a fleet batch, the group otherwise.
+ * @param {string | undefined} group the stamp's `group`, absent for a single run.
+ * @returns {string} the arm name, `-` for a run in no group.
+ */
+export function armOf(group) {
   if (group === undefined) return '-'
   const experiment = /^experiment-[0-9a-f]+-(baseline|candidate)$/.exec(group)
   return experiment ? experiment[1] : group.replace(/^fleet-[0-9a-f-]+$/, 'fleet')
