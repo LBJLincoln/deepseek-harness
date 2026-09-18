@@ -5,7 +5,7 @@
 // composition, the implementer, the session ids, and every file's SHA-256.
 // Node built-ins only.
 //
-// Usage: node record-run.mjs <run-directory> <name> --composition <path> [--elapsed-seconds <n>]
+// Usage: node record-run.mjs <run-directory> <name> --composition <path> [--elapsed-seconds <n>] [--partial <reason>]
 //
 //   <run-directory>   where the driver ran: holds facts.jsonl, trajectories.jsonl,
 //                     observatory.json, observatory.html, .sessions/, and either
@@ -14,6 +14,11 @@
 //   <name>            the run directory name, e.g. 2026-09-06-claude-code-run-2
 //   --composition     repository-relative cordis.yml the driver booted
 //   --elapsed-seconds wall time of the run when the driver did not record it
+//   --partial         record a run whose driver died before writing its result:
+//                     the session logs are kept, result.json states only
+//                     `{ type: 'partial', reason }`, and the manifest carries the
+//                     reason, so the cells that ran stay evidence without a
+//                     verdict the driver never computed
 //
 // The run directory is written once; an existing target is refused so a
 // recorded run is never rewritten in place. Recording prints the escape census
@@ -34,20 +39,21 @@ const EXPORTS = ['facts.jsonl', 'trajectories.jsonl', 'observatory.json', 'obser
 /**
  * Parses the command line.
  * @param {string[]} argv arguments after the script path
- * @returns {{ runDirectory: string, name: string, composition: string, elapsedSeconds: number | undefined }}
+ * @returns {{ runDirectory: string, name: string, composition: string, elapsedSeconds: number | undefined, partial: string | undefined }}
  */
 function parseArgs(argv) {
   const positional = []
-  const options = { composition: undefined, elapsedSeconds: undefined }
+  const options = { composition: undefined, elapsedSeconds: undefined, partial: undefined }
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
     if (arg === '--composition') { options.composition = argv[++i] }
     else if (arg === '--elapsed-seconds') { options.elapsedSeconds = Number(argv[++i]) }
+    else if (arg === '--partial') { options.partial = argv[++i] }
     else positional.push(arg)
   }
   const [runDirectory, name] = positional
-  if (runDirectory === undefined || name === undefined || options.composition === undefined) {
-    throw new Error('usage: node record-run.mjs <run-directory> <name> --composition <path> [--elapsed-seconds <n>]')
+  if (runDirectory === undefined || name === undefined || options.composition === undefined || options.partial === '') {
+    throw new Error('usage: node record-run.mjs <run-directory> <name> --composition <path> [--elapsed-seconds <n>] [--partial <reason>]')
   }
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name)) throw new Error(`run name must be a plain directory name: ${name}`)
   return { runDirectory: resolve(runDirectory), name, ...options }
@@ -83,10 +89,12 @@ function sessionLogs(runDirectory) {
 
 /**
  * Reads the driver's result: a fleet driver's last stdout line or a shift driver's status file.
+ * A run recorded with `--partial` has neither, and its result states only the reason.
  * @param {string} runDirectory where the driver ran
- * @returns {{ kind: 'result' | 'status', value: Record<string, unknown> }}
+ * @param {string | undefined} partial why the driver wrote no result, when the run is recorded without one
+ * @returns {{ kind: 'result' | 'status' | 'partial', value: Record<string, unknown> }}
  */
-function driverResult(runDirectory) {
+function driverResult(runDirectory, partial) {
   const stdout = join(runDirectory, 'stdout.jsonl')
   if (existsSync(stdout)) {
     const lines = readFileSync(stdout, 'utf8').trim().split('\n')
@@ -95,7 +103,8 @@ function driverResult(runDirectory) {
   }
   const status = join(runDirectory, 'status.json')
   if (existsSync(status)) return { kind: 'status', value: JSON.parse(readFileSync(status, 'utf8')) }
-  throw new Error(`${runDirectory} holds neither a result line in stdout.jsonl nor a status.json`)
+  if (partial !== undefined) return { kind: 'partial', value: { type: 'partial', reason: partial } }
+  throw new Error(`${runDirectory} holds neither a result line in stdout.jsonl nor a status.json; pass --partial <reason> to record the cells that ran without one`)
 }
 
 /**
@@ -130,12 +139,12 @@ function foldStamps(logs) {
 }
 
 function main() {
-  const { runDirectory, name, composition, elapsedSeconds } = parseArgs(process.argv.slice(2))
+  const { runDirectory, name, composition, elapsedSeconds, partial } = parseArgs(process.argv.slice(2))
   const target = join(RUNS_DIR, name)
   if (existsSync(target)) throw new Error(`${relative(REPO_DIR, target)} already exists; a recorded run is never rewritten`)
   if (!existsSync(join(REPO_DIR, composition))) throw new Error(`composition ${composition} is not in the repository`)
 
-  const result = driverResult(runDirectory)
+  const result = driverResult(runDirectory, partial)
   const logs = sessionLogs(runDirectory)
   const stamps = foldStamps(logs)
   mkdirSync(join(target, 'sessions'), { recursive: true })
@@ -162,6 +171,7 @@ function main() {
     repository: { branch: git(['branch', '--show-current']), head: git(['rev-parse', 'HEAD']) },
     composition,
     driverResult: result.kind,
+    ...partial === undefined ? {} : { partial },
     districts: stamps.districts,
     implementers: stamps.implementers,
     isolations: stamps.isolations,

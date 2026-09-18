@@ -15,9 +15,10 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `e3-attempts-t5` | attempt cap: three rungs vs one | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×1 | 2 | base | `2026-09-08-bench-e3-attempts-t5` |
 | `e5-downshift-t5` | downshift after the strong model starts | 5 | baseline `opus` ladder×3 vs candidate `opus`→`haiku`,`haiku` | 2 | base | `2026-09-08-bench-e5-downshift-t5` |
 | `e5-drop-candidate-t5` | the drop arm alone, as a fleet | 5 | fleet `haiku`→`opus`,`opus`, implementer `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-drop-candidate-t5` |
-| `e5-drop-frozen-t5` | kept vs dropped transcript, frozen pair | 5 | baseline `haiku`→`opus`,`opus` (route) vs candidate the same ladder, implementer `spawn` | 2 | with-spawn | not recorded |
+| `e5-drop-frozen-t5` | kept vs dropped transcript, frozen pair | 5 | baseline `haiku`→`opus`,`opus` (route) vs candidate the same ladder, implementer `spawn` | 2 | with-spawn | `2026-09-18-bench-e5-drop-frozen-t5` (partial: 25 of 32 cells before a container restart) |
 | `e5-handoff-drop-t5` | kept vs dropped transcript, the first frozen attempt | 5 | baseline `haiku`→`opus`,`opus` (route) vs candidate the same ladder, implementer `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | handoff tax: strong alone vs cheap-then-strong | 5 | baseline `opus` ladder×3 vs candidate `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
+| `e6-cascade-share-t5` | cascade with a bounded cheap rung: strong alone vs cheap-then-strong, the cheap rung held to 0.2 of the cell's caps | 5 | baseline `opus` ladder×3 vs candidate `haiku` (share 0.2)→`opus`,`opus` | 2 | base | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness-loop fleet | 2 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness-loop fleet | 4 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness-loop fleet, no tier filter | all | fleet `sonnet`, district `bench-h1` | 1 | base | not recorded |

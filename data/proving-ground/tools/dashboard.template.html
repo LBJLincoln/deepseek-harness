@@ -121,7 +121,7 @@ table.records tr.detail td{background:var(--surface-2);padding:.75rem .75rem 1re
 .kind{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:0 .4rem;border-radius:3px;border:1px solid var(--line-strong);color:var(--muted)}
 .kind[data-kind="experiment"]{border-color:var(--s1);color:var(--s1)}.kind[data-kind="fleet"]{border-color:var(--s2);color:var(--s2)}
 .kind[data-kind="district"]{border-color:var(--s3);color:var(--s3)}.kind[data-kind="program"]{border-color:var(--s6);color:var(--s6)}
-.kind[data-kind="live"]{border-color:var(--running);color:var(--running)}
+.kind[data-kind="live"]{border-color:var(--running);color:var(--running)}.kind[data-kind="partial"]{border-style:dashed}
 .badge-running{color:var(--running);font-weight:600}
 /* readings */
 table.plain{border-collapse:collapse;width:100%;font-size:.82rem}
@@ -298,8 +298,8 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
   function renderTimeline() {
     const items = D.timeline.filter(t => t.start && t.end)
     if (!items.length) return
-    const lanes = ['experiment', 'fleet', 'district', 'program', 'live']
-    const laneColor = { experiment: 'var(--s1)', fleet: 'var(--s2)', district: 'var(--s3)', program: 'var(--s6)', live: 'var(--running)' }
+    const lanes = ['experiment', 'fleet', 'district', 'program', 'partial', 'live']
+    const laneColor = { experiment: 'var(--s1)', fleet: 'var(--s2)', district: 'var(--s3)', program: 'var(--s6)', partial: 'var(--muted)', live: 'var(--running)' }
     const days = [...new Set(items.flatMap(t => { const out = []; for (let d = Date.parse(t.start.slice(0, 10) + 'T00:00:00Z'); d < Date.parse(t.end); d += 86400000) out.push(new Date(d).toISOString().slice(0, 10)); return out }))].sort()
     const W = 960, left = 78, right = 12, laneH = 22, dayGap = 18
     const dayWidth = (W - left - right)

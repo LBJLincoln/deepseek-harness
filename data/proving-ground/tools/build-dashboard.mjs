@@ -192,6 +192,7 @@ function censusSummary(directory) {
 }
 
 function kindOf(result, manifest) {
+  if (result?.type === 'partial') return 'partial'
   if (result?.result?.verdict !== undefined) return 'experiment'
   if (result?.report?.leaderboard !== undefined) return 'fleet'
   if (result?.report?.programId !== undefined) return 'program'
