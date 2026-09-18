@@ -144,6 +144,12 @@ pnpm run build
 pnpm dsh --profile headless "summarize this workspace"
 ```
 
+`claude-code` profile 以同样的一次性模式运行，但交由操作者已完成登录的 Claude Code 安装服务，因此不需要任何密钥（[组合包](../packages/bundle/claude-code/README.md)）：
+
+```sh
+pnpm dsh --profile claude-code "summarize this workspace"
+```
+
 自指的 cordis 演示可以检查并修改其实时插件运行时，并需要相同的凭证（默认 `web`，也可用 `acp`）：
 
 ```sh

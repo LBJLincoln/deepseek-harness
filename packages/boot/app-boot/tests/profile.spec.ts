@@ -161,6 +161,20 @@ describe('loadProfile', () => {
       .toEqual([...PROFILE_TEMPLATES.web ?? []])
   })
 
+  it('auto-initializes the claude-code template as base, headless, then the route layer', () => {
+    const anchor = stageInstallation({
+      '@deepseek-ai/dsh-base': { patch: '[]\n' },
+      '@deepseek-ai/dsh-headless': { patch: '[]\n' },
+      '@deepseek-ai/dsh-claude-code': { patch: '[]\n' },
+    })
+    const home = tmp()
+    // The route layer must ride over the one-shot mode, not beside it.
+    expect(loadProfile('t', 'claude-code', anchor, home).layers.map(layer => layer.packageName))
+      .toEqual(['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-headless', '@deepseek-ai/dsh-claude-code'])
+    expect(readProfileManifest('t', resolveProfileDir('claude-code', home)).dsh?.profile?.bundles)
+      .toEqual([...PROFILE_TEMPLATES['claude-code'] ?? []])
+  })
+
   it('normalizes only the exact installation-owned headless bundle tuple', () => {
     const anchor = stageInstallation({
       '@deepseek-ai/dsh-base': { patch: '[]\n' },
