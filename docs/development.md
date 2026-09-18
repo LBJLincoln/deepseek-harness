@@ -144,6 +144,12 @@ The one-shot Headless coding agent needs `DEEPSEEK_API_KEY` in the environment o
 pnpm dsh --profile headless "summarize this workspace"
 ```
 
+The `claude-code` profile runs the same one-shot mode against the Claude Code installation the operator has already authenticated, so it needs no key ([bundle](../packages/bundle/claude-code/README.md)):
+
+```sh
+pnpm dsh --profile claude-code "summarize this workspace"
+```
+
 The self-referential cordis demo can inspect and modify its live plugin runtime and needs the same credentials (`web` by default, or `acp`):
 
 ```sh
