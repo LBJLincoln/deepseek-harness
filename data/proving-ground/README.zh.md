@@ -48,6 +48,17 @@ node data/proving-ground/tools/record-run.mjs /tmp/proving-ground-run 2026-09-06
 
 这里的每份记录都以并列布局运行其 cell——每个 cell 工作区都直接位于运行目录之下，与 `plan.json`、运行日志以及同一 fleet 的其他所有 cell 并排——而日期在 2026-09-08 及更早的记录都是无约束运行的，因此没有任何东西阻止一个 cell 读取其中任何内容。[`tools/census-escapes.mjs`](tools/census-escapes.mjs) 读取一份记录，按 cell 报告其路径参数指向运行目录或另一个 cell 的工具调用，以及屏障拒绝的读取；[`tools/record-run.mjs`](tools/record-run.mjs) 在写出每份记录时打印该普查以及下述按 arm 的合计。[`tools/summarize-run.mjs`](tools/summarize-run.mjs) 以同样的方式读取一份记录，或一个驱动器仍在写入的运行目录，按 cell 打印 arm、implementer 与路由、证书、尝试次数、墙上秒数、步数与用量（被委派的 cell 的用量来自它的委派记录，与运行器所报告的一致），然后按 arm 各打印一行合计；下文各段所陈述的证书计数、尝试次数与用量即读自它。[`tools/build-dashboard.mjs`](tools/build-dashboard.mjs) 把每份记录与每份折叠折成 [`dashboard.html`](dashboard.html)，一个自包含的页面：每个配对比较的裁决及其区间、密封第 5 层上的产品模型、每个环境在每条路由下的认证率、每份记录的运行时间、每份记录一行并可展开为其 cell 与本文中对应的段落，以及路由与可重复性读数；`--live <run dir>` 会加入一个驱动器仍在写入的运行。 [`tools/build-dataset.mjs`](tools/build-dataset.mjs) 一次读取全部记录而非一份，把它们的 trajectory 折叠成 `datasets/<name>/` 下的一份数据集，并且只要任何一条 trajectory 带有形似凭据或形似邮箱的字符串就拒绝写出任何内容。在这份语料上，该普查在十份记录中发现了离开自己工作区的 cell：`2026-09-07-bench-h1-harness-loop-t2` 中 12 之 4，`2026-09-07-bench-h1-harness-loop-t4` 中 18 之 11，`2026-09-07-bench-e2-harness-vs-product-t3` 中 36 之 3，`2026-09-08-bench-e1-haiku-vs-sonnet-t3` 中 36 之 8，`2026-09-08-bench-e1-sonnet-vs-opus-t3` 中 36 之 7，`2026-09-08-bench-e2-harness-vs-product-t5` 中 32 之 6，`2026-09-08-bench-e3-attempts1-t3` 中 18 之 7，`2026-09-08-bench-e3-baseline-t3` 中 18 之 3，`2026-09-08-bench-e4-knowledge-pack-t3` 中 18 之 15，以及 `2026-09-08-bench-h1-harness-loop-t5` 中 16 之 9；其余八份记录计数为零，其中七份是因为每个 cell 都被委托给了产品，harness 会话本身不保存任何工具调用，普查看不到受托方做过什么，第八份则是一份单 cell 的冒烟记录。有两次外出改变了一行所测量的东西：在 `2026-09-07-bench-h1-harness-loop-t2` 中，`code:csv-codec` 的 cell `cell-cUuWY2` 运行了 `cp cell-cUuWY2/src/csv.js cell-R8QtdK/src/csv.js`，把自己的解答放进了同一任务另一次重复的工作区；在 `2026-09-08-bench-e2-harness-vs-product-t5` 中，第一个 `code:sheet-eval` 的 cell `cell-Cr3CtN` 把自己的整份解答写进了第二个 cell 的工作区 `cell-XNKQXT`。在一个约束其 cell 的组合下产生的记录——runner 在一次运行期间拒绝每个 cell 访问自己工作区之上的一切——会把这些拒绝作为 `escapesDenied` 带在每一行 scoreboard 与 observatory 行上，因此这个计数从行中读出，而不必从日志重建。
 
+## 运行 bench
+
+用 `scripts/proving-ground.ts` 里的包装脚本，从一个已入库的计划运行一次 fleet 或一次冻结实验（`pnpm run bench -- --help` 列出全部子命令，`pnpm run bench -- plans` 列出已入库的计划）。route 的实现者是操作者自己的 Claude Code 安装：用 `claude` CLI 登录，并装好该产品；不需要 `DEEPSEEK_API_KEY`。
+
+```sh
+pnpm run bench -- fleet h1-fleet-harness-loop-sonnet-t2
+pnpm run bench -- experiment e3-attempts-t5
+pnpm run bench -- summarize <dir>
+pnpm run bench -- record <dir> <name> --composition <composition path>
+```
+
 ## 运行列表
 
 | 运行 | Head | 实现者 | 环境 | 已认证 | 尝试次数 | 耗时 |

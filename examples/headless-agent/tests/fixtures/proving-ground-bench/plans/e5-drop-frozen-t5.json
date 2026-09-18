@@ -1,0 +1,51 @@
+{
+  "name": "e5-drop-frozen-t5",
+  "tier": 5,
+  "heldOut": false,
+  "repetitions": 2,
+  "seed": 2,
+  "policyVersion": "bench-2026-09-08-sealed",
+  "baseline": {
+    "provider": "claude-code",
+    "model": "haiku",
+    "ladder": [
+      {},
+      {
+        "model": {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      },
+      {
+        "model": {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      }
+    ]
+  },
+  "candidate": {
+    "provider": "claude-code",
+    "model": "haiku",
+    "ladder": [
+      {},
+      {
+        "model": {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      },
+      {
+        "model": {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      }
+    ],
+    "implementer": {
+      "kind": "subagent",
+      "provider": "spawn",
+      "label": "drop"
+    }
+  }
+}
