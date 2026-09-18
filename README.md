@@ -34,6 +34,16 @@ pnpm run build
 pnpm dsh web
 ```
 
+## Proving Ground
+
+The harness measures itself on the Proving Ground: a bench of 40 small environments across three domains, its hardest tier validated on hidden cases the implementer never sees, run as frozen paired experiments with bootstrap intervals. [data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) is the one page folded from every recorded run: the verdict of each paired comparison with its interval, the models on the sealed tier, the certification matrix, the timeline, and the training-corpus fold. The [results note](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md) states what those runs proved and refuted. After `pnpm run build`, list the checked-in plans, run one frozen paired experiment from them, or run one task through the harness on your own Claude Code login with no API key:
+
+```sh
+pnpm run bench -- plans
+pnpm run bench -- experiment e3-attempts-t5
+pnpm dsh --profile claude-code "Create hello.txt containing the single line hello."
+```
+
 ## Community and support
 
 - Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
