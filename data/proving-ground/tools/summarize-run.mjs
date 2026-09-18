@@ -94,6 +94,7 @@ function cellRow(events) {
     repetition: data.repetition,
     implementer: data.implementer ?? 'route',
     route: (data.ladder ?? [data.model]).map(model => model.model).join('>'),
+    rungs: data.ladder ? data.ladder.length : null,
     certified,
     attempts,
     seconds: Math.round((last - first) / 1000),
