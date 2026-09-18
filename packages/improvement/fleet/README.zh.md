@@ -39,6 +39,8 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 
 `ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、每个 cell **第一次**尝试所运行的 `models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、可选的、每次尝试一个档位的 `ladder`、可选的、运行每个 cell 的 `implementer`、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的 `policyVersion`、可选的基准 `seed`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、`seed` 不是安全的非负整数、没有任何档位的 `ladder`、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
 
+`ctx.fleet.runPaired(first, second)` 把两份计划作为一个批次运行，并按给出计划的顺序为每份计划返回一份报告。两份计划各自接受与 `run` 校验单份计划时完全相同的校验；当两份计划选出的环境不同或要求的重复次数不同时，这一配对本身以 `FLEET_INVALID_PLAN` 被拒绝——且发生在任一计划运行任何 cell 之前，因此一个配对绝不会只花掉一半。该批次以环境为主序、其次重复序号、再次计划来运行，因此两份计划在同一个环境、同一个重复序号上的 cell 彼此相邻，并且两份计划共用同一个 `maxConcurrent` 池：`maxConcurrent: 2` 时一对中的两个 cell 同时运行。正是这一点使一份计划不会与它运行所处的那个小时混杂在一起，而连着发起的两次 `run` 调用做不到这一点。每份计划保留自己的 group、district、台账与工作区保留策略，因此每份报告——它的 group、按它自己的计划顺序排列的 cell、它的排行榜、它的 spend——以及它的 `fleet/cell` 事件、它的路由熔断器与它的 token 上限，都与该计划自己的 `run` 产出的一致。
+
 ## Policy version and the base seed
 
 `policyVersion` 点名该计划的路由所服务的检查点或策略；每个 cell 的运行 stamp 都原样携带它，因此 fold 可以按它给测得的难度建键。`seed` 是该计划的**基准**种子，每个 cell 以 `seed + repetition` 运行，因此同一个重复序号在该计划的每条路由和每个环境上都意味着同一个种子——这正是让配对设计比较同类的原因。基准值只在计划边界校验一次，因为这个算术是 fleet 做的：运行器会拒绝的基准值不该表现为每个 cell 各自失败。种子记录的是一次运行请求了什么，绝不是提供方拿它做了什么；[运行器 README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) 拥有 replay 能与不能复现什么。
@@ -59,7 +61,7 @@ cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举�
 
 ## `fleet/cell` 事件
 
-在一个 cell 的结果被记录、其保留策略执行完毕之后，fleet 立即发出只供观察的 Cordis 事件 `fleet/cell`，携带计划的 `group`、存在时的 `district`、该 `cell`，以及 `reported`（带运行器的 `sessionId` 与 `certified` 标志）或 `error`（带失败的代码与消息）之一的 `outcome`。每个 cell 一个事件，按结算顺序——只有当 `maxConcurrent` 为 `1` 时它才等于计划顺序。监听器无法改变结果，其失败也被隔离，因此像[班次驱动器](../shifts/README.md)这样的观察方无需持有本报告即可写下自己的逐 cell 记录；[Cordis 目录](../../../docs/subsystems/improvement.md#cordis-surface)记录了该声明。
+在一个 cell 的结果被记录、其保留策略执行完毕之后，fleet 立即发出只供观察的 Cordis 事件 `fleet/cell`，携带计划的 `group`、存在时的 `district`、该 `cell`，以及 `reported`（带运行器的 `sessionId` 与 `certified` 标志）或 `error`（带失败的代码与消息）之一的 `outcome`。每个 cell 一个事件，按结算顺序——只有当 `maxConcurrent` 为 `1` 时它才等于计划顺序；在一次配对运行中它在两份计划之间交替，每个事件携带它自己那份计划的 group 与 district。监听器无法改变结果，其失败也被隔离，因此像[班次驱动器](../shifts/README.md)这样的观察方无需持有本报告即可写下自己的逐 cell 记录；[Cordis 目录](../../../docs/subsystems/improvement.md#cordis-surface)记录了该声明。
 
 ## Model Experience
 

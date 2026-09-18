@@ -19,7 +19,7 @@ import { isSeed } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
 // Type-only: resolves ctx.fleet.
 import type {} from '@deepseek-ai/dsh-fleet'
-import type { FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
+import type { FleetPlan } from '@deepseek-ai/dsh-fleet/types'
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { foldExperiment } from './fold.ts'
@@ -147,9 +147,11 @@ export class ExperimentService extends Service {
 
   /**
    * Freeze a plan, run both arms through the fleet at the same repetition
-   * indexes, and fold the paired comparison. Every refusal happens before the
-   * first cell runs; a cell the fleet kept as an error leaves its repetition
-   * unpaired instead of failing the experiment.
+   * indexes, and fold the paired comparison. The arms run as one paired fleet
+   * run whose cells alternate, so neither arm is confounded with the hour it
+   * ran in. Every refusal happens before the first cell runs; a cell the fleet
+   * kept as an error leaves its repetition unpaired instead of failing the
+   * experiment.
    * @param plan - environments, repetitions, the two arms with their model
    *   routes and optional attempt ladders and implementers, the workspace root,
    *   and an optional policy version, base seed, frozen digest, abort signal,
@@ -174,8 +176,7 @@ export class ExperimentService extends Service {
       baseline: resolveArm(plan.baseline, digest, 'baseline'),
       candidate: resolveArm(plan.candidate, digest, 'candidate'),
     }
-    const baseline = await this.runArm(plan, arms.baseline)
-    const candidate = await this.runArm(plan, arms.candidate)
+    const [baseline, candidate] = await this.ctx.fleet.runPaired(armPlan(plan, arms.baseline), armPlan(plan, arms.candidate))
     const result = foldExperiment({
       digest,
       arms,
@@ -256,21 +257,28 @@ export class ExperimentService extends Service {
     }
     return baseline
   }
+}
 
-  /** Run one arm as one fleet run over the plan's environments under the arm's group. */
-  private async runArm(plan: ExperimentPlan, arm: ExperimentArm): Promise<FleetRunReport> {
-    return this.ctx.fleet.run({
-      environments: { ids: plan.environments },
-      models: [arm.model],
-      ...arm.ladder === undefined ? {} : { ladder: arm.ladder },
-      implementer: arm.implementer,
-      repetitions: plan.repetitions,
-      workspaceRoot: plan.workspaceRoot,
-      group: arm.group,
-      ...plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion },
-      ...plan.seed === undefined ? {} : { seed: plan.seed },
-      ...plan.signal === undefined ? {} : { signal: plan.signal },
-    })
+/**
+ * One arm's fleet plan: the experiment's environments, repetitions, workspace
+ * root, policy version, base seed, and signal under the arm's own route,
+ * ladder, implementer, and stamp group.
+ * @param plan - the frozen experiment plan.
+ * @param arm - the arm as it will run.
+ * @returns the plan the fleet runs that arm's cells from.
+ */
+function armPlan(plan: ExperimentPlan, arm: ExperimentArm): FleetPlan {
+  return {
+    environments: { ids: plan.environments },
+    models: [arm.model],
+    ...arm.ladder === undefined ? {} : { ladder: arm.ladder },
+    implementer: arm.implementer,
+    repetitions: plan.repetitions,
+    workspaceRoot: plan.workspaceRoot,
+    group: arm.group,
+    ...plan.policyVersion === undefined ? {} : { policyVersion: plan.policyVersion },
+    ...plan.seed === undefined ? {} : { seed: plan.seed },
+    ...plan.signal === undefined ? {} : { signal: plan.signal },
   }
 }
 

@@ -824,7 +824,7 @@ export interface RouteBreakerConfig {
 export type WorkspaceRetention = 'keep' | 'remove-certified' | 'remove-all'
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:85`](../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:87`](../packages/improvement/fleet/src/index.ts)
 
 <a id="deepseek-aidsh-fs-local"></a>
 

@@ -434,6 +434,98 @@ describe('FleetService', () => {
     expect(single.cells).toHaveLength(1)
   })
 
+  it('runs two plans pairwise under one pool and reports each as its own run would', async () => {
+    const script: Script = request => (
+      request.environment === UNSATISFIABLE
+        ? report(request, { certified: false, attempts: 2, usage: { inputTokens: 5, outputTokens: 1 } })
+        : report(request, { certified: true, usage: { inputTokens: 10, outputTokens: 3 } })
+    )
+    const { ctx, announced, plan } = await harness()
+    StubRuns.current.script = script
+    const first = plan({ models: [MODEL_A], repetitions: 2, district: 'workshop' }, 'batch-first')
+    const second = plan({ models: [MODEL_B], repetitions: 2 }, 'batch-second')
+    const [left, right] = await ctx.fleet.runPaired(first, second)
+
+    // Environment-major, then repetition, then plan: the two plans' cells of one
+    // environment and repetition are adjacent, so neither plan owns an hour.
+    expect(StubRuns.current.requests.map(request => [request.environment, request.model?.model, request.repetition])).toEqual([
+      [ROUND_TRIP, 'a', 0], [ROUND_TRIP, 'b', 0], [ROUND_TRIP, 'a', 1], [ROUND_TRIP, 'b', 1],
+      [UNSATISFIABLE, 'a', 0], [UNSATISFIABLE, 'b', 0], [UNSATISFIABLE, 'a', 1], [UNSATISFIABLE, 'b', 1],
+    ])
+    expect(announced.map(payload => [payload.group, payload.district, payload.cell.model.model])).toEqual([
+      ['batch-first', 'workshop', 'a'], ['batch-second', undefined, 'b'],
+      ['batch-first', 'workshop', 'a'], ['batch-second', undefined, 'b'],
+      ['batch-first', 'workshop', 'a'], ['batch-second', undefined, 'b'],
+      ['batch-first', 'workshop', 'a'], ['batch-second', undefined, 'b'],
+    ])
+
+    const solo = await harness()
+    StubRuns.current.script = script
+    expect(left).toEqual(await solo.ctx.fleet.run(first))
+    expect(right).toEqual(await solo.ctx.fleet.run(second))
+  })
+
+  it('bounds one pool across both plans, so the two cells of a pair run at the same time', async () => {
+    const { ctx, plan } = await harness({ maxConcurrent: 2 })
+    StubRuns.current.script = async (request) => {
+      await new Promise(resolve => setTimeout(resolve, 5))
+      return report(request, { certified: true })
+    }
+    const [left, right] = await ctx.fleet.runPaired(
+      plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 3 }, 'batch-first'),
+      plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_B], repetitions: 3 }, 'batch-second'),
+    )
+
+    expect(StubRuns.current.maxInFlight).toBe(2)
+    expect(StubRuns.current.requests.map(request => request.repetition)).toEqual([0, 0, 1, 1, 2, 2])
+    expect(new Set(StubRuns.current.requests.slice(0, 2).map(request => request.group)).size).toBe(2)
+    expect([left.cells.length, right.cells.length]).toEqual([3, 3])
+  })
+
+  it('refuses two plans it cannot pair before running any cell', async () => {
+    const { ctx, plan } = await harness()
+    const base = plan({ models: [MODEL_A], repetitions: 2 }, 'batch-first')
+    const fewer = plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_B], repetitions: 2 }, 'batch-second')
+    await expect(ctx.fleet.runPaired(base, fewer)).rejects.toBeInstanceOf(FleetError)
+    await expect(ctx.fleet.runPaired(base, fewer)).rejects.toMatchObject({
+      code: 'FLEET_INVALID_PLAN',
+      message: 'a paired run needs both plans to select the same environments, but they select smoke:round-trip, smoke:unsatisfiable and smoke:round-trip',
+    })
+    const elsewhere = plan({ environments: { ids: [ROUND_TRIP, RESERVED] }, models: [MODEL_B], repetitions: 2 }, 'batch-second')
+    await expect(ctx.fleet.runPaired(base, elsewhere)).rejects.toMatchObject({
+      code: 'FLEET_INVALID_PLAN',
+      message: 'a paired run needs both plans to select the same environments, but they select smoke:round-trip, smoke:unsatisfiable and smoke:round-trip, smoke:reserved',
+    })
+    const longer = plan({ models: [MODEL_B], repetitions: 3 }, 'batch-second')
+    await expect(ctx.fleet.runPaired(base, longer)).rejects.toMatchObject({
+      code: 'FLEET_INVALID_PLAN',
+      message: 'a paired run needs both plans to ask for the same repetitions, but they ask for 2 and 3',
+    })
+    // Either plan's own refusal comes first, so a pair is never half-run.
+    await expect(ctx.fleet.runPaired(base, plan({ repetitions: 0 }))).rejects.toMatchObject({ code: 'FLEET_INVALID_PLAN' })
+    expect(StubRuns.current.requests).toEqual([])
+  })
+
+  it('keeps the route breaker and the token ceiling per plan across a paired run', async () => {
+    const { ctx, plan } = await harness({ routeBreaker: { consecutiveErrors: 2 } })
+    StubRuns.current.script = (request) => {
+      if (request.model?.model === 'a') throw new Error('route a is down')
+      return report(request, { certified: true, usage: { inputTokens: 10, outputTokens: 0 } })
+    }
+    const [broken, capped] = await ctx.fleet.runPaired(
+      plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 4 }, 'batch-first'),
+      plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_B], repetitions: 4, tokenCeiling: 10 }, 'batch-second'),
+    )
+
+    expect(broken.cells.map(outcome => ('error' in outcome ? outcome.error.code ?? outcome.error.message : 'report'))).toEqual([
+      'route a is down', 'route a is down', 'FLEET_ROUTE_BREAKER_OPEN', 'FLEET_ROUTE_BREAKER_OPEN',
+    ])
+    expect(capped.cells.map(outcome => ('error' in outcome ? outcome.error.code : 'report'))).toEqual([
+      'report', 'FLEET_TOKEN_CEILING_REACHED', 'FLEET_TOKEN_CEILING_REACHED', 'FLEET_TOKEN_CEILING_REACHED',
+    ])
+    expect([broken.spend, capped.spend]).toEqual([{ inputTokens: 0, outputTokens: 0 }, { inputTokens: 10, outputTokens: 0 }])
+  })
+
   it('carries the plan district into every cell request', async () => {
     const { ctx, plan } = await harness()
     const result = await ctx.fleet.run(plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 2, district: 'workshop' }))
