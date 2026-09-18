@@ -44,7 +44,11 @@ interface ForeignSpendRequest {
 interface BudgetEnforcement {
   /** The caps the session runs under: the configured caps tightened by its own `budget/caps`. */
   readonly caps: readonly BudgetCap[]
-  /** The breach that was recorded and blocked the goal, absent while every cap holds. */
+  /**
+   * The breach that was recorded, absent while every ceiling holds. A `session`
+   * breach also blocked the goal; an `attempt` one stopped the bounded work
+   * alone.
+   */
   readonly breach?: BudgetBreach
   /**
    * Milliseconds of wall budget left when the pass ran, absent when no wall cap
@@ -56,6 +60,30 @@ interface BudgetEnforcement {
 ```
 
 `enforce` 是唯一写入 `budget/breach` 并因预算耗尽而阻塞目标的地方，因此该策略自身的 pre-step 监听器与度量委派尝试的驱动方产生的是同一条持久记录。`remainingWallMs` 以日志首条事件为起点度量，与 `maxWallMs` 所跨越的锚点相同，因此把它设为截止时限的调用方，恰好在被度量的跨度将要达到上限时停止工作。
+
+## `AttemptBudget`
+
+```ts type-equiv
+/**
+ * The ceilings one bounded unit of work runs under, as
+ * {@link SessionBudgets.boundAttempt} armed them, and the disposer that releases
+ * them. While the bound stands, {@link SessionBudgets.enforce} measures the
+ * session against it after the session's own caps, so work that overruns its
+ * share is stopped without the session's caps being spent.
+ */
+interface AttemptBudget {
+  /**
+   * Milliseconds of wall-clock budget this work may consume, absent when the
+   * session runs under no wall cap. It is a duration from the instant the bound
+   * was armed, which a caller with no step of its own arms as a deadline.
+   */
+  readonly wallMs?: number
+  /** Release the bound, so the session's own caps alone measure what follows. */
+  readonly dispose: () => void
+}
+```
+
+`boundAttempt` 把一个会话划分给若干单元的工作：每个上限都是该会话已经产生的花费，加上调用方为该项上限指定的 `share`；它以各项上限为基准度量，而不是以上限剩余量为基准，因此无论此前各单元花掉多少，调用方选定的份额就是它得到的份额。同一会话同一时刻只有一个界定生效。其中一个被突破时携带 `scope: 'attempt'`，与其他突破一样驳回该 step，并让目标保持活跃，于是会话在尚未花掉的上限之下继续运行；突破会话自身的上限仍会阻塞目标。[环境运行器](../../packages/improvement/environment-runner/README.md#the-attempt-ladder)是它的消费方：尝试阶梯的每个档位都可以声明它所在 cell 的一份份额。
 
 `budget/caps`、`budget/breach`、`usage/priced` 与 `usage/foreign` 的载荷在[持久化目录](../persistence-catalog.md)中，它拥有每一个持久会话事件。
 
@@ -111,8 +139,29 @@ pricesForeignCost(): boolean
 recordForeignSpend(session: Session, spend: ForeignSpendRequest): boolean
 
 /**
+ * Bound the work about to start on one session to a share of the caps that
+ * session runs under, so it is stopped at its own ceiling instead of at the
+ * session's. Each ceiling is the spend the session has already made plus
+ * `share` of that cap's value, measured from the session's caps rather than
+ * from what is left of them, so dividing one cell between several units of
+ * work gives each the slice its caller chose whatever the earlier ones spent.
+ *
+ * One bound stands per session at a time: arming a second replaces the first,
+ * and the disposer releases whichever is current. A session whose caps are
+ * empty is bounded by nothing, exactly as it is measured against nothing.
+ *
+ * @param agent - the agent whose session the work is done for.
+ * @param share - the fraction of each cap the work may consume, greater than 0 and at most 1.
+ * @returns the wall-clock budget the work may consume and the disposer that releases the bound.
+ */
+boundAttempt(agent: Agent, share: number): AttemptBudget
+
+/**
  * Measure one session against its caps and, on the first cap it exceeds,
- * record the breach and block the session's goal.
+ * record the breach and block the session's goal. A session whose caps all
+ * hold is measured again against the ceilings any standing
+ * {@link boundAttempt} armed, whose breach stops that work alone and leaves
+ * the goal active.
  *
  * The goal domain is optional: a composition without `ctx.goals`, without a
  * current goal, or whose goal already left the `active` phase still gets the
@@ -128,5 +177,5 @@ enforce(agent: Agent): BudgetEnforcement
 
 Types: [Agent](core.md) · [Session](session.md)
 
-Source: [`packages/guard/budget-policy/src/index.ts:262`](../../packages/guard/budget-policy/src/index.ts)
+Source: [`packages/guard/budget-policy/src/index.ts:286`](../../packages/guard/budget-policy/src/index.ts)
 <!-- END GENERATED cordis-surface -->

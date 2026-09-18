@@ -19,7 +19,7 @@ import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentTh
 export const EXPERIMENT_GROUP_PREFIX = 'experiment-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const EXPERIMENT_PLAN_VERSION = 5
+const EXPERIMENT_PLAN_VERSION = 6
 
 /** Arm roles in the order the digest and the runs take them. */
 export const EXPERIMENT_ARM_ROLES: readonly ExperimentArmRole[] = ['baseline', 'candidate']
@@ -52,15 +52,23 @@ function digestedImplementer(implementer: EnvironmentRunImplementer): readonly (
   }
 }
 
+/** One rung as the digest takes it: its model route, then its budget share, each in a fixed position. */
+type DigestedRung = readonly (readonly string[] | number | null)[]
+
 /**
- * One arm's attempt ladder as the digest takes it: the model of each rung in
- * attempt order, with `null` for a rung that names none and therefore runs the
- * arm's own route. Two arms that ladder differently measure different routing,
- * so the rungs are part of what the digest freezes.
+ * One arm's attempt ladder as the digest takes it: the model and budget share
+ * of each rung in attempt order, with `null` for a rung that names no model and
+ * therefore runs the arm's own route, and `null` for a rung claiming no share
+ * and therefore running until the cell's own caps end it. Two arms that ladder
+ * differently, or that divide one cell budget differently, measure different
+ * routing, so both are part of what the digest freezes.
  */
-function digestedLadder(ladder: readonly EnvironmentRunRung[] | undefined): readonly (readonly string[] | null)[] | null {
+function digestedLadder(ladder: readonly EnvironmentRunRung[] | undefined): readonly DigestedRung[] | null {
   if (ladder === undefined) return null
-  return ladder.map(rung => (rung.model === undefined ? null : [rung.model.provider, rung.model.model]))
+  return ladder.map(rung => [
+    rung.model === undefined ? null : [rung.model.provider, rung.model.model],
+    rung.share ?? null,
+  ])
 }
 
 /**
@@ -79,14 +87,15 @@ export function ladderConflicts(arm: ExperimentArmPlan): boolean {
 
 /**
  * Content digest of the fields that decide what an experiment measures: the
- * two arms in role order, each with its model route, its attempt ladder, and
- * its implementer, the environment ids sorted so a caller's listing order
- * cannot change the identity, the repetition count, the policy version and base
- * seed both arms ran under, the thresholds, and the caps every cell of both
- * arms ran under.
+ * two arms in role order, each with its model route, its attempt ladder with
+ * the budget share of every rung, and its implementer, the environment ids
+ * sorted so a caller's listing order cannot change the identity, the repetition
+ * count, the policy version and base seed both arms ran under, the thresholds,
+ * and the caps every cell of both arms ran under.
  * The caps are digested because a cell cut off at one wall or token ceiling
  * measures something different from the same cell cut off at another, so two
- * comparisons run under different budgets are two experiments. The deployment's
+ * comparisons run under different budgets are two experiments, and the shares
+ * are digested for the same reason one rung down. The deployment's
  * token budget stays absent: it bounds what a deployment pays for across plans,
  * not what one comparison measures. The policy version and the seed are present
  * because both arms' sessions are found in the logs by the groups this digest

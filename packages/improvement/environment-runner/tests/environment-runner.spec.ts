@@ -54,14 +54,19 @@ declare module '@deepseek-ai/dsh-environments/types' {
 /**
  * The live-agent surface the runner drives, with a log that records what the
  * runner appends. Event times are wall-clock, like the real store's, so the
- * budget policy's wall measurement means the same thing here.
+ * budget policy's wall measurement means the same thing here — except that each
+ * append is at least a millisecond after the one before it, so a span the
+ * policy measures over this log states the appends that happened rather than
+ * whether `Date.now()` ticked between two of them.
  */
 class FakeSession {
   readonly events: SessionEvent[] = []
   seq = 0
+  private clock = Date.now()
   constructor(readonly id: SessionId) {}
   append(type: string, data: unknown): SessionEvent {
-    const event = { type, seq: this.seq, time: Date.now(), data } as unknown as SessionEvent
+    this.clock = Math.max(this.clock + 1, Date.now())
+    const event = { type, seq: this.seq, time: this.clock, data } as unknown as SessionEvent
     this.seq += 1
     this.events.push(event)
     return event
@@ -402,6 +407,11 @@ async function applied(ctx: Context): Promise<Record<string, string | undefined>
 }
 
 const MARKER = 'test -f MARKER'
+
+/** The budget records one cell session carries, in log order. */
+function budgetEvents(type: 'budget/breach' | 'usage/foreign'): unknown[] {
+  return StubAgents.current.agent.session.events.filter(event => event.type === type).map(event => event.data)
+}
 
 function environment(rest: Partial<EnvironmentDefinition> = {}): EnvironmentDefinition {
   return {
@@ -1008,6 +1018,26 @@ describe('EnvironmentRunner', () => {
     )
   })
 
+  it('carries each rung\'s budget share onto the stamp and refuses a share no cell could give, at the boundary', () => {
+    const stamped = { provider: 'mock', model: 'small' }
+    const large = { provider: 'mock', model: 'large' }
+    expect(resolveLadder([{ share: 0.25 }, { model: large, share: 0.75 }], stamped, 8))
+      .toEqual([{ ...stamped, share: 0.25 }, { ...large, share: 0.75 }])
+    // A rung claiming none runs until the cell's own caps end it, whatever the rungs beside it claim.
+    expect(resolveLadder([{ share: 1 }, {}], stamped, 8)).toEqual([{ ...stamped, share: 1 }, stamped])
+
+    for (const share of [0, -0.5, 1.5, Number.NaN]) {
+      expect(() => resolveLadder([{ share }], stamped, 8)).toThrow(new EnvironmentRunError(
+        `an attempt ladder rung share must be greater than 0 and at most 1, got ${String(share)}`,
+        'ENVIRONMENT_RUN_INVALID_LADDER',
+      ))
+    }
+    expect(() => resolveLadder([{ share: 0.7 }, { share: 0.5 }], stamped, 8)).toThrow(new EnvironmentRunError(
+      'an attempt ladder\'s rung shares claim 1.2 of the cell\'s caps, which is more than the whole of them',
+      'ENVIRONMENT_RUN_INVALID_LADDER',
+    ))
+  })
+
   it('resolves defaults once, at the boundary', () => {
     expect(resolveConfig({ isolation: 'host' })).toEqual({
       isolation: 'host', maxAttempts: 1, maxLadderRungs: 8, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20, topP: undefined,
@@ -1257,11 +1287,6 @@ describe('EnvironmentRunner delegated cell budgets', () => {
   const SPAWN = { kind: 'subagent', provider: 'spawn' } as const
   const PRODUCT = { kind: 'subagent', provider: 'claude-code' } as const
 
-  /** The budget records one cell session carries, in log order. */
-  function budgetEvents(type: 'budget/breach' | 'usage/foreign'): unknown[] {
-    return StubAgents.current.agent.session.events.filter(event => event.type === type).map(event => event.data)
-  }
-
   it('refuses a delegated run no budget policy could bound, before any agent exists', async () => {
     const { run } = await harness({ providers: { spawn: IN_PROCESS_CAPABILITIES }, unbudgeted: true })
     await expect(run({ implementer: SPAWN })).rejects.toThrow(new EnvironmentRunError(
@@ -1433,6 +1458,126 @@ describe('EnvironmentRunner delegated cell budgets', () => {
     // No wall cap arms no deadline, so the child's signal only follows the run's.
     expect(StubSubagents.current.started[0]?.request.signal.aborted).toBe(false)
     expect(ctx.environmentRuns.cellCaps(SPAWN)).toEqual([['maxTotalTokens', 1_000]])
+  })
+})
+
+describe('EnvironmentRunner per-rung budget shares', () => {
+  const PRODUCT = { kind: 'subagent', provider: 'claude-code' } as const
+
+  it('refuses a rung share in a composition with no budget policy to take it of, before any agent exists', async () => {
+    const { run } = await harness({ unbudgeted: true })
+    await expect(run({ ladder: [{ share: 0.5 }, {}] })).rejects.toThrow(new EnvironmentRunError(
+      'an attempt ladder rung share is a share of the caps the cell runs under, and this composition has no budget policy to state them',
+      'ENVIRONMENT_RUN_INVALID_LADDER',
+    ))
+    expect(StubAgents.current.created).toEqual([])
+
+    // A ladder claiming no share needs no policy: an unbudgeted cell simply
+    // runs every attempt under no cap at all.
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    expect((await run({ ladder: [{}, {}] })).certified).toBe(true)
+  })
+
+  it('bounds a route attempt to its rung share, records the breach apart, and runs the next rung', async () => {
+    const built = await harness({ config: { maxAttempts: 1 }, budget: { maxTotalTokens: 100 } })
+    const budgets = built.ctx.get('sessionBudgets')
+    StubAgents.current.agent = new FakeAgent('shared-cell', (turn, session) => {
+      session.append('assistant/message', {
+        turn,
+        step: 1,
+        usage: { inputTokens: 20, outputTokens: 10 },
+        message: { content: [], source: { provider: 'mock', model: 'mock-default' } },
+      })
+      // What the policy's own pre-step check does before this turn's next step.
+      budgets?.enforce(asAgent(StubAgents.current.agent))
+    })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    const report = await built.run({ ladder: [{ share: 0.25 }, {}] })
+
+    // Thirty tokens against a quarter of the cell's hundred ends the first
+    // attempt; the second rung runs under the whole cap on what it left.
+    expect(budgetEvents('budget/breach'))
+      .toEqual([{ cap: 'maxTotalTokens', measured: 30, limit: 25, scope: 'attempt' }])
+    expect(StubGoals.current.blocked).toEqual([])
+    expect(report.attempts).toHaveLength(2)
+    expect(report.certified).toBe(true)
+    expect(report.stamp.ladder).toEqual([
+      { provider: 'mock', model: 'mock-default', share: 0.25 },
+      { provider: 'mock', model: 'mock-default' },
+    ])
+    // The attempt record states the route it ran on and nothing of the share.
+    expect(report.attempts[0]?.model).toEqual({ provider: 'mock', model: 'mock-default' })
+  })
+
+  it('charges a delegated child against its rung share and runs the next rung on what the cell kept', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 1, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 100 },
+    })
+    StubSubagents.current.children = [
+      { result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 30, outputTokens: 10 } } },
+      {
+        result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 5, outputTokens: 5 } },
+        work: (directory) => { writeFileSync(join(directory, 'MARKER'), 'done\n') },
+      },
+    ]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    const report = await run({ implementer: PRODUCT, ladder: [{ share: 0.25 }, {}] })
+
+    expect(budgetEvents('budget/breach'))
+      .toEqual([{ cap: 'maxTotalTokens', measured: 40, limit: 25, scope: 'attempt' }])
+    expect(StubGoals.current.blocked).toEqual([])
+    expect(StubSubagents.current.started).toHaveLength(2)
+    expect(report.certified).toBe(true)
+    expect(report.usage).toEqual({ inputTokens: 35, outputTokens: 15 })
+  })
+
+  it('cancels a delegated child at its share of the wall cap and runs the next rung', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 1, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxWallMs: 1_000 },
+    })
+    StubSubagents.current.children = [
+      { untilAborted: true, result: { output: [], stopReason: 'aborted' } },
+      { work: (directory) => { writeFileSync(join(directory, 'MARKER'), 'done\n') } },
+    ]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    // Half a millisecond of the cell's one-second wall cap, which the first
+    // append after the attempt already exceeds.
+    const report = await run({ implementer: PRODUCT, ladder: [{ share: 0.0005 }, {}] })
+
+    expect(StubAgents.current.agent.session.events
+      .filter(event => event.type === 'environment/delegation')
+      .map(event => event.data.stopReason)).toEqual(['budget-deadline', 'completed'])
+    expect(budgetEvents('budget/breach'))
+      .toEqual([expect.objectContaining({ cap: 'maxWallMs', scope: 'attempt' })])
+    // The cell keeps the rest of its wall budget, so the goal stays active and
+    // the second rung runs to a certificate.
+    expect(StubGoals.current.blocked).toEqual([])
+    expect(report.attempts).toHaveLength(2)
+    expect(report.certified).toBe(true)
+  })
+
+  it('arms the smaller of the rung share and what the cell has left, so a spent cell still ends the run', async () => {
+    const built = await harness({
+      config: { maxAttempts: 1, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxWallMs: 5_300 },
+    })
+    // A cell whose log already spans five seconds of its wall cap: a whole
+    // share of that cap is far more than the fraction of a second it has left,
+    // so the deadline is the cell's and the run ends with the attempt.
+    const seed = StubAgents.current.agent.session.append('turn/start', { turn: 0 }) as { time: number }
+    seed.time = Date.now() - 5_000
+    StubSubagents.current.children = [{ untilAborted: true, result: { output: [], stopReason: 'aborted' } }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    const report = await built.run({ implementer: PRODUCT, ladder: [{ share: 1 }, {}] })
+
+    expect(StubSubagents.current.started).toHaveLength(1)
+    expect(report.attempts).toHaveLength(1)
+    expect(report.certified).toBe(false)
   })
 })
 

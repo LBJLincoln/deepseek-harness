@@ -1,21 +1,26 @@
 #!/usr/bin/env node
 /**
- * Test driver: run one unsatisfiable environment twice over the same two-rung
- * attempt ladder — once on the session's own model route and once delegated to
- * one fresh in-process child per attempt — and print each report beside the
- * models its cell asked its provider for and the user messages each attempt
- * carried, for the e2e's assertions.
+ * Test driver: run one unsatisfiable environment three times over the same
+ * two-rung attempt ladder — once on the session's own model route, once
+ * delegated to one fresh in-process child per attempt, and once on the route
+ * again with the first rung holding a share of the cell's caps — and print each
+ * report beside the models its cell asked its provider for, the user messages
+ * each attempt carried, and the budget records its log holds, for the e2e's
+ * assertions.
  *
- * Both cells run the same environment, whose check never passes, so each spends
- * exactly the ladder's two attempts and the report states the route of each.
+ * Every cell runs the same environment, whose check never passes, so each
+ * spends exactly the ladder's two attempts and the report states the route of
+ * each.
  */
 
 import { mkdtemp } from 'node:fs/promises'
 import { join } from 'node:path'
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
+import type { BudgetBreach } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunReport, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
+import { decodeGoalChange } from '@deepseek-ai/dsh-goal'
 import type { SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
 
 const configPath = process.argv[2]
@@ -24,6 +29,13 @@ if (configPath === undefined) throw new Error('attempt-ladder driver requires a 
 const SMALL = { provider: 'cli-mock', model: 'cli-mock-small' }
 const LARGE = { provider: 'cli-mock', model: 'cli-mock-large' }
 const LADDER: readonly EnvironmentRunRung[] = [{}, { model: LARGE }]
+
+/**
+ * The same ladder with the first rung holding a fraction of the composition's
+ * `maxTotalTokens` smaller than one step of the mock route costs, so that rung
+ * is stopped at its own share while the second rung runs on what the cell kept.
+ */
+const SHARED_LADDER: readonly EnvironmentRunRung[] = [{ share: 0.005 }, { model: LARGE }]
 
 /** One cell as the driver reports it: the run, the routes it asked for, and the texts each attempt carried. */
 interface Cell {
@@ -34,6 +46,10 @@ interface Cell {
   readonly prompts: string[]
   /** Attempt number, restated-task flag, and child run of every delegation the cell recorded. */
   readonly delegations: { attempt: number; restatedTask: boolean; runId: string }[]
+  /** Every `budget/breach` the cell recorded, in log order. */
+  readonly breaches: BudgetBreach[]
+  /** Goal blocks the cell recorded, which a breach of the cell's own caps causes. */
+  readonly goalBlocks: number
 }
 
 /**
@@ -72,22 +88,30 @@ try {
           ? [{ attempt: event.data.attempt, restatedTask: event.data.restatedTask, runId: event.data.runId }]
           : []
       )),
+      breaches: events.flatMap(event => (event.type === 'budget/breach' ? [event.data] : [])),
+      goalBlocks: events.filter(event => (
+        event.type === 'goal/change' && decodeGoalChange(event.data)?.operation === 'block'
+      )).length,
     }
   }
 
-  const cell = async (implementer?: { kind: 'subagent'; provider: string }): Promise<Cell> => {
+  const cell = async (
+    ladder: readonly EnvironmentRunRung[],
+    implementer?: { kind: 'subagent'; provider: string },
+  ): Promise<Cell> => {
     const workspace = await mkdtemp(join(process.cwd(), 'workspace-'))
     return read(await runner.run({
       environment: EnvironmentId('smoke:unsatisfiable'),
       workspace,
       model: SMALL,
-      ladder: LADDER,
+      ladder,
       ...implementer === undefined ? {} : { implementer },
     }))
   }
 
-  const route = await cell()
-  const delegated = await cell({ kind: 'subagent', provider: 'spawn' })
+  const route = await cell(LADDER)
+  const delegated = await cell(LADDER, { kind: 'subagent', provider: 'spawn' })
+  const shared = await cell(SHARED_LADDER)
 
   // Each delegated attempt ran as a child session of its own, so what the
   // second child was actually asked to do is only in that child's log. An
@@ -98,7 +122,7 @@ try {
     const { events } = await persistence.inspect(delegation.runId as SessionId)
     childPrompts.push(promptsOf(events))
   }
-  process.stdout.write(`${JSON.stringify({ type: 'result', route, delegated, childPrompts })}\n`)
+  process.stdout.write(`${JSON.stringify({ type: 'result', route, delegated, shared, childPrompts })}\n`)
 } finally {
   await ctx.fiber.dispose()
 }

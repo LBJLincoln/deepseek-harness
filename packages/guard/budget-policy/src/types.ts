@@ -71,14 +71,31 @@ export interface BudgetCaps {
   readonly maxCostEur?: number
 }
 
+/**
+ * Which ceiling one breach measured against: the caps the whole session runs
+ * under, or the share of them the work in flight was bounded to.
+ */
+export type BudgetBreachScope = 'session' | 'attempt'
+
 /** The durable record of one cap that stopped the next model request. */
 export interface BudgetBreach {
   /** The cap that tripped. */
   readonly cap: BudgetCapId
   /** Spend measured from the log at the moment the step was stopped. */
   readonly measured: number
-  /** The configured value {@link measured} exceeded. */
+  /**
+   * The ceiling {@link measured} exceeded: the configured value of {@link cap}
+   * for a `session` breach, and the spend the bounded work started from plus its
+   * share of that value for an `attempt` one.
+   */
   readonly limit: number
+  /**
+   * Which ceiling {@link limit} is. Absent in a payload that states none, which
+   * is `session`: the caps the whole session runs under, whose breach also
+   * blocks the session's goal. An `attempt` breach stops only the work that was
+   * bounded, leaving the session's own caps unspent and its goal untouched.
+   */
+  readonly scope?: BudgetBreachScope
 }
 
 /**
@@ -155,11 +172,17 @@ declare module '@deepseek-ai/dsh-session/types' {
      */
     'budget/caps': BudgetCaps
     /**
-     * One configured session budget stopped the step that was about to make a
-     * model request: the cap that tripped, the spend measured from the events
-     * preceding this one, and the configured value that spend exceeded. The
-     * step is rejected after this event, so the record is the only durable
+     * One budget stopped the step that was about to make a model request: the
+     * cap that tripped, the spend measured from the events preceding this one,
+     * the ceiling that spend exceeded, and the `scope` that ceiling belongs to.
+     * The step is rejected after this event, so the record is the only durable
      * explanation for a turn that ends without a model call.
+     *
+     * A `session` breach — the scope a payload stating none carries — is the
+     * deployment's own caps, and it blocks the session's goal. An `attempt`
+     * breach is the share of those caps the work in flight was bounded to, so
+     * it ends that work alone and the session continues under caps it has not
+     * spent.
      */
     'budget/breach': BudgetBreach
     /**

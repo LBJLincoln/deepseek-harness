@@ -25,6 +25,7 @@ import type {
   EnvironmentId as EnvironmentIdType,
   EnvironmentRunModel,
   EnvironmentRunStamp,
+  EnvironmentRunStampRung,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -34,8 +35,8 @@ declare module '@deepseek-ai/dsh-session/types' {
     /**
      * Environment run stamp: the environment, its content hashes, the
      * repetition, group, and district, the model route and the attempt ladder
-     * over it, and the declared isolation of one run, appended once before the
-     * run's first turn.
+     * over it with each rung's budget share, and the declared isolation of one
+     * run, appended once before the run's first turn.
      */
     'environment/run': EnvironmentRunStamp
   }
@@ -127,16 +128,30 @@ function stampModel(value: unknown, key: string): EnvironmentRunModel {
   return { provider: stampText(value, 'provider'), model: stampText(value, 'model') }
 }
 
+/** Require one stamped rung's budget share to be a fraction an attempt could have been allowed. */
+function stampShare(value: unknown): number {
+  if (typeof value !== 'number' || !(value > 0) || value > 1) {
+    throw new Error('environment/run ladder rung share must be greater than 0 and at most 1')
+  }
+  return value
+}
+
 /**
- * Require a durable stamp's attempt ladder to be a non-empty list of model
- * routes. A stamp carrying an empty one would claim a laddered run that no
- * attempt could belong to.
+ * Require a durable stamp's attempt ladder to be a non-empty list of rungs,
+ * each a model route with the budget share its attempt was allowed. A stamp
+ * carrying an empty one would claim a laddered run that no attempt could belong
+ * to.
  */
-function stampLadder(value: unknown): readonly EnvironmentRunModel[] {
+function stampLadder(value: unknown): readonly EnvironmentRunStampRung[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error('environment/run ladder must be a non-empty array of model routes')
   }
-  return value.map(rung => stampModel(rung, 'ladder rung'))
+  return value.map((rung: unknown) => {
+    const route = stampModel(rung, 'ladder rung')
+    // stampModel already refused everything but a record.
+    const share = (rung as Record<string, unknown>)['share']
+    return share === undefined ? route : { ...route, share: stampShare(share) }
+  })
 }
 
 /**

@@ -61,14 +61,15 @@ export type EnvironmentRunTranscript = 'kept' | 'dropped'
 
 /**
  * How one delegated attempt ended: in the subagent seam's terminal vocabulary
- * when the child settled on its own, or `budget-deadline` when the cell's wall
- * budget ran out first.
+ * when the child settled on its own, or `budget-deadline` when the wall budget
+ * the attempt ran under ran out first.
  *
  * The runner cancels a child at that deadline, so the seam would report the
  * cancellation as its own `aborted`. Recording it apart is what lets a reader
- * tell an operator's cancellation from a cell that ran out of the wall budget
- * its arm was measured under; a `budget-deadline` attempt is always followed by
- * the `budget/breach` that stopped the run.
+ * tell an operator's cancellation from an attempt that ran out of the wall
+ * budget its arm was measured under; a `budget-deadline` attempt is always
+ * followed by the `budget/breach` it caused, whose scope says whether the cell
+ * ended with it or the run moved to the next rung.
  */
 export type EnvironmentDelegationStopReason = SubagentStopReason | 'budget-deadline'
 
@@ -128,9 +129,8 @@ export interface EnvironmentDelegation {
 }
 
 /**
- * One rung of an attempt ladder: what the attempt at that index runs on. A rung
- * is an object rather than a bare model so a later per-attempt choice extends it
- * without changing the position a rung already means.
+ * One rung of an attempt ladder: what the attempt at that index runs on, and
+ * how much of the run's budget it may spend getting there.
  */
 export interface EnvironmentRunRung {
   /**
@@ -141,6 +141,18 @@ export interface EnvironmentRunRung {
    * stamp records either way.
    */
   readonly model?: EnvironmentRunModel
+  /**
+   * Fraction of every cap the cell runs under — tokens, wall clock, and cost —
+   * this attempt may consume before it is ended and the run moves to the next
+   * rung, greater than 0 and at most 1. It is measured from the cell's caps
+   * rather than from what is left of them, so a cheap first rung cannot spend
+   * the budget a later rung was given. Absent lets the attempt run until the
+   * cell's own caps end it, which ends the cell with it. A ladder whose shares
+   * sum above 1, and a share outside the range, are refused before any agent
+   * exists, as is any share in a composition with no budget policy to take a
+   * share of.
+   */
+  readonly share?: number
 }
 
 /** One request to run a registered environment as one fresh session. */
@@ -153,13 +165,14 @@ export interface EnvironmentRunRequest {
   readonly model?: EnvironmentRunModel
   /**
    * One rung per attempt, in attempt order: attempt `i` runs on
-   * `ladder[i - 1].model`, or on {@link model} for a rung that names none.
-   * Present, the ladder's length is this run's attempt bound and overrides the
-   * composition's `maxAttempts`, because the caller that chose a model per
-   * attempt is the caller that chose how many attempts there are. An empty
-   * ladder, and one longer than the deployment's configured rung ceiling, are
-   * refused before any agent exists. Absent runs every attempt on {@link model}
-   * under the configured `maxAttempts`.
+   * `ladder[i - 1].model`, or on {@link model} for a rung that names none, and
+   * spends at most `ladder[i - 1].share` of the cell's caps. Present, the
+   * ladder's length is this run's attempt bound and overrides the composition's
+   * `maxAttempts`, because the caller that chose a model per attempt is the
+   * caller that chose how many attempts there are. An empty ladder, one longer
+   * than the deployment's configured rung ceiling, and one whose shares are
+   * unusable are refused before any agent exists. Absent runs every attempt on
+   * {@link model} under the configured `maxAttempts`.
    */
   readonly ladder?: readonly EnvironmentRunRung[]
   /**

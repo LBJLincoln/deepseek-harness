@@ -33,8 +33,10 @@ export interface ExperimentArmPlan extends EnvironmentRunModel {
    * arm's attempt bound. The first rung is the arm's own route: it names either
    * no model or exactly the arm's `provider` and `model`, and a plan whose
    * first rung names another route is refused, because the arm the result is
-   * published under would not be the arm the first attempt ran. Absent runs
-   * every attempt on the arm's route under the composition's own attempt bound.
+   * published under would not be the arm the first attempt ran. Each rung's
+   * budget share is frozen into the digest with its route, so two arms that
+   * divide one cell budget differently are two experiments. Absent runs every
+   * attempt on the arm's route under the composition's own attempt bound.
    */
   readonly ladder?: readonly EnvironmentRunRung[]
 }

@@ -293,16 +293,22 @@ Source: [`packages/subagent/subagent-claude-code/src/types.ts:73`](../packages/s
 
 ```ts persistence-catalog
 /**
- * One configured session budget stopped the step that was about to make a
- * model request: the cap that tripped, the spend measured from the events
- * preceding this one, and the configured value that spend exceeded. The
- * step is rejected after this event, so the record is the only durable
+ * One budget stopped the step that was about to make a model request: the
+ * cap that tripped, the spend measured from the events preceding this one,
+ * the ceiling that spend exceeded, and the `scope` that ceiling belongs to.
+ * The step is rejected after this event, so the record is the only durable
  * explanation for a turn that ends without a model call.
+ *
+ * A `session` breach — the scope a payload stating none carries — is the
+ * deployment's own caps, and it blocks the session's goal. An `attempt`
+ * breach is the share of those caps the work in flight was bounded to, so
+ * it ends that work alone and the session continues under caps it has not
+ * spent.
  */
 'budget/breach': BudgetBreach
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:164`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:187`](../packages/guard/budget-policy/src/types.ts)
 
 <a id="budgetcaps--log-only"></a>
 
@@ -320,7 +326,7 @@ Source: [`packages/guard/budget-policy/src/types.ts:164`](../packages/guard/budg
 'budget/caps': BudgetCaps
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:156`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:173`](../packages/guard/budget-policy/src/types.ts)
 
 ### `command/*`
 
@@ -554,13 +560,13 @@ Source: [`packages/improvement/environment-runner/src/types.ts:33`](../packages/
 /**
  * Environment run stamp: the environment, its content hashes, the
  * repetition, group, and district, the model route and the attempt ladder
- * over it, and the declared isolation of one run, appended once before the
- * run's first turn.
+ * over it with each rung's budget share, and the declared isolation of one
+ * run, appended once before the run's first turn.
  */
 'environment/run': EnvironmentRunStamp
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:40`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:41`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 
@@ -1409,7 +1415,7 @@ Source: [`packages/core/session/src/types.ts:243`](../packages/core/session/src/
 'usage/foreign': UsageForeign
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:185`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:208`](../packages/guard/budget-policy/src/types.ts)
 
 <a id="usagepriced--log-only"></a>
 
@@ -1428,7 +1434,7 @@ Source: [`packages/guard/budget-policy/src/types.ts:185`](../packages/guard/budg
 'usage/priced': UsagePriced
 ```
 
-Source: [`packages/guard/budget-policy/src/types.ts:174`](../packages/guard/budget-policy/src/types.ts)
+Source: [`packages/guard/budget-policy/src/types.ts:197`](../packages/guard/budget-policy/src/types.ts)
 
 ### `user/*`
 

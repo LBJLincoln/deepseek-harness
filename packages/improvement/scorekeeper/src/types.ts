@@ -7,7 +7,7 @@
  */
 
 import type { BudgetCapId } from '@deepseek-ai/dsh-budget-policy'
-import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentId, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import type { GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { TrajectoryRewardBasis, TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
@@ -44,12 +44,13 @@ export interface SessionFactsEnvironment {
   /** Provider-owned model id the run declared for its first attempt. */
   readonly model: string
   /**
-   * Route of each attempt in attempt order, from the stamp's attempt ladder,
-   * absent for a run that laddered none. A row is keyed by it: a cell that
-   * escalated to another model on a later attempt measures something the same
-   * first-rung cell without a ladder does not, so the two are never one row.
+   * Route and budget share of each attempt in attempt order, from the stamp's
+   * attempt ladder, absent for a run that laddered none. A row is keyed by it:
+   * a cell that escalated to another model on a later attempt, or that divided
+   * its budget between the rungs, measures something the same first-rung cell
+   * without a ladder does not, so the two are never one row.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
@@ -296,11 +297,11 @@ export interface ScoreboardRow {
   readonly provider: string
   readonly model: string
   /**
-   * Route of each attempt in attempt order, absent for a row whose sessions
-   * laddered none. Every session of a row ladders the same way, because the row
-   * is keyed by it.
+   * Route and budget share of each attempt in attempt order, absent for a row
+   * whose sessions laddered none. Every session of a row ladders the same way,
+   * because the row is keyed by it.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean

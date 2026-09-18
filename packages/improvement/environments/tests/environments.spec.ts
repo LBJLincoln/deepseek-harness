@@ -405,7 +405,7 @@ describe('environment run stamps', () => {
     const decoded = decodeEnvironmentRun(stamp({
       fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3,
       policyVersion: 'policy-2026-09', seed: 0, implementer: 'claude-code',
-      ladder: [{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'cli-mock-large' }],
+      ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0.25 }, { provider: 'cli-mock', model: 'cli-mock-large' }],
     }))
     expect(decoded).toEqual<EnvironmentRunStamp>({
       kind: 'environment/run',
@@ -423,7 +423,9 @@ describe('environment run stamps', () => {
       policyVersion: 'policy-2026-09',
       seed: 0,
       model: { provider: 'cli-mock', model: 'cli-mock' },
-      ladder: [{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'cli-mock-large' }],
+      // A rung carries the share of the run's caps its attempt was allowed; one
+      // that claims none ran until those caps ended it.
+      ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0.25 }, { provider: 'cli-mock', model: 'cli-mock-large' }],
       isolation: 'none',
       implementer: 'claude-code',
     })
@@ -471,6 +473,9 @@ describe('environment run stamps', () => {
       [stamp({ ladder: {} }), 'ladder must be a non-empty array of model routes'],
       [stamp({ ladder: ['cli-mock'] }), 'ladder rung must be a record'],
       [stamp({ ladder: [{ provider: 'cli-mock' }] }), 'model must be a non-empty string'],
+      [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0 }] }), 'ladder rung share must be greater than 0 and at most 1'],
+      [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 1.5 }] }), 'ladder rung share must be greater than 0 and at most 1'],
+      [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: '0.5' }] }), 'ladder rung share must be greater than 0 and at most 1'],
     ]
     for (const [value, message] of cases) {
       expect(() => decodeEnvironmentRun(value), message).toThrow(message)

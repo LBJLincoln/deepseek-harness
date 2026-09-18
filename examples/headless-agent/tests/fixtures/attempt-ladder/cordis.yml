@@ -1,4 +1,4 @@
-# Test-only composition: run one environment twice over a two-rung attempt ladder — once on the session's own route, once delegated to an in-process child per attempt — then read both cell logs back.
+# Test-only composition: run one environment three times over a two-rung attempt ladder — once on the session's own route, once delegated to an in-process child per attempt, once with the first rung holding a share of the cell's caps — then read every cell log back.
 - id: cli-mock-llm
   name: '../cli-mock-llm.ts'
 
@@ -53,11 +53,13 @@
     evidenceMaxChars: 512
 
 # Village rule: a composition that runs unattended sessions carries a session
-# budget. The caps are far out of reach of the mock route, so no run breaches them.
+# budget. A whole cell of the mock route spends well under these caps, so no cell
+# breaches them; a rung holding half a percent of the token cap does, which is
+# what the shared arm measures.
 - id: budget-policy
   name: '@deepseek-ai/dsh-budget-policy'
   config:
-    maxTotalTokens: 5000000
+    maxTotalTokens: 2000
     maxWallMs: 600000
 
 - id: agent-spine

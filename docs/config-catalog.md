@@ -431,7 +431,7 @@ export interface BudgetRoutePricing {
 }
 ```
 
-Source: [`packages/guard/budget-policy/src/index.ts:83`](../packages/guard/budget-policy/src/index.ts)
+Source: [`packages/guard/budget-policy/src/index.ts:85`](../packages/guard/budget-policy/src/index.ts)
 
 <a id="deepseek-aidsh-client-connection"></a>
 
@@ -743,7 +743,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:114`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:116`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -766,7 +766,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:220`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:235`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 

@@ -18,7 +18,7 @@ import type {} from '@deepseek-ai/dsh-agent-default-model'
 import type {} from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentDefinition, EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentDefinition, EnvironmentId, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import { assertNever, HarnessError } from '@deepseek-ai/dsh-llm'
 import type {
   FleetCell,
@@ -298,9 +298,13 @@ export function leaderboardMarkdown(report: FleetRunReport): string {
   return [`Fleet run \`${report.group}\``, '', header, rule, ...lines].join('\n') + '\n'
 }
 
-/** One row's ladder as its Markdown cell: the rungs in attempt order, or the dash of a row that ran none. */
-function ladderCell(ladder: readonly EnvironmentRunModel[] | undefined): string {
-  return ladder === undefined ? '-' : ladder.map(routeName).join(' > ')
+/**
+ * One row's ladder as its Markdown cell: the rungs in attempt order, each with
+ * the share of the cell's caps it claimed, or the dash of a row that ran none.
+ */
+function ladderCell(ladder: readonly EnvironmentRunStampRung[] | undefined): string {
+  if (ladder === undefined) return '-'
+  return ladder.map(rung => `${routeName(rung)}${rung.share === undefined ? '' : ` @${rung.share}`}`).join(' > ')
 }
 
 /** Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard. */

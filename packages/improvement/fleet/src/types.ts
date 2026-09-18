@@ -6,7 +6,7 @@
  */
 
 import type { EnvironmentRunImplementer, EnvironmentRunReport, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner/types'
-import type { EnvironmentFilter, EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentFilter, EnvironmentId, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type { CertificateIsolation } from '@deepseek-ai/dsh-verification/types'
 
@@ -24,9 +24,10 @@ export interface FleetPlan {
   /**
    * One rung per attempt, handed to every cell of the plan: attempt `i` runs on
    * `ladder[i - 1].model`, or on the cell's own route for a rung that names
-   * none. The ladder's length is each cell's attempt bound. One plan runs one
-   * ladder, so every cell of a row escalated the same way; absent runs every
-   * attempt of every cell on the cell's own route.
+   * none, and spends at most `ladder[i - 1].share` of that cell's budget caps.
+   * The ladder's length is each cell's attempt bound. One plan runs one ladder,
+   * so every cell of a row escalated the same way; absent runs every attempt of
+   * every cell on the cell's own route under the whole of its caps.
    */
   readonly ladder?: readonly EnvironmentRunRung[]
   /**
@@ -115,13 +116,13 @@ export interface LeaderboardRow {
   readonly provider: string
   readonly model: string
   /**
-   * Model route of each attempt in attempt order, as the plan's ladder resolved
-   * it, absent for a row whose cells ran no ladder and for one whose cells all
-   * failed before a run. One plan runs one ladder, so a fleet row cannot mix a
-   * laddered cell with an unladdered one; the scoreboard, which folds across
-   * plans, keys its rows by it instead.
+   * Route and budget share of each attempt in attempt order, as the plan's
+   * ladder resolved it, absent for a row whose cells ran no ladder and for one
+   * whose cells all failed before a run. One plan runs one ladder, so a fleet
+   * row cannot mix a laddered cell with an unladdered one; the scoreboard,
+   * which folds across plans, keys its rows by it instead.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean
