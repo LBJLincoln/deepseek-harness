@@ -5,7 +5,8 @@
  * checks, denies the cell everything above its own workspace for the length of
  * the run, has each attempt implemented either by the session's own model route
  * or by an out-of-band coding agent started through the subagent seam, moves
- * each attempt to its own rung of the request's attempt ladder, restores
+ * each attempt to its own rung of the request's attempt ladder and bounds it to
+ * that rung's share of the cell's budget caps, restores
  * the fixture's immutable paths and executes the checks through the shell
  * executor after each attempt, records the run, and completes the goal only
  * under a certificate. The
@@ -25,13 +26,14 @@ import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentSampling, ModelSelectionRef } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 // Also resolves the `usage/foreign` SessionEventMap merge the delegated caps write through.
-import type { BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
+import type { AttemptBudget, BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
 import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import type {
   EnvironmentDefinition,
   EnvironmentId,
   EnvironmentRunModel,
   EnvironmentRunStamp,
+  EnvironmentRunStampRung,
   EnvironmentTask,
 } from '@deepseek-ai/dsh-environments/types'
 import type {} from '@deepseek-ai/dsh-goal'
@@ -224,22 +226,44 @@ export function implementerTranscript(implementer: EnvironmentRunImplementer): E
 }
 
 /**
+ * Total budget share one ladder claims, refusing a rung that claims a fraction
+ * no attempt could be allowed.
+ * @param ladder - the rungs the request named.
+ * @returns the summed shares; `0` for a ladder whose rungs all state none.
+ * @throws {@link EnvironmentRunError} for a share outside `(0, 1]`.
+ */
+function claimedShare(ladder: readonly EnvironmentRunRung[]): number {
+  let claimed = 0
+  for (const rung of ladder) {
+    if (rung.share === undefined) continue
+    if (!(rung.share > 0) || rung.share > 1) {
+      throw new EnvironmentRunError(`an attempt ladder rung share must be greater than 0 and at most 1, got ${String(rung.share)}`, 'ENVIRONMENT_RUN_INVALID_LADDER')
+    }
+    claimed += rung.share
+  }
+  return claimed
+}
+
+/**
  * Resolve one request's attempt ladder against the run's stamped model: the
- * concrete route of each attempt, in attempt order. It is the run's attempt
- * bound as well as its routing, so an empty ladder would be a run with no
- * attempt and a ladder past the deployment's ceiling a run the deployment never
- * allowed; both are refused here, before any agent exists.
+ * route and budget share of each attempt, in attempt order, as the stamp
+ * records them. It is the run's attempt bound as well as its routing, so an
+ * empty ladder would be a run with no attempt and a ladder past the
+ * deployment's ceiling a run the deployment never allowed; a ladder whose
+ * shares sum above the whole of the cell's caps would promise a rung a budget
+ * the earlier rungs already hold. All three are refused here, before any agent
+ * exists.
  * @param ladder - the rungs the request named, absent for a run without one.
  * @param model - the run's stamped route, which a rung naming no model runs on.
  * @param maxRungs - rungs this deployment lets one ladder reach.
- * @returns one model route per attempt, or `undefined` for a request that named no ladder.
- * @throws {@link EnvironmentRunError} for an empty ladder and for one past the ceiling.
+ * @returns one stamped rung per attempt, or `undefined` for a request that named no ladder.
+ * @throws {@link EnvironmentRunError} for an empty ladder, one past the ceiling, and one whose shares are unusable.
  */
 export function resolveLadder(
   ladder: readonly EnvironmentRunRung[] | undefined,
   model: EnvironmentRunModel,
   maxRungs: number,
-): readonly EnvironmentRunModel[] | undefined {
+): readonly EnvironmentRunStampRung[] | undefined {
   if (ladder === undefined) return undefined
   if (ladder.length === 0) {
     throw new EnvironmentRunError('an attempt ladder must name at least one rung', 'ENVIRONMENT_RUN_INVALID_LADDER')
@@ -247,12 +271,28 @@ export function resolveLadder(
   if (ladder.length > maxRungs) {
     throw new EnvironmentRunError(`an attempt ladder of ${ladder.length} rungs exceeds the configured ceiling of ${maxRungs}`, 'ENVIRONMENT_RUN_INVALID_LADDER')
   }
-  return ladder.map(rung => rung.model ?? model)
+  const claimed = claimedShare(ladder)
+  if (claimed > 1) {
+    throw new EnvironmentRunError(`an attempt ladder's rung shares claim ${claimed} of the cell's caps, which is more than the whole of them`, 'ENVIRONMENT_RUN_INVALID_LADDER')
+  }
+  return ladder.map(rung => ({
+    ...rung.model ?? model,
+    ...rung.share === undefined ? {} : { share: rung.share },
+  }))
+}
+
+/** The model route one stamped rung names, without the budget share recorded beside it. */
+function rungRoute(rung: EnvironmentRunStampRung): EnvironmentRunModel {
+  return { provider: rung.provider, model: rung.model }
 }
 
 /** One run's implementer with the services a delegated one needs already resolved. */
 type RunImplementer =
-  | { readonly kind: 'route' }
+  | {
+    readonly kind: 'route'
+    /** The budget policy whose caps bound the cell, absent in a composition that composes none. */
+    readonly budgets: SessionBudgets | undefined
+  }
   | {
     readonly kind: 'subagent'
     readonly provider: string
@@ -272,6 +312,8 @@ interface AttemptDelivery {
   readonly restatedTask: boolean
   /** The attempt's ladder rung, which is the run's stamped model where it named no ladder. */
   readonly model: EnvironmentRunModel
+  /** The share of the cell's caps this attempt may consume, absent for a rung that claims none. */
+  readonly share?: number
   /** Cancellation of the enclosing run. */
   readonly signal?: AbortSignal
 }
@@ -899,8 +941,18 @@ function pinnedSampling(seed: number | undefined, topP: number | undefined): Age
 const DEADLINE_OVERSHOOT_MS = 1
 
 /**
+ * The wall budget one delegated attempt runs under.
+ * @param cell - what the cell has left of its wall cap, absent under no wall cap.
+ * @param share - the attempt's share of that cap, absent for a rung claiming none.
+ * @returns the smaller of the two, or `undefined` when no wall cap applies.
+ */
+function tighterWall(cell: number | undefined, share: number | undefined): number | undefined {
+  return cell === undefined || share === undefined ? cell : Math.min(cell, share)
+}
+
+/**
  * The cancellation one delegated attempt runs under: the run's own signal, plus
- * the wall budget its cell has left. One controller owns both, so a caller
+ * the wall budget the attempt was given. One controller owns both, so a caller
  * reads `expired` to tell which of the two ended the attempt and disposes the
  * timer on every path.
  */
@@ -913,18 +965,18 @@ class DelegationDeadline {
   private fired = false
 
   /**
-   * @param remainingWallMs - wall budget the cell has left, absent when no wall cap applies.
+   * @param wallMs - wall budget the attempt was given, absent when no wall cap applies.
    * @param signal - the run's own cancellation, absent for a run that carries none.
    */
-  constructor(remainingWallMs: number | undefined, signal: AbortSignal | undefined) {
-    this.timer = remainingWallMs === undefined ? undefined : setTimeout(() => {
+  constructor(wallMs: number | undefined, signal: AbortSignal | undefined) {
+    this.timer = wallMs === undefined ? undefined : setTimeout(() => {
       this.fired = true
       this.controller.abort()
-    }, Math.max(remainingWallMs, 0) + DEADLINE_OVERSHOOT_MS)
+    }, Math.max(wallMs, 0) + DEADLINE_OVERSHOOT_MS)
     this.signal = signal === undefined ? this.controller.signal : AbortSignal.any([signal, this.controller.signal])
   }
 
-  /** Whether the cell's wall budget, rather than the run's own signal, ended the attempt. */
+  /** Whether the attempt's wall budget, rather than the run's own signal, ended the attempt. */
   get expired(): boolean {
     return this.fired
   }
@@ -941,8 +993,10 @@ class DelegationDeadline {
  * `blocked` is the delegated counterpart of the stopped step a route cell gets:
  * no implementer ran, so the workspace is exactly what the previous attempt's
  * validation already measured and the run ends without measuring it again.
- * `cut-short` ran an implementer the wall deadline then cancelled, so the tree
- * it left is validated before the run ends.
+ * `cut-short` ran an implementer the cell's own wall deadline then cancelled,
+ * so the tree it left is validated before the run ends. An implementer stopped
+ * at its rung's share of that deadline is `ran`, because the cell still holds
+ * the rest of its budget for the next rung.
  */
 type AttemptOutcome = 'ran' | 'cut-short' | 'blocked'
 
@@ -1036,10 +1090,11 @@ export class EnvironmentRunner extends Service {
    *   certificate when one run passed, the accumulated usage, and the caps the
    *   cell ran under.
    * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
-   *   is not a safe non-negative integer, an empty or over-long attempt ladder,
-   *   an implementer provider the composition does not hold, cannot confine, or
-   *   has no budget policy to bound, an unusable workspace or fixture, an
-   *   implementer that replaced the goal, or a lost standard.
+   *   is not a safe non-negative integer, an attempt ladder that is empty, past
+   *   the ceiling, unusably shared, or shared where no budget policy is
+   *   composed, an implementer provider the composition does not hold, cannot
+   *   confine, or has no budget policy to bound, an unusable workspace or
+   *   fixture, an implementer that replaced the goal, or a lost standard.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
@@ -1052,10 +1107,15 @@ export class EnvironmentRunner extends Service {
     const requested = resolveImplementer(request)
     const requestedModel = request.model ?? this.defaultModel()
     const ladder = resolveLadder(request.ladder, requestedModel, this.resolved.maxLadderRungs)
+    const first = ladder?.[0]
     // The stamp names the route the run STARTS on, so a laddered arm and an
     // unladdered one on the same first rung stay comparable at their first attempt.
-    const model = ladder?.[0] ?? requestedModel
+    const model = first === undefined ? requestedModel : rungRoute(first)
     const implementer = this.requireImplementer(requested, model)
+    const shared = ladder !== undefined && ladder.some(rung => rung.share !== undefined)
+    if (shared && implementer.budgets === undefined) {
+      throw new EnvironmentRunError('an attempt ladder rung share is a share of the caps the cell runs under, and this composition has no budget policy to state them', 'ENVIRONMENT_RUN_INVALID_LADDER')
+    }
     const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const stamp: EnvironmentRunStamp = {
       kind: 'environment/run',
@@ -1148,7 +1208,7 @@ export class EnvironmentRunner extends Service {
    *   bound its attempts.
    */
   private requireImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): RunImplementer {
-    if (implementer.kind === 'route') return implementer
+    if (implementer.kind === 'route') return { kind: 'route', budgets: this.ctx.get('sessionBudgets') }
     const { provider: name, label } = implementer
     const subagents = this.ctx.get('subagents')
     if (subagents === undefined) {
@@ -1224,8 +1284,9 @@ export class EnvironmentRunner extends Service {
   /**
    * Stamp, goal, standard, then the attempt loop; the session is flushed on
    * every path. The stamp is the authority on the run's routing: its `ladder`
-   * gives both the attempt bound and the route of each attempt, and a run
-   * without one gives every attempt the stamped model under the configured
+   * gives the attempt bound, the route of each attempt, and the share of the
+   * cell's caps each attempt may spend, and a run without one gives every
+   * attempt the stamped model and the whole of those caps under the configured
    * `maxAttempts`.
    */
   private async drive(
@@ -1265,7 +1326,8 @@ export class EnvironmentRunner extends Service {
     const maxAttempts = stamp.ladder?.length ?? this.resolved.maxAttempts
     try {
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-        const model = stamp.ladder?.[attempt - 1] ?? stamp.model
+        const rung = stamp.ladder?.[attempt - 1]
+        const model = rung === undefined ? stamp.model : rungRoute(rung)
         // The route implementer reads its selection as each step enters prompt
         // assembly, so the rung is applied before the attempt's first step and
         // the step's own request header records what it was asked for.
@@ -1274,13 +1336,15 @@ export class EnvironmentRunner extends Service {
           attempt,
           ...attemptText(implementer, definition.task.prompt, directive),
           model,
+          ...rung?.share === undefined ? {} : { share: rung.share },
           ...request.signal === undefined ? {} : { signal: request.signal },
         }
         // An exhausted budget blocks every attempt it did not pay for, which is
         // what makes a delegated cell that ran out a failed cell rather than a
         // longer one. A blocked attempt left the workspace exactly as the last
         // validation already measured it, so the run ends without measuring it
-        // again.
+        // again. An attempt that spent only its own share of that budget ends
+        // like any other, and the next rung runs on what the cell has left.
         const outcome = await this.implement(agent, implementer, delivery)
         if (outcome === 'blocked') break
         const standard = this.currentStandard(agent, goal.id)
@@ -1333,10 +1397,12 @@ export class EnvironmentRunner extends Service {
   /**
    * Hand one attempt's text to the implementer and wait for its work to end:
    * one user turn on the cell agent for a route run, one child run on the
-   * named provider for a delegated one.
+   * named provider for a delegated one. A rung that claims a share of the
+   * cell's caps is bounded to it for exactly that work, whichever implementer
+   * does it, and the bound is released before the validation that follows.
    * @param agent - the cell agent, which drives a route attempt and parents a delegated one.
    * @param implementer - who does the work of this attempt.
-   * @param delivery - the attempt number, its text, its route, and the run's cancellation.
+   * @param delivery - the attempt number, its text, its route, its budget share, and the run's cancellation.
    * @returns how the attempt ended, which decides whether the run continues.
    */
   private async implement(
@@ -1344,17 +1410,27 @@ export class EnvironmentRunner extends Service {
     implementer: RunImplementer,
     delivery: AttemptDelivery,
   ): Promise<AttemptOutcome> {
-    switch (implementer.kind) {
-      case 'route':
-        // A route attempt proposes steps, so the policy's own pre-step check
-        // measures and stops it without the runner asking.
-        await this.deliver(agent, delivery.text)
-        return 'ran'
-      case 'subagent':
-        return this.delegate(agent, implementer, delivery)
-      /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
-      default:
-        return assertNever(implementer, 'run implementer')
+    const { budgets } = implementer
+    const { share } = delivery
+    // A run whose ladder claims a share is refused without a budget policy, so
+    // an attempt with a share always has one to take its share of.
+    const budget = budgets === undefined || share === undefined ? undefined : budgets.boundAttempt(agent, share)
+    try {
+      switch (implementer.kind) {
+        case 'route':
+          // A route attempt proposes steps, so the policy's own pre-step check
+          // measures and stops it — at the cell's caps, and at the attempt's
+          // share of them while this bound stands — without the runner asking.
+          await this.deliver(agent, delivery.text)
+          return 'ran'
+        case 'subagent':
+          return await this.delegate(agent, implementer, delivery, budget)
+        /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
+        default:
+          return assertNever(implementer, 'run implementer')
+      }
+    } finally {
+      budget?.dispose()
     }
   }
 
@@ -1388,20 +1464,30 @@ export class EnvironmentRunner extends Service {
    * signal, so an attempt that would outlast the cap is cancelled at it,
    * recorded as `budget-deadline`, and followed by the breach it caused.
    *
+   * A rung claiming a share of the caps is bounded twice over: the smaller of
+   * the cell's remaining wall budget and the attempt's share of the wall cap is
+   * the deadline, and what the child reported spending is measured against the
+   * attempt's whole ceiling once it is charged. A child stopped by its own
+   * share leaves the cell's caps unspent, so the run validates its tree and
+   * moves to the next rung; only the cell's own caps end the cell.
+   *
    * @param agent - the cell agent, which is the delegating parent and holds the durable record.
    * @param implementer - the provider, its optional label, and the resolved services.
    * @param delivery - the attempt number, its text, its rung, whether that text restated the task, and the run's cancellation.
+   * @param budget - the ceilings this attempt's share armed, absent for a rung claiming none.
    * @returns how the attempt ended, which decides whether the run continues.
    */
   private async delegate(
     agent: Agent,
     implementer: Extract<RunImplementer, { kind: 'subagent' }>,
     delivery: AttemptDelivery,
+    budget: AttemptBudget | undefined,
   ): Promise<AttemptOutcome> {
     const { budgets } = implementer
     const before = budgets.enforce(agent)
     if (before.breach !== undefined) return 'blocked'
-    const deadline = new DelegationDeadline(before.remainingWallMs, delivery.signal)
+    const wallMs = tighterWall(before.remainingWallMs, budget?.wallMs)
+    const deadline = new DelegationDeadline(wallMs, delivery.signal)
     try {
       await this.startAndRecord(agent, implementer, delivery, deadline)
     } catch (error: unknown) {
@@ -1412,11 +1498,14 @@ export class EnvironmentRunner extends Service {
     } finally {
       deadline.dispose()
     }
+    // The deadline, and the spend a bounded child has now been charged with,
+    // are what the next measurement would otherwise see only after the run
+    // moved on, so the breach either causes is recorded here.
+    if (budget !== undefined || deadline.expired) budgets.enforce(agent)
     if (!deadline.expired) return 'ran'
-    // The deadline, not the next measurement, is what ended this run, so the
-    // breach is recorded here rather than before an attempt that never starts.
-    budgets.enforce(agent)
-    return 'cut-short'
+    // The attempt's own share of the wall cap ends the attempt; what the cell
+    // had left of that cap ends the cell.
+    return wallMs === budget?.wallMs ? 'ran' : 'cut-short'
   }
 
   /**

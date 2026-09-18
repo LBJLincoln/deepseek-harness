@@ -108,10 +108,14 @@ function costCell(row: ObservatoryPublishedRow): string {
   return `€${row.costEurPerCertified.toFixed(6)} · ${row.pricingDigest}`
 }
 
-/** The ladder cell: the rungs in attempt order, or the phrase for a row that laddered none. */
+/**
+ * The ladder cell: the rungs in attempt order, each with the share of the
+ * cell's caps it claimed, or the phrase for a row that laddered none.
+ */
 function ladderCell(row: ObservatoryPublishedRow): string {
   const ladder = row.ladder
-  return ladder === undefined ? 'none' : ladder.map(rung => `${rung.provider}/${rung.model}`).join(' → ')
+  if (ladder === undefined) return 'none'
+  return ladder.map(rung => `${rung.provider}/${rung.model}${rung.share === undefined ? '' : ` @${rung.share}`}`).join(' → ')
 }
 
 /** The fourteen cells of one published row, in column order. */

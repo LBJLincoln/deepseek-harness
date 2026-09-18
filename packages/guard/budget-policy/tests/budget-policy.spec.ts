@@ -475,6 +475,84 @@ describe('ctx.sessionBudgets', () => {
   })
 })
 
+describe('SessionBudgets.boundAttempt', () => {
+  it('bounds the work to a share of each cap, records its breach apart, and leaves the goal active', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 100 })
+    const goal = ctx.goals.create(agent, { objective: 'Spend a share of the budget.' })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    const bound = budgets.boundAttempt(agent, 0.5)
+    expect(bound).not.toHaveProperty('wallMs')
+
+    appendPricedStep(session, 1, { inputTokens: 40, outputTokens: 20 })
+    expect(budgets.enforce(agent).breach)
+      .toEqual({ cap: 'maxTotalTokens', measured: 60, limit: 50, scope: 'attempt' })
+    // The session's own cap is untouched, so nothing blocks the goal.
+    expect(ctx.goals.get(agent)).toMatchObject({ id: goal.id, phase: 'active' })
+
+    bound.dispose()
+    expect(budgets.enforce(agent).breach).toBeUndefined()
+  })
+
+  it('measures each ceiling from the session caps rather than from what is left of them', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 100 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+
+    const first = budgets.boundAttempt(agent, 0.4)
+    appendPricedStep(session, 1, { inputTokens: 20, outputTokens: 10 })
+    expect(budgets.enforce(agent).breach).toBeUndefined()
+    first.dispose()
+
+    // The second bound allows its whole share again, starting from the 30
+    // tokens the first one spent, rather than a share of the 70 left.
+    const second = budgets.boundAttempt(agent, 0.4)
+    appendPricedStep(session, 2, { inputTokens: 25, outputTokens: 10 })
+    expect(budgets.enforce(agent).breach).toBeUndefined()
+    appendPricedStep(session, 3, { inputTokens: 5, outputTokens: 2 })
+    expect(budgets.enforce(agent).breach)
+      .toEqual({ cap: 'maxTotalTokens', measured: 72, limit: 70, scope: 'attempt' })
+    second.dispose()
+  })
+
+  it('states the wall budget a share allows and reports the session cap ahead of it', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 10, maxWallMs: 60_000 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    const bound = budgets.boundAttempt(agent, 0.25)
+    expect(bound.wallMs).toBe(15_000)
+
+    appendPricedStep(session, 1, { inputTokens: 8, outputTokens: 5 })
+    const breach = budgets.enforce(agent).breach
+    expect(breach).toEqual({ cap: 'maxTotalTokens', measured: 13, limit: 10 })
+    expect(breach).not.toHaveProperty('scope')
+    bound.dispose()
+  })
+
+  it('bounds nothing on a session the deployment caps at nothing', async () => {
+    const { ctx, agent, session } = await harness()
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    const bound = budgets.boundAttempt(agent, 1)
+    expect(bound).not.toHaveProperty('wallMs')
+    appendPricedStep(session, 1, { inputTokens: 500, outputTokens: 500 })
+    expect(budgets.enforce(agent)).toEqual({ caps: [] })
+    bound.dispose()
+  })
+
+  it('rejects the step at an attempt ceiling exactly as it does at a session cap', async () => {
+    const { ctx, agent, session } = await harness({ maxTotalTokens: 100 })
+    const budgets = ctx.get('sessionBudgets') as SessionBudgets
+    const bound = budgets.boundAttempt(agent, 0.1)
+    appendPricedStep(session, 1, { inputTokens: 8, outputTokens: 5 })
+
+    await expect(preStep(ctx, agent, 2)).resolves.toEqual({ kind: 'reject' })
+    expect(breaches(session).map(event => event.data))
+      .toEqual([{ cap: 'maxTotalTokens', measured: 13, limit: 10, scope: 'attempt' }])
+
+    // Released, the session runs on under the caps it has not spent.
+    bound.dispose()
+    await expect(preStep(ctx, agent, 3)).resolves.toEqual({ kind: 'enter', messages: [] })
+    expect(breaches(session)).toHaveLength(1)
+  })
+})
+
 describe('budget-policy enforcement', () => {
   it('delegates while every configured cap holds', async () => {
     const { ctx, agent, session } = await harness({ maxTotalTokens: 100, maxWallMs: 10_000_000 })

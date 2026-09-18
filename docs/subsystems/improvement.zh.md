@@ -79,14 +79,14 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
   /** Model route the run's first attempt ran on; every attempt of a run without a ladder ran on it. */
   readonly model: EnvironmentRunModel
   /**
-   * Model route of each attempt in attempt order, present only for a run the
-   * caller laddered. It is part of the arm's identity: a cell whose second
-   * attempt escalated to another model measures something a single-model cell
-   * does not, so a fold that groups by {@link model} alone would count the two
-   * together. Its first entry always equals {@link model}, and its length is
-   * the attempt bound that run was given.
+   * Each attempt's route and budget share in attempt order, present only for a
+   * run the caller laddered. It is part of the arm's identity: a cell whose
+   * second attempt escalated to another model measures something a single-model
+   * cell does not, so a fold that groups by {@link model} alone would count the
+   * two together. Its first entry's route always equals {@link model}, and its
+   * length is the attempt bound that run was given.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**
@@ -99,9 +99,30 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
 }
 ```
 
+盖章阶梯的每个档位携带其尝试所运行的路由；当调用方划分了 cell 的预算时，还携带该次尝试获准消耗的每项上限的份额。
+
+```ts type-equiv
+/**
+ * One rung of an attempt ladder as the stamp records it: the route that
+ * attempt ran on, and the share of the run's budget caps it was allowed.
+ */
+interface EnvironmentRunStampRung extends EnvironmentRunModel {
+  /**
+   * Fraction of each cap the run was bounded by that this attempt was allowed
+   * to consume, greater than 0 and at most 1, absent for an attempt that ran
+   * until the run's own caps ended it. It is part of the arm's identity: two
+   * ladders that divide one budget differently escalate differently, so a fold
+   * that groups by the routes alone would count them together.
+   */
+  readonly share?: number
+}
+```
+
 ### 尝试阶梯与记录稿接口
 
 一次运行请求可以为每次尝试命名一个档位。第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该次运行自己的 `model` 上；阶梯的长度就是该次运行的尝试上界，并覆盖组合的 `maxAttempts`。stamp 在 `model` 旁记录解析后的档位，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠看到该次运行从哪里开始，按 arm 分组的折叠看到整条升级路径；fleet 计划、实验 arm、记分员的事实与行，以及天文台的列都携带它，于是使用阶梯的 cell 绝不会被当作朴素的单模型 cell 计数。报告中的每次尝试都陈述它所运行的路由。
+
+档位还可以声明 `share`，即其尝试在被结束、运行转入下一档位之前，可以消耗的该 cell 所受每项上限的比例。该份额以 cell 的各项上限为基准度量，而不是以上限剩余量为基准，因此廉价的首个档位无法花掉后续档位获得的预算；同一条阶梯的各份额之和不得超过这些上限的全部。在自己份额处被停止的尝试会记录一条作用域为 attempt 的 `budget/breach`，它让 cell 的目标保持活跃；只有 cell 自身的上限才会结束 cell。[运行器 README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) 拥有各项拒绝，以及每种实现者如何被界定。
 
 两种实现者在阶梯上的行为不同，而这一差别以 `transcript` 记在每次尝试上。route 实现者保留其记录稿：每次尝试都是同一个 cell 会话的又一轮用户消息，因此模型读到自己此前的工作，并只收到 `<validation_failed>` 指令。subagent 实现者丢弃它：每次尝试都是一个全新的子进程，因此后续尝试的提示词会在指令之前重述任务陈述，其 `environment/delegation` 记录 `restatedTask`。进程外子进程上的 `keep` arm 需要 subagent 缝并未宣告的 provider 恢复能力，因此进程内的 `spawn` provider 充当 route 的 `drop` 对照。[运行器 README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) 拥有档位数上限、各项拒绝，以及每种实现者如何切换路由。
 
@@ -154,13 +175,13 @@ interface LeaderboardRow {
   readonly provider: string
   readonly model: string
   /**
-   * Model route of each attempt in attempt order, as the plan's ladder resolved
-   * it, absent for a row whose cells ran no ladder and for one whose cells all
-   * failed before a run. One plan runs one ladder, so a fleet row cannot mix a
-   * laddered cell with an unladdered one; the scoreboard, which folds across
-   * plans, keys its rows by it instead.
+   * Route and budget share of each attempt in attempt order, as the plan's
+   * ladder resolved it, absent for a row whose cells ran no ladder and for one
+   * whose cells all failed before a run. One plan runs one ladder, so a fleet
+   * row cannot mix a laddered cell with an unladdered one; the scoreboard,
+   * which folds across plans, keys its rows by it instead.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   readonly heldOut: boolean
@@ -313,13 +334,13 @@ interface ObservatoryPublishedRow {
   readonly provider: string
   readonly model: string
   /**
-   * Route of each attempt in attempt order, absent for a row whose sessions
-   * laddered none. It is published beside the route rather than folded into it:
-   * a cell that escalated to another model on its second attempt is not the
-   * same arm as one that stayed, and a page that showed only the first rung
-   * would read as if it were.
+   * Route and budget share of each attempt in attempt order, absent for a row
+   * whose sessions laddered none. It is published beside the route rather than
+   * folded into it: a cell that escalated to another model on its second
+   * attempt is not the same arm as one that stayed, and a page that showed only
+   * the first rung would read as if it were.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   /** District the row's sessions were stamped with, absent for a row outside every district. */
@@ -570,10 +591,11 @@ checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunMo
  *   certificate when one run passed, the accumulated usage, and the caps the
  *   cell ran under.
  * @throws {@link EnvironmentRunError} for an unknown environment, a seed that
- *   is not a safe non-negative integer, an empty or over-long attempt ladder,
- *   an implementer provider the composition does not hold, cannot confine, or
- *   has no budget policy to bound, an unusable workspace or fixture, an
- *   implementer that replaced the goal, or a lost standard.
+ *   is not a safe non-negative integer, an attempt ladder that is empty, past
+ *   the ceiling, unusably shared, or shared where no budget policy is
+ *   composed, an implementer provider the composition does not hold, cannot
+ *   confine, or has no budget policy to bound, an unusable workspace or
+ *   fixture, an implementer that replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -611,7 +633,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:989`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:1043`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -659,7 +681,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:403`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:418`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -749,7 +771,7 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:382`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:386`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 

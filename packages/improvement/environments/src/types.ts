@@ -101,6 +101,21 @@ export interface EnvironmentRunModel {
   readonly model: string
 }
 
+/**
+ * One rung of an attempt ladder as the stamp records it: the route that
+ * attempt ran on, and the share of the run's budget caps it was allowed.
+ */
+export interface EnvironmentRunStampRung extends EnvironmentRunModel {
+  /**
+   * Fraction of each cap the run was bounded by that this attempt was allowed
+   * to consume, greater than 0 and at most 1, absent for an attempt that ran
+   * until the run's own caps ended it. It is part of the arm's identity: two
+   * ladders that divide one budget differently escalate differently, so a fold
+   * that groups by the routes alone would count them together.
+   */
+  readonly share?: number
+}
+
 /** Content hashes of one environment as it was run; `fixtureSha256` is absent for a task without a fixture. */
 export interface EnvironmentContentHashes {
   /** SHA-256 hex of the task prompt. */
@@ -159,14 +174,14 @@ export interface EnvironmentRunStamp extends EnvironmentContentHashes {
   /** Model route the run's first attempt ran on; every attempt of a run without a ladder ran on it. */
   readonly model: EnvironmentRunModel
   /**
-   * Model route of each attempt in attempt order, present only for a run the
-   * caller laddered. It is part of the arm's identity: a cell whose second
-   * attempt escalated to another model measures something a single-model cell
-   * does not, so a fold that groups by {@link model} alone would count the two
-   * together. Its first entry always equals {@link model}, and its length is
-   * the attempt bound that run was given.
+   * Each attempt's route and budget share in attempt order, present only for a
+   * run the caller laddered. It is part of the arm's identity: a cell whose
+   * second attempt escalated to another model measures something a single-model
+   * cell does not, so a fold that groups by {@link model} alone would count the
+   * two together. Its first entry's route always equals {@link model}, and its
+   * length is the attempt bound that run was given.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   /** Isolation the deployment declared for the run's checks. */
   readonly isolation: CertificateIsolation
   /**

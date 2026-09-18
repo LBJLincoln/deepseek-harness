@@ -689,7 +689,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Run one environment as one fresh session and validate it.',
         parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, model route, attempt ladder, repetition, group, district, policy version, sampling seed, and abort signal.' }],
         returns: 'the stamp, the attempts with the route each ran on, the certificate when one run passed, the accumulated usage, and the caps the cell ran under.',
-        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an empty or over-long attempt ladder, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an attempt ladder that is empty, past the ceiling, unusably shared, or shared where no budget policy is composed, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
       },
       {
         signature: 'cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[]',
@@ -1467,8 +1467,14 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['{RangeError} when the session\'s log already accounts for `spend.ref`.'],
       },
       {
+        signature: 'boundAttempt(agent: Agent, share: number): AttemptBudget',
+        description: 'Bound the work about to start on one session to a share of the caps that session runs under, so it is stopped at its own ceiling instead of at the session\'s. Each ceiling is the spend the session has already made plus `share` of that cap\'s value, measured from the session\'s caps rather than from what is left of them, so dividing one cell between several units of work gives each the slice its caller chose whatever the earlier ones spent.\n\nOne bound stands per session at a time: arming a second replaces the first, and the disposer releases whichever is current. A session whose caps are empty is bounded by nothing, exactly as it is measured against nothing.',
+        parameters: [{ name: 'agent', description: 'the agent whose session the work is done for.' }, { name: 'share', description: 'the fraction of each cap the work may consume, greater than 0 and at most 1.' }],
+        returns: 'the wall-clock budget the work may consume and the disposer that releases the bound.',
+      },
+      {
         signature: 'enforce(agent: Agent): BudgetEnforcement',
-        description: 'Measure one session against its caps and, on the first cap it exceeds, record the breach and block the session\'s goal.\n\nThe goal domain is optional: a composition without `ctx.goals`, without a current goal, or whose goal already left the `active` phase still gets the durable breach record. Spend never decreases, so a caller that keeps going records one breach per attempt it turned away, exactly as a stopped step does.',
+        description: 'Measure one session against its caps and, on the first cap it exceeds, record the breach and block the session\'s goal. A session whose caps all hold is measured again against the ceilings any standing boundAttempt armed, whose breach stops that work alone and leaves the goal active.\n\nThe goal domain is optional: a composition without `ctx.goals`, without a current goal, or whose goal already left the `active` phase still gets the durable breach record. Spend never decreases, so a caller that keeps going records one breach per attempt it turned away, exactly as a stopped step does.',
         parameters: [{ name: 'agent', description: 'the agent whose session log carries the spend and its caps.' }],
         returns: 'the caps measured, the breach recorded if any, and the wall budget left.',
       },
@@ -3273,6 +3279,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type AttachmentId = Branded<\'AttachmentId\'>;',
   },
   {
+    name: 'AttemptBudget',
+    declaration: 'export interface AttemptBudget {\n    readonly wallMs?: number;\n    readonly dispose: () => void;\n}',
+  },
+  {
     name: 'AuthoredCheck',
     declaration: 'export interface AuthoredCheck extends StandardCheck {\n    readonly caseBodies?: readonly CheckCase[];\n}',
   },
@@ -3302,7 +3312,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BudgetBreach',
-    declaration: 'export interface BudgetBreach {\n    readonly cap: BudgetCapId;\n    readonly measured: number;\n    readonly limit: number;\n}',
+    declaration: 'export interface BudgetBreach {\n    readonly cap: BudgetCapId;\n    readonly measured: number;\n    readonly limit: number;\n    readonly scope?: BudgetBreachScope;\n}',
+  },
+  {
+    name: 'BudgetBreachScope',
+    declaration: 'export type BudgetBreachScope = \'session\' | \'attempt\';',
   },
   {
     name: 'BudgetCap',
@@ -3802,11 +3816,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunRung',
-    declaration: 'export interface EnvironmentRunRung {\n    readonly model?: EnvironmentRunModel;\n}',
+    declaration: 'export interface EnvironmentRunRung {\n    readonly model?: EnvironmentRunModel;\n    readonly share?: number;\n}',
   },
   {
     name: 'EnvironmentRunStamp',
-    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunModel[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer?: string;\n}',
+    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer?: string;\n}',
+  },
+  {
+    name: 'EnvironmentRunStampRung',
+    declaration: 'export interface EnvironmentRunStampRung extends EnvironmentRunModel {\n    readonly share?: number;\n}',
   },
   {
     name: 'EnvironmentRunTranscript',
@@ -4198,7 +4216,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LeaderboardRow',
-    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunModel[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly implementer?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
+    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly implementer?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
   {
     name: 'LlmAdapter',
@@ -4438,7 +4456,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ObservatoryPublishedRow',
-    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunModel[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
+    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
   },
   {
     name: 'ObservatoryRanking',
@@ -4810,7 +4828,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunModel[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4922,7 +4940,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsEnvironment',
-    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunModel[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n}',
+    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n}',
   },
   {
     name: 'SessionFactsIdentity',

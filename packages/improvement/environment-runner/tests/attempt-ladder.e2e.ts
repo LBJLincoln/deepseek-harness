@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import type { BudgetBreach } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
 
@@ -13,12 +14,15 @@ interface Cell {
   requestedModels: string[]
   prompts: string[]
   delegations: { attempt: number; restatedTask: boolean; runId: string }[]
+  breaches: BudgetBreach[]
+  goalBlocks: number
 }
 
 interface DriverResult {
   type: string
   route: Cell
   delegated: Cell
+  shared: Cell
   /** The runner's own messages in each delegated child's session, in attempt order. */
   childPrompts: string[][]
 }
@@ -76,5 +80,40 @@ describe('an attempt ladder through a real cordis.yml and headless process', () 
     // What the fresh children were actually asked to do: the task alone, then
     // the task again ahead of the directive the first attempt earned.
     expect(result.childPrompts).toEqual([[TASK], [`${TASK}\n\n${DIRECTIVE}`]])
+
+    // Neither cell touched the composition's caps, so neither recorded a breach.
+    expect(result.route.breaches).toEqual([])
+    expect(result.delegated.breaches).toEqual([])
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('ends the rung that spent its share and runs the next one on what the cell kept', async () => {
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'attempt-ladder-share',
+      tempDirPrefix: 'attempt-ladder-share-e2e-',
+      binScript,
+      libBinScript: binScript,
+      configPath,
+      binArgs: [configPath],
+      tsconfigPath: repoTsconfig,
+    })
+    expect(stderr).toBe('')
+    const { shared } = JSON.parse(stdout.trimEnd().split('\n').at(-1) ?? '') as DriverResult
+
+    // The first rung holds half a percent of the cell's 2,000-token cap, which
+    // one step of the mock route already exceeds: its second step is stopped at
+    // that ceiling and the second rung runs both of its own.
+    expect(shared.breaches).toEqual([{ cap: 'maxTotalTokens', measured: 16, limit: 10, scope: 'attempt' }])
+    expect(shared.requestedModels).toEqual(['cli-mock-small', 'cli-mock-large', 'cli-mock-large'])
+    expect(shared.prompts).toEqual([TASK, DIRECTIVE])
+
+    // The cell's own caps are untouched, so the goal stays active and the run
+    // fails on the standard it could never pass rather than on its budget.
+    expect(shared.goalBlocks).toBe(0)
+    expect(shared.report.certified).toBe(false)
+    expect(shared.report.attempts.map(attempt => attempt.model.model)).toEqual(['cli-mock-small', 'cli-mock-large'])
+    expect(shared.report.stamp.ladder).toEqual([
+      { provider: 'cli-mock', model: 'cli-mock-small', share: 0.005 },
+      { provider: 'cli-mock', model: 'cli-mock-large' },
+    ])
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

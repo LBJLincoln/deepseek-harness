@@ -76,6 +76,11 @@ describe('renderHtml', () => {
     expect(page({ rows: [row()] })).toContain('<td>none</td>')
     const escalating = [{ provider: 'cli-mock', model: 'small' }, { provider: 'cli-mock', model: 'large' }]
     expect(page({ rows: [row({ ladder: escalating })] })).toContain('<td>cli-mock/small → cli-mock/large</td>')
+
+    // A rung that held a share of the cell's caps names it, so two arms that
+    // divided one budget differently do not read alike either.
+    const shared = [{ provider: 'cli-mock', model: 'small', share: 0.25 }, { provider: 'cli-mock', model: 'large' }]
+    expect(page({ rows: [row({ ladder: shared })] })).toContain('<td>cli-mock/small @0.25 → cli-mock/large</td>')
   })
 
   it('prints pending where no composition digest covers the row and the digest where one does', () => {

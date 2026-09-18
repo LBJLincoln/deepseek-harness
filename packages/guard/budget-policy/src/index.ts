@@ -2,12 +2,14 @@
  * Session budget guard. Configured token, wall-clock, and cost caps are
  * measured against the durable session log before every proposed step; the
  * first cap the log exceeds is recorded as a `budget/breach` event, blocks any
- * active goal, and rejects the step so no further model request is made. Every
- * step served by a priced route also gets a durable `usage/priced` record, so
- * session cost replays from the log at the rates that priced it. The same
- * enforcement is published as `ctx.sessionBudgets` for a driver whose session
- * never proposes a step of its own because an implementer outside this process
- * does its work.
+ * active goal, and rejects the step so no further model request is made. A
+ * driver that divides one session between several units of work bounds each to
+ * a share of those caps, whose breach rejects the step and leaves the goal
+ * active. Every step served by a priced route also gets a durable
+ * `usage/priced` record, so session cost replays from the log at the rates that
+ * priced it. The same enforcement is published as `ctx.sessionBudgets` for a
+ * driver whose session never proposes a step of its own because an implementer
+ * outside this process does its work.
  *
  * @module @deepseek-ai/dsh-budget-policy
  */
@@ -234,11 +236,33 @@ export interface ForeignSpendRequest {
   readonly costUsd?: number
 }
 
+/**
+ * The ceilings one bounded unit of work runs under, as
+ * {@link SessionBudgets.boundAttempt} armed them, and the disposer that releases
+ * them. While the bound stands, {@link SessionBudgets.enforce} measures the
+ * session against it after the session's own caps, so work that overruns its
+ * share is stopped without the session's caps being spent.
+ */
+export interface AttemptBudget {
+  /**
+   * Milliseconds of wall-clock budget this work may consume, absent when the
+   * session runs under no wall cap. It is a duration from the instant the bound
+   * was armed, which a caller with no step of its own arms as a deadline.
+   */
+  readonly wallMs?: number
+  /** Release the bound, so the session's own caps alone measure what follows. */
+  readonly dispose: () => void
+}
+
 /** What one enforcement pass measured, and what it did about it. */
 export interface BudgetEnforcement {
   /** The caps the session runs under: the configured caps tightened by its own `budget/caps`. */
   readonly caps: readonly BudgetCap[]
-  /** The breach that was recorded and blocked the goal, absent while every cap holds. */
+  /**
+   * The breach that was recorded, absent while every ceiling holds. A `session`
+   * breach also blocked the goal; an `attempt` one stopped the bounded work
+   * alone.
+   */
   readonly breach?: BudgetBreach
   /**
    * Milliseconds of wall budget left when the pass ran, absent when no wall cap
@@ -260,6 +284,9 @@ export interface BudgetEnforcement {
  * restated by each driver.
  */
 export class SessionBudgets extends Service {
+  /** The ceilings the work in flight on one session is bounded to, while its bound stands. */
+  private readonly bounds = new WeakMap<Session, readonly BudgetCap[]>()
+
   /**
    * @param ctx - the context the service is registered in and disposed with.
    * @param resolved - the caps, pricing, and foreign rate this deployment enforces.
@@ -326,8 +353,39 @@ export class SessionBudgets extends Service {
   }
 
   /**
+   * Bound the work about to start on one session to a share of the caps that
+   * session runs under, so it is stopped at its own ceiling instead of at the
+   * session's. Each ceiling is the spend the session has already made plus
+   * `share` of that cap's value, measured from the session's caps rather than
+   * from what is left of them, so dividing one cell between several units of
+   * work gives each the slice its caller chose whatever the earlier ones spent.
+   *
+   * One bound stands per session at a time: arming a second replaces the first,
+   * and the disposer releases whichever is current. A session whose caps are
+   * empty is bounded by nothing, exactly as it is measured against nothing.
+   *
+   * @param agent - the agent whose session the work is done for.
+   * @param share - the fraction of each cap the work may consume, greater than 0 and at most 1.
+   * @returns the wall-clock budget the work may consume and the disposer that releases the bound.
+   */
+  boundAttempt(agent: Agent, share: number): AttemptBudget {
+    const { session } = agent
+    const caps = this.capsFor(session)
+    const spend = foldBudgetSpend(session.events, this.resolved.pricing)
+    this.bounds.set(session, caps.map(([cap, limit]) => [cap, measuredFor(spend, cap) + limit * share] as const))
+    const wall = caps.find(([cap]) => cap === 'maxWallMs')
+    return {
+      ...wall === undefined ? {} : { wallMs: wall[1] * share },
+      dispose: () => { this.bounds.delete(session) },
+    }
+  }
+
+  /**
    * Measure one session against its caps and, on the first cap it exceeds,
-   * record the breach and block the session's goal.
+   * record the breach and block the session's goal. A session whose caps all
+   * hold is measured again against the ceilings any standing
+   * {@link boundAttempt} armed, whose breach stops that work alone and leaves
+   * the goal active.
    *
    * The goal domain is optional: a composition without `ctx.goals`, without a
    * current goal, or whose goal already left the `active` phase still gets the
@@ -347,17 +405,27 @@ export class SessionBudgets extends Service {
       return { caps, ...remaining === undefined ? {} : { remainingWallMs: remaining } }
     }
     session.append('budget/breach', breach)
-    this.blockGoal(agent, breach)
+    if (breach.scope !== 'attempt') this.blockGoal(agent, breach)
     return { caps, breach, ...remaining === undefined ? {} : { remainingWallMs: remaining } }
   }
 
-  /** The first cap in {@link BUDGET_CAP_ORDER} the log exceeds, or `undefined` while every cap holds. */
+  /**
+   * The first ceiling the log exceeds, or `undefined` while every one holds.
+   * The session's own caps are measured first, so a session that spent its
+   * whole budget reports that rather than the share of it the bounded work was
+   * allowed. A bound is armed from those same caps, so an uncapped session
+   * carries no ceiling of either kind and its log is never read.
+   */
   private detect(session: Session, caps: readonly BudgetCap[]): BudgetBreach | undefined {
     if (caps.length === 0) return undefined
     const spend = foldBudgetSpend(session.events, this.resolved.pricing)
     for (const [cap, limit] of caps) {
       const measured = measuredFor(spend, cap)
       if (measured > limit) return { cap, measured, limit }
+    }
+    for (const [cap, limit] of this.bounds.get(session) ?? []) {
+      const measured = measuredFor(spend, cap)
+      if (measured > limit) return { cap, measured, limit, scope: 'attempt' }
     }
     return undefined
   }

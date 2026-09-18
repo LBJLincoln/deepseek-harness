@@ -44,7 +44,11 @@ The service converts this into the durable `usage/foreign` record: `usage` is bi
 interface BudgetEnforcement {
   /** The caps the session runs under: the configured caps tightened by its own `budget/caps`. */
   readonly caps: readonly BudgetCap[]
-  /** The breach that was recorded and blocked the goal, absent while every cap holds. */
+  /**
+   * The breach that was recorded, absent while every ceiling holds. A `session`
+   * breach also blocked the goal; an `attempt` one stopped the bounded work
+   * alone.
+   */
   readonly breach?: BudgetBreach
   /**
    * Milliseconds of wall budget left when the pass ran, absent when no wall cap
@@ -56,6 +60,30 @@ interface BudgetEnforcement {
 ```
 
 `enforce` is the one place a `budget/breach` is written and a goal is blocked for an exhausted budget, so the policy's own pre-step listener and a driver measuring a delegated attempt produce the same durable record. `remainingWallMs` is measured from the log's first event, the same anchor `maxWallMs` spans, so a caller arming it as a deadline stops work exactly when the measured span would reach the cap.
+
+## `AttemptBudget`
+
+```ts type-equiv
+/**
+ * The ceilings one bounded unit of work runs under, as
+ * {@link SessionBudgets.boundAttempt} armed them, and the disposer that releases
+ * them. While the bound stands, {@link SessionBudgets.enforce} measures the
+ * session against it after the session's own caps, so work that overruns its
+ * share is stopped without the session's caps being spent.
+ */
+interface AttemptBudget {
+  /**
+   * Milliseconds of wall-clock budget this work may consume, absent when the
+   * session runs under no wall cap. It is a duration from the instant the bound
+   * was armed, which a caller with no step of its own arms as a deadline.
+   */
+  readonly wallMs?: number
+  /** Release the bound, so the session's own caps alone measure what follows. */
+  readonly dispose: () => void
+}
+```
+
+`boundAttempt` divides one session between several units of work: each ceiling is the spend the session has already made plus the caller's `share` of that cap, measured from the caps rather than from what is left of them, so the slice a caller chose is the slice it gets whatever the earlier units spent. One bound stands per session at a time. A breach of one carries `scope: 'attempt'`, rejects the step like any other, and leaves the goal active, so the session runs on under caps it has not spent; a breach of the session's own caps still blocks the goal. The [environment runner](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) is its consumer: each rung of an attempt ladder may claim a share of the cell it runs in.
 
 The `budget/caps`, `budget/breach`, `usage/priced`, and `usage/foreign` payloads are in the [persistence catalog](../persistence-catalog.md), which owns every durable session event.
 
@@ -111,8 +139,29 @@ pricesForeignCost(): boolean
 recordForeignSpend(session: Session, spend: ForeignSpendRequest): boolean
 
 /**
+ * Bound the work about to start on one session to a share of the caps that
+ * session runs under, so it is stopped at its own ceiling instead of at the
+ * session's. Each ceiling is the spend the session has already made plus
+ * `share` of that cap's value, measured from the session's caps rather than
+ * from what is left of them, so dividing one cell between several units of
+ * work gives each the slice its caller chose whatever the earlier ones spent.
+ *
+ * One bound stands per session at a time: arming a second replaces the first,
+ * and the disposer releases whichever is current. A session whose caps are
+ * empty is bounded by nothing, exactly as it is measured against nothing.
+ *
+ * @param agent - the agent whose session the work is done for.
+ * @param share - the fraction of each cap the work may consume, greater than 0 and at most 1.
+ * @returns the wall-clock budget the work may consume and the disposer that releases the bound.
+ */
+boundAttempt(agent: Agent, share: number): AttemptBudget
+
+/**
  * Measure one session against its caps and, on the first cap it exceeds,
- * record the breach and block the session's goal.
+ * record the breach and block the session's goal. A session whose caps all
+ * hold is measured again against the ceilings any standing
+ * {@link boundAttempt} armed, whose breach stops that work alone and leaves
+ * the goal active.
  *
  * The goal domain is optional: a composition without `ctx.goals`, without a
  * current goal, or whose goal already left the `active` phase still gets the
@@ -128,5 +177,5 @@ enforce(agent: Agent): BudgetEnforcement
 
 Types: [Agent](core.md) · [Session](session.md)
 
-Source: [`packages/guard/budget-policy/src/index.ts:262`](../../packages/guard/budget-policy/src/index.ts)
+Source: [`packages/guard/budget-policy/src/index.ts:286`](../../packages/guard/budget-policy/src/index.ts)
 <!-- END GENERATED cordis-surface -->

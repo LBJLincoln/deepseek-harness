@@ -233,6 +233,7 @@ export const EVENT_WALK_EXEMPTIONS: Record<string, string> = {
  */
 export const LINK_MAP: Readonly<Record<string, string>> = {
   Agent: 'core.md',
+  AttemptBudget: 'guard.md',
   BudgetCap: 'guard.md',
   BudgetEnforcement: 'guard.md',
   ForeignSpendRequest: 'guard.md',

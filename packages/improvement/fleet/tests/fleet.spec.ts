@@ -7,7 +7,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunImplementer, EnvironmentRunReport, EnvironmentRunRequest } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
-import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
@@ -114,17 +114,26 @@ interface ReportShape {
 }
 
 /** The rungs a laddered request resolves to, or `undefined` for a request that named none. */
-function ladderOf(request: EnvironmentRunRequest, model: EnvironmentRunModel): EnvironmentRunModel[] | undefined {
-  return request.ladder?.map(rung => rung.model ?? model)
+function ladderOf(request: EnvironmentRunRequest, model: EnvironmentRunModel): EnvironmentRunStampRung[] | undefined {
+  return request.ladder?.map(rung => ({
+    ...rung.model ?? model,
+    ...rung.share === undefined ? {} : { share: rung.share },
+  }))
+}
+
+/** The route one stamped rung names, without the budget share recorded beside it. */
+function routeOf(rung: EnvironmentRunStampRung): EnvironmentRunModel {
+  return { provider: rung.provider, model: rung.model }
 }
 
 function report(request: EnvironmentRunRequest, shape: ReportShape): EnvironmentRunReport {
   const model = request.model ?? DEFAULT_MODEL
   const count = shape.attempts ?? 1
   const ladder = ladderOf(request, model)
+  const first = ladder?.[0]
   const attempts = Array.from({ length: count }, (_, index) => ({
     attempt: index + 1,
-    model: ladder?.[index] ?? model,
+    model: ladder?.[index] === undefined ? model : routeOf(ladder[index]),
     transcript: request.implementer?.kind === 'subagent' ? 'dropped' as const : 'kept' as const,
     results: [{
       checkId: CheckId('check'),
@@ -147,7 +156,7 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
       contentSha256: HEX,
       repetition: request.repetition ?? 0,
       ...request.group === undefined ? {} : { group: request.group },
-      model: ladder?.[0] ?? model,
+      model: first === undefined ? model : routeOf(first),
       ...ladder === undefined ? {} : { ladder },
       isolation: 'process',
       ...shape.unstampedImplementer === true
@@ -281,17 +290,19 @@ describe('FleetService', () => {
   it('forwards the plan\'s attempt ladder to every cell and folds the rungs onto the row', async () => {
     const { ctx, plan } = await harness()
     StubRuns.current.script = request => report(request, { certified: true, attempts: 2 })
-    const ladder = [{}, { model: MODEL_B }]
+    const ladder = [{ share: 0.25 }, { model: MODEL_B }]
     const result = await ctx.fleet.run(plan({ ladder, models: [MODEL_A], repetitions: 1 }))
 
     expect(StubRuns.current.requests.map(request => request.ladder)).toEqual([ladder, ladder])
-    // The row states the escalation, so a laddered row never reads as a
-    // single-model one; the route column stays the first rung.
+    // The row states the escalation and the budget each rung was given, so a
+    // laddered row never reads as a single-model one and two arms that divided
+    // one cell budget differently never read alike; the route column stays the
+    // first rung.
     expect(result.leaderboard.map(entry => [entry.model, entry.ladder])).toEqual([
-      ['a', [MODEL_A, MODEL_B]],
-      ['a', [MODEL_A, MODEL_B]],
+      ['a', [{ ...MODEL_A, share: 0.25 }, MODEL_B]],
+      ['a', [{ ...MODEL_A, share: 0.25 }, MODEL_B]],
     ])
-    expect(leaderboardMarkdown(result)).toContain('| mock/a | mock/a > mock/b | route | smoke:round-trip |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | mock/a @0.25 > mock/b | route | smoke:round-trip |')
 
     // A plan that names none leaves the column off the row entirely.
     const plain = await harness()

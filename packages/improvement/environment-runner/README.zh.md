@@ -60,7 +60,11 @@
 
 `ladder` 按尝试顺序为每次尝试命名一个档位：第 `i` 次尝试运行在 `ladder[i - 1].model` 上，未命名模型的档位运行在请求自身的 `model` 上。存在时，阶梯的长度就是该次运行的尝试上界，并覆盖组合的 `maxAttempts`——因为选择了每次尝试跑哪个模型的调用方，就是选择了一共有几次尝试的调用方。`resolveLadder(ladder, model, maxRungs)` 是导出的解析步骤；空阶梯与超过 `maxLadderRungs` 的阶梯都在任何 agent 存在之前以 `ENVIRONMENT_RUN_INVALID_LADDER` 失败。
 
-stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠仍能看到该次运行从哪里开始，按 arm 分组的折叠则能看到整条升级路径。每条 `EnvironmentRunAttempt` 都陈述它所运行的 `model` 与它所处的 `transcript`。route 实现者通过运行器安装在 cell agent 上的模型选择切换路由，并在该次尝试的第一步之前生效；委派实现者则以该档位的模型 id 启动子进程，因为 provider 命名的是它自己的模型，档位中的 harness `provider` 是关于路由的事实，而不是交给 provider 的参数。
+档位还可以声明 `share`，即其尝试在被结束、运行转入下一档位之前，可以消耗的该 cell 所受每项上限——token、挂钟与成本——的比例。该份额以 cell 的各项上限为基准度量，而不是以上限剩余量为基准，因此廉价的首个档位无法花掉后续档位获得的预算；`[{ share: 0.3 }, {}]` 把该 cell 的十分之三给第一次尝试，其余留给第二次。未声明份额的档位一直运行到 cell 自身的上限结束它，并随之结束该 cell。`ENVIRONMENT_RUN_INVALID_LADDER` 同样拒绝落在 `(0, 1]` 之外的份额、各份额之和超过 1 的阶梯，以及在没有预算策略可供分割份额的组合中出现的任何份额——全都在任何 agent 存在之前。
+
+受界定的尝试在自己的上限处被停止，该上限是 cell 已经花掉的量加上每项上限的份额：运行器通过 [`ctx.sessionBudgets.boundAttempt`](../../guard/budget-policy/README.md#ctxsessionbudgets) 恰好为该次尝试设置它，并在验证之前释放。这一停止会记录携带 `scope: 'attempt'` 的 `budget/breach`，它驳回该 step 或取消子进程，而不阻塞 cell 的 goal；随后运行器像在任何一次尝试之后那样验证这次尝试留下的树，并转入下一档位。cell 自身的上限仍然结束该 cell，其越限不携带作用域并会阻塞 goal，因此耗尽预算的 cell 仍是失败的 cell，而不是耗时更久的 cell。
+
+stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠仍能看到该次运行从哪里开始，按 arm 分组的折叠则能看到整条升级路径。每个被盖章的档位携带其尝试所运行的路由，以及它获准使用的 `share`，因此两条以不同方式划分同一 cell 预算的阶梯是两个 arm。每条 `EnvironmentRunAttempt` 都陈述它所运行的 `model` 与它所处的 `transcript`。route 实现者通过运行器安装在 cell agent 上的模型选择切换路由，并在该次尝试的第一步之前生效；委派实现者则以该档位的模型 id 启动子进程，因为 provider 命名的是它自己的模型，档位中的 harness `provider` 是关于路由的事实，而不是交给 provider 的参数。
 
 模型可见与已记录仍然等价：模型被要求成为什么，写在每一步的请求头里，而 cell 会话本就记录它；尝试记录与 stamp 陈述的是所要求的内容，而非 provider 实际运行的内容。委派尝试的 `environment/delegation` 携带子进程的 `reportedModel`，正是出于同一原因。
 
@@ -96,8 +100,8 @@ route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/REA
 每次尝试前后，运行器都通过 `ctx.sessionBudgets` 做三件事：
 
 1. **在尝试之前度量。** `enforce(agent)` 在子进程启动之前运行，pre-step 检查也在同一位置。该 cell 已超出的上限会记录 `budget/breach`、阻塞 goal，并结束运行：不启动任何子进程，也不再度量工作区，因为上一次尝试的验证度量的正是这棵树。耗尽预算的 cell 是失败的 cell，而不是耗时更久的 cell——而在耗尽预算的那次尝试中通过认证的 cell 仍然完成，因为工作做完之后没有任何环节再度量它。
-2. **设置挂钟预算。** `remainingWallMs` 成为子进程取消信号上的截止时限，比上限多一毫秒，使记录下来的跨度严格超过它。被截止时限终止的尝试记录 `stopReason: 'budget-deadline'`，这正是把该 cell 自身的预算与操作者取消同样会产生的 seam `aborted` 区分开的标志。这次尝试做过工作，因此它留下的树会被验证，而截止时限触发时记录的 `budget/breach` 随后结束本次运行。因截止时限已触发而被 provider 拒绝启动的子进程不留下委派记录；越限就是那条记录。
-3. **计入子进程的花费。** `recordForeignSpend` 为每次子运行写入一条 `usage/foreign`——进程外子进程用 `reportedUsage`，其余用进程内子进程求和得到的 `usage`，并把 `reportedCostUsd` 按部署的 `foreignCostEurPerUsd` 换算。预算折叠会把它计入，因此从下一次尝试的度量起，`maxTotalTokens` 与成本上限约束委派 cell 的方式，与它们约束 route cell 完全相同。
+2. **设置挂钟预算。** `remainingWallMs` 与该次尝试所获挂钟上限份额中较小的那个，成为子进程取消信号上的截止时限，比它多一毫秒，使记录下来的跨度严格超过该上限。被截止时限终止的尝试记录 `stopReason: 'budget-deadline'`，这正是把预算与操作者取消同样会产生的 seam `aborted` 区分开的标志。这次尝试做过工作，因此它留下的树会被验证；随后，cell 自身的剩余预算会结束本次运行，而档位的份额只结束该次尝试，下一档位在 cell 保留下来的预算上运行。因截止时限已触发而被 provider 拒绝启动的子进程不留下委派记录；越限就是那条记录。
+3. **计入子进程的花费。** `recordForeignSpend` 为每次子运行写入一条 `usage/foreign`——进程外子进程用 `reportedUsage`，其余用进程内子进程求和得到的 `usage`，并把 `reportedCostUsd` 按部署的 `foreignCostEurPerUsd` 换算。预算折叠会把它计入，因此从下一次尝试的度量起，`maxTotalTokens` 与成本上限约束委派 cell 的方式，与它们约束 route cell 完全相同。受界定的尝试会在这次计费之后、其自身上限仍然生效时再被度量一次，因此超出本档位份额的子进程会在事发之处记录 attempt 作用域的越限，而不是等到下一次尝试。
 
 `ctx.environmentRuns.cellCaps(implementer)` 回答某个臂的单个 cell 在什么约束下运行，每份报告都以 `caps` 陈述它。route cell 在每一项已配置上限之下运行；委派 cell 在同一列表之下运行，但去掉部署未声明 `foreignCostEurPerUsd` 的 `maxCostEur`，因为一种货币的上限无法约束另一种货币的价格。[实验](../experiments/README.md)会拒绝两个臂解析出不同列表的计划。
 
@@ -189,6 +193,7 @@ Continue working on the task; the validator runs again when you stop.
 
 - **屏障只覆盖文件系统读取**——组合了日志读取工具的实现者 preset，或运行检查的 bash 执行器，仍能通过屏障未设围栏的 seam 触及标准；本运行器的证书强度等于配置的 `isolation` 声明，而此处没有任何环节去验证它。
 - **外部实现者只被点名，不被刻画**——stamp 记录 provider，不记录产品版本、设置或其背后的账户，因此跑着同一 provider 的两台主机并不是同一个实现者，哪怕它们的行读起来一样。它自己的工具栈与权限仍在本 harness 所强制的每一项限额之外；只有它的[花费受到约束](#the-budget-a-delegated-attempt-runs-under)，而且只约束到它自己的后端所上报的程度。
+- **被委派档位的 token 与成本份额只在其子进程返回后才被度量**——这里没有任何环节能观察带外子进程运行期间的花费，因此 `maxTotalTokens` 或 `maxCostEur` 的份额无法中途截断委派尝试；attempt 作用域的越限在计费之后记录，下一档位在 cell 实际剩余的预算上运行。运行期间约束这类尝试的只有挂钟份额，即子进程被取消时所处的截止时限。route 档位的份额在每一步之前强制执行，那里的 pre-step 检查本就在度量。
 - **不上报花费的 provider 只受挂钟上限约束**——`usage/foreign` 陈述的是子进程后端所发布的内容，因此既不发布 token 也不发布价格的后端，会让 token 与成本上限对那部分工作度量为零。这里无法观察到外部产品不上报的花费。
 - **挂钟截止时限是时钟，挂钟上限是日志跨度**——截止时限以 cell 日志首条事件为锚点设置，与 `maxWallMs` 所度量的锚点相同，但委派 cell 在其子进程运行期间不追加任何事件。因此两者的一致程度，取决于该 cell 最新事件与子进程结束之间的间隔。
 - **被预留的检查以 source 方式运行**——命令行是 `. <script>`，POSIX shell 执行器运行它的方式与运行原来的内联指令完全一致；组合的 PowerShell 执行器无法 source 无扩展名文件，因此这类部署不使用屏障。

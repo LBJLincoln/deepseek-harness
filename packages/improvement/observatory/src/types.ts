@@ -6,7 +6,7 @@
  * @module @deepseek-ai/dsh-observatory/types
  */
 
-import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentId, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import type { ExperimentResult, ExperimentVerdict } from '@deepseek-ai/dsh-experiments/types'
 import type { ScoreboardRow, ScorekeeperSkip } from '@deepseek-ai/dsh-scorekeeper/types'
 import type { CertificateIsolation, RunExecutor } from '@deepseek-ai/dsh-verification/types'
@@ -82,13 +82,13 @@ export interface ObservatoryPublishedRow {
   readonly provider: string
   readonly model: string
   /**
-   * Route of each attempt in attempt order, absent for a row whose sessions
-   * laddered none. It is published beside the route rather than folded into it:
-   * a cell that escalated to another model on its second attempt is not the
-   * same arm as one that stayed, and a page that showed only the first rung
-   * would read as if it were.
+   * Route and budget share of each attempt in attempt order, absent for a row
+   * whose sessions laddered none. It is published beside the route rather than
+   * folded into it: a cell that escalated to another model on its second
+   * attempt is not the same arm as one that stayed, and a page that showed only
+   * the first rung would read as if it were.
    */
-  readonly ladder?: readonly EnvironmentRunModel[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   readonly environmentId: EnvironmentId
   readonly environmentKind: string
   /** District the row's sessions were stamped with, absent for a row outside every district. */

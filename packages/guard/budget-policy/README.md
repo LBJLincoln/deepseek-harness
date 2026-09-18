@@ -45,6 +45,13 @@ The pre-step listener is one consumer of the caps; the other is a driver whose s
 - `pricesForeignCost()` — whether `foreignCostEurPerUsd` is configured, so a caller can tell whether a cost cap bounds foreign work at all.
 - `recordForeignSpend(session, spend)` — record what an implementer outside the session's own model route spent for it, from the `usage` and `costUsd` its backend reported. Returns whether a record was appended; a `ref` the log already accounts for throws, so retrying a recorded unit of work cannot charge it twice.
 - `enforce(agent)` — measure the session, and on the first cap it exceeds append `budget/breach` and block the goal, exactly as a stopped step does. Returns the caps measured, the breach if any, and `remainingWallMs`: the wall budget left, which a driver arms as the deadline of the work it is about to start.
+- `boundAttempt(agent, share)` — bound the work about to start to a share of the caps that session runs under, and return the wall budget it may consume plus the disposer that releases the bound. See [a share of the caps](#a-share-of-the-caps).
+
+### A share of the caps
+
+A driver that divides one session between several units of work calls `boundAttempt(agent, share)` before each one. Each ceiling is the spend the session has already made plus `share` of that cap's value: the share is taken of the caps, not of what is left of them, so the slice a caller chose is the slice it gets whatever the units before it spent. The returned `wallMs` is `share` of the wall cap as a duration from the instant the bound was armed, which a driver whose work proposes no step of its own arms as a deadline; it is absent when the session runs under no wall cap, as is every ceiling when the session runs under no caps at all.
+
+While the bound stands, `enforce` measures the session's own caps first and these ceilings second, so a session that has spent its whole budget reports that rather than the share of it the work in flight was allowed. A breach of a ceiling carries `scope: 'attempt'`: it appends `budget/breach` and rejects the step exactly as a cap breach does, and it leaves the goal alone, so the session continues under caps it has not spent. One bound stands per session at a time, and the disposer releases it.
 
 ### Spend a session did not make itself
 
@@ -66,8 +73,8 @@ The caps are folded from the log like the spend they bound, so a resumed session
 
 ### What a breach does
 
-1. Appends `budget/breach` with the cap that tripped, the measured spend, and the configured value it exceeded. The caps are evaluated in the fixed order `maxInputTokens`, `maxOutputTokens`, `maxTotalTokens`, `maxWallMs`, `maxCostEur`, and the first one exceeded is the one recorded.
-2. Blocks a current `active` goal through `ctx.goals.block` with code `budget-exhausted` and the message `Session budget <cap> exceeded: <measured> of <limit>.` The block is durable and disarms continuation, so a goal-round driver does not resume the goal afterwards. A composition without `ctx.goals`, without a current goal, or whose goal already left `active` still gets the breach record and the stopped turn.
+1. Appends `budget/breach` with the cap that tripped, the measured spend, the ceiling it exceeded, and the `scope` of that ceiling. The caps are evaluated in the fixed order `maxInputTokens`, `maxOutputTokens`, `maxTotalTokens`, `maxWallMs`, `maxCostEur`, and the first one exceeded is the one recorded. A record stating no scope is the session's own caps; `scope: 'attempt'` is [a share of them](#a-share-of-the-caps).
+2. Blocks a current `active` goal through `ctx.goals.block` with code `budget-exhausted` and the message `Session budget <cap> exceeded: <measured> of <limit>.` The block is durable and disarms continuation, so a goal-round driver does not resume the goal afterwards. A composition without `ctx.goals`, without a current goal, or whose goal already left `active` still gets the breach record and the stopped turn. An `attempt` breach skips this step: the session's own caps still hold, so its goal stays active.
 3. Returns `{ kind: 'reject' }`, which ends the turn without opening a step.
 
 Spend never decreases, so a later step in the same session breaches again: each stopped step records its own event, and the durable log states exactly how many attempts the exhausted budget turned away. Raising a cap and reloading the deployment is the way to resume.
@@ -82,7 +89,7 @@ A turn that ends by error or abort reaches neither point, so its last message st
 
 ### Invariant companion
 
-`@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable record independently. A breach's recorded `measured` must exceed `limit`, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record; `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation. A price must cite an earlier `assistant/message` with the same turn and step whose billed tokens and route it reproduces exactly, its `costEur` must equal its own rates applied to its own tokens, and no earlier `usage/priced` may carry the same turn and step. A `usage/foreign` must account for work no earlier record of the same log accounts for and must state no negative spend; what the implementer actually spent is outside the log, so nothing here recomputes it.
+`@deepseek-ai/dsh-budget-policy/invariant` recomputes each durable record independently. A breach's recorded `measured` must exceed `limit` whatever its scope, and for the log-derived caps it must equal this package's fold over exactly the events preceding the record; `maxCostEur` depends on the deployment pricing table, which the log does not carry, so a cost breach is checked only for the exceeded-its-limit relation. A price must cite an earlier `assistant/message` with the same turn and step whose billed tokens and route it reproduces exactly, its `costEur` must equal its own rates applied to its own tokens, and no earlier `usage/priced` may carry the same turn and step. A `usage/foreign` must account for work no earlier record of the same log accounts for and must state no negative spend; what the implementer actually spent is outside the log, so nothing here recomputes it.
 
 A `budget/caps` record may only tighten. The deployment's configured caps are not in the log, so the companion compares each cap against the caps the same session's earlier `budget/caps` records already fold to: raising one of those, or dropping it so the cap disappears, is rejected at append. Widening a cap the deployment configured is outside what the log can show and is refused by the enforcing fold instead, which never takes a recorded value above the configured one.
 
@@ -104,6 +111,7 @@ Independent: the request surface is neither extended nor rewritten, so an alread
 
 ## Known Limitations and Deferred Work
 
+- **A share bounds one unit of work at a time** — `boundAttempt` replaces whatever bound stands on the session, so a driver that runs two units of work concurrently on one session cannot give each its own ceilings. The environment runner's attempts are sequential, which is the only consumer this supports.
 - **Session-scoped only** — the caps measure one session log. A deployment that wants a per-workspace, per-user, or per-day ceiling has no aggregation point here; subagent sessions carry their own logs and their own independent budgets.
 - **Cost covers priced routes only** — usage on a `provider/model` absent from `pricing` adds tokens but no cost and records no `usage/priced`, so `maxCostEur` cannot be the sole ceiling for a deployment whose routes are not all priced, and an unpriced session has no cost the log can state.
 - **One foreign exchange rate for the whole deployment** — `foreignCostEurPerUsd` is a single load-time number applied to every foreign price, so a deployment whose implementers price in different currencies, or whose rate moves during a long comparison, has no way to say so.

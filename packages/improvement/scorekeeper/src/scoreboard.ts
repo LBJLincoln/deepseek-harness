@@ -72,15 +72,16 @@ export interface ScoreboardFold {
 /**
  * Key of the row one stamped session belongs to. Serialized rather than
  * concatenated so no field value can spell a separator and merge two cells —
- * two districts above all — into one row. The attempt ladder is part of the key
- * because a laddered cell and a plain single-model cell on the same first rung
- * measure different arms.
+ * two districts above all — into one row. The attempt ladder is part of the key,
+ * each rung with the budget share it claimed, because a laddered cell and a
+ * plain single-model cell on the same first rung measure different arms, and so
+ * do two ladders that divide one budget differently.
  */
 function rowKey(environment: SessionFactsEnvironment): string {
   return JSON.stringify([
     environment.provider,
     environment.model,
-    environment.ladder?.map(rung => [rung.provider, rung.model]) ?? null,
+    environment.ladder?.map(rung => [rung.provider, rung.model, rung.share ?? null]) ?? null,
     environment.environmentId,
     environment.isolation,
     environment.implementer,
