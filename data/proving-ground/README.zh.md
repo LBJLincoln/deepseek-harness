@@ -20,6 +20,7 @@ data/proving-ground/
   folds/<date>-<reading>-<tier>-seed<seed>.json             an offline reading over recorded arms that share a tier and seed: the routing reading (oracle and cascades over single-model arms) or the repeatability of one arm across its runs
   datasets/<name>/                                          one fold of every record's trajectories into train.jsonl, heldout.jsonl, and a manifest of the counts, distributions, and digests (see its own README)
   dashboard.html                                            the Proving Ground dashboard, one self-contained page folded from every record and fold above by tools/build-dashboard.mjs
+  dashboard.png                                             that page at desktop width as it stood when it was last rebuilt, the image the repository's front page shows
 ```
 
 ## 运行一次

@@ -36,7 +36,11 @@ pnpm dsh web
 
 ## Proving Ground
 
-harness 在 Proving Ground 上度量自身：这是一个横跨三个领域、由 40 个小型环境组成的 bench，其最难的一档由 implementer 从未见过的隐藏用例验证，并以带 bootstrap 区间的冻结配对实验运行。[data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) 是由每一条已记录运行折叠而成的那一个页面：每组配对比较的判定及其区间、密封层级上的各模型、认证矩阵、时间线，以及训练语料折叠。[结果笔记](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)陈述这些运行证明了什么、驳倒了什么。执行 `pnpm run build` 之后，可以列出已签入的计划、从中运行一组冻结配对实验，或在你自己的 Claude Code 登录上、无需 API key 地通过 harness 运行一个任务：
+harness 在 Proving Ground 上度量自身：这是一个横跨三个领域、由 40 个小型环境组成的 bench，其最难的一档由 implementer 从未见过的隐藏用例验证，并以带 bootstrap 区间的冻结配对实验运行。[data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) 是由每一条已记录运行折叠而成的那一个页面：每组配对比较的判定及其区间、密封层级上的各模型、认证矩阵、时间线，以及训练语料折叠。[结果笔记](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)陈述这些运行证明了什么、驳倒了什么。
+
+![Proving Ground 仪表板：记录、cell 与证书的计数，以及带 bootstrap 区间的配对判定](data/proving-ground/dashboard.png)
+
+执行 `pnpm run build` 之后，可以列出已签入的计划、从中运行一组冻结配对实验，或在你自己的 Claude Code 登录上、无需 API key 地通过 harness 运行一个任务：
 
 ```sh
 pnpm run bench -- plans
