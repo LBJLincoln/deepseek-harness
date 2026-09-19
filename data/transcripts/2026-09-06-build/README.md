@@ -27,7 +27,7 @@ This dataset is the process transcripts of an AI-assisted build of the DeepSeek 
 - Raw transcripts: `data/transcripts/2026-09-06-build/raw`
 - Export date: 2026-09-19
 - Harness repo branch at export time: `claude/coding-agent-harness-u9l4gt`
-- Harness repo HEAD commit at export time: `d8bc4073ba367a42ad17064153a471538cc5d260`
+- Harness repo HEAD commit at export time: `47f663204655910bfe1de1c108012faad0fba337`
 
 ## Usage
 
