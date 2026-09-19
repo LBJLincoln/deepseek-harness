@@ -19,7 +19,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e5-handoff-drop-t5` | 保留对话记录对丢弃对话记录，首次冻结尝试 | 5 | 基线 `haiku`→`opus`,`opus`（route）对候选同一阶梯，实现者 `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | 交接税：全程强模型对先弱后强 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | 有界廉价一级的级联：全程强模型对先弱后强，廉价一级限于 cell 上限的 0.2 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`（份额 0.2）→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
-| `e7-attempts-5-t5` | 尝试上限：中等模型五级对三级 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×5 | 2 | attempts-5 | `2026-09-19-bench-e7-attempts-5-t5` |
+| `e7-attempts-5-t5` | 尝试上限：中等模型五级对三级 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×5 | 2 | attempts-5 | `2026-09-19-bench-e7-attempts-5-t5`, `2026-09-19-bench-e7-attempts-5-t5-2` |
 | `e8-deepseek-vs-sonnet-t3` | 产品路由对开放权重路由 | 3 | 基线 `claude-code`/`sonnet` 对候选 `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
 | `e8-sonnet-vs-opus-t6` | 模型层级：在最大模型尚未被度量过的多文件层上比较 | 6 | 基线 `sonnet` 对候选 `opus` | 2 | base | not recorded |
 | `e9-preset-craft-vs-plain-t5` | Agent 组合：同一路由上工艺技能 preset 对普通 preset | 5 | 基线 `sonnet` preset `bench` 对候选 `sonnet` preset `bench-craft` | 2 | with-presets | `2026-09-19-bench-e9-preset-craft-vs-plain-t5` |
