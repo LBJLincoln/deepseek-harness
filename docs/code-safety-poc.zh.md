@@ -45,6 +45,8 @@ pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the revie
 
 如果现场审查很慢或订阅被限速，在运行列表里把指挥台切到已记录的 NodeGoat 运行并继续叙述；说明它是一段录制。
 
+对时钟的预期：先启动 feed，几秒后再启动指挥台，因为 feed 在启动时会把每个已记录的会话折叠一次（在本仓库上约一秒），而指挥台只有在 `GET /roster` 于五秒内应答时才显示 `LIVE`；从 Safety 视图启动的审查会立即以 feed 返回的 id 列出，面板会说明审查正在进行，代码城市显示目标但没有标记，直到各部门发布；Enterprise 与 Process 视图把每个部门的事件归于其 integrator 席位、把集成归于 program lead，各部门的首批工具调用会在一分钟内出现；发现、证书与报告在集成之后一起到达，对一个 NodeGoat 规模的目标、在中档模型上，大约在审查开始后二十到二十五分钟。
+
 ## 可以宣称什么
 
 - harness 对该应用的源码做了一次多 agent 审查，报告中的每条发现都经机械验证，确认存在于所审查修订版中所引用文件的所引用行。
