@@ -50,7 +50,7 @@ pnpm dsh --profile claude-code "Create hello.txt containing the single line hell
 
 ## 代码安全
 
-同一套程序工作流也能审查一个应用的源码以查找安全缺陷：六个部门并行读取目标，各在自己的 worktree 和会话里，运行静态扫描器与依赖审计，写出带文件、行号和该行原文的发现；一个集成部门把它们合并成以法文执行摘要开头的报告，而一个已提交的审查器会拒绝任何所引行号不成立的发现。第一次真实运行在 OWASP NodeGoat 上：七个部门全部认证，1,301 s 内发布 42 条经验证的发现，其中包括目标十八个已记载问题中的十四个（[记录](data/code-safety/README.md)）。[指挥台](apps/command-deck/README.md)展示 147 个已定义 agent、流程，以及落在目标代码上的发现，数据来自实时的 [feed](data/enterprise/README.md) 或回放的夹具；[演示手册](docs/code-safety-poc.md)是演示脚本。
+同一套程序工作流也能审查一个应用的源码以查找安全缺陷：六个部门并行读取目标，各在自己的 worktree 和会话里，运行静态扫描器与依赖审计，写出带文件、行号和该行原文的发现；一个集成部门把它们合并成以法文执行摘要开头的报告，而一个已提交的审查器会拒绝任何所引行号不成立的发现。最初的几次真实运行每次都让七个部门全部认证：在 OWASP NodeGoat 上 1,301 s 内发布 42 条经验证的发现，其中包括目标十八个已记载问题中的十四个；在一个 Java Struts 2 应用上 1,414 s 内发布 40 条，十四个已记载问题中找到十个（[记录](data/code-safety/README.md)）。[指挥台](apps/command-deck/README.md)展示 147 个已定义 agent、流程，以及落在目标代码上的发现，数据来自实时的 [feed](data/enterprise/README.md) 或回放的夹具；[演示手册](docs/code-safety-poc.md)是演示脚本。
 
 ```sh
 pnpm run code-safety -- /path/to/target --model sonnet   # a review on your Claude Code login

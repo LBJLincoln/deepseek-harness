@@ -24,7 +24,7 @@ ln -sf ~/semgrep-venv/bin/semgrep /usr/local/bin/semgrep   # or add the venv's b
 git clone --depth 1 https://github.com/OWASP/NodeGoat.git ~/targets/NodeGoat
 ```
 
-NodeGoat 上已记录的运行（[`data/code-safety/2026-09-19-nodegoat/`](../data/code-safety/2026-09-19-nodegoat/SAFETY-REPORT.md)）就是演示所产出之物的样子：七个部门全部认证，42 条经验证的发现（5 critical、17 high、13 medium、5 low、2 info），中等模型上 1,301 s，审查器退出码 0，十八个已知问题中找到十四个（[该读数](../data/code-safety/README.md)）。然后在 NodeGoat 上端到端彩排一次：启动 feed 与指挥台，从指挥台发起一次审查，等待证书，打开报告。一次彩排的时长约等于审查本身（中等模型上十五到三十分钟）。在另一个标签页保持已记录运行的报告打开，作为后备。
+NodeGoat 上已记录的运行（[`data/code-safety/2026-09-19-nodegoat/`](../data/code-safety/2026-09-19-nodegoat/SAFETY-REPORT.md)）就是演示所产出之物的样子：七个部门全部认证，42 条经验证的发现（5 critical、17 high、13 medium、5 low、2 info），中等模型上 1,301 s，审查器退出码 0，十八个已知问题中找到十四个（[该读数](../data/code-safety/README.md)）；在 Java Struts 2 应用 dvja 上的第二次运行在 1,414 s 内发布了 40 条经验证的发现（9 critical），十四个已记载问题中找到十个。然后在 NodeGoat 上端到端彩排一次：启动 feed 与指挥台，从指挥台发起一次审查，等待证书，打开报告。一次彩排的时长约等于审查本身（中等模型上十五到三十分钟）。在另一个标签页保持已记录运行的报告打开，作为后备。
 
 ## 运行演示
 
