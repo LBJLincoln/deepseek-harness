@@ -1427,6 +1427,15 @@ export interface PiAiCompatProfile {
   thinkingFormat?: PiAiThinkingFormat
   /** Whether the endpoint accepts `reasoning_effort`; absent keeps the catalog entry's, then pi-ai's baseURL-derived guess. */
   supportsReasoningEffort?: boolean
+  /**
+   * Whether a prior step's reasoning is replayed inside the assistant
+   * message's `content` instead of its own `reasoning` field. A gateway that
+   * ignores that field on input (OpenRouter does) otherwise shows a reasoning
+   * model a history in which it said nothing, so a model that plans in its
+   * reasoning restarts every step. Absent keeps the catalog entry's value, then
+   * pi-ai's baseURL-derived guess.
+   */
+  requiresThinkingAsText?: boolean
 }
 
 /** One request modality a pi-ai model may accept. */
