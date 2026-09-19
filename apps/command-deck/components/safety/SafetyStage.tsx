@@ -8,7 +8,10 @@ import {
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
+  CircleGeometry,
   Color,
+  CylinderGeometry,
+  DoubleSide,
   InstancedBufferAttribute,
   Matrix4,
   ShaderMaterial,
@@ -16,7 +19,6 @@ import {
   UniformsUtils,
   Vector3,
   type InstancedMesh,
-  type Points,
 } from 'three'
 import type { Finding, SafetyTarget } from '@/deck/contract'
 import { layoutCity, type CityBlock, type CityLayout } from '@/deck/layout-city'
@@ -26,13 +28,34 @@ import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
 import styles from './safety-stage.module.css'
 
-/** Height of the first marker above its block. */
-const MARKER_LIFT = 3.2
+/** Beacon height per severity, in scene units: a critical finding stands over the whole city. */
+const BEACON_HEIGHT: Record<string, number> = {
+  critical: 36,
+  high: 27,
+  medium: 19,
+  low: 13,
+  info: 9,
+}
 
-/** Vertical spacing between markers stacked on the same file. */
-const MARKER_STACK = 2.1
+/** Beacon radius per severity. */
+const BEACON_RADIUS: Record<string, number> = {
+  critical: 0.66,
+  high: 0.54,
+  medium: 0.45,
+  low: 0.38,
+  info: 0.32,
+}
 
-/** Marker size per severity, in the point material's units. */
+/** Beacon and halo brightness per severity. */
+const BEACON_GAIN: Record<string, number> = {
+  critical: 1.55,
+  high: 1.15,
+  medium: 0.92,
+  low: 0.74,
+  info: 0.6,
+}
+
+/** Marker-head size per severity, in the point material's units. */
 const MARKER_SIZE: Record<string, number> = {
   critical: 8.5,
   high: 7,
@@ -41,13 +64,15 @@ const MARKER_SIZE: Record<string, number> = {
   info: 4.6,
 }
 
+/** Radius of the halo standing at a beacon's foot, in scene units. */
+const HALO_RADIUS = 1.9
+
 /** Window cell size on a building wall, in scene units: pane width, then floor height. */
 const WINDOW_CELL: [number, number] = [0.8, 1.05]
 
 /**
- * The establishing view of one city: far enough back that the tallest tower
- * and its markers stay inside the frame, looking at the towers rather than at
- * the ground.
+ * The establishing view of one city: far enough back that the tallest beacon
+ * stays inside the frame, looking at the towers rather than at the ground.
  * @param extent - Half-extent of the city footprint.
  * @returns The camera position and the point it looks at.
  */
@@ -62,15 +87,23 @@ const SCRATCH = new Matrix4()
 const SCRATCH_SCALE = new Vector3()
 const SCRATCH_POSITION = new Vector3()
 
-/** One finding, resolved to a scene position. */
+/** One finding, resolved to a beacon standing on its file. */
 interface PlacedFinding {
   finding: Finding
-  position: Vector3
   block: CityBlock
+  /** Foot of the beacon, on the file's roof. */
+  base: Vector3
+  /** Top of the beacon: the marker head and the callout anchor. */
+  head: Vector3
+  height: number
+  radius: number
+  /** Brightness multiplier the severity earns. */
+  gain: number
 }
 
 /**
- * Resolve every finding onto its file's block, stacking repeats on one file.
+ * Resolve every finding onto its file's block, spreading repeats on one file
+ * around the roof so two beacons never stand in the same place.
  * @param findings - The review's findings.
  * @param city - The laid-out city.
  * @returns Only the findings whose file the target actually reports.
@@ -83,14 +116,23 @@ function placeFindings(findings: readonly Finding[], city: CityLayout): PlacedFi
     if (block === undefined) continue
     const ordinal = perFile.get(finding.file) ?? 0
     perFile.set(finding.file, ordinal + 1)
+    // Repeats stand on a golden-angle ring, which spreads any count evenly.
+    const angle = ordinal * 2.399_96
+    const spread = ordinal === 0 ? 0 : 0.78
+    const height = (BEACON_HEIGHT[finding.severity] ?? 12) * (1 - (ordinal * 0.06))
+    const base = new Vector3(
+      block.x + (Math.cos(angle) * spread),
+      block.height,
+      block.z + (Math.sin(angle) * spread),
+    )
     placed.push({
       finding,
       block,
-      position: new Vector3(
-        block.x + (ordinal % 2 === 0 ? 0 : 0.7),
-        block.height + MARKER_LIFT + (ordinal * MARKER_STACK),
-        block.z + (ordinal % 2 === 0 ? 0 : -0.7),
-      ),
+      base,
+      head: base.clone().setY(block.height + height),
+      height,
+      radius: BEACON_RADIUS[finding.severity] ?? 0.4,
+      gain: BEACON_GAIN[finding.severity] ?? 0.7,
     })
   }
   return placed
@@ -202,6 +244,114 @@ function createBuildingMaterial(): ShaderMaterial {
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
         #include <fog_fragment>
+      }
+    `,
+  })
+}
+
+/**
+ * The material the beacon shafts are drawn with: an additive tube that fades
+ * upward and glows at its silhouette, so the shaft reads as a column of light
+ * rather than as geometry. Distance fades it into the city's own fog.
+ * @returns A new beacon material; the layer owns its own instance.
+ */
+function createBeaconMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    fog: true,
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    blending: AdditiveBlending,
+    toneMapped: false,
+    uniforms: UniformsUtils.merge([UniformsLib.fog, {}]),
+    vertexShader: /* glsl */`
+      attribute vec3 aColor;
+      attribute vec2 aInfo;
+      varying vec3 vColor;
+      varying float vGain;
+      varying float vUp;
+      varying float vRim;
+      #include <fog_pars_vertex>
+      void main() {
+        vColor = aColor;
+        vGain = aInfo.x * (1.0 + (aInfo.y * 1.15));
+        vUp = position.y + 0.5;
+        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+        vec3 viewNormal = normalize(mat3(modelViewMatrix) * mat3(instanceMatrix) * normal);
+        vRim = 1.0 - abs(dot(viewNormal, normalize(-mvPosition.xyz)));
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }
+    `,
+    fragmentShader: /* glsl */`
+      varying vec3 vColor;
+      varying float vGain;
+      varying float vUp;
+      varying float vRim;
+      #include <fog_pars_fragment>
+      void main() {
+        float fade = pow(1.0 - vUp, 1.5);
+        float edge = pow(clamp(vRim, 0.0, 1.0), 1.7);
+        float foot = smoothstep(0.14, 0.0, vUp) * 0.8;
+        float alpha = ((fade * (0.2 + (0.95 * edge))) + foot) * vGain * 0.62;
+        #ifdef USE_FOG
+          alpha *= 1.0 - smoothstep(fogNear, fogFar, vFogDepth);
+        #endif
+        if (alpha < 0.003) discard;
+        gl_FragColor = vec4(vColor * (0.8 + (0.85 * edge)), alpha);
+      }
+    `,
+  })
+}
+
+/**
+ * The material the halo at a beacon's foot is drawn with: an additive ring
+ * that breathes on the clock, one phase per finding.
+ * @returns A new halo material; the layer owns its own instance.
+ */
+function createHaloMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    fog: true,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    toneMapped: false,
+    uniforms: UniformsUtils.merge([UniformsLib.fog, { uTime: { value: 0 }, uMotion: { value: 1 } }]),
+    vertexShader: /* glsl */`
+      attribute vec3 aColor;
+      attribute vec2 aInfo;
+      varying vec3 vColor;
+      varying vec2 vInfo;
+      varying vec2 vUv;
+      #include <fog_pars_vertex>
+      void main() {
+        vColor = aColor;
+        vInfo = aInfo;
+        vUv = uv;
+        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }
+    `,
+    fragmentShader: /* glsl */`
+      uniform float uTime;
+      uniform float uMotion;
+      varying vec3 vColor;
+      varying vec2 vInfo;
+      varying vec2 vUv;
+      #include <fog_pars_fragment>
+      void main() {
+        float d = length(vUv - 0.5) * 2.0;
+        float breath = mix(0.62, 0.58 + (0.42 * sin((uTime * 1.9) + vInfo.y)), uMotion);
+        float radius = 0.5 + (0.34 * breath);
+        float ring = smoothstep(radius + 0.28, radius, d) * smoothstep(radius - 0.32, radius, d);
+        float core = smoothstep(0.42, 0.0, d) * 0.5;
+        float alpha = ((ring * 1.05) + core) * vInfo.x * breath;
+        #ifdef USE_FOG
+          alpha *= 1.0 - smoothstep(fogNear, fogFar, vFogDepth);
+        #endif
+        if (alpha < 0.003) discard;
+        gl_FragColor = vec4(vColor, alpha);
       }
     `,
   })
@@ -382,91 +532,162 @@ function Districts({ city }: { city: CityLayout }): ReactNode {
 }
 
 /**
- * The finding markers and the beams that tie them to their file.
- * @param props - The placed findings and the current selection.
- * @returns The marker layer.
+ * The finding beacons: one light shaft per finding, a breathing halo at each
+ * foot, and the marker head that carries the hover and the click.
+ * @param props - The placed findings, the selection, the motion preference and
+ * the pointer callbacks.
+ * @returns The beacon layers.
  */
-function Markers({
+function Beacons({
   placed,
   selectedId,
+  reduced,
+  onHover,
   onSelect,
 }: {
   placed: PlacedFinding[]
   selectedId: string | undefined
+  reduced: boolean
+  onHover: (entry: PlacedFinding | undefined) => void
   onSelect: (id: string) => void
 }): ReactNode {
-  const points = useRef<Points>(null)
-  const reduced = usePrefersReducedMotion()
+  const shafts = useRef<InstancedMesh>(null)
+  const halos = useRef<InstancedMesh>(null)
+  const count = Math.max(1, placed.length)
 
-  const geometry = useMemo(() => {
-    const built = new BufferGeometry()
-    const positions = new Float32Array(placed.length * 3)
-    const colors = new Float32Array(placed.length * 3)
-    const sizes = new Float32Array(placed.length)
-    const gains = new Float32Array(placed.length).fill(1)
-    const colour = new Color()
-    for (const [index, entry] of placed.entries()) {
-      positions.set([entry.position.x, entry.position.y, entry.position.z], index * 3)
-      colour.set(SEVERITY_COLOR[entry.finding.severity])
-      colors.set([colour.r, colour.g, colour.b], index * 3)
-      sizes[index] = MARKER_SIZE[entry.finding.severity] ?? 10
-    }
-    built.setAttribute('position', new BufferAttribute(positions, 3))
-    built.setAttribute('aColor', new BufferAttribute(colors, 3))
-    built.setAttribute('aSize', new BufferAttribute(sizes, 1))
-    built.setAttribute('aGain', new BufferAttribute(gains, 1))
+  const shaftGeometry = useMemo(() => {
+    const built = new CylinderGeometry(1, 1, 1, 7, 1, true)
+    built.setAttribute('aColor', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
+    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 2), 2))
     return built
-  }, [placed])
+  }, [count])
 
-  const material = useMemo(createGlowMaterial, [])
-
-  const beams = useMemo(() => {
-    const positions = new Float32Array(placed.length * 6)
-    const colors = new Float32Array(placed.length * 6)
-    const colour = new Color()
-    for (const [index, entry] of placed.entries()) {
-      positions.set(
-        [entry.block.x, entry.block.height, entry.block.z, entry.position.x, entry.position.y, entry.position.z],
-        index * 6,
-      )
-      colour.set(SEVERITY_COLOR[entry.finding.severity]).multiplyScalar(0.6)
-      colors.set([colour.r, colour.g, colour.b, colour.r, colour.g, colour.b], index * 6)
-    }
-    const built = new BufferGeometry()
-    built.setAttribute('position', new BufferAttribute(positions, 3))
-    built.setAttribute('color', new BufferAttribute(colors, 3))
+  const haloGeometry = useMemo(() => {
+    const built = new CircleGeometry(1, 22)
+    built.rotateX(-Math.PI / 2)
+    built.setAttribute('aColor', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
+    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 2), 2))
     return built
-  }, [placed])
+  }, [count])
+
+  const headGeometry = useMemo(() => {
+    const built = new BufferGeometry()
+    built.setAttribute('position', new BufferAttribute(new Float32Array(placed.length * 3), 3))
+    built.setAttribute('aColor', new BufferAttribute(new Float32Array(placed.length * 3), 3))
+    built.setAttribute('aSize', new BufferAttribute(new Float32Array(placed.length), 1))
+    built.setAttribute('aGain', new BufferAttribute(new Float32Array(placed.length), 1))
+    return built
+  }, [placed.length])
+
+  const shaftMaterial = useMemo(createBeaconMaterial, [])
+  const haloMaterial = useMemo(createHaloMaterial, [])
+  const headMaterial = useMemo(createGlowMaterial, [])
 
   useEffect(() => () => {
-    geometry.dispose()
-    beams.dispose()
-    material.dispose()
-  }, [geometry, beams, material])
+    shaftGeometry.dispose()
+    haloGeometry.dispose()
+    headGeometry.dispose()
+    shaftMaterial.dispose()
+    haloMaterial.dispose()
+    headMaterial.dispose()
+  }, [shaftGeometry, haloGeometry, headGeometry, shaftMaterial, haloMaterial, headMaterial])
+
+  useEffect(() => {
+    const shaft = shafts.current
+    const halo = halos.current
+    if (shaft === null || halo === null) return
+    const shaftColour = shaftGeometry.getAttribute('aColor')
+    const shaftInfo = shaftGeometry.getAttribute('aInfo')
+    const haloColour = haloGeometry.getAttribute('aColor')
+    const haloInfo = haloGeometry.getAttribute('aInfo')
+    const headPosition = headGeometry.getAttribute('position')
+    const headColour = headGeometry.getAttribute('aColor')
+    const headSize = headGeometry.getAttribute('aSize')
+    const headGain = headGeometry.getAttribute('aGain')
+    const colour = new Color()
+
+    for (const [index, entry] of placed.entries()) {
+      const selected = entry.finding.id === selectedId ? 1 : 0
+      colour.set(SEVERITY_COLOR[entry.finding.severity] ?? '#7f8fb0')
+
+      SCRATCH_SCALE.set(entry.radius, entry.height, entry.radius)
+      SCRATCH_POSITION.set(entry.base.x, entry.base.y + (entry.height / 2), entry.base.z)
+      SCRATCH.identity().scale(SCRATCH_SCALE).setPosition(SCRATCH_POSITION)
+      shaft.setMatrixAt(index, SCRATCH)
+      shaftColour.setXYZ(index, colour.r, colour.g, colour.b)
+      shaftInfo.setXY(index, entry.gain, selected)
+
+      const halved = HALO_RADIUS * (0.7 + (entry.gain * 0.36))
+      SCRATCH_SCALE.set(halved, 1, halved)
+      SCRATCH_POSITION.set(entry.base.x, entry.base.y + 0.07, entry.base.z)
+      SCRATCH.identity().scale(SCRATCH_SCALE).setPosition(SCRATCH_POSITION)
+      halo.setMatrixAt(index, SCRATCH)
+      haloColour.setXYZ(index, colour.r, colour.g, colour.b)
+      haloInfo.setXY(index, entry.gain * (selected === 1 ? 1.9 : 1), index * 1.37)
+
+      headPosition.setXYZ(index, entry.head.x, entry.head.y, entry.head.z)
+      headColour.setXYZ(index, colour.r, colour.g, colour.b)
+      headSize.setX(index, MARKER_SIZE[entry.finding.severity] ?? 6)
+      headGain.setX(index, selected === 1 ? 2.2 : 0.8 + (entry.gain * 0.3))
+    }
+
+    shaft.instanceMatrix.needsUpdate = true
+    halo.instanceMatrix.needsUpdate = true
+    for (const attribute of [
+      shaftColour, shaftInfo, haloColour, haloInfo, headPosition, headColour, headSize, headGain,
+    ]) attribute.needsUpdate = true
+    headGeometry.computeBoundingSphere()
+  }, [placed, selectedId, shaftGeometry, haloGeometry, headGeometry])
+
+  useEffect(() => {
+    haloMaterial.uniforms.uMotion!.value = reduced ? 0 : 1
+  }, [haloMaterial, reduced])
 
   useFrame(({ clock }) => {
-    const layer = points.current
-    if (layer === null) return
-    const gain = layer.geometry.getAttribute('aGain')
-    for (const [index, entry] of placed.entries()) {
-      const selected = entry.finding.id === selectedId
-      const wave = reduced ? 0.5 : (Math.sin((clock.elapsedTime * 2.2) + (index * 0.9)) * 0.5) + 0.5
-      const weight = entry.finding.severity === 'critical' ? 0.55 : 0.32
-      gain.setX(index, (selected ? 1.6 : 0.55) + (wave * weight))
-    }
-    gain.needsUpdate = true
+    if (reduced) return
+    haloMaterial.uniforms.uTime!.value = clock.elapsedTime
   })
 
   return (
     <group>
-      <lineSegments geometry={beams} frustumCulled={false}>
-        <lineBasicMaterial vertexColors transparent opacity={0.45} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
-      </lineSegments>
-      <points
-        ref={points}
-        geometry={geometry}
-        material={material}
+      <instancedMesh
+        ref={shafts}
+        args={[undefined, undefined, count]}
+        geometry={shaftGeometry}
+        material={shaftMaterial}
         frustumCulled={false}
+        renderOrder={2}
+        onPointerMove={(event: ThreeEvent<PointerEvent>) => {
+          event.stopPropagation()
+          const entry = event.instanceId === undefined ? undefined : placed[event.instanceId]
+          onHover(entry)
+          document.body.style.cursor = entry === undefined ? 'auto' : 'pointer'
+        }}
+        onPointerOut={() => {
+          onHover(undefined)
+          document.body.style.cursor = 'auto'
+        }}
+        onClick={(event: ThreeEvent<MouseEvent>) => {
+          event.stopPropagation()
+          const entry = event.instanceId === undefined ? undefined : placed[event.instanceId]
+          if (entry !== undefined) onSelect(entry.finding.id)
+        }}
+      />
+
+      <instancedMesh
+        ref={halos}
+        args={[undefined, undefined, count]}
+        geometry={haloGeometry}
+        material={haloMaterial}
+        frustumCulled={false}
+        renderOrder={1}
+      />
+
+      <points
+        geometry={headGeometry}
+        material={headMaterial}
+        frustumCulled={false}
+        renderOrder={3}
         onClick={(event: ThreeEvent<MouseEvent>) => {
           event.stopPropagation()
           const entry = event.index === undefined ? undefined : placed[event.index]
@@ -529,7 +750,7 @@ function CityRig({ city, focus }: { city: CityLayout; focus: Vector3 | undefined
 
 /**
  * The code-city scene.
- * @param props - The reviewed target and its findings.
+ * @param props - The reviewed target, its findings, and the selection.
  * @returns The canvas and its contents.
  */
 export function SafetyStage({
@@ -547,14 +768,13 @@ export function SafetyStage({
   const city = useMemo(() => layoutCity(target), [target])
   const view = useMemo(() => cityView(city.extent), [city.extent])
   const placed = useMemo(() => placeFindings(findings, city), [findings, city])
-  const [hovered, setHovered] = useState<CityBlock | undefined>(undefined)
+  const [hoveredBlock, setHoveredBlock] = useState<CityBlock | undefined>(undefined)
+  const [hoveredFinding, setHoveredFinding] = useState<PlacedFinding | undefined>(undefined)
 
-  const focus = useMemo(() => {
-    const entry = placed.find(item => item.finding.id === selectedFindingId)
-    return entry?.position
-  }, [placed, selectedFindingId])
-
-  const selectedPath = placed.find(item => item.finding.id === selectedFindingId)?.block.path
+  const focus = useMemo(
+    () => placed.find(entry => entry.finding.id === selectedFindingId),
+    [placed, selectedFindingId],
+  )
 
   return (
     <Stage
@@ -572,32 +792,53 @@ export function SafetyStage({
         <Districts city={city} />
         <NightBlocks
           city={city}
-          selectedPath={selectedPath}
+          selectedPath={focus?.block.path}
           reduced={reduced}
-          onHover={setHovered}
+          onHover={setHoveredBlock}
           onSelect={(block) => {
-            const first = placed.find(item => item.block.path === block.path)
+            const first = placed.find(entry => entry.block.path === block.path)
             if (first !== undefined) onSelectFinding(first.finding.id)
           }}
         />
-        <Markers placed={placed} selectedId={selectedFindingId} onSelect={onSelectFinding} />
-
-        {hovered === undefined ? null : (
+        <Beacons
+          placed={placed}
+          selectedId={selectedFindingId}
+          reduced={reduced}
+          onHover={setHoveredFinding}
+          onSelect={onSelectFinding}
+        />
+        {hoveredFinding === undefined || hoveredFinding.finding.id === selectedFindingId ? null : (
           <Html
             center
-            position={[hovered.x, hovered.height + 1.6, hovered.z]}
+            position={[hoveredFinding.head.x, hoveredFinding.head.y + 1.7, hoveredFinding.head.z]}
             zIndexRange={[40, 20]}
             style={{ pointerEvents: 'none' }}
           >
             <div className={styles.hoverLabel}>
-              <b>{hovered.path}</b>
-              <span>{hovered.language}</span>
+              <b>{hoveredFinding.finding.file}:{hoveredFinding.finding.line}</b>
+              <span>{hoveredFinding.finding.severity}</span>
+              <em>{hoveredFinding.finding.title}</em>
             </div>
           </Html>
         )}
+
+        {hoveredFinding !== undefined || hoveredBlock === undefined ? null : (
+          <Html
+            center
+            position={[hoveredBlock.x, hoveredBlock.height + 1.6, hoveredBlock.z]}
+            zIndexRange={[40, 20]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div className={styles.hoverLabel}>
+              <b>{hoveredBlock.path}</b>
+              <span>{hoveredBlock.language}</span>
+            </div>
+          </Html>
+        )}
+
       </group>
 
-      <CityRig city={city} focus={focus} />
+      <CityRig city={city} focus={focus?.base} />
     </Stage>
   )
 }
