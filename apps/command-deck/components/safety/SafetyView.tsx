@@ -120,6 +120,7 @@ export function SafetyView(): ReactNode {
           : (
             <SafetyStage
               target={safety.target}
+              departments={safety.departments}
               findings={findings}
               selectedFindingId={selectedFindingId}
               onSelectFinding={selectFinding}

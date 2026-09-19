@@ -19,8 +19,10 @@ import {
   UniformsUtils,
   Vector3,
   type InstancedMesh,
+  type LineBasicMaterial,
+  type Mesh,
 } from 'three'
-import type { Finding, SafetyTarget } from '@/deck/contract'
+import type { Finding, SafetyDepartment, SafetyTarget } from '@/deck/contract'
 import { layoutCity, type CityBlock, type CityLayout } from '@/deck/layout-city'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
@@ -69,6 +71,12 @@ const HALO_RADIUS = 1.9
 
 /** Window cell size on a building wall, in scene units: pane width, then floor height. */
 const WINDOW_CELL: [number, number] = [0.8, 1.05]
+
+/** Seconds one scan sweep takes to cross the city. */
+const SWEEP_SECONDS = 5.5
+
+/** Seconds between one scan sweep and the next. */
+const SWEEP_GAP_SECONDS = 1.6
 
 /**
  * The establishing view of one city: far enough back that the tallest beacon
@@ -358,6 +366,49 @@ function createHaloMaterial(): ShaderMaterial {
 }
 
 /**
+ * The material the scan sweep is drawn with: a wall of light, brightest where
+ * it meets the ground and fading with height, with scan lines that only travel
+ * when motion is allowed.
+ * @returns A new sweep material.
+ */
+function createSweepMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    blending: AdditiveBlending,
+    toneMapped: false,
+    uniforms: {
+      uTime: { value: 0 },
+      uMotion: { value: 1 },
+      uColor: { value: new Color('#4fd8ff') },
+    },
+    vertexShader: /* glsl */`
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */`
+      uniform float uTime;
+      uniform float uMotion;
+      uniform vec3 uColor;
+      varying vec2 vUv;
+      void main() {
+        float rise = pow(1.0 - vUv.y, 2.8);
+        float ground = smoothstep(0.05, 0.0, vUv.y);
+        float ends = smoothstep(0.0, 0.07, vUv.x) * smoothstep(1.0, 0.93, vUv.x);
+        float lines = 0.72 + (0.28 * sin((vUv.y * 190.0) - (uTime * 2.6 * uMotion)));
+        float alpha = ((rise * 0.26 * lines) + (ground * 0.85)) * ends;
+        if (alpha < 0.003) discard;
+        gl_FragColor = vec4(uColor * (0.85 + (ground * 1.2)), alpha);
+      }
+    `,
+  })
+}
+
+/**
  * The file blocks, as one instanced mesh of lit towers.
  * @param props - The laid-out city, the selection, and the pointer callbacks.
  * @returns The city blocks.
@@ -449,13 +500,22 @@ function NightBlocks({
 
 /**
  * The district plates, their glowing outlines and their directory names. The
- * outline carries the colour of the language most of the district's files are
- * written in, so a directory reads as one neighbourhood.
- * @param props - The laid-out city.
+ * outlines pulse while the review is still running.
+ * @param props - The laid-out city, whether a department is still out, and the
+ * motion preference.
  * @returns The plates, the outlines and the labels.
  */
-function Districts({ city }: { city: CityLayout }): ReactNode {
+function Districts({
+  city,
+  running,
+  reduced,
+}: {
+  city: CityLayout
+  running: boolean
+  reduced: boolean
+}): ReactNode {
   const plates = useRef<InstancedMesh>(null)
+  const outline = useRef<LineBasicMaterial>(null)
 
   const outlineGeometry = useMemo(() => {
     const built = new BufferGeometry()
@@ -496,6 +556,18 @@ function Districts({ city }: { city: CityLayout }): ReactNode {
     instanced.instanceMatrix.needsUpdate = true
   }, [city])
 
+  useFrame(({ clock }) => {
+    const material = outline.current
+    if (material === null) return
+    if (!running) {
+      material.opacity = 0.38
+      return
+    }
+    material.opacity = reduced
+      ? 0.56
+      : 0.3 + (0.36 * ((Math.sin(clock.elapsedTime * 1.7) * 0.5) + 0.5))
+  })
+
   return (
     <group>
       <instancedMesh ref={plates} args={[undefined, undefined, Math.max(1, city.districts.length)]}>
@@ -505,6 +577,7 @@ function Districts({ city }: { city: CityLayout }): ReactNode {
 
       <lineSegments geometry={outlineGeometry} frustumCulled={false}>
         <lineBasicMaterial
+          ref={outline}
           vertexColors
           transparent
           opacity={0.38}
@@ -699,6 +772,47 @@ function Beacons({
 }
 
 /**
+ * The scan sweep: a wall of light crossing the city while any department is
+ * still out. Under reduced motion it stands still over the centre instead.
+ * @param props - The laid-out city and the motion preference.
+ * @returns The sweep plane.
+ */
+function ScanSweep({ city, reduced }: { city: CityLayout; reduced: boolean }): ReactNode {
+  const plane = useRef<Mesh>(null)
+  const material = useMemo(createSweepMaterial, [])
+  const height = city.extent * 0.62
+  const travel = city.extent * 1.25
+
+  useEffect(() => () => material.dispose(), [material])
+
+  useEffect(() => {
+    material.uniforms.uMotion!.value = reduced ? 0 : 1
+  }, [material, reduced])
+
+  useFrame(({ clock }) => {
+    const mesh = plane.current
+    if (mesh === null || reduced) return
+    material.uniforms.uTime!.value = clock.elapsedTime
+    const phase = clock.elapsedTime % (SWEEP_SECONDS + SWEEP_GAP_SECONDS)
+    const progress = phase / SWEEP_SECONDS
+    mesh.visible = progress <= 1
+    if (mesh.visible) mesh.position.x = -travel + (progress * travel * 2)
+  })
+
+  return (
+    <mesh
+      ref={plane}
+      position={[reduced ? 0 : -travel, height / 2, 0]}
+      rotation={[0, Math.PI / 2, 0]}
+      material={material}
+      renderOrder={4}
+    >
+      <planeGeometry args={[city.extent * 2.2, height]} />
+    </mesh>
+  )
+}
+
+/**
  * Camera behaviour: an establishing view of the whole city, and a flight to
  * the selected finding.
  * @param props - The city extent and the finding to fly to.
@@ -750,16 +864,19 @@ function CityRig({ city, focus }: { city: CityLayout; focus: Vector3 | undefined
 
 /**
  * The code-city scene.
- * @param props - The reviewed target, its findings, and the selection.
+ * @param props - The reviewed target, its departments, its findings, and the
+ * selection.
  * @returns The canvas and its contents.
  */
 export function SafetyStage({
   target,
+  departments,
   findings,
   selectedFindingId,
   onSelectFinding,
 }: {
   target: SafetyTarget
+  departments: readonly SafetyDepartment[]
   findings: readonly Finding[]
   selectedFindingId: string | undefined
   onSelectFinding: (id: string) => void
@@ -770,6 +887,10 @@ export function SafetyStage({
   const placed = useMemo(() => placeFindings(findings, city), [findings, city])
   const [hoveredBlock, setHoveredBlock] = useState<CityBlock | undefined>(undefined)
   const [hoveredFinding, setHoveredFinding] = useState<PlacedFinding | undefined>(undefined)
+
+  // A department the feed still reports as pending is the one honest signal
+  // that the review is running; every other status means it has reported.
+  const running = departments.some(entry => entry.status === 'pending')
 
   const focus = useMemo(
     () => placed.find(entry => entry.finding.id === selectedFindingId),
@@ -789,7 +910,7 @@ export function SafetyStage({
         </mesh>
         <gridHelper args={[city.extent * 7, 64, '#1a3355', '#0d1b2e']} position={[0, -0.66, 0]} />
 
-        <Districts city={city} />
+        <Districts city={city} running={running} reduced={reduced} />
         <NightBlocks
           city={city}
           selectedPath={focus?.block.path}
@@ -807,6 +928,8 @@ export function SafetyStage({
           onHover={setHoveredFinding}
           onSelect={onSelectFinding}
         />
+        {running ? <ScanSweep city={city} reduced={reduced} /> : null}
+
         {hoveredFinding === undefined || hoveredFinding.finding.id === selectedFindingId ? null : (
           <Html
             center
