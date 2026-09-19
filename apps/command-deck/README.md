@@ -35,6 +35,8 @@ pnpm --dir apps/command-deck fixtures
 
 `Esc` clears the selection. The enterprise view opens on an establishing shot, the camera easing in from far out and high above the graph over two and a half seconds. `prefers-reduced-motion: reduce` opens every view at rest, stops the traffic, the auto-orbit, the pulsing and the chromatic aberration, holds bloom at a constant intensity, and cuts to a selected agent instead of flying.
 
+`F` gives the stage the whole frame: the side panel hides and the header keeps only the mark, the counts and the live badge. `P` starts a tour that walks the three views every thirty seconds, opening each with a title card whose two lines are composed from what the deck has read: the agent and relationship counts, the run and its event count, the reviewed target with its findings and whether it is certified. Any key or click ends the tour. Under `prefers-reduced-motion: reduce` the kinetic title, the route dissolve and the counter tweens are also off; every mode still works.
+
 ![The enterprise view: 147 agents in ten division clusters](docs/enterprise.png)
 
 ![The process view: departments, verification, judging and integration](docs/process.png)
@@ -53,7 +55,7 @@ The deck reads `NEXT_PUBLIC_FEED_URL` (default `http://localhost:4711`) and expe
 | `GET /safety/:id` | `{ target, departments, findings, certificate, report }` for one code-safety review. |
 | `POST /safety` | `{ target, model? }` starts a review and answers `{ id }`; the deck then follows that run live. `target` is an absolute path on the feed's machine and `model` is `sonnet` or `opus`, the names `pnpm run code-safety -- --model` accepts; the form opens on the loaded review's own target. |
 
-Every field is typed in [`deck/contract.ts`](deck/contract.ts), which is the one place the contract is written down. `seq` is what the client deduplicates on, so a reconnection that replays history delivers nothing twice.
+Every field is typed in [`deck/contract.ts`](deck/contract.ts), which is the one place the contract is written down. `seq` is what the client deduplicates on, so a reconnection that replays history delivers nothing twice. The footer's events per minute is counted from the `ts` of the frames in the event window over the last sixty seconds: a live feed measures that minute against the wall clock, so a feed that stops reporting decays to `—`; replay measures it against the newest recorded frame, because fixture timestamps are historical. Nothing is extrapolated.
 
 Two deck-side rules are worth knowing because the feed does not carry them. A finding's owning department is derived from its CWE through the table in [`deck/departments.ts`](deck/departments.ts), since the feed reports per-department totals but places no department on the finding itself. A finding counts as verified unless the certificate's `unverified` list names it.
 

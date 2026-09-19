@@ -147,8 +147,10 @@ export const useDeck = create<DeckState>((set, get) => ({
     if (source === undefined || get().selectedRunId === id) return
     unsubscribe?.()
     set({ selectedRunId: id, events: [], cursor: undefined })
-    const { activity } = get()
+    const { activity, bursts } = get()
     activity.clear()
+    // A certificate queued under the previous run must not burst on this one.
+    bursts.length = 0
     unsubscribe = subscribeRun(source.base, id, {
       onState: state => set({ streamState: state }),
       onEvent: (event) => {

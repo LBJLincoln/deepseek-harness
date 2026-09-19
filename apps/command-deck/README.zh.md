@@ -35,6 +35,8 @@ pnpm --dir apps/command-deck fixtures
 
 `Esc` 清除选择。企业视图以一个定场镜头开场：相机从图的远处高空用两秒半缓入。`prefers-reduced-motion: reduce` 让每个视图静止开场，停止流量、自动环绕、脉动与色差，把 bloom（泛光）固定在恒定强度，并对选中的 agent 直接切换而不是飞行。
 
+`F` 把整个画面交给舞台：侧面板隐藏，顶栏只保留标识、计数与实时徽标。`P` 开始一段巡览，每三十秒走过三个视图，每个视图以一张标题卡开场，卡上两行文字由指挥台实际读到的数据组成：agent 与关系的计数、当前运行及其事件数、被审查的目标及其发现数与是否已认证。任何按键或点击都会结束巡览。在 `prefers-reduced-motion: reduce` 下，动态标题、路由渐隐与计数器的补间也会关闭；每种模式仍然可用。
+
 ![企业视图：147 个 agent 分布在十个 division 聚类中](docs/enterprise.png)
 
 ![流程视图：departments、验证、裁决与集成](docs/process.png)
@@ -53,7 +55,7 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 | `GET /safety/:id` | 一次代码安全审查的 `{ target, departments, findings, certificate, report }`。 |
 | `POST /safety` | `{ target, model? }` 启动一次审查并返回 `{ id }`；随后 deck 会实时跟随该次运行。`target` 是 feed 所在机器上的绝对路径，`model` 是 `sonnet` 或 `opus`，即 `pnpm run code-safety -- --model` 接受的名称；表单打开时预填已加载审查自己的目标。 |
 
-每个字段都在 [`deck/contract.ts`](deck/contract.ts) 中定型，那是该契约被写下的唯一位置。客户端按 `seq` 去重，因此重连后重放的历史不会被投递两次。
+每个字段都在 [`deck/contract.ts`](deck/contract.ts) 中定型，那是该契约被写下的唯一位置。客户端按 `seq` 去重，因此重连后重放的历史不会被投递两次。状态栏的每分钟事件数由事件窗口中各帧的 `ts` 在最近六十秒内计得：实时 feed 以墙钟衡量这一分钟，因此停止报告的 feed 会衰减为 `—`；回放则以最新一条录制帧为基准衡量，因为 fixture 的时间戳是历史时间。没有任何外推。
 
 有两条 deck 侧规则值得了解，因为 feed 并不携带它们。finding 的归属 department 通过 [`deck/departments.ts`](deck/departments.ts) 中的表由其 CWE 推导，因为 feed 只报告各 department 的总数，而不在 finding 上标注 department。除非证书的 `unverified` 清单点名，否则 finding 记为已验证。
 
