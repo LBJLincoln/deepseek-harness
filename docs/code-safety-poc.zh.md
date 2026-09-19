@@ -28,11 +28,10 @@ NodeGoat 上已记录的运行（[`data/code-safety/2026-09-19-nodegoat/`](../da
 
 ## 运行演示
 
-三个进程，三个终端：
+两个终端。第一条命令构建指挥台、启动 feed、等待其应答，再提供指挥台的生产构建；第二条启动审查，除非你从指挥台的 Safety 视图启动它。
 
 ```sh
-pnpm run feed                      # the harness feed: roster, runs, live events, reviews (port 4711)
-pnpm run deck                      # the command deck (Next.js, http://localhost:3000)
+pnpm run poc                       # the feed (port 4711) and the production deck (http://localhost:3000); one Ctrl-C stops both
 pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the review from the deck's Safety view
 ```
 
@@ -45,7 +44,7 @@ pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the revie
 
 如果现场审查很慢或订阅被限速，在运行列表里把指挥台切到已记录的 NodeGoat 运行并继续叙述；说明它是一段录制。如果 feed 本身停止应答，指挥台会在五秒内回落到回放，从其已提交的 fixture 展示同样的已记录审查与同样的花名册，并带 `REPLAY` 徽标和示例数据提示；也要说明这一点。
 
-对时钟的预期：先启动 feed，几秒后再启动指挥台，因为 feed 在启动时会把每个已记录的会话折叠一次（在本仓库上约一秒），而指挥台只有在 `GET /roster` 于五秒内应答时才显示 `LIVE`；从 Safety 视图启动的审查会立即以 feed 返回的 id 列出，面板会说明审查正在进行，代码城市显示目标但没有标记，直到各部门发布；Enterprise 与 Process 视图把每个部门的事件归于其 integrator 席位、把集成归于 program lead，各部门的首批工具调用会在一分钟内出现；发现、证书与报告在集成之后一起到达，对一个 NodeGoat 规模的目标、在中档模型上，大约在审查开始后二十到二十五分钟。
+对时钟的预期：`pnpm run poc` 只在 feed 应答之后才提供指挥台；若手动启动，feed 要先启动几秒，因为它在启动时会把每个已记录的会话折叠一次（在本仓库上约一秒），而指挥台只有在 `GET /roster` 于五秒内应答时才显示 `LIVE`；从 Safety 视图启动的审查会立即以 feed 返回的 id 列出，面板会说明审查正在进行，代码城市显示目标但没有标记，直到各部门发布；Enterprise 与 Process 视图把每个部门的事件归于其 integrator 席位、把集成归于 program lead，各部门的首批工具调用会在一分钟内出现；发现、证书与报告在集成之后一起到达，对一个 NodeGoat 规模的目标、在中档模型上，大约在审查开始后二十到二十五分钟。
 
 ## 可以宣称什么
 

@@ -54,8 +54,7 @@ The same program workflow reviews an application's source for security defects: 
 
 ```sh
 pnpm run code-safety -- /path/to/target --model sonnet   # a review on your Claude Code login
-pnpm run feed                                            # roster, runs and live events on :4711
-pnpm run deck                                            # the command deck on :3000
+pnpm run poc                                             # the feed on :4711 and the production deck on :3000
 ```
 
 ## Community and support
