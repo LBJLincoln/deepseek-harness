@@ -238,7 +238,15 @@ export function SafetyView(): ReactNode {
                 </tbody>
               </table>
 
-              {filtered.length === 0 ? <div className="panel__empty">No finding matches these filters.</div> : null}
+              {filtered.length === 0
+                ? (
+                  <div className="panel__empty">
+                    {findings.length === 0 && safety?.departments.some(entry => entry.status === 'pending') === true
+                      ? 'The review is running. Findings appear here once the departments release them; the certificate follows the integration.'
+                      : 'No finding matches these filters.'}
+                  </div>
+                )
+                : null}
             </>
           ) : null}
 

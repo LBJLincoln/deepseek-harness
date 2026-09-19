@@ -448,6 +448,21 @@ describe('GET /roster', () => {
     expect(active[0]?.route).toEqual(REAL_ROUTE)
   })
 
+  it('re-reads a session file that grew since the last request, so a new certificate shows on the next roster', async () => {
+    const fixture = makeFixture()
+    cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
+    const { port } = await startServer(fixture.dir)
+
+    // Session B shares session A's agent and would keep it active; only A is under test here.
+    rmSync(join(fixture.runDir, '.sessions/session-b'), { recursive: true, force: true })
+    const first = (await getJson(port, '/roster')).body as LiveRoster
+    expect(first.counts.active).toBe(1)
+    appendFileSync(fixture.sessionAFile, line('verification/certificate', 99, 99, { verifier: 'oxlint' }))
+    const second = (await getJson(port, '/roster')).body as LiveRoster
+    expect(second.counts.active).toBe(0)
+    expect(second.agents.filter(agent => agent.status === 'certified')).toHaveLength(1)
+  })
+
   it('reports zero active agents with no discoverable runs', async () => {
     const empty = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-empty-'))
     cleanups.push(() => { rmSync(empty, { recursive: true, force: true }) })

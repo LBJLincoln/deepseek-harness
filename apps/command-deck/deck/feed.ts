@@ -33,8 +33,12 @@ function feedUrl(): string {
     .replace(/\/+$/, '')
 }
 
-/** How long the deck waits for the live feed before falling back to fixtures. */
-const PROBE_TIMEOUT_MS = 1_500
+/**
+ * How long the deck waits for the live feed before falling back to fixtures.
+ * A cold feed answers `GET /roster` in about 1.5 s on a tree with fifty runs,
+ * so the probe allows several times that.
+ */
+const PROBE_TIMEOUT_MS = 5_000
 
 /**
  * Decide where this session reads from.

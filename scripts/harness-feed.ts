@@ -978,6 +978,61 @@ function programSeatFor(sessionId: string, roster: Roster): string | undefined {
 // Roster liveness
 // ---------------------------------------------------------------------------
 
+/** What {@link computeLiveRoster} needs from one session file, kept while the file's size, mtime and roster are unchanged. */
+interface SessionFileFold {
+  size: number
+  mtimeMs: number
+  rosterGeneratedAt: string
+  agentId: string
+  certified: boolean
+}
+
+/**
+ * Session files already folded for the roster overlay, by path. Recorded runs
+ * never change and a live session file only grows, so the size and mtime a
+ * fold was made at decide whether it is still current; this keeps `GET /roster`
+ * at the cost of one `stat` per session file after the first request instead
+ * of re-reading every record on the tree (about 1.5 s on fifty runs), which is
+ * what the deck's probe measures.
+ */
+const sessionFileFolds = new Map<string, SessionFileFold>()
+
+/**
+ * Fold one session file to the agent it maps to and whether it certified,
+ * reusing the previous fold while the file and the roster are unchanged.
+ * @param file - absolute path of the session file.
+ * @param roster - the generated roster to map against.
+ * @param fallbackAgentId - agent id to use when nothing else matches.
+ * @returns the fold, or `undefined` when the file is unreadable or empty.
+ */
+function foldSessionFile(file: string, roster: Roster, fallbackAgentId: string): SessionFileFold | undefined {
+  let size: number
+  let mtimeMs: number
+  try {
+    ({ size, mtimeMs } = statSync(file))
+  } catch {
+    // Removed between discovery and this read: nothing to overlay.
+    return undefined
+  }
+  const cached = sessionFileFolds.get(file)
+  if (cached !== undefined && cached.size === size && cached.mtimeMs === mtimeMs && cached.rosterGeneratedAt === roster.generatedAt) {
+    return cached
+  }
+  const lines = readJsonlLines(file)
+  if (lines.length === 0) return undefined
+  const header = lines.find(line => typeOf(line) === 'session')
+  const state: FoldState = { sessionId: sessionIdOf(header, file), callNameById: new Map() }
+  const fold: SessionFileFold = {
+    size,
+    mtimeMs,
+    rosterGeneratedAt: roster.generatedAt,
+    agentId: mapSessionToAgentId(lines, roster, fallbackAgentId),
+    certified: lines.some(line => foldSessionEvent(line, state)?.kind === 'certificate'),
+  }
+  sessionFileFolds.set(file, fold)
+  return fold
+}
+
 /**
  * Overlay live status onto the generated roster: an agent is `active` when a
  * currently-running session maps to it, `certified` when a session that maps
@@ -992,13 +1047,9 @@ export function computeLiveRoster(roster: Roster, discoveryRoot: string): LiveRo
   const fallbackAgentId = roster.agents[0]?.id ?? ''
   for (const run of discoverRuns(discoveryRoot)) {
     for (const file of sessionFilesForRun(discoveryRoot, run)) {
-      const lines = readJsonlLines(file)
-      if (lines.length === 0) continue
-      const header = lines.find(line => typeOf(line) === 'session')
-      const sessionId = sessionIdOf(header, file)
-      const agentId = mapSessionToAgentId(lines, roster, fallbackAgentId)
-      const state: FoldState = { sessionId, callNameById: new Map() }
-      const certified = lines.some(line => foldSessionEvent(line, state)?.kind === 'certificate')
+      const folded = foldSessionFile(file, roster, fallbackAgentId)
+      if (folded === undefined) continue
+      const { agentId, certified } = folded
       const next: 'active' | 'certified' | 'failed' = certified
         ? 'certified'
         : run.endedAt === undefined && run.status === 'running' ? 'active' : 'failed'
@@ -1329,6 +1380,8 @@ export interface HarnessFeedOptions {
   root: string
   /** When set, run/session/safety discovery reads this directory instead of `root`. */
   fixturesDir?: string
+  /** Fold every session file once as soon as the server exists, so the first `GET /roster` answers from the per-file cache. */
+  warm?: boolean
 }
 
 /**
@@ -1344,6 +1397,16 @@ export function createHarnessFeedServer(options: HarnessFeedOptions): Server {
   const loadRoster = (): Roster => {
     const raw = readFileSync(join(root, 'data/enterprise/roster.json'), 'utf8')
     return JSON.parse(raw) as Roster
+  }
+
+  if (options.warm === true) {
+    setImmediate(() => {
+      try {
+        computeLiveRoster(loadRoster(), discoveryRoot)
+      } catch {
+        // A missing or malformed roster file: the first GET /roster reports it to the caller.
+      }
+    })
   }
 
   return createServer((req, res) => {
@@ -1467,7 +1530,7 @@ const isMain = process.argv[1] !== undefined && import.meta.url === `file://${re
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   const { port, fixturesDir } = parseHarnessFeedArgs(process.argv.slice(2))
-  const server = createHarnessFeedServer({ root, ...fixturesDir === undefined ? {} : { fixturesDir: resolve(fixturesDir) } })
+  const server = createHarnessFeedServer({ root, warm: true, ...fixturesDir === undefined ? {} : { fixturesDir: resolve(fixturesDir) } })
   server.listen(port, () => {
     console.log(`harness-feed: listening on http://localhost:${port}${fixturesDir === undefined ? '' : ` (fixtures: ${fixturesDir})`}`)
   })
