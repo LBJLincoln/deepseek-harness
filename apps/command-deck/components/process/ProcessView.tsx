@@ -102,7 +102,7 @@ export function ProcessView(): ReactNode {
           <select
             className="input"
             value={selectedRunId ?? ''}
-            onChange={(event) => selectRun(event.target.value)}
+            onChange={event => selectRun(event.target.value)}
             aria-label="Run"
           >
             {runs.map(entry => (

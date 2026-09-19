@@ -446,7 +446,7 @@ const PRESENTATION: Record<string, {
   'NG-A2-3': {
     severity: 'high', department: 'access', owasp: 'A05:2021 Security misconfiguration', confidence: 0.94,
     title: 'Session cookie without `httpOnly`, `secure` or `maxAge`',
-    snippet: "app.use(session({ secret: cookieSecret }));",
+    snippet: 'app.use(session({ secret: cookieSecret }));',
     impact: 'The session cookie is readable from script and travels over plain HTTP under the default name.',
     fix: 'Set `name`, `httpOnly`, `secure`, `sameSite: "lax"` and an absolute `maxAge` on the session store.',
   },

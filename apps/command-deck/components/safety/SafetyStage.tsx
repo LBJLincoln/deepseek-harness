@@ -42,7 +42,7 @@ const MARKER_SIZE: Record<string, number> = {
  * @param extent - Half-extent of the city footprint.
  * @returns The camera position and the point it looks at.
  */
-function cityView(extent: number): { position: Vector3, target: Vector3 } {
+function cityView(extent: number): { position: Vector3; target: Vector3 } {
   return {
     position: new Vector3(0.58, 0.82, 1.28).normalize().multiplyScalar(extent * 3.6),
     target: new Vector3(0, 11, 0),
@@ -290,10 +290,10 @@ function Markers({
  * @param props - The city extent and the finding to fly to.
  * @returns The controls.
  */
-function CityRig({ city, focus }: { city: CityLayout, focus: Vector3 | undefined }): ReactNode {
+function CityRig({ city, focus }: { city: CityLayout; focus: Vector3 | undefined }): ReactNode {
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
   const { camera } = useThree()
-  const goal = useRef<{ position: Vector3, target: Vector3 } | undefined>(undefined)
+  const goal = useRef<{ position: Vector3; target: Vector3 } | undefined>(undefined)
 
   useEffect(() => {
     if (focus === undefined) {

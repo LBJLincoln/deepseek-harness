@@ -60,7 +60,7 @@ const SCRATCH_POSITION = new Vector3()
  * @param props - The roster and its computed layout.
  * @returns The graph scene contents.
  */
-function AgentGraph({ roster, layout }: { roster: Roster, layout: GraphLayout }): ReactNode {
+function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLayout }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const cores = useRef<InstancedMesh>(null)
   const glow = useRef<Points>(null)
@@ -285,7 +285,7 @@ function buildEdgeGeometry(edges: readonly RosterEdge[], layout: GraphLayout): B
  * @param props - The roster and its computed layout.
  * @returns The edge scene contents.
  */
-function GraphEdges({ roster, layout }: { roster: Roster, layout: GraphLayout }): ReactNode {
+function GraphEdges({ roster, layout }: { roster: Roster; layout: GraphLayout }): ReactNode {
   const selectedId = useDeck(state => state.selectedAgentId)
 
   const geometry = useMemo(() => buildEdgeGeometry(roster.edges, layout), [roster.edges, layout])
@@ -333,7 +333,7 @@ function GraphEdges({ roster, layout }: { roster: Roster, layout: GraphLayout })
  * @param props - The computed layout and the roster's division records.
  * @returns The label overlays.
  */
-function DivisionLabels({ roster, layout }: { roster: Roster, layout: GraphLayout }): ReactNode {
+function DivisionLabels({ roster, layout }: { roster: Roster; layout: GraphLayout }): ReactNode {
   const selectAgent = useDeck(state => state.selectAgent)
   return (
     <group>
@@ -468,7 +468,7 @@ function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const selectedId = useDeck(state => state.selectedAgentId)
   const { camera } = useThree()
-  const goal = useRef<{ position: Vector3, target: Vector3 } | undefined>(undefined)
+  const goal = useRef<{ position: Vector3; target: Vector3 } | undefined>(undefined)
 
   useEffect(() => {
     if (selectedId === undefined) {
