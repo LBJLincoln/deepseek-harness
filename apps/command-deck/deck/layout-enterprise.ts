@@ -12,7 +12,7 @@
 import type { Roster } from './contract.ts'
 
 /** One node's resolved position and its cluster. */
-export interface GraphNode {
+interface GraphNode {
   id: string
   x: number
   y: number
@@ -21,7 +21,7 @@ export interface GraphNode {
 }
 
 /** A division's cluster: the members' centroid, the label anchor pushed clear of it, and its size. */
-export interface GraphCluster {
+interface GraphCluster {
   id: string
   name: string
   /** Label anchor, pushed radially outside the member cloud. */

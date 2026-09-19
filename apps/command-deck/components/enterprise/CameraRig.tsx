@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ElementRef, type ReactNode } from 'react'
 import { Vector3 } from 'three'
+import { easeInOutCubic } from '@/deck/easing'
 import type { GraphLayout } from '@/deck/layout-enterprise'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { useDeck } from '@/deck/store'
@@ -32,15 +33,6 @@ interface Flight {
   to: Shot
   started: number
   duration: number
-}
-
-/**
- * Cubic ease-in-out.
- * @param t - Progress in `[0, 1]`.
- * @returns The eased progress, starting and ending at rest.
- */
-function cubicInOut(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - ((((-2 * t) + 2) ** 3) / 2)
 }
 
 /**
@@ -156,7 +148,7 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
     const move = flight.current
     if (move !== undefined) {
       const progress = Math.min(1, (performance.now() - move.started) / move.duration)
-      const eased = cubicInOut(progress)
+      const eased = easeInOutCubic(progress)
       camera.position.lerpVectors(move.from.position, move.to.position, eased)
       control.target.lerpVectors(move.from.target, move.to.target, eased)
       if (progress >= 1) {

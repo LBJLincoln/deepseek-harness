@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, type ElementRef, type ReactNode } from 'react'
 import { Vector3 } from 'three'
+import { easeInOutCubic } from '@/deck/easing'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { PIPELINE } from '@/deck/pipeline'
 
@@ -48,15 +49,6 @@ const HANDOVER_MS = 12_000
 
 /** The reusable goal the director eases towards; nothing is allocated per frame. */
 const GOAL: Pose = { position: new Vector3(), target: new Vector3() }
-
-/**
- * Cubic ease in and out.
- * @param t - Progress, in `0..1`.
- * @returns The eased progress.
- */
-function cubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - (((-2 * t) + 2) ** 3 / 2)
-}
 
 /**
  * The camera over the pipeline.
@@ -117,7 +109,7 @@ export function Director({
     if (opened.current === 0) opened.current = now
     const opening = (now - opened.current) / ESTABLISH_MS
     if (opening < 1) {
-      const eased = cubic(Math.max(0, opening))
+      const eased = easeInOutCubic(Math.max(0, opening))
       camera.position.lerpVectors(ESTABLISH.position, WORKING.position, eased)
       control.target.lerpVectors(ESTABLISH.target, WORKING.target, eased)
       control.update()

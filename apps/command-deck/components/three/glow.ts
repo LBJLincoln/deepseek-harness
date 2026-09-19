@@ -5,7 +5,7 @@ import { AdditiveBlending, ShaderMaterial } from 'three'
  *
  * Points, not billboarded quads: a point sprite always faces the camera and
  * the whole layer is one draw call, which is what keeps 147 pulsing agents and
- * a hundred finding markers inside the frame budget. Size and brightness are
+ * a hundred beacon heads inside the frame budget. Size and brightness are
  * per-point attributes, so a scene animates a typed array rather than a scene
  * graph.
  * @returns A new additive point material; each layer owns its own instance.

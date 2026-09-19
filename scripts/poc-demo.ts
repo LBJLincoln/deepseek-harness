@@ -110,7 +110,7 @@ if (isMain) {
 
   if (options.build || !existsSync(join(deckDir, '.next', 'BUILD_ID'))) {
     console.log(`poc-demo: building the deck against ${feedUrl}`)
-    const code = await run('pnpm', ['--dir', deckDir, 'exec', 'next', 'build'], { NEXT_PUBLIC_FEED_URL: feedUrl })
+    const code = await run('pnpm', ['--dir', deckDir, 'run', 'build'], { NEXT_PUBLIC_FEED_URL: feedUrl })
     if (code !== 0) {
       console.error(`poc-demo: the deck build exited with ${code}`)
       process.exit(code)
@@ -120,6 +120,9 @@ if (isMain) {
   // Each child leads its own process group: the feed and the deck are started
   // through pnpm wrappers, and signalling the group is what reaches the server
   // process behind the wrapper. Ctrl-C therefore arrives here and is forwarded.
+  // The deck's own `build` and `start` scripts are run rather than the `next`
+  // binary, which only the deck workspace depends on; `next start` reads its
+  // port from `PORT`.
   const children: ChildProcess[] = []
   const stopAll = (signal: NodeJS.Signals = 'SIGTERM'): void => {
     for (const child of children) {
@@ -146,7 +149,11 @@ if (isMain) {
   await waitForFeed(feedUrl, FEED_READY_MS)
 
   console.log(`poc-demo: serving the deck on http://localhost:${options.deckPort} (LIVE against ${feedUrl})`)
-  const deck = spawn('pnpm', ['--dir', deckDir, 'exec', 'next', 'start', '-p', String(options.deckPort)], { stdio: 'inherit', detached: true })
+  const deck = spawn('pnpm', ['--dir', deckDir, 'run', 'start'], {
+    env: { ...process.env, PORT: String(options.deckPort) },
+    stdio: 'inherit',
+    detached: true,
+  })
   children.push(deck)
   deck.on('exit', onChildExit('the deck'))
 }

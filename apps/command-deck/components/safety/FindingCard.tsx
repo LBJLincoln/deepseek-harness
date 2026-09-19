@@ -5,21 +5,7 @@ import type { Finding, SafetyCertificate } from '@/deck/contract'
 import { departmentOf } from '@/deck/departments'
 
 /**
- * A finding's confidence as text.
- *
- * The contract types the field as a number, and the fixtures carry one, but a
- * live feed also reports it as a word the departments wrote — `confirmed`,
- * `likely` — so the card renders whichever arrives rather than calling a
- * number method on a string.
- * @param confidence - The confidence the feed reported.
- * @returns The text to show after the location.
- */
-function confidenceText(confidence: number | string): string {
-  return typeof confidence === 'number' ? confidence.toFixed(2) : confidence
-}
-
-/**
- * The selected finding, over the city, next to the marker it belongs to.
+ * The selected finding, over the city, beside the beacon it belongs to.
  * @param props - The finding and the certificate that did or did not verify it.
  * @returns The floating detail card.
  */
@@ -55,7 +41,7 @@ export function FindingCard({
 
       <h3 className="finding-card__title">{finding.title}</h3>
       <div className="finding-card__where">
-        {finding.file}:{finding.line} · {finding.owasp} · confidence {confidenceText(finding.confidence)}
+        {finding.file}:{finding.line} · {finding.owasp} · confidence {finding.confidence}
       </div>
 
       <pre className="snippet" style={{ borderLeftColor: `var(--${finding.severity})` }}>{finding.snippet}</pre>

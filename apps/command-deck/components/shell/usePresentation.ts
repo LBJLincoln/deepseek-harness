@@ -14,8 +14,9 @@ const TYPING = ['INPUT', 'TEXTAREA', 'SELECT']
 /**
  * The deck's global keyboard, and the timer that drives the tour.
  *
- * `1`, `2` and `3` select a view and `Esc` clears the selection, as before;
- * `F` toggles the full-bleed stage and `P` the tour. Every other key, and any
+ * `1`, `2` and `3` select a view and `Esc` clears the selected agent and the
+ * selected finding, so each stage flies back on the one key whichever view is
+ * up; `F` toggles the full-bleed stage and `P` the tour. Every other key, and any
  * press anywhere on the page, ends a running tour — a tour is what the deck
  * does while nobody is driving, so the first sign of a driver stops it.
  *
@@ -29,6 +30,7 @@ export function usePresentation(): void {
   const setPresentation = useDeck(state => state.setPresentation)
   const togglePresentation = useDeck(state => state.togglePresentation)
   const selectAgent = useDeck(state => state.selectAgent)
+  const selectFinding = useDeck(state => state.selectFinding)
 
   const here = useRef(pathname)
   here.current = pathname
@@ -58,6 +60,7 @@ export function usePresentation(): void {
       leaveTour()
       if (event.key === 'Escape') {
         selectAgent(undefined)
+        selectFinding(undefined)
         return
       }
       const view = VIEWS.find(entry => entry.key === event.key)
@@ -70,7 +73,7 @@ export function usePresentation(): void {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('pointerdown', leaveTour)
     }
-  }, [router, selectAgent, setPresentation, togglePresentation])
+  }, [router, selectAgent, selectFinding, setPresentation, togglePresentation])
 
   useEffect(() => {
     if (presentation !== 'tour') return

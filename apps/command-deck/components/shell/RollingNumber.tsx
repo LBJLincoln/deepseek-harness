@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { easeInOutCubic } from '@/deck/camera'
+import { easeInOutCubic } from '@/deck/easing'
 import { usePrefersReducedMotion } from '@/deck/motion'
 
 /** How long a counter takes to travel from its old value to its new one. */

@@ -19,6 +19,13 @@ export type EventKind
 /** Severity ladder shared by findings, events, and the certificate counts. */
 export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info'
 
+/**
+ * How far the department traced a finding: `confirmed` read the source, the
+ * sink and the path between them, `likely` a dangerous sink with a plausible
+ * source, `possible` the pattern without established reachability.
+ */
+export type Confidence = 'confirmed' | 'likely' | 'possible'
+
 /** Run categories the deck can subscribe to. */
 export type RunKind = 'program' | 'fleet' | 'experiment' | 'code-safety'
 
@@ -121,7 +128,7 @@ export interface Finding {
   cwe: string
   owasp: string
   severity: Severity
-  confidence: number
+  confidence: Confidence
   title: string
   file: string
   line: number
@@ -129,6 +136,8 @@ export interface Finding {
   evidence: string
   impact: string
   fix: string
+  /** Sources the department cited, as the review wrote them. */
+  references?: string[]
 }
 
 /** The verifier's certificate over a completed review. */

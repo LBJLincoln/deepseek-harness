@@ -33,7 +33,7 @@ interface Burst {
  * and gives the stage the whole frame. `tour` is `focus` plus a timer that
  * walks the three views, announcing each one; anything the viewer does ends it.
  */
-export type PresentationMode = 'off' | 'focus' | 'tour'
+type PresentationMode = 'off' | 'focus' | 'tour'
 
 /** Everything the deck holds for one session. */
 export interface DeckState {

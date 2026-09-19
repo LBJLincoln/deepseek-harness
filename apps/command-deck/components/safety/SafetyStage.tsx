@@ -23,6 +23,7 @@ import {
   type Mesh,
 } from 'three'
 import type { Finding, SafetyDepartment, SafetyTarget } from '@/deck/contract'
+import { easeInOutCubic } from '@/deck/easing'
 import { layoutCity, type CityBlock, type CityLayout } from '@/deck/layout-city'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
@@ -150,15 +151,6 @@ function focusView(entry: PlacedFinding): { position: Vector3; target: Vector3 }
     position: target.clone().add(new Vector3(0.58, 0.55, 1.05).normalize().multiplyScalar(distance)),
     target,
   }
-}
-
-/**
- * Cubic ease-in-out, so a flight leaves and arrives at rest.
- * @param t - Progress in `[0, 1]`.
- * @returns The eased progress.
- */
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - ((((-2 * t) + 2) ** 3) / 2)
 }
 
 const SCRATCH = new Matrix4()
@@ -1021,17 +1013,6 @@ export function SafetyStage({
     () => placed.find(entry => entry.finding.id === selectedFindingId),
     [placed, selectedFindingId],
   )
-
-  useEffect(() => {
-    if (selectedFindingId === undefined) return
-    const onKey = (event: KeyboardEvent): void => {
-      const element = event.target
-      if (element instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName)) return
-      if (event.key === 'Escape') onSelectFinding(undefined)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [selectedFindingId, onSelectFinding])
 
   return (
     <Stage

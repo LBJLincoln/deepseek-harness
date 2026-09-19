@@ -9,6 +9,3 @@ export const VIEWS = [
   { href: '/process', key: '2', label: 'Process' },
   { href: '/safety', key: '3', label: 'Code safety' },
 ] as const
-
-/** One entry of {@link VIEWS}. */
-export type View = (typeof VIEWS)[number]

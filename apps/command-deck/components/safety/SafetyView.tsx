@@ -132,7 +132,7 @@ export function SafetyView(): ReactNode {
             <h1>{safety?.target.name ?? 'Code safety'}</h1>
             <p>
               Directories are districts, files are blocks scaled by size and coloured by language.
-              Every marker is a finding standing on the line of code that carries it.
+              Every beacon is a finding standing on the file that carries it; its height and colour are its severity.
             </p>
             <div className="legend" style={{ marginTop: 11 }}>
               {SEVERITY_ORDER.map(level => (
@@ -143,7 +143,7 @@ export function SafetyView(): ReactNode {
               ))}
             </div>
           </div>
-          <span className="hint">drag to orbit · click a marker or a block</span>
+          <span className="hint">drag to orbit · click a beacon or a building · esc flies back</span>
         </div>
 
         {selected === undefined ? null : (

@@ -18,26 +18,29 @@ Status: implemented
 
 **示例数据会在每个视图上自陈。** 回放模式下，顶栏徽标显示 `REPLAY`，状态栏点名它无法连上的 feed，每个视图都带有常驻提示。该提示位于面板内部而非只在外壳中出现一次，这样任一单个视图的截图都会带着这一声明。
 
-**finding 是借来的，不是编的。** 二十六条代码安全 finding 中有十八条由 `data/code-safety/targets/nodegoat.ground-truth.json` 生成，即本仓库自己的 OWASP NodeGoat ground truth（基准事实），保留真实的 CWE、文件与行号。其余八条是超出它的 department 产出，置信度相应更低。在一个真实且广为人知的目标上编造 finding，是这次演示中懂安全的读者唯一能当场揭穿的东西，而仓库早已持有使其不必要的材料。
+**fixture 是 feed 的快照，绝不生成。** `scripts/snapshot-fixtures.ts` 从运行中的 feed 写出 `fixtures/`：生成的花名册、`data/` 下的五条已提交记录、它们折叠成事件流的会话日志，以及两次代码安全审查的详情。它拒绝 `data/` 之外的运行目录，因为只有已提交的记录经过了密钥材料的脱敏。回放所展示的每条 finding，都是某个 department 写下、并由已提交的审查器在指名修订版的那一行复读过的。在一个真实且广为人知的目标上编造 finding，是这次演示中懂安全的读者唯一能当场揭穿的东西，而仓库自己的记录使其不必要。
 
-**逐帧状态绝不经过 React。** store 把 `activity` 与 `bursts` 保存为就地改写、由 `useFrame` 读取的对象；只有 roster、runs、events 与选择是 React 状态。每个场景只用少数几次绘制调用——节点与文件方块用实例化网格，每层辉光用一个叠加点层，每组边用一个线段层——因此 147 个脉动 agent、424 条曲线边和一座代码城市，在开启完整调色（bloom、暗角、色差）的笔记本上仍能保持 60 fps。
+**逐帧状态绝不经过 React。** store 把 `activity` 与 `bursts` 保存为就地改写、由 `useFrame` 读取的对象；只有 roster、runs、events 与选择是 React 状态。每个场景只用少数几次绘制调用——节点、文件方块与光柱用实例化网格，每层辉光用一个叠加点层，每组边用一个线段层——因此 147 个 agent、124 条带流量的曲线边、一条彗星流水线和一座每条 finding 立一道光柱的点亮代码城市，把帧预算留给了调色。
+
+**一套调色、三个有编排的舞台、一套键盘。** `components/three/Stage.tsx` 是每个视图都经由渲染的唯一画布：bloom、作为独立效果的 ACES 色调映射（合成器会把渲染器强制为 `NoToneMapping`）、胶片颗粒与暗角合在一个 pass 中，随后是色差，再是作用于调色后图像的 SMAA，底下是一层由尘埃与地平线辉光组成的共享大气。每个舞台只拥有自己的编排：企业视图以定场镜头开场，只在一条边的某个 agent 刚刚行动时才让流量沿边流动，并飞向选中的节点；流程流水线以固定速率从队列中把每条已记录事件作为彗星释放，穿过 Verification、Judging 与 Integration 三道门，因此一次性到达的历史记录仍能被看到在飞行；代码城市按每个文件的路径与大小点亮窗格，按严重级别为每条 finding 立起光柱，在有 department 处于 pending 时让一道光墙扫过，并飞到选中的 finding 上。`F` 隐藏面板，`P` 在一张由指挥台实际读到的数据组成的标题卡之后每三十秒走过三个视图；任何按键或点击都会结束巡览。外壳在 `components/shell/usePresentation.ts` 中的唯一键盘处理器拥有全部快捷键，因此无论在哪里按下 `Esc` 都会清除选中的 agent 与选中的 finding，没有任何舞台自己监听按键。
 
 **deck 是一个独立的 Next.js 程序。** 它的 `tsconfig.json` 归自己所有；它既不加入 host 也不加入 client 的 project reference 聚合，因为它是由 `next build` 构建的浏览器应用，而非仓库 `tsc -b` 产出的包。
 
 ## Consequences
 
-`pnpm run deck` 与 `pnpm --dir apps/command-deck build` 在干净检出、无 key、无 feed 的情况下均可工作。`pnpm --dir apps/command-deck fixtures` 从运行中的 feed 为每个 fixture 拍快照：生成的花名册、五条已提交记录、它们折叠后的事件流以及两次审查的详情，并拒绝实时运行目录，因为只有已提交的记录经过了脱敏；因此回放展示的正是现场运行所展示的数据，审阅者可以把它与记录做 diff。
+`pnpm run deck` 与 `pnpm --dir apps/command-deck build` 在干净检出、无 key、无 feed 的情况下均可工作，而 `pnpm run poc` 用一条命令为演示机器构建 deck、启动 feed 并提供生产构建。由于 `pnpm --dir apps/command-deck fixtures` 是快照，回放展示的正是已记录运行所展示的内容，审阅者可以把 `fixtures/` 与 `data/code-safety` 做 diff；新增一条记录后刷新 fixture 只是一条命令，而不是改一个生成器。
 
 有两项 feed 并不携带的事实在 deck 侧推导，并在 README 中如实说明：finding 的归属 department，通过 `deck/departments.ts` 中的表由其 CWE 得出；以及它的验证状态，由证书的 `unverified` 清单是否点名它得出。若 feed 日后在 finding 上标注 department，该表即成死代码，应当删除。
 
 `pnpm run constraints` 为此包报告四项无法从包内修复的违规。`scripts/check-workspace-constraints.ts` 把每个 `apps/*` 目录都视为发布成员——不得为 `private`、必须设置 `publishConfig.access`、repository 字段必须指明其目录、且其名称必须出现在该脚本的 `appPackageFiles` 策略中。客户概念验证不是已发布的包，因此清单保持 `private: true`，该门禁将持续报红，直到该脚本为不发布的 app 增加一个分支。
 
-场景需要 WebGL 2，且没有 2D 回退。`prefers-reduced-motion: reduce` 会关闭自动环绕、脉动与色差，这是无障碍底线，而非完整的替代渲染。
+场景需要 WebGL 2，且没有 2D 回退。`prefers-reduced-motion: reduce` 让每个舞台静止开场，对选择直接切换而不是飞行，把每条流程事件立为静止光点，把城市的扫描线固定不动，并停止流量、呼吸、脉动与色差；这是无障碍底线，而非完整的替代渲染。调色是最主要的帧开销。在本主机的软件渲染下测得，外壳的后期栈约为加它之前那一帧的 1.4 倍，几乎全部来自 SMAA；企业舞台是其前身的 1.15 倍；代码城市是 0.96 倍，因为严重级别与选择从每帧改写类型化数组改为只在变化时更新实例属性。共享的 bloom 阈值在最远缩放下也会捕捉到点亮的窗户，使城市略微发软。在弱 GPU 上，bloom 与设备像素比是最先该调的两个旋钮。
 
 ## Alternatives considered
 
 - **等待 feed 服务端，然后基于它开发。** 两半正是按一份写定的契约并行编写，才使任何一方都不阻塞另一方；没有服务端就无法启动的前端，同样没有服务端就无法演示。
 - **把 fixture 作为导入的 JSON 打包。** 更简单，并会丢掉使回放具有说服力的关键：一条带重连、由驱动实时 feed 的同一份客户端代码所检验的、有节奏的 Server-Sent Events 流。磁盘上的文件也更便于作为数据审阅。
 - **单独的"演示模式"开关。** 每个视图两条代码路径，其中一条只在会议室里被走到。回退因此被做成一个 base URL，于是演示路径就是生产路径。
-- **编造代码安全 finding。** 写起来更快，在会议室里无从辩护。仓库的 NodeGoat ground truth 已经把十八个真实问题钉在指名修订版的具体行上。
+- **编造代码安全 finding。** 写起来更快，在会议室里无从辩护。仓库自己已记录的审查已经把真实 finding 落在指名修订版的具体行上。
 - **企业视图用 2D 图（SVG 或 canvas）。** 它能承载名册与边，却承载不了客户相信这家企业为真的理由。3D 场景是交付物，而非装饰。
+- **每个舞台一套调色。** 各场景自行调节 bloom 可以让代码城市把窗户锐化而不让企业视图的光柱变暗，代价是三套逐渐分道扬镳的调色。共享的单一合成器正是让三个场景读起来像同一台仪器的原因；需要不同观感的舞台去改它的材质。

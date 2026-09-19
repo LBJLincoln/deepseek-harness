@@ -82,14 +82,14 @@ export function stageOf(event: RunEvent, agent: Agent | undefined): number {
  * @param agent - The acting agent, when the roster knows it.
  * @returns The lane key: a department where the agent has one, else its division.
  */
-export function laneOf(event: RunEvent, agent: Agent | undefined): string {
+function laneOf(event: RunEvent, agent: Agent | undefined): string {
   if (agent?.department !== undefined) return agent.department
   if (agent !== undefined) return agent.division
   return event.agentId.split('/')[0] ?? 'unknown'
 }
 
 /** One department lane of the first stage. */
-export interface Lane {
+interface Lane {
   key: string
   /** Roster name of the agent that emitted most of the lane's events. */
   label: string
