@@ -17,7 +17,7 @@ pnpm run deck
 
 The deck serves on `http://localhost:3000`. Point it at a live feed with `NEXT_PUBLIC_FEED_URL`; the default is `http://localhost:4711`.
 
-The second line is the production build and the server over it; the third regenerates `fixtures/`.
+The second line is the production build and the server over it; the third snapshots `fixtures/` from a running feed.
 
 ```sh
 NEXT_PUBLIC_FEED_URL=http://localhost:4711 pnpm run deck
