@@ -140,7 +140,7 @@ describe('listPlanNames / resolvePlanPath', () => {
 
 describe('listQueueNames / resolveQueuePath', () => {
   it('lists the checked-in queues, sorted, without their suffix', () => {
-    expect(listQueueNames()).toEqual(['nightly-tier5'])
+    expect(listQueueNames()).toEqual(['nightly-tier5', 'openrouter-smoke'])
   })
 
   it('finds a checked-in queue by name', () => {
