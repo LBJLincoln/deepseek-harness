@@ -57,6 +57,13 @@ export function ProcessView(): ReactNode {
   const max = Math.max(0, events.length - 1)
   const position = cursor === undefined ? max : Math.max(0, visible.length - 1)
 
+  // A run reads as finished when the feed has given it an end — `endedAt`, or a
+  // status of `completed` from a feed that reports no end time — and the deck is
+  // watching its head, or when the event under the cursor is the merge itself.
+  const ended = run !== undefined && (run.endedAt !== undefined || run.status === 'completed')
+  const completed = (cursor === undefined && ended) || at?.kind === 'merge'
+  const progress = cursor === undefined ? undefined : (max === 0 ? 1 : position / max)
+
   const onScrub = (event: ChangeEvent<HTMLInputElement>): void => {
     const index = Number(event.target.value)
     if (index >= max) {
@@ -69,14 +76,20 @@ export function ProcessView(): ReactNode {
   return (
     <div className="view view--split">
       <div className="stage">
-        <ProcessStage events={visible} agents={agents} />
+        <ProcessStage
+          events={visible}
+          history={events}
+          agents={agents}
+          completed={completed}
+          progress={progress}
+        />
 
         <div className="stage__overlay">
           <div className="stage__title">
             <h1>{run?.name ?? 'Process'}</h1>
             <p>
               Departments produce, Verification executes the checks, Judging scores, Integration merges.
-              Each light is one logged event moving to the next stage.
+              Each light is one logged event travelling to the next gate.
             </p>
           </div>
           <span className="hint">

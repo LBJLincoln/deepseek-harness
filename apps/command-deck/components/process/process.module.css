@@ -1,0 +1,74 @@
+/*
+ * Labels drawn over the pipeline.
+ *
+ * They ride in the scene through drei's `Html`, so they are DOM at screen
+ * resolution rather than textures: the type stays crisp on a boardroom screen
+ * at any camera distance. Nothing here wraps and nothing sizes itself from the
+ * viewport, so a label cannot clip against a gate or a rail. `--tone` carries
+ * the gate's or the lane's own colour in from the scene.
+ */
+
+.gate {
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #eaf2ff;
+  text-shadow:
+    0 0 4px rgba(4, 6, 11, 1),
+    0 0 18px rgba(4, 6, 11, 0.95);
+}
+
+.gate::after {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-top: 6px;
+  background: linear-gradient(90deg, transparent, var(--tone), transparent);
+  opacity: 0.7;
+}
+
+.lane {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8296b8;
+  text-shadow: 0 0 10px rgba(4, 6, 11, 0.95);
+  opacity: 0.62;
+  /* Anchored at the lane origin, the label reads to the right of it and so
+     cannot run off the left edge of the canvas however near the lane is. */
+  transform: translateX(50%);
+}
+
+.lane[data-lit='true'] {
+  color: #eef4ff;
+  opacity: 1;
+}
+
+.laneDot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--tone);
+}
+
+.lane[data-lit='true'] .laneDot { box-shadow: 0 0 14px 1px var(--tone); }
+
+.laneCount {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: #5f708f;
+}
+
+.lane[data-lit='true'] .laneCount { color: var(--tone); }
+
+.laneSilent .laneDot { opacity: 0.35; }
