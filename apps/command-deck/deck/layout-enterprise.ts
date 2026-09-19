@@ -12,7 +12,7 @@
 import type { Roster } from './contract.ts'
 
 /** One node's resolved position and its cluster. */
-interface GraphNode {
+export interface GraphNode {
   id: string
   x: number
   y: number
@@ -20,13 +20,20 @@ interface GraphNode {
   division: string
 }
 
-/** A division's cluster centre and label anchor. */
-interface GraphCluster {
+/** A division's cluster: the members' centroid, the label anchor pushed clear of it, and its size. */
+export interface GraphCluster {
   id: string
   name: string
+  /** Label anchor, pushed radially outside the member cloud. */
   x: number
   y: number
   z: number
+  /** Centroid of the division's members: where its nebula sits and its leader line ends. */
+  cx: number
+  cy: number
+  cz: number
+  /** Distance from the centroid to its furthest member. */
+  radius: number
   count: number
 }
 
@@ -190,7 +197,8 @@ export function layoutRoster(roster: Roster): GraphLayout {
   }
 
   // A label sits outside its own cloud, pushed radially away from the graph
-  // centre by the cluster's own radius, so it never lands on top of a node.
+  // centre by the cluster's own radius and lifted above it, so it lands clear
+  // of its own nodes and its leader line has room to read.
   const clusters: GraphCluster[] = roster.divisions.map((entry) => {
     const members = nodes.filter(node => node.division === entry.id)
     const count = Math.max(members.length, 1)
@@ -206,13 +214,17 @@ export function layoutRoster(roster: Roster): GraphLayout {
       Math.hypot(node.x - centre.x, node.y - centre.y, node.z - centre.z),
     ), 6)
     const distance = Math.hypot(centre.x, centre.y, centre.z) || 1
-    const push = (radius + 7) / distance
+    const push = (radius + 9) / distance
     return {
       id: entry.id,
       name: entry.name,
       x: centre.x * (1 + push),
-      y: (centre.y * (1 + push)) + 4,
+      y: (centre.y * (1 + push)) + (radius * 0.35) + 5,
       z: centre.z * (1 + push),
+      cx: centre.x,
+      cy: centre.y,
+      cz: centre.z,
+      radius,
       count: members.length,
     }
   })
