@@ -1,8 +1,10 @@
-# Tier 5: the differential tasks and what the product loop did with them
+# The tiers with validator-held cases
 
-Ten tasks whose main check runs the candidate on cases held in `reference/cases.json`, which no workspace receives. Each is a command, `src/cli.js`, driven by arguments and standard input and judged on its exit code and its two streams; the visible `test/*.test.js` covers the main paths only, and the rest of the verdict comes from the hidden corpus. The rationale and the design are in [the tier-5 Agent Note](../../../../../.agents/notes/proposed/architecture/2026-09-07-bench-tier-5-hidden-cases.md).
+Two tiers put their main check on cases held in `reference/cases.json`, which no workspace receives: tier 5, ten single-file tasks, and tier 6, a four-task pilot of multi-file repositories. Each task is a command, `src/cli.js`, driven by arguments and standard input and judged on its exit code and its two streams; the visible `test/*.test.js` covers the main paths only, and the rest of the verdict comes from the hidden corpus.
 
-## The tasks
+**Only tier 5 has been audited.** Its corpora were read case by case against their prompts after two independent loops ran them, in the fairness audit recorded below. No tier-6 corpus has had that reading, so a tier-6 miss may be an unstated corner rather than an implementer's error, and a tier-6 result is not comparable to a tier-5 one until the audit is done. The rationale and the design are in [the tier-5 Agent Note](../../../../../.agents/notes/proposed/architecture/2026-09-07-bench-tier-5-hidden-cases.md) and [the tier-6 Agent Note](../../../../../.agents/notes/implemented/process/2026-09-19-tier-6-pilot-environments.md).
+
+## Tier 5: the tasks
 
 | Task | Domain | Held out | Visible assertions | Hidden cases | Reference lines | What it turns on |
 |---|---|---|---|---|---|---|
@@ -17,7 +19,7 @@ Ten tasks whose main check runs the candidate on cases held in `reference/cases.
 | `diff3-merge` | text | no | 15 | 160 | 187 | The longest common subsequence is pinned to its earliest match, and adjacent changes absorb into one conflict region. |
 | `wrap-justify` | text | yes | 16 | 160 | 191 | Width counts columns over a stated code-point table, and a word breaks at the last hyphenation point that still fits. |
 
-## The difficulty gate
+## Tier 5: the difficulty gate
 
 Each task was run once against the Claude Code product loop in a copy of its directory with `reference/` removed — `claude -p "<prompt + shared rules>" --permission-mode acceptEdits --allowedTools "Bash(node:*)" Read Edit Write --no-session-persistence`, eight-minute limit — and what the loop left behind was scored against the visible suite and the hidden cases. `timeout` means the limit cut the attempt off; the loop had written nothing usable by then, which is why those rows score zero on both.
 
@@ -37,3 +39,16 @@ Round 1 ran all ten. Round 2 re-ran the six that had passed every hidden case, a
 | `wrap-justify` | pass | 160 / 160 | 260 s | 2 |
 
 Four tasks failed at least one hidden case and seven passed their visible suite, which is the bar the tier was accepted against. Only `lex-states` failed while its visible suite passed, which is the shape the tier is for; the other three failures are attempts the eight-minute limit cut off. The six re-run tasks scored the same in both rounds — every one of them at every hidden case — so the added corners changed nothing for this implementer, and the tier's separating power against it currently rests on the size of the four hardest specifications rather than on their corners.
+
+## Tier 6: the pilot, unaudited
+
+Four multi-file tasks. Each is a small working repository — a `README.md`, four files under `src/`, immutable input files under `data/`, and its own `node:test` suite, which passes as shipped — beside a specification of a change that spans several of those files and a second shipped suite that fails until that change lands. Every reference adds a fifth file to `src/`. The hidden corpus drives the same `src/cli.js` and compares the same three channels as tier 5, over argument forms, standard input, and the workspace files a case names by path.
+
+| Task | Domain | Held out | Visible assertions | Hidden cases | Reference lines | What it turns on |
+|---|---|---|---|---|---|---|
+| `task-runner` | systems | no | 17 shipped + 18 new | 140 | 333 | A path reason beats a dependency one, a snapshot tells new from missing from changed, and one named cycle out of many. |
+| `config-layers` | parsing | no | 14 shipped + 17 new | 140 | 303 | Three layers stacked key by key, five declared types with their own refusals, and a column carried from the parser through to the value that failed. |
+| `job-queue` | state-machines | no | 19 shipped + 15 new | 160 | 268 | Backoff doubles from the instant an attempt failed, a re-queued attempt still waits out the rate limit, and the policy file is in force before the log is read. |
+| `md-render` | text | no | 18 shipped + 18 new | 150 | 379 | A nested item may not jump a level, an unresolved reference falls back to literal text, and a fence escapes what it shows. |
+
+No fairness audit has run on these four: no second implementer has failed their cases, and no corpus has been read case by case against its prompt. Until that happens a tier-6 miss is not evidence about the implementer, and a tier-6 certification rate is not comparable to a tier-5 one. The difficulty gate tier 5 passed — one product-loop attempt per task, scored against the visible suite and the hidden cases — has not run either, so nothing here yet shows that the tier separates anything.

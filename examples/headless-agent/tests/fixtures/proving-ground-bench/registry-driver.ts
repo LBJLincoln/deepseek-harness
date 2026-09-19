@@ -24,7 +24,9 @@ try {
   const count = (select: (detail: { tier: number; domain: string }, heldOut: boolean) => boolean): number =>
     all.filter(definition => select(definition.detail as { tier: number; domain: string }, definition.heldOut)).length
   const domains = [...new Set(all.map(definition => (definition.detail as { domain: string }).domain))].sort()
-  const tiers = [2, 3, 4, 5]
+  // Both groupings are read from what registered, so a tier or a domain the
+  // bench gains is counted without editing this driver.
+  const tiers = [...new Set(all.map(definition => (definition.detail as { tier: number }).tier))].sort((left, right) => left - right)
   // Per environment, the case count of every check that carries cases, so the
   // smoke can require the hidden-case tier to be cased without reading the
   // bodies, which never leave the validator's reservation.
