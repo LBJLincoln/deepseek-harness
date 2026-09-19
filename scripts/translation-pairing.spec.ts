@@ -208,6 +208,8 @@ describe('translation scope discovery', () => {
     '.agents/notes/proposed/feature.md',
     'docs/guide.md',
     'python/guide.md',
+    'data/proving-ground/improvement-log.md',
+    'data/proving-ground/improvement-log.i18n.yaml',
   ])('includes %s', (file) => {
     expect(isTranslationScopeFile(file)).toBe(true)
   })
@@ -215,6 +217,8 @@ describe('translation scope discovery', () => {
   it.each([
     'packages/example/guide.md',
     'packages/example/CONTRIBUTING.md',
+    'data/proving-ground/2026-09-08-record/assessment.md',
+    'data/knowledge/2026-q3/corpus/report.md',
     'examples/tutorial.md',
     'website/reference.md',
     'packages/example/README.txt',
