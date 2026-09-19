@@ -1,10 +1,11 @@
 'use client'
 
 import { Canvas } from '@react-three/fiber'
-import { Bloom, ChromaticAberration, EffectComposer, Vignette } from '@react-three/postprocessing'
-import { BlendFunction } from 'postprocessing'
-import { useMemo, type ReactNode } from 'react'
+import { Bloom, ChromaticAberration, EffectComposer, Noise, SMAA, Vignette } from '@react-three/postprocessing'
+import { BlendFunction, EdgeDetectionMode, SMAAPreset, ToneMappingEffect, ToneMappingMode } from 'postprocessing'
+import { useEffect, useMemo, type ReactNode } from 'react'
 import { Vector2 } from 'three'
+import { Atmosphere } from '@/components/three/Atmosphere'
 import { usePrefersReducedMotion } from '@/deck/motion'
 
 /** Camera placement one stage asks for. */
@@ -14,12 +15,40 @@ export interface StageCamera {
 }
 
 /**
+ * ACES film tone mapping, as its own effect rather than the renderer's.
+ *
+ * `EffectComposer` forces `NoToneMapping` on the renderer, so without this the
+ * scene reaches the screen with its highlights clipped flat. Placed after
+ * `Bloom`, it rolls off light the bloom has already spread, which is what makes
+ * a bright core read as bright rather than as white.
+ *
+ * The wrapper component `@react-three/postprocessing` exports declares itself a
+ * convolution effect, which would put it in a full-screen pass of its own; the
+ * underlying effect is not one, so building it here keeps the whole grade —
+ * bloom, tone map, grain, vignette — inside a single pass.
+ * @returns The effect, disposed with the stage.
+ */
+function useToneMapping(): ToneMappingEffect {
+  const effect = useMemo(
+    () => new ToneMappingEffect({ mode: ToneMappingMode.ACES_FILMIC }),
+    [],
+  )
+  useEffect(() => () => effect.dispose(), [effect])
+  return effect
+}
+
+/**
  * The shared three.js stage: one canvas, one colour grade.
  *
  * Every view renders through the same composer so the three scenes read as one
- * instrument. Under `prefers-reduced-motion` the grade loses its chromatic
- * aberration and holds bloom at a lower constant intensity, because the effect
- * that sells the image at rest is also the one that shimmers.
+ * instrument, and every view gets the same {@link Atmosphere} behind it. The
+ * grade is bloom, ACES tone mapping, film grain and a vignette in one pass,
+ * then chromatic aberration, then SMAA — which carries the edges, since the
+ * canvas asks for no multisampling.
+ *
+ * Under `prefers-reduced-motion` the grade loses its chromatic aberration,
+ * halves the grain and holds bloom at a lower constant intensity, because the
+ * effects that sell the image at rest are also the ones that shimmer.
  * @param props - Camera placement and the scene contents.
  * @returns The canvas.
  */
@@ -36,6 +65,7 @@ export function Stage({
 }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const aberration = useMemo(() => new Vector2(0.00055, 0.0009), [])
+  const toneMapping = useToneMapping()
 
   return (
     <Canvas
@@ -51,8 +81,14 @@ export function Stage({
       <directionalLight position={[40, 90, 60]} intensity={0.9} color="#bcd6ff" />
       <directionalLight position={[-60, -30, -40]} intensity={0.35} color="#7b6bff" />
 
+      <Atmosphere near={fogNear} far={fogFar} />
       {children}
 
+      {/*
+        Order is pass layout as much as look: the composer opens a new
+        full-screen pass at every convolution effect, so the four effects that
+        merge are kept together and the two that cannot follow at the end.
+      */}
       <EffectComposer multisampling={0} enableNormalPass={false}>
         <Bloom
           intensity={reduced ? 0.7 : 1.35}
@@ -61,6 +97,13 @@ export function Stage({
           mipmapBlur
           radius={0.78}
         />
+        <primitive object={toneMapping} dispose={null} />
+        <Noise
+          blendFunction={BlendFunction.OVERLAY}
+          opacity={reduced ? 0.05 : 0.11}
+          premultiply={false}
+        />
+        <Vignette offset={0.2} darkness={0.82} eskil={false} blendFunction={BlendFunction.NORMAL} />
         {reduced ? <></> : (
           <ChromaticAberration
             blendFunction={BlendFunction.NORMAL}
@@ -69,7 +112,14 @@ export function Stage({
             modulationOffset={0.35}
           />
         )}
-        <Vignette offset={0.2} darkness={0.82} eskil={false} blendFunction={BlendFunction.NORMAL} />
+        {/*
+          SMAA carries every edge in the deck, so it runs on the graded image
+          and its cost is paid on every view. Luma edges over colour edges and
+          the low preset over the medium one together halve the two search
+          passes on a scene full of thin rails and wires, for a difference this
+          deck's geometry does not show.
+        */}
+        <SMAA preset={SMAAPreset.LOW} edgeDetectionMode={EdgeDetectionMode.LUMA} />
       </EffectComposer>
     </Canvas>
   )
