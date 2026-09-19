@@ -1,0 +1,64 @@
+# The code-safety program with the operator's own Claude Code installation as
+# the route every session is driven through: the real review, and the only file
+# that differs from the keyless composition beside it.
+#
+# `implementer` stays `route`, so the program drives each department turn by
+# turn through the LLM seam and the department's own session holds every step it
+# took. The spec digest covers the implementer but not the route, so a keyless
+# and a real run over the same target are the same program id.
+#
+# One model serves every session: the frozen spec carries no per-goal model and
+# `agent-default-model` is process-wide, so a run cannot staff its departments
+# and its integration differently.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The scripted adapter is the keyless half's whole reason to exist; a real
+      # run composes no mock route at all.
+      - id: code-safety-llm
+        disabled: true
+      - insert:
+          - id: llm-claude-code
+            name: '@deepseek-ai/dsh-llm-claude-code'
+            config:
+              provider: claude-code
+              models:
+                - id: sonnet
+                  name: Claude Code sonnet
+                  productModel: sonnet
+                  contextWindow: 200000
+                - id: opus
+                  name: Claude Code opus
+                  productModel: opus
+                  contextWindow: 200000
+              effort: high
+          # The knowledge pack the repository may carry for this subject, as a
+          # skill root of its own. The driver exports the variable only for a
+          # directory that exists, so a tree without the pack composes no root
+          # rather than an empty one.
+          - id: code-safety-knowledge
+            name: '@deepseek-ai/dsh-skill-filesystem'
+            disabled: !!js process.env.DSH_CODE_SAFETY_SKILLS === undefined
+            config:
+              providerName: code-safety
+              includeDefaultRoots: false
+              watch: false
+              customSkillDirs:
+                - !!js process.env.DSH_CODE_SAFETY_SKILLS
+      - id: agent-default-model
+        config:
+          provider: claude-code
+          model: !!js process.env.DSH_CODE_SAFETY_MODEL ?? 'sonnet'
+      # A patch replaces the whole config of the entry it names, so the program's
+      # other fields are restated here. Six departments reading one tree share
+      # nothing but the target, so a real run runs three at a time.
+      - id: program
+        config:
+          workspaceRoot: !!js process.env.DSH_CODE_SAFETY_REPORT_REPO
+          requireSignoff: true
+          maxConcurrentGoals: 3
+          maxGoalRounds: 4
+          branchPrefix: safety
+          evidenceMaxChars: 4096
