@@ -12,7 +12,7 @@ Three constraints shaped the design and pull against each other. The feed server
 
 ## Decision
 
-**One contract file, two sources behind it.** `deck/contract.ts` is the only place the feed's paths and payloads are written down. `resolveFeed()` sends one `GET /roster` to `NEXT_PUBLIC_FEED_URL` with a 1.5-second timeout and returns a base URL: the configured feed when it answers, and the deck's own `/api/fixtures` routes otherwise. Those routes serve the same paths with the same payloads, so every reader downstream — the store, the three scenes, the panels — is written once against one contract and never learns which source it is reading. A failed probe is not an error state to recover from; it is the other half of a two-valued choice the status bar reports.
+**One contract file, two sources behind it.** `deck/contract.ts` is the only place the feed's paths and payloads are written down. `resolveFeed()` sends one `GET /roster` to `NEXT_PUBLIC_FEED_URL` with a 5-second timeout (a cold feed folds every recorded session before its first answer) and returns a base URL: the configured feed when it answers, and the deck's own `/api/fixtures` routes otherwise. Those routes serve the same paths with the same payloads, so every reader downstream — the store, the three scenes, the panels — is written once against one contract and never learns which source it is reading. A failed probe is not an error state to recover from; it is the other half of a two-valued choice the status bar reports.
 
 **Replay is paced, not dumped.** The fixture event route delivers the first 60% of a recording immediately as history, then releases the rest a frame at a time, then holds the connection open with heartbeats — the behaviour the live endpoint's own contract describes. Interleaving the recorded phases (department sweeps, findings, the verifier's re-read, judging, integration) rather than laying them down in sequence is what keeps all four pipeline stages populated from the opening seconds. A keyless demo therefore shows an enterprise at work.
 
@@ -26,7 +26,7 @@ Three constraints shaped the design and pull against each other. The feed server
 
 ## Consequences
 
-`pnpm run deck` and `pnpm --dir apps/command-deck build` work from a clean checkout with no key and no feed. `pnpm --dir apps/command-deck fixtures` regenerates every fixture deterministically from one seeded PRNG, so a reviewer can diff the data instead of trusting it.
+`pnpm run deck` and `pnpm --dir apps/command-deck build` work from a clean checkout with no key and no feed. `pnpm --dir apps/command-deck fixtures` snapshots every fixture from the running feed: the generated roster, five committed records, their folded event streams and the two reviews' details, refusing a live run directory because only committed records are redacted, so replay shows the same data the live run showed and a reviewer can diff it against the records.
 
 Two facts the feed does not carry are derived deck-side and documented as such in the README: a finding's owning department, from its CWE through the table in `deck/departments.ts`, and its verification state, from whether the certificate's `unverified` list names it. If the feed later places a department on the finding, that table becomes dead code and should go.
 
