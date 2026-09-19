@@ -1,0 +1,344 @@
+{
+  "type": "result",
+  "plan": "h1-fleet-openrouter-smoke-t2",
+  "environments": [
+    "code:glob-match",
+    "code:path-normalize"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-19T10:29:01.800Z",
+  "endedAt": "2026-09-19T10:55:36.185Z",
+  "report": {
+    "group": "fleet-7bfba9ec-923c-4ab8-a1a1-8707ce51012b",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:glob-match",
+          "model": {
+            "provider": "openrouter",
+            "model": "deepseek/deepseek-v4-flash-0731:free"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:glob-match",
+          "sessionId": "environment-eb2d5999-f347-48ad-bdda-e2e1b692278b",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:glob-match",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f4d8cc16fbb4a1572ff5b70106c292622bcf820ab13bb727b24b44e092679be9",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "fca9b8bddfc662c6405318bdc810a0a2ae4dafdddfe355513f964c559d978e15",
+            "contentSha256": "693e0c7cebe8628c5085a375d1874a51784e0882d9d83702d51f395ddb47045d",
+            "repetition": 0,
+            "group": "fleet-7bfba9ec-923c-4ab8-a1a1-8707ce51012b",
+            "district": "bench-openrouter",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "openrouter",
+              "model": "deepseek/deepseek-v4-flash-0731:free"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "openrouter",
+                "model": "deepseek/deepseek-v4-flash-0731:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "fail",
+                  "evidence": "exit 1\n…  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    filter (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/src/glob.js:52:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:199:26)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: generated paths satisfy the matching invariants\nnot ok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 0.569659\n  type: 'test'\n  location: '/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:206:1'\n  failureType: 'testCodeFailure'\n  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    isMatch (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/src/glob.js:40:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:223:18)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 0\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 85.188682"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "e9075e7dc8c23cf47be503f2676734aaec13274ef4231788b9ceb609e0019bda"
+            },
+            {
+              "attempt": 2,
+              "model": {
+                "provider": "openrouter",
+                "model": "deepseek/deepseek-v4-flash-0731:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "fail",
+                  "evidence": "exit 1\n…  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    filter (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/src/glob.js:52:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:199:26)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: generated paths satisfy the matching invariants\nnot ok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 0.582322\n  type: 'test'\n  location: '/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:206:1'\n  failureType: 'testCodeFailure'\n  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    isMatch (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/src/glob.js:40:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:223:18)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 0\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 90.310682"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "e9075e7dc8c23cf47be503f2676734aaec13274ef4231788b9ceb609e0019bda"
+            },
+            {
+              "attempt": 3,
+              "model": {
+                "provider": "openrouter",
+                "model": "deepseek/deepseek-v4-flash-0731:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "fail",
+                  "evidence": "exit 1\n…  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    filter (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/src/glob.js:52:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:199:26)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: generated paths satisfy the matching invariants\nnot ok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 0.410181\n  type: 'test'\n  location: '/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:206:1'\n  failureType: 'testCodeFailure'\n  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    isMatch (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/src/glob.js:40:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-L8wJTK/test/glob.test.js:223:18)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 0\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 72.693256"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "e9075e7dc8c23cf47be503f2676734aaec13274ef4231788b9ceb609e0019bda"
+            }
+          ],
+          "certified": false,
+          "usage": {
+            "inputTokens": 402099,
+            "outputTokens": 17485,
+            "cacheReadTokens": 1151443
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:path-normalize",
+          "model": {
+            "provider": "openrouter",
+            "model": "deepseek/deepseek-v4-flash-0731:free"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:path-normalize",
+          "sessionId": "environment-952e8584-50cf-4833-9f5f-4a845f7d77fc",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:path-normalize",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "316c9dc2a108108c94c6b6ab00066f174e699775032b3852cd527ba12422cce6",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "94d7380f85cd709ec2555eeeb246aada7d97113e257cfc34bf42618d5389acd5",
+            "contentSha256": "1895803e3041da7c01b9457ecc0806bf9aaa20b41fbde69cfa1d75a66fb36342",
+            "repetition": 0,
+            "group": "fleet-7bfba9ec-923c-4ab8-a1a1-8707ce51012b",
+            "district": "bench-openrouter",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "openrouter",
+              "model": "deepseek/deepseek-v4-flash-0731:free"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "openrouter",
+                "model": "deepseek/deepseek-v4-flash-0731:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "fail",
+                  "evidence": "exit 1\n…  + actual - expected\n    \n    + undefined\n    - 'ESCAPE'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'ESCAPE'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:140:14)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nnot ok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 0.44953\n  type: 'test'\n  location: '/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:152:1'\n  failureType: 'testCodeFailure'\n  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    normalize (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/src/index.js:35:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:160:18)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 0\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 166.061995"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "06f69490a985b9475c5d770815a8f0ba3060d6badcedb526e49e26b88b086728"
+            },
+            {
+              "attempt": 2,
+              "model": {
+                "provider": "openrouter",
+                "model": "deepseek/deepseek-v4-flash-0731:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "fail",
+                  "evidence": "exit 1\n… + actual - expected\n    \n    + undefined\n    - 'ESCAPE'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'ESCAPE'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:140:14)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nnot ok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 0.450819\n  type: 'test'\n  location: '/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:152:1'\n  failureType: 'testCodeFailure'\n  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    normalize (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/src/index.js:35:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:160:18)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 0\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 309.920939"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "06f69490a985b9475c5d770815a8f0ba3060d6badcedb526e49e26b88b086728"
+            },
+            {
+              "attempt": 3,
+              "model": {
+                "provider": "openrouter",
+                "model": "deepseek/deepseek-v4-flash-0731:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "fail",
+                  "evidence": "exit 1\n…  + actual - expected\n    \n    + undefined\n    - 'ESCAPE'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'ESCAPE'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:140:14)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nnot ok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 0.89347\n  type: 'test'\n  location: '/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:152:1'\n  failureType: 'testCodeFailure'\n  error: 'not implemented'\n  code: 'ERR_TEST_FAILURE'\n  stack: |-\n    normalize (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/src/index.js:35:9)\n    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/bench/runs/or-smoke-t2/cell-Viwrwd/test/path-normalize.test.js:160:18)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 0\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 229.611581"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "06f69490a985b9475c5d770815a8f0ba3060d6badcedb526e49e26b88b086728"
+            }
+          ],
+          "certified": false,
+          "usage": {
+            "inputTokens": 412646,
+            "outputTokens": 26291,
+            "cacheReadTokens": 1120206
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free",
+        "environmentId": "code:glob-match",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 0,
+        "certificateRate": 0,
+        "attemptsMean": 3,
+        "inputTokens": 402099,
+        "outputTokens": 17485,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free",
+        "environmentId": "code:path-normalize",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 0,
+        "certificateRate": 0,
+        "attemptsMean": 3,
+        "inputTokens": 412646,
+        "outputTokens": 26291,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 814745,
+      "outputTokens": 43776
+    }
+  },
+  "rows": [
+    {
+      "provider": "openrouter",
+      "model": "deepseek/deepseek-v4-flash-0731:free",
+      "environmentId": "code:glob-match",
+      "environmentKind": "bench",
+      "district": "bench-openrouter",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 0,
+      "resolved": 0
+    },
+    {
+      "provider": "openrouter",
+      "model": "deepseek/deepseek-v4-flash-0731:free",
+      "environmentId": "code:path-normalize",
+      "environmentKind": "bench",
+      "district": "bench-openrouter",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 0,
+      "resolved": 0
+    }
+  ],
+  "facts": {
+    "sessions": 2,
+    "exported": 2,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 2,
+    "exported": 2,
+    "rewarded": 0,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}

@@ -19,17 +19,18 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e5-handoff-drop-t5` | 保留对话记录对丢弃对话记录，首次冻结尝试 | 5 | 基线 `haiku`→`opus`,`opus`（route）对候选同一阶梯，实现者 `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | 交接税：全程强模型对先弱后强 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | 有界廉价一级的级联：全程强模型对先弱后强，廉价一级限于 cell 上限的 0.2 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`（份额 0.2）→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
-| `e7-attempts-5-t5` | 尝试上限：中等模型五级对三级 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×5 | 2 | attempts-5 | not recorded |
+| `e7-attempts-5-t5` | 尝试上限：中等模型五级对三级 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×5 | 2 | attempts-5 | `2026-09-19-bench-e7-attempts-5-t5` |
 | `e8-deepseek-vs-sonnet-t3` | 产品路由对开放权重路由 | 3 | 基线 `claude-code`/`sonnet` 对候选 `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
 | `e8-sonnet-vs-opus-t6` | 模型层级：在最大模型尚未被度量过的多文件层上比较 | 6 | 基线 `sonnet` 对候选 `opus` | 2 | base | not recorded |
 | `h1-fleet-deepseek-t2` | 跑在开放权重路由上的 harness 循环 fleet | 2 | fleet `deepseek-official`/`deepseek-v4-flash`，district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness 循环 fleet，不筛选层级 | all | fleet `sonnet`，district `bench-h1` | 1 | base | not recorded |
-| `h1-fleet-openrouter-smoke-t2` | 免费开放权重路由，跑两个点名的环境 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h1-fleet-openrouter-smoke-t2` | 免费开放权重路由，跑两个点名的环境 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`，district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h1-openrouter-smoke-t2` |
 | `h1-fleet-product-loop-sonnet` | 产品循环 fleet，不筛选层级 | all | fleet `sonnet`，实现者 product-loop，district `bench-h1` | 1 | base | not recorded |
 | `h2-haiku-vs-sonnet-t2` | 模型层级：haiku 对 sonnet（native-tools 之前的策略） | 2 | 基线 `haiku` 对候选 `sonnet` | 1 | base | not recorded |
-| `h2-openrouter-free-t2` | 同一层上的三个免费开放权重模型 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`、`nvidia/nemotron-3-super-120b-a12b:free`、`qwen/qwen3.8-27b:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h2-openrouter-agentic-t2` | 同一层上的三个面向 agentic 编码的免费开放权重模型 | 2 | fleet `openrouter`/`nvidia/nemotron-3-super-120b-a12b:free`、`poolside/laguna-s-2.1:free`、`nex-agi/nex-n2.5-pro:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h2-openrouter-free-t2` | 同一层上的三个免费开放权重模型 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`、`nvidia/nemotron-3-super-120b-a12b:free`、`qwen/qwen3.8-27b:free`，district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h2-openrouter-free-t2-partial`（部分：跑完 18 个 cell 中的 4 个后停止） |
 | `h2-sonnet-vs-opus-t3` | 模型层级：sonnet 对 opus（native-tools 之前的策略） | 3 | 基线 `sonnet` 对候选 `opus` | 1 | base | not recorded |
 | `h3-attempts1-sonnet-t5` | 尝试上限：单次尝试的 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | attempts-1 | not recorded |
 | `h3-baseline-sonnet-t5` | 尝试上限：基线 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | base | not recorded |

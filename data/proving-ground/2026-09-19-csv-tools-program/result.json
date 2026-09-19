@@ -1,0 +1,433 @@
+{
+  "type": "result",
+  "report": {
+    "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+    "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+    "outcome": "released",
+    "mergedRevision": "67f5be3106ae85f5b0f820c4804c7bf9786a0fde",
+    "goals": [
+      {
+        "key": "stats",
+        "status": "merged",
+        "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats",
+        "revision": "5f9e0e1344ba8b6d078ad40dcc0f8b4c0055025a",
+        "tree": "d113cd2f77f9c8d0d1728167758ad67545d9d331"
+      },
+      {
+        "key": "filter",
+        "status": "merged",
+        "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter",
+        "revision": "d11a37b20836a87c4bb51822424e74ab9116bc84",
+        "tree": "38b1ceb183ceadf287e31c07851d117117fb012e"
+      },
+      {
+        "key": "join",
+        "status": "merged",
+        "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join",
+        "revision": "685e59a75a714ab596a8af3440837364258a4e0a",
+        "tree": "4c70ec2350fcbce4413845cb4c2c5180777167ec"
+      }
+    ]
+  },
+  "denials": [],
+  "deliverable": [
+    "SPEC.md",
+    "bin/csv-tools.js",
+    "package.json",
+    "src/csv.js",
+    "src/filter.js",
+    "src/join.js",
+    "src/stats.js",
+    "test/cli.test.js",
+    "test/csv.test.js",
+    "test/filter.test.js",
+    "test/join.test.js",
+    "test/stats.test.js"
+  ],
+  "ledgers": [
+    {
+      "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+      "events": [
+        {
+          "type": "program/start",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "specSha256": "f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "spec": {
+              "objective": "deliver csv-tools: a zero-dependency command line with stats, filter and join subcommands",
+              "baseRevision": "base",
+              "goals": [
+                {
+                  "key": "stats",
+                  "objective": "csv-tools department: stats. Read `SPEC.md` at the root of this worktree first: it is the whole specification and the only one. Deliver `src/csv.js` and `src/stats.js` — the reader and writer every subcommand is built on, and the `stats` subcommand — exactly as `SPEC.md` states them, then commit. Do not change `bin/csv-tools.js` or anything under `test/`, and install nothing. Your work is measured by `node --test test/csv.test.js test/stats.test.js` over a clean worktree, so commit before you stop.",
+                  "preset": "implementing",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 2000000,
+                    "maxWallMs": 1500000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "stats-suite",
+                      "outcome": "the committed suite for stats passes",
+                      "run": "node --test test/csv.test.js test/stats.test.js"
+                    },
+                    {
+                      "id": "stats-no-dependencies",
+                      "outcome": "nothing was installed",
+                      "run": "test ! -e node_modules"
+                    }
+                  ]
+                },
+                {
+                  "key": "filter",
+                  "objective": "csv-tools department: filter. Read `SPEC.md` at the root of this worktree first: it is the whole specification and the only one. Deliver `src/filter.js` — the `filter` subcommand — exactly as `SPEC.md` states them, then commit. Do not change `bin/csv-tools.js` or anything under `test/`, and install nothing. Your work is measured by `node --test test/filter.test.js` over a clean worktree, so commit before you stop.",
+                  "preset": "implementing",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 2000000,
+                    "maxWallMs": 1500000
+                  },
+                  "dependsOn": [
+                    "stats"
+                  ],
+                  "checks": [
+                    {
+                      "id": "filter-suite",
+                      "outcome": "the committed suite for filter passes",
+                      "run": "node --test test/filter.test.js"
+                    },
+                    {
+                      "id": "filter-no-dependencies",
+                      "outcome": "nothing was installed",
+                      "run": "test ! -e node_modules"
+                    }
+                  ]
+                },
+                {
+                  "key": "join",
+                  "objective": "csv-tools department: join. Read `SPEC.md` at the root of this worktree first: it is the whole specification and the only one. Deliver `src/join.js` — the `join` subcommand — exactly as `SPEC.md` states them, then commit. Do not change `bin/csv-tools.js` or anything under `test/`, and install nothing. Your work is measured by `node --test test/join.test.js` over a clean worktree, so commit before you stop.",
+                  "preset": "implementing",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 2000000,
+                    "maxWallMs": 1500000
+                  },
+                  "dependsOn": [
+                    "stats"
+                  ],
+                  "checks": [
+                    {
+                      "id": "join-suite",
+                      "outcome": "the committed suite for join passes",
+                      "run": "node --test test/join.test.js"
+                    },
+                    {
+                      "id": "join-no-dependencies",
+                      "outcome": "nothing was installed",
+                      "run": "test ! -e node_modules"
+                    }
+                  ]
+                }
+              ],
+              "integration": {
+                "checks": [
+                  {
+                    "id": "csv-tools-suite",
+                    "outcome": "the merged head passes every committed suite, including the command line end to end",
+                    "run": "node --test test/*.test.js"
+                  }
+                ],
+                "gates": [
+                  "test -z \"$(git status --porcelain)\"",
+                  "test ! -e node_modules"
+                ]
+              },
+              "signoff": {
+                "artefactSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "implementer": {
+                "kind": "route"
+              }
+            },
+            "baseRevision": "base",
+            "implementer": {
+              "kind": "route"
+            },
+            "signoff": {
+              "artefactSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "stats",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "filter",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "join",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "stats",
+            "status": "running",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/stats"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "stats",
+            "status": "certified",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/stats",
+            "revision": "5f9e0e1344ba8b6d078ad40dcc0f8b4c0055025a",
+            "tree": "d113cd2f77f9c8d0d1728167758ad67545d9d331"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "filter",
+            "status": "running",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/filter"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "filter",
+            "status": "certified",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/filter",
+            "revision": "d11a37b20836a87c4bb51822424e74ab9116bc84",
+            "tree": "38b1ceb183ceadf287e31c07851d117117fb012e"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "join",
+            "status": "running",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/join"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "join",
+            "status": "certified",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/join",
+            "revision": "685e59a75a714ab596a8af3440837364258a4e0a",
+            "tree": "4c70ec2350fcbce4413845cb4c2c5180777167ec"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "status": "certified",
+            "mergedRevision": "67f5be3106ae85f5b0f820c4804c7bf9786a0fde",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-@integration",
+            "denied": [
+              "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466"
+            ]
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "stats",
+            "status": "merged",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/stats",
+            "revision": "5f9e0e1344ba8b6d078ad40dcc0f8b4c0055025a",
+            "tree": "d113cd2f77f9c8d0d1728167758ad67545d9d331"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "filter",
+            "status": "merged",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/filter",
+            "revision": "d11a37b20836a87c4bb51822424e74ab9116bc84",
+            "tree": "38b1ceb183ceadf287e31c07851d117117fb012e"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "key": "join",
+            "status": "merged",
+            "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/2026-09-19-csv-tools-program/repo/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466/join",
+            "revision": "685e59a75a714ab596a8af3440837364258a4e0a",
+            "tree": "4c70ec2350fcbce4413845cb4c2c5180777167ec"
+          }
+        },
+        {
+          "type": "program/end",
+          "data": {
+            "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+            "outcome": "released",
+            "mergedRevision": "67f5be3106ae85f5b0f820c4804c7bf9786a0fde"
+          }
+        }
+      ],
+      "signoffs": [
+        "spec-freeze",
+        "release"
+      ]
+    }
+  ],
+  "members": [
+    {
+      "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter",
+      "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+      "key": "filter",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 2000000,
+        "maxWallMs": 1500000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "filter-suite",
+              "status": "pass"
+            },
+            {
+              "checkId": "filter-no-dependencies",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join",
+      "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+      "key": "join",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 2000000,
+        "maxWallMs": 1500000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "join-suite",
+              "status": "pass"
+            },
+            {
+              "checkId": "join-no-dependencies",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats",
+      "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+      "key": "stats",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 2000000,
+        "maxWallMs": 1500000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "stats-suite",
+              "status": "pass"
+            },
+            {
+              "checkId": "stats-no-dependencies",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-@integration",
+      "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+      "key": "@integration",
+      "certified": true,
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "csv-tools-suite",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-1",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-2",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    }
+  ]
+}

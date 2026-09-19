@@ -1,0 +1,53 @@
+{
+  "run": "2026-09-19-bench-h2-openrouter-free-t2-partial",
+  "ranAt": "2026-09-19T10:42:23.167Z",
+  "endedAt": "2026-09-19T10:53:22.261Z",
+  "elapsedSeconds": 659,
+  "repository": {
+    "branch": "claude/coding-agent-harness-u9l4gt",
+    "head": "6fb3aa84fa8be691af4fdcd398d3a06b11bf059c"
+  },
+  "composition": "examples/headless-agent/tests/fixtures/proving-ground-bench/overlays/with-openrouter.cordis.yml",
+  "driverResult": "partial",
+  "partial": "stopped by the operator after four of eighteen cells: the DeepSeek cells looped on reads without writing, the Nemotron cell lost each attempt to an unretried upstream overload, the Qwen cell found its upstream rate-limited; relaunched after the retry classification fix",
+  "districts": [
+    "bench-openrouter"
+  ],
+  "implementers": [
+    "route"
+  ],
+  "isolations": [
+    "none"
+  ],
+  "sessions": {
+    "code:csv-codec": "environment-9ff6535c-c149-4096-acd6-673ea7a9f3b6",
+    "code:glob-match": "environment-b88aac2d-5f66-4e60-8a29-98eee327766b"
+  },
+  "files": [
+    {
+      "path": "result.json",
+      "bytes": 309,
+      "sha256": "5c39a5a15cbfa8b562c4e7366aa93c400424cfa1d45447f3f07233566c6d3ea3"
+    },
+    {
+      "path": "sessions/environment-3dc3da9e-377a-4552-b90e-9a2ec3cfeefb.jsonl",
+      "bytes": 64983,
+      "sha256": "82b74fbd9d1eb9e02ac821128f2d64faee37b10bb1fb9a6d822b5bf02a24c1a2"
+    },
+    {
+      "path": "sessions/environment-79c5ef13-2cf1-4304-8cf8-61e497a5b590.jsonl",
+      "bytes": 711380,
+      "sha256": "7ec6987e10edb6d0ca207e8b763a8b9c2119a0c3ede83cbd7e1637b55b4a9271"
+    },
+    {
+      "path": "sessions/environment-9ff6535c-c149-4096-acd6-673ea7a9f3b6.jsonl",
+      "bytes": 772011,
+      "sha256": "1b4da9a8d99f57da7977b1cac55f5cd5624c81c3e9382738a1fcb30a13c5018c"
+    },
+    {
+      "path": "sessions/environment-b88aac2d-5f66-4e60-8a29-98eee327766b.jsonl",
+      "bytes": 256981,
+      "sha256": "e38ea18040c62f6764f252e4ca07e4298182424871a418fecb544e75dc16afec"
+    }
+  ]
+}

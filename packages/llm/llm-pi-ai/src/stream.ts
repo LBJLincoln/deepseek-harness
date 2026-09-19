@@ -42,6 +42,10 @@ function classifyPiAiError(message: string): string {
   if (/\b429\b|rate.?limit/i.test(message)) return 'RATE_LIMIT'
   if (/\b400\b|invalid.?request/i.test(message)) return 'INVALID_REQUEST'
   if (/\b5\d\d\b/.test(message)) return 'SERVER'
+  // A gateway relaying an upstream provider's capacity failure names the
+  // condition without a status code (`Upstream error from Nvidia: Service
+  // temporarily overloaded`); it is the same transient server failure a 503 is.
+  if (/\boverloaded\b|\b(?:service|temporarily) unavailable\b/i.test(message)) return 'SERVER'
   if (/\btime(?:d)?\s*out\b|timeout/i.test(message)) return 'TIMEOUT'
   // A stream truncated before the provider's terminal event: each pi-ai provider
   // throws its own wording when the wire closes mid-response without a terminal

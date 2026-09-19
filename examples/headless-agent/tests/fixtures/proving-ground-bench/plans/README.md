@@ -19,17 +19,18 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `e5-handoff-drop-t5` | kept vs dropped transcript, the first frozen attempt | 5 | baseline `haiku`→`opus`,`opus` (route) vs candidate the same ladder, implementer `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | handoff tax: strong alone vs cheap-then-strong | 5 | baseline `opus` ladder×3 vs candidate `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | cascade with a bounded cheap rung: strong alone vs cheap-then-strong, the cheap rung held to 0.2 of the cell's caps | 5 | baseline `opus` ladder×3 vs candidate `haiku` (share 0.2)→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
-| `e7-attempts-5-t5` | attempt cap: five rungs vs three on the middle model | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×5 | 2 | attempts-5 | not recorded |
+| `e7-attempts-5-t5` | attempt cap: five rungs vs three on the middle model | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×5 | 2 | attempts-5 | `2026-09-19-bench-e7-attempts-5-t5` |
 | `e8-deepseek-vs-sonnet-t3` | product route vs open-weight route | 3 | baseline `claude-code`/`sonnet` vs candidate `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
 | `e8-sonnet-vs-opus-t6` | model tier on the multi-file tier the largest model has not been measured on | 6 | baseline `sonnet` vs candidate `opus` | 2 | base | not recorded |
 | `h1-fleet-deepseek-t2` | harness-loop fleet on the open-weight route | 2 | fleet `deepseek-official`/`deepseek-v4-flash`, district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness-loop fleet | 2 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness-loop fleet | 4 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness-loop fleet, no tier filter | all | fleet `sonnet`, district `bench-h1` | 1 | base | not recorded |
-| `h1-fleet-openrouter-smoke-t2` | the free open-weight route on two named environments | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h1-fleet-openrouter-smoke-t2` | the free open-weight route on two named environments | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h1-openrouter-smoke-t2` |
 | `h1-fleet-product-loop-sonnet` | product-loop fleet, no tier filter | all | fleet `sonnet`, implementer product-loop, district `bench-h1` | 1 | base | not recorded |
 | `h2-haiku-vs-sonnet-t2` | model tier: haiku vs sonnet (pre-native-tools policy) | 2 | baseline `haiku` vs candidate `sonnet` | 1 | base | not recorded |
-| `h2-openrouter-free-t2` | three free open-weight models on one tier | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `qwen/qwen3.8-27b:free`, district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h2-openrouter-agentic-t2` | three free open-weight models built for agentic coding, on one tier | 2 | fleet `openrouter`/`nvidia/nemotron-3-super-120b-a12b:free`, `poolside/laguna-s-2.1:free`, `nex-agi/nex-n2.5-pro:free`, district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h2-openrouter-free-t2` | three free open-weight models on one tier | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `qwen/qwen3.8-27b:free`, district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h2-openrouter-free-t2-partial` (partial: stopped after 4 of 18 cells) |
 | `h2-sonnet-vs-opus-t3` | model tier: sonnet vs opus (pre-native-tools policy) | 3 | baseline `sonnet` vs candidate `opus` | 1 | base | not recorded |
 | `h3-attempts1-sonnet-t5` | attempt cap: the one-attempt fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | attempts-1 | not recorded |
 | `h3-baseline-sonnet-t5` | attempt cap: the baseline fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | base | not recorded |
