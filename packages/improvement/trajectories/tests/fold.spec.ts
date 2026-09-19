@@ -383,6 +383,33 @@ describe('foldTrajectory', () => {
     expect(() => foldTrajectory(header, malformed.events)).toThrow('environment/run heldOut must be a boolean')
   })
 
+  it('carries the newest pinned data-use terms and nothing a purpose decision does not read', () => {
+    const pinned = (purposes: string[]) => ({
+      clientId: 'daliesk-lab',
+      agreementId: 'proving-ground-bench',
+      purposes,
+      residency: 'eu-west',
+      retentionDays: 90,
+      redactionProfile: 'village-v1',
+    })
+    const log = new Log()
+    log.push('dataUse/terms', pinned(['training', 'evaluation']))
+    log.user('run under the agreement')
+    // A later pin narrows the standing terms, and the newest record is the one
+    // an admission decision reads.
+    log.push('dataUse/terms', pinned(['evaluation']))
+    expect(foldTrajectory(header, log.events).terms).toEqual({
+      agreementId: 'proving-ground-bench',
+      purposes: ['evaluation'],
+    })
+  })
+
+  it('omits the terms of a log that pins none, which admits no purpose', () => {
+    const log = new Log()
+    log.user('run with no agreement pinned')
+    expect(foldTrajectory(header, log.events)).not.toHaveProperty('terms')
+  })
+
   it('leaves the position empty for messages outside any step', () => {
     const log = new Log()
     log.user('before any step')

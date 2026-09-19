@@ -61,13 +61,13 @@ The curator walks each record and redacts every string except three enumerated e
 
 Redacted: the rendered system prompt (`system`), each tool schema's `description` and parameter text (`tools`), every message content block including reasoning text and the content nested inside a tool result (`messages[].content[]`), the raw argument strings the model produced (`messages[].content[].arguments`, `messages[].toolCalls[].arguments`), the working directory (`source.cwd`), the goal objective (`reward.goal.objective`), and each check's run evidence (`reward.certificate.results[].evidence`).
 
-Never redacted: the `environment`, `steps`, `parity`, and `provenance` subtrees, which hold only identifiers, digests, and counts; the key names `format`, `type`, `id`, `sessionId`, `parentSession`, `agentPreset`, `role`, `sourceKind`, `toolCallId`, `basis`, `phase`, `goalId`, `checkId`, `status`, `isolation`, `executor`, `provider`, `model`, `reasoningEffort`, `attachmentId`, and `mediaType` at any depth, each of which a reader switches on; and `name` at `tools[]`, `messages[].content[]`, and `messages[].toolCalls[]`, where it is a registered tool name.
+Never redacted: the `terms`, `environment`, `steps`, `parity`, and `provenance` subtrees, which hold only identifiers, digests, counts, and closed vocabularies — a rule rewriting `terms` would corrupt the very agreement and purposes this export was gated on; the key names `format`, `type`, `id`, `sessionId`, `parentSession`, `agentPreset`, `role`, `sourceKind`, `toolCallId`, `basis`, `phase`, `goalId`, `checkId`, `status`, `isolation`, `executor`, `provider`, `model`, `reasoningEffort`, `attachmentId`, and `mediaType` at any depth, each of which a reader switches on; and `name` at `tools[]`, `messages[].content[]`, and `messages[].toolCalls[]`, where it is a registered tool name.
 
 Directives reach the record as the count `reward.directives`; the record carries no directive text, so there is none to redact.
 
 ## The curation block
 
-Every exported line is the `dsh-trajectory/1` record plus one `curation` block.
+Every exported line is the `dsh-trajectory/2` record plus one `curation` block.
 
 | Field | Content |
 |---|---|
@@ -90,7 +90,7 @@ Every export produces one `ExportManifest`, written to `manifestPath` when the r
 | `withheld` | `heldOut`, `districts`, and `terms` counted separately, so no withholding hides inside another |
 | `ruleHits` | Replacements over the whole export, per rule id, listing every rule of the profile including those that matched nothing |
 | `recordsSha256` | SHA-256 over the written lines in order, which is the digest of exactly the bytes the sink received |
-| `trajectoryFormat` | `dsh-trajectory/1` |
+| `trajectoryFormat` | `dsh-trajectory/2` |
 
 An export is not a session, so the manifest is a file rather than a session event: it spans every session the request considered and belongs to none of them.
 

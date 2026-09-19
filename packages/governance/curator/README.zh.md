@@ -61,13 +61,13 @@ curator 遍历每条记录，对除三类被枚举的例外之外的每个字符
 
 被脱敏的：渲染后的系统提示（`system`）、每个工具 schema 的 `description` 与参数文本（`tools`）、每个消息内容块，包括推理文本与嵌套在 tool result 内部的内容（`messages[].content[]`）、模型产出的原始参数串（`messages[].content[].arguments`、`messages[].toolCalls[].arguments`）、工作目录（`source.cwd`）、目标陈述（`reward.goal.objective`），以及每个检查项的运行证据（`reward.certificate.results[].evidence`）。
 
-永不脱敏的：`environment`、`steps`、`parity` 与 `provenance` 四棵子树，它们只含标识符、摘要与计数；任何深度上的键名 `format`、`type`、`id`、`sessionId`、`parentSession`、`agentPreset`、`role`、`sourceKind`、`toolCallId`、`basis`、`phase`、`goalId`、`checkId`、`status`、`isolation`、`executor`、`provider`、`model`、`reasoningEffort`、`attachmentId` 与 `mediaType`，读者都会据其分支；以及 `tools[]`、`messages[].content[]` 与 `messages[].toolCalls[]` 上的 `name`，那里它是已注册的工具名。
+永不脱敏的：`terms`、`environment`、`steps`、`parity` 与 `provenance` 五棵子树，它们只含标识符、摘要、计数与封闭词表——重写 `terms` 的规则会破坏本次导出据以设卡的那份协议与那些用途；任何深度上的键名 `format`、`type`、`id`、`sessionId`、`parentSession`、`agentPreset`、`role`、`sourceKind`、`toolCallId`、`basis`、`phase`、`goalId`、`checkId`、`status`、`isolation`、`executor`、`provider`、`model`、`reasoningEffort`、`attachmentId` 与 `mediaType`，读者都会据其分支；以及 `tools[]`、`messages[].content[]` 与 `messages[].toolCalls[]` 上的 `name`，那里它是已注册的工具名。
 
 指令以 `reward.directives` 这个计数进入记录；记录不携带指令文本，因此没有可脱敏的指令。
 
 ## curation 块
 
-每行被导出的内容都是 `dsh-trajectory/1` 记录加上一个 `curation` 块。
+每行被导出的内容都是 `dsh-trajectory/2` 记录加上一个 `curation` 块。
 
 | 字段 | 内容 |
 |---|---|
@@ -90,7 +90,7 @@ curator 遍历每条记录，对除三类被枚举的例外之外的每个字符
 | `withheld` | 分别计数的 `heldOut`、`districts` 与 `terms`，于是没有哪一种扣留藏在另一种里面 |
 | `ruleHits` | 整次导出的替换次数，按规则 id 计，列出该配置的每一条规则，包括没有匹配到任何东西的那些 |
 | `recordsSha256` | 按顺序对写出行取的 SHA-256，也就是 sink 所收到字节的摘要 |
-| `trajectoryFormat` | `dsh-trajectory/1` |
+| `trajectoryFormat` | `dsh-trajectory/2` |
 
 一次导出不是一个会话，因此 manifest 是文件而不是会话事件：它横跨请求所考虑的每一个会话，且不属于其中任何一个。
 

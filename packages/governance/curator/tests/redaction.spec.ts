@@ -1,7 +1,7 @@
 /**
  * The redaction machinery on its own: what the shipped rules hit and what they
  * deliberately leave alone, which configured profiles a load refuses, and which
- * fields of a `dsh-trajectory/1` record the walk rewrites.
+ * fields of a `dsh-trajectory/2` record the walk rewrites.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -141,7 +141,7 @@ describe('compiling a configured profile', () => {
 /** Every string of this record is `SECRET`-bearing, so one rule decides each field's fate. */
 function record(): Trajectory {
   return {
-    format: 'dsh-trajectory/1',
+    format: 'dsh-trajectory/2',
     id: 'SECRET-session',
     source: {
       sessionId: 'SECRET-session',
@@ -150,6 +150,7 @@ function record(): Trajectory {
       parentSession: 'SECRET-parent',
       agentPreset: 'SECRET-preset',
     },
+    terms: { agreementId: 'SECRET-agreement', purposes: ['training', 'evaluation'] },
     environment: {
       kind: 'environment/run',
       version: 1,
@@ -233,7 +234,7 @@ describe('redacting one trajectory record', () => {
   })
 
   it('never redacts an identifier, a discriminant, or a registered tool name', () => {
-    expect(redacted.format).toBe('dsh-trajectory/1')
+    expect(redacted.format).toBe('dsh-trajectory/2')
     expect(redacted.id).toBe('SECRET-session')
     expect(redacted.source).toMatchObject({
       sessionId: 'SECRET-session',
@@ -241,6 +242,7 @@ describe('redacting one trajectory record', () => {
       agentPreset: 'SECRET-preset',
       createdAt: 100,
     })
+    expect(redacted.terms).toEqual({ agreementId: 'SECRET-agreement', purposes: ['training', 'evaluation'] })
     expect(redacted.environment).toEqual(record().environment)
     expect(redacted.config).toMatchObject({ provider: 'SECRET-provider', model: 'SECRET-model' })
     expect(redacted.tools?.[0]?.name).toBe('SECRET-tool')

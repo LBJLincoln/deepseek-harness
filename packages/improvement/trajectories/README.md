@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Trajectory export: persisted sessions folded into `dsh-trajectory/1` records, one JSON line each, with the chat-format message list a trainer's template consumes, the reward a certificate decided, and the components that were in play. Export reads through the session persistence seam and writes no session event. The [trajectory-export Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) owns the design rationale.
+Trajectory export: persisted sessions folded into `dsh-trajectory/2` records, one JSON line each, with the chat-format message list a trainer's template consumes, the reward a certificate decided, the data-use terms the session was held under, and the components that were in play. Export reads through the session persistence seam and writes no session event. The [trajectory-export Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) owns the design rationale.
 
 ## Config
 
@@ -38,11 +38,12 @@ The sink is closed exactly once, after the last write or after a failure. The re
 
 `outcome` stays certificate-based, and `parity` is the auxiliary signal beside it. A run of [weighted cases](../../verification/verification/README.md#parity-and-what-it-does-not-decide) records its weighted pass rate on the `verification/run` event, and the record carries the last run's as its own `parity` field. It never replaces `outcome`: a pass rate is gameable by a candidate that overfits the failures it was shown and abandons the rest, so a session that passed most of a standard's case weight and one that passed none both export `outcome: 0` until a certificate covers the revision. A training run may shape a reward with `parity`; nothing may optimize it alone.
 
-## Record format `dsh-trajectory/1`
+## Record format `dsh-trajectory/2`
 
 | Field | Content |
 |---|---|
 | `id`, `source` | Session id; creation time, working directory, parent session, and the agent preset the log last selected |
+| `terms` | `agreementId` and `purposes` of the newest [`dataUse/terms`](../../governance/data-use/README.md) the log carries, absent for a session whose log carries none |
 | `environment` | The `environment/run` stamp the runner appended: environment id and kind, held-out flag, content hashes of prompt, fixture, and checks, repetition, group, and district, model route, declared isolation; absent for a session no runner stamped |
 | `config`, `system`, `tools` | Call configuration, rendered system prompt, and tool schemas of the last `request/header` |
 | `messages` | Surface messages in model-visible order after compaction replacements: `user`, `assistant` (with `toolCalls` when requested), and `tool` (with `toolCallId`, `isError`) roles; each carries the `seq` of its source event, its `turn` and `step`, its content blocks verbatim (reasoning included), and the recorded source kind |
@@ -50,6 +51,8 @@ The sink is closed exactly once, after the last write or after a failure. The re
 | `reward` | `outcome` `1` when a certificate covers the current standard revision, `0` when a standard exists without one, `null` otherwise; `basis` `tamper` (the last recorded run found the check-owned files changed), `certificate`, `uncertified-completion` (goal completed, no standard ever authored), or `none` (no goal); the goal snapshot, the covering certificate, and the attempt, directive, and relaxation counts |
 | `parity` | `{ weightPassed, weightTotal }` of the last recorded run, absent when that run measured no cases |
 | `provenance` | Component ids in the component registry's scheme (`composition:<preset>`, `environment:<id>`, `model-provider:<provider>`, `tool:<name>`), tool names in first-use order, and the certificate's isolation level |
+
+An absent `terms` admits no purpose at all. A consumer building a corpus for one purpose keeps a record only when `terms.purposes` lists that purpose, so a session nobody pinned terms to is withheld rather than assumed to permit anything. The format tag carries that reading: a `dsh-trajectory/2` record states its session's terms, so absence is the exporter's statement that the log held none, while a `dsh-trajectory/1` record states nothing about data use at all and is withheld under every purpose. Only the agreement and the purposes are carried, because no admission decision reads retention, residency, or the client; [`dsh-curator`](../../governance/curator/README.md) reads the same [`termsOf`](../../governance/data-use/README.md) fold to decide what it exports, so the field and the gate cannot disagree.
 
 Token ids and logprobs are absent: the harness never sees token ids, and on-policy capture belongs to a trainer's inference proxy.
 

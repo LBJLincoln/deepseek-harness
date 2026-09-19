@@ -1,11 +1,12 @@
 /**
- * Pure types of the trajectory record: the `dsh-trajectory/1` line format a
+ * Pure types of the trajectory record: the `dsh-trajectory/2` line format a
  * trainer or a leaderboard reads, free of host-side imports.
  *
  * @module @deepseek-ai/dsh-trajectories/types
  */
 
 import type { ComponentId } from '@deepseek-ai/dsh-components/types'
+import type { DataUsePurpose } from '@deepseek-ai/dsh-data-use'
 import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { GoalId, GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { CallId, ContentBlock, LlmCallConfig, TokenUsage, ToolSchema } from '@deepseek-ai/dsh-llm'
@@ -13,7 +14,20 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { CertificateIsolation, RunParity, VerificationCertificate } from '@deepseek-ai/dsh-verification/types'
 
 /** The record format tag every exported line carries. */
-export type TrajectoryFormat = 'dsh-trajectory/1'
+export type TrajectoryFormat = 'dsh-trajectory/2'
+
+/**
+ * The data-use terms the session was held under, as the admission rule reads
+ * them: a consumer building a corpus for one purpose keeps the record only when
+ * {@link TrajectoryTerms.purposes} lists it. Retention, residency, and the
+ * client are not carried, because no admission decision reads them.
+ */
+export interface TrajectoryTerms {
+  /** The agreement the session's terms come from. */
+  readonly agreementId: string
+  /** Purposes the terms admit; a purpose absent from this list is refused. */
+  readonly purposes: readonly DataUsePurpose[]
+}
 
 /** Where the trajectory came from: the session and the composition that ran it. */
 export interface TrajectorySource {
@@ -121,6 +135,12 @@ export interface Trajectory {
   /** Trajectory identity, the session id. */
   readonly id: SessionId
   readonly source: TrajectorySource
+  /**
+   * The newest `dataUse/terms` the session log carries. Absent for a session
+   * whose log carries none, and absence admits no purpose at all: a consumer
+   * filtering by purpose withholds such a record rather than assuming one.
+   */
+  readonly terms?: TrajectoryTerms
   /** The environment the session ran, from its `environment/run` stamp; absent for a session no runner stamped. */
   readonly environment?: EnvironmentRunStamp
   /** Call configuration of the last logged request header, absent for a session that made no request. */

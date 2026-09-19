@@ -14,7 +14,7 @@
 
 这两个 JSONL 文件超出本仓库提交的体积，因此只有 `manifest.json` 和这一对 README 被签入；用下面的命令重建其余部分，并与 manifest 记录的摘要比对。`train.jsonl` 为 41 222 996 字节，摘要 `f357ef8939b8a3296749d06969ab02aaf9db977ea0fc9bdea0af15c48aea3826`；`heldout.jsonl` 为空，摘要即零字节的 SHA-256。
 
-每一行都是 [`@deepseek-ai/dsh-trajectories`](../../../../packages/improvement/trajectories/README.md) 导出的 `dsh-trajectory/1` 记录——`id`、`source`、`environment`、`config`、`system`、`tools`、`messages`、`steps`、`reward`、`parity`、`provenance`——并增加一个字段：
+每一行都是 [`@deepseek-ai/dsh-trajectories`](../../../../packages/improvement/trajectories/README.md) 导出的一条记录，在这份语料中一律为 `dsh-trajectory/1`——`id`、`source`、`environment`、`config`、`system`、`tools`、`messages`、`steps`、`reward`、`parity`、`provenance`——并增加一个字段：
 
 ```json
 { "dataset": { "record": "2026-09-08-bench-h1-harness-loop-t5", "tier": 5, "domain": "parsing", "arm": "fleet", "reward": { "value": 1, "basis": "certificate" } } }
@@ -58,4 +58,4 @@ node data/proving-ground/tools/build-dataset.mjs 2026-09-18-proving-ground-v1 --
 
 这些条款是各会话在创建时被钉上的条款，读自它们的日志以及产生它们的组合，而不是在此处选定的。每个会话都指明客户 `daliesk-lab`、驻留地 `eu-west`、90 天留存期与脱敏配置 `village-v1`，并归于三份协议之一：`proving-ground-bench` 只允许 `evaluation`，`village-live` 与 `village-claude-implementer` 允许 `delivery` 与 `evaluation`。
 
-这份语料中没有任何一份协议允许 `training`。在 [`@deepseek-ai/dsh-data-use`](../../../../packages/governance/data-use/README.md) 之下，一次钉定只能收窄用途而绝不能放宽，而 [`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) 会扣下条款不允许某次导出用途的每一个会话。因此这次折叠是一份评测记录，而非 RLVR 素材：正如 [`data/README.md`](../../../README.md) 所述，`data/` 下没有任何内容是 Daliesk 模型的训练数据，该模型的语料来自条款允许的路由上经认证的运行。用这个工具构建训练集，需要在创建时就被钉上 `training` 的会话。
+这份语料中没有任何一份协议允许 `training`。在 [`@deepseek-ai/dsh-data-use`](../../../../packages/governance/data-use/README.md) 之下，一次钉定只能收窄用途而绝不能放宽，而 [`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) 会扣下条款不允许某次导出用途的每一个会话。因此这次折叠是一份评测记录，而非 RLVR 素材：正如 [`data/README.md`](../../../README.md) 所述，`data/` 下没有任何内容是 Daliesk 模型的训练数据，该模型的语料来自条款允许的路由上经认证的运行。训练集用 `--purpose training` 构建，它只保留自身 `terms` 接纳该用途的 trajectory；这里的每一行都早于该字段，不陈述任何条款，因而都会被扣留，所以这样的集合需要在创建时就被钉上 `training` 的会话。

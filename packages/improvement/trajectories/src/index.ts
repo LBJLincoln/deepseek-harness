@@ -1,5 +1,5 @@
 /**
- * Trajectory export: persisted sessions folded into `dsh-trajectory/1`
+ * Trajectory export: persisted sessions folded into `dsh-trajectory/2`
  * records and written one JSON line at a time to a caller-supplied sink. The
  * service reads through the session persistence seam and writes no session
  * event. The

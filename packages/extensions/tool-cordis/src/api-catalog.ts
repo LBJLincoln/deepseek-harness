@@ -5687,7 +5687,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TrajectoryFormat',
-    declaration: 'export type TrajectoryFormat = \'dsh-trajectory/1\';',
+    declaration: 'export type TrajectoryFormat = \'dsh-trajectory/2\';',
   },
   {
     name: 'TrajectoryRewardBasis',

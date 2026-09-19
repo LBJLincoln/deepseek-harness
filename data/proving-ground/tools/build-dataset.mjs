@@ -5,9 +5,11 @@
 // written train set, the token totals, and every written file's SHA-256.
 // Node built-ins only.
 //
-// Usage: node build-dataset.mjs <name> [--include-delegated] [--include-held-out] [--check]
+// Usage: node build-dataset.mjs <name> [--purpose <purpose>] [--include-delegated] [--include-held-out] [--check]
 //
 //   <name>               the dataset directory name, e.g. 2026-09-18-proving-ground-v1
+//   --purpose <purpose>  delivery, training, or evaluation: write only the
+//                        trajectories whose data-use terms admit it
 //   --include-delegated  also write the cells a delegated implementer ran
 //   --include-held-out   also write the held-out environments into heldout.jsonl
 //   --check              rebuild in memory and compare with the recorded
@@ -17,6 +19,11 @@
 // trajectories.jsonl. Held-out environments never reach train.jsonl, and
 // without --include-held-out they reach no file at all, so a trainer pointed
 // at the directory cannot take an evaluation task by accident.
+//
+// A dataset built for one purpose keeps a trajectory only when its own `terms`
+// admit that purpose. A trajectory carrying no `terms` states no purpose, and a
+// purpose nobody recorded is never assumed, so it is withheld and counted under
+// `withheldTerms`. Without --purpose nothing is withheld on those grounds.
 //
 // Nothing is written while any trajectory carries a credential- or
 // mailbox-shaped string: the run prints every match and exits 1. There is no
@@ -39,7 +46,13 @@ const TOOL_PATH = relative(REPO_DIR, fileURLToPath(import.meta.url))
 const NON_RECORDS = new Set(['folds', 'datasets', 'tools'])
 /** Format tag of the lines this tool writes, bumped when the `dataset` field changes meaning. */
 const DATASET_FORMAT = 'dsh-proving-ground-dataset/1'
-const TOOL_VERSION = 1
+const TOOL_VERSION = 2
+
+/**
+ * Data-use purposes `--purpose` accepts, which are the purposes
+ * `@deepseek-ai/dsh-data-use` defines and a trajectory's `terms.purposes` lists.
+ */
+const PURPOSES = ['delivery', 'training', 'evaluation']
 
 /**
  * Credential-shaped text, copied from
@@ -82,20 +95,27 @@ function sha256(content) {
 /**
  * Parses the command line.
  * @param {string[]} argv arguments after the script path
- * @returns {{ name: string, includeDelegated: boolean, includeHeldOut: boolean, check: boolean }}
+ * @returns {{ name: string, purpose: string | undefined, includeDelegated: boolean, includeHeldOut: boolean, check: boolean }}
  */
 function parseArgs(argv) {
-  const options = { name: undefined, includeDelegated: false, includeHeldOut: false, check: false }
-  for (const arg of argv) {
+  const options = { name: undefined, purpose: undefined, includeDelegated: false, includeHeldOut: false, check: false }
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index]
     if (arg === '--include-delegated') options.includeDelegated = true
     else if (arg === '--include-held-out') options.includeHeldOut = true
     else if (arg === '--check') options.check = true
+    else if (arg === '--purpose') {
+      index += 1
+      options.purpose = argv[index]
+      if (options.purpose === undefined) throw new Error(`--purpose takes one of ${PURPOSES.join(', ')}`)
+      if (!PURPOSES.includes(options.purpose)) throw new Error(`--purpose must be one of ${PURPOSES.join(', ')}: ${options.purpose}`)
+    }
     else if (arg.startsWith('--')) throw new Error(`unknown argument ${arg}`)
     else if (options.name === undefined) options.name = arg
     else throw new Error(`unexpected argument ${arg}`)
   }
   if (options.name === undefined) {
-    throw new Error('usage: node build-dataset.mjs <name> [--include-delegated] [--include-held-out] [--check]')
+    throw new Error('usage: node build-dataset.mjs <name> [--purpose <purpose>] [--include-delegated] [--include-held-out] [--check]')
   }
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(options.name)) throw new Error(`dataset name must be a plain directory name: ${options.name}`)
   return options
@@ -171,7 +191,7 @@ function redactedExcerpt(text, index, length) {
 /**
  * Scans one trajectory for credential- and mailbox-shaped strings.
  * @param {string} record the record directory the trajectory came from
- * @param {object} trajectory one parsed `dsh-trajectory/1` line
+ * @param {object} trajectory one parsed trajectory line
  * @param {object[]} hits collector every match is appended to
  */
 function scanTrajectory(record, trajectory, hits) {
@@ -242,13 +262,24 @@ function readRepository() {
 }
 
 /**
+ * Whether one trajectory's own data-use terms admit the purpose this dataset is
+ * built for. A record carrying no `terms` states no purpose, so it admits none.
+ * @param {object} trajectory one parsed trajectory line
+ * @param {string} purpose the purpose the build names
+ * @returns {boolean} true when the record's terms list that purpose
+ */
+function admitsPurpose(trajectory, purpose) {
+  return trajectory.terms?.purposes?.includes(purpose) === true
+}
+
+/**
  * Reads every record and folds it into the dataset's files and manifest, writing nothing.
- * @param {{ name: string, includeDelegated: boolean, includeHeldOut: boolean }} options what to build
+ * @param {{ name: string, purpose: string | undefined, includeDelegated: boolean, includeHeldOut: boolean }} options what to build
  * @returns {{ files: { path: string, content: string }[], manifest: object, hits: object[] }} the built dataset; a non-empty `hits` means it must not be written
  */
 function buildDataset(options) {
   const catalog = readTaskCatalog()
-  const counts = { seen: 0, train: 0, heldout: 0, withheldHeldOut: 0, delegated: 0, delegatedExcluded: 0, tamperedExcluded: 0, duplicatesDropped: 0 }
+  const counts = { seen: 0, train: 0, heldout: 0, withheldTerms: 0, withheldHeldOut: 0, delegated: 0, delegatedExcluded: 0, tamperedExcluded: 0, duplicatesDropped: 0 }
   const distributions = new Map()
   const tokens = newTokenTotals()
   const records = []
@@ -277,6 +308,9 @@ function buildDataset(options) {
       scanTrajectory(record, trajectory, hits)
       if (seen.has(trajectory.id)) { counts.duplicatesDropped += 1; continue }
       seen.add(trajectory.id)
+      // The terms gate runs before every other classification, so a record this
+      // dataset may not carry reaches no file and no distribution.
+      if (options.purpose !== undefined && !admitsPurpose(trajectory, options.purpose)) { counts.withheldTerms += 1; continue }
       if (trajectory.reward.basis === 'tamper') { counts.tamperedExcluded += 1; continue }
 
       const stamp = trajectory.environment
@@ -324,7 +358,11 @@ function buildDataset(options) {
     builtAt: new Date().toISOString(),
     repository: readRepository(),
     tool: { path: TOOL_PATH, version: TOOL_VERSION },
-    options: { includeDelegated: options.includeDelegated, includeHeldOut: options.includeHeldOut },
+    options: {
+      purpose: options.purpose ?? null,
+      includeDelegated: options.includeDelegated,
+      includeHeldOut: options.includeHeldOut,
+    },
     records,
     counts,
     distributions: sorted([...distributions].map(([name, bucket]) => [name, sorted(bucket)])),
@@ -341,9 +379,10 @@ function buildDataset(options) {
  */
 function formatSummary(manifest) {
   const { counts, tokens } = manifest
+  const purpose = manifest.options.purpose
   const lines = [
-    `${manifest.name}: ${counts.train} train, ${counts.heldout} held out, of ${counts.seen} trajectories in ${manifest.records.length} records`,
-    `  excluded: ${counts.withheldHeldOut} withheld held-out, ${counts.delegatedExcluded} delegated (${counts.delegated} seen), ${counts.tamperedExcluded} tampered, ${counts.duplicatesDropped} duplicates`,
+    `${manifest.name}: ${counts.train} train, ${counts.heldout} held out, of ${counts.seen} trajectories in ${manifest.records.length} records${purpose === null ? '' : ` admitted for ${purpose}`}`,
+    `  excluded: ${counts.withheldTerms} withheld by terms, ${counts.withheldHeldOut} withheld held-out, ${counts.delegatedExcluded} delegated (${counts.delegated} seen), ${counts.tamperedExcluded} tampered, ${counts.duplicatesDropped} duplicates`,
     `  tokens: ${tokens.inputTokens} input, ${tokens.outputTokens} output, ${tokens.cacheReadTokens ?? 0} cache-read, ${tokens.cacheWriteTokens ?? 0} cache-write over ${tokens.stepsWithUsage} of ${tokens.steps} steps${tokens.note === undefined ? '' : ` (${tokens.note})`}`,
   ]
   for (const [name, bucket] of Object.entries(manifest.distributions)) {
