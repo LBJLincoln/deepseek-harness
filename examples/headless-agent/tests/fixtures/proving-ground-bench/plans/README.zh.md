@@ -37,6 +37,6 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `h2-openrouter-free-t2` | 同一层上的三个免费开放权重模型 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`、`nvidia/nemotron-3-super-120b-a12b:free`、`qwen/qwen3.8-27b:free`，district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h2-openrouter-free-t2-partial`（部分：跑完 18 个 cell 中的 4 个后停止） |
 | `h2-sonnet-vs-opus-t3` | 模型层级：sonnet 对 opus（native-tools 之前的策略） | 3 | 基线 `sonnet` 对候选 `opus` | 1 | base | not recorded |
 | `h3-attempts1-sonnet-t5` | 尝试上限：单次尝试的 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | attempts-1 | not recorded |
-| `h3-baseline-sonnet-t5` | 尝试上限：基线 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | base | not recorded |
+| `h3-baseline-sonnet-t5` | 尝试上限：基线 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | base | `2026-09-19-bench-h3-baseline-sonnet-t5` |
 | `h4-craft-sonnet-t5` | 知识：挂载三个工艺技能 | 5 | fleet `sonnet`，district `bench-h4` | 2 | with-craft-skills | `2026-09-08-bench-h4-craft-skills-t5` |
 | `held-out-sonnet-all` | 保留环境的可靠性估计 | held-out | fleet `sonnet`，district `bench-held-out` | 3 | base | `2026-09-08-bench-held-out-sonnet-all` |

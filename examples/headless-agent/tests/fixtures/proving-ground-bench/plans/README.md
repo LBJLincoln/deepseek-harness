@@ -37,6 +37,6 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `h2-openrouter-free-t2` | three free open-weight models on one tier | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `qwen/qwen3.8-27b:free`, district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h2-openrouter-free-t2-partial` (partial: stopped after 4 of 18 cells) |
 | `h2-sonnet-vs-opus-t3` | model tier: sonnet vs opus (pre-native-tools policy) | 3 | baseline `sonnet` vs candidate `opus` | 1 | base | not recorded |
 | `h3-attempts1-sonnet-t5` | attempt cap: the one-attempt fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | attempts-1 | not recorded |
-| `h3-baseline-sonnet-t5` | attempt cap: the baseline fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | base | not recorded |
+| `h3-baseline-sonnet-t5` | attempt cap: the baseline fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | base | `2026-09-19-bench-h3-baseline-sonnet-t5` |
 | `h4-craft-sonnet-t5` | knowledge: three craft skills mounted | 5 | fleet `sonnet`, district `bench-h4` | 2 | with-craft-skills | `2026-09-08-bench-h4-craft-skills-t5` |
 | `held-out-sonnet-all` | held-out reliability estimate | held-out | fleet `sonnet`, district `bench-held-out` | 3 | base | `2026-09-08-bench-held-out-sonnet-all` |
