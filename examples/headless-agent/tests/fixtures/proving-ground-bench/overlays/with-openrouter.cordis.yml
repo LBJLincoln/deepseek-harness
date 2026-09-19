@@ -16,12 +16,14 @@
 #
 # Free models are rate-limited per account, not per model: twenty requests a
 # minute and a daily allowance (one thousand once the account holds credits,
-# fifty otherwise) shared by every `:free` id. The fleet therefore runs one cell
-# at a time, the route retries a rate-limited request with a longer backoff than
-# the adapter's default, and the breaker stops a route after four cells in a
-# row end in error rather than spending the allowance on a provider that is
-# down. Size a plan against the daily allowance before running it: a tier-2
-# cell on the harness loop takes roughly ten to thirty requests.
+# fifty otherwise) shared by every `:free` id. A cell makes one request per
+# step and a step on a reasoning model takes a while, so two concurrent cells
+# stay well under the per-minute limit; the route retries a rate-limited
+# request with a longer backoff than the adapter's default, and the breaker
+# stops a route after four cells in a row end in error rather than spending the
+# allowance on a provider that is down. Size a plan against the daily allowance
+# before running it: a tier-2 cell on the harness loop takes roughly twenty-five
+# to forty requests over its attempts.
 - id: base
   name: '@deepseek-ai/cordis-plugin-include'
   config:
@@ -80,7 +82,7 @@
       - id: fleet
         name: '@deepseek-ai/dsh-fleet'
         config:
-          maxConcurrent: 1
+          maxConcurrent: 2
           routeBreaker:
             consecutiveErrors: 4
           workspaceRetention: keep
