@@ -5,10 +5,15 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState, type ElementRef, type ReactNode } from 'react'
 import {
   AdditiveBlending,
+  BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   Color,
+  InstancedBufferAttribute,
   Matrix4,
+  ShaderMaterial,
+  UniformsLib,
+  UniformsUtils,
   Vector3,
   type InstancedMesh,
   type Points,
@@ -19,6 +24,7 @@ import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
+import styles from './safety-stage.module.css'
 
 /** Height of the first marker above its block. */
 const MARKER_LIFT = 3.2
@@ -35,6 +41,9 @@ const MARKER_SIZE: Record<string, number> = {
   info: 4.6,
 }
 
+/** Window cell size on a building wall, in scene units: pane width, then floor height. */
+const WINDOW_CELL: [number, number] = [0.8, 1.05]
+
 /**
  * The establishing view of one city: far enough back that the tallest tower
  * and its markers stay inside the frame, looking at the towers rather than at
@@ -44,8 +53,8 @@ const MARKER_SIZE: Record<string, number> = {
  */
 function cityView(extent: number): { position: Vector3; target: Vector3 } {
   return {
-    position: new Vector3(0.58, 0.82, 1.28).normalize().multiplyScalar(extent * 3.6),
-    target: new Vector3(0, 11, 0),
+    position: new Vector3(0.58, 0.8, 1.28).normalize().multiplyScalar(extent * 3.15),
+    target: new Vector3(0, 15, 0),
   }
 }
 
@@ -88,44 +97,187 @@ function placeFindings(findings: readonly Finding[], city: CityLayout): PlacedFi
 }
 
 /**
- * The file blocks, as one instanced mesh with a per-language colour.
- * @param props - The laid-out city and the selection callbacks.
+ * The material the buildings are lit with.
+ *
+ * Walls are dark glass carrying a procedural window grid: a cell is lit when a
+ * hash of its position, its wall face and the building's own seed falls under
+ * that building's lit fraction, so a larger file lights more of its tower and
+ * the same file lights the same windows in every render. The roof is dark with
+ * a glowing parapet, and the window light carries the file's language colour
+ * at low saturation.
+ * @returns A new building material; the layer owns its own instance.
+ */
+function createBuildingMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    fog: true,
+    uniforms: UniformsUtils.merge([
+      UniformsLib.fog,
+      {
+        uTime: { value: 0 },
+        uMotion: { value: 1 },
+        uCell: { value: WINDOW_CELL },
+      },
+    ]),
+    vertexShader: /* glsl */`
+      attribute vec3 aTint;
+      attribute vec3 aInfo;
+      varying vec3 vTint;
+      varying vec3 vInfo;
+      varying vec3 vLocal;
+      varying vec3 vFace;
+      varying vec3 vScale;
+      #include <fog_pars_vertex>
+      void main() {
+        vTint = aTint;
+        vInfo = aInfo;
+        vLocal = position;
+        vFace = normal;
+        vScale = vec3(
+          length(instanceMatrix[0].xyz),
+          length(instanceMatrix[1].xyz),
+          length(instanceMatrix[2].xyz)
+        );
+        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }
+    `,
+    fragmentShader: /* glsl */`
+      uniform float uTime;
+      uniform float uMotion;
+      uniform vec2 uCell;
+      varying vec3 vTint;
+      varying vec3 vInfo;
+      varying vec3 vLocal;
+      varying vec3 vFace;
+      varying vec3 vScale;
+      #include <fog_pars_fragment>
+
+      float hash21(vec2 p) {
+        return fract(sin(dot(p, vec2(41.317, 289.113))) * 43758.5453);
+      }
+
+      void main() {
+        vec3 face = normalize(vFace);
+        float lit = vInfo.x;
+        float seed = vInfo.y;
+        float selected = vInfo.z;
+
+        vec3 glassDark = mix(vec3(0.014, 0.022, 0.04), vTint * 0.08, 0.45);
+        vec3 colour = glassDark;
+
+        if (face.y > 0.5) {
+          float edge = max(abs(vLocal.x), abs(vLocal.z)) * 2.0;
+          float rim = smoothstep(0.82, 1.0, edge);
+          colour = vec3(0.011, 0.017, 0.029) + (vTint * rim * (0.26 + (selected * 0.7)));
+        } else if (face.y < -0.5) {
+          colour = vec3(0.006, 0.009, 0.017);
+        } else {
+          float horizontal = abs(face.x) > 0.5 ? vLocal.z * vScale.z : vLocal.x * vScale.x;
+          float vertical = (vLocal.y + 0.5) * vScale.y;
+          vec2 grid = vec2(horizontal / uCell.x, vertical / uCell.y);
+          vec2 cell = floor(grid);
+          vec2 inCell = fract(grid);
+          float wall = abs(face.x) > 0.5 ? 0.0 : 1.0;
+          float draw = hash21(cell + vec2(seed * 137.0, wall * 19.0));
+          float on = step(draw, lit);
+          float pane = step(0.16, inCell.x) * step(inCell.x, 0.84)
+            * step(0.22, inCell.y) * step(inCell.y, 0.82);
+          // A handful of windows breathe; the rest hold, so the city never shimmers.
+          float breath = 1.0 - (uMotion * 0.34 * step(0.9, draw)
+            * (0.5 + (0.5 * sin((uTime * 1.1) + (draw * 60.0)))));
+          // Each window keeps its own brightness, so a wall reads as many
+          // offices rather than as one panel.
+          float lamp = 0.35 + (0.65 * hash21(cell + vec2(seed * 71.0, 7.3)));
+          vec3 pool = mix(vec3(1.0), vTint, 0.86);
+          colour = glassDark + (pool * on * pane * lamp * breath * (0.72 + (selected * 0.6)));
+          colour += vec3(0.01, 0.015, 0.026) * (1.0 - pane);
+        }
+
+        float key = max(dot(face, normalize(vec3(0.42, 0.82, 0.39))), 0.0);
+        colour += glassDark * key * 0.9;
+        colour += vTint * selected * 0.06;
+
+        gl_FragColor = vec4(colour, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+        #include <fog_fragment>
+      }
+    `,
+  })
+}
+
+/**
+ * The file blocks, as one instanced mesh of lit towers.
+ * @param props - The laid-out city, the selection, and the pointer callbacks.
  * @returns The city blocks.
  */
-function Blocks({
+function NightBlocks({
   city,
   selectedPath,
+  reduced,
   onHover,
   onSelect,
 }: {
   city: CityLayout
   selectedPath: string | undefined
+  reduced: boolean
   onHover: (block: CityBlock | undefined) => void
   onSelect: (block: CityBlock) => void
 }): ReactNode {
   const mesh = useRef<InstancedMesh>(null)
-  const blocks = useMemo(() => city.districts.flatMap(district => district.blocks), [city])
+  const blocks = city.blocks
+  const count = Math.max(1, blocks.length)
+
+  const geometry = useMemo(() => {
+    const built = new BoxGeometry(1, 1, 1)
+    built.setAttribute('aTint', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
+    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
+    return built
+  }, [count])
+
+  const material = useMemo(createBuildingMaterial, [])
+
+  useEffect(() => () => {
+    geometry.dispose()
+    material.dispose()
+  }, [geometry, material])
 
   useEffect(() => {
     const instanced = mesh.current
     if (instanced === null) return
+    const tint = geometry.getAttribute('aTint')
+    const info = geometry.getAttribute('aInfo')
     const colour = new Color()
     for (const [index, block] of blocks.entries()) {
       SCRATCH_SCALE.set(block.size, block.height, block.size)
       SCRATCH_POSITION.set(block.x, block.height / 2, block.z)
       SCRATCH.identity().scale(SCRATCH_SCALE).setPosition(SCRATCH_POSITION)
       instanced.setMatrixAt(index, SCRATCH)
-      colour.set(languageColor(block.language)).multiplyScalar(block.path === selectedPath ? 1 : 0.55)
-      instanced.setColorAt(index, colour)
+      colour.set(languageColor(block.language))
+      tint.setXYZ(index, colour.r, colour.g, colour.b)
+      info.setXYZ(index, block.lit, block.seed, block.path === selectedPath ? 1 : 0)
     }
     instanced.instanceMatrix.needsUpdate = true
-    if (instanced.instanceColor !== null) instanced.instanceColor.needsUpdate = true
-  }, [blocks, selectedPath])
+    tint.needsUpdate = true
+    info.needsUpdate = true
+  }, [blocks, selectedPath, geometry])
+
+  useEffect(() => {
+    material.uniforms.uMotion!.value = reduced ? 0 : 1
+  }, [material, reduced])
+
+  useFrame(({ clock }) => {
+    if (reduced) return
+    material.uniforms.uTime!.value = clock.elapsedTime
+  })
 
   return (
     <instancedMesh
       ref={mesh}
-      args={[undefined, undefined, blocks.length]}
+      args={[undefined, undefined, count]}
+      geometry={geometry}
+      material={material}
       onPointerMove={(event: ThreeEvent<PointerEvent>) => {
         event.stopPropagation()
         const block = event.instanceId === undefined ? undefined : blocks[event.instanceId]
@@ -141,48 +293,89 @@ function Blocks({
         const block = event.instanceId === undefined ? undefined : blocks[event.instanceId]
         if (block !== undefined) onSelect(block)
       }}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial roughness={0.62} metalness={0.22} />
-    </instancedMesh>
+    />
   )
 }
 
 /**
- * The district plates and their directory names.
+ * The district plates, their glowing outlines and their directory names. The
+ * outline carries the colour of the language most of the district's files are
+ * written in, so a directory reads as one neighbourhood.
  * @param props - The laid-out city.
- * @returns The plates and labels.
+ * @returns The plates, the outlines and the labels.
  */
 function Districts({ city }: { city: CityLayout }): ReactNode {
+  const plates = useRef<InstancedMesh>(null)
+
+  const outlineGeometry = useMemo(() => {
+    const built = new BufferGeometry()
+    const positions = new Float32Array(city.districts.length * 24)
+    const colors = new Float32Array(city.districts.length * 24)
+    const colour = new Color()
+    for (const [index, district] of city.districts.entries()) {
+      const left = district.x - (district.width / 2)
+      const right = district.x + (district.width / 2)
+      const near = district.z - (district.depth / 2)
+      const far = district.z + (district.depth / 2)
+      const corners: [number, number][] = [[left, near], [right, near], [right, far], [left, far]]
+      colour.set(languageColor(district.language))
+      for (let edge = 0; edge < 4; edge += 1) {
+        const from = corners[edge]!
+        const to = corners[(edge + 1) % 4]!
+        const offset = (index * 24) + (edge * 6)
+        positions.set([from[0], 0.02, from[1], to[0], 0.02, to[1]], offset)
+        colors.set([colour.r, colour.g, colour.b, colour.r, colour.g, colour.b], offset)
+      }
+    }
+    built.setAttribute('position', new BufferAttribute(positions, 3))
+    built.setAttribute('color', new BufferAttribute(colors, 3))
+    return built
+  }, [city])
+
+  useEffect(() => () => outlineGeometry.dispose(), [outlineGeometry])
+
+  useEffect(() => {
+    const instanced = plates.current
+    if (instanced === null) return
+    for (const [index, district] of city.districts.entries()) {
+      SCRATCH_SCALE.set(district.width, 0.5, district.depth)
+      SCRATCH_POSITION.set(district.x, -0.26, district.z)
+      SCRATCH.identity().scale(SCRATCH_SCALE).setPosition(SCRATCH_POSITION)
+      instanced.setMatrixAt(index, SCRATCH)
+    }
+    instanced.instanceMatrix.needsUpdate = true
+  }, [city])
+
   return (
     <group>
+      <instancedMesh ref={plates} args={[undefined, undefined, Math.max(1, city.districts.length)]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#080e1a" roughness={0.94} metalness={0.06} />
+      </instancedMesh>
+
+      <lineSegments geometry={outlineGeometry} frustumCulled={false}>
+        <lineBasicMaterial
+          vertexColors
+          transparent
+          opacity={0.38}
+          blending={AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </lineSegments>
+
       {city.districts.map(district => (
-        <group key={district.path}>
-          <mesh position={[district.x, -0.35, district.z]} receiveShadow={false}>
-            <boxGeometry args={[district.width, 0.5, district.depth]} />
-            <meshStandardMaterial color="#0a1120" roughness={0.9} metalness={0.05} />
-          </mesh>
-          <Html
-            center
-            position={[district.x, 0.4, district.z + (district.depth / 2) + 1.8]}
-            zIndexRange={[10, 3]}
-            style={{ pointerEvents: 'none' }}
-          >
-            <div style={{
-              whiteSpace: 'nowrap',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              letterSpacing: '0.08em',
-              color: 'rgba(176,192,220,0.9)',
-              background: 'rgba(4,6,11,0.72)',
-              border: '1px solid rgba(122,152,205,0.16)',
-              borderRadius: 4,
-              padding: '1px 6px',
-            }}>
-              {district.path}
-            </div>
-          </Html>
-        </group>
+        <Html
+          key={district.path}
+          center
+          position={[district.x, 0.4, district.z + (district.depth / 2) + 1.8]}
+          zIndexRange={[10, 3]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className={styles.districtLabel} style={{ color: languageColor(district.language) }}>
+            {district.path}
+          </div>
+        </Html>
       ))}
     </group>
   )
@@ -350,6 +543,7 @@ export function SafetyStage({
   selectedFindingId: string | undefined
   onSelectFinding: (id: string) => void
 }): ReactNode {
+  const reduced = usePrefersReducedMotion()
   const city = useMemo(() => layoutCity(target), [target])
   const view = useMemo(() => cityView(city.extent), [city.extent])
   const placed = useMemo(() => placeFindings(findings, city), [findings, city])
@@ -365,20 +559,21 @@ export function SafetyStage({
   return (
     <Stage
       camera={{ position: [view.position.x, view.position.y, view.position.z], fov: 40 }}
-      fogNear={city.extent * 2.6}
-      fogFar={city.extent * 9}
+      fogNear={city.extent * 2.2}
+      fogFar={city.extent * 8}
     >
       <group>
-        <mesh position={[0, -0.7, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[city.extent * 6, city.extent * 6]} />
-          <meshStandardMaterial color="#05080f" roughness={1} metalness={0} />
+        <mesh position={[0, -0.72, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[city.extent * 8, city.extent * 8]} />
+          <meshStandardMaterial color="#04070d" roughness={1} metalness={0} />
         </mesh>
-        <gridHelper args={[city.extent * 4, 40, '#122036', '#0a1220']} position={[0, -0.6, 0]} />
+        <gridHelper args={[city.extent * 7, 64, '#1a3355', '#0d1b2e']} position={[0, -0.66, 0]} />
 
         <Districts city={city} />
-        <Blocks
+        <NightBlocks
           city={city}
           selectedPath={selectedPath}
+          reduced={reduced}
           onHover={setHovered}
           onSelect={(block) => {
             const first = placed.find(item => item.block.path === block.path)
@@ -394,18 +589,9 @@ export function SafetyStage({
             zIndexRange={[40, 20]}
             style={{ pointerEvents: 'none' }}
           >
-            <div style={{
-              whiteSpace: 'nowrap',
-              padding: '4px 9px',
-              borderRadius: 7,
-              border: '1px solid rgba(122,152,205,0.3)',
-              background: 'rgba(6,10,18,0.92)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10.5,
-              color: '#e8eefc',
-            }}>
-              {hovered.path}
-              <span style={{ color: '#64749a', marginLeft: 8 }}>{hovered.language}</span>
+            <div className={styles.hoverLabel}>
+              <b>{hovered.path}</b>
+              <span>{hovered.language}</span>
             </div>
           </Html>
         )}
