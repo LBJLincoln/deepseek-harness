@@ -1,0 +1,45 @@
+# The bench with the DeepSeek chat-completions route composed beside the base's
+# product route, which is what lets one frozen pair put a product arm and an
+# open-weight arm in the same run: a plan's arm names `deepseek-official` for
+# this route and `claude-code` for the base's.
+#
+# The key is a reference, never a value: the adapter resolves `DEEPSEEK_API_KEY`
+# per request, and this composition mounts no credential seam, so the launching
+# environment is the whole credential plane. The bench drivers call `boot()`
+# directly rather than through an app bin, so the repository's `.env` is not
+# read — export the variable in the shell that runs `pnpm run bench`.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The base has no entry under this id, so the route is inserted: a
+      # non-insert patch only overrides an entry the base already names, and an
+      # unmatched one is warned about and skipped.
+      - insert:
+          - id: llm-deepseek
+            name: '@deepseek-ai/dsh-llm-deepseek'
+            config:
+              apiKeyEnv: DEEPSEEK_API_KEY
+              thinking: enabled
+              reasoningEffort: high
+              # The catalog is narrowed to the one model the checked-in plans
+              # name; an unlisted id still passes through to the wire unchanged.
+              models:
+                - id: deepseek-v4-flash
+                  name: DeepSeek-V4-Flash
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

@@ -18,6 +18,7 @@
 - `ctx.llm.listModelDiscoveryNamespaces(): string[]` 列出可以询问端点的 namespace，让界面只在可用之处提供该动作。
 - `ctx.llm.discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>` 询问某个端点它公布了哪些模型。
 - `ctx.llm.providerRetryPolicy(provider: string): ResolvedRetryPolicy` 返回注册时捕获的提供方自身的重试策略，并解析 normal 默认值。
+- `ctx.llm.checkRoute(provider: string): Promise<void>` 在不派发的前提下询问一条路由能否被派发：无人持有时是 `NO_ADAPTER`，否则是持有它的适配器自身在请求之前就能给出的拒绝（`MISSING_CREDENTIAL`、`INVALID_CREDENTIAL`）。它不触网，也不校验模型 id，因此只回答组合与凭据的问题，它接受的路由仍可能在第一次请求上失败。即将在一条路由上排出大量无人值守请求的调用方——[一份 bench 计划](../../improvement/fleet/README.md#service-contract)、一个批处理作业——先问一次，于是无人能服务的路由拒掉的是整批，而不是其中的每一个请求。
 - `ctx.llm.listModels(provider: string): Promise<LlmModelInfo[]>` 发现某个已注册提供方当前公布的模型。
 - `ctx.llm.resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>` 从拥有该精确路由的适配器中，解析并校验确切模型身份，以及可用上下文、输出默认值和推理（reasoning）元数据；异步适配器可选地支持取消。
 - `ctx.llm.resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>` 校验显式推理强度，并填入适配器配置的调用默认值，但不自动调整。
@@ -44,7 +45,7 @@
 
 ### 扩展点
 
-- 继承 `LlmAdapter` 并调用 `ctx.llm.registerAdapter(providers, adapter)`，添加一条或多条提供方路由。`GenerateOptions.provider` 选择适配器；`GenerateOptions.model` 属于适配器，可以动态解析。覆盖 `providerRetryPolicy()` 以提供由提供方定义的恢复配置，覆盖 `providerInfo()` 和异步 `listModels()` 以公开 selector 元数据；精确身份、容量、输出默认值或可选推理强度可用时，实现 `resolveModel()`；异步解析器必须响应其可选的取消 signal。默认实现使用有界的 normal 重试策略，将路由和模型 id 用作名称，不公布模型，也不返回容量、输出默认值或推理元数据。
+- 继承 `LlmAdapter` 并调用 `ctx.llm.registerAdapter(providers, adapter)`，添加一条或多条提供方路由。`GenerateOptions.provider` 选择适配器；`GenerateOptions.model` 属于适配器，可以动态解析。覆盖 `providerRetryPolicy()` 以提供由提供方定义的恢复配置，覆盖 `providerInfo()` 和异步 `listModels()` 以公开 selector 元数据；精确身份、容量、输出默认值或可选推理强度可用时，实现 `resolveModel()`；异步解析器必须响应其可选的取消 signal。一条路由在请求存在之前就可能被拒绝时——凭据引用解析不到值，或解析出的值任何 HTTP 头都承载不了——覆盖 `checkRoute()`，抛出请求本会抛出的同一个拒绝，并且不做任何网络 I/O。默认实现使用有界的 normal 重试策略，将路由和模型 id 用作名称，不公布模型，不返回容量、输出默认值或推理元数据，并接受它持有的每一条路由。
 - 包装 `llm/stream` 时，通过 `ctx.on()` waterfall listener 实现缓存、日志或路由。包装层如果在已经发出分片后重试，就没有可持久记录的尝试边界；因此，随产品交付的 agent 重试策略改用 `agent/request-error`。
 
 ### 消息（`message.ts`）与内容块（`types.ts`）

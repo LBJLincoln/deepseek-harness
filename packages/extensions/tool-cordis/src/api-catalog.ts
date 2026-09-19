@@ -763,14 +763,14 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
         parameters: [{ name: 'plan', description: 'environments, model routes, an optional attempt ladder and implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
-        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names.'],
+        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route the plan names is not composed or has no credential to reach it with.'],
       },
       {
         signature: 'async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>',
         description: 'Run two plans as one batch whose cells alternate, and fold each plan\'s leaderboard. The cells run environment-major, then repetition, then plan, so the two plans\' cells of one environment and repetition are adjacent and neither plan is confounded with the hour it ran in; both plans draw on the configured `maxConcurrent` pool, so a bound of two runs the two cells of a pair at the same time. Each plan keeps its own group, district, ledger, and workspace retention, so every report, `fleet/cell` event, route breaker, and token ceiling is what the plan\'s own FleetService.run produces.',
         parameters: [{ name: 'first', description: 'the plan whose cell of a pair is scheduled first.' }, { name: 'second', description: 'the plan whose cell of a pair is scheduled beside it.' }],
         returns: 'one report per plan, in the order the plans were given, each with its own group, its cells in its own plan order, its leaderboard, and its spend.',
-        throws: ['{@link FleetError} for either plan exactly as {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two plans select different environments or ask for different repetitions.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either plan\'s implementer is a provider this composition cannot honor for a route that plan names.'],
+        throws: ['{@link FleetError} for either plan exactly as {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two plans select different environments or ask for different repetitions.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either plan\'s implementer is a provider this composition cannot honor for a route that plan names.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route either plan names is not composed or has no credential to reach it with.'],
       },
     ],
   },
@@ -1081,6 +1081,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Resolve the retry policy captured when one provider route was registered.',
         parameters: [{ name: 'provider', description: 'registered provider route to inspect.' }],
         returns: 'the provider-owned policy, with normal defaults already resolved.',
+      },
+      {
+        signature: 'async checkRoute(provider: string): Promise<void>',
+        description: 'Ask whether one provider route can be dispatched to, without dispatching. A caller that is about to schedule many unattended requests on one route — a bench plan, a batch job — uses this so a route nothing can serve refuses the whole batch instead of failing every request in it. It performs no network I/O and does not validate a model id, so it answers about composition and credentials alone.',
+        parameters: [{ name: 'provider', description: 'registered provider route to inspect.' }],
+        returns: 'nothing when the route can be dispatched to.',
+        throws: ['{@link LlmError} `NO_ADAPTER` when no adapter owns the route, and the owning adapter\'s own refusal otherwise — `MISSING_CREDENTIAL` for a credential reference that resolves to nothing, `INVALID_CREDENTIAL` for a resolved value no HTTP header can carry.'],
       },
       {
         signature: 'async listModels(provider: string): Promise<LlmModelInfo[]>',
@@ -4220,7 +4227,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmAdapter',
-    declaration: 'export abstract class LlmAdapter {\n    providerInfo(provider: string): LlmProviderInfo;\n    providerRetryPolicy(_provider: string): ResolvedRetryPolicy | undefined;\n    listModels(_provider: string): Promise<readonly LlmModelInfo[]>;\n    resolveModel(provider: string, model: string, _signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    abstract stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
+    declaration: 'export abstract class LlmAdapter {\n    providerInfo(provider: string): LlmProviderInfo;\n    providerRetryPolicy(_provider: string): ResolvedRetryPolicy | undefined;\n    listModels(_provider: string): Promise<readonly LlmModelInfo[]>;\n    resolveModel(provider: string, model: string, _signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    checkRoute(_provider: string): Promise<void>;\n    abstract stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
   },
   {
     name: 'LlmCallConfig',
@@ -4272,7 +4279,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmRuntime',
-    declaration: 'export class LlmRuntime extends Service {\n    constructor(ctx: Context);\n    registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle;\n    listProviders(): LlmProviderInfo[];\n    registerConfigurableProviders(entries: readonly LlmConfigurableProvider[]): DirectoryRegistrationHandle;\n    listConfigurableProviders(): LlmConfigurableProvider[];\n    registerModelDiscovery(settingsNs: string, discover: (request: LlmModelDiscoveryRequest) => Promise<readonly LlmDiscoveredModel[]>): () => void;\n    async discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>;\n    providerRetryPolicy(provider: string): ResolvedRetryPolicy;\n    async listModels(provider: string): Promise<LlmModelInfo[]>;\n    async resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>;\n    async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<PreparedLlmCall>;\n    stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
+    declaration: 'export class LlmRuntime extends Service {\n    constructor(ctx: Context);\n    registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle;\n    listProviders(): LlmProviderInfo[];\n    registerConfigurableProviders(entries: readonly LlmConfigurableProvider[]): DirectoryRegistrationHandle;\n    listConfigurableProviders(): LlmConfigurableProvider[];\n    registerModelDiscovery(settingsNs: string, discover: (request: LlmModelDiscoveryRequest) => Promise<readonly LlmDiscoveredModel[]>): () => void;\n    async discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>;\n    providerRetryPolicy(provider: string): ResolvedRetryPolicy;\n    async checkRoute(provider: string): Promise<void>;\n    async listModels(provider: string): Promise<LlmModelInfo[]>;\n    async resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>;\n    async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<PreparedLlmCall>;\n    stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
   },
   {
     name: 'LspHover',

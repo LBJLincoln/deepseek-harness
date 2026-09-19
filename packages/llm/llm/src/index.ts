@@ -225,6 +225,21 @@ export abstract class LlmAdapter {
   }
 
   /**
+   * Raise the refusals a request on one owned route would raise for reasons
+   * that are settled before the request exists — a credential reference that
+   * resolves to nothing, or a value no HTTP header can carry. The default
+   * accepts every owned route, which is correct for an adapter whose route
+   * needs no credential of its own. Implementations perform no network I/O and
+   * make no claim about the endpoint or the model: a route this accepts can
+   * still fail its first request.
+   * @param _provider - one provider route owned by this adapter.
+   * @returns nothing when the route can be dispatched to.
+   */
+  checkRoute(_provider: string): Promise<void> {
+    return Promise.resolve()
+  }
+
+  /**
    * Stream one model call as raw chunks. The only required method.
    * @param options - the fully-assembled request; implementations must honor `options.signal`.
    * @returns the chunk stream, obeying the adapter contract documented on `StreamChunk`.
@@ -565,6 +580,24 @@ export class LlmRuntime extends Service {
    */
   providerRetryPolicy(provider: string): ResolvedRetryPolicy {
     return this.registration(provider).retryPolicy
+  }
+
+  /**
+   * Ask whether one provider route can be dispatched to, without dispatching.
+   * A caller that is about to schedule many unattended requests on one route —
+   * a bench plan, a batch job — uses this so a route nothing can serve refuses
+   * the whole batch instead of failing every request in it. It performs no
+   * network I/O and does not validate a model id, so it answers about
+   * composition and credentials alone.
+   * @param provider - registered provider route to inspect.
+   * @returns nothing when the route can be dispatched to.
+   * @throws {@link LlmError} `NO_ADAPTER` when no adapter owns the route, and
+   *   the owning adapter's own refusal otherwise — `MISSING_CREDENTIAL` for a
+   *   credential reference that resolves to nothing, `INVALID_CREDENTIAL` for a
+   *   resolved value no HTTP header can carry.
+   */
+  async checkRoute(provider: string): Promise<void> {
+    await this.registration(provider).adapter.checkRoute(provider)
   }
 
   /** Detach typed adapter-owned modality metadata. */

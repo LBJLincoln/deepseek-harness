@@ -384,7 +384,7 @@ function ladderCell(ladder: readonly EnvironmentRunStampRung[] | undefined): str
 
 /** Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard. */
 export class FleetService extends Service {
-  static inject = ['environments', 'environmentRuns', 'agentDefaultModel']
+  static inject = ['environments', 'environmentRuns', 'agentDefaultModel', 'llm']
 
   static Config: z<Config> = z.object({
     maxConcurrent: z.natural().min(1).default(1),
@@ -420,9 +420,11 @@ export class FleetService extends Service {
    * @throws {@link EnvironmentRunError} unchanged from
    *   {@link EnvironmentRunner.checkImplementer}, when the plan's implementer
    *   is a provider this composition cannot honor for a route the plan names.
+   * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
+   *   the plan names is not composed or has no credential to reach it with.
    */
   async run(plan: FleetPlan): Promise<FleetRunReport> {
-    const prepared = this.prepare(plan)
+    const prepared = await this.prepare(plan)
     await this.runSchedule(prepared.cells.map((_, index) => ({ run: prepared, index })))
     return planReport(prepared)
   }
@@ -447,9 +449,13 @@ export class FleetService extends Service {
    *   {@link EnvironmentRunner.checkImplementer}, when either plan's
    *   implementer is a provider this composition cannot honor for a route that
    *   plan names.
+   * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
+   *   either plan names is not composed or has no credential to reach it with.
    */
   async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports> {
-    const runs = [this.prepare(first), this.prepare(second)] as const
+    // Sequential, not concurrent: the first plan's refusal is the one the
+    // caller gets, so a pair naming the same bad route names it once.
+    const runs = [await this.prepare(first), await this.prepare(second)] as const
     checkPairable(runs[0], runs[1])
     await this.runSchedule(pairwise(runs[0], runs[1]))
     return [planReport(runs[0]), planReport(runs[1])]
@@ -460,7 +466,7 @@ export class FleetService extends Service {
    * runs, and open the ledger they fold into. Every refusal a plan earns
    * happens here, before any cell of it — or of a plan paired with it — starts.
    */
-  private prepare(plan: FleetPlan): PlanRun {
+  private async prepare(plan: FleetPlan): Promise<PlanRun> {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
       throw new FleetError(`repetitions must be a positive integer, got ${String(plan.repetitions)}`, 'FLEET_INVALID_PLAN')
     }
@@ -481,6 +487,7 @@ export class FleetService extends Service {
     if (definitions.size === 0) throw new FleetError('the plan selects no environment', 'FLEET_EMPTY_PLAN')
     const models = plan.models.length === 0 ? [this.defaultModel()] : plan.models
     this.checkImplementer(plan, models)
+    await this.checkRoutes(plan, models)
     const group = plan.group ?? `fleet-${randomUUID()}`
     const enumerated: FleetCell[] = []
     for (const environment of definitions.keys()) {
@@ -524,6 +531,32 @@ export class FleetService extends Service {
     for (const model of models) {
       this.ctx.environmentRuns.checkImplementer(implementer, plan.ladder?.[0]?.model ?? model)
     }
+  }
+
+  /**
+   * Refuse a route no request could reach before any cell of the plan is
+   * enumerated. A route the composition does not hold, or whose credential
+   * reference resolves to nothing, refuses every cell it is given at that
+   * cell's first model request — after the workspace, the session, the stamp,
+   * and the goal already exist — so a plan of such cells spends its whole
+   * schedule to produce a leaderboard whose rows nothing ran. The seam's
+   * refusal names the route and, for a missing key, the credential reference,
+   * and it reaches no network, so this costs one resolution per route.
+   *
+   * Every route the plan's cells can run on is asked about: the plan's own
+   * routes and each attempt ladder rung that names another one, since a rung's
+   * route is what its attempt runs on. Providers are asked for once each, in
+   * plan order, and the first refusal is the plan's.
+   * @param plan - the plan being validated, supplying the attempt ladder.
+   * @param models - the routes the plan's cells run on, already defaulted.
+   * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`.
+   */
+  private async checkRoutes(plan: FleetPlan, models: readonly EnvironmentRunModel[]): Promise<void> {
+    const providers = new Set([
+      ...models.map(model => model.provider),
+      ...(plan.ladder ?? []).flatMap(rung => rung.model === undefined ? [] : [rung.model.provider]),
+    ])
+    for (const provider of providers) await this.ctx.llm.checkRoute(provider)
   }
 
   /** Resolve the plan's environment selection against the registry, in registry order. */

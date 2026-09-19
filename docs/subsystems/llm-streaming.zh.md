@@ -726,6 +726,18 @@ declare abstract class LlmAdapter {
     _signal?: AbortSignal,
   ): Promise<LlmResolvedModelInfo>;
   /**
+   * Raise the refusals a request on one owned route would raise for reasons
+   * that are settled before the request exists — a credential reference that
+   * resolves to nothing, or a value no HTTP header can carry. The default
+   * accepts every owned route, which is correct for an adapter whose route
+   * needs no credential of its own. Implementations perform no network I/O and
+   * make no claim about the endpoint or the model: a route this accepts can
+   * still fail its first request.
+   * @param _provider - one provider route owned by this adapter.
+   * @returns nothing when the route can be dispatched to.
+   */
+  checkRoute(_provider: string): Promise<void>;
+  /**
    * Stream one model call as raw chunks. The only required method.
    * @param options - the fully-assembled request; implementations must honor `options.signal`.
    * @returns the chunk stream, obeying the adapter contract documented on `StreamChunk`.
@@ -814,6 +826,22 @@ async discoverModels( settingsNs: string, request: LlmModelDiscoveryRequest, ): 
 providerRetryPolicy(provider: string): ResolvedRetryPolicy
 
 /**
+ * Ask whether one provider route can be dispatched to, without dispatching.
+ * A caller that is about to schedule many unattended requests on one route —
+ * a bench plan, a batch job — uses this so a route nothing can serve refuses
+ * the whole batch instead of failing every request in it. It performs no
+ * network I/O and does not validate a model id, so it answers about
+ * composition and credentials alone.
+ * @param provider - registered provider route to inspect.
+ * @returns nothing when the route can be dispatched to.
+ * @throws {@link LlmError} `NO_ADAPTER` when no adapter owns the route, and
+ *   the owning adapter's own refusal otherwise — `MISSING_CREDENTIAL` for a
+ *   credential reference that resolves to nothing, `INVALID_CREDENTIAL` for a
+ *   resolved value no HTTP header can carry.
+ */
+async checkRoute(provider: string): Promise<void>
+
+/**
  * Discover models advertised by one registered provider. Catalog membership
  * is advisory and never changes routing or request validation.
  * @param provider - registered provider route to inspect.
@@ -868,7 +896,7 @@ async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<Prepared
 stream(options: GenerateOptions): AsyncIterable<StreamChunk>
 ```
 
-Source: [`packages/llm/llm/src/index.ts:284`](../../packages/llm/llm/src/index.ts)
+Source: [`packages/llm/llm/src/index.ts:299`](../../packages/llm/llm/src/index.ts)
 
 <a id="llm-events"></a>
 

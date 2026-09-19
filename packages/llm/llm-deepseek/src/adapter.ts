@@ -211,6 +211,13 @@ export class DeepSeekAdapter extends LlmAdapter {
     })
   }
 
+  override async checkRoute(_provider: string): Promise<void> {
+    // Exactly what `stream` resolves before its first byte, and nothing after
+    // it: the key travels with the endpoint it would be sent to, and no
+    // request is made, so this answers about the credential alone.
+    await this.config.resolveApiKey(this.config.options())
+  }
+
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
     // One resolution per stream call: connection facts and the credential
     // freeze here and hold for this whole request, so an in-flight stream

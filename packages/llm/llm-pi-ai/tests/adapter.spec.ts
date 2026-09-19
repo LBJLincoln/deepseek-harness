@@ -695,6 +695,24 @@ describe('provider profile lifecycle', () => {
     expect(server.requests).toHaveLength(0)
   })
 
+  it('answers the route preflight from the profile and its credential, without a request', async () => {
+    vi.stubEnv('PI_CUSTOM_REF_KEY', '')
+    // An endpoint nothing listens on: a preflight that reached the network
+    // would fail here as a transport error rather than a credential one.
+    const ctx = await harness('http://127.0.0.1:1', { apiKeyEnv: 'PI_CUSTOM_REF_KEY' })
+    await expect(ctx.llm.checkRoute('deepseek')).rejects.toThrow(/PI_CUSTOM_REF_KEY/)
+    await expect(ctx.llm.checkRoute('deepseek')).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+
+    vi.stubEnv('PI_CUSTOM_REF_KEY', 'custom-ref-key')
+    await expect(ctx.llm.checkRoute('deepseek')).resolves.toBeUndefined()
+
+    // A route this adapter does not own is the registry's own refusal; one it
+    // owns but that names no credential resolves as configured-but-keyless.
+    const keyless = await harness('http://127.0.0.1:1', { apiKeyEnv: undefined })
+    await expect(keyless.llm.checkRoute('deepseek')).resolves.toBeUndefined()
+    await expect(keyless.llm.checkRoute('openai')).rejects.toMatchObject({ code: 'NO_ADAPTER' })
+  })
+
   it('validates empty, underspecified, legacy-shaped, and explicitly blank profiles', () => {
     // Empty and omitted dicts are the dormant zero-route posture, not errors.
     expect(resolveProfiles({}).size).toBe(0)

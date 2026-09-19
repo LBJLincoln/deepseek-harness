@@ -796,7 +796,7 @@ Source: [`packages/improvement/experiments/src/index.ts:91`](../packages/improve
 
 ## `@deepseek-ai/dsh-fleet`
 
-Requires: `environments` · `environmentRuns` · `agentDefaultModel`
+Requires: `environments` · `environmentRuns` · `agentDefaultModel` · `llm`
 
 ```ts config-catalog
 /** Deployment choices of the fleet, validated from `cordis.yml`. */

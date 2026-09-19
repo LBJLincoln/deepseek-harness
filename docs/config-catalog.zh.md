@@ -798,7 +798,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-fleet`
 
-需要：`environments` · `environmentRuns` · `agentDefaultModel`
+需要：`environments` · `environmentRuns` · `agentDefaultModel` · `llm`
 
 ```ts config-catalog
 /** Deployment choices of the fleet, validated from `cordis.yml`. */

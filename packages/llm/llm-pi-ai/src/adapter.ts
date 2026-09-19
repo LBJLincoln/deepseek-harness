@@ -273,6 +273,15 @@ export class PiAiAdapter extends LlmAdapter {
     })
   }
 
+  override async checkRoute(provider: string): Promise<void> {
+    // Exactly what `stream` resolves before it reaches pi-ai, and nothing
+    // after it: the profile of one snapshot and that profile's credential. A
+    // route naming none resolves as configured-but-keyless, which is the state
+    // its protocol judges, so this accepts it.
+    const snapshot = this.current()
+    await this.config.resolveApiKey(provider, this.profileOf(snapshot, provider))
+  }
+
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
     if (options.stop !== undefined) {
       throw new LlmError('llm-pi-ai does not support GenerateOptions.stop', 'UNSUPPORTED_OPTION')
