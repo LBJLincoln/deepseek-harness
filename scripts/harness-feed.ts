@@ -393,7 +393,7 @@ function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
       kind: 'code-safety',
       name: target?.name ?? id,
       startedAt: target?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      ...(verifier?.checkedAt === undefined ? {} : { endedAt: verifier?.checkedAt }),
+      ...(verifier?.checkedAt === undefined ? {} : { endedAt: verifier.checkedAt }),
       status,
       path: relative(discoveryRoot, dir),
     })
