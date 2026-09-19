@@ -73,7 +73,7 @@ function rng(seed: number): () => number {
 export function layoutRoster(roster: Roster): GraphLayout {
   const next = rng(0xc0ffee)
   const divisions = roster.divisions.map(entry => entry.id)
-  const centres = new Map<string, { x: number, y: number, z: number }>()
+  const centres = new Map<string, { x: number; y: number; z: number }>()
 
   // Clusters sit on a flattened Fibonacci shell: evenly spread in every
   // direction, so no orbit angle stacks two divisions on top of each other,
@@ -106,7 +106,7 @@ export function layoutRoster(roster: Roster): GraphLayout {
 
   const springs = roster.edges
     .map(edge => ({ a: index.get(edge.from), b: index.get(edge.to) }))
-    .filter((pair): pair is { a: number, b: number } => pair.a !== undefined && pair.b !== undefined)
+    .filter((pair): pair is { a: number; b: number } => pair.a !== undefined && pair.b !== undefined)
 
   // Repulsion runs inside a division only: 147 nodes squared every pass is
   // affordable, but keeping it local is what preserves the cluster reading.

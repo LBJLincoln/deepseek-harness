@@ -12,7 +12,7 @@ Status: implemented
 
 ## Decision
 
-**一份契约文件，其后两个数据源。** `lib/contract.ts` 是 feed 的路径与载荷被写下的唯一位置。`resolveFeed()` 以 1.5 秒超时向 `NEXT_PUBLIC_FEED_URL` 发送一次 `GET /roster`，并返回一个 base URL：feed 有响应时是所配置的 feed，否则是 deck 自己的 `/api/fixtures` 路由。这些路由以相同的载荷提供相同的路径，因此下游每个读取方——store、三个场景、各面板——都只按一份契约写一次，且永远不知道自己在读哪个源。探测失败不是需要恢复的错误状态；它是状态栏报告的二值选择的另一半。
+**一份契约文件，其后两个数据源。** `deck/contract.ts` 是 feed 的路径与载荷被写下的唯一位置。`resolveFeed()` 以 1.5 秒超时向 `NEXT_PUBLIC_FEED_URL` 发送一次 `GET /roster`，并返回一个 base URL：feed 有响应时是所配置的 feed，否则是 deck 自己的 `/api/fixtures` 路由。这些路由以相同的载荷提供相同的路径，因此下游每个读取方——store、三个场景、各面板——都只按一份契约写一次，且永远不知道自己在读哪个源。探测失败不是需要恢复的错误状态；它是状态栏报告的二值选择的另一半。
 
 **回放是有节奏的，而非一次性倾倒。** fixture 事件路由先把录制的前 60% 作为历史立即投递，随后逐帧释放其余部分，然后用心跳保持连接打开——正是实时端点自身契约所描述的行为。把录制的各阶段（department 扫描、finding、验证者复读、裁决、集成）交错而非顺序铺开，才使流水线的四个阶段从开场数秒起就都有内容。因此无需 key 的演示展现的是一家正在运转的企业。
 
@@ -28,7 +28,7 @@ Status: implemented
 
 `pnpm run deck` 与 `pnpm --dir apps/command-deck build` 在干净检出、无 key、无 feed 的情况下均可工作。`pnpm --dir apps/command-deck fixtures` 用单个带种子的 PRNG 确定性地重新生成每个 fixture，因此审阅者可以 diff 数据而不必信任它。
 
-有两项 feed 并不携带的事实在 deck 侧推导，并在 README 中如实说明：finding 的归属 department，通过 `lib/departments.ts` 中的表由其 CWE 得出；以及它的验证状态，由证书的 `unverified` 清单是否点名它得出。若 feed 日后在 finding 上标注 department，该表即成死代码，应当删除。
+有两项 feed 并不携带的事实在 deck 侧推导，并在 README 中如实说明：finding 的归属 department，通过 `deck/departments.ts` 中的表由其 CWE 得出；以及它的验证状态，由证书的 `unverified` 清单是否点名它得出。若 feed 日后在 finding 上标注 department，该表即成死代码，应当删除。
 
 `pnpm run constraints` 为此包报告四项无法从包内修复的违规。`scripts/check-workspace-constraints.ts` 把每个 `apps/*` 目录都视为发布成员——不得为 `private`、必须设置 `publishConfig.access`、repository 字段必须指明其目录、且其名称必须出现在该脚本的 `appPackageFiles` 策略中。客户概念验证不是已发布的包，因此清单保持 `private: true`，该门禁将持续报红，直到该脚本为不发布的 app 增加一个分支。
 

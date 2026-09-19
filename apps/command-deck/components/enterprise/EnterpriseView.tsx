@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo, type ReactNode } from 'react'
-import type { Agent } from '@/lib/contract'
-import { divisionColor } from '@/lib/palette'
-import { useDeck } from '@/lib/store'
+import type { Agent } from '@/deck/contract'
+import { divisionColor } from '@/deck/palette'
+import { useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
 

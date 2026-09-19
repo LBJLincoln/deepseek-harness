@@ -2,10 +2,10 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo, type ChangeEvent, type ReactNode } from 'react'
-import { clock, duration, stamp } from '@/lib/format'
-import { SEVERITY_COLOR } from '@/lib/palette'
-import { STAGES, stageOf } from '@/lib/pipeline'
-import { eventsUpTo, useDeck } from '@/lib/store'
+import { clock, duration, stamp } from '@/deck/format'
+import { SEVERITY_COLOR } from '@/deck/palette'
+import { STAGES, stageOf } from '@/deck/pipeline'
+import { eventsUpTo, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
 

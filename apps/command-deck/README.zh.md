@@ -53,9 +53,9 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 | `GET /safety/:id` | 一次代码安全审查的 `{ target, departments, findings, certificate, report }`。 |
 | `POST /safety` | `{ target, model? }` 启动一次审查并返回 `{ id }`；随后 deck 会实时跟随该次运行。 |
 
-每个字段都在 [`lib/contract.ts`](lib/contract.ts) 中定型，那是该契约被写下的唯一位置。客户端按 `seq` 去重，因此重连后重放的历史不会被投递两次。
+每个字段都在 [`deck/contract.ts`](deck/contract.ts) 中定型，那是该契约被写下的唯一位置。客户端按 `seq` 去重，因此重连后重放的历史不会被投递两次。
 
-有两条 deck 侧规则值得了解，因为 feed 并不携带它们。finding 的归属 department 通过 [`lib/departments.ts`](lib/departments.ts) 中的表由其 CWE 推导，因为 feed 只报告各 department 的总数，而不在 finding 上标注 department。除非证书的 `unverified` 清单点名，否则 finding 记为已验证。
+有两条 deck 侧规则值得了解，因为 feed 并不携带它们。finding 的归属 department 通过 [`deck/departments.ts`](deck/departments.ts) 中的表由其 CWE 推导，因为 feed 只报告各 department 的总数，而不在 finding 上标注 department。除非证书的 `unverified` 清单点名，否则 finding 记为已验证。
 
 ## 回放：没有 feed 时会发生什么
 
@@ -82,7 +82,7 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 | --- | --- |
 | `app/` | 路由，以及 `app/api/fixtures/` 下的 fixture 端点。 |
 | `components/` | 外壳，以及每个视图一个目录；所有接触 three.js 的都是 Client Component。 |
-| `lib/` | 契约、feed 客户端、事件流、store、布局、配色。 |
+| `deck/` | 契约、feed 客户端、事件流、store、布局、配色。 |
 | `fixtures/` | 已提交的回放数据。 |
 | `scripts/` | fixture 生成器及其 roster 源。 |
 | `docs/` | 上方的截图。 |

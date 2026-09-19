@@ -1,4 +1,4 @@
-import { readRunEvents } from '@/lib/fixtures.server'
+import { readRunEvents } from '@/deck/fixtures.server'
 
 /** The replay stream is written per request and never cached. */
 export const dynamic = 'force-dynamic'

@@ -15,11 +15,11 @@ import {
   type Mesh,
   type Points,
 } from 'three'
-import type { Roster, RosterEdge } from '@/lib/contract'
-import { layoutRoster, type GraphLayout } from '@/lib/layout-enterprise'
-import { usePrefersReducedMotion } from '@/lib/motion'
-import { divisionColor, EDGE_COLOR } from '@/lib/palette'
-import { useDeck } from '@/lib/store'
+import type { Roster, RosterEdge } from '@/deck/contract'
+import { layoutRoster, type GraphLayout } from '@/deck/layout-enterprise'
+import { usePrefersReducedMotion } from '@/deck/motion'
+import { divisionColor, EDGE_COLOR } from '@/deck/palette'
+import { useDeck } from '@/deck/store'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
 

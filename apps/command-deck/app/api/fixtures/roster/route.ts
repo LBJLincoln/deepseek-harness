@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import type { Roster } from '@/lib/contract'
-import { readFixtureJson } from '@/lib/fixtures.server'
+import type { Roster } from '@/deck/contract'
+import { readFixtureJson } from '@/deck/fixtures.server'
 
 /** The fixture routes read files at request time, so nothing is prerendered. */
 export const dynamic = 'force-dynamic'

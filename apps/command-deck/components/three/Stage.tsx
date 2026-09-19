@@ -5,7 +5,7 @@ import { Bloom, ChromaticAberration, EffectComposer, Vignette } from '@react-thr
 import { BlendFunction } from 'postprocessing'
 import { useMemo, type ReactNode } from 'react'
 import { Vector2 } from 'three'
-import { usePrefersReducedMotion } from '@/lib/motion'
+import { usePrefersReducedMotion } from '@/deck/motion'
 
 /** Camera placement one stage asks for. */
 export interface StageCamera {

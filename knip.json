@@ -11,7 +11,8 @@
     "sandbox-exec",
     "tar",
     "taskkill",
-    "where.exe"
+    "where.exe",
+    "dev"
   ],
   "ignoreWorkspaces": [
     "vendor/*",
@@ -73,9 +74,9 @@
         "headless-agent/tests/fixtures/instrument-cases/driver.ts",
         "headless-agent/tests/fixtures/instrument-cases/register-environment.ts",
         "headless-agent/tests/fixtures/instrument-cases/instrument-mock-llm.ts",
-      "headless-agent/tests/fixtures/recreation-instrument/driver.ts",
-      "headless-agent/tests/fixtures/recreation-instrument/register-environment.ts",
-      "headless-agent/tests/fixtures/recreation-instrument/instrument-mock-llm.ts",
+        "headless-agent/tests/fixtures/recreation-instrument/driver.ts",
+        "headless-agent/tests/fixtures/recreation-instrument/register-environment.ts",
+        "headless-agent/tests/fixtures/recreation-instrument/instrument-mock-llm.ts",
         "headless-agent/tests/fixtures/fleet-run/driver.ts",
         "headless-agent/tests/fixtures/fleet-shift/driver.ts",
         "headless-agent/tests/fixtures/scoreboard/driver.ts",
@@ -121,13 +122,18 @@
         "jsonrpc-agent/tests/fixtures/subagent/subagent-dsh-sdk/child-mock-llm.ts",
         "jsonrpc-agent/tests/fixtures/subagent/subagent-dsh-sdk/mock-delegating-llm.ts",
         "*/tests/**/*.e2e.ts",
-        "*/tests/**/*.snapshot.ts"
+        "*/tests/**/*.snapshot.ts",
+        "headless-agent/tests/fixtures/program-csv-tools/driver.ts",
+        "headless-agent/tests/fixtures/program-csv-tools/csv-tools-llm.ts"
       ],
       "project": [
         "**/*.ts"
       ],
       "ignoreDependencies": [
         "@deepseek-ai/.+"
+      ],
+      "ignore": [
+        "headless-agent/tests/fixtures/program-csv-tools/seed/**"
       ]
     },
     "packages/util/home": {
@@ -1043,6 +1049,20 @@
     "packages/bundle/web-app": {
       "ignoreDependencies": [
         "@deepseek-ai/.+"
+      ]
+    },
+    "apps/command-deck": {
+      "entry": [
+        "app/**/*.tsx",
+        "app/**/*.ts",
+        "scripts/*.ts",
+        "deck/contract.ts"
+      ],
+      "project": [
+        "app/**/*.{ts,tsx}",
+        "components/**/*.{ts,tsx}",
+        "deck/**/*.ts",
+        "scripts/**/*.ts"
       ]
     }
   }

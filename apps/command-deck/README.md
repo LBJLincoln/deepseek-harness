@@ -53,9 +53,9 @@ The deck reads `NEXT_PUBLIC_FEED_URL` (default `http://localhost:4711`) and expe
 | `GET /safety/:id` | `{ target, departments, findings, certificate, report }` for one code-safety review. |
 | `POST /safety` | `{ target, model? }` starts a review and answers `{ id }`; the deck then follows that run live. |
 
-Every field is typed in [`lib/contract.ts`](lib/contract.ts), which is the one place the contract is written down. `seq` is what the client deduplicates on, so a reconnection that replays history delivers nothing twice.
+Every field is typed in [`deck/contract.ts`](deck/contract.ts), which is the one place the contract is written down. `seq` is what the client deduplicates on, so a reconnection that replays history delivers nothing twice.
 
-Two deck-side rules are worth knowing because the feed does not carry them. A finding's owning department is derived from its CWE through the table in [`lib/departments.ts`](lib/departments.ts), since the feed reports per-department totals but places no department on the finding itself. A finding counts as verified unless the certificate's `unverified` list names it.
+Two deck-side rules are worth knowing because the feed does not carry them. A finding's owning department is derived from its CWE through the table in [`deck/departments.ts`](deck/departments.ts), since the feed reports per-department totals but places no department on the finding itself. A finding counts as verified unless the certificate's `unverified` list names it.
 
 ## Replay: what happens with no feed
 
@@ -82,7 +82,7 @@ The code-safety findings are not invented. Eighteen of the twenty-six are read f
 | --- | --- |
 | `app/` | The routes, and the fixture endpoints under `app/api/fixtures/`. |
 | `components/` | The shell, and one folder per view; everything touching three.js is a Client Component. |
-| `lib/` | The contract, the feed client, the event stream, the store, the layouts, the palette. |
+| `deck/` | The contract, the feed client, the event stream, the store, the layouts, the palette. |
 | `fixtures/` | The committed replay data. |
 | `scripts/` | The fixture generator and its roster source. |
 | `docs/` | The screenshots above. |

@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, type ReactNode } from 'react'
-import type { Agent, RunEvent } from '@/lib/contract'
-import { clock } from '@/lib/format'
+import type { Agent, RunEvent } from '@/deck/contract'
+import { clock } from '@/deck/format'
 
 /**
  * The run's event stream as a reverse-chronological list.

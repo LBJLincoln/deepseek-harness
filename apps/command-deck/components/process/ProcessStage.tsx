@@ -12,10 +12,10 @@ import {
   type Mesh,
   type Points,
 } from 'three'
-import type { Agent, RunEvent } from '@/lib/contract'
-import { usePrefersReducedMotion } from '@/lib/motion'
-import { SEVERITY_COLOR } from '@/lib/palette'
-import { discoverLanes, laneOf, laneY, stageOf, STAGES } from '@/lib/pipeline'
+import type { Agent, RunEvent } from '@/deck/contract'
+import { usePrefersReducedMotion } from '@/deck/motion'
+import { SEVERITY_COLOR } from '@/deck/palette'
+import { discoverLanes, laneOf, laneY, stageOf, STAGES } from '@/deck/pipeline'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage as Canvas3D } from '@/components/three/Stage'
 

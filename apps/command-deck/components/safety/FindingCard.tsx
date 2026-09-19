@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { Finding, SafetyCertificate } from '@/lib/contract'
-import { departmentOf } from '@/lib/departments'
+import type { Finding, SafetyCertificate } from '@/deck/contract'
+import { departmentOf } from '@/deck/departments'
 
 /**
  * The selected finding, over the city, next to the marker it belongs to.

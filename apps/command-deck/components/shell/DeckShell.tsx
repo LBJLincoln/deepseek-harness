@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, type ReactNode } from 'react'
-import { useDeck } from '@/lib/store'
+import { useDeck } from '@/deck/store'
 
 /** The three views, in the order their number keys select them. */
 const VIEWS = [

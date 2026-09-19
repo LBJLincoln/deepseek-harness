@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useDeck } from '@/lib/store'
+import { useDeck } from '@/deck/store'
 
 /**
  * The standing statement that what is on screen is example data.

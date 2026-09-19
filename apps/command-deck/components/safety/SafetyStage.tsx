@@ -13,10 +13,10 @@ import {
   type InstancedMesh,
   type Points,
 } from 'three'
-import type { Finding, SafetyTarget } from '@/lib/contract'
-import { layoutCity, type CityBlock, type CityLayout } from '@/lib/layout-city'
-import { usePrefersReducedMotion } from '@/lib/motion'
-import { languageColor, SEVERITY_COLOR } from '@/lib/palette'
+import type { Finding, SafetyTarget } from '@/deck/contract'
+import { layoutCity, type CityBlock, type CityLayout } from '@/deck/layout-city'
+import { usePrefersReducedMotion } from '@/deck/motion'
+import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
 

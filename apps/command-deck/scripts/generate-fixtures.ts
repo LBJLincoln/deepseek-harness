@@ -25,7 +25,7 @@ import type {
   SafetyReview,
   Severity,
   TargetFile,
-} from '../lib/contract.ts'
+} from '../deck/contract.ts'
 import { DIVISIONS } from './roster-source.ts'
 
 const here = dirname(new URL(import.meta.url).pathname)

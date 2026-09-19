@@ -60,7 +60,7 @@ export interface RosterEdge {
 /** `GET /roster` payload. */
 export interface Roster {
   generatedAt: string
-  counts: { defined: number, active: number }
+  counts: { defined: number; active: number }
   divisions: Division[]
   agents: Agent[]
   edges: RosterEdge[]
