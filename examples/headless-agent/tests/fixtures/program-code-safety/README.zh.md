@@ -49,7 +49,7 @@
 
 [`cordis.yml`](cordis.yml) 是无密钥的一半：每个会话都运行在 [`code-safety-llm.ts`](code-safety-llm.ts) 注册的 `cli-mock` 路由上，针对已提交的 [`sample-target/`](sample-target)——一个小应用，带有字符串拼接的查询、一处 `$where`、一处 `eval`、一个硬编码密钥、一个 innerHTML 注入点、若干未认证路由、MD5 口令以及通配的 CORS 响应头。脚本化的发现只陈述文件与行号，别无其他：每个 `snippet` 都在流式生成时从目标中读出，用的正是审查器将要比对的那些字节，因此该路由无法靠携带一份树的副本蒙混过关，而改动 sample target 却不同步更新其发现，会让运行失败而不是通过。
 
-[`overlays/claude-code.cordis.yml`](overlays/claude-code.cordis.yml) 是真实的那一个：同一份组合，禁用脚本路由，换上操作者自己的 Claude Code 安装，一次并发三个部门，并在仓库携带 `data/knowledge/code-safety/` 时把它挂载为一个技能根。`implementer` 仍为 `route`，因此 program 逐轮驱动每个部门，部门自己的会话保存它走过的每一步。
+[`overlays/claude-code.cordis.yml`](overlays/claude-code.cordis.yml) 是真实的那一个：同一份组合，禁用脚本路由，换上操作者自己的 Claude Code 安装，一次并发三个部门，并在仓库携带 [`data/knowledge/code-safety/`](../../../../../data/knowledge/code-safety/README.md) 知识包时把它挂载为会话唯一的技能根。`implementer` 仍为 `route`，因此 program 逐轮驱动每个部门，部门自己的会话保存它走过的每一步。
 
 一次运行中每个会话共用同一个模型。冻结的 spec 不携带按目标区分的模型，而 `agent-default-model` 是进程级的，因此一次运行无法把部门与集成配置成不同的人手；`--model` 选择两者共用的那一个。
 
