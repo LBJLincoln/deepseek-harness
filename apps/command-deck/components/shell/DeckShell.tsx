@@ -1,21 +1,27 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, type ReactNode } from 'react'
 import { useDeck } from '@/deck/store'
 import { RollingNumber } from './RollingNumber.tsx'
+import { TitleCard } from './TitleCard.tsx'
 import { useEventRate } from './rate.ts'
+import { usePresentation } from './usePresentation.ts'
 import { VIEWS } from './views.ts'
 
 /**
  * The persistent frame around every view: header, status footer, global
  * keyboard shortcuts, and the one call that boots the feed.
+ *
+ * `data-presentation` on the root carries the mode the whole layout answers to:
+ * in `focus` and `tour` the panel goes and the stage takes the frame. The view
+ * itself is keyed on the route so each navigation replays the dissolve that
+ * covers the cut.
  * @param props - The routed page to frame.
  * @returns The shell.
  */
 export function DeckShell({ children }: { children: ReactNode }): ReactNode {
-  const router = useRouter()
   const pathname = usePathname()
   const boot = useDeck(state => state.boot)
   const source = useDeck(state => state.source)
@@ -24,33 +30,18 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const runs = useDeck(state => state.runs)
   const selectedRunId = useDeck(state => state.selectedRunId)
   const error = useDeck(state => state.error)
-  const selectAgent = useDeck(state => state.selectAgent)
+  const presentation = useDeck(state => state.presentation)
   const rate = useEventRate()
 
   useEffect(() => { void boot() }, [boot])
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent): void => {
-      const target = event.target
-      if (target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (event.key === 'Escape') {
-        selectAgent(undefined)
-        return
-      }
-      const view = VIEWS.find(entry => entry.key === event.key)
-      if (view !== undefined) router.push(view.href)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [router, selectAgent])
+  usePresentation()
 
   const mode = source?.mode ?? 'probing'
   const certifiedToday = roster?.agents.filter(agent => agent.status === 'certified').length
   const run = runs.find(entry => entry.id === selectedRunId)
 
   return (
-    <div className="deck">
+    <div className="deck" data-presentation={presentation}>
       <header className="deck__header">
         <div className="deck__mark">
           <b>Daliesk</b>
@@ -89,7 +80,13 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         </span>
       </header>
 
-      <main className="deck__main">{children}</main>
+      <main className="deck__main">
+        <div className="deck__view" key={pathname}>
+          {children}
+          <i className="deck__veil" />
+        </div>
+        <TitleCard />
+      </main>
 
       <footer className="deck__footer">
         <span>feed <b>{source?.configured ?? '…'}</b></span>
@@ -112,7 +109,10 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
           </>
         )}
         <span className="deck__spacer" />
-        <span>1 / 2 / 3 views · esc deselect</span>
+        {presentation === 'off' ? null : (
+          <span className="deck__mode" data-mode={presentation}>{presentation}</span>
+        )}
+        <span>1 / 2 / 3 views · f focus · p tour · esc deselect</span>
       </footer>
     </div>
   )

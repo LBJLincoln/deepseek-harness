@@ -159,6 +159,27 @@ a { color: inherit; text-decoration: none; }
 
 .deck__main { position: relative; overflow: hidden; }
 
+/*
+ * The routed view, keyed on the route, so every navigation remounts it and
+ * replays the veil over the cut.
+ */
+.deck__view { position: absolute; inset: 0; }
+
+.deck__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: var(--bg);
+  opacity: 0;
+  animation: veil-out 300ms ease-out both;
+}
+
+@keyframes veil-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 .deck__footer {
   display: flex;
   align-items: center;
@@ -182,6 +203,113 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: bottom;
+}
+
+.deck__mode {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 9px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(79, 216, 255, 0.35);
+  background: rgba(79, 216, 255, 0.08);
+  color: var(--cyan);
+}
+
+.deck__mode[data-mode='tour'] {
+  border-color: rgba(155, 123, 255, 0.42);
+  background: rgba(155, 123, 255, 0.1);
+  color: var(--violet);
+}
+
+/* ------------------------------------------------------- presentation ---- */
+
+/*
+ * Focus and tour are the same layout: the panel goes, the stage takes the
+ * frame, and the header keeps only the mark, the counts and the badge that
+ * says whether any of this is live.
+ */
+.deck:is([data-presentation='focus'], [data-presentation='tour']) { --header: 42px; }
+.deck:is([data-presentation='focus'], [data-presentation='tour']) .deck__header { gap: 14px; padding: 0 14px; }
+.deck:is([data-presentation='focus'], [data-presentation='tour']) .deck__nav { display: none; }
+.deck:is([data-presentation='focus'], [data-presentation='tour']) .view--split { grid-template-columns: 1fr; }
+.deck:is([data-presentation='focus'], [data-presentation='tour']) .panel { display: none; }
+
+.title-card {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 24px;
+  /* Dark enough under the type that a busy scene cannot read through it. */
+  background: radial-gradient(
+    76% 60% at 50% 50%,
+    rgba(4, 6, 11, 0.93) 0%,
+    rgba(4, 6, 11, 0.74) 34%,
+    rgba(4, 6, 11, 0.34) 62%,
+    rgba(4, 6, 11, 0) 86%
+  );
+  opacity: 1;
+  transition: opacity 520ms ease;
+}
+
+.title-card[data-state='out'] { opacity: 0; }
+
+.title-card__eyebrow {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--ink-3);
+  margin-bottom: 18px;
+  animation: card-line 520ms ease-out backwards;
+}
+
+.title-card__title {
+  margin: 0;
+  font-size: clamp(34px, 5.4vw, 78px);
+  font-weight: 300;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  text-shadow: 0 0 64px rgba(79, 216, 255, 0.3);
+}
+
+.title-card__word { display: inline-block; white-space: nowrap; }
+.title-card__word + .title-card__word { margin-left: 0.3em; }
+
+.title-card__char {
+  display: inline-block;
+  opacity: 1;
+  animation: card-char 640ms cubic-bezier(0.22, 0.85, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 26ms);
+}
+
+.title-card__line {
+  margin: 16px 0 0;
+  font-size: 14.5px;
+  color: var(--ink-2);
+  opacity: 1;
+  animation: card-line 620ms ease-out backwards;
+  animation-delay: calc(340ms + var(--i, 0) * 120ms);
+}
+
+.title-card__line + .title-card__line {
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+@keyframes card-char {
+  from { opacity: 0; transform: translate3d(0, 0.42em, 0); filter: blur(7px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes card-line {
+  from { opacity: 0; transform: translate3d(0, 9px, 0); }
+  to { opacity: 1; transform: none; }
 }
 
 /* ---------------------------------------------------------------- badge -- */
@@ -668,6 +796,11 @@ input[type='range']::-moz-range-thumb {
   .deck__nav kbd { display: none; }
 
   .deck__main { position: static; overflow: visible; }
+
+  .deck__view { position: static; }
+  .deck__veil { display: none; }
+  /* Nothing here is positioned, so the card anchors to the viewport instead. */
+  .title-card { position: fixed; }
 
   .view { position: static; display: block; }
   .view--split { grid-template-columns: 1fr; }

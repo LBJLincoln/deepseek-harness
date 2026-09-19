@@ -26,6 +26,15 @@ interface Burst {
   at: number
 }
 
+/**
+ * How the deck is being shown.
+ *
+ * `off` is the working deck: header, stage and panel. `focus` hides the panel
+ * and gives the stage the whole frame. `tour` is `focus` plus a timer that
+ * walks the three views, announcing each one; anything the viewer does ends it.
+ */
+export type PresentationMode = 'off' | 'focus' | 'tour'
+
 /** Everything the deck holds for one session. */
 export interface DeckState {
   source: FeedSource | undefined
@@ -46,6 +55,8 @@ export interface DeckState {
   activity: Map<string, number>
   /** Certificate bursts the enterprise scene has not drawn yet. */
   bursts: Burst[]
+  /** How the deck is being shown; presentation only, no effect on what is read. */
+  presentation: PresentationMode
   boot: () => Promise<void>
   selectRun: (id: string) => void
   /** List a run the feed does not report yet, such as a review this deck just started. */
@@ -57,6 +68,9 @@ export interface DeckState {
   setCursor: (seq: number | undefined) => void
   /** Load a review's detail; `force` re-reads one already loaded. */
   loadSafety: (id: string, force?: boolean) => Promise<void>
+  setPresentation: (mode: PresentationMode) => void
+  /** Enter one presentation mode, or leave it when it is already the current one. */
+  togglePresentation: (mode: Exclude<PresentationMode, 'off'>) => void
 }
 
 let unsubscribe: (() => void) | undefined
@@ -88,6 +102,7 @@ export const useDeck = create<DeckState>((set, get) => ({
   cursor: undefined,
   activity: new Map<string, number>(),
   bursts: [],
+  presentation: 'off',
 
   boot: async () => {
     if (get().booted) return
@@ -167,6 +182,11 @@ export const useDeck = create<DeckState>((set, get) => ({
       set({ error: error instanceof Error ? error.message : String(error) })
     }
   },
+
+  setPresentation: mode => set({ presentation: mode }),
+  togglePresentation: mode => set(state => ({
+    presentation: state.presentation === mode ? 'off' : mode,
+  })),
 }))
 
 /**
