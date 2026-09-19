@@ -335,7 +335,7 @@ function discoverProvingGroundRuns(discoveryRoot: string): RunSummary[] {
       kind,
       name: plan?.name ?? id,
       startedAt: plan?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      endedAt: plan?.endedAt,
+      ...(plan?.endedAt === undefined ? {} : { endedAt: plan?.endedAt }),
       status: resolveRunStatus(plan?.status, plan?.endedAt, dir),
       path: relative(discoveryRoot, dir),
     })
@@ -356,12 +356,13 @@ function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] 
     const sessionsDir = join(dir, 'sessions')
     if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(sessionsDir)) continue
     const meta = readJsonSafe(join(dir, 'meta.json')) as RecordedRunMeta | undefined
+    const ended = meta?.endedAt ?? mtimeIso(dir)
     runs.push({
       id,
       kind: 'experiment',
       name: meta?.name ?? id,
       startedAt: meta?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      endedAt: meta?.endedAt ?? mtimeIso(dir),
+      ...(ended === undefined ? {} : { endedAt: ended }),
       status: 'completed',
       path: relative(discoveryRoot, dir),
     })
@@ -392,7 +393,7 @@ function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
       kind: 'code-safety',
       name: target?.name ?? id,
       startedAt: target?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      endedAt: verifier?.checkedAt,
+      ...(verifier?.checkedAt === undefined ? {} : { endedAt: verifier?.checkedAt }),
       status,
       path: relative(discoveryRoot, dir),
     })
@@ -442,7 +443,7 @@ function normalizeCertificate(partial: Partial<SafetyCertificate>): SafetyCertif
   return {
     verified: partial.verified ?? false,
     verifier: partial.verifier ?? 'unknown',
-    checkedAt: partial.checkedAt,
+    ...(partial.checkedAt === undefined ? {} : { checkedAt: partial.checkedAt }),
     counts: { critical: 0, high: 0, medium: 0, low: 0, info: 0, ...partial.counts },
     unverified: partial.unverified ?? [],
   }
@@ -545,7 +546,7 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
   if (type === 'turn/start') return { ...base, kind: 'step', label: `Turn ${stringField(data, 'turn', '?')} started` }
   if (type === 'turn/end') {
     const reason = (data.reason as { kind?: string } | undefined)?.kind
-    return { ...base, kind: 'step', label: `Turn ${stringField(data, 'turn', '?')} ended`, detail: reason }
+    return { ...base, kind: 'step', label: `Turn ${stringField(data, 'turn', '?')} ended`, ...(reason === undefined ? {} : { detail: reason }) }
   }
   if (type === 'step/start') return { ...base, kind: 'step', label: `Step ${stringField(data, 'step', '?')} started` }
   if (type === 'step/end') return { ...base, kind: 'step', label: `Step ${stringField(data, 'step', '?')} ended` }
@@ -570,8 +571,8 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
       ...base,
       kind: DELEGATION_TOOL_NAMES.has(name) ? 'delegation' : 'tool',
       label: name,
-      detail: text.length > 0 ? text.slice(0, 500) : undefined,
-      severity: result?.isError === true ? 'high' : undefined,
+      ...(text.length > 0 ? { detail: text.slice(0, 500) } : {}),
+      ...(result?.isError === true ? { severity: 'high' as const } : {}),
     }
   }
   if (type.startsWith('tool-workflow/') || type.startsWith('tool/code-dispatch')) {
@@ -581,7 +582,7 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
   if (type === 'agent/inbox/spliced' || type.startsWith('hook/')) {
     const inserted = data.inserted as { content?: { text?: string }[] }[] | undefined
     const preview = inserted?.[0]?.content?.[0]?.text
-    return { ...base, kind: 'directive', label: 'directive queued', detail: preview?.slice(0, 200) }
+    return { ...base, kind: 'directive', label: 'directive queued', ...(preview === undefined ? {} : { detail: preview.slice(0, 200) }) }
   }
 
   if (type === 'verification/certificate' || type.startsWith('verification/certificate')) {
@@ -600,9 +601,9 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
       ...base,
       kind: 'finding',
       label: stringField(data, 'message', stringField(data, 'rule', 'finding')),
-      severity: data.severity as FeedSeverity | undefined,
-      file: data.file as string | undefined,
-      line: data.line as number | undefined,
+      ...(typeof data.severity === 'string' ? { severity: data.severity as FeedSeverity } : {}),
+      ...(typeof data.file === 'string' ? { file: data.file } : {}),
+      ...(typeof data.line === 'number' ? { line: data.line } : {}),
     }
   }
 
@@ -976,14 +977,14 @@ export function parseHarnessFeedArgs(argv: readonly string[]): { port: number; f
   if (!Number.isInteger(port) || port <= 0) {
     throw new Error(`harness-feed: --port must be a positive integer, got "${port}"`)
   }
-  return { port, fixturesDir }
+  return { port, ...(fixturesDir === undefined ? {} : { fixturesDir }) }
 }
 
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   const { port, fixturesDir } = parseHarnessFeedArgs(process.argv.slice(2))
-  const server = createHarnessFeedServer({ root, fixturesDir: fixturesDir === undefined ? undefined : resolve(fixturesDir) })
+  const server = createHarnessFeedServer({ root, ...(fixturesDir === undefined ? {} : { fixturesDir: resolve(fixturesDir) }) })
   server.listen(port, () => {
     console.log(`harness-feed: listening on http://localhost:${port}${fixturesDir === undefined ? '' : ` (fixtures: ${fixturesDir})`}`)
   })

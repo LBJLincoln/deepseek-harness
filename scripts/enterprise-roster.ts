@@ -109,6 +109,13 @@ export interface Roster {
 /** The roster's fixed size: role x division x specialization composed over this repository's real sources. */
 export const ROSTER_AGENT_COUNT = 147
 
+/** The entry at `index` modulo the list length; every list cycled here is a non-empty constant. */
+function cycle<T>(list: readonly T[], index: number): T {
+  const value = list[index % list.length]
+  if (value === undefined) throw new Error('enterprise-roster: cycled an empty list')
+  return value
+}
+
 const CLAUDE_CODE_MODELS = ['sonnet', 'opus', 'haiku'] as const
 const OPENROUTER_FREE_MODELS = ['meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-2-9b-it:free'] as const
 
@@ -322,7 +329,7 @@ function buildCodeSafety(root: string, notePath: string): RosterAgentDefinition[
         division: 'code-safety',
         department: department.id,
         specialization: specialization.id,
-        route: { provider: 'openrouter', model: OPENROUTER_FREE_MODELS[index % OPENROUTER_FREE_MODELS.length] },
+        route: { provider: 'openrouter', model: cycle(OPENROUTER_FREE_MODELS, index) },
         preset: 'reviewing',
         skills: ['dsh-code-review'],
         tools: ['read', 'bash'],
@@ -410,7 +417,7 @@ function buildProvingGround(root: string): RosterAgentDefinition[] {
       role: 'bench-operator',
       division: 'proving-ground',
       specialization: name,
-      route: { provider: 'claude-code', model: CLAUDE_CODE_MODELS[index % CLAUDE_CODE_MODELS.length] },
+      route: { provider: 'claude-code', model: cycle(CLAUDE_CODE_MODELS, index) },
       preset: 'coding',
       skills: [],
       tools: ['subagent', 'bash'],
