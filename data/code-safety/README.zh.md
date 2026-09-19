@@ -39,9 +39,12 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [2026-09-19-nodegoat](2026-09-19-nodegoat/manifest.json) | `be507df30` | OWASP NodeGoat，111 个文件 | `sonnet` | 7 of 7 | 42 (5 critical, 17 high, 13 medium, 5 low, 2 info) | 退出码 0 | 1301 s |
 | [2026-09-19-dvja](2026-09-19-dvja/manifest.json) | `3d386bac2` | dvja（Java，Struts 2 与 Spring），174 个文件 | `sonnet` | 7 of 7 | 40 (9 critical, 10 high, 13 medium, 7 low, 1 info) | 退出码 0 | 1414 s |
+| [2026-09-19-nodegoat-2](2026-09-19-nodegoat-2/manifest.json) | `5a59895fa` | OWASP NodeGoat，111 个文件，经由 feed 的 `POST /safety` 启动 | `sonnet` | 7 of 7 | 38 (4 critical, 16 high, 14 medium, 4 low) | 退出码 0 | 1225 s |
 
 ## 一条记录证明了什么
 
 它证明：`findings.json` 中的每条发现，在审查器运行的那一刻，确实存在于 `manifest.json` 所锁定的那棵树中它所引用的那一行；报告自身的计数就是并集的计数；以及没有任何部门报告过的东西在未被点名的情况下被丢弃。它不证明某条列出的发现可被利用，不证明某个未列出的缺陷不存在，也不证明这次评审读过任何它没有声称读过的文件。每份报告中的 `## Scope and method` 与 `## What was not covered` 正是这些边界，它们也因此成为记录的一部分。
 
 一条记录针对目标已记载缺陷的召回率，是一项独立的读数，取自记录旁边的 `targets/<target>.ground-truth.json`，而不在发布关口之内：一个给召回率打分的关口只能在缺陷已知的目标上运行，而那并非本 program 存在的场景。`node data/code-safety/tools/recall.mjs <record> <ground truth>` 打印这一读数：当某条已发布的发现引用了已知问题的文件、且行号在其范围三行之内，或落在基准真值为同一缺陷列出的其他位置之一，该问题即算被找到。在 NodeGoat 记录上它读出 18 之 14：审查错过的四个是登录路径上的日志注入、会枚举用户的两种不同错误消息、只要一个字符的密码策略，以及路由号上的灾难性正则表达式；而 42 条已发布发现中有 12 条是基准真值未列出的缺陷，其中包括重置脚本植入的硬编码管理员密码、提交在 `artifacts/` 下的私钥、登录时未再生的会话，以及从锁文件中读出的依赖公告。dvja 记录（一个 Java Struts 2 应用，174 个文件，在各部门被要求先运行 semgrep 之前审查）读出 14 之 13：审查唯一错过的是信任调用方提供的用户 id 的资料更新，其 40 条发现中有 14 条在列表之外，其中包括 Log4Shell 时代的 log4j、仅由 cookie 把关的全体用户个人数据批量导出，以及提交在 compose 文件里的 root 密码。
+
+对同一 NodeGoat 修订版、在同一组合上、相隔三小时的两次审查，是可重复性的读数：第二次发布 38 条发现，第一次为 42 条；第一次 42 条中有 38 条在第二次运行里于同一文件三行之内有对应发现，其中 31 条 CWE 相同，第二次 38 条中有 33 条在第一次里有对应；两次都读出 18 之 14，错过的四个相同，且共同引用了 15 个文件。两次运行的差别在低严重度的尾部以及一个缺陷被拆成几条发现的方式上，而不在经认证的核心。
