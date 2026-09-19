@@ -335,7 +335,7 @@ function discoverProvingGroundRuns(discoveryRoot: string): RunSummary[] {
       kind,
       name: plan?.name ?? id,
       startedAt: plan?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      ...(plan?.endedAt === undefined ? {} : { endedAt: plan?.endedAt }),
+      ...(plan?.endedAt === undefined ? {} : { endedAt: plan.endedAt }),
       status: resolveRunStatus(plan?.status, plan?.endedAt, dir),
       path: relative(discoveryRoot, dir),
     })
