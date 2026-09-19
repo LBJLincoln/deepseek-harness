@@ -45,7 +45,9 @@ describe('listOverlayNames / resolveOverlayPath', () => {
       'registry-only',
       'route-only',
       'with-craft-skills',
+      'with-deepseek',
       'with-knowledge-pack',
+      'with-openai-gateway',
       'with-spawn',
     ])
   })
@@ -78,8 +80,9 @@ describe('listOverlayNames / resolveOverlayPath', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(22)
+    expect(names).toHaveLength(25)
     expect(names).toContain('e3-attempts-t5')
+    expect(names).toContain('h1-fleet-deepseek-t2')
     expect(names).toContain('held-out-sonnet-all')
     expect(names).toEqual([...names].sort())
   })

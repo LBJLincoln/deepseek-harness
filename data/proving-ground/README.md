@@ -60,6 +60,8 @@ pnpm run bench -- summarize <dir>
 pnpm run bench -- record <dir> <name> --composition <composition path>
 ```
 
+The same bench runs on an open-weight route through the `with-deepseek` overlay, which composes `@deepseek-ai/dsh-llm-deepseek` beside the base's product route: export `DEEPSEEK_API_KEY` in the launching shell and add `--overlay with-deepseek` to a plan whose arms name `deepseek-official` (`h1-fleet-deepseek-t2` as a fleet, `e8-deepseek-vs-sonnet-t3` as a frozen pair against `sonnet`). Without that variable the fleet refuses the plan before its first cell and names the credential, so a keyless attempt costs nothing and reports why. This matters beyond portability: every record above was produced on the operator's Claude Code subscription, whose terms admit its transcripts as evaluation only, so none of this corpus may enter [the RLVR datasets](datasets/) — a run on a route whose data-use terms allow training is the only kind that may, and no such run exists yet. The overlay is the route, not the evidence: what is missing is a key and the compute to spend it.
+
 ## Runs
 
 | Run | Head | Implementer | Environment | Certified | Attempts | Elapsed |

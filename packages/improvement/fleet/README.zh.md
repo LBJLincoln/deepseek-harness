@@ -33,7 +33,7 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 | `routeBreaker.consecutiveErrors`（可选） | 一个计划内同一条模型路由连续多少个错误 cell 之后，fleet 停止为该路由排程。缺省时无论失败多少次都继续排程该路由，供应商故障会因此耗掉整个计划。 |
 | `workspaceRetention`（必填） | `keep`、`remove-certified` 或 `remove-all`：每个 cell 的结果被记录之后，其 `cell-*` 目录的去向。记录是会话日志而非检出目录，因此长期运行的部署要声明为便于检查而保留多少检出内容。 |
 
-该服务需要 `environments`、`environmentRuns` 与 `agentDefaultModel`。`resolveConfig(config)` 是导出的默认值解析步骤。
+该服务需要 `environments`、`environmentRuns`、`agentDefaultModel` 与 `llm`。`resolveConfig(config)` 是导出的默认值解析步骤。
 
 ## Service contract
 
@@ -54,6 +54,8 @@ cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举�
 `implementer` 被原样转发给每个 cell，因此一个计划就是一个实现者，由它折叠出来的行绝不混合两者：`{ kind: 'route' }`（默认）让每个 cell 跑在自己的模型路由上，而 `{ kind: 'subagent', provider, label? }` 把每个 cell 的每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
 
 计划的实现者在任何 cell 被枚举之前、任何工作区被铸出之前，经由 `ctx.environmentRuns.checkImplementer` 针对计划点名的每一条路由接受检查——计划的第一级阶梯档位点名了模型时就是它，否则就是计划自身的每一条路由，这也正是运行器为每个 cell 盖章的东西。运行器的 `EnvironmentRunError` 原样向上传递，于是组合并不持有的 provider 拒掉的是整份计划，而不是它的每一个 cell：一份全是错误 cell 的计划会把整轮运行花光，只为产出一块没有任何东西跑过的排行榜。
+
+每一条路由也在同一处经 [`ctx.llm.checkRoute`](../../llm/llm/README.md#public-api) 接受检查，这也正是 `llm` 是本服务的一项注入、而不是一个可选接缝的原因。计划中任何一个 cell 可能跑上的每一条路由都被询问一次：计划自身的各条路由，以及每一个点名了另一条路由的阶梯档位。组合并不持有的路由，或者凭据引用解析不到值的路由，否则就会在每个 cell 的第一次模型请求上拒掉那个 cell——此时工作区、会话、盖章与目标都已经存在——这正是实现者检查所防住的那份全是错误 cell 的计划。接缝的 `LlmError` 原样向上传递，点名那条路由，缺少密钥时还点名凭据引用；该检查不触网，因此它对端点是否应答、模型 id 是否存在一概不置一词。成对运行在任一计划的第一个 cell 之前就按这种方式准备两份计划，于是第二份计划中一条不可达的路由同样会把两份一起拒掉。
 
 报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所升级经过的 `ladder`、运行所声明的 `isolation` 与其被盖上的 `implementer`（该行全部 cell 在运行前失败时三者都缺省，且计划未命名阶梯时 ladder 同样缺省）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
 

@@ -1,0 +1,53 @@
+# The bench against an OpenAI-compatible gateway, as a template to copy and
+# edit: one hand-declared pi-ai route named `gateway`, which a plan's arm names
+# as its `provider`. pi-ai ships nothing under that key, so the profile supplies
+# the whole provider — `api`, `baseURL`, and a `models` list of its own — and
+# `baseURL` below is a placeholder that must be replaced with the deployment's
+# own endpoint before any plan runs on this overlay. No checked-in plan names
+# this route.
+#
+# The key is a reference, never a value: the adapter resolves `GATEWAY_API_KEY`
+# per request, and this composition mounts no credential seam, so the launching
+# environment is the whole credential plane. The bench drivers call `boot()`
+# directly rather than through an app bin, so the repository's `.env` is not
+# read — export the variable in the shell that runs `pnpm run bench`.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The base has no entry under this id, so the route is inserted: a
+      # non-insert patch only overrides an entry the base already names, and an
+      # unmatched one is warned about and skipped.
+      - insert:
+          - id: llm-pi-ai
+            name: '@deepseek-ai/dsh-llm-pi-ai'
+            config:
+              providers:
+                gateway:
+                  displayName: OpenAI-compatible gateway
+                  apiKeyEnv: GATEWAY_API_KEY
+                  api: openai-completions
+                  baseURL: https://REPLACE-ME.example.invalid/v1
+                  # A hand-declared route serves exactly the models it lists,
+                  # each of which a plan's arm names as its `model`.
+                  models:
+                    - id: gateway-model
+                      name: Gateway Model
+                      contextWindow: 131072
+                      maxTokens: 32768
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

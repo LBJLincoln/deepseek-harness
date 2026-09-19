@@ -931,6 +931,20 @@ describe('plugin registration and config', () => {
       .toMatch(/store DEEPSEEK_API_KEY through the credentials service.*export DEEPSEEK_API_KEY/s)
   })
 
+  it('answers the route preflight from the credential alone, without a request', async () => {
+    vi.stubEnv('DEEPSEEK_API_KEY', '')
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    // An endpoint nothing listens on: a preflight that reached the network
+    // would fail here as a transport error rather than a credential one.
+    await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
+    await expect(ctx.llm.checkRoute('deepseek-official')).rejects.toThrow(/DEEPSEEK_API_KEY/)
+    await expect(ctx.llm.checkRoute('deepseek-official')).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+
+    vi.stubEnv('DEEPSEEK_API_KEY', 'ambient-key')
+    await expect(ctx.llm.checkRoute('deepseek-official')).resolves.toBeUndefined()
+  })
+
   it('reads the ambient variable when no credentials seam is mounted', async () => {
     // The plain cordis.yml composition: no credential provider, the key in
     // the launching environment.

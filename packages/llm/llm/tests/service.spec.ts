@@ -224,6 +224,28 @@ describe('LlmRuntime', () => {
     )
   })
 
+  it('answers a route preflight from the owning adapter and refuses an unowned route', async () => {
+    const refusal = new LlmError('llm-test: no API key for provider route "keyless"; store TEST_API_KEY', 'MISSING_CREDENTIAL')
+    const adapter = new class extends ScriptedAdapter {
+      override checkRoute(provider: string): Promise<void> {
+        return provider === 'keyless' ? Promise.reject(refusal) : Promise.resolve()
+      }
+    }(SCRIPT)
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    ctx.llm.registerAdapter(['keyed', 'keyless'], adapter)
+    // An adapter whose routes need no credential of their own accepts every
+    // route it owns, which is the base implementation.
+    ctx.llm.registerAdapter(['ambient'], new ScriptedAdapter(SCRIPT))
+
+    await expect(ctx.llm.checkRoute('keyed')).resolves.toBeUndefined()
+    await expect(ctx.llm.checkRoute('ambient')).resolves.toBeUndefined()
+    await expect(ctx.llm.checkRoute('keyless')).rejects.toBe(refusal)
+    await expect(ctx.llm.checkRoute('missing')).rejects.toThrow(
+      expect.objectContaining({ code: 'NO_ADAPTER' }),
+    )
+  })
+
   it('keeps a prepared registration and retry policy after route replacement', async () => {
     const oldPolicy = resolveRetryPolicy({ mode: 'always' }, 'old retryPolicy')
     const newPolicy = resolveRetryPolicy({ mode: 'normal', maxRetries: 0 }, 'new retryPolicy')

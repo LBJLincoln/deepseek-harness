@@ -9,6 +9,7 @@ import type { EnvironmentRunImplementer, EnvironmentRunReport, EnvironmentRunReq
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
+import { LlmError } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
 import FleetService, { FleetError, fleetCellKey, leaderboardMarkdown, resolveConfig } from '@deepseek-ai/dsh-fleet'
@@ -66,6 +67,23 @@ class StubDefaultModel extends Service {
   }
   currentSelection() {
     return DEFAULT_MODEL
+  }
+}
+
+class StubLlm extends Service {
+  static current: StubLlm
+  /** Every route preflight the fleet ran, in call order. */
+  readonly checkedRoutes: string[] = []
+  /** Provider routes this composition holds; a plan naming another is refused. */
+  routes = new Set([MODEL_A.provider])
+  constructor(ctx: Context) {
+    super(ctx, 'llm')
+    StubLlm.current = this
+  }
+  checkRoute(provider: string): Promise<void> {
+    this.checkedRoutes.push(provider)
+    if (this.routes.has(provider)) return Promise.resolve()
+    return Promise.reject(new LlmError(`no adapter registered for provider "${provider}"`, 'NO_ADAPTER'))
   }
 }
 
@@ -200,7 +218,7 @@ interface Harness {
 
 async function harness(config: Partial<Config> = {}): Promise<Harness> {
   const ctx = new Context()
-  for (const stub of [StubEnvironments, StubDefaultModel, StubRuns]) await ctx.plugin(stub)
+  for (const stub of [StubEnvironments, StubDefaultModel, StubRuns, StubLlm]) await ctx.plugin(stub)
   await ctx.plugin(FleetService, { workspaceRetention: 'keep', ...config } satisfies Config)
   const announced: FleetCellEvent[] = []
   ctx.on('fleet/cell', (payload) => {
@@ -330,6 +348,36 @@ describe('FleetService', () => {
     // and the run minted nothing under the workspace root.
     expect(StubRuns.current.requests).toEqual([])
     expect(await readdir(root)).toEqual([])
+  })
+
+  it('refuses a route the composition cannot reach before minting a workspace', async () => {
+    const { ctx, root, plan } = await harness()
+    StubLlm.current.routes = new Set<string>()
+    await expect(ctx.fleet.run(plan({ models: [MODEL_A], repetitions: 1 })))
+      .rejects.toThrow(new LlmError('no adapter registered for provider "mock"', 'NO_ADAPTER'))
+    // The whole plan is refused: no cell ran, no cell was recorded as an error,
+    // and the run minted nothing under the workspace root.
+    expect(StubRuns.current.requests).toEqual([])
+    expect(await readdir(root)).toEqual([])
+  })
+
+  it('asks about every route a plan can run on, once each, and refuses the pair on the first', async () => {
+    const { ctx, plan } = await harness()
+    StubLlm.current.routes = new Set(['mock', 'other'])
+    // Both of the plan's own routes and the rung route the ladder escalates
+    // to, each asked about once however many cells would carry it.
+    await ctx.fleet.run(plan({ ladder: [{}, { model: { provider: 'other', model: 'c' } }], repetitions: 1 }))
+    expect(StubLlm.current.checkedRoutes).toEqual(['mock', 'other'])
+
+    // A pair is prepared before either plan's cells run, so an unreachable
+    // route in the second plan still refuses both.
+    const paired = await harness()
+    StubLlm.current.routes = new Set(['mock'])
+    await expect(paired.ctx.fleet.runPaired(
+      paired.plan({ models: [MODEL_A], repetitions: 1 }),
+      paired.plan({ models: [{ provider: 'other', model: 'c' }], repetitions: 1 }),
+    )).rejects.toThrow(new LlmError('no adapter registered for provider "other"', 'NO_ADAPTER'))
+    expect(StubRuns.current.requests).toEqual([])
   })
 
   it('checks each route the plan names, stamping a laddered plan with its first rung', async () => {

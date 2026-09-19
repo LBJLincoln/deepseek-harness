@@ -60,6 +60,8 @@ pnpm run bench -- summarize <dir>
 pnpm run bench -- record <dir> <name> --composition <composition path>
 ```
 
+同一套 bench 也能经 `with-deepseek` 叠加层跑在开放权重路由上，该叠加层在基础组合的产品路由旁边再组合一个 `@deepseek-ai/dsh-llm-deepseek`：在启动它的 shell 中导出 `DEEPSEEK_API_KEY`，并为 arm 点名 `deepseek-official` 的计划加上 `--overlay with-deepseek`（fleet 用 `h1-fleet-deepseek-t2`，与 `sonnet` 的冻结配对用 `e8-deepseek-vs-sonnet-t3`）。没有这个变量时，fleet 会在第一个 cell 之前拒掉该计划并点名那条凭据，于是一次无密钥的尝试不花任何代价，并说明原因。这一点的意义不止于可移植性：上表中的每一条记录都产生自操作者的 Claude Code 订阅，其条款只允许把这些对话记录用于评测，因此这整份语料都不得进入 [RLVR 数据集](datasets/)——只有跑在数据使用条款允许训练的路由上的运行才可以，而这样的运行目前一次都还没有。叠加层是路由，不是证据：缺的是一把密钥，以及把它花出去的算力。
+
 ## 运行列表
 
 | 运行 | Head | 实现者 | 环境 | 已认证 | 尝试次数 | 耗时 |

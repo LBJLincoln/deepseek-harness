@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-bench/`）的已入库计划文件。用 `pnpm run bench -- fleet <name>`（`models` 数组）或 `pnpm run bench -- experiment <name>`（`baseline`/`candidate` 配对）运行其中一个；`pnpm run bench -- plans` 会从每个文件现场解析并打印同样的信息。"叠加层"一列是该计划所需、位于 `../overlays/` 下的组合，不需要叠加层时写 `base`（即该 fixture 自己的 `cordis.yml`）。"已记录运行"一列给出该计划在 `data/proving-ground/` 下产生的目录名，仅在按名称能明确对应时给出；`not recorded` 表示尚无这样的目录。
+Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-bench/`）的已入库计划文件。用 `pnpm run bench -- fleet <name>`（`models` 数组）或 `pnpm run bench -- experiment <name>`（`baseline`/`candidate` 配对）运行其中一个；`pnpm run bench -- plans` 会从每个文件现场解析并打印同样的信息。"叠加层"一列是该计划所需、位于 `../overlays/` 下的组合，不需要叠加层时写 `base`（即该 fixture 自己的 `cordis.yml`）。使用 `with-deepseek` 叠加层的计划需要在启动它的 shell 中导出 `DEEPSEEK_API_KEY`；其余每个计划都跑在操作者自己安装的 Claude Code 上。"已记录运行"一列给出该计划在 `data/proving-ground/` 下产生的目录名，仅在按名称能明确对应时给出；`not recorded` 表示尚无这样的目录。
 
 | 计划 | 比较对象 | 层 | Arms / 模型 | 种子 | 叠加层 | 已记录运行 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -19,6 +19,8 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e5-handoff-drop-t5` | 保留对话记录对丢弃对话记录，首次冻结尝试 | 5 | 基线 `haiku`→`opus`,`opus`（route）对候选同一阶梯，实现者 `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | 交接税：全程强模型对先弱后强 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | 有界廉价一级的级联：全程强模型对先弱后强，廉价一级限于 cell 上限的 0.2 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`（份额 0.2）→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
+| `e8-deepseek-vs-sonnet-t3` | 产品路由对开放权重路由 | 3 | 基线 `claude-code`/`sonnet` 对候选 `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
+| `h1-fleet-deepseek-t2` | 跑在开放权重路由上的 harness 循环 fleet | 2 | fleet `deepseek-official`/`deepseek-v4-flash`，district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness 循环 fleet，不筛选层级 | all | fleet `sonnet`，district `bench-h1` | 1 | base | not recorded |

@@ -744,6 +744,8 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * @throws {@link EnvironmentRunError} unchanged from
  *   {@link EnvironmentRunner.checkImplementer}, when the plan's implementer
  *   is a provider this composition cannot honor for a route the plan names.
+ * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
+ *   the plan names is not composed or has no credential to reach it with.
  */
 async run(plan: FleetPlan): Promise<FleetRunReport>
 
@@ -767,6 +769,8 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
  *   {@link EnvironmentRunner.checkImplementer}, when either plan's
  *   implementer is a provider this composition cannot honor for a route that
  *   plan names.
+ * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
+ *   either plan names is not composed or has no credential to reach it with.
  */
 async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```

@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tests/fixtures/proving-ground-bench/`). Run one with `pnpm run bench -- fleet <name>` (a `models` array) or `pnpm run bench -- experiment <name>` (a `baseline`/`candidate` pair); `pnpm run bench -- plans` prints this same information parsed live from each file. "Overlay" is the composition under `../overlays/` the plan needs, or `base` for the fixture's own `cordis.yml`. "Recorded run" names the directory under `data/proving-ground/` the plan produced, matched by name where that mapping is unambiguous; `not recorded` means no such directory exists yet.
+Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tests/fixtures/proving-ground-bench/`). Run one with `pnpm run bench -- fleet <name>` (a `models` array) or `pnpm run bench -- experiment <name>` (a `baseline`/`candidate` pair); `pnpm run bench -- plans` prints this same information parsed live from each file. "Overlay" is the composition under `../overlays/` the plan needs, or `base` for the fixture's own `cordis.yml`. A plan on the `with-deepseek` overlay needs `DEEPSEEK_API_KEY` exported in the launching shell; every other plan runs on the operator's own Claude Code installation. "Recorded run" names the directory under `data/proving-ground/` the plan produced, matched by name where that mapping is unambiguous; `not recorded` means no such directory exists yet.
 
 | Plan | Compares | Tier | Arms / models | Seed | Overlay | Recorded run |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -19,6 +19,8 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `e5-handoff-drop-t5` | kept vs dropped transcript, the first frozen attempt | 5 | baseline `haiku`→`opus`,`opus` (route) vs candidate the same ladder, implementer `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | handoff tax: strong alone vs cheap-then-strong | 5 | baseline `opus` ladder×3 vs candidate `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | cascade with a bounded cheap rung: strong alone vs cheap-then-strong, the cheap rung held to 0.2 of the cell's caps | 5 | baseline `opus` ladder×3 vs candidate `haiku` (share 0.2)→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
+| `e8-deepseek-vs-sonnet-t3` | product route vs open-weight route | 3 | baseline `claude-code`/`sonnet` vs candidate `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
+| `h1-fleet-deepseek-t2` | harness-loop fleet on the open-weight route | 2 | fleet `deepseek-official`/`deepseek-v4-flash`, district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness-loop fleet | 2 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness-loop fleet | 4 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness-loop fleet, no tier filter | all | fleet `sonnet`, district `bench-h1` | 1 | base | not recorded |
