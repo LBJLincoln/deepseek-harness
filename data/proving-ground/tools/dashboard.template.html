@@ -145,6 +145,10 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
     <div class="section-head"><h2>Running now</h2><p>Folded from the run directory's session logs at build time; a run in flight has no verdict yet.</p></div>
     <div class="verdicts" id="live"></div>
   </section>
+  <section id="loop-section" hidden>
+    <div class="section-head"><h2>Loop</h2><p>One row per <span class="mono">bench loop</span> iteration, in the order they ran, read from the machine-written <span class="mono">loop/ledger.jsonl</span>. The decision rule is fixed: promote adopts the candidate, reject and inconclusive keep the baseline, a fleet is only recorded. Adopting a candidate is a decision, not an edit — the composition change stays a human act.</p></div>
+    <div class="table-wrap"><table class="records" id="loop"></table></div>
+  </section>
   <section>
     <div class="section-head"><h2>Verdicts</h2><p>Each card is one paired comparison: certificates per arm, the paired delta with its bootstrap interval, and the verdict rule read on that interval. Frozen pairs ran as one experiment; offline folds pair two separately recorded runs.</p></div>
     <div class="toggles" id="verdict-filters"></div>
@@ -264,6 +268,24 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
       <div class="counts">${l.totals.map(t => `<div><span class="num">${t.certified} <small>of ${t.cells}</small></span>${esc(t.arm)} · ${t.firstAttempt} first attempt</div>`).join('')}</div>
       <div class="arms">${esc(l.lastEvent ? 'last event ' + when(l.lastEvent) : '')}</div>
     </article>`).join('')
+  }
+
+  // ---- loop ledger
+  if (D.loop.length) {
+    $('loop-section').hidden = false
+    const reading = (l) => l.delta === null ? '–' : `${signed(l.delta)}${l.interval ? ` [${signed(l.interval.lower)}, ${signed(l.interval.upper)}]` : ''}`
+    const arms = (l) => l.certified.map(a => `${esc(a.arm)} ${a.certified}/${a.cells}`).join(' · ') || '–'
+    const source = (l) => l.record === null
+      ? `<span class="badge-running">${esc(l.reason ?? 'failed')}</span>`
+      : `<a href="${esc(linkRecord(l.record))}">${esc(l.record)}</a>${l.outcome === 'failed' ? ` <span class="tag">${esc(l.reason ?? 'failed')}</span>` : ''}`
+    $('loop').innerHTML = '<thead><tr><th>ran</th><th>queue</th><th>plan</th><th>overlay</th><th>kind</th><th>certified</th>'
+      + '<th class="num">delta [interval]</th><th>verdict</th><th>decision</th><th class="num">wall</th><th>record</th></tr></thead><tbody>'
+      + D.loop.map(l => `<tr><td>${esc(when(l.ranAt))}</td><td>${esc(l.queue)} <span class="tag">${l.index}</span></td><td>${esc(l.plan)}</td>`
+        + `<td>${esc(l.overlay ?? 'base')}</td><td><span class="kind" data-kind="${esc(l.kind)}">${esc(l.kind)}</span></td>`
+        + `<td>${arms(l)}</td><td class="num">${esc(reading(l))}</td>`
+        + `<td>${l.verdict ? `<span class="pill ${esc(l.verdict)}">${esc(l.verdict)}</span>` : ''}</td>`
+        + `<td>${esc(l.decision)}</td><td class="num">${secs(l.elapsedSeconds)}</td><td>${source(l)}</td></tr>`).join('')
+      + '</tbody>'
   }
 
   // ---- models on sealed tier 5 + cost

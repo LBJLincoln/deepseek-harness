@@ -12,7 +12,7 @@ Status: implemented
 
 [`data/proving-ground/improvement-log.md`](../../../../data/proving-ground/improvement-log.md) 连同它的中文对应文件就是这份台账：每次改进迭代一行，按迭代运行的顺序排列，共六列——日期、被提出的改动及它检验的机制、检验它的实验或记录（在存在的情况下链接记录目录的 manifest 与折叠文件）、按笔记与折叠自身所述的配对读数、为 harness 所做的决定及其理由与代价，以及默认设置中挪动了什么。十九行覆盖第 3 与第 5 层的 E2/H1、E1 的四次模型档位比较、四次尝试上限读数、E4、H4、E5 的三次读数、E6，以及正在运行的 E7。
 
-表格上方有一段按代码实际执行的方式陈述晋级规则：计划在任何单元运行之前就被摘要冻结，两臂会解析出不同上限的计划会被拒绝，而 `promote` 要求自举区间的下界超过计划的 `minimumDelta`。成本被如实陈述——它列在裁决旁边、由读者权衡，并不属于这条规则——因为[实验包 README](../../../../packages/improvement/experiments/README.md#statistics-and-verdict) 让裁决只是区间的函数。表格下方的"这个循环仍然缺什么"一节点明了还不自动的四个部分：提案由 harness 之外的人撰写、运行由人手经 `pnpm run bench` 启动、被保留的改动靠编辑组合来落地，以及至今每一次运行都在同一家供应商的模型上。
+表格上方有一段按代码实际执行的方式陈述晋级规则：计划在任何单元运行之前就被摘要冻结，两臂会解析出不同上限的计划会被拒绝，而 `promote` 要求自举区间的下界超过计划的 `minimumDelta`。成本被如实陈述——它列在裁决旁边、由读者权衡，并不属于这条规则——因为[实验包 README](../../../../packages/improvement/experiments/README.md#statistics-and-verdict) 让裁决只是区间的函数。表格下方的"这个循环仍然缺什么"一节点明了还不自动的四个部分：提案由 harness 之外的人撰写、成队的运行没有排程也不会由某个裁决触发（[bench 循环](2026-09-19-bench-loop-and-machine-ledger.md)）、被保留的改动靠编辑组合来落地，以及至今每一次运行都在同一家供应商的模型上。
 
 这份台账从读者已经站着的地方被链接：[`data/proving-ground/README.md`](../../../../data/proving-ground/README.md) 的 Layout 代码块与工具段落、[`data/README.md`](../../../../data/README.md) 的 proving-ground 条目、根 README 的 Proving Ground 一节，以及仪表板自身的注记——后者由 `data/proving-ground/tools/build-dashboard.mjs` 构建进已提交的页面。
 
@@ -28,6 +28,6 @@ Status: implemented
 ## Consequences
 
 - 这个循环可以作为一个循环来读：十九行说明提出了什么、由什么检验、返回了什么、做了什么，而表格下方的四个缺口说明还有什么要由人来提供。表中每个数字都可回溯到它所出自的记录、折叠或笔记，没有任何一行陈述三者之外的数字。
-- 这份台账靠人手维护，因此一次运行了却没有换来一行的迭代，会让这个循环自身的记录不完整。让它保持诚实的规则，与记录 README 已有的那条相同：先记录一次运行，再添一行。
+- 这份台账靠人手维护，所依据的读数如今由一次入队的迭代留在由机器写出的 `data/proving-ground/loop/ledger.jsonl` 中，因此一次运行了却没有换来一行的迭代，会让这个循环自身的记录不完整。让它保持诚实的规则，与记录 README 已有的那条相同：先记录一次运行，再添一行。
 - `verify-translation-pairing` 现在会发现 `data/proving-ground/*.md`，因此该目录中今后任何手写文档都必须作为完整配对合入。它之下的记录目录、折叠与数据集仍在语料之外。
 - 晋级规则现在有了唯一的陈述之处，并与执行它的代码对齐。这份台账直言：至今没有任何冻结配对晋级过一项 harness 改动，而唯一拥有晋级级别读数的那个 harness 机制，其读数来自一次离线折叠，且冻结重跑并未复现它。
