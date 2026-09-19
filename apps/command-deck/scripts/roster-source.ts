@@ -7,10 +7,10 @@
  */
 
 /** One agent title, with an optional role that overrides the group default. */
-export type Member = readonly [name: string, role?: string]
+type Member = readonly [name: string, role?: string]
 
 /** A named group of agents inside a division. */
-export interface DepartmentSource {
+interface DepartmentSource {
   id: string
   name: string
   role: string

@@ -18,7 +18,7 @@ import { subscribeRun, type StreamState } from './stream.ts'
 const EVENT_WINDOW = 4_000
 
 /** A certificate burst waiting to be drawn once, then dropped. */
-export interface Burst {
+interface Burst {
   agentId: string
   at: number
 }

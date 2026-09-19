@@ -10,7 +10,7 @@
 import type { Roster, Run, SafetyReview } from './contract.ts'
 
 /** Whether the deck is reading a live feed or the committed fixtures. */
-export type FeedMode = 'live' | 'replay'
+type FeedMode = 'live' | 'replay'
 
 /** Where the deck reads from, and how it got there. */
 export interface FeedSource {
@@ -24,10 +24,10 @@ export interface FeedSource {
 }
 
 /** Base URL of the deck's own fixture routes, which mirror the feed's paths. */
-export const FIXTURE_BASE = '/api/fixtures'
+const FIXTURE_BASE = '/api/fixtures'
 
 /** The configured feed URL, or the documented default. */
-export function feedUrl(): string {
+function feedUrl(): string {
   const configured = process.env.NEXT_PUBLIC_FEED_URL
   return (configured === undefined || configured === '' ? 'http://localhost:4711' : configured)
     .replace(/\/+$/, '')

@@ -10,7 +10,7 @@
 import type { EdgeKind, Severity } from './contract.ts'
 
 /** Hex colour per division id, in roster order. */
-export const DIVISION_COLOR: Record<string, string> = {
+const DIVISION_COLOR: Record<string, string> = {
   'harness-core': '#4fd8ff',
   'proving-ground': '#2fd4c8',
   verification: '#86e565',
@@ -24,7 +24,7 @@ export const DIVISION_COLOR: Record<string, string> = {
 }
 
 /** Fallback for a division the roster names but the palette does not. */
-export const DIVISION_FALLBACK = '#9fb0cc'
+const DIVISION_FALLBACK = '#9fb0cc'
 
 /** Hex colour per severity, worst first. */
 export const SEVERITY_COLOR: Record<Severity, string> = {
@@ -46,7 +46,7 @@ export const EDGE_COLOR: Record<EdgeKind, string> = {
 }
 
 /** Hex colour per detected language in the code city. */
-export const LANGUAGE_COLOR: Record<string, string> = {
+const LANGUAGE_COLOR: Record<string, string> = {
   JavaScript: '#ffd45c',
   TypeScript: '#5aa9ff',
   JSON: '#8fe0b8',
@@ -57,7 +57,7 @@ export const LANGUAGE_COLOR: Record<string, string> = {
 }
 
 /** Fallback for a language the palette does not name. */
-export const LANGUAGE_FALLBACK = '#6d7fa6'
+const LANGUAGE_FALLBACK = '#6d7fa6'
 
 /**
  * Colour for one division id.

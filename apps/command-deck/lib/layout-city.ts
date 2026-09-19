@@ -23,7 +23,7 @@ export interface CityBlock {
 }
 
 /** One directory, placed, with the plate under its blocks. */
-export interface CityDistrict {
+interface CityDistrict {
   path: string
   x: number
   z: number
