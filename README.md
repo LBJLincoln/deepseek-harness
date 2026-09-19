@@ -48,6 +48,16 @@ pnpm run bench -- experiment e3-attempts-t5
 pnpm dsh --profile claude-code "Create hello.txt containing the single line hello."
 ```
 
+## Code safety
+
+The same program workflow reviews an application's source for security defects: six departments read the target in parallel, each in its own worktree and session, run the static scanner and the dependency audit, and write findings with a file, a line and the exact text at that line; an integration merges them into a report with a French executive summary first, and a committed examiner refuses any finding whose cited line does not hold. The first real run, on OWASP NodeGoat, certified all seven departments and released 42 verified findings in 1,301 s, 14 of the target's 18 documented issues among them ([the record](data/code-safety/README.md)). The [command deck](apps/command-deck/README.md) shows the 147 defined agents, the process, and the findings on the target's code, live from the [feed](data/enterprise/README.md) or replayed from fixtures; [the runbook](docs/code-safety-poc.md) is the demonstration script.
+
+```sh
+pnpm run code-safety -- /path/to/target --model sonnet   # a review on your Claude Code login
+pnpm run feed                                            # roster, runs and live events on :4711
+pnpm run deck                                            # the command deck on :3000
+```
+
 ## Community and support
 
 - Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
