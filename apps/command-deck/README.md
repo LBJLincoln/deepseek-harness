@@ -29,11 +29,11 @@ pnpm --dir apps/command-deck fixtures
 
 | Key | View | What it shows |
 | --- | --- | --- |
-| `1` | **Enterprise** (`/`) | Every defined agent as a node, clustered by division, edges for the delegations, verifications and judgements between them. A node pulses while its agent acts; a ring bursts where a certificate is issued. Clicking one opens its role, model route, preset, skills, tools, source file, and its own events in the run being followed. |
+| `1` | **Enterprise** (`/`) | Every defined agent as a node, clustered by division inside a soft nebula in the division's colour; edges are the delegations, verifications and judgements between them. Traffic runs along an edge only while one of its two agents has acted in the last few seconds, coloured by the relationship's kind; with nothing live the edges only breathe. An agent at work wears a turning orbital ring, a certified agent a warm rim, a failed one a dim red rim, and a certificate lands as an expanding ring with a short beam of light. Clicking a node flies the camera to it, dims everything unrelated, and opens its role, model route, preset, skills, tools, source file and its own events in the run being followed; `Esc` flies back. |
 | `2` | **Process** (`/process`) | The program pipeline — departments, Verification, Judging, Integration — with every logged event travelling as a comet from its stage to the next. A timeline scrubber replays the run from any point; `Head` returns to live. |
 | `3` | **Code safety** (`/safety`) | The reviewed repository as a code city: directories are districts, files are blocks scaled by size and coloured by language, and every finding is a marker standing on the line of code that carries it. The panel holds the findings table with severity, department and CWE filters, the certificate with its counts and its unverified list, the bilingual report, downloads, and the form that starts a new review. |
 
-`Esc` clears the selection. `prefers-reduced-motion: reduce` turns off the auto-orbit, the pulsing and the chromatic aberration, and holds bloom at a constant intensity.
+`Esc` clears the selection. The enterprise view opens on an establishing shot, the camera easing in from far out and high above the graph over two and a half seconds. `prefers-reduced-motion: reduce` opens every view at rest, stops the traffic, the auto-orbit, the pulsing and the chromatic aberration, holds bloom at a constant intensity, and cuts to a selected agent instead of flying.
 
 ![The enterprise view: 147 agents in ten division clusters](docs/enterprise.png)
 
