@@ -67,14 +67,14 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 
 ## fixture
 
-`fixtures/` 由 `scripts/generate-fixtures.ts` 用单个带种子的 PRNG 生成，因此重新生成会得到逐字节相同的文件。
+`fixtures/` 是真实 feed 的一份快照，由 `scripts/snapshot-fixtures.ts` 生成（在 `pnpm run feed` 运行时执行 `pnpm --dir apps/command-deck fixtures`）：其中没有任何虚构内容，且该脚本拒绝实时运行目录，因为只有已提交的记录才经过了密钥材料的脱敏。
 
-- `fixtures/roster.json`——跨十个 division（Harness Core、Proving Ground、Verification、Judging、Curation and Data、Program Departments、含六个 department 的 Code Safety、Knowledge、Governance、Observatory）的 147 个 agent 与 424 条关系。division 规模与成员写在 `scripts/roster-source.ts` 中。
-- `fixtures/runs.json`——一次代码安全运行、一个 program、一次 fleet 轮班、一个配对实验。
-- `fixtures/events/<run>.jsonl`——录制的事件流；代码安全运行有三百余条事件，从开场指令，到六个 department 并行扫描代码树、finding 落位、验证者在各自行上复读每条 finding，再到裁决、集成与证书。
-- `fixtures/safety/<run>.json`——审查结果：34 个文件、26 条 finding、department 汇总、带两条点名未验证 finding 的证书，以及法语和英语的报告。
+- `fixtures/roster.json`——feed 的 `GET /roster`：生成的 [`data/enterprise/roster.json`](../../data/enterprise/README.md)，十个 division 中的 147 个 agent 与 124 条关系，并带有已记录运行赋予它们的状态。
+- `fixtures/runs.json`——五条已提交记录：2026-09-19 记录的两次代码安全审查（第二次 NodeGoat 运行、Java 的 dvja 运行）、一次 tier-5 fleet、一个配对实验，以及 csv-tools program。
+- `fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到四张证书与两次合并。
+- `fixtures/safety/<run>.json`——feed 对每次审查的 `GET /safety/:id`：NodeGoat 审查的 111 个文件与 38 条经验证的发现、dvja 审查的 174 个文件与 40 条，各自带有部门、证书与双语报告。
 
-代码安全的 finding 并非虚构。二十六条中有十八条读自 [`data/code-safety/targets/nodegoat.ground-truth.json`](../../data/code-safety/targets/nodegoat.ground-truth.json)，即本仓库自己针对 OWASP NodeGoat 修订版 `c5cb68a` 的 ground truth（基准事实），带有真实的 CWE、文件与行号。其余八条是超出该 ground truth 的 department 产出，因而置信度相应更低。
+已记录的审查正是 [`data/code-safety/README.md`](../../data/code-safety/README.md) 据以读取召回率的那几次，因此回放展示的与现场运行所展示的完全一致。
 
 ## 目录结构
 
@@ -84,7 +84,7 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 | `components/` | 外壳，以及每个视图一个目录；所有接触 three.js 的都是 Client Component。 |
 | `deck/` | 契约、feed 客户端、事件流、store、布局、配色。 |
 | `fixtures/` | 已提交的回放数据。 |
-| `scripts/` | fixture 生成器及其 roster 源。 |
+| `scripts/` | fixture 快照脚本。 |
 | `docs/` | 上方的截图。 |
 
 外壳（`app/layout.tsx`）是 Server Component。每个场景都通过 `next/dynamic` 以 `ssr: false` 加载，因为 three.js 在挂载时就会索取 WebGL 上下文。
