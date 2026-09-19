@@ -12,7 +12,7 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `e2-harness-vs-product-sonnet-t2` | harness loop vs product loop | 2 | baseline route `sonnet` vs candidate product-loop `sonnet` | 1 | base | not recorded |
 | `e2-harness-vs-product-sonnet-t3` | harness loop vs product loop | 3 | baseline route `sonnet` vs candidate product-loop `sonnet` | 1 | base | `2026-09-07-bench-e2-harness-vs-product-t3` |
 | `e2-harness-vs-product-sonnet-t5` | harness loop vs product loop | 5 | baseline route `sonnet` vs candidate product-loop `sonnet` | 2 | base | `2026-09-08-bench-e2-harness-vs-product-t5` |
-| `e3-attempts-t5` | attempt cap: three rungs vs one | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×1 | 2 | base | `2026-09-08-bench-e3-attempts-t5` |
+| `e3-attempts-t5` | attempt cap: three rungs vs one | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×1 | 2 | base | `2026-09-08-bench-e3-attempts-t5`, `2026-09-19-bench-e3-attempts-t5` |
 | `e5-downshift-t5` | downshift after the strong model starts | 5 | baseline `opus` ladder×3 vs candidate `opus`→`haiku`,`haiku` | 2 | base | `2026-09-08-bench-e5-downshift-t5` |
 | `e5-drop-candidate-t5` | the drop arm alone, as a fleet | 5 | fleet `haiku`→`opus`,`opus`, implementer `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-drop-candidate-t5` |
 | `e5-drop-frozen-t5` | kept vs dropped transcript, frozen pair | 5 | baseline `haiku`→`opus`,`opus` (route) vs candidate the same ladder, implementer `spawn` | 2 | with-spawn | `2026-09-18-bench-e5-drop-frozen-t5` (partial: 25 of 32 cells before a container restart) |
@@ -22,7 +22,7 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `e7-attempts-5-t5` | attempt cap: five rungs vs three on the middle model | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×5 | 2 | attempts-5 | `2026-09-19-bench-e7-attempts-5-t5` |
 | `e8-deepseek-vs-sonnet-t3` | product route vs open-weight route | 3 | baseline `claude-code`/`sonnet` vs candidate `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
 | `e8-sonnet-vs-opus-t6` | model tier on the multi-file tier the largest model has not been measured on | 6 | baseline `sonnet` vs candidate `opus` | 2 | base | not recorded |
-| `e9-preset-craft-vs-plain-t5` | agent composition: the craft-skills preset against the plain one on one route | 5 | baseline `sonnet` preset `bench` vs candidate `sonnet` preset `bench-craft` | 2 | with-presets | not recorded |
+| `e9-preset-craft-vs-plain-t5` | agent composition: the craft-skills preset against the plain one on one route | 5 | baseline `sonnet` preset `bench` vs candidate `sonnet` preset `bench-craft` | 2 | with-presets | `2026-09-19-bench-e9-preset-craft-vs-plain-t5` |
 | `h1-fleet-deepseek-t2` | harness-loop fleet on the open-weight route | 2 | fleet `deepseek-official`/`deepseek-v4-flash`, district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness-loop fleet | 2 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness-loop fleet | 4 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |

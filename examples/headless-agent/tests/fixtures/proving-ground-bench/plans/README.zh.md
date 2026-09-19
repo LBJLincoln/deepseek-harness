@@ -12,7 +12,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e2-harness-vs-product-sonnet-t2` | harness 循环对产品循环 | 2 | 基线 route `sonnet` 对候选 product-loop `sonnet` | 1 | base | not recorded |
 | `e2-harness-vs-product-sonnet-t3` | harness 循环对产品循环 | 3 | 基线 route `sonnet` 对候选 product-loop `sonnet` | 1 | base | `2026-09-07-bench-e2-harness-vs-product-t3` |
 | `e2-harness-vs-product-sonnet-t5` | harness 循环对产品循环 | 5 | 基线 route `sonnet` 对候选 product-loop `sonnet` | 2 | base | `2026-09-08-bench-e2-harness-vs-product-t5` |
-| `e3-attempts-t5` | 尝试上限：三级阶梯对一级阶梯 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×1 | 2 | base | `2026-09-08-bench-e3-attempts-t5` |
+| `e3-attempts-t5` | 尝试上限：三级阶梯对一级阶梯 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×1 | 2 | base | `2026-09-08-bench-e3-attempts-t5`, `2026-09-19-bench-e3-attempts-t5` |
 | `e5-downshift-t5` | 强模型启动之后再降级 | 5 | 基线 `opus` 阶梯×3 对候选 `opus`→`haiku`,`haiku` | 2 | base | `2026-09-08-bench-e5-downshift-t5` |
 | `e5-drop-candidate-t5` | 单独的丢弃臂，作为一次 fleet | 5 | fleet `haiku`→`opus`,`opus`，实现者 `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-drop-candidate-t5` |
 | `e5-drop-frozen-t5` | 保留对话记录对丢弃对话记录，冻结配对 | 5 | 基线 `haiku`→`opus`,`opus`（route）对候选同一阶梯，实现者 `spawn` | 2 | with-spawn | `2026-09-18-bench-e5-drop-frozen-t5`（部分：容器重启前跑完 32 个 cell 中的 25 个） |
@@ -22,7 +22,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e7-attempts-5-t5` | 尝试上限：中等模型五级对三级 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×5 | 2 | attempts-5 | `2026-09-19-bench-e7-attempts-5-t5` |
 | `e8-deepseek-vs-sonnet-t3` | 产品路由对开放权重路由 | 3 | 基线 `claude-code`/`sonnet` 对候选 `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
 | `e8-sonnet-vs-opus-t6` | 模型层级：在最大模型尚未被度量过的多文件层上比较 | 6 | 基线 `sonnet` 对候选 `opus` | 2 | base | not recorded |
-| `e9-preset-craft-vs-plain-t5` | Agent 组合：同一路由上工艺技能 preset 对普通 preset | 5 | 基线 `sonnet` preset `bench` 对候选 `sonnet` preset `bench-craft` | 2 | with-presets | not recorded |
+| `e9-preset-craft-vs-plain-t5` | Agent 组合：同一路由上工艺技能 preset 对普通 preset | 5 | 基线 `sonnet` preset `bench` 对候选 `sonnet` preset `bench-craft` | 2 | with-presets | `2026-09-19-bench-e9-preset-craft-vs-plain-t5` |
 | `h1-fleet-deepseek-t2` | 跑在开放权重路由上的 harness 循环 fleet | 2 | fleet `deepseek-official`/`deepseek-v4-flash`，district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
