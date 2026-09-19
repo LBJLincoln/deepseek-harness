@@ -1,16 +1,15 @@
 'use client'
 
-import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef, type ReactNode } from 'react'
 import { AdditiveBlending, DoubleSide, Vector3, type Mesh } from 'three'
 import type { Roster } from '@/deck/contract'
 import { layoutRoster, type GraphLayout } from '@/deck/layout-enterprise'
-import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { Stage } from '@/components/three/Stage'
 import { AgentGraph } from './AgentGraph'
 import { CameraRig } from './CameraRig'
+import { Constellations } from './Constellations'
 import { GraphEdges } from './GraphEdges'
 
 /** How many certificate bursts can be on screen at once. */
@@ -18,60 +17,6 @@ const BURST_POOL = 8
 
 /** Lifetime of one certificate burst, in milliseconds. */
 const BURST_MS = 1_300
-
-/**
- * Division names, anchored above each cluster.
- * @param props - The computed layout and the roster's division records.
- * @returns The label overlays.
- */
-function DivisionLabels({ roster, layout }: { roster: Roster; layout: GraphLayout }): ReactNode {
-  const selectAgent = useDeck(state => state.selectAgent)
-  return (
-    <group>
-      {layout.clusters.map((cluster) => {
-        const division = roster.divisions.find(entry => entry.id === cluster.id)
-        return (
-          <Html
-            key={cluster.id}
-            position={[cluster.x, cluster.y, cluster.z]}
-            center
-            zIndexRange={[12, 4]}
-            style={{ pointerEvents: 'none' }}
-          >
-            <div
-              onClick={() => selectAgent(undefined)}
-              style={{
-                whiteSpace: 'nowrap',
-                textAlign: 'center',
-                transform: 'translateY(-6px)',
-                padding: '3px 9px 4px',
-                borderRadius: 7,
-                background: 'rgba(4,6,11,0.66)',
-                border: '1px solid rgba(122,152,205,0.14)',
-                backdropFilter: 'blur(3px)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: divisionColor(cluster.id),
-                  fontWeight: 600,
-                }}
-              >
-                {division?.name ?? cluster.id}
-              </div>
-              <div style={{ fontSize: 9, color: 'rgba(160,178,206,0.6)', letterSpacing: '0.1em' }}>
-                {cluster.count} agents
-              </div>
-            </div>
-          </Html>
-        )
-      })}
-    </group>
-  )
-}
 
 /** One live certificate burst. */
 interface LiveBurst {
@@ -159,9 +104,9 @@ export function EnterpriseStage({ roster }: { roster: Roster }): ReactNode {
 
   return (
     <Stage camera={{ position: [0, layout.extent * 0.26, layout.extent * 2.2], fov: 44 }} fogNear={210} fogFar={720}>
+      <Constellations roster={roster} layout={layout} />
       <GraphEdges roster={roster} layout={layout} />
       <AgentGraph roster={roster} layout={layout} />
-      <DivisionLabels roster={roster} layout={layout} />
       <CertificateBursts layout={layout} />
       <CameraRig layout={layout} />
     </Stage>
