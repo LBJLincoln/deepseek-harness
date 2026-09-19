@@ -42,6 +42,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
   it('lists the real checked-in overlays, sorted, without their suffix', () => {
     expect(listOverlayNames()).toEqual([
       'attempts-1',
+      'attempts-5',
       'registry-only',
       'route-only',
       'with-craft-skills',
@@ -78,7 +79,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(22)
+    expect(names).toHaveLength(25)
     expect(names).toContain('e3-attempts-t5')
     expect(names).toContain('held-out-sonnet-all')
     expect(names).toEqual([...names].sort())

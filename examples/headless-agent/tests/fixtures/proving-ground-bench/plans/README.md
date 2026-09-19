@@ -20,6 +20,7 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `e5-handoff-tax-t5` | handoff tax: strong alone vs cheap-then-strong | 5 | baseline `opus` ladder×3 vs candidate `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | cascade with a bounded cheap rung: strong alone vs cheap-then-strong, the cheap rung held to 0.2 of the cell's caps | 5 | baseline `opus` ladder×3 vs candidate `haiku` (share 0.2)→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
 | `e7-attempts-5-t5` | attempt cap: five rungs vs three on the middle model | 5 | baseline `sonnet` ladder×3 vs candidate `sonnet` ladder×5 | 2 | attempts-5 | not recorded |
+| `e8-sonnet-vs-opus-t6` | model tier on the multi-file tier the largest model has not been measured on | 6 | baseline `sonnet` vs candidate `opus` | 2 | base | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness-loop fleet | 2 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness-loop fleet | 4 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness-loop fleet, no tier filter | all | fleet `sonnet`, district `bench-h1` | 1 | base | not recorded |
