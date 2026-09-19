@@ -264,6 +264,7 @@ function withStamp(state: SessionFactsState, event: SessionEvent<'environment/ru
       // A stamp that names no implementer was written for a run its own model
       // route implemented, which is what the reserved name states.
       implementer: stamp.implementer ?? ROUTE_IMPLEMENTER,
+      ...stamp.preset === undefined ? {} : { preset: stamp.preset },
     },
   })
 }

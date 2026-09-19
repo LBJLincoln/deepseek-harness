@@ -29,6 +29,7 @@ export const STALE_SENTENCE
 /** Column headings, in the order the honest column set is published. */
 const COLUMNS: readonly string[] = [
   'Route',
+  'Preset',
   'Ladder',
   'Implementer',
   'Environment',
@@ -118,10 +119,11 @@ function ladderCell(row: ObservatoryPublishedRow): string {
   return ladder.map(rung => `${rung.provider}/${rung.model}${rung.share === undefined ? '' : ` @${rung.share}`}`).join(' → ')
 }
 
-/** The fourteen cells of one published row, in column order. */
+/** The fifteen cells of one published row, in column order. */
 function cells(row: ObservatoryPublishedRow): readonly string[] {
   return [
     `${row.provider}/${row.model}`,
+    row.preset ?? 'none',
     ladderCell(row),
     row.implementer,
     row.environmentId,

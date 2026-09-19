@@ -59,6 +59,13 @@ export interface SessionFactsEnvironment {
    * route run, so the fact is always stated even where the stamp is not.
    */
   readonly implementer: string
+  /**
+   * Agent preset the cell composed its model-facing rows from, absent for a run
+   * that named none. A row is keyed by it: the preset decides the tool schemas
+   * and prompt sections the model saw, so two compositions over one route
+   * measure different arms and are never one row.
+   */
+  readonly preset?: string
 }
 
 /** Who ran what, on which route: the identity and provenance the session log carries. */
@@ -287,11 +294,12 @@ export interface EnvironmentStats {
 }
 
 /**
- * One scoreboard row: one model route, attempt ladder, and implementer on one
- * environment at one isolation level, one side of the held-out split, and one
- * district. Rows never average across the ladder, the implementer, isolation,
- * the split, or districts; all five are columns a consumer partitions by, and a
- * publication that withholds a district drops whole rows.
+ * One scoreboard row: one model route, attempt ladder, implementer, and agent
+ * preset on one environment at one isolation level, one side of the held-out
+ * split, and one district. Rows never average across the ladder, the
+ * implementer, the preset, isolation, the split, or districts; all six are
+ * columns a consumer partitions by, and a publication that withholds a district
+ * drops whole rows.
  */
 export interface ScoreboardRow {
   readonly provider: string
@@ -308,6 +316,8 @@ export interface ScoreboardRow {
   readonly isolation: CertificateIsolation
   /** Implementer every session of the row was stamped with: `route` or the subagent provider name. */
   readonly implementer: string
+  /** Agent preset every session of the row composed from, absent for a row whose sessions named none. */
+  readonly preset?: string
   /** District every session of the row was stamped with, absent for a row outside every district. */
   readonly district?: string
   /** Sessions that recorded at least one `verification/run`. */

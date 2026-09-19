@@ -71,6 +71,12 @@ describe('renderHtml', () => {
     expect(page({ rows: [row({ implementer: 'claude-code' })] })).toContain('<td>claude-code</td>')
   })
 
+  it('names the agent preset of every row, so two compositions over one route are not read as one arm', () => {
+    expect(page({ rows: [row()] })).toContain('<th scope="col">Preset</th>')
+    expect(page({ rows: [row()] })).toContain('<td>none</td>')
+    expect(page({ rows: [row({ preset: 'bench-craft' })] })).toContain('<td>bench-craft</td>')
+  })
+
   it('names the ladder of every row, so an escalating arm is not read as a single-model one', () => {
     expect(page({ rows: [row()] })).toContain('<th scope="col">Ladder</th>')
     expect(page({ rows: [row()] })).toContain('<td>none</td>')

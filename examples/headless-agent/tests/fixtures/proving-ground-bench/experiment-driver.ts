@@ -11,8 +11,14 @@
  * lists registered ids; when absent, every environment whose registered
  * `heldOut` flag equals the plan's `heldOut` (default false) is selected, then
  * narrowed by `tier` and `domain` read from each definition's detail. An arm is
- * `{ provider, model, ladder?, implementer? }`; `implementer` is forwarded when
- * the experiments service accepts it.
+ * `{ provider, model, ladder?, implementer?, preset? }`; `implementer` is
+ * forwarded when the experiments service accepts it.
+ *
+ * `preset` is an agent preset id the composition's roster supplies, and it is
+ * what makes two arms over one model route a comparison of two agent
+ * compositions. It needs a config that composes a roster — the `with-presets`
+ * overlay — and a preset no roster supplies refuses the plan before either arm
+ * runs a cell.
  *
  * `ladder` is one rung per attempt and its length is that arm's attempt bound.
  * Its first rung is the arm's own route — `{}` or the arm's own `provider` and
@@ -37,6 +43,7 @@ interface Arm {
   readonly model: string
   readonly ladder?: readonly EnvironmentRunRung[]
   readonly implementer?: EnvironmentRunImplementer
+  readonly preset?: string
 }
 
 interface PlanFile {
@@ -79,7 +86,7 @@ try {
       .map(definition => definition.id)
     : plan.environments.map(id => EnvironmentId(id))
   const startedAt = new Date().toISOString()
-  // An arm's optional ladder and implementer ride through as the experiments service defines its arm.
+  // An arm's optional ladder, implementer, and agent preset ride through as the experiments service defines its arm.
   const request: ExperimentPlan = {
     environments: selected,
     repetitions: plan.repetitions,

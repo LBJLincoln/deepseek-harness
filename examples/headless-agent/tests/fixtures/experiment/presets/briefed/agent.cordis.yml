@@ -1,0 +1,8 @@
+# The candidate arm's composition: one prompt section of its own, shadowing the
+# deployment persona for the cells joined to it. It is the smallest
+# model-visible difference a preset can make, which is what this scenario
+# measures — the request header of a briefed cell carries this text and a plain
+# cell's carries the deployment's.
+- name: '@deepseek-ai/dsh-persona'
+  config:
+    text: 'Run registered environments as validated sessions, and state the check you are satisfying before you run a command.'

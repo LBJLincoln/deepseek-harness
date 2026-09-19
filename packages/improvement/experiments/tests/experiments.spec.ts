@@ -5,7 +5,7 @@ import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunImplementer, EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId as EnvironmentIdType, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
-import type { FleetCell, FleetCellError, FleetCellOutcome, FleetPlan, FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
+import type { FleetCell, FleetCellError, FleetCellOutcome, FleetModelEntry, FleetPlan, FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 import { CheckId } from '@deepseek-ai/dsh-verification'
@@ -37,6 +37,9 @@ const BASELINE = { provider: 'mock', model: 'base' }
 const CANDIDATE = { provider: 'mock', model: 'next' }
 const ROUTE: EnvironmentRunImplementer = { kind: 'route' }
 const DELEGATED = { kind: 'subagent', provider: 'external-agent' } as const satisfies EnvironmentRunImplementer
+/** The two presets the stub roster supplies; a pair naming both differs in the composition alone. */
+const PLAIN_PRESET = 'bench'
+const CRAFT_PRESET = 'bench-craft'
 /** The caps the stub runner resolves for every implementer unless a test narrows one. */
 const CAPS: readonly BudgetCap[] = [['maxTotalTokens', 5000], ['maxWallMs', 60_000]]
 /** The digest this file's default plan freezes to at plan format version 2; the current version must never reproduce it. */
@@ -95,12 +98,13 @@ function runReport(cell: FleetCell, group: string, shape: CellRun): EnvironmentR
       contentSha256: HEX,
       repetition: cell.repetition,
       group,
-      model: cell.model,
+      model: { provider: cell.model.provider, model: cell.model.model },
       isolation: 'none',
+      ...cell.model.preset === undefined ? {} : { preset: cell.model.preset },
     },
     attempts: Array.from({ length: attempts }, (_, index) => ({
       attempt: index + 1,
-      model: cell.model,
+      model: { provider: cell.model.provider, model: cell.model.model },
       transcript: 'kept' as const,
       results: [],
       treeHash: HEX,
@@ -115,7 +119,7 @@ function runReport(cell: FleetCell, group: string, shape: CellRun): EnvironmentR
 /** Enumerate one arm's cells the way the fleet does and apply the script to each. */
 function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
   const ids = 'ids' in plan.environments ? plan.environments.ids : []
-  const model = plan.models[0] as EnvironmentRunModel
+  const model = plan.models[0] as FleetModelEntry
   const group = plan.group as string
   const cells: FleetCellOutcome[] = []
   for (const environment of ids) {
@@ -141,15 +145,19 @@ function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
   }
 }
 
-/** The runner as the experiment reads it: the implementer preflight and the caps one implementer's cells run under. */
+/** The runner as the experiment reads it: the implementer and preset preflights and the caps one implementer's cells run under. */
 class StubEnvironmentRuns extends Service {
   static current: StubEnvironmentRuns
   /** Caps per implementer kind; the unequal-caps case narrows the delegated one. */
   caps: (implementer: EnvironmentRunImplementer) => readonly BudgetCap[] = () => CAPS
   /** Every preflight the experiment ran, with the arm route it stamped. */
   readonly checked: { implementer: EnvironmentRunImplementer; model: EnvironmentRunModel }[] = []
+  /** Every preset preflight the experiment ran, in arm order; `undefined` for an arm that named none. */
+  readonly presetsChecked: (string | undefined)[] = []
   /** Providers this composition holds; a subagent implementer naming another is refused. */
   providers = new Set<string>([DELEGATED.provider])
+  /** Presets the composed roster supplies; an arm naming another is refused. */
+  presets = new Set<string>([PLAIN_PRESET, CRAFT_PRESET])
   constructor(ctx: Context) {
     super(ctx, 'environmentRuns')
     StubEnvironmentRuns.current = this
@@ -160,6 +168,14 @@ class StubEnvironmentRuns extends Service {
     throw new EnvironmentRunError(
       `implementer provider "${implementer.provider}" is unavailable: no subagent provider is registered under that name`,
       'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
+    )
+  }
+  checkPreset(preset: string | undefined): Promise<void> {
+    this.presetsChecked.push(preset)
+    if (preset === undefined || this.presets.has(preset)) return Promise.resolve()
+    throw new EnvironmentRunError(
+      `agent preset "${preset}" cannot compose a cell: no root supplies it`,
+      'ENVIRONMENT_RUN_UNKNOWN_PRESET',
     )
   }
   cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[] {
@@ -449,6 +465,63 @@ describe('ExperimentService', () => {
       'EXPERIMENT_INVALID_PLAN',
     ))
     expect(StubFleet.current.plans).toHaveLength(2)
+  })
+
+  it('pairs two arms that differ only in their agent preset, restates each, and rides the preset to the arm\'s cells', async () => {
+    const { ctx, plan } = await harness()
+    const sink = recordingSink()
+    // Certified under the craft preset alone: the pair measures the composition
+    // over one route, which is what nothing before could compare.
+    StubFleet.current.script = cell => ({ certified: cell.model.preset === CRAFT_PRESET })
+    const result = await ctx.experiments.run(plan({
+      baseline: { ...BASELINE, preset: PLAIN_PRESET },
+      candidate: { ...BASELINE, preset: CRAFT_PRESET },
+      sink,
+    }))
+
+    expect(StubEnvironmentRuns.current.presetsChecked).toEqual([PLAIN_PRESET, CRAFT_PRESET])
+    expect(StubFleet.current.plans.map(fleet => fleet.models)).toEqual([
+      [{ ...BASELINE, preset: PLAIN_PRESET }],
+      [{ ...BASELINE, preset: CRAFT_PRESET }],
+    ])
+    expect(result.arms.baseline).toEqual({ model: BASELINE, implementer: ROUTE, preset: PLAIN_PRESET, group: result.arms.baseline.group })
+    expect(result.arms.candidate).toEqual({ model: BASELINE, implementer: ROUTE, preset: CRAFT_PRESET, group: result.arms.candidate.group })
+    expect(result.delta).toBe(1)
+    expect(result.verdict).toBe('promote')
+
+    const written = JSON.parse(sink.lines[0] as string) as ExperimentResult
+    expect(written.arms.candidate.preset).toBe(CRAFT_PRESET)
+
+    // An arm that names none leaves the field off the arm and the entry.
+    const plain = await harness()
+    const routes = await plain.ctx.experiments.run(plain.plan())
+    expect(routes.arms.baseline).not.toHaveProperty('preset')
+    expect(StubFleet.current.plans[0]?.models[0]).not.toHaveProperty('preset')
+  })
+
+  it('freezes each arm preset in role order, so one route under two compositions is two experiments', async () => {
+    const { plan } = await harness()
+    const thresholds = resolveConfig({ cellTokenCap: 1000, tokenBudget: 1_000_000 }).thresholds
+    const routes = plan()
+    const presets = plan({ baseline: { ...BASELINE, preset: PLAIN_PRESET } })
+    expect(planDigest(presets, thresholds, CAPS)).not.toBe(planDigest(routes, thresholds, CAPS))
+
+    // The roles are digested in order, so which arm carries the preset is part
+    // of the identity: swapping them is a different experiment.
+    const swapped = plan({ baseline: BASELINE, candidate: { ...CANDIDATE, preset: PLAIN_PRESET } })
+    expect(planDigest(swapped, thresholds, CAPS)).not.toBe(planDigest(presets, thresholds, CAPS))
+    const other = plan({ baseline: { ...BASELINE, preset: CRAFT_PRESET } })
+    expect(planDigest(other, thresholds, CAPS)).not.toBe(planDigest(presets, thresholds, CAPS))
+    const again = plan({ baseline: { ...BASELINE, preset: PLAIN_PRESET } })
+    expect(planDigest(again, thresholds, CAPS)).toBe(planDigest(presets, thresholds, CAPS))
+  })
+
+  it('refuses an arm preset the roster cannot supply, before the baseline arm runs a cell', async () => {
+    const { ctx, plan } = await harness()
+    StubEnvironmentRuns.current.presets = new Set([PLAIN_PRESET])
+    await expect(ctx.experiments.run(plan({ candidate: { ...CANDIDATE, preset: CRAFT_PRESET } })))
+      .rejects.toMatchObject({ code: 'ENVIRONMENT_RUN_UNKNOWN_PRESET' })
+    expect(StubFleet.current.pairedRuns).toBe(0)
   })
 
   it('freezes each arm ladder in role order, taking an omitted rung model as the arm route', async () => {

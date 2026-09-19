@@ -1,0 +1,26 @@
+# Test-only composition: the experiment fixture with a two-preset roster, so
+# the paired run compares two agent compositions over one model route. The two
+# presets differ in one prompt section and in nothing else, and every cell of
+# an arm joins that arm's preset, so the run stamp, the result, and the
+# exported trajectories all name the composition each cell ran.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ./cordis.yml
+
+# `includeUserRoot: false` keeps the machine's own `<dshHome>/.agent-presets`
+# out of the roster: this scenario pins an exact roster, and a home directory
+# that happened to supply one of these ids would decide what it measured.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: plain
+    includeUserRoot: false
+    roots:
+      - trust: system
+        path: !!js |
+            (() => {
+              const { fileURLToPath } = process.getBuiltinModule('node:url')
+              const { join } = process.getBuiltinModule('node:path')
+              return join(fileURLToPath(baseUrl), 'presets')
+            })()

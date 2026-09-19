@@ -685,11 +685,17 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['{@link EnvironmentRunError} when the named provider is not composed, runs outside this process under an isolation above `none`, does not support the subagent seam\'s `model` capability, or has no budget policy to bound its attempts.'],
       },
       {
+        signature: 'async checkPreset(preset: string | undefined): Promise<void>',
+        description: 'Run the preset refusals of run against one preset id, without running anything. A planner calls it while it is still validating a plan, so a preset the roster cannot supply refuses the plan instead of every cell of it: the refusals are the same ones, raised from the same resolution, before the first workspace exists. A request naming no preset is refused nothing, because the composition\'s own model-facing rows are what such a run has always used.',
+        parameters: [{ name: 'preset', description: 'the preset each cell would compose from, absent for a run that names none.' }],
+        throws: ['{@link EnvironmentRunError} when no roster is composed, or the roster does not supply the preset or reports it unusable.'],
+      },
+      {
         signature: 'async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>',
         description: 'Run one environment as one fresh session and validate it.',
-        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, model route, attempt ladder, repetition, group, district, policy version, sampling seed, and abort signal.' }],
+        parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, agent preset, model route, attempt ladder, repetition, group, district, policy version, sampling seed, and abort signal.' }],
         returns: 'the stamp, the attempts with the route each ran on, the certificate when one run passed, the accumulated usage, and the caps the cell ran under.',
-        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an attempt ladder that is empty, past the ceiling, unusably shared, or shared where no budget policy is composed, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an attempt ladder that is empty, past the ceiling, unusably shared, or shared where no budget policy is composed, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an agent preset no composed roster supplies, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
       },
       {
         signature: 'cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[]',
@@ -747,9 +753,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
         description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. The arms run as one paired fleet run whose cells alternate, so neither arm is confounded with the hour it ran in. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
-        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional attempt ladders and implementers, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
-        returns: 'the digest, both arms with their ladders and stamp groups, one cell per environment, every cell an arm kept as an error, the pooled delta with its interval, the spend, the caps both arms ran under, and the verdict.',
-        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, carries an arm ladder with no rung or one whose first rung names another route, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either arm names an implementer provider this composition cannot honor.'],
+        parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional attempt ladders, implementers, and agent presets, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
+        returns: 'the digest, both arms with their ladders, presets, and stamp groups, one cell per environment, every cell an arm kept as an error, the pooled delta with its interval, the spend, the caps both arms ran under, and the verdict.',
+        throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, carries an arm ladder with no rung or one whose first rung names another route, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either arm names an implementer provider this composition cannot honor, and from {@link EnvironmentRunner.checkPreset}, when either arm names an agent preset this composition cannot compose a cell from.'],
       },
     ],
   },
@@ -761,16 +767,16 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
         description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
-        parameters: [{ name: 'plan', description: 'environments, model routes, an optional attempt ladder and implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
+        parameters: [{ name: 'plan', description: 'environments, model entries with their optional agent presets, an optional attempt ladder and implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
-        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route the plan names is not composed or has no credential to reach it with.'],
+        throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names, and from {@link EnvironmentRunner.checkPreset}, when a model entry names an agent preset this composition cannot compose a cell from.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route the plan names is not composed or has no credential to reach it with.'],
       },
       {
         signature: 'async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>',
         description: 'Run two plans as one batch whose cells alternate, and fold each plan\'s leaderboard. The cells run environment-major, then repetition, then plan, so the two plans\' cells of one environment and repetition are adjacent and neither plan is confounded with the hour it ran in; both plans draw on the configured `maxConcurrent` pool, so a bound of two runs the two cells of a pair at the same time. Each plan keeps its own group, district, ledger, and workspace retention, so every report, `fleet/cell` event, route breaker, and token ceiling is what the plan\'s own FleetService.run produces.',
         parameters: [{ name: 'first', description: 'the plan whose cell of a pair is scheduled first.' }, { name: 'second', description: 'the plan whose cell of a pair is scheduled beside it.' }],
         returns: 'one report per plan, in the order the plans were given, each with its own group, its cells in its own plan order, its leaderboard, and its spend.',
-        throws: ['{@link FleetError} for either plan exactly as {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two plans select different environments or ask for different repetitions.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either plan\'s implementer is a provider this composition cannot honor for a route that plan names.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route either plan names is not composed or has no credential to reach it with.'],
+        throws: ['{@link FleetError} for either plan exactly as {@link FleetService.run} does, and `FLEET_INVALID_PLAN` when the two plans select different environments or ask for different repetitions.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either plan\'s implementer is a provider this composition cannot honor for a route that plan names, and from {@link EnvironmentRunner.checkPreset}, when either plan names an agent preset this composition cannot compose a cell from.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route either plan names is not composed or has no credential to reach it with.'],
       },
     ],
   },
@@ -3819,7 +3825,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunRequest',
-    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface EnvironmentRunRequest {\n    readonly environment: EnvironmentId;\n    readonly workspace: string;\n    readonly model?: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly preset?: string;\n    readonly repetition?: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'EnvironmentRunRung',
@@ -3827,7 +3833,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunStamp',
-    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer?: string;\n}',
+    declaration: 'export interface EnvironmentRunStamp extends EnvironmentContentHashes {\n    readonly kind: \'environment/run\';\n    readonly version: 1;\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly model: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer?: string;\n    readonly preset?: string;\n}',
   },
   {
     name: 'EnvironmentRunStampRung',
@@ -3851,11 +3857,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentArm',
-    declaration: 'export interface ExperimentArm {\n    readonly model: EnvironmentRunModel;\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer: EnvironmentRunImplementer;\n    readonly group: string;\n}',
+    declaration: 'export interface ExperimentArm {\n    readonly model: EnvironmentRunModel;\n    readonly preset?: string;\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer: EnvironmentRunImplementer;\n    readonly group: string;\n}',
   },
   {
     name: 'ExperimentArmPlan',
-    declaration: 'export interface ExperimentArmPlan extends EnvironmentRunModel {\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly ladder?: readonly EnvironmentRunRung[];\n}',
+    declaration: 'export interface ExperimentArmPlan extends EnvironmentRunModel {\n    readonly preset?: string;\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly ladder?: readonly EnvironmentRunRung[];\n}',
   },
   {
     name: 'ExperimentArmRole',
@@ -3931,7 +3937,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'FleetCell',
-    declaration: 'export interface FleetCell {\n    readonly environment: EnvironmentId;\n    readonly model: EnvironmentRunModel;\n    readonly repetition: number;\n}',
+    declaration: 'export interface FleetCell {\n    readonly environment: EnvironmentId;\n    readonly model: FleetModelEntry;\n    readonly repetition: number;\n}',
   },
   {
     name: 'FleetCellError',
@@ -3954,12 +3960,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type FleetEnvironmentSelection = {\n    readonly ids: readonly EnvironmentId[];\n} | {\n    readonly filter: EnvironmentFilter;\n};',
   },
   {
+    name: 'FleetModelEntry',
+    declaration: 'export interface FleetModelEntry extends EnvironmentRunModel {\n    readonly preset?: string;\n}',
+  },
+  {
     name: 'FleetPairedReports',
     declaration: 'export type FleetPairedReports = readonly [\n    FleetRunReport,\n    FleetRunReport\n];',
   },
   {
     name: 'FleetPlan',
-    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly EnvironmentRunModel[];\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly FleetModelEntry[];\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'FleetRunReport',
@@ -4223,7 +4233,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LeaderboardRow',
-    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly implementer?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
+    declaration: 'export interface LeaderboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation?: CertificateIsolation;\n    readonly implementer?: string;\n    readonly preset?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
   {
     name: 'LlmAdapter',
@@ -4463,7 +4473,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ObservatoryPublishedRow',
-    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
+    declaration: 'export interface ObservatoryPublishedRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly district?: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly preset?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly compositionSha256?: string;\n    readonly tamper: ObservatoryTamper;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly runs: number;\n    readonly errors: number;\n    readonly certified: number;\n    readonly resolved: number;\n    readonly parity?: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigest?: string;\n}',
   },
   {
     name: 'ObservatoryRanking',
@@ -4835,7 +4845,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ScoreboardRow',
-    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
+    declaration: 'export interface ScoreboardRow {\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly preset?: string;\n    readonly district?: string;\n    readonly runs: number;\n    readonly errors: number;\n    readonly tampered: number;\n    readonly escapesDenied: number;\n    readonly compositionSha256?: string;\n    readonly certificateExecutors: readonly RunExecutor[];\n    readonly certified: number;\n    readonly certificateRate: number;\n    readonly parity?: number;\n    readonly attemptsMean: number;\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n    readonly costEurPerCertified?: number;\n    readonly pricingDigests: readonly string[];\n    readonly stats: EnvironmentStats;\n}',
   },
   {
     name: 'ScorekeeperSkip',
@@ -4947,7 +4957,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsEnvironment',
-    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n}',
+    declaration: 'export interface SessionFactsEnvironment {\n    readonly environmentId: EnvironmentId;\n    readonly environmentKind: string;\n    readonly heldOut: boolean;\n    readonly repetition: number;\n    readonly group?: string;\n    readonly district?: string;\n    readonly contentSha256: string;\n    readonly provider: string;\n    readonly model: string;\n    readonly ladder?: readonly EnvironmentRunStampRung[];\n    readonly isolation: CertificateIsolation;\n    readonly implementer: string;\n    readonly preset?: string;\n}',
   },
   {
     name: 'SessionFactsIdentity',

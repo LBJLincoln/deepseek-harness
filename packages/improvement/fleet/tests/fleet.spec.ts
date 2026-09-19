@@ -29,6 +29,9 @@ const RESERVED = EnvironmentId('smoke:reserved')
 const MODEL_A = { provider: 'mock', model: 'a' }
 const MODEL_B = { provider: 'mock', model: 'b' }
 const DEFAULT_MODEL = { provider: 'mock', model: 'mock-default' }
+/** The two presets the stub roster supplies; two entries naming them differ in the composition alone. */
+const PLAIN_PRESET = 'bench'
+const CRAFT_PRESET = 'bench-craft'
 
 function definition(id: EnvironmentIdType, heldOut: boolean): EnvironmentDefinition {
   return {
@@ -96,6 +99,10 @@ class StubRuns extends Service {
   readonly checked: { implementer: EnvironmentRunImplementer; model: EnvironmentRunModel }[] = []
   /** Providers this composition holds; a subagent implementer naming another is refused. */
   providers = new Set<string>()
+  /** Every preset preflight the fleet ran, in call order. */
+  readonly checkedPresets: string[] = []
+  /** Presets the composed roster supplies; a model entry naming another is refused. */
+  presets = new Set<string>([PLAIN_PRESET, CRAFT_PRESET])
   script: Script = request => report(request, { certified: true })
   inFlight = 0
   maxInFlight = 0
@@ -111,6 +118,16 @@ class StubRuns extends Service {
       'ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE',
     )
   }
+  checkPreset(preset: string | undefined): Promise<void> {
+    if (preset === undefined) return Promise.resolve()
+    this.checkedPresets.push(preset)
+    if (this.presets.has(preset)) return Promise.resolve()
+    throw new EnvironmentRunError(
+      `agent preset "${preset}" cannot compose a cell: no root supplies it`,
+      'ENVIRONMENT_RUN_UNKNOWN_PRESET',
+    )
+  }
+
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     this.requests.push(request)
     this.inFlight += 1
@@ -180,6 +197,7 @@ function report(request: EnvironmentRunRequest, shape: ReportShape): Environment
       ...shape.unstampedImplementer === true
         ? {}
         : { implementer: request.implementer?.kind === 'subagent' ? request.implementer.provider : 'route' },
+      ...request.preset === undefined ? {} : { preset: request.preset },
     },
     attempts,
     certified: shape.certified,
@@ -287,7 +305,7 @@ describe('FleetService', () => {
     expect(StubRuns.current.checked).toEqual([{ implementer, model: MODEL_A }])
     expect(StubRuns.current.requests.map(request => request.implementer)).toEqual([implementer, implementer])
     expect(result.leaderboard.map(entry => entry.implementer)).toEqual(['claude-code', 'claude-code'])
-    expect(leaderboardMarkdown(result)).toContain('| mock/a | - | claude-code | smoke:round-trip |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | - | - | claude-code | smoke:round-trip |')
 
     // A plan that names none leaves every cell on its own route, and the row
     // states that rather than leaving the column empty.
@@ -320,7 +338,7 @@ describe('FleetService', () => {
       ['a', [{ ...MODEL_A, share: 0.25 }, MODEL_B]],
       ['a', [{ ...MODEL_A, share: 0.25 }, MODEL_B]],
     ])
-    expect(leaderboardMarkdown(result)).toContain('| mock/a | mock/a @0.25 > mock/b | route | smoke:round-trip |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | - | mock/a @0.25 > mock/b | route | smoke:round-trip |')
 
     // A plan that names none leaves the column off the row entirely.
     const plain = await harness()
@@ -328,6 +346,46 @@ describe('FleetService', () => {
     const unladdered = await plain.ctx.fleet.run(plain.plan({ models: [MODEL_A], repetitions: 1 }))
     expect(StubRuns.current.requests[0]).not.toHaveProperty('ladder')
     expect(unladdered.leaderboard[0]).not.toHaveProperty('ladder')
+  })
+
+  it('forwards each model entry\'s agent preset to its cells, keeps two presets over one route apart, and preflights each once', async () => {
+    const { ctx, plan } = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    const entries = [{ ...MODEL_A, preset: PLAIN_PRESET }, { ...MODEL_A, preset: CRAFT_PRESET }]
+    const result = await ctx.fleet.run(plan({ models: entries, repetitions: 1 }))
+
+    // One preflight per distinct preset, before the first cell: the roster
+    // re-reads its roots on every resolution, so one per cell would be one
+    // directory scan per cell.
+    expect(StubRuns.current.checkedPresets).toEqual([PLAIN_PRESET, CRAFT_PRESET])
+    expect(StubRuns.current.requests.map(request => [request.model?.model, request.preset])).toEqual([
+      ['a', PLAIN_PRESET], ['a', CRAFT_PRESET], ['a', PLAIN_PRESET], ['a', CRAFT_PRESET],
+    ])
+    // Two entries over one route are two arms: two rows, and two cell keys.
+    expect(result.leaderboard.map(entry => [entry.model, entry.preset, entry.environmentId])).toEqual([
+      ['a', PLAIN_PRESET, ROUND_TRIP], ['a', CRAFT_PRESET, ROUND_TRIP],
+      ['a', PLAIN_PRESET, UNSATISFIABLE], ['a', CRAFT_PRESET, UNSATISFIABLE],
+    ])
+    expect(leaderboardMarkdown(result)).toContain(`| mock/a | ${CRAFT_PRESET} | - | route | smoke:round-trip |`)
+    expect(fleetCellKey({ environment: ROUND_TRIP, model: entries[1] as typeof MODEL_A, repetition: 1 }))
+      .toBe(`smoke:round-trip mock/a preset=${CRAFT_PRESET} 1`)
+
+    // An entry that names none leaves the column off the row and the field off
+    // the request, and keys exactly as a plan written before presets existed.
+    const plain = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    const unpreset = await plain.ctx.fleet.run(plain.plan({ models: [MODEL_A], repetitions: 1 }))
+    expect(StubRuns.current.checkedPresets).toEqual([])
+    expect(StubRuns.current.requests[0]).not.toHaveProperty('preset')
+    expect(unpreset.leaderboard[0]).not.toHaveProperty('preset')
+  })
+
+  it('refuses an agent preset the roster cannot supply before running any cell', async () => {
+    const { ctx, plan } = await harness()
+    StubRuns.current.presets = new Set([PLAIN_PRESET])
+    await expect(ctx.fleet.run(plan({ models: [{ ...MODEL_A, preset: CRAFT_PRESET }], repetitions: 1 })))
+      .rejects.toMatchObject({ code: 'ENVIRONMENT_RUN_UNKNOWN_PRESET' })
+    expect(StubRuns.current.requests).toEqual([])
   })
 
   it('refuses an attempt ladder with no rung before running any cell', async () => {
@@ -415,7 +473,7 @@ describe('FleetService', () => {
     expect(result.leaderboard).toEqual([
       row({ model: 'mock-default', environmentId: RESERVED, heldOut: true, runs: 1, certified: 1 }),
     ])
-    expect(leaderboardMarkdown(result)).toContain('| mock/mock-default | - | route | smoke:reserved | yes | process | 1 | 0 | 1 | 1.00 | 1.00 | 0 / 0 |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/mock-default | - | - | route | smoke:reserved | yes | process | 1 | 0 | 1 | 1.00 | 1.00 | 0 / 0 |')
   })
 
   it('keeps a failing cell as an error outcome and leaves its row without an isolation claim', async () => {
@@ -453,8 +511,8 @@ describe('FleetService', () => {
     expect(failed).not.toHaveProperty('implementer')
     const markdown = leaderboardMarkdown(result)
     expect(markdown.split('\n')[0]).toBe('Fleet run `batch-1`')
-    expect(markdown).toContain('| mock/a | - | route | smoke:round-trip | no | process | 3 | 0 | 3 | 1.00 | 1.00 | 0 / 0 |')
-    expect(markdown).toContain('| mock/a | - | - | smoke:unsatisfiable | no | - | 0 | 3 | 0 | 0.00 | 0.00 | 0 / 0 |')
+    expect(markdown).toContain('| mock/a | - | - | route | smoke:round-trip | no | process | 3 | 0 | 3 | 1.00 | 1.00 | 0 / 0 |')
+    expect(markdown).toContain('| mock/a | - | - | - | smoke:unsatisfiable | no | - | 0 | 3 | 0 | 0.00 | 0.00 | 0 / 0 |')
     expect(markdown.endsWith('|\n')).toBe(true)
   })
 

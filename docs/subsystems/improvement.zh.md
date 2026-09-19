@@ -96,6 +96,16 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
    * stay two rows. Absent in a payload that states none, which is the route.
    */
   readonly implementer?: string
+  /**
+   * Agent preset the cell session composed from, absent for a run that named
+   * none and therefore ran the composition's own model-facing rows. The preset
+   * decides the tool schemas and prompt sections the model sees, so it is part
+   * of the arm's identity: a scoreboard row is keyed by it, and two
+   * compositions over one route stay two rows. The session header records the
+   * same id as a creation fact; this field is what a fold reading the run
+   * stamp alone reads.
+   */
+  readonly preset?: string
 }
 ```
 
@@ -192,6 +202,14 @@ interface LeaderboardRow {
    * name — absent when every cell of the row failed before a run.
    */
   readonly implementer?: string
+  /**
+   * Agent preset every cell of the row composed from, absent for a row whose
+   * model entry named none. It comes from the plan's entry rather than from a
+   * report, so a row whose cells all failed before a run still names the
+   * composition they would have run; rows are keyed by it, so two presets over
+   * one route stay two rows.
+   */
+  readonly preset?: string
   /** Cells that produced a report. */
   readonly runs: number
   /** Cells that produced no report. */
@@ -299,7 +317,11 @@ interface ExperimentResult {
 ```ts type-equiv
 /** One fold over every persisted session, before rendering decides what it shows. */
 interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, attempt ladder, environment, isolation, held-out split, and district. */
+  /**
+   * Scoreboard rows that survived withholding, ordered by route, attempt
+   * ladder, environment, isolation, implementer, agent preset, held-out split,
+   * and district.
+   */
   readonly rows: readonly ScoreboardRow[]
   /** What withholding removed from those rows. */
   readonly withheld: ObservatoryWithheld
@@ -349,6 +371,14 @@ interface ObservatoryPublishedRow {
   readonly isolation: CertificateIsolation
   /** Who did the work of the row's sessions: `route`, or the subagent provider name of a delegated cell. */
   readonly implementer: string
+  /**
+   * Agent preset the row's sessions composed their model-facing rows from,
+   * absent for a row whose sessions named none. It is published beside the
+   * route for the reason the ladder is: two compositions over one route saw
+   * different tools and prompt sections, and a page showing the route alone
+   * would read as if they were one arm.
+   */
+  readonly preset?: string
   /** Executors of the row's certificates; empty for a row that certified nothing. */
   readonly certificateExecutors: readonly RunExecutor[]
   /** Composition digest every session of the row states, absent when the page shows `pending`. */
@@ -396,7 +426,7 @@ interface FleetCellEvent {
   readonly group: string
   /** District the plan stamped its cells with, absent for a plan outside every district. */
   readonly district?: string
-  /** The environment, model route, and repetition that settled. */
+  /** The environment, model entry with its agent preset, and repetition that settled. */
   readonly cell: FleetCell
   /** The settled outcome, exactly as the report keeps it. */
   readonly outcome: FleetCellEventOutcome
@@ -583,10 +613,24 @@ Environment runner (`ctx.environmentRuns`): one registered environment as one va
 checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunModel): void
 
 /**
+ * Run the preset refusals of {@link run} against one preset id, without
+ * running anything. A planner calls it while it is still validating a plan,
+ * so a preset the roster cannot supply refuses the plan instead of every cell
+ * of it: the refusals are the same ones, raised from the same resolution,
+ * before the first workspace exists. A request naming no preset is refused
+ * nothing, because the composition's own model-facing rows are what such a
+ * run has always used.
+ * @param preset - the preset each cell would compose from, absent for a run that names none.
+ * @throws {@link EnvironmentRunError} when no roster is composed, or the
+ *   roster does not supply the preset or reports it unusable.
+ */
+async checkPreset(preset: string | undefined): Promise<void>
+
+/**
  * Run one environment as one fresh session and validate it.
  * @param request - environment id, absolute workspace directory, optional
- *   implementer, model route, attempt ladder, repetition, group, district,
- *   policy version, sampling seed, and abort signal.
+ *   implementer, agent preset, model route, attempt ladder, repetition,
+ *   group, district, policy version, sampling seed, and abort signal.
  * @returns the stamp, the attempts with the route each ran on, the
  *   certificate when one run passed, the accumulated usage, and the caps the
  *   cell ran under.
@@ -594,8 +638,9 @@ checkImplementer(implementer: EnvironmentRunImplementer, model: EnvironmentRunMo
  *   is not a safe non-negative integer, an attempt ladder that is empty, past
  *   the ceiling, unusably shared, or shared where no budget policy is
  *   composed, an implementer provider the composition does not hold, cannot
- *   confine, or has no budget policy to bound, an unusable workspace or
- *   fixture, an implementer that replaced the goal, or a lost standard.
+ *   confine, or has no budget policy to bound, an agent preset no composed
+ *   roster supplies, an unusable workspace or fixture, an implementer that
+ *   replaced the goal, or a lost standard.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -633,7 +678,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:1043`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:1047`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -681,7 +726,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:418`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:420`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -698,13 +743,13 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  * kept as an error leaves its repetition unpaired instead of failing the
  * experiment.
  * @param plan - environments, repetitions, the two arms with their model
- *   routes and optional attempt ladders and implementers, the workspace root,
- *   and an optional policy version, base seed, frozen digest, abort signal,
- *   and result sink.
- * @returns the digest, both arms with their ladders and stamp groups, one
- *   cell per environment, every cell an arm kept as an error, the pooled
- *   delta with its interval, the spend, the caps both arms ran under, and
- *   the verdict.
+ *   routes and optional attempt ladders, implementers, and agent presets, the
+ *   workspace root, and an optional policy version, base seed, frozen digest,
+ *   abort signal, and result sink.
+ * @returns the digest, both arms with their ladders, presets, and stamp
+ *   groups, one cell per environment, every cell an arm kept as an error, the
+ *   pooled delta with its interval, the spend, the caps both arms ran under,
+ *   and the verdict.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
  *   unregistered environment, asks for no repetition, sets a seed that is not
  *   a safe non-negative integer, carries an arm ladder with no rung or one
@@ -713,7 +758,9 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  *   projects more tokens than the budget.
  * @throws {@link EnvironmentRunError} unchanged from
  *   {@link EnvironmentRunner.checkImplementer}, when either arm names an
- *   implementer provider this composition cannot honor.
+ *   implementer provider this composition cannot honor, and from
+ *   {@link EnvironmentRunner.checkPreset}, when either arm names an agent
+ *   preset this composition cannot compose a cell from.
  */
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
@@ -732,10 +779,10 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  * throws is kept as an error outcome, as is a cell the route breaker or the
  * token ceiling refused to start; the fleet run itself rejects only for a
  * plan it cannot start.
- * @param plan - environments, model routes, an optional attempt ladder and
- *   implementer, repetitions, an optional exact cell selection, workspace
- *   root, group, district, policy version, base seed, token ceiling, and
- *   abort signal.
+ * @param plan - environments, model entries with their optional agent
+ *   presets, an optional attempt ladder and implementer, repetitions, an
+ *   optional exact cell selection, workspace root, group, district, policy
+ *   version, base seed, token ceiling, and abort signal.
  * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
  * @throws {@link FleetError} when the plan selects no environment, asks for
  *   no repetition, names no or an unenumerated cell, sets a token ceiling
@@ -743,7 +790,9 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
  *   non-negative integer, or carries an attempt ladder with no rung.
  * @throws {@link EnvironmentRunError} unchanged from
  *   {@link EnvironmentRunner.checkImplementer}, when the plan's implementer
- *   is a provider this composition cannot honor for a route the plan names.
+ *   is a provider this composition cannot honor for a route the plan names,
+ *   and from {@link EnvironmentRunner.checkPreset}, when a model entry names
+ *   an agent preset this composition cannot compose a cell from.
  * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
  *   the plan names is not composed or has no credential to reach it with.
  */
@@ -768,14 +817,15 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
  * @throws {@link EnvironmentRunError} unchanged from
  *   {@link EnvironmentRunner.checkImplementer}, when either plan's
  *   implementer is a provider this composition cannot honor for a route that
- *   plan names.
+ *   plan names, and from {@link EnvironmentRunner.checkPreset}, when either
+ *   plan names an agent preset this composition cannot compose a cell from.
  * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
  *   either plan names is not composed or has no credential to reach it with.
  */
 async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:386`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:394`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 
@@ -944,12 +994,12 @@ One cell of a running plan settled: the fleet has recorded its outcome and appli
  * order only while `maxConcurrent` is `1`.
  * @param payload.group - batch identity every run stamp of this fleet run carries.
  * @param payload.district - district the plan stamped its cells with, absent for a plan outside every district.
- * @param payload.cell - the environment, model route, and repetition that settled.
+ * @param payload.cell - the environment, model entry with its agent preset, and repetition that settled.
  * @param payload.outcome - the session and certification of a reported cell, or the code and message of a cell that produced none.
  * @mode emit
  */
 'fleet/cell'(payload: FleetCellEvent): void
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:57`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:58`](../../packages/improvement/fleet/src/index.ts)
 <!-- END GENERATED cordis-surface -->

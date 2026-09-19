@@ -7,11 +7,16 @@
  *   fleet-driver.ts <config> <plan.json>
  *
  * The plan file holds `{ name, environments?, tier?, domain?, heldOut?,
- * models: [{ provider, model }], ladder?, implementer?, repetitions, seed?,
- * policyVersion?, district? }`. Environment selection follows the experiment
- * driver's rules. A fleet plan runs every model over every selected
- * environment, which is how one run compares several product models, or one
- * implementer against the same cells another run measured.
+ * models: [{ provider, model, preset? }], ladder?, implementer?, repetitions,
+ * seed?, policyVersion?, district? }`. Environment selection follows the
+ * experiment driver's rules. A fleet plan runs every model entry over every
+ * selected environment, which is how one run compares several product models,
+ * one implementer against the same cells another run measured, or two agent
+ * compositions over one route.
+ *
+ * An entry's `preset` is an agent preset id the composition's roster supplies;
+ * it needs a config that composes one — the `with-presets` overlay — and a
+ * preset no roster supplies refuses the plan before any cell runs.
  *
  * `ladder` is one rung per attempt — `[{}, { "model": { "provider": "…",
  * "model": "…" } }]` runs the first attempt on the cell's own route and the
@@ -37,7 +42,7 @@ interface PlanFile {
   readonly tier?: number
   readonly domain?: string
   readonly heldOut?: boolean
-  readonly models: readonly { readonly provider: string; readonly model: string }[]
+  readonly models: readonly { readonly provider: string; readonly model: string; readonly preset?: string }[]
   readonly ladder?: readonly EnvironmentRunRung[]
   readonly implementer?: EnvironmentRunImplementer
   readonly repetitions: number

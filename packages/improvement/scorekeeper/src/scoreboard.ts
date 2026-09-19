@@ -75,7 +75,9 @@ export interface ScoreboardFold {
  * two districts above all — into one row. The attempt ladder is part of the key,
  * each rung with the budget share it claimed, because a laddered cell and a
  * plain single-model cell on the same first rung measure different arms, and so
- * do two ladders that divide one budget differently.
+ * do two ladders that divide one budget differently. The agent preset is part
+ * of it for the same reason one layer up: two compositions over one route saw
+ * different tool schemas and prompt sections.
  */
 function rowKey(environment: SessionFactsEnvironment): string {
   return JSON.stringify([
@@ -85,6 +87,7 @@ function rowKey(environment: SessionFactsEnvironment): string {
     environment.environmentId,
     environment.isolation,
     environment.implementer,
+    environment.preset ?? null,
     environment.heldOut,
     environment.district ?? null,
   ])
@@ -207,6 +210,7 @@ function finish(row: RowAccumulator, ks: readonly number[]): ScoreboardRow {
     heldOut: row.environment.heldOut,
     isolation: row.environment.isolation,
     implementer: row.environment.implementer,
+    ...row.environment.preset === undefined ? {} : { preset: row.environment.preset },
     ...row.environment.district === undefined ? {} : { district: row.environment.district },
     runs: row.runs,
     errors: row.errors,

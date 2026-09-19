@@ -181,6 +181,18 @@ export interface EnvironmentRunRequest {
    * workspace reaches its next state changes.
    */
   readonly implementer?: EnvironmentRunImplementer
+  /**
+   * Agent preset the cell session composes its model-facing rows from, mounted
+   * while the cell agent is still unpublished and written into the run stamp.
+   * It is what makes two compositions over one model route comparable: the
+   * preset decides the tool schemas and prompt sections the model sees, so a
+   * cell that names one measures a different arm from a cell that does not.
+   * Absent leaves the composition's own rows in place, which is what every run
+   * that names no preset has always run. A preset the roster does not supply,
+   * and any preset in a composition with no roster, are refused before any
+   * agent exists.
+   */
+  readonly preset?: string
   /** Zero-based repetition of this environment inside its batch; absent means `0`. */
   readonly repetition?: number
   /** Batch or sampling group the run belongs to, absent for a single run. */

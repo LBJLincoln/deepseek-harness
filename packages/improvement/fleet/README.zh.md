@@ -37,7 +37,7 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 
 ## Service contract
 
-`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、每个 cell **第一次**尝试所运行的 `models`（空列表运行组合中来自 `agentDefaultModel` 的默认路由）、可选的、每次尝试一个档位的 `ladder`、可选的、运行每个 cell 的 `implementer`、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的 `policyVersion`、可选的基准 `seed`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、`seed` 不是安全的非负整数、没有任何档位的 `ladder`、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
+`ctx.fleet.run(plan)` 接受 `environments`（按给定顺序的 `{ ids }`，或按注册顺序对注册表解析的 `{ filter }`）、`models`（空列表在不使用 preset 的情况下运行组合中来自 `agentDefaultModel` 的默认路由），其每个条目是每个 cell **第一次**尝试所运行的一条模型路由，外加可选的、其 cell 所组合的 agent `preset`、可选的、每次尝试一个档位的 `ladder`、可选的、运行每个 cell 的 `implementer`、正整数 `repetitions`、可选的精确 `cells` 选择、一个已存在的绝对路径 `workspaceRoot`、可选的 `group`、可选的 `district`、可选的 `policyVersion`、可选的基准 `seed`、可选的正整数 `tokenCeiling` 与可选的 `signal`。它在运行任何 cell 之前以 `FleetError` 拒绝：`repetitions` 或 `tokenCeiling` 非正或非整数、`seed` 不是安全的非负整数、没有任何档位的 `ladder`、注册表中没有的 id，或者为空、或点名了该计划并不枚举的 cell 的 `cells` 选择，均为 `FLEET_INVALID_PLAN`；环境选择不匹配任何环境为 `FLEET_EMPTY_PLAN`。
 
 `ctx.fleet.runPaired(first, second)` 把两份计划作为一个批次运行，并按给出计划的顺序为每份计划返回一份报告。两份计划各自接受与 `run` 校验单份计划时完全相同的校验；当两份计划选出的环境不同或要求的重复次数不同时，这一配对本身以 `FLEET_INVALID_PLAN` 被拒绝——且发生在任一计划运行任何 cell 之前，因此一个配对绝不会只花掉一半。该批次以环境为主序、其次重复序号、再次计划来运行，因此两份计划在同一个环境、同一个重复序号上的 cell 彼此相邻，并且两份计划共用同一个 `maxConcurrent` 池：`maxConcurrent: 2` 时一对中的两个 cell 同时运行。正是这一点使一份计划不会与它运行所处的那个小时混杂在一起，而连着发起的两次 `run` 调用做不到这一点。每份计划保留自己的 group、district、台账与工作区保留策略，因此每份报告——它的 group、按它自己的计划顺序排列的 cell、它的排行榜、它的 spend——以及它的 `fleet/cell` 事件、它的路由熔断器与它的 token 上限，都与该计划自己的 `run` 产出的一致。
 
@@ -45,11 +45,13 @@ Fleet 运行：harness 能力计划的确定性主干。一个计划指定环境
 
 `policyVersion` 点名该计划的路由所服务的检查点或策略；每个 cell 的运行 stamp 都原样携带它，因此 fold 可以按它给测得的难度建键。`seed` 是该计划的**基准**种子，每个 cell 以 `seed + repetition` 运行，因此同一个重复序号在该计划的每条路由和每个环境上都意味着同一个种子——这正是让配对设计比较同类的原因。基准值只在计划边界校验一次，因为这个算术是 fleet 做的：运行器会拒绝的基准值不该表现为每个 cell 各自失败。种子记录的是一次运行请求了什么，绝不是提供方拿它做了什么；[运行器 README](../environment-runner/README.md#sampling-and-what-a-replay-reproduces) 拥有 replay 能与不能复现什么。
 
-cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举，并通过 `ctx.environmentRuns.run` 运行，同时在途至多 `maxConcurrent` 个。点名了 `cells` 的计划只运行这些 cell，且仍按计划顺序，因此恢复一个只跑了一半的计划的驱动器能保住每个 cell 的环境、路由与重复序号，而不必把它们改写成一个重复序号又从零开始的更小计划。`fleetCellKey(cell)` 是消费方为 cell 建立索引所用的身份，无论是在它自己维护的台账里，还是对照会话日志中已有的运行 stamp。每个 cell 在 `workspaceRoot` 下获得一个全新的 `cell-*` 目录，并把计划的 `group`（或铸造的 `fleet-<uuid>`）、其重复序号与计划的 `district` 带入运行 stamp，因此该批次的每个会话都在自己的日志中被持久地归组。每个 cell 工作区在 `workspaceRoot` 下都与其他工作区并列，与驱动器写在那里的任何东西为邻，因此 runner 在一次运行期间拒绝每个 cell 访问自己工作区之上的一切（[`dsh-environment-runner`](../environment-runner/README.md)）。运行抛出的 cell 保留为 `{ cell, error }`，错误带有 harness 错误码时一并保留；fleet 运行本身绝不因某一个 cell 而失败。
+cell 以环境为主序、其次模型条目、再次从 `0` 起的重复序号枚举，并通过 `ctx.environmentRuns.run` 运行，同时在途至多 `maxConcurrent` 个。点名了 `cells` 的计划只运行这些 cell，且仍按计划顺序，因此恢复一个只跑了一半的计划的驱动器能保住每个 cell 的环境、路由与重复序号，而不必把它们改写成一个重复序号又从零开始的更小计划。`fleetCellKey(cell)` 是消费方为 cell 建立索引所用的身份，无论是在它自己维护的台账里，还是对照会话日志中已有的运行 stamp；只有在条目携带 agent preset 时它才把该 preset 写入键，因此为不含 preset 的计划写下的台账仍能对上它所记录的那份计划。每个 cell 在 `workspaceRoot` 下获得一个全新的 `cell-*` 目录，并把计划的 `group`（或铸造的 `fleet-<uuid>`）、其重复序号与计划的 `district` 带入运行 stamp，因此该批次的每个会话都在自己的日志中被持久地归组。每个 cell 工作区在 `workspaceRoot` 下都与其他工作区并列，与驱动器写在那里的任何东西为邻，因此 runner 在一次运行期间拒绝每个 cell 访问自己工作区之上的一切（[`dsh-environment-runner`](../environment-runner/README.md)）。运行抛出的 cell 保留为 `{ cell, error }`，错误带有 harness 错误码时一并保留；fleet 运行本身绝不因某一个 cell 而失败。
 
 有两种情况在 cell 启动之前拒绝它，因此每个计划都为每个 cell 保留一行，runs 与 errors 两列也保持诚实。一条模型路由连续产生 `routeBreaker.consecutiveErrors` 个错误结果之后，它余下的 cell 被记录为 `FLEET_ROUTE_BREAKER_OPEN` 错误，消息点名该路由与该计数；有报告的 cell 会重置该路由的计数，且熔断器按计划生效。已在手的报告的输入加输出 token 之和越过 `tokenCeiling` 之后，每个尚未启动的 cell 被记录为 `FLEET_TOKEN_CEILING_REACHED` 错误，而已经在途的 cell 照常完成。被拒绝的 cell 不铸造工作区，也既不折叠进熔断器也不折叠进 spend。
 
 `ladder` 被原样转发给每个 cell，因此一个计划就是一条阶梯：每个 cell 的第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该 cell 自己的路由上，而阶梯的长度就是每个 cell 的尝试上界。档位数上限属于运行器的配置，因此超过它的阶梯让每个 cell 失败而非让计划失败；只有完全没有档位的阶梯在这里被拒绝一次，因为那是任何 cell 都无法完成的算术。[运行器 README](../environment-runner/README.md#the-attempt-ladder) 拥有一个档位意味着什么，以及每种实现者如何切换路由。
+
+条目的 `preset` 只转发给该条目自己的 cell，因此一份计划可以比较同一条路由上的两种 agent 组合：点名同一条路由、两个不同 preset 的两个条目是两条 arm，cell 键、排行榜行与运行 stamp 都把它们分开。每个互不相同的 preset 在第一个 cell 之前经 `ctx.environmentRuns.checkPreset` 预检一次——名册在每次解析时都会重读它的根目录，因此逐 cell 询问会给每个 cell 都压上一次目录扫描——运行器的 `EnvironmentRunError` 原样向上传递。[运行器 README](../environment-runner/README.md#the-agent-preset-a-cell-composes-from) 拥有挂载做了什么以及每个 cell 如何记录它。
 
 `implementer` 被原样转发给每个 cell，因此一个计划就是一个实现者，由它折叠出来的行绝不混合两者：`{ kind: 'route' }`（默认）让每个 cell 跑在自己的模型路由上，而 `{ kind: 'subagent', provider, label? }` 把每个 cell 的每次尝试委派给那个已注册的 subagent provider。[运行器 README](../environment-runner/README.md#the-two-implementers) 拥有被委派的证书证明了什么，以及高于 `none` 的隔离声明会拒绝哪些 provider。
 
@@ -57,7 +59,7 @@ cell 以环境为主序、其次模型、再次从 `0` 起的重复序号枚举�
 
 每一条路由也在同一处经 [`ctx.llm.checkRoute`](../../llm/llm/README.md#public-api) 接受检查，这也正是 `llm` 是本服务的一项注入、而不是一个可选接缝的原因。计划中任何一个 cell 可能跑上的每一条路由都被询问一次：计划自身的各条路由，以及每一个点名了另一条路由的阶梯档位。组合并不持有的路由，或者凭据引用解析不到值的路由，否则就会在每个 cell 的第一次模型请求上拒掉那个 cell——此时工作区、会话、盖章与目标都已经存在——这正是实现者检查所防住的那份全是错误 cell 的计划。接缝的 `LlmError` 原样向上传递，点名那条路由，缺少密钥时还点名凭据引用；该检查不触网，因此它对端点是否应答、模型 id 是否存在一概不置一词。成对运行在任一计划的第一个 cell 之前就按这种方式准备两份计划，于是第二份计划中一条不可达的路由同样会把两份一起拒掉。
 
-报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所升级经过的 `ladder`、运行所声明的 `isolation` 与其被盖上的 `implementer`（该行全部 cell 在运行前失败时三者都缺省，且计划未命名阶梯时 ladder 同样缺省）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
+报告携带 `group`、按计划顺序的每个 cell 结果、整次运行的 `spend`（`inputTokens` 与 `outputTokens`），以及 `leaderboard`：按模型路由与环境，给出环境 kind 与 `heldOut` 标志、运行所升级经过的 `ladder`、运行所声明的 `isolation` 与其被盖上的 `implementer`（该行全部 cell 在运行前失败时三者都缺省，且计划未命名阶梯时 ladder 同样缺省）、该行条目所点名的 `preset`（条目未点名时缺省；因为它来自计划而非来自报告，即使该行全部 cell 在运行前失败它也照样陈述）、`runs`、`errors`、`certified`、`certificateRate`、`attemptsMean`，以及求和的 `inputTokens` 与 `outputTokens`。`leaderboardMarkdown(report)` 把同样的行渲染为一张供人阅读的 Markdown 表格；报告仍是记录，会话日志仍是权威。
 
 工作区保留在 cell 的结果到手之后执行：`remove-certified` 删除运行已认证的 cell 的 `cell-*` 目录，`remove-all` 无论该 cell 是有报告还是失败都删除，`keep` 什么都不删除。
 

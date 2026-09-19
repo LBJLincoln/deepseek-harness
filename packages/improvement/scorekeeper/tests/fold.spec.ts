@@ -102,6 +102,14 @@ describe('foldSessionFacts', () => {
     }))
     expect(laddered.identity.environment?.ladder)
       .toEqual([{ provider: 'cli-mock', model: 'cli-mock' }, { provider: 'cli-mock', model: 'large' }])
+    // A stamp that names an agent preset states the composition the cell's
+    // model saw, which is what keys a row apart from the same route's plain one.
+    const composed = foldSessionFacts(header('composed'), cellLog({
+      stamp: stamp({ preset: 'bench-craft' }),
+      certified: true,
+      runs: 1,
+    }))
+    expect(composed.identity.environment?.preset).toBe('bench-craft')
     expect(facts.outcome).toEqual({
       reward: 1,
       rewardBasis: 'certificate',

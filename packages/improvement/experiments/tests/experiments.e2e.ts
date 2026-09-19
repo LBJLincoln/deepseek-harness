@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -9,6 +9,8 @@ import type { Trajectory, TrajectoryExportReport } from '@deepseek-ai/dsh-trajec
 
 const binScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/experiment/driver.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/experiment/cordis.yml', import.meta.url))
+const presetsBinScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/experiment/presets-driver.ts', import.meta.url))
+const presetsConfigPath = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/experiment/presets.cordis.yml', import.meta.url))
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
 
 interface DriverResult {
@@ -69,5 +71,27 @@ describe('an experiment through a real cordis.yml and headless process', () => {
     expect(groups.every(parsed => parsed?.digest === result.digest)).toBe(true)
     expect(groups.filter(parsed => parsed?.role === 'baseline')).toHaveLength(4)
     expect(groups.filter(parsed => parsed?.role === 'candidate')).toHaveLength(4)
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('refuses an arm preset the composed roster does not supply before either arm creates a session', async () => {
+    let sessions = 0
+    const { stderr } = await runLoaderSmoke({
+      label: 'experiment unknown preset',
+      tempDirPrefix: 'experiment-preset-refusal-e2e-',
+      binScript: presetsBinScript,
+      libBinScript: presetsBinScript,
+      configPath: presetsConfigPath,
+      binArgs: [presetsConfigPath, 'absent-preset'],
+      tsconfigPath: repoTsconfig,
+      expectedExitCode: 1,
+      inspect: async (cwd) => {
+        sessions = (await readdir(join(cwd, '.sessions'), { withFileTypes: true }).catch(() => [])).length
+      },
+    })
+    expect(stderr).toContain('ENVIRONMENT_RUN_UNKNOWN_PRESET')
+    expect(stderr).toContain('agent preset "absent-preset" cannot compose a cell')
+    // The baseline arm is the one an unchecked candidate preset would have
+    // spent in full before failing every cell of its own.
+    expect(sessions).toBe(0)
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

@@ -8,6 +8,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import { agentEvents } from '@deepseek-ai/dsh-agent'
 import type { Agent, CreateAgentOptions } from '@deepseek-ai/dsh-agent'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
+import type { AgentPreset } from '@deepseek-ai/dsh-agent-presets'
 import type { EnvironmentDefinition, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments'
 import { GoalId } from '@deepseek-ai/dsh-goal'
 import type { CreateGoalRequest, GoalRef, GoalView } from '@deepseek-ai/dsh-goal'
@@ -132,6 +133,36 @@ class StubAgents extends Service {
     this.created.push(options)
     await options.setup?.(this.ctx)
     return { agent: asAgent(this.agent), dispose: async () => { this.disposed += 1 } }
+  }
+}
+
+/**
+ * The preset roster as the runner reads it: resolution before any agent exists,
+ * and the standing mount the cell agent's setup joins.
+ */
+class StubAgentPresets extends Service {
+  static current: StubAgentPresets
+  /** Preset ids this roster supplies. */
+  supplied: readonly string[] = []
+  /** Preset id discovery reports unusable, with the reason a refusal quotes. */
+  broken: string | undefined
+  /** Every mount the runner asked for, in call order. */
+  readonly mounted: (string | undefined)[] = []
+  constructor(ctx: Context) {
+    super(ctx, 'agentPresets')
+    StubAgentPresets.current = this
+  }
+  list(): Promise<AgentPreset[]> {
+    return Promise.resolve(this.supplied.map(id => ({
+      id,
+      trust: 'system' as const,
+      path: join('/presets', id, 'agent.cordis.yml'),
+      ...this.broken === id ? { broken: 'composition file is unreadable' } : {},
+    })))
+  }
+  async mount(_agentCtx: Context, id?: string): Promise<AgentPreset> {
+    this.mounted.push(id)
+    return (await this.list()).find(candidate => candidate.id === id) as AgentPreset
   }
 }
 
@@ -441,6 +472,10 @@ interface Scenario {
   budget?: budgetPolicy.Config
   /** Compose no budget policy at all, which is what an unbounded delegated run needs. */
   unbudgeted?: true
+  /** Compose a preset roster supplying these ids; omitted composes none at all. */
+  roster?: readonly string[]
+  /** One of {@link Scenario.roster} discovery reports unusable. */
+  brokenPreset?: string
 }
 
 interface Harness {
@@ -460,6 +495,11 @@ async function harness(scenario: Scenario = {}): Promise<Harness> {
     await ctx.plugin(StubReadBarrier)
     barrierRoot = await mkdtemp(join(tmpdir(), scenario.barrierPrefix))
     StubReadBarrier.current.root = barrierRoot
+  }
+  if (scenario.roster !== undefined) {
+    await ctx.plugin(StubAgentPresets)
+    StubAgentPresets.current.supplied = scenario.roster
+    StubAgentPresets.current.broken = scenario.brokenPreset
   }
   if (scenario.providers !== undefined) {
     await ctx.plugin(StubSubagents)
@@ -1899,5 +1939,78 @@ describe('EnvironmentRunner weighted cases', () => {
     // parameters, so it forwards them; without "$@" every case would run the bare command.
     expect(await readFile(join(directory, 'run'), 'utf8')).toBe(`${REVERSE} "$@"\n`)
     expect(await readFile(join(directory, 'cases.jsonl'), 'utf8')).toBe(`${JSON.stringify(bodies[0])}\n`)
+  })
+})
+
+describe('EnvironmentRunner and the agent preset a cell composes from', () => {
+  it('mounts the named preset on the cell agent, records it on the creation header, and stamps it', async () => {
+    const { run } = await harness({ roster: ['bench', 'bench-craft'] })
+    StubShell.current.script(MARKER, shellResult({ stdout: 'present\n' }))
+    const report = await run({ preset: 'bench-craft' })
+
+    expect(StubAgentPresets.current.mounted).toEqual(['bench-craft'])
+    expect(StubAgents.current.created[0]?.meta).toMatchObject({ agentPreset: 'bench-craft' })
+    expect(report.stamp.preset).toBe('bench-craft')
+  })
+
+  it('leaves a run that names no preset composing nothing and stamping none', async () => {
+    const { run } = await harness({ roster: ['bench'] })
+    StubShell.current.script(MARKER, shellResult({ stdout: 'present\n' }))
+    const report = await run()
+
+    expect(StubAgentPresets.current.mounted).toEqual([])
+    expect(StubAgents.current.created[0]?.meta).not.toHaveProperty('agentPreset')
+    expect(report.stamp).not.toHaveProperty('preset')
+  })
+
+  it('refuses a preset in a composition with no roster before any agent exists', async () => {
+    const { run } = await harness()
+    await expect(run({ preset: 'bench-craft' })).rejects.toMatchObject({
+      code: 'ENVIRONMENT_RUN_PRESET_UNAVAILABLE',
+      message: expect.stringContaining('no agent preset roster') as unknown as string,
+    })
+    expect(StubAgents.current.created).toHaveLength(0)
+  })
+
+  it('refuses a preset the roster does not supply before any agent exists, quoting the roster', async () => {
+    const { run } = await harness({ roster: ['bench'] })
+    await expect(run({ preset: 'bench-craft' })).rejects.toMatchObject({
+      code: 'ENVIRONMENT_RUN_UNKNOWN_PRESET',
+      message: 'agent preset "bench-craft" cannot compose a cell: no root supplies it; the roster supplies bench',
+    })
+    expect(StubAgents.current.created).toHaveLength(0)
+
+    // A roster whose roots supply nothing is a composed roster, so the refusal
+    // is the same one and says there is nothing to name.
+    const empty = await harness({ roster: [] })
+    await expect(empty.run({ preset: 'bench' })).rejects.toMatchObject({
+      code: 'ENVIRONMENT_RUN_UNKNOWN_PRESET',
+      message: 'agent preset "bench" cannot compose a cell: no root supplies it; the roster supplies nothing',
+    })
+  })
+
+  it('refuses a preset discovery reports broken, quoting its reason', async () => {
+    const { run } = await harness({ roster: ['bench'], brokenPreset: 'bench' })
+    await expect(run({ preset: 'bench' })).rejects.toMatchObject({
+      code: 'ENVIRONMENT_RUN_UNKNOWN_PRESET',
+      message: expect.stringContaining('composition file is unreadable') as unknown as string,
+    })
+    expect(StubAgents.current.created).toHaveLength(0)
+  })
+})
+
+describe('EnvironmentRunner.checkPreset', () => {
+  it('accepts a preset the roster supplies and a request that names none', async () => {
+    const { ctx } = await harness({ roster: ['bench'] })
+    await expect(ctx.environmentRuns.checkPreset('bench')).resolves.toBeUndefined()
+    await expect(ctx.environmentRuns.checkPreset(undefined)).resolves.toBeUndefined()
+  })
+
+  it('raises the run refusals without creating an agent', async () => {
+    const { ctx } = await harness({ roster: ['bench'] })
+    await expect(ctx.environmentRuns.checkPreset('bench-craft')).rejects.toMatchObject({ code: 'ENVIRONMENT_RUN_UNKNOWN_PRESET' })
+    const rosterless = await harness()
+    await expect(rosterless.ctx.environmentRuns.checkPreset('bench')).rejects.toMatchObject({ code: 'ENVIRONMENT_RUN_PRESET_UNAVAILABLE' })
+    expect(StubAgents.current.created).toHaveLength(0)
   })
 })
