@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Records of real code-safety reviews: one program per record, kept exactly as the harness released it. A record holds the report the program published, the union of findings behind it, the verdict the committed examiner gave over the merged head, every session log, and a manifest with the repository head, the composition, the locked target and every file's digest. Nothing in a record is edited after the run; the table below is read from those files.
+Records of real code-safety reviews: one program per record, kept exactly as the harness released it. A record holds the report the program published, the union of findings behind it, the verdict the committed examiner gave over the merged head, every session log, and a manifest with the repository head, the composition, the locked target and every file's digest. Nothing in a record is edited after the run; the table below is read from those files. One thing is changed before a record is committed: private key material and example cloud keys that a department read out of the target are replaced in the findings, the result and the session logs by a redaction marker, and `manifest.json` lists under `redactions` which files were touched and how many blocks; the lines the examiner verified are never among them.
 
 The program is [`examples/headless-agent/tests/fixtures/program-code-safety/`](../../examples/headless-agent/tests/fixtures/program-code-safety/README.md), which also documents what a finding has to be and what the examiner refuses.
 

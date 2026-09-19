@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-真实代码安全评审的记录：一次 program 一条记录，完全按 harness 发布时的样子保存。一条记录包含 program 发布的报告、其背后的发现并集、已提交的审查器对合并后 HEAD 给出的裁定、全部会话日志，以及一份携带仓库 HEAD、组合、锁定目标与每个文件摘要的 manifest。记录写下之后不再编辑；下面的表格是从这些文件里读出来的。
+真实代码安全评审的记录：一次 program 一条记录，完全按 harness 发布时的样子保存。一条记录包含 program 发布的报告、其背后的发现并集、已提交的审查器对合并后 HEAD 给出的裁定、全部会话日志，以及一份携带仓库 HEAD、组合、锁定目标与每个文件摘要的 manifest。记录写下之后不再编辑；下面的表格是从这些文件里读出来的。 记录在提交之前只改动一处：部门从目标中读出的私钥材料与示例云密钥，在发现、结果与会话日志中被替换为脱敏标记，`manifest.json` 在 `redactions` 下列出改动了哪些文件、多少个区块；审查器验证过的那些行从不在其列。
 
 program 是 [`examples/headless-agent/tests/fixtures/program-code-safety/`](../../examples/headless-agent/tests/fixtures/program-code-safety/README.md)，那里同时记载了一条发现必须是什么，以及审查器拒绝什么。
 
