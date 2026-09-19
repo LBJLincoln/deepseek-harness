@@ -150,6 +150,10 @@ ACP 自动化服务器通过 JSON-RPC stdio 提供全新 agent 会话，同样�
 pnpm run demo:acp
 ```
 
+### 企业花名册与 harness feed
+
+`pnpm run roster` 会确定性地从真实仓库来源重新生成 [`data/enterprise/roster.json`](../data/enterprise/README.md)——这份面向企业概念验证、包含 147 个智能体的花名册；每当某个被引用的来源发生移动，就应重新生成并提交该文件。`pnpm run feed` 会把该花名册叠加上实时状态，连同发现到的 proving-ground 与 code-safety 运行数据，一并通过 HTTP 与 Server-Sent Events 在 4711 端口上提供服务（`--port <n>` 可覆盖端口，`--fixtures <dir>` 可改为对一个固定目录提供服务，而非实时发现）。这两个命令都不需要 `DEEPSEEK_API_KEY`。花名册的推导方式与诚实原则参见 [`data/enterprise/README.md`](../data/enterprise/README.md)，接口约定参见 [`scripts/harness-feed.ts`](../scripts/harness-feed.ts)。
+
 ### TODO 标记
 
 请使用以下三种注释标签之一标记代码中的已知问题，按紧急程度排序：
