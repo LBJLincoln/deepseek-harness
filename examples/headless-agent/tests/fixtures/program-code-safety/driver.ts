@@ -248,7 +248,7 @@ function programSpec(lock: TargetLock): ProgramSpec {
       'Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver.',
       `The tree under review is ${lock.root}; it holds ${locked} files, and \`target.json\` beside \`REPORTING.md\` lists every one of them.`,
       'It is read-only: read it, grep it, scan it, and write nothing into it.',
-      `You may run \`semgrep --config ${semgrepRules} --metrics off --json <path>\` when semgrep is on PATH; treat a hit as a place to read, never as a finding.`,
+      `Before reading, run \`semgrep --version\`; if it prints a version, run \`semgrep --config ${semgrepRules} --config p/owasp-top-ten --metrics off --json <path>\` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it.`,
       instruction,
       `Deliver \`findings/${key}.json\` and \`report/${key}.md\`, then commit.`,
       `Your work is measured by \`node verify-safety-report.mjs --findings findings/${key}.json\` over a clean worktree, so run it and commit before you stop.`,

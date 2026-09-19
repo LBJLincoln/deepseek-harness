@@ -20,7 +20,7 @@
 
 没有部门依赖另一个部门，因此真实运行一次并发三个。每个部门提交 `findings/<department>.json` 与 `report/<department>.md`，别无其他；集成方写出 `SAFETY-REPORT.md` 与 `findings.json`。[`seed/REPORTING.md`](seed/REPORTING.md) 是它们之间的全部约定，也是每个会话最先读的文件。
 
-部门可以针对本 fixture 附带的[本地规则](semgrep/code-safety.yml)运行 `semgrep --config semgrep/ --metrics off --json <path>`——eval、带插值的 `child_process`、字符串拼接的 SQL 与 `$where`、HTML 注入点、弱哈希、硬编码密钥、过宽的 CORS、不安全的 Cookie、明文端点。规则是本地的，因此运行不需要规则注册中心；真实运行可以在其旁另行指定注册中心的规则包。扫描器命中只是"该去读的地方"，绝不是发现本身。
+每个部门先运行 `semgrep --version`，有回应时再对目标运行 `semgrep --config semgrep/ --config p/owasp-top-ten --metrics off --json <path>`（注册表不可达时只用本地规则），每个命中都要先读过才能成为发现；本 fixture 附带的[本地规则](semgrep/code-safety.yml)覆盖——eval、带插值的 `child_process`、字符串拼接的 SQL 与 `$where`、HTML 注入点、弱哈希、硬编码密钥、过宽的 CORS、不安全的 Cookie、明文端点。规则是本地的，因此运行不需要规则注册中心；真实运行可以在其旁另行指定注册中心的规则包。扫描器命中只是"该去读的地方"，绝不是发现本身。
 
 ## 一条发现必须是什么
 

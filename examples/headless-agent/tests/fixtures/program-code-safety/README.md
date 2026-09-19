@@ -20,7 +20,7 @@ A run has a **target tree** — the customer's application, passed as a path and
 
 No department depends on another, so a real run works three at a time. Each commits `findings/<department>.json` and `report/<department>.md` and nothing else; the integration writes `SAFETY-REPORT.md` and `findings.json`. [`seed/REPORTING.md`](seed/REPORTING.md) is the whole contract between them and is the first file every session reads.
 
-Departments may run `semgrep --config semgrep/ --metrics off --json <path>` against the [local rules](semgrep/code-safety.yml) this fixture ships — eval, interpolated `child_process`, string-built SQL and `$where`, HTML sinks, weak hashes, hard-coded secrets, permissive CORS, insecure cookies, cleartext endpoints. The rules are local so a run needs no registry; a real run may name registry packs beside them. A scanner hit is a place to read, never a finding.
+Each department first runs `semgrep --version` and, when it answers, `semgrep --config semgrep/ --config p/owasp-top-ten --metrics off --json <path>` over the target (the local rules alone when the registry is unreachable), reading every hit before it becomes a finding; the [local rules](semgrep/code-safety.yml) this fixture ships cover — eval, interpolated `child_process`, string-built SQL and `$where`, HTML sinks, weak hashes, hard-coded secrets, permissive CORS, insecure cookies, cleartext endpoints. The rules are local so a run needs no registry; a real run may name registry packs beside them. A scanner hit is a place to read, never a finding.
 
 ## What a finding has to be
 
