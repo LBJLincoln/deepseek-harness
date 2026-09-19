@@ -30,7 +30,6 @@
  * @module enterprise-roster
  */
 
-import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -104,7 +103,7 @@ export interface RosterDivisionSummary {
 
 /** The complete generated roster document persisted at `data/enterprise/roster.json`. */
 export interface Roster {
-  /** ISO timestamp of the source tree's latest commit; stable for a given tree so the file stays byte-identical. */
+  /** ISO timestamp of the moment the roster's content last changed; {@link generateRoster} keeps it while the content is unchanged. */
   generatedAt: string
   /** Aggregate counts; `active` is always 0 here because this file never observes running sessions. */
   counts: { defined: number; active: number }
@@ -267,27 +266,60 @@ function titleCase(slug: string): string {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
-/**
- * The source tree's latest commit timestamp, which is what keeps
- * {@link Roster.generatedAt} stable across regenerations of the same tree. A
- * tree with no git history (e.g. an exported tarball) falls back to a fixed
- * epoch instead of the wall clock, which would break idempotency.
- * @param root - repository root.
- * @returns ISO 8601 commit timestamp, or the fixed fallback.
- */
-function generatedAt(root: string): string {
-  return tryGitCommitDate(root) ?? '1970-01-01T00:00:00Z'
+/** The roster file this generator owns, relative to the repository root. */
+export const ROSTER_PATH = 'data/enterprise/roster.json'
+
+/** The `generatedAt` a roster is built under before any file exists to keep a stamp from. */
+const EPOCH = '1970-01-01T00:00:00Z'
+
+/** Options for {@link buildRoster}. */
+export interface BuildRosterOptions {
+  /** The `generatedAt` to stamp; {@link generateRoster} chooses the value that keeps an unchanged file byte-identical. */
+  generatedAt: string
+  /** Repository-relative path to this feature's Agent Note, cited as the code-safety program lead's source. */
+  notePath?: string
 }
 
-/** @returns the HEAD commit's committer date, or `undefined` when git metadata is unavailable. */
-function tryGitCommitDate(root: string): string | undefined {
+/**
+ * Read the roster file as last written.
+ * @param file - absolute path of the roster file.
+ * @returns the file's bytes and the `generatedAt` they carry, or `undefined` when no file exists.
+ */
+function readRosterFile(file: string): { content: string; generatedAt: string } | undefined {
+  if (!existsSync(file)) return undefined
+  const content = readFileSync(file, 'utf8')
   try {
-    return execFileSync('git', ['log', '-1', '--format=%cI'], { cwd: root, encoding: 'utf8' }).trim() || undefined
+    const parsed: unknown = JSON.parse(content)
+    const stamp = typeof parsed === 'object' && parsed !== null && 'generatedAt' in parsed ? parsed.generatedAt : undefined
+    return { content, generatedAt: typeof stamp === 'string' ? stamp : EPOCH }
   } catch {
-    // No git metadata reachable (a tarball export, or a shallow clone with no
-    // commits checked out) — generatedAt falls back to a fixed timestamp.
-    return undefined
+    // A file that is not JSON cannot match any build, so it is rewritten under a fresh stamp.
+    return { content, generatedAt: EPOCH }
   }
+}
+
+/**
+ * Regenerate the roster file. `generatedAt` names the moment the roster's
+ * content last changed: the roster is first built under the file's current
+ * stamp, and when that reproduces the file byte for byte the file is left as
+ * it is; otherwise the roster is rebuilt under `now()` and written.
+ * @param root - repository root.
+ * @param now - the stamp a changed roster receives; the wall clock unless a test injects a fixed value.
+ * @param file - the roster file to read and write; {@link ROSTER_PATH} under `root` unless overridden.
+ * @returns the roster the file holds afterwards and whether the file changed.
+ */
+export function generateRoster(
+  root: string,
+  now: () => string = () => new Date().toISOString(),
+  file = join(root, ROSTER_PATH),
+): { roster: Roster; changed: boolean } {
+  const previous = readRosterFile(file)
+  const rebuilt = buildRoster(root, { generatedAt: previous?.generatedAt ?? EPOCH })
+  if (previous !== undefined && serializeRoster(rebuilt) === previous.content) return { roster: rebuilt, changed: false }
+  const roster = buildRoster(root, { generatedAt: now() })
+  mkdirSync(dirname(file), { recursive: true })
+  writeFileSync(file, serializeRoster(roster))
+  return { roster, changed: true }
 }
 
 const DIVISIONS: RosterDivisionSummary[] = [
@@ -844,14 +876,11 @@ function buildEdges(agents: readonly RosterAgentDefinition[]): RosterEdge[] {
  * sources. Pure and deterministic: given the same tree, produces the same
  * value (see {@link serializeRoster} for the byte-identical guarantee).
  * @param root - repository root to read sources from.
- * @param notePath - repository-relative path to this feature's Agent Note,
- *   cited as the code-safety program lead's source.
+ * @param options - the stamp to carry and, optionally, the Agent Note path to cite.
  * @returns the assembled roster.
  */
-export function buildRoster(
-  root: string,
-  notePath = '.agents/notes/implemented/architecture/2026-09-19-enterprise-roster-and-harness-feed.md',
-): Roster {
+export function buildRoster(root: string, options: BuildRosterOptions): Roster {
+  const notePath = options.notePath ?? '.agents/notes/implemented/architecture/2026-09-19-enterprise-roster-and-harness-feed.md'
   const quotaSum = Object.values(DIVISION_QUOTAS).reduce((sum, quota) => sum + quota, 0)
   if (quotaSum !== ROSTER_AGENT_COUNT) {
     throw new Error(`enterprise-roster: division quotas sum to ${quotaSum}, expected ${ROSTER_AGENT_COUNT}`)
@@ -878,7 +907,7 @@ export function buildRoster(
     seen.add(agent.id)
   }
   return {
-    generatedAt: generatedAt(root),
+    generatedAt: options.generatedAt,
     counts: { defined: ROSTER_AGENT_COUNT, active: 0 },
     divisions: DIVISIONS,
     agents,
@@ -900,9 +929,6 @@ export function serializeRoster(roster: Roster): string {
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-  const roster = buildRoster(root)
-  const outDir = join(root, 'data/enterprise')
-  mkdirSync(outDir, { recursive: true })
-  writeFileSync(join(outDir, 'roster.json'), serializeRoster(roster))
-  console.log(`enterprise-roster: wrote ${roster.agents.length} agents to data/enterprise/roster.json`)
+  const { roster, changed } = generateRoster(root)
+  console.log(`enterprise-roster: ${changed ? 'wrote' : 'kept'} ${roster.agents.length} agents in ${ROSTER_PATH} (generatedAt ${roster.generatedAt})`)
 }

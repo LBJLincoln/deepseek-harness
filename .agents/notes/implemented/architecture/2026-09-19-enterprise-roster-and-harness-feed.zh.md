@@ -12,7 +12,7 @@ Status: implemented
 
 **花名册是生成出来的,而非手写的,且每条记录都引用一个真实的、经过校验的路径。** `scripts/enterprise-roster.ts` 把恰好 147 个智能体组合为"角色 x 事业部 x 专精方向"。每个事业部的智能体数量都是一个固定配额(`DIVISION_QUOTAS`,总和为 147),而非某个目录列表的长度:`takeQuota()` 会从一个为确定性迭代而排序的来源池中精确截取该配额所需的条目数,若代码树定义的真实来源少于配额所需,则抛出异常并指明该事业部与缺口数量。每个事业部的来源池都是一个可枚举的真实来源：`harness-core` 取自 `packages/core`、`packages/llm`、`packages/subagent` 的叶子目录；`proving-ground` 取自 Proving Ground 基准测试夹具下的任务环境(`examples/headless-agent/tests/fixtures/proving-ground-bench/environments`)；`verification` 取自 `scripts/verify-*.ts`；`judging` 取自 `scripts/run-gates.ts` 中的 CI 关卡 id；`curation-data` 取自 `.agents/notes/implemented/<class>` 目录加上 token-meter 软件包；`program-departments` 取自十个软件包分组的 README；`code-safety` 取自 `data/knowledge/code-safety` 下六个部门真实的审查知识包与六种语言专精方向的交叉；`knowledge` 取自 `.agents/skills/<id>` 目录；`governance` 取自八份流程标准文件；`observatory` 取自六个遥测/查询来源。一个 `cite()` 辅助函数会在生成器产出任何一条硬编码的相对路径之前,先用 `existsSync` 对其做校验,因此一个被改名或删除的来源会让生成器立即失败并指明缺失的路径,而不是发布一条无所依托的花名册记录。每位代码安全审查员的 OpenRouter 模型,以及免费模型列表本身,都来自对 Proving Ground 基准测试的 `with-openrouter.cordis.yml` 叠加层所做的一次正则表达式提取(`openRouterFreeModels()`),并用 `pickCyclic()` 在 36 位审查员之间循环分配,绝非硬编码的模型列表。
 
-**`generatedAt` 取代码树最近一次提交的时间戳,而非取自系统时钟。** 读取 `git log -1 --format=%cI` 而非 `Date.now()`,正是让 `buildRoster()` 在针对同一提交反复运行时产出逐字节相同的 JSON 的关键——这是一条真正的幂等性质,而不仅仅是字段数量恒定。没有 git 历史的代码树会回退到一个固定的纪元时间,而不是破坏这条保证。
+**`generatedAt` 是花名册内容最近一次变化的时刻,而绝非某次重新生成的时钟。** `generateRoster()` 先用已提交文件自带的时间戳构建花名册;若由此逐字节复现了该文件,文件便原样保留,只有内容变化才会以当前时间重建并写入。`buildRoster()` 本身把时间戳作为参数接收并保持纯函数,因此在未变化的代码树上运行 `pnpm run roster` 不产生任何差异,规格测试也用同一时间戳把已提交文件与一次全新构建作比较;尚无花名册文件的代码树从固定的纪元时间构建,并以当前时间写入。
 
 **生成文件中的 `status` 永远是 `"defined"`,`counts.active` 永远是 `0`。** 这个模块描述的是仓库定义了什么;它没有会话数据,也不应去猜测。`scripts/harness-feed.ts` 是唯一计算实时状态的地方：其 `GET /roster` 处理函数读取已提交的花名册,再把每个智能体映射到一个实时会话(尽力而为,先依据会话被打上标记的 `request/header` 中声明的提供方/模型,再依据其角色或事业部是否出现在该会话的系统提示词文本中)来判定 `active`(存在匹配且仍在运行的会话)、`certified`(该会话在结束前记录了一个 `verification/certificate` 形状的事件)或 `failed`(结束时未记录该事件),此后才重新计算计数。已提交的文件与被响应返回的对象绝不是同一个对象;被响应返回的内容是每次请求派生并即用即弃的。
 
@@ -34,7 +34,7 @@ Status: implemented
 ## Alternatives considered
 
 - **手写一次 `roster.json` 并作为静态数据提交** ——第一次软件包改名或删除,就会让相关记录悄无声息地指向空处,且没有任何机制能察觉。带有经过校验的 `cite()` 的生成方式,把这种情况变成一次构建失败,而不是一句悄悄的谎言。
-- **`generatedAt` 取系统时钟** ——会让每一次重新生成都产生差异,即便代码树中没有任何来源发生变化,这与幂等性检查的初衷背道而驰。
+- **`generatedAt` 取系统时钟,或取代码树最近一次提交的时间戳** ——系统时钟会让每一次重新生成都产生差异,即便代码树中没有任何来源发生变化;而 HEAD 提交的时间戳在重新生成的文件本身被提交的那一刻就会移动,已提交文件因此永远无法与一次全新构建相符。在内容变化之前保留已提交的时间戳,是唯一能让文件、生成器与规格测试三者一致的选择。
 - **让折叠逻辑以理想化的事件名而非真实事件名为主键** ——会让折叠逻辑的主路径无法针对本仓库当前能够产出的任何会话日志进行测试。先折叠真实词汇表,再把仍面向未来的名字(`agent/step`、以 `finding` 为前缀的类型)作为额外可识别的前缀,既能让无密钥测试套件锻炼真实行为,又能为那唯一尚未上线的扫描器保持面向未来的兼容性。
 - **把缺失的 `.proving-ground/`、`.code-safety/`、`data/proving-ground/` 或 `data/code-safety/` 当作错误处理** ——前两者是真实机器会填充的运行时目录,一次全新检出或 CI 运行器通常没有;后两者是已提交的记录,但仍可能缺少任何一个具体的运行 id。这四者中任意一个缺失都是常见情形,而非配置错误。
 - **从 `plan.json` 自身的 `kind`/`status`/`endedAt` 字段推导一次运行的种类或状态** ——没有任何驱动脚本会写入这些字段(`scripts/proving-ground.ts` 只会逐字节拷贝用户编写的计划文件),若信赖它们,就会让每一次运行都悄无声息地报告同样错误的种类与状态。改为从计划实际声明的 arms、以及从 `run.log`/`stdout.jsonl` 的末尾行推导,能让答案对应驱动脚本确实写下的内容。
