@@ -163,13 +163,6 @@ if (!existsSync(target)) throw new Error(`code-safety driver: the target tree ${
 process.env.DSH_CODE_SAFETY_PRESETS = fileURLToPath(new URL('presets', import.meta.url))
 const semgrepRules = fileURLToPath(new URL('semgrep', import.meta.url))
 
-// The knowledge pack is mounted when the repository carries one and the run is
-// composed to look for it; the composition decides by this variable's presence,
-// so a tree without the pack composes no skill root rather than an empty one.
-if (process.env.DSH_CODE_SAFETY_SKILLS !== undefined && !existsSync(process.env.DSH_CODE_SAFETY_SKILLS)) {
-  Reflect.deleteProperty(process.env, 'DSH_CODE_SAFETY_SKILLS')
-}
-
 // A host that configures git through `GIT_CONFIG_COUNT` hands every child a
 // command-line config the shell seam cannot forward whole, and git then refuses
 // every invocation. This fixture runs against its own repository, so it drops

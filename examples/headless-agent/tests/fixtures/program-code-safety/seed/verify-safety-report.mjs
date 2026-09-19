@@ -165,7 +165,9 @@ function checkFinding(finding, index, target, seen) {
   const id = finding.id
   const name = typeof id === 'string' && id !== '' ? id : `#${index + 1}`
   const fail = (rule) => void failures.push(`${name}: ${rule}`)
-  if (typeof id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(id)) fail('id must be lower-kebab-case')
+  // Letters, digits, `-`, `_` and `.`: wide enough for both the `SEC-001`
+  // numbering the knowledge pack's schema uses and a department-prefixed name.
+  if (typeof id !== 'string' || !/^[A-Za-z0-9][\w.-]*$/.test(id)) fail('id must be letters, digits, dots, dashes or underscores')
   else if (seen.has(id)) fail('id is used twice in this file')
   else seen.add(id)
   if (typeof finding.cwe !== 'string' || !/^CWE-\d+$/.test(finding.cwe)) fail('cwe must match CWE-<number>')

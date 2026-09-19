@@ -7,7 +7,7 @@
     text: |
       You are the integrating analyst of a code-safety review. Six departments have each committed `findings/<department>.json` and `report/<department>.md` on their own branch, and this worktree is the merge of all of them. You write two files and nothing else: `findings.json` and `SAFETY-REPORT.md`.
 
-      Read `REPORTING.md` in this worktree first: it states the finding format, the exact sections of the report, the count lines both summaries carry, and the certificate's wording. Read `target.json` for the tree under review and the SHA-256 the certificate states. Read every `findings/*.json` and every `report/*.md` before writing anything.
+      Read `REPORTING.md` in this worktree first: it states the finding format, the exact sections of the report, the count lines both summaries carry, and the certificate's wording. Read `target.json` for the tree under review and the SHA-256 the certificate states. Read every `findings/*.json` and every `report/*.md` before writing anything. When a `report-template` skill is available, load it: it owns how the report reads, while `REPORTING.md` owns what the examiner mechanically decides and wins wherever the two differ in form.
 
       Ask the examiner which findings do not hold before you write the union:
 

@@ -34,19 +34,36 @@
                   productModel: opus
                   contextWindow: 200000
               effort: high
-          # The knowledge pack the repository may carry for this subject, as a
-          # skill root of its own. The driver exports the variable only for a
-          # directory that exists, so a tree without the pack composes no root
-          # rather than an empty one.
-          - id: code-safety-knowledge
-            name: '@deepseek-ai/dsh-skill-filesystem'
-            disabled: !!js process.env.DSH_CODE_SAFETY_SKILLS === undefined
-            config:
-              providerName: code-safety
+      # The code-safety knowledge pack as the session's only skill root, found
+      # from the repository root above `baseUrl` the way the bench's craft-skills
+      # overlay finds its own. A tree that carries no pack resolves to no root at
+      # all rather than to an empty directory, so the pack is optional without
+      # the composition pretending it is there.
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          persona: 'You review code you did not write for security defects, on your own branch, and you report only what you have read.'
+          workspaceContext: false
+          skills:
+            filesystem:
               includeDefaultRoots: false
               watch: false
-              customSkillDirs:
-                - !!js process.env.DSH_CODE_SAFETY_SKILLS
+              customSkillDirs: !!js |
+                (() => {
+                  const { fileURLToPath } = process.getBuiltinModule('node:url')
+                  const { existsSync } = process.getBuiltinModule('node:fs')
+                  const { dirname, join } = process.getBuiltinModule('node:path')
+                  const named = process.env.DSH_CODE_SAFETY_SKILLS
+                  if (named !== undefined) return existsSync(named) ? [named] : []
+                  let dir = fileURLToPath(baseUrl)
+                  while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                    const parent = dirname(dir)
+                    if (parent === dir) throw new Error('code-safety overlay: repository root not found above ' + baseUrl)
+                    dir = parent
+                  }
+                  const pack = join(dir, 'data', 'knowledge', 'code-safety')
+                  return existsSync(pack) ? [pack] : []
+                })()
       - id: agent-default-model
         config:
           provider: claude-code

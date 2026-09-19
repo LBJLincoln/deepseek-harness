@@ -493,6 +493,8 @@ function safetyReport(findings: readonly Quoted[], lockDigest: string): string {
     `Verified findings: ${String(findings.length)}`,
     `Target tree: ${lockDigest}`,
     '',
+    'Mechanically checked: every finding resolves to a real file and line in the locked tree, every id is unique, and no two findings share file, line and CWE.',
+    '',
     'This review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in "Scope and method".',
     '',
   ].join('\n')

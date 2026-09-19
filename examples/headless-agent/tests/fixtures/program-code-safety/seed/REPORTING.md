@@ -4,6 +4,12 @@ This worktree is the **report repository**. The code under review is the **targe
 
 The target is read-only for every session of this program. `verify-safety-report.mjs` re-hashes every locked file on every run, so a target a department edited fails the program instead of releasing a report about a tree that no longer exists.
 
+## This file and the skills
+
+When the deployment mounts the code-safety knowledge pack, its `review-method`, `severity-and-evidence` and `report-template` skills own the craft: how to read a codebase, how to score a severity, what evidence has to name, and how the report reads. Follow them.
+
+This file owns what `verify-safety-report.mjs` mechanically decides, and it is binding wherever the two differ in form. There is one such place and it is stated below: the counts each summary carries are written as `- <severity>: <count>` lines so the examiner can compare them with the union, which is the machine-readable form of the skill's "counts per severity".
+
 ## What a department delivers
 
 Two files, both committed on the department's own branch:
@@ -41,7 +47,7 @@ Prefer three findings you have read the code for over twelve a pattern matched. 
 
 | Field | Rule |
 | --- | --- |
-| `id` | lower-kebab-case, unique across the whole program; prefix it with your department. |
+| `id` | letters, digits, dots, dashes or underscores, unique across the whole program; prefix it with your department or use the pack's `SEC-<n>` numbering. |
 | `cwe` | `CWE-<number>`. |
 | `owasp` | the OWASP Top 10 category, named. |
 | `severity` | `critical`, `high`, `medium`, `low` or `info`. |
@@ -123,10 +129,12 @@ Every id that command prints is dropped from `findings.json` and named under `##
 Verified findings: <count>
 Target tree: <the sha256 from target.json>
 
+<one sentence on what was checked mechanically: that every finding resolves to a real file and line in the locked tree, that every id is unique, and that no two findings share file, line and CWE>
+
 This review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in "Scope and method".
 ```
 
-Both summary sections state a `- <severity>: <count>` line for all five severities, and the five counts must be the counts `findings.json` actually holds. Every finding id in `findings.json` is cited in `## Findings`. Every `<file>:<line>` written anywhere in the report must resolve in the target.
+Both summary sections state a `- <severity>: <count>` line for all five severities, and the five counts must be the counts `findings.json` actually holds. Every finding id in `findings.json` is cited in `## Findings`. Every `<file>:<line>` written anywhere in the report must resolve in the target, so write a path you did not read as prose rather than as a citation.
 
 The report is a review by a language model, grounded by a static scanner and by this examiner. Say so in `## Scope and method`. Never write that the target is secure, safe, or free of vulnerabilities: `verify-safety-report.mjs` refuses those claims, because nothing this program did could support one.
 
