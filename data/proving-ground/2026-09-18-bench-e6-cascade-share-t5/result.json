@@ -1,0 +1,781 @@
+{
+  "type": "result",
+  "plan": "e6-cascade-share-t5",
+  "environments": [
+    "code:build-schedule",
+    "code:conf-canon",
+    "code:diff3-merge",
+    "code:lex-states",
+    "code:ranked-choice",
+    "code:rate-limit-sim",
+    "code:sheet-eval",
+    "code:uri-resolve"
+  ],
+  "startedAt": "2026-09-18T23:04:56.088Z",
+  "endedAt": "2026-09-19T00:16:47.135Z",
+  "result": {
+    "digest": "36015a2d9bb607502489b2a90d3c5db9a03f1201719a408489ee90adbcb632b8",
+    "arms": {
+      "baseline": {
+        "model": {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        "ladder": [
+          {},
+          {},
+          {}
+        ],
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "experiment-36015a2d9bb607502489b2a90d3c5db9a03f1201719a408489ee90adbcb632b8-baseline"
+      },
+      "candidate": {
+        "model": {
+          "provider": "claude-code",
+          "model": "haiku"
+        },
+        "ladder": [
+          {
+            "share": 0.2
+          },
+          {
+            "model": {
+              "provider": "claude-code",
+              "model": "opus"
+            }
+          },
+          {
+            "model": {
+              "provider": "claude-code",
+              "model": "opus"
+            }
+          }
+        ],
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "experiment-36015a2d9bb607502489b2a90d3c5db9a03f1201719a408489ee90adbcb632b8-candidate"
+      }
+    },
+    "cells": [
+      {
+        "environment": "code:build-schedule",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1.5,
+        "inputTokenDelta": 213,
+        "outputTokenDelta": 60680
+      },
+      {
+        "environment": "code:conf-canon",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1,
+        "inputTokenDelta": 258,
+        "outputTokenDelta": 31763
+      },
+      {
+        "environment": "code:diff3-merge",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1.5,
+        "inputTokenDelta": 253,
+        "outputTokenDelta": 45255
+      },
+      {
+        "environment": "code:lex-states",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0.5,
+        "inputTokenDelta": 284,
+        "outputTokenDelta": 16574
+      },
+      {
+        "environment": "code:ranked-choice",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1,
+        "inputTokenDelta": 259,
+        "outputTokenDelta": 26834
+      },
+      {
+        "environment": "code:rate-limit-sim",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1,
+        "inputTokenDelta": 241,
+        "outputTokenDelta": 20490
+      },
+      {
+        "environment": "code:sheet-eval",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1,
+        "inputTokenDelta": 229,
+        "outputTokenDelta": 21616
+      },
+      {
+        "environment": "code:uri-resolve",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 1,
+        "inputTokenDelta": 329,
+        "outputTokenDelta": 26140
+      }
+    ],
+    "errors": [],
+    "seedsPaired": 16,
+    "delta": 0,
+    "interval": {
+      "lower": 0,
+      "upper": 0
+    },
+    "spend": {
+      "inputTokens": 2766,
+      "outputTokens": 667248
+    },
+    "thresholds": {
+      "bootstrapResamples": 2000,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0.05,
+      "cellTokenCap": 600000
+    },
+    "caps": [
+      [
+        "maxTotalTokens",
+        1500000
+      ],
+      [
+        "maxWallMs",
+        1200000
+      ]
+    ],
+    "verdict": "inconclusive"
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:build-schedule",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:conf-canon",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:diff3-merge",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:lex-states",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:ranked-choice",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:rate-limit-sim",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:sheet-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "haiku",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "haiku",
+          "share": 0.2
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:uri-resolve",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:build-schedule",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:conf-canon",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:diff3-merge",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:lex-states",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:ranked-choice",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:rate-limit-sim",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:sheet-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "opus",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        },
+        {
+          "provider": "claude-code",
+          "model": "opus"
+        }
+      ],
+      "environmentId": "code:uri-resolve",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    }
+  ],
+  "facts": {
+    "sessions": 32,
+    "exported": 32,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 32,
+    "exported": 32,
+    "rewarded": 32,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}

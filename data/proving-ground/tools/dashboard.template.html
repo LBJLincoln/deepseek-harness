@@ -245,7 +245,7 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
     </article>`
   }
   const order = { promote: 0, reject: 1, inconclusive: 2 }
-  const exps = [...D.experiments].sort((a, b) => (order[a.verdict] - order[b.verdict]) || a.date.localeCompare(b.date))
+  const exps = [...D.experiments].sort((a, b) => (order[a.verdict] - order[b.verdict]) || b.date.localeCompare(a.date))
   const methods = [...new Set(exps.map(e => e.method))]
   let methodFilter = null
   function renderVerdicts() {
