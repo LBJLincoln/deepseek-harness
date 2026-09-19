@@ -1,0 +1,5623 @@
+{
+  "generatedAt": "2026-09-18T09:12:00.000Z",
+  "counts": {
+    "defined": 147,
+    "active": 32
+  },
+  "divisions": [
+    {
+      "id": "harness-core",
+      "name": "Harness Core",
+      "purpose": "Owns the plugin spine: loader, session log, agent loop, tools, and the capability seams every other division stands on."
+    },
+    {
+      "id": "proving-ground",
+      "name": "Proving Ground",
+      "purpose": "Runs every licensed route against the environment suite in shifts, with repetitions, seeds, and frozen paired experiments."
+    },
+    {
+      "id": "verification",
+      "name": "Verification",
+      "purpose": "Executes the checks nobody self-reports, records the read-barrier census, and issues the certificate a release depends on."
+    },
+    {
+      "id": "judging",
+      "name": "Judging",
+      "purpose": "Scores contested work against a frozen rubric, one lens per judge, and records the dissent alongside the verdict."
+    },
+    {
+      "id": "curation",
+      "name": "Curation and Data",
+      "purpose": "Turns persisted sessions into exports that respect their recorded data-use terms, with redaction before anything leaves."
+    },
+    {
+      "id": "program",
+      "name": "Program Departments",
+      "purpose": "Splits one client deliverable into department goals on their own worktrees, then releases only on a certificate of the merged head."
+    },
+    {
+      "id": "code-safety",
+      "name": "Code Safety",
+      "purpose": "Six departments read a target repository in parallel and place every finding on the line of code that carries it."
+    },
+    {
+      "id": "knowledge",
+      "name": "Knowledge",
+      "purpose": "Keeps the packs, skills, and postmortems that every other division reads before it starts, under keep-or-retire review."
+    },
+    {
+      "id": "governance",
+      "name": "Governance",
+      "purpose": "Gates the five transitions that never complete without a recorded signature, and routes incidents away from the blog."
+    },
+    {
+      "id": "observatory",
+      "name": "Observatory",
+      "purpose": "Folds persisted logs into the rows the deck shows, and never blends across isolation, held-out flag, or executor."
+    }
+  ],
+  "agents": [
+    {
+      "id": "harness-core/loader-architect",
+      "name": "Loader Architect",
+      "role": "plugin graph owner",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/loader-architect.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/seam-designer",
+      "name": "Seam Designer",
+      "role": "capability seam reviewer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "bash",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/seam-designer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/session-scribe",
+      "name": "Session Scribe",
+      "role": "durable log owner",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "todo_write"
+      ],
+      "source": "agents/harness-core/session-scribe.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/agent-loop-steward",
+      "name": "Agent Loop Steward",
+      "role": "loop extension owner",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/agent-loop-steward.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/tool-smith",
+      "name": "Tool Smith",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/tool-smith.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/prompt-compositor",
+      "name": "Prompt Compositor",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "grep",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/prompt-compositor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/compaction-warden",
+      "name": "Compaction Warden",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "grep",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/compaction-warden.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/route-broker",
+      "name": "Route Broker",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "bash",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/route-broker.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/shell-custodian",
+      "name": "Shell Custodian",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "edit",
+        "bash",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/shell-custodian.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/filesystem-marshal",
+      "name": "Filesystem Marshal",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "edit",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/filesystem-marshal.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/subprocess-reaper",
+      "name": "Subprocess Reaper",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/subprocess-reaper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/terminal-keeper",
+      "name": "Terminal Keeper",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "grep",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/terminal-keeper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/workflow-weaver",
+      "name": "Workflow Weaver",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "bash",
+        "grep",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/workflow-weaver.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/preset-composer",
+      "name": "Preset Composer",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-pre-push-checks",
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/preset-composer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/budget-sentinel",
+      "name": "Budget Sentinel",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "grep",
+        "todo_write",
+        "workflow_run"
+      ],
+      "source": "agents/harness-core/budget-sentinel.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core/hook-interpreter",
+      "name": "Hook Interpreter",
+      "role": "harness engineer",
+      "division": "harness-core",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "cordis",
+      "skills": [
+        "dsh-code-review",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/harness-core/hook-interpreter.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/bench-marshal",
+      "name": "Bench Marshal",
+      "role": "shift scheduler",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k"
+      ],
+      "tools": [
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/bench-marshal.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "proving-ground/environment-miner",
+      "name": "Environment Miner",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/environment-miner.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/cell-runner",
+      "name": "Cell Runner",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/cell-runner.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/repetition-planner",
+      "name": "Repetition Planner",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/repetition-planner.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/paired-experiment-driver",
+      "name": "Paired Experiment Driver",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/paired-experiment-driver.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/seed-registrar",
+      "name": "Seed Registrar",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/seed-registrar.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/scorekeeper",
+      "name": "Scorekeeper",
+      "role": "scoreboard folder",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/scorekeeper.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "proving-ground/route-licensor",
+      "name": "Route Licensor",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run"
+      ],
+      "source": "agents/proving-ground/route-licensor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/circuit-breaker",
+      "name": "Circuit Breaker",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/circuit-breaker.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/workspace-reaper",
+      "name": "Workspace Reaper",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/workspace-reaper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/held-out-custodian",
+      "name": "Held-out Custodian",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/held-out-custodian.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/calibration-analyst",
+      "name": "Calibration Analyst",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/calibration-analyst.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "proving-ground/outage-watch",
+      "name": "Outage Watch",
+      "role": "bench operator",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/outage-watch.agent.yml",
+      "status": "failed"
+    },
+    {
+      "id": "proving-ground/bench-craft",
+      "name": "Bench Craft",
+      "role": "case author",
+      "division": "proving-ground",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "bench-shift-planning",
+        "pass-at-k",
+        "route-licensing"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "workflow_run",
+        "todo_write"
+      ],
+      "source": "agents/proving-ground/bench-craft.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/check-executor",
+      "name": "Check Executor",
+      "role": "check runner",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/check-executor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "verification/certificate-authority",
+      "name": "Certificate Authority",
+      "role": "certificate issuer",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/certificate-authority.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "verification/read-barrier-census",
+      "name": "Read Barrier Census",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "glob"
+      ],
+      "source": "agents/verification/read-barrier-census.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "verification/isolation-auditor",
+      "name": "Isolation Auditor",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/isolation-auditor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/tamper-inspector",
+      "name": "Tamper Inspector",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/tamper-inspector.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/executor-attestor",
+      "name": "Executor Attestor",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "glob"
+      ],
+      "source": "agents/verification/executor-attestor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/standard-compiler",
+      "name": "Standard Compiler",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/standard-compiler.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/case-folder",
+      "name": "Case Folder",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/case-folder.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/regression-gate",
+      "name": "Regression Gate",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/regression-gate.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/flake-triager",
+      "name": "Flake Triager",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/flake-triager.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/coverage-assessor",
+      "name": "Coverage Assessor",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/coverage-assessor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "verification/evidence-librarian",
+      "name": "Evidence Librarian",
+      "role": "verifier",
+      "division": "verification",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "check-execution",
+        "read-barrier-census",
+        "isolation-audit"
+      ],
+      "tools": [
+        "bash",
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/verification/evidence-librarian.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/council-chair",
+      "name": "Council Chair",
+      "role": "council convener",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/council-chair.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "judging/correctness-judge",
+      "name": "Correctness Judge",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/correctness-judge.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "judging/operations-judge",
+      "name": "Operations Judge",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/operations-judge.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/governance-judge",
+      "name": "Governance Judge",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/governance-judge.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/determinism-judge",
+      "name": "Determinism Judge",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/determinism-judge.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/data-judge",
+      "name": "Data Judge",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/data-judge.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/client-judge",
+      "name": "Client Judge",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/client-judge.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/rubric-keeper",
+      "name": "Rubric Keeper",
+      "role": "rubric owner",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/rubric-keeper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "judging/dissent-recorder",
+      "name": "Dissent Recorder",
+      "role": "judge",
+      "division": "judging",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "judge",
+      "skills": [
+        "rubric-scoring",
+        "dissent-recording"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/judging/dissent-recorder.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/curator",
+      "name": "Curator",
+      "role": "export owner",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/curator.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "curation/redaction-profiler",
+      "name": "Redaction Profiler",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/redaction-profiler.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/terms-gatekeeper",
+      "name": "Terms Gatekeeper",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/terms-gatekeeper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/trajectory-exporter",
+      "name": "Trajectory Exporter",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/trajectory-exporter.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/transcript-digester",
+      "name": "Transcript Digester",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/transcript-digester.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/duplicate-detector",
+      "name": "Duplicate Detector",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/duplicate-detector.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/dataset-packer",
+      "name": "Dataset Packer",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/dataset-packer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/provenance-stamper",
+      "name": "Provenance Stamper",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "workflow_run"
+      ],
+      "source": "agents/curation/provenance-stamper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/consent-auditor",
+      "name": "Consent Auditor",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/consent-auditor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/quarantine-officer",
+      "name": "Quarantine Officer",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/quarantine-officer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "curation/corpus-statistician",
+      "name": "Corpus Statistician",
+      "role": "curator",
+      "division": "curation",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "redaction-profiles",
+        "terms-matching",
+        "trajectory-export"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/curation/corpus-statistician.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/program-ledger",
+      "name": "Program Ledger",
+      "role": "program owner",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "write",
+        "bash",
+        "todo_write"
+      ],
+      "source": "agents/program/program-ledger.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "program/spec-freezer",
+      "name": "Spec Freezer",
+      "role": "spec steward",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "write",
+        "grep"
+      ],
+      "source": "agents/program/spec-freezer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/department-lead-api",
+      "name": "Department Lead — API",
+      "role": "department lead",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "bash",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/department-lead-api.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/department-lead-data",
+      "name": "Department Lead — Data",
+      "role": "department lead",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "write",
+        "bash",
+        "todo_write"
+      ],
+      "source": "agents/program/department-lead-data.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/department-lead-interface",
+      "name": "Department Lead — Interface",
+      "role": "department lead",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "grep"
+      ],
+      "source": "agents/program/department-lead-interface.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/department-lead-platform",
+      "name": "Department Lead — Platform",
+      "role": "department lead",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/department-lead-platform.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/implementer-api",
+      "name": "Implementer — API",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "write",
+        "grep"
+      ],
+      "source": "agents/program/implementer-api.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/implementer-data",
+      "name": "Implementer — Data",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/implementer-data.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/implementer-interface",
+      "name": "Implementer — Interface",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "write",
+        "bash",
+        "grep"
+      ],
+      "source": "agents/program/implementer-interface.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/implementer-platform",
+      "name": "Implementer — Platform",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "write",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/implementer-platform.agent.yml",
+      "status": "failed"
+    },
+    {
+      "id": "program/integration-merger",
+      "name": "Integration Merger",
+      "role": "integrator",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "write",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/integration-merger.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "program/release-steward",
+      "name": "Release Steward",
+      "role": "release owner",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "write",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/release-steward.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "program/worktree-broker",
+      "name": "Worktree Broker",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "write",
+        "bash",
+        "grep"
+      ],
+      "source": "agents/program/worktree-broker.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/goal-compiler",
+      "name": "Goal Compiler",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "grep"
+      ],
+      "source": "agents/program/goal-compiler.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/attempt-planner",
+      "name": "Attempt Planner",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "todo_write"
+      ],
+      "source": "agents/program/attempt-planner.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/certificate-reconciler",
+      "name": "Certificate Reconciler",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "write",
+        "todo_write"
+      ],
+      "source": "agents/program/certificate-reconciler.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/handoff-editor",
+      "name": "Handoff Editor",
+      "role": "implementer",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "goal-decomposition",
+        "worktree-hygiene"
+      ],
+      "tools": [
+        "read",
+        "edit",
+        "bash",
+        "grep",
+        "todo_write"
+      ],
+      "source": "agents/program/handoff-editor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "program/client-liaison",
+      "name": "Client Liaison",
+      "role": "client contact",
+      "division": "program",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "code",
+      "skills": [
+        "worktree-hygiene",
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "edit",
+        "write",
+        "bash",
+        "grep"
+      ],
+      "source": "agents/program/client-liaison.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "code-safety/secret-scanner",
+      "name": "Secret Scanner",
+      "role": "secrets auditor",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/secrets/secret-scanner.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/entropy-sentinel",
+      "name": "Entropy Sentinel",
+      "role": "secrets auditor",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/secrets/entropy-sentinel.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/credential-flow-tracer",
+      "name": "Credential Flow Tracer",
+      "role": "secrets auditor",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/secrets/credential-flow-tracer.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/key-rotation-auditor",
+      "name": "Key Rotation Auditor",
+      "role": "secrets auditor",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/secrets/key-rotation-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/history-sweeper",
+      "name": "History Sweeper",
+      "role": "secrets auditor",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/secrets/history-sweeper.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/vault-policy-reader",
+      "name": "Vault Policy Reader",
+      "role": "secrets auditor",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/secrets/vault-policy-reader.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/taint-tracer",
+      "name": "Taint Tracer",
+      "role": "injection auditor",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/injection/taint-tracer.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/query-composer-auditor",
+      "name": "Query Composer Auditor",
+      "role": "injection auditor",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/injection/query-composer-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/template-escape-auditor",
+      "name": "Template Escape Auditor",
+      "role": "injection auditor",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/injection/template-escape-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/command-surface-auditor",
+      "name": "Command Surface Auditor",
+      "role": "injection auditor",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/injection/command-surface-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/deserialization-auditor",
+      "name": "Deserialization Auditor",
+      "role": "injection auditor",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "grep",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/injection/deserialization-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/log-forging-auditor",
+      "name": "Log Forging Auditor",
+      "role": "injection auditor",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/injection/log-forging-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/route-guard-auditor",
+      "name": "Route Guard Auditor",
+      "role": "access auditor",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/access/route-guard-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/session-flag-auditor",
+      "name": "Session Flag Auditor",
+      "role": "access auditor",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/access/session-flag-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/object-reference-auditor",
+      "name": "Object Reference Auditor",
+      "role": "access auditor",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/access/object-reference-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/privilege-escalation-auditor",
+      "name": "Privilege Escalation Auditor",
+      "role": "access auditor",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/access/privilege-escalation-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/request-forgery-auditor",
+      "name": "Request Forgery Auditor",
+      "role": "access auditor",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/access/request-forgery-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/redirect-auditor",
+      "name": "Redirect Auditor",
+      "role": "access auditor",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash"
+      ],
+      "source": "agents/code-safety/access/redirect-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/encryption-at-rest-auditor",
+      "name": "Encryption-at-Rest Auditor",
+      "role": "data auditor",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/data/encryption-at-rest-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/transport-auditor",
+      "name": "Transport Auditor",
+      "role": "data auditor",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/data/transport-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/personal-data-classifier",
+      "name": "Personal Data Classifier",
+      "role": "data auditor",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/data/personal-data-classifier.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/retention-auditor",
+      "name": "Retention Auditor",
+      "role": "data auditor",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/data/retention-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/backup-exposure-auditor",
+      "name": "Backup Exposure Auditor",
+      "role": "data auditor",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/data/backup-exposure-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/log-redaction-auditor",
+      "name": "Log Redaction Auditor",
+      "role": "data auditor",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/data/log-redaction-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/manifest-reader",
+      "name": "Manifest Reader",
+      "role": "dependency auditor",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/dependencies/manifest-reader.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/advisory-matcher",
+      "name": "Advisory Matcher",
+      "role": "dependency auditor",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/dependencies/advisory-matcher.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/transitive-resolver",
+      "name": "Transitive Resolver",
+      "role": "dependency auditor",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/dependencies/transitive-resolver.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/licence-auditor",
+      "name": "Licence Auditor",
+      "role": "dependency auditor",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/dependencies/licence-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/lockfile-drift-auditor",
+      "name": "Lockfile Drift Auditor",
+      "role": "dependency auditor",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/dependencies/lockfile-drift-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/supply-chain-sentinel",
+      "name": "Supply Chain Sentinel",
+      "role": "dependency auditor",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/dependencies/supply-chain-sentinel.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/header-auditor",
+      "name": "Header Auditor",
+      "role": "platform auditor",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/platform/header-auditor.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "code-safety/config-diff-auditor",
+      "name": "Config Diff Auditor",
+      "role": "platform auditor",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/platform/config-diff-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/container-surface-auditor",
+      "name": "Container Surface Auditor",
+      "role": "platform auditor",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "grep",
+        "glob",
+        "bash"
+      ],
+      "source": "agents/code-safety/platform/container-surface-auditor.agent.yml",
+      "status": "failed"
+    },
+    {
+      "id": "code-safety/environment-secret-auditor",
+      "name": "Environment Secret Auditor",
+      "role": "platform auditor",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping"
+      ],
+      "tools": [
+        "glob",
+        "bash",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/platform/environment-secret-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/rate-limit-auditor",
+      "name": "Rate Limit Auditor",
+      "role": "platform auditor",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "bash"
+      ],
+      "source": "agents/code-safety/platform/rate-limit-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "code-safety/error-surface-auditor",
+      "name": "Error Surface Auditor",
+      "role": "platform auditor",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "validator",
+      "skills": [
+        "taint-tracing",
+        "cwe-mapping",
+        "owasp-top-ten"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "lsp_definition"
+      ],
+      "source": "agents/code-safety/platform/error-surface-auditor.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "knowledge/librarian",
+      "name": "Librarian",
+      "role": "pack owner",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-doc-standards",
+        "dsh-prose-standard"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep",
+        "glob",
+        "web_search"
+      ],
+      "source": "agents/knowledge/librarian.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "knowledge/pack-compiler",
+      "name": "Pack Compiler",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-prose-standard",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "write",
+        "grep",
+        "glob",
+        "web_search"
+      ],
+      "source": "agents/knowledge/pack-compiler.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/skill-nominator",
+      "name": "Skill Nominator",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-prose-standard",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep",
+        "glob",
+        "web_search"
+      ],
+      "source": "agents/knowledge/skill-nominator.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/keep-or-retire-reviewer",
+      "name": "Keep-or-Retire Reviewer",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-doc-standards",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/knowledge/keep-or-retire-reviewer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/proposal-digester",
+      "name": "Proposal Digester",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-doc-standards",
+        "dsh-prose-standard"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep",
+        "glob",
+        "web_search"
+      ],
+      "source": "agents/knowledge/proposal-digester.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/fortnight-editor",
+      "name": "Fortnight Editor",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-prose-standard",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "glob"
+      ],
+      "source": "agents/knowledge/fortnight-editor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/cookbook-author",
+      "name": "Cookbook Author",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-doc-standards",
+        "dsh-prose-standard"
+      ],
+      "tools": [
+        "write",
+        "grep",
+        "glob",
+        "web_search"
+      ],
+      "source": "agents/knowledge/cookbook-author.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/glossary-keeper",
+      "name": "Glossary Keeper",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-prose-standard",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "source": "agents/knowledge/glossary-keeper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/postmortem-analyst",
+      "name": "Postmortem Analyst",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-doc-standards",
+        "dsh-prose-standard",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "web_search"
+      ],
+      "source": "agents/knowledge/postmortem-analyst.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "knowledge/index-builder",
+      "name": "Index Builder",
+      "role": "librarian",
+      "division": "knowledge",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "dsh-doc-standards",
+        "dsh-prose-standard",
+        "keep-or-retire"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep",
+        "glob",
+        "web_search"
+      ],
+      "source": "agents/knowledge/index-builder.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/signoff-registrar",
+      "name": "Signoff Registrar",
+      "role": "signature registrar",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "minimal",
+      "skills": [
+        "signoff-records",
+        "data-use-terms",
+        "incident-routing"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/signoff-registrar.agent.yml",
+      "status": "certified"
+    },
+    {
+      "id": "governance/principal-attestor",
+      "name": "Principal Attestor",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "minimal",
+      "skills": [
+        "signoff-records",
+        "data-use-terms",
+        "incident-routing"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/principal-attestor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/compliance-reader",
+      "name": "Compliance Reader",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "minimal",
+      "skills": [
+        "signoff-records",
+        "data-use-terms",
+        "incident-routing"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/compliance-reader.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/incident-router",
+      "name": "Incident Router",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "minimal",
+      "skills": [
+        "data-use-terms",
+        "incident-routing"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/incident-router.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/data-use-steward",
+      "name": "Data-Use Steward",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "minimal",
+      "skills": [
+        "signoff-records",
+        "data-use-terms"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/data-use-steward.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/policy-drafter",
+      "name": "Policy Drafter",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "minimal",
+      "skills": [
+        "signoff-records",
+        "incident-routing"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/policy-drafter.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/audit-trail-keeper",
+      "name": "Audit Trail Keeper",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "minimal",
+      "skills": [
+        "data-use-terms",
+        "incident-routing"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/audit-trail-keeper.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "governance/counsel-liaison",
+      "name": "Counsel Liaison",
+      "role": "steward",
+      "division": "governance",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "minimal",
+      "skills": [
+        "signoff-records",
+        "data-use-terms"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "grep"
+      ],
+      "source": "agents/governance/counsel-liaison.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/leaderboard-projector",
+      "name": "Leaderboard Projector",
+      "role": "projection owner",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/leaderboard-projector.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "observatory/row-composer",
+      "name": "Row Composer",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/row-composer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/tamper-column",
+      "name": "Tamper Column",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/tamper-column.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/cost-folder",
+      "name": "Cost Folder",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/cost-folder.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/usage-pricer",
+      "name": "Usage Pricer",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/usage-pricer.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/dashboard-publisher",
+      "name": "Dashboard Publisher",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/dashboard-publisher.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/anomaly-watch",
+      "name": "Anomaly Watch",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/anomaly-watch.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/shift-reporter",
+      "name": "Shift Reporter",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/shift-reporter.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/uptime-monitor",
+      "name": "Uptime Monitor",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/uptime-monitor.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/session-facts-folder",
+      "name": "Session Facts Folder",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-chat"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/session-facts-folder.agent.yml",
+      "status": "active"
+    },
+    {
+      "id": "observatory/diagnosis-classifier",
+      "name": "Diagnosis Classifier",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/diagnosis-classifier.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/trend-analyst",
+      "name": "Trend Analyst",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/trend-analyst.agent.yml",
+      "status": "defined"
+    },
+    {
+      "id": "observatory/public-digest-editor",
+      "name": "Public Digest Editor",
+      "role": "observer",
+      "division": "observatory",
+      "route": {
+        "provider": "deepseek",
+        "model": "deepseek-reasoner"
+      },
+      "preset": "standard",
+      "skills": [
+        "scoreboard-folding",
+        "usage-pricing",
+        "anomaly-watch"
+      ],
+      "tools": [
+        "read",
+        "glob",
+        "workflow_run"
+      ],
+      "source": "agents/observatory/public-digest-editor.agent.yml",
+      "status": "defined"
+    }
+  ],
+  "edges": [
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/seam-designer",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/seam-designer",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/session-scribe",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/agent-loop-steward",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/agent-loop-steward",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/tool-smith",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/tool-smith",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/prompt-compositor",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/compaction-warden",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/compaction-warden",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/route-broker",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/shell-custodian",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/shell-custodian",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/filesystem-marshal",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/filesystem-marshal",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/subprocess-reaper",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/terminal-keeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/terminal-keeper",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/workflow-weaver",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/preset-composer",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/preset-composer",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/budget-sentinel",
+      "kind": "delegates"
+    },
+    {
+      "from": "harness-core/budget-sentinel",
+      "to": "harness-core/loader-architect",
+      "kind": "reports"
+    },
+    {
+      "from": "harness-core/loader-architect",
+      "to": "harness-core/hook-interpreter",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/environment-miner",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/cell-runner",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/repetition-planner",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/repetition-planner",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reports"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/paired-experiment-driver",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/seed-registrar",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/seed-registrar",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reports"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/scorekeeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/scorekeeper",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reports"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/route-licensor",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/circuit-breaker",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/held-out-custodian",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/calibration-analyst",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reports"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/outage-watch",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/outage-watch",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reports"
+    },
+    {
+      "from": "proving-ground/bench-marshal",
+      "to": "proving-ground/bench-craft",
+      "kind": "delegates"
+    },
+    {
+      "from": "proving-ground/bench-craft",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/certificate-authority",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/read-barrier-census",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/isolation-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/tamper-inspector",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/executor-attestor",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/executor-attestor",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/standard-compiler",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/standard-compiler",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/case-folder",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/case-folder",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/regression-gate",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/flake-triager",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/flake-triager",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/coverage-assessor",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "verification/evidence-librarian",
+      "kind": "delegates"
+    },
+    {
+      "from": "verification/evidence-librarian",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/correctness-judge",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/operations-judge",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/governance-judge",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/governance-judge",
+      "to": "judging/council-chair",
+      "kind": "reports"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/determinism-judge",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/determinism-judge",
+      "to": "judging/council-chair",
+      "kind": "reports"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/data-judge",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/client-judge",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/rubric-keeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "judging/rubric-keeper",
+      "to": "judging/council-chair",
+      "kind": "reports"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "judging/dissent-recorder",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/redaction-profiler",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/redaction-profiler",
+      "to": "curation/curator",
+      "kind": "reports"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/terms-gatekeeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/terms-gatekeeper",
+      "to": "curation/curator",
+      "kind": "reports"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/trajectory-exporter",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/trajectory-exporter",
+      "to": "curation/curator",
+      "kind": "reports"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/transcript-digester",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/transcript-digester",
+      "to": "curation/curator",
+      "kind": "reports"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/duplicate-detector",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/dataset-packer",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/provenance-stamper",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/consent-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/consent-auditor",
+      "to": "curation/curator",
+      "kind": "reports"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/quarantine-officer",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/curator",
+      "to": "curation/corpus-statistician",
+      "kind": "delegates"
+    },
+    {
+      "from": "curation/corpus-statistician",
+      "to": "curation/curator",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/spec-freezer",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/department-lead-api",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/department-lead-data",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/department-lead-data",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/department-lead-interface",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/department-lead-interface",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/department-lead-platform",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/implementer-api",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/implementer-api",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/implementer-data",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/implementer-interface",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/implementer-interface",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/implementer-platform",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/integration-merger",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/integration-merger",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/release-steward",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/worktree-broker",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/worktree-broker",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/goal-compiler",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/goal-compiler",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/attempt-planner",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/attempt-planner",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/certificate-reconciler",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/certificate-reconciler",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/handoff-editor",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/handoff-editor",
+      "to": "program/program-ledger",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "program/client-liaison",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/entropy-sentinel",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/credential-flow-tracer",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/key-rotation-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/key-rotation-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/history-sweeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/history-sweeper",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/vault-policy-reader",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/vault-policy-reader",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/taint-tracer",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/query-composer-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/query-composer-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/template-escape-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/command-surface-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/deserialization-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/log-forging-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/log-forging-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/route-guard-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/session-flag-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/session-flag-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/object-reference-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/privilege-escalation-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/privilege-escalation-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/request-forgery-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/redirect-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/redirect-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/encryption-at-rest-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/transport-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/transport-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/personal-data-classifier",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/retention-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/backup-exposure-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/log-redaction-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/log-redaction-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/manifest-reader",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/advisory-matcher",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/transitive-resolver",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/licence-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/lockfile-drift-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/supply-chain-sentinel",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/supply-chain-sentinel",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/header-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/config-diff-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/container-surface-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/container-surface-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/environment-secret-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/rate-limit-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/rate-limit-auditor",
+      "to": "code-safety/secret-scanner",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "code-safety/error-surface-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/pack-compiler",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/pack-compiler",
+      "to": "knowledge/librarian",
+      "kind": "reports"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/skill-nominator",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/keep-or-retire-reviewer",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/keep-or-retire-reviewer",
+      "to": "knowledge/librarian",
+      "kind": "reports"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/proposal-digester",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/proposal-digester",
+      "to": "knowledge/librarian",
+      "kind": "reports"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/fortnight-editor",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/cookbook-author",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/glossary-keeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/glossary-keeper",
+      "to": "knowledge/librarian",
+      "kind": "reports"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/postmortem-analyst",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "knowledge/index-builder",
+      "kind": "delegates"
+    },
+    {
+      "from": "knowledge/index-builder",
+      "to": "knowledge/librarian",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/principal-attestor",
+      "kind": "delegates"
+    },
+    {
+      "from": "governance/principal-attestor",
+      "to": "governance/signoff-registrar",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/compliance-reader",
+      "kind": "delegates"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/incident-router",
+      "kind": "delegates"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/data-use-steward",
+      "kind": "delegates"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/policy-drafter",
+      "kind": "delegates"
+    },
+    {
+      "from": "governance/policy-drafter",
+      "to": "governance/signoff-registrar",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/audit-trail-keeper",
+      "kind": "delegates"
+    },
+    {
+      "from": "governance/audit-trail-keeper",
+      "to": "governance/signoff-registrar",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "governance/counsel-liaison",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/row-composer",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/tamper-column",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/cost-folder",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/usage-pricer",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/usage-pricer",
+      "to": "observatory/leaderboard-projector",
+      "kind": "reports"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/dashboard-publisher",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/anomaly-watch",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/anomaly-watch",
+      "to": "observatory/leaderboard-projector",
+      "kind": "reports"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/shift-reporter",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/shift-reporter",
+      "to": "observatory/leaderboard-projector",
+      "kind": "reports"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/uptime-monitor",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/uptime-monitor",
+      "to": "observatory/leaderboard-projector",
+      "kind": "reports"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/session-facts-folder",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/diagnosis-classifier",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/diagnosis-classifier",
+      "to": "observatory/leaderboard-projector",
+      "kind": "reports"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/trend-analyst",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "observatory/public-digest-editor",
+      "kind": "delegates"
+    },
+    {
+      "from": "observatory/public-digest-editor",
+      "to": "observatory/leaderboard-projector",
+      "kind": "reports"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "code-safety/secret-scanner",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/secret-scanner",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "code-safety/secret-scanner",
+      "kind": "verifies"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "code-safety/query-composer-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "code-safety/template-escape-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "code-safety/command-surface-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "code-safety/deserialization-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "code-safety/log-forging-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "code-safety/taint-tracer",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/taint-tracer",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "code-safety/taint-tracer",
+      "kind": "verifies"
+    },
+    {
+      "from": "code-safety/route-guard-auditor",
+      "to": "code-safety/session-flag-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/route-guard-auditor",
+      "to": "code-safety/object-reference-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/route-guard-auditor",
+      "to": "code-safety/privilege-escalation-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/route-guard-auditor",
+      "to": "code-safety/request-forgery-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/route-guard-auditor",
+      "to": "code-safety/redirect-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "code-safety/route-guard-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/route-guard-auditor",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "code-safety/route-guard-auditor",
+      "kind": "verifies"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "code-safety/transport-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "code-safety/personal-data-classifier",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "code-safety/retention-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "code-safety/backup-exposure-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "code-safety/log-redaction-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "code-safety/encryption-at-rest-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/encryption-at-rest-auditor",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "code-safety/encryption-at-rest-auditor",
+      "kind": "verifies"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "code-safety/advisory-matcher",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "code-safety/transitive-resolver",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "code-safety/licence-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "code-safety/lockfile-drift-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "code-safety/supply-chain-sentinel",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "code-safety/manifest-reader",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/manifest-reader",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "code-safety/manifest-reader",
+      "kind": "verifies"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "code-safety/config-diff-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "code-safety/container-surface-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "code-safety/environment-secret-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "code-safety/rate-limit-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "code-safety/error-surface-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/program-ledger",
+      "to": "code-safety/header-auditor",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety/header-auditor",
+      "to": "verification/check-executor",
+      "kind": "reports"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "code-safety/header-auditor",
+      "kind": "verifies"
+    },
+    {
+      "from": "program/department-lead-api",
+      "to": "program/implementer-api",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/implementer-api",
+      "to": "program/department-lead-api",
+      "kind": "reports"
+    },
+    {
+      "from": "program/integration-merger",
+      "to": "program/implementer-api",
+      "kind": "merges"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "program/implementer-api",
+      "kind": "verifies"
+    },
+    {
+      "from": "program/department-lead-data",
+      "to": "program/implementer-data",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/implementer-data",
+      "to": "program/department-lead-data",
+      "kind": "reports"
+    },
+    {
+      "from": "program/integration-merger",
+      "to": "program/implementer-data",
+      "kind": "merges"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "program/implementer-data",
+      "kind": "verifies"
+    },
+    {
+      "from": "program/department-lead-interface",
+      "to": "program/implementer-interface",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/implementer-interface",
+      "to": "program/department-lead-interface",
+      "kind": "reports"
+    },
+    {
+      "from": "program/integration-merger",
+      "to": "program/implementer-interface",
+      "kind": "merges"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "program/implementer-interface",
+      "kind": "verifies"
+    },
+    {
+      "from": "program/department-lead-platform",
+      "to": "program/implementer-platform",
+      "kind": "delegates"
+    },
+    {
+      "from": "program/implementer-platform",
+      "to": "program/department-lead-platform",
+      "kind": "reports"
+    },
+    {
+      "from": "program/integration-merger",
+      "to": "program/implementer-platform",
+      "kind": "merges"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "program/implementer-platform",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "proving-ground/bench-marshal",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/check-executor",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "proving-ground/scorekeeper",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/certificate-authority",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/read-barrier-census",
+      "to": "proving-ground/cell-runner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/read-barrier-census",
+      "to": "proving-ground/paired-experiment-driver",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/isolation-auditor",
+      "to": "proving-ground/environment-miner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/isolation-auditor",
+      "to": "proving-ground/outage-watch",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/tamper-inspector",
+      "to": "proving-ground/seed-registrar",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/tamper-inspector",
+      "to": "proving-ground/route-licensor",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/executor-attestor",
+      "to": "proving-ground/environment-miner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/executor-attestor",
+      "to": "proving-ground/scorekeeper",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/standard-compiler",
+      "to": "proving-ground/bench-marshal",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/standard-compiler",
+      "to": "proving-ground/bench-craft",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/case-folder",
+      "to": "proving-ground/bench-marshal",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/case-folder",
+      "to": "proving-ground/environment-miner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/regression-gate",
+      "to": "proving-ground/environment-miner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/regression-gate",
+      "to": "proving-ground/circuit-breaker",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/flake-triager",
+      "to": "proving-ground/paired-experiment-driver",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/flake-triager",
+      "to": "proving-ground/seed-registrar",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/coverage-assessor",
+      "to": "proving-ground/environment-miner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/coverage-assessor",
+      "to": "proving-ground/seed-registrar",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/evidence-librarian",
+      "to": "proving-ground/cell-runner",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification/evidence-librarian",
+      "to": "proving-ground/held-out-custodian",
+      "kind": "verifies"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "verification/isolation-auditor",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "verification/evidence-librarian",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/council-chair",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/correctness-judge",
+      "to": "verification/executor-attestor",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/correctness-judge",
+      "to": "verification/regression-gate",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/correctness-judge",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/operations-judge",
+      "to": "verification/isolation-auditor",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/operations-judge",
+      "to": "verification/tamper-inspector",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/operations-judge",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/governance-judge",
+      "to": "verification/certificate-authority",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/governance-judge",
+      "to": "verification/read-barrier-census",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/governance-judge",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/determinism-judge",
+      "to": "verification/isolation-auditor",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/determinism-judge",
+      "to": "verification/standard-compiler",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/determinism-judge",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/data-judge",
+      "to": "verification/standard-compiler",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/data-judge",
+      "to": "verification/flake-triager",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/data-judge",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/client-judge",
+      "to": "verification/read-barrier-census",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/client-judge",
+      "to": "verification/isolation-auditor",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/client-judge",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/rubric-keeper",
+      "to": "verification/check-executor",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/rubric-keeper",
+      "to": "verification/certificate-authority",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/rubric-keeper",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/dissent-recorder",
+      "to": "verification/case-folder",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/dissent-recorder",
+      "to": "verification/regression-gate",
+      "kind": "judges"
+    },
+    {
+      "from": "judging/dissent-recorder",
+      "to": "program/program-ledger",
+      "kind": "judges"
+    },
+    {
+      "from": "curation/curator",
+      "to": "proving-ground/circuit-breaker",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/curator",
+      "to": "proving-ground/outage-watch",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/redaction-profiler",
+      "to": "proving-ground/seed-registrar",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/redaction-profiler",
+      "to": "proving-ground/scorekeeper",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/terms-gatekeeper",
+      "to": "proving-ground/cell-runner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/terms-gatekeeper",
+      "to": "proving-ground/held-out-custodian",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/trajectory-exporter",
+      "to": "proving-ground/scorekeeper",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/trajectory-exporter",
+      "to": "proving-ground/outage-watch",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/transcript-digester",
+      "to": "proving-ground/cell-runner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/transcript-digester",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/duplicate-detector",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/duplicate-detector",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/dataset-packer",
+      "to": "proving-ground/repetition-planner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/dataset-packer",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/provenance-stamper",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/provenance-stamper",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/consent-auditor",
+      "to": "proving-ground/paired-experiment-driver",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/consent-auditor",
+      "to": "proving-ground/seed-registrar",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/quarantine-officer",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/quarantine-officer",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/corpus-statistician",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "curation/corpus-statistician",
+      "to": "proving-ground/repetition-planner",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "curation/corpus-statistician",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/librarian",
+      "to": "judging/council-chair",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/pack-compiler",
+      "to": "judging/council-chair",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/pack-compiler",
+      "to": "judging/operations-judge",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/skill-nominator",
+      "to": "curation/consent-auditor",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/skill-nominator",
+      "to": "judging/client-judge",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/keep-or-retire-reviewer",
+      "to": "curation/trajectory-exporter",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/keep-or-retire-reviewer",
+      "to": "judging/client-judge",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/proposal-digester",
+      "to": "curation/consent-auditor",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/proposal-digester",
+      "to": "judging/council-chair",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/fortnight-editor",
+      "to": "curation/duplicate-detector",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/fortnight-editor",
+      "to": "judging/council-chair",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/cookbook-author",
+      "to": "judging/council-chair",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/cookbook-author",
+      "to": "judging/operations-judge",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/glossary-keeper",
+      "to": "curation/duplicate-detector",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/glossary-keeper",
+      "to": "curation/quarantine-officer",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/postmortem-analyst",
+      "to": "curation/dataset-packer",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/postmortem-analyst",
+      "to": "curation/consent-auditor",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/index-builder",
+      "to": "curation/transcript-digester",
+      "kind": "reads"
+    },
+    {
+      "from": "knowledge/index-builder",
+      "to": "judging/data-judge",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "proving-ground/held-out-custodian",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/leaderboard-projector",
+      "to": "proving-ground/outage-watch",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/row-composer",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/row-composer",
+      "to": "verification/isolation-auditor",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/tamper-column",
+      "to": "proving-ground/paired-experiment-driver",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/tamper-column",
+      "to": "proving-ground/scorekeeper",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/cost-folder",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/cost-folder",
+      "to": "verification/regression-gate",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/usage-pricer",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/usage-pricer",
+      "to": "verification/tamper-inspector",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/dashboard-publisher",
+      "to": "proving-ground/held-out-custodian",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/dashboard-publisher",
+      "to": "proving-ground/bench-craft",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/anomaly-watch",
+      "to": "proving-ground/seed-registrar",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/anomaly-watch",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/shift-reporter",
+      "to": "verification/read-barrier-census",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/shift-reporter",
+      "to": "verification/flake-triager",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/uptime-monitor",
+      "to": "proving-ground/cell-runner",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/uptime-monitor",
+      "to": "proving-ground/circuit-breaker",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/session-facts-folder",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/session-facts-folder",
+      "to": "verification/certificate-authority",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/diagnosis-classifier",
+      "to": "proving-ground/held-out-custodian",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/diagnosis-classifier",
+      "to": "proving-ground/outage-watch",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/trend-analyst",
+      "to": "proving-ground/cell-runner",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/trend-analyst",
+      "to": "proving-ground/scorekeeper",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/public-digest-editor",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "observatory/public-digest-editor",
+      "to": "proving-ground/circuit-breaker",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "curation/corpus-statistician",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/principal-attestor",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/principal-attestor",
+      "to": "curation/corpus-statistician",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/compliance-reader",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/compliance-reader",
+      "to": "curation/provenance-stamper",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/incident-router",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/incident-router",
+      "to": "curation/redaction-profiler",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/data-use-steward",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/data-use-steward",
+      "to": "curation/quarantine-officer",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/policy-drafter",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/policy-drafter",
+      "to": "curation/quarantine-officer",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/audit-trail-keeper",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/audit-trail-keeper",
+      "to": "curation/curator",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/counsel-liaison",
+      "to": "program/release-steward",
+      "kind": "reports"
+    },
+    {
+      "from": "governance/counsel-liaison",
+      "to": "curation/quarantine-officer",
+      "kind": "reads"
+    },
+    {
+      "from": "governance/signoff-registrar",
+      "to": "program/spec-freezer",
+      "kind": "verifies"
+    },
+    {
+      "from": "program/release-steward",
+      "to": "verification/certificate-authority",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/session-scribe",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/session-scribe",
+      "to": "program/attempt-planner",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/tool-smith",
+      "to": "program/program-ledger",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/tool-smith",
+      "to": "program/integration-merger",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/compaction-warden",
+      "to": "proving-ground/cell-runner",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/compaction-warden",
+      "to": "program/release-steward",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/route-broker",
+      "to": "proving-ground/bench-marshal",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/route-broker",
+      "to": "program/integration-merger",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/shell-custodian",
+      "to": "proving-ground/circuit-breaker",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/shell-custodian",
+      "to": "program/department-lead-api",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/filesystem-marshal",
+      "to": "program/implementer-api",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/filesystem-marshal",
+      "to": "program/client-liaison",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/subprocess-reaper",
+      "to": "proving-ground/environment-miner",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/subprocess-reaper",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/terminal-keeper",
+      "to": "proving-ground/workspace-reaper",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/terminal-keeper",
+      "to": "proving-ground/calibration-analyst",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/workflow-weaver",
+      "to": "program/department-lead-platform",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/workflow-weaver",
+      "to": "program/implementer-platform",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/preset-composer",
+      "to": "program/program-ledger",
+      "kind": "reads"
+    },
+    {
+      "from": "harness-core/preset-composer",
+      "to": "program/department-lead-data",
+      "kind": "reads"
+    }
+  ]
+}
