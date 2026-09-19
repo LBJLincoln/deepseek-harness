@@ -72,6 +72,12 @@ const HALO_RADIUS = 1.9
 /** Window cell size on a building wall, in scene units: pane width, then floor height. */
 const WINDOW_CELL: [number, number] = [0.8, 1.05]
 
+/** Seconds the opening fly-over takes. */
+const FLYOVER_SECONDS = 3
+
+/** Seconds a flight to or from a selected finding takes. */
+const FOCUS_SECONDS = 1.2
+
 /** Seconds one scan sweep takes to cross the city. */
 const SWEEP_SECONDS = 5.5
 
@@ -89,6 +95,53 @@ function cityView(extent: number): { position: Vector3; target: Vector3 } {
     position: new Vector3(0.58, 0.8, 1.28).normalize().multiplyScalar(extent * 3.15),
     target: new Vector3(0, 15, 0),
   }
+}
+
+/**
+ * Where the opening fly-over starts: high over the far edge of the city,
+ * looking back across it.
+ * @param extent - Half-extent of the city footprint.
+ * @returns The camera position and the point it looks at.
+ */
+function flyoverStart(extent: number): { position: Vector3; target: Vector3 } {
+  return {
+    position: new Vector3(-0.5, 1.52, -1).normalize().multiplyScalar(extent * 4),
+    target: new Vector3(0, 4, 0),
+  }
+}
+
+/**
+ * Where the callout hangs on one beacon: part-way up the shaft, so it stays in
+ * frame while the building below it stays readable.
+ * @param entry - The placed finding.
+ * @returns The anchor point.
+ */
+function calloutAnchor(entry: PlacedFinding): Vector3 {
+  return entry.base.clone().setY(entry.base.y + (entry.height * 0.34))
+}
+
+/**
+ * The framing of one finding: the camera stands off its building far enough to
+ * hold the building, its halo and the callout on its shaft.
+ * @param entry - The finding to frame.
+ * @returns The camera position and the point it looks at.
+ */
+function focusView(entry: PlacedFinding): { position: Vector3; target: Vector3 } {
+  const target = new Vector3(entry.base.x, (entry.base.y * 0.82) + (entry.height * 0.16), entry.base.z)
+  const distance = 23 + (entry.height * 0.62) + (entry.block.height * 0.6)
+  return {
+    position: target.clone().add(new Vector3(0.58, 0.55, 1.05).normalize().multiplyScalar(distance)),
+    target,
+  }
+}
+
+/**
+ * Cubic ease-in-out, so a flight leaves and arrives at rest.
+ * @param t - Progress in `[0, 1]`.
+ * @returns The eased progress.
+ */
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - ((((-2 * t) + 2) ** 3) / 2)
 }
 
 const SCRATCH = new Matrix4()
@@ -813,36 +866,79 @@ function ScanSweep({ city, reduced }: { city: CityLayout; reduced: boolean }): R
 }
 
 /**
- * Camera behaviour: an establishing view of the whole city, and a flight to
- * the selected finding.
- * @param props - The city extent and the finding to fly to.
+ * Camera behaviour: the opening fly-over, the flight to a selected finding and
+ * back, and the orbit controls in between. Under reduced motion every move is
+ * an instant cut.
+ * @param props - The city, the finding to frame, and the motion preference.
  * @returns The controls.
  */
-function CityRig({ city, focus }: { city: CityLayout; focus: Vector3 | undefined }): ReactNode {
+function CityRig({
+  city,
+  focus,
+  reduced,
+}: {
+  city: CityLayout
+  focus: PlacedFinding | undefined
+  reduced: boolean
+}): ReactNode {
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
   const { camera } = useThree()
-  const goal = useRef<{ position: Vector3; target: Vector3 } | undefined>(undefined)
+  const flight = useRef<{
+    fromPosition: Vector3
+    fromTarget: Vector3
+    toPosition: Vector3
+    toTarget: Vector3
+    elapsed: number
+    duration: number
+  } | undefined>(undefined)
+  const opened = useRef(false)
 
   useEffect(() => {
-    if (focus === undefined) {
-      goal.current = cityView(city.extent)
+    const control = controls.current
+    if (control === null) return
+    const destination = focus === undefined ? cityView(city.extent) : focusView(focus)
+    const opening = !opened.current
+    opened.current = true
+
+    if (reduced) {
+      flight.current = undefined
+      control.enabled = true
+      camera.position.copy(destination.position)
+      control.target.copy(destination.target)
+      control.update()
       return
     }
-    goal.current = {
-      position: focus.clone().add(new Vector3(17, 21, 25)),
-      target: focus.clone(),
+
+    if (opening) {
+      const start = flyoverStart(city.extent)
+      camera.position.copy(start.position)
+      control.target.copy(start.target)
     }
-  }, [focus, city.extent])
+    control.enabled = false
+    flight.current = {
+      fromPosition: camera.position.clone(),
+      fromTarget: control.target.clone(),
+      toPosition: destination.position,
+      toTarget: destination.target,
+      elapsed: 0,
+      duration: opening ? FLYOVER_SECONDS : FOCUS_SECONDS,
+    }
+  }, [focus, city.extent, reduced, camera])
 
   useFrame((_, delta) => {
     const control = controls.current
     if (control === null) return
-    const destination = goal.current
-    if (destination !== undefined) {
-      const step = Math.min(1, delta * 2.4)
-      camera.position.lerp(destination.position, step)
-      control.target.lerp(destination.target, step)
-      if (camera.position.distanceTo(destination.position) < 0.4) goal.current = undefined
+    const current = flight.current
+    if (current !== undefined) {
+      current.elapsed += delta
+      const progress = Math.min(1, current.elapsed / current.duration)
+      const eased = easeInOutCubic(progress)
+      camera.position.lerpVectors(current.fromPosition, current.toPosition, eased)
+      control.target.lerpVectors(current.fromTarget, current.toTarget, eased)
+      if (progress >= 1) {
+        flight.current = undefined
+        control.enabled = true
+      }
     }
     control.update()
   })
@@ -856,7 +952,7 @@ function CityRig({ city, focus }: { city: CityLayout; focus: Vector3 | undefined
       rotateSpeed={0.45}
       zoomSpeed={0.75}
       minDistance={14}
-      maxDistance={city.extent * 3.4}
+      maxDistance={city.extent * 4.3}
       maxPolarAngle={Math.PI * 0.47}
     />
   )
@@ -879,7 +975,7 @@ export function SafetyStage({
   departments: readonly SafetyDepartment[]
   findings: readonly Finding[]
   selectedFindingId: string | undefined
-  onSelectFinding: (id: string) => void
+  onSelectFinding: (id: string | undefined) => void
 }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const city = useMemo(() => layoutCity(target), [target])
@@ -896,6 +992,17 @@ export function SafetyStage({
     () => placed.find(entry => entry.finding.id === selectedFindingId),
     [placed, selectedFindingId],
   )
+
+  useEffect(() => {
+    if (selectedFindingId === undefined) return
+    const onKey = (event: KeyboardEvent): void => {
+      const element = event.target
+      if (element instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName)) return
+      if (event.key === 'Escape') onSelectFinding(undefined)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedFindingId, onSelectFinding])
 
   return (
     <Stage
@@ -959,9 +1066,28 @@ export function SafetyStage({
           </Html>
         )}
 
+        {focus === undefined ? null : (
+          <Html
+            position={calloutAnchor(focus).toArray()}
+            zIndexRange={[60, 40]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              className={styles.callout}
+              style={{ color: SEVERITY_COLOR[focus.finding.severity] ?? '#7f8fb0' }}
+            >
+              <div className={styles.calloutHead}>
+                <span className={styles.calloutPill}>{focus.finding.severity}</span>
+                <span>{focus.finding.cwe}</span>
+              </div>
+              <div className={styles.calloutWhere}>{focus.finding.file}:{focus.finding.line}</div>
+              <div className={styles.calloutTitle}>{focus.finding.title}</div>
+            </div>
+          </Html>
+        )}
       </group>
 
-      <CityRig city={city} focus={focus?.base} />
+      <CityRig city={city} focus={focus} reduced={reduced} />
     </Stage>
   )
 }

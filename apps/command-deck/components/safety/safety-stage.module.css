@@ -1,4 +1,4 @@
-/* Labels the code city anchors in 3D through drei's `Html`. */
+/* Labels and callouts the code city anchors in 3D through drei's `Html`. */
 
 .districtLabel {
   white-space: nowrap;
@@ -29,3 +29,74 @@
 .hoverLabel b { font-weight: 500; }
 .hoverLabel span { color: var(--ink-3); margin-left: 8px; }
 .hoverLabel em { display: block; font-style: normal; font-family: inherit; color: var(--ink-2); margin-top: 2px; max-width: 280px; white-space: normal; }
+
+/* The callout hangs on the selected finding's beacon: the stem runs down to
+   the shaft, the card sits above it. */
+.callout {
+  position: relative;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  width: max-content;
+  max-width: 290px;
+  padding: 8px 11px 9px;
+  border-radius: 9px;
+  border: 1px solid rgba(122, 152, 205, 0.3);
+  background: linear-gradient(180deg, rgba(10, 16, 27, 0.95), rgba(5, 9, 15, 0.95));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.callout::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: 1px;
+  height: 14px;
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.calloutHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.calloutPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.calloutPill::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.calloutWhere {
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-2);
+  word-break: break-all;
+}
+
+.calloutTitle {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink);
+}
