@@ -1,6 +1,5 @@
 'use client'
 
-import { OrbitControls } from '@react-three/drei'
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import type { Agent, RunEvent } from '@/deck/contract'
 import { usePrefersReducedMotion } from '@/deck/motion'
@@ -14,6 +13,7 @@ import {
 } from '@/deck/pipeline'
 import { Stage as Canvas3D } from '@/components/three/Stage'
 import { createHeat } from './heat'
+import { Director, ESTABLISH } from './Director'
 import { Flow } from './Flow'
 import { Gates } from './Gates'
 import { Ground } from './Ground'
@@ -110,24 +110,14 @@ export function ProcessStage({
 
   return (
     <Canvas3D
-      camera={{ position: [-40, 62, 198], fov: 42 }}
+      camera={{ position: [ESTABLISH.position.x, ESTABLISH.position.y, ESTABLISH.position.z], fov: 42 }}
       fogNear={130}
       fogFar={430}
     >
       <Ground lanes={lanes} totals={totals} halfWidth={halfWidth} progress={progress} />
       <Gates halfWidth={halfWidth} heat={heat} arrivals={arrivals} />
       <Flow events={events} agents={agents} lanes={lanes} heat={heat} />
-      <OrbitControls
-        makeDefault
-        enableDamping
-        dampingFactor={0.07}
-        rotateSpeed={0.42}
-        zoomSpeed={0.7}
-        minDistance={40}
-        maxDistance={420}
-        maxPolarAngle={Math.PI * 0.495}
-        target={[-12, 3, 0]}
-      />
+      <Director completed={completed} progress={progress} />
     </Canvas3D>
   )
 }
