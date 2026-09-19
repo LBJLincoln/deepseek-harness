@@ -36,6 +36,7 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 
 | 运行 | HEAD | 目标 | 模型 | 已认证 | 发现数 | 审查器 | 耗时 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| [2026-09-19-nodegoat](2026-09-19-nodegoat/manifest.json) | `be507df30` | OWASP NodeGoat，111 个文件 | `sonnet` | 7 of 7 | 42 (5 critical, 17 high, 13 medium, 5 low, 2 info) | 退出码 0 | 1301 s |
 
 ## 一条记录证明了什么
 

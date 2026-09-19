@@ -71,6 +71,12 @@ That seeds the report repository under `<out>` (by default `.code-safety/<target
 
 While it runs, `<out>/.sessions/` fills with one log per session — the ledger, the six departments and the integration — and the driver writes its single result line to `<out>/stdout.jsonl` when the program ends. Record it under `data/code-safety/` the way [the run table](../../../../../data/code-safety/README.md) states.
 
+## The NodeGoat run
+
+The first real review was of [OWASP NodeGoat](../../../../../data/code-safety/README.md), a deliberately vulnerable Express application, on `sonnet`, with the knowledge pack mounted: 111 files locked, all six departments certified on their first attempt, 46 findings submitted and 42 in the union after deduplication — 5 critical, 17 high, 13 medium, 5 low, 2 info — and the committed examiner passed over the merged head. The integration spent its first attempt discovering that the merge carried no report and its second writing one; the whole program took 1301 seconds. [`data/code-safety/2026-09-19-nodegoat/`](../../../../../data/code-safety/README.md) holds the report, the union, the examiner's output and every session log.
+
+An earlier run of the same program without the pack produced a comparable release — 6 of 6 certified, 44 submitted, 42 in the union — and scored every one of its 44 findings `confirmed`. The recorded run, with the pack's `review-method` skill mounted, scored 39 `confirmed`, 2 `likely` and 1 `possible`, moved five findings out of `critical`, and reported an SSRF the earlier run did not. Neither number is a measurement: two runs are two runs, and a paired reading is what would settle it.
+
 ## What this program does not do
 
 It reads. No route is called, no payload is sent, and no finding it reports is a demonstrated exploit: `confidence` is the analyst's own claim about how far they traced the path, and the examiner checks the citation rather than the reasoning. It covers the files the departments opened, which is what `## Scope and method` has to state and what `## What was not covered` has to bound.

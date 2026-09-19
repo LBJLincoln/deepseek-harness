@@ -36,6 +36,7 @@ The recorder refuses to overwrite an existing record. Add a row below afterwards
 
 | Run | Head | Target | Model | Certified | Findings | Examiner | Elapsed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| [2026-09-19-nodegoat](2026-09-19-nodegoat/manifest.json) | `be507df30` | OWASP NodeGoat, 111 files | `sonnet` | 7 of 7 | 42 (5 critical, 17 high, 13 medium, 5 low, 2 info) | exit 0 | 1301 s |
 
 ## What a record proves
 

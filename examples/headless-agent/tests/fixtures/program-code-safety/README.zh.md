@@ -71,6 +71,12 @@ pnpm run code-safety -- /path/to/target [--out <dir>] [--model sonnet|opus]
 
 运行期间，`<out>/.sessions/` 会逐渐填满每个会话各一份日志——账本、六个部门与集成——program 结束时 driver 把它唯一的结果行写入 `<out>/stdout.jsonl`。按[运行表](../../../../../data/code-safety/README.md)所述，把它记录到 `data/code-safety/` 下。
 
+## NodeGoat 上的运行
+
+首次真实评审的对象是 [OWASP NodeGoat](../../../../../data/code-safety/README.md)——一个刻意留有漏洞的 Express 应用——模型为 `sonnet`，并挂载了知识包：锁定 111 个文件，六个部门全部在第一次尝试中获得认证，提交 46 条发现、去重后并集为 42 条（5 条 critical、17 条 high、13 条 medium、5 条 low、2 条 info），已提交的审查器在合并后的 HEAD 上通过。集成的第一次尝试发现合并结果不含报告，第二次写出了它；整个 program 耗时 1301 秒。[`data/code-safety/2026-09-19-nodegoat/`](../../../../../data/code-safety/README.md) 保存了报告、并集、审查器的输出与全部会话日志。
+
+同一个 program 在未挂载知识包时的一次较早运行，得到了可比的发布结果——6 之 6 认证、提交 44 条、并集 42 条——但把全部 44 条发现都记为 `confirmed`。已记录的那次运行挂载了知识包的 `review-method` 技能，记为 39 条 `confirmed`、2 条 `likely`、1 条 `possible`，把五条发现移出了 `critical`，并报告了较早那次没有发现的一处 SSRF。这两个数字都不是测量：两次运行就只是两次运行，能够裁定此事的是一次配对读数。
+
 ## 这个 program 不做什么
 
 它只读。没有路由被调用，没有载荷被发送，它报告的任何发现都不是已演示的利用：`confidence` 是分析者本人对"把路径追到了多远"的声明，而审查器检查的是引用而非推理。它覆盖的是各部门实际打开过的文件，这正是 `## Scope and method` 必须陈述、`## What was not covered` 必须界定的范围。
