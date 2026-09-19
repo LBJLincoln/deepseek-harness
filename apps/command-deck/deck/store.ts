@@ -17,6 +17,9 @@ import { subscribeRun, type StreamState } from './stream.ts'
 /** How many events one run keeps in memory; older frames fall off the head. */
 const EVENT_WINDOW = 4_000
 
+/** How often a live deck re-reads the run list and a running review's detail. */
+const REFRESH_MS = 10_000
+
 /** A certificate burst waiting to be drawn once, then dropped. */
 interface Burst {
   agentId: string
@@ -45,10 +48,15 @@ export interface DeckState {
   bursts: Burst[]
   boot: () => Promise<void>
   selectRun: (id: string) => void
+  /** List a run the feed does not report yet, such as a review this deck just started. */
+  addRun: (run: Run) => void
+  /** Re-read the run list and, while the followed review is still running, its detail. */
+  refresh: () => Promise<void>
   selectAgent: (id: string | undefined) => void
   selectFinding: (id: string | undefined) => void
   setCursor: (seq: number | undefined) => void
-  loadSafety: (id: string) => Promise<void>
+  /** Load a review's detail; `force` re-reads one already loaded. */
+  loadSafety: (id: string, force?: boolean) => Promise<void>
 }
 
 let unsubscribe: (() => void) | undefined
@@ -94,6 +102,29 @@ export const useDeck = create<DeckState>((set, get) => ({
     } catch (error) {
       set({ error: error instanceof Error ? error.message : String(error) })
     }
+    // Replay is a fixed record; only a live feed changes underneath the deck.
+    if (source.mode === 'live') setInterval(() => { void get().refresh() }, REFRESH_MS)
+  },
+
+  addRun: (run) => {
+    set(state => (state.runs.some(entry => entry.id === run.id) ? {} : { runs: [run, ...state.runs] }))
+  },
+
+  refresh: async () => {
+    const { source, runs: known, selectedRunId } = get()
+    if (source === undefined) return
+    try {
+      const listed = await getRuns(source.base)
+      // A review this deck started stays listed until the feed reports it.
+      const pending = known.filter(run => !listed.some(entry => entry.id === run.id))
+      set({ runs: [...pending, ...listed] })
+      const selected = [...pending, ...listed].find(run => run.id === selectedRunId)
+      if (selected?.kind === 'code-safety' && (selected.status === 'running' || get().safetyRunId !== selected.id)) {
+        await get().loadSafety(selected.id, true)
+      }
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : String(error) })
+    }
   },
 
   selectRun: (id) => {
@@ -121,14 +152,17 @@ export const useDeck = create<DeckState>((set, get) => ({
   selectFinding: id => set({ selectedFindingId: id }),
   setCursor: seq => set({ cursor: seq }),
 
-  loadSafety: async (id) => {
+  loadSafety: async (id, force = false) => {
     const source = get().source
-    if (source === undefined || get().safetyRunId === id) return
+    if (source === undefined || (!force && get().safetyRunId === id)) return
     try {
       // No finding is preselected: the view opens on the whole city, and the
-      // camera only flies in once a reviewer picks one.
+      // camera only flies in once a reviewer picks one. A re-read keeps the
+      // selection when the finding is still there.
       const safety = await getSafety(source.base, id)
-      set({ safety, safetyRunId: id, selectedFindingId: undefined })
+      const selectedFindingId = get().selectedFindingId
+      const kept = force && safety.findings.some(finding => finding.id === selectedFindingId) ? selectedFindingId : undefined
+      set({ safety, safetyRunId: id, selectedFindingId: kept, error: undefined })
     } catch (error) {
       set({ error: error instanceof Error ? error.message : String(error) })
     }

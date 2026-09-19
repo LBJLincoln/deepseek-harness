@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { SEVERITY_ORDER, type Severity } from '@/deck/contract'
@@ -22,6 +22,10 @@ const SafetyStage = dynamic(
 
 /** Which panel tab is open. */
 type Tab = 'findings' | 'certificate' | 'report'
+
+/** The models `pnpm run code-safety -- --model` accepts; the feed forwards the name unchanged. */
+const REVIEW_MODELS = ['sonnet', 'opus'] as const
+type ReviewModel = (typeof REVIEW_MODELS)[number]
 
 /**
  * Offer one generated file to the viewer.
@@ -49,15 +53,23 @@ export function SafetyView(): ReactNode {
   const selectedFindingId = useDeck(state => state.selectedFindingId)
   const selectFinding = useDeck(state => state.selectFinding)
   const selectRun = useDeck(state => state.selectRun)
+  const addRun = useDeck(state => state.addRun)
 
   const [tab, setTab] = useState<Tab>('findings')
   const [severity, setSeverity] = useState<Severity | 'all'>('all')
   const [department, setDepartment] = useState('all')
   const [cwe, setCwe] = useState('all')
-  const [target, setTarget] = useState('/srv/targets/nodegoat')
-  const [model, setModel] = useState('deepseek-reasoner')
+  const [target, setTarget] = useState('')
+  const [model, setModel] = useState<ReviewModel>('sonnet')
   const [starting, setStarting] = useState(false)
   const [startError, setStartError] = useState<string | undefined>(undefined)
+
+  // The form opens on the loaded review's own target, which is a path the
+  // feed's machine is known to hold; a viewer replaces it to review another.
+  const loadedTarget = safety?.target.path
+  useEffect(() => {
+    if (loadedTarget !== undefined) setTarget(current => (current === '' ? loadedTarget : current))
+  }, [loadedTarget])
 
   const findings = safety?.findings ?? []
 
@@ -81,6 +93,16 @@ export function SafetyView(): ReactNode {
     setStartError(undefined)
     try {
       const id = await startSafety(source.base, target, model)
+      // The feed lists the run once its directory exists; until then the deck
+      // carries it itself so the views can follow it from the first event.
+      addRun({
+        id,
+        kind: 'code-safety',
+        name: target.split('/').filter(Boolean).pop() ?? target,
+        startedAt: new Date().toISOString(),
+        status: 'running',
+        path: target,
+      })
       selectRun(id)
       setTab('findings')
     } catch (error) {
@@ -321,12 +343,16 @@ export function SafetyView(): ReactNode {
                   className="input"
                   value={target}
                   onChange={event => setTarget(event.target.value)}
-                  placeholder="/srv/targets/…"
+                  placeholder="absolute path of a repository on the feed's machine"
                 />
                 <label className="label" htmlFor="review-model" style={{ marginTop: 9 }}>Model</label>
-                <select id="review-model" className="input" value={model} onChange={event => setModel(event.target.value)}>
-                  <option value="deepseek-reasoner">deepseek-reasoner</option>
-                  <option value="deepseek-chat">deepseek-chat</option>
+                <select
+                  id="review-model"
+                  className="input"
+                  value={model}
+                  onChange={event => setModel(event.target.value === 'opus' ? 'opus' : 'sonnet')}
+                >
+                  {REVIEW_MODELS.map(name => <option key={name} value={name}>{name}</option>)}
                 </select>
                 <button
                   type="submit"

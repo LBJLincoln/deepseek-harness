@@ -28,7 +28,7 @@ import { createReadStream, existsSync, readdirSync, readFileSync, statSync } fro
 import type { Dirent } from 'node:fs'
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
-import { dirname, extname, join, relative, resolve } from 'node:path'
+import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
@@ -936,7 +936,9 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
  * @param fallbackAgentId - agent id to use when nothing else matches.
  * @returns a roster agent id.
  */
-export function mapSessionToAgentId(lines: readonly SessionLine[], roster: Roster, fallbackAgentId: string): string {
+export function mapSessionToAgentId(lines: readonly SessionLine[], roster: Roster, fallbackAgentId: string, sessionId?: string): string {
+  const programSeat = programSeatFor(sessionId ?? sessionIdOf(lines.find(line => typeOf(line) === 'session'), ''), roster)
+  if (programSeat !== undefined) return programSeat
   const header = lines.find(line => typeOf(line) === 'request/header')
   const config = (header?.data?.header as { config?: { provider?: string; model?: string }; system?: string } | undefined)
   const provider = config?.config?.provider
@@ -947,6 +949,29 @@ export function mapSessionToAgentId(lines: readonly SessionLine[], roster: Roste
   const pool = byModel.length > 0 ? byModel : byProvider
   const keywordMatch = pool.find(agent => system.includes(agent.role) || system.includes(agent.division))
   return keywordMatch?.id ?? pool[0]?.id ?? fallbackAgentId
+}
+
+/**
+ * The code-safety seat a program session belongs to, read from the session id
+ * `@deepseek-ai/dsh-program` mints: `program-<digest>` is the program lead's own
+ * session, `program-<digest>-<department>` a department's, and
+ * `program-<digest>-~0040integration` the integration's (`~xxxx` encodes the
+ * code point, here `@`). A department session is the department's whole review,
+ * so it maps to the department's integrator seat; the lead's and the
+ * integration's sessions map to the program lead. The roster's own
+ * provider/model matching never reaches these seats, because a review runs on
+ * the operator's Claude Code route while the seats name their default routes.
+ * @param sessionId - the session id, or `''` when unknown.
+ * @param roster - the generated roster.
+ * @returns the seat's agent id, or `undefined` when the id is not a program session's or the seat is absent.
+ */
+function programSeatFor(sessionId: string, roster: Roster): string | undefined {
+  const match = /^program-[0-9a-f]{16,}(?:-(.+))?$/.exec(sessionId)
+  if (match === null) return undefined
+  const key = match[1]?.replaceAll(/~([0-9a-f]{4})/g, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)))
+  const seats = roster.agents.filter(agent => agent.division === 'code-safety')
+  if (key === undefined || key === '@integration') return seats.find(agent => agent.role === 'lead')?.id
+  return (seats.find(agent => agent.department === key && agent.role === 'integrator') ?? seats.find(agent => agent.department === key))?.id
 }
 
 // ---------------------------------------------------------------------------
@@ -1210,7 +1235,7 @@ async function resolveFileIdentity(file: string, roster: Roster, fallbackAgentId
     if (headerLine === undefined && type === 'request/header') headerLine = line
     if (sessionId !== undefined && headerLine !== undefined) break
   }
-  const agentId = mapSessionToAgentId(headerLine === undefined ? [] : [headerLine], roster, fallbackAgentId)
+  const agentId = mapSessionToAgentId(headerLine === undefined ? [] : [headerLine], roster, fallbackAgentId, sessionId)
   return { sessionId: sessionId ?? file, agentId }
 }
 
@@ -1398,8 +1423,12 @@ async function handleStartSafety(req: IncomingMessage, res: ServerResponse, root
     return
   }
   const model = typeof body?.model === 'string' ? body.model : undefined
-  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  const args = ['run', 'code-safety', '--', target, ...model === undefined ? [] : ['--model', model]]
+  // The id is the run directory's name under `.code-safety/`, the same
+  // `<target basename>-<stamp>` the script would choose on its own, passed as
+  // `--out` so the id this response returns is the id the run is discovered under.
+  const stamp = new Date().toISOString().replaceAll(/[:.]/g, '-').slice(0, 19)
+  const id = `${basename(target)}-${stamp}`
+  const args = ['run', 'code-safety', '--', target, '--out', join(root, '.code-safety', id), ...model === undefined ? [] : ['--model', model]]
   const child = spawn('pnpm', args, { cwd: root, detached: true, stdio: 'ignore' })
   child.on('error', (error) => {
     // Spawn failed after the response was already sent (pnpm missing from

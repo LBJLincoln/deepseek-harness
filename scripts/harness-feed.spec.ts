@@ -417,6 +417,19 @@ describe('the fold and mapping functions directly', () => {
     expect(mapSessionToAgentId(lines, roster, 'fallback')).toBe('a')
     expect(mapSessionToAgentId([], roster, 'fallback')).toBe('fallback')
   })
+
+  it('maps a program session to the code-safety seat its id names, ahead of any route match', () => {
+    const roster = JSON.parse(readFileSync(resolve(root, 'data/enterprise/roster.json'), 'utf8')) as Roster
+    const digest = 'a'.repeat(64)
+    const session = (id: string) => [{ type: 'session', id }, { type: 'request/header', data: { header: { config: REAL_ROUTE, system: REAL_SYSTEM_PROMPT } } }]
+    expect(mapSessionToAgentId(session(`program-${digest}-secrets`), roster, 'fallback')).toBe('code-safety-secrets-integrator')
+    expect(mapSessionToAgentId(session(`program-${digest}-~0040integration`), roster, 'fallback')).toBe('code-safety-lead')
+    expect(mapSessionToAgentId(session(`program-${digest}`), roster, 'fallback')).toBe('code-safety-lead')
+    // The id may also be handed in by a caller that has it without the session line.
+    expect(mapSessionToAgentId([], roster, 'fallback', `program-${digest}-injection`)).toBe('code-safety-injection-integrator')
+    // A department the roster does not seat falls through to the route match.
+    expect(mapSessionToAgentId(session(`program-${digest}-unknown`), roster, 'fallback')).not.toMatch(/^code-safety-/)
+  })
 })
 
 describe('GET /roster', () => {
@@ -487,7 +500,10 @@ describe('POST /safety', () => {
     })
     expect(response.status).toBe(202)
     const body = await response.json() as { id: string }
-    expect(body.id.length).toBeGreaterThan(0)
+    // The id is the run directory's name under `.code-safety/`: the target's
+    // basename and a second-resolution stamp, so the deck can follow the run
+    // under the id it was handed.
+    expect(body.id).toMatch(/^dsh-harness-feed-spec-nonexistent-target-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/)
   })
 })
 

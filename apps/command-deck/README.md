@@ -51,7 +51,7 @@ The deck reads `NEXT_PUBLIC_FEED_URL` (default `http://localhost:4711`) and expe
 | `GET /runs` | `[{ id, kind, name, startedAt, endedAt?, status, path }]` for every `program`, `fleet`, `experiment` and `code-safety` run. |
 | `GET /runs/:id/events` | Server-Sent Events. Each `data:` frame is one `{ ts, seq, agentId, sessionId, kind, label, detail?, severity?, file?, line? }`. The stream replays history and then stays open. |
 | `GET /safety/:id` | `{ target, departments, findings, certificate, report }` for one code-safety review. |
-| `POST /safety` | `{ target, model? }` starts a review and answers `{ id }`; the deck then follows that run live. |
+| `POST /safety` | `{ target, model? }` starts a review and answers `{ id }`; the deck then follows that run live. `target` is an absolute path on the feed's machine and `model` is `sonnet` or `opus`, the names `pnpm run code-safety -- --model` accepts; the form opens on the loaded review's own target. |
 
 Every field is typed in [`deck/contract.ts`](deck/contract.ts), which is the one place the contract is written down. `seq` is what the client deduplicates on, so a reconnection that replays history delivers nothing twice.
 
