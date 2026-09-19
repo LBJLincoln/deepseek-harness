@@ -4,23 +4,280 @@
   "revision": "c5cb68a7084e4ae7dcc60e6a98768720a81841e8",
   "source": "The application's own `// Fix for A<n>` markers and the tutorial it bundles; every line below was read in the checkout at the revision above.",
   "issues": [
-    { "id": "NG-A1-1", "category": "A1 Injection (server-side JavaScript)", "cwe": "CWE-95", "file": "app/routes/contributions.js", "lines": [32, 34], "description": "`eval(req.body.preTax)`, `eval(req.body.afterTax)`, `eval(req.body.roth)` evaluate request fields as code." },
-    { "id": "NG-A1-2", "category": "A1 Injection (NoSQL)", "cwe": "CWE-943", "file": "app/data/allocations-dao.js", "lines": [78, 78], "description": "A `$where` clause is built by interpolating the unvalidated `threshold` query parameter." },
-    { "id": "NG-A1-3", "category": "A1 Injection (log)", "cwe": "CWE-117", "file": "app/routes/session.js", "lines": [64, 64], "description": "The raw user name from the login form is written to the log, allowing CRLF log forging." },
-    { "id": "NG-A2-1", "category": "A2 Broken authentication (password storage)", "cwe": "CWE-256", "file": "app/data/user-dao.js", "lines": [25, 25], "description": "The password is stored as received; the bcrypt hashing is commented out." },
-    { "id": "NG-A2-2a", "category": "A2 Broken authentication (user enumeration)", "cwe": "CWE-204", "file": "app/routes/session.js", "lines": [85, 94], "description": "Distinct error messages for an unknown user name and a wrong password." },
-    { "id": "NG-A2-2b", "category": "A2 Broken authentication (password policy)", "cwe": "CWE-521", "file": "app/routes/session.js", "lines": [144, 144], "description": "`PASS_RE = /^.{1,20}$/` accepts any one-character password." },
-    { "id": "NG-A2-3", "category": "A2 Session management (cookie flags)", "cwe": "CWE-1004", "file": "server.js", "lines": [78, 102], "description": "The session cookie is configured without `httpOnly`, `secure` or `maxAge`, under the default cookie name." },
-    { "id": "NG-A3", "category": "A3 Cross-site scripting", "cwe": "CWE-79", "file": "server.js", "lines": [137, 137], "description": "`swig.setDefaults({ autoescape: false })` disables template output escaping application-wide." },
-    { "id": "NG-A4", "category": "A4 Insecure direct object reference", "cwe": "CWE-639", "file": "app/routes/allocations.js", "lines": [16, 18], "description": "The allocations page takes `userId` from the URL parameter instead of the session." },
-    { "id": "NG-A5", "category": "A5 Security misconfiguration (headers)", "cwe": "CWE-16", "file": "server.js", "lines": [38, 62], "description": "`x-powered-by` stays enabled and every helmet middleware (frameguard, noCache, CSP, HSTS) is commented out." },
-    { "id": "NG-A6-1", "category": "A6 Sensitive data exposure (at rest)", "cwe": "CWE-311", "file": "app/data/profile-dao.js", "lines": [55, 66], "description": "SSN, date of birth and bank account are stored in clear text; the encryption branch is commented out." },
-    { "id": "NG-A6-2", "category": "A6 Sensitive data exposure (in transit)", "cwe": "CWE-319", "file": "server.js", "lines": [145, 145], "description": "The server listens over plain HTTP; the HTTPS server and its key material are commented out." },
-    { "id": "NG-A7", "category": "A7 Missing function-level access control", "cwe": "CWE-862", "file": "app/routes/index.js", "lines": [55, 56], "description": "`/benefits` GET and POST require only `isLoggedIn`; the `isAdmin` guard is commented out." },
-    { "id": "NG-A8", "category": "A8 Cross-site request forgery", "cwe": "CWE-352", "file": "server.js", "lines": [104, 113], "description": "`csurf` is required but never mounted; no form carries a token." },
-    { "id": "NG-A9", "category": "A9 Components with known vulnerabilities", "cwe": "CWE-1104", "file": "package.json", "lines": [1, 1], "description": "Pinned or floating old versions: marked 0.3.5, swig ^1.4.2, mongodb ^2.1.18, bcrypt-nodejs 0.0.3, needle 2.2.4, express ^4.13.4." },
-    { "id": "NG-A10", "category": "A10 Unvalidated redirect", "cwe": "CWE-601", "file": "app/routes/index.js", "lines": [72, 72], "description": "`/learn` redirects to `req.query.url` without validation." },
-    { "id": "NG-SSRF", "category": "Server-side request forgery", "cwe": "CWE-918", "file": "app/routes/research.js", "lines": [15, 16], "description": "`needle.get(req.query.url + req.query.symbol)` fetches a caller-controlled URL from the server." },
-    { "id": "NG-REDOS", "category": "Regular expression denial of service", "cwe": "CWE-1333", "file": "app/routes/profile.js", "lines": [59, 59], "description": "`/([0-9]+)+\\#/` validates the bank routing number with nested quantifiers." }
-  ]
+    {
+      "id": "NG-A1-1",
+      "category": "A1 Injection (server-side JavaScript)",
+      "cwe": "CWE-95",
+      "file": "app/routes/contributions.js",
+      "lines": [
+        32,
+        34
+      ],
+      "description": "`eval(req.body.preTax)`, `eval(req.body.afterTax)`, `eval(req.body.roth)` evaluate request fields as code."
+    },
+    {
+      "id": "NG-A1-2",
+      "category": "A1 Injection (NoSQL)",
+      "cwe": "CWE-943",
+      "file": "app/data/allocations-dao.js",
+      "lines": [
+        78,
+        78
+      ],
+      "description": "A `$where` clause is built by interpolating the unvalidated `threshold` query parameter."
+    },
+    {
+      "id": "NG-A1-3",
+      "category": "A1 Injection (log)",
+      "cwe": "CWE-117",
+      "file": "app/routes/session.js",
+      "lines": [
+        64,
+        64
+      ],
+      "description": "The raw user name from the login form is written to the log, allowing CRLF log forging."
+    },
+    {
+      "id": "NG-A2-1",
+      "category": "A2 Broken authentication (password storage)",
+      "cwe": "CWE-256",
+      "file": "app/data/user-dao.js",
+      "lines": [
+        25,
+        25
+      ],
+      "description": "The password is stored as received; the bcrypt hashing is commented out."
+    },
+    {
+      "id": "NG-A2-2a",
+      "category": "A2 Broken authentication (user enumeration)",
+      "cwe": "CWE-204",
+      "file": "app/routes/session.js",
+      "lines": [
+        85,
+        94
+      ],
+      "description": "Distinct error messages for an unknown user name and a wrong password."
+    },
+    {
+      "id": "NG-A2-2b",
+      "category": "A2 Broken authentication (password policy)",
+      "cwe": "CWE-521",
+      "file": "app/routes/session.js",
+      "lines": [
+        144,
+        144
+      ],
+      "description": "`PASS_RE = /^.{1,20}$/` accepts any one-character password.",
+      "alsoAt": [
+        {
+          "file": "app/routes/session.js",
+          "lines": [
+            140,
+            150
+          ],
+          "note": "the validation regexes"
+        }
+      ]
+    },
+    {
+      "id": "NG-A2-3",
+      "category": "A2 Session management (cookie flags)",
+      "cwe": "CWE-1004",
+      "file": "server.js",
+      "lines": [
+        78,
+        102
+      ],
+      "description": "The session cookie is configured without `httpOnly`, `secure` or `maxAge`, under the default cookie name."
+    },
+    {
+      "id": "NG-A3",
+      "category": "A3 Cross-site scripting",
+      "cwe": "CWE-79",
+      "file": "server.js",
+      "lines": [
+        137,
+        137
+      ],
+      "description": "`swig.setDefaults({ autoescape: false })` disables template output escaping application-wide.",
+      "alsoAt": [
+        {
+          "file": "app/views/benefits.html",
+          "lines": [
+            51,
+            51
+          ],
+          "note": "a rendering site of the disabled auto-escaping"
+        },
+        {
+          "file": "app/views/profile.html",
+          "lines": [
+            41,
+            41
+          ],
+          "note": "a rendering site of the disabled auto-escaping"
+        },
+        {
+          "file": "app/views/profile.html",
+          "lines": [
+            78,
+            78
+          ],
+          "note": "a rendering site of the disabled auto-escaping"
+        }
+      ]
+    },
+    {
+      "id": "NG-A4",
+      "category": "A4 Insecure direct object reference",
+      "cwe": "CWE-639",
+      "file": "app/routes/allocations.js",
+      "lines": [
+        16,
+        18
+      ],
+      "description": "The allocations page takes `userId` from the URL parameter instead of the session.",
+      "alsoAt": [
+        {
+          "file": "app/routes/index.js",
+          "lines": [
+            63,
+            63
+          ],
+          "note": "the route that takes userId from the URL"
+        }
+      ]
+    },
+    {
+      "id": "NG-A5",
+      "category": "A5 Security misconfiguration (headers)",
+      "cwe": "CWE-16",
+      "file": "server.js",
+      "lines": [
+        38,
+        62
+      ],
+      "description": "`x-powered-by` stays enabled and every helmet middleware (frameguard, noCache, CSP, HSTS) is commented out.",
+      "alsoAt": [
+        {
+          "file": "server.js",
+          "lines": [
+            10,
+            10
+          ],
+          "note": "the helmet require that is commented out"
+        }
+      ]
+    },
+    {
+      "id": "NG-A6-1",
+      "category": "A6 Sensitive data exposure (at rest)",
+      "cwe": "CWE-311",
+      "file": "app/data/profile-dao.js",
+      "lines": [
+        55,
+        66
+      ],
+      "description": "SSN, date of birth and bank account are stored in clear text; the encryption branch is commented out."
+    },
+    {
+      "id": "NG-A6-2",
+      "category": "A6 Sensitive data exposure (in transit)",
+      "cwe": "CWE-319",
+      "file": "server.js",
+      "lines": [
+        145,
+        145
+      ],
+      "description": "The server listens over plain HTTP; the HTTPS server and its key material are commented out."
+    },
+    {
+      "id": "NG-A7",
+      "category": "A7 Missing function-level access control",
+      "cwe": "CWE-862",
+      "file": "app/routes/index.js",
+      "lines": [
+        55,
+        56
+      ],
+      "description": "`/benefits` GET and POST require only `isLoggedIn`; the `isAdmin` guard is commented out."
+    },
+    {
+      "id": "NG-A8",
+      "category": "A8 Cross-site request forgery",
+      "cwe": "CWE-352",
+      "file": "server.js",
+      "lines": [
+        104,
+        113
+      ],
+      "description": "`csurf` is required but never mounted; no form carries a token.",
+      "alsoAt": [
+        {
+          "file": "app/routes/index.js",
+          "lines": [
+            48,
+            48
+          ],
+          "note": "a state-changing route without a token"
+        }
+      ]
+    },
+    {
+      "id": "NG-A9",
+      "category": "A9 Components with known vulnerabilities",
+      "cwe": "CWE-1104",
+      "file": "package.json",
+      "lines": [
+        1,
+        1
+      ],
+      "description": "Pinned or floating old versions: marked 0.3.5, swig ^1.4.2, mongodb ^2.1.18, bcrypt-nodejs 0.0.3, needle 2.2.4, express ^4.13.4.",
+      "alsoAt": [
+        {
+          "file": "package.json",
+          "lines": [
+            1,
+            60
+          ],
+          "note": "any declared dependency line"
+        }
+      ]
+    },
+    {
+      "id": "NG-A10",
+      "category": "A10 Unvalidated redirect",
+      "cwe": "CWE-601",
+      "file": "app/routes/index.js",
+      "lines": [
+        72,
+        72
+      ],
+      "description": "`/learn` redirects to `req.query.url` without validation."
+    },
+    {
+      "id": "NG-SSRF",
+      "category": "Server-side request forgery",
+      "cwe": "CWE-918",
+      "file": "app/routes/research.js",
+      "lines": [
+        15,
+        16
+      ],
+      "description": "`needle.get(req.query.url + req.query.symbol)` fetches a caller-controlled URL from the server."
+    },
+    {
+      "id": "NG-REDOS",
+      "category": "Regular expression denial of service",
+      "cwe": "CWE-1333",
+      "file": "app/routes/profile.js",
+      "lines": [
+        59,
+        59
+      ],
+      "description": "`/([0-9]+)+\\#/` validates the bank routing number with nested quantifiers."
+    }
+  ],
+  "alsoAt": "Other lines where the same defect is visible; recall.mjs counts a finding at any of them."
 }

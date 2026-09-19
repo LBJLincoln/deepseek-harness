@@ -20,6 +20,7 @@ data/code-safety/
     sessions/          every session log: the ledger, the six departments and the integration, named by session id
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
   tools/record-run.mjs                 copies one run directory into a record and writes its manifest
+  tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate
 ```
 
 ## 如何运行与记录
@@ -42,4 +43,4 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 
 它证明：`findings.json` 中的每条发现，在审查器运行的那一刻，确实存在于 `manifest.json` 所锁定的那棵树中它所引用的那一行；报告自身的计数就是并集的计数；以及没有任何部门报告过的东西在未被点名的情况下被丢弃。它不证明某条列出的发现可被利用，不证明某个未列出的缺陷不存在，也不证明这次评审读过任何它没有声称读过的文件。每份报告中的 `## Scope and method` 与 `## What was not covered` 正是这些边界，它们也因此成为记录的一部分。
 
-一条记录针对目标已记载缺陷的召回率，是一项独立的读数，取自记录旁边的 `targets/<target>.ground-truth.json`，而不在发布关口之内：一个给召回率打分的关口只能在缺陷已知的目标上运行，而那并非本 program 存在的场景。
+一条记录针对目标已记载缺陷的召回率，是一项独立的读数，取自记录旁边的 `targets/<target>.ground-truth.json`，而不在发布关口之内：一个给召回率打分的关口只能在缺陷已知的目标上运行，而那并非本 program 存在的场景。`node data/code-safety/tools/recall.mjs <record> <ground truth>` 打印这一读数：当某条已发布的发现引用了已知问题的文件、且行号在其范围三行之内，或落在基准真值为同一缺陷列出的其他位置之一，该问题即算被找到。在 NodeGoat 记录上它读出 18 之 14：审查错过的四个是登录路径上的日志注入、会枚举用户的两种不同错误消息、只要一个字符的密码策略，以及路由号上的灾难性正则表达式；而 42 条已发布发现中有 12 条是基准真值未列出的缺陷，其中包括重置脚本植入的硬编码管理员密码、提交在 `artifacts/` 下的私钥、登录时未再生的会话，以及从锁文件中读出的依赖公告。

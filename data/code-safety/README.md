@@ -20,6 +20,7 @@ data/code-safety/
     sessions/          every session log: the ledger, the six departments and the integration, named by session id
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
   tools/record-run.mjs                 copies one run directory into a record and writes its manifest
+  tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate
 ```
 
 ## Running one, and recording it
@@ -42,4 +43,4 @@ The recorder refuses to overwrite an existing record. Add a row below afterwards
 
 That every finding in `findings.json` existed at the line it cites, in the tree `manifest.json` locks, at the moment the examiner ran; that the report's own counts are the union's; and that nothing a department reported was dropped without being named. It does not prove that a listed finding is exploitable, that an unlisted defect is absent, or that the review read any file it does not say it read. `## Scope and method` and `## What was not covered` in each report are the bounds, and they are part of the record for that reason.
 
-A record's recall against a target's documented defects is a separate reading, taken from `targets/<target>.ground-truth.json` beside the record rather than inside the release gate: a gate that scored recall could only run on targets whose defects are already known, which is not the case this program exists for.
+A record's recall against a target's documented defects is a separate reading, taken from `targets/<target>.ground-truth.json` beside the record rather than inside the release gate: a gate that scored recall could only run on targets whose defects are already known, which is not the case this program exists for. `node data/code-safety/tools/recall.mjs <record> <ground truth>` prints that reading: a known issue counts as found when a released finding cites its file within three lines of its range or one of the other locations the ground truth lists for the same defect. On the NodeGoat record it reads 14 of 18: the four the review missed are the log injection on the login path, the distinct error messages that enumerate users, the one-character password policy, and the catastrophic regular expression on the routing number, and 12 of the 42 released findings are defects the ground truth does not list, among them the hard-coded administrator password the reset script seeds, the private key committed under `artifacts/`, the session that is not regenerated at login, and the dependency advisories read from the lockfile.
