@@ -19,6 +19,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e5-handoff-drop-t5` | 保留对话记录对丢弃对话记录，首次冻结尝试 | 5 | 基线 `haiku`→`opus`,`opus`（route）对候选同一阶梯，实现者 `spawn` | 2 | with-spawn | `2026-09-08-bench-e5-handoff-drop-t5` |
 | `e5-handoff-tax-t5` | 交接税：全程强模型对先弱后强 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`→`opus`,`opus` | 2 | base | `2026-09-08-bench-e5-handoff-tax-t5` |
 | `e6-cascade-share-t5` | 有界廉价一级的级联：全程强模型对先弱后强，廉价一级限于 cell 上限的 0.2 | 5 | 基线 `opus` 阶梯×3 对候选 `haiku`（份额 0.2）→`opus`,`opus` | 2 | base | `2026-09-18-bench-e6-cascade-share-t5` |
+| `e7-attempts-5-t5` | 尝试上限：中等模型五级对三级 | 5 | 基线 `sonnet` 阶梯×3 对候选 `sonnet` 阶梯×5 | 2 | attempts-5 | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness 循环 fleet，不筛选层级 | all | fleet `sonnet`，district `bench-h1` | 1 | base | not recorded |
