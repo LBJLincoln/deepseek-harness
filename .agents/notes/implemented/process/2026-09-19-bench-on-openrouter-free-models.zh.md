@@ -27,7 +27,7 @@ key 是引用，启动 shell 就是全部的凭证平面：驱动直接调用 `b
 - **路由端到端是通的。** 工具调用、推理、用量、尝试阶梯、上限、读取屏障、普查、导出：免费层上的每个 cell 都产生了与订阅 cell 一样的会话日志，而 loop 的第一次迭代无人插手地记录了其中一个。
 - **最初的启动一个都没认证，原因有三种。** DeepSeek 的 flash 模型在读取上打转了四十步，因为网关丢弃了它用来做计划的 `reasoning` 字段（[修复](../architecture/2026-09-19-reasoning-replayed-as-text-through-gateways.md)）；Nemotron 120B 模型的每一次尝试都输给了适配器不重试的上游过载，现已归为 `SERVER`；Qwen 模型的上游共享池在每一次重试中都返回 429。
 - **两个 harness 缺陷修好之后，agentic fleet 在六个非保留的第 2 层环境上认证了 18 之 16**：Nex N2.5 Pro 6 之 6，poolside Laguna S 2.1 6 之 6（只有一个在第二次尝试），Nemotron 3 Super 120B 6 之 4，以各三次尝试错过了 csv-codec 与 glob-match。中等产品模型在 h1 记录里以三分之一的步数认证了同样六个环境的 12 之 12；免费模型够得着这一层，只是更慢。DeepSeek 模型在推理以文本回放后重跑，能在步骤之间保住计划，却仍在三个 cell 里不写一次就结束尝试，随后重跑被叫停：传输缺陷已修好，剩下的是模型对这套工具面的处理。
-- **语料存在，而且很小。** 会话带着允许训练的条款；第一个 `--purpose training` 数据集（[`2026-09-19-openrouter-free-v1`](../../../../data/proving-ground/datasets/2026-09-19-openrouter-free-v1/README.md)）装着当前工具导出的两条轨迹，而十六条已认证的 agentic 轨迹在等一次对早于 `terms` 字段的构建所写记录的重新导出。许可证当天在 Hugging Face hub 上读过：DeepSeek V4 Flash 为 MIT，Qwen3.8-27B 为 Apache-2.0，Nemotron 3 Super 采用 NVIDIA 自己的开放模型许可；Nex 与 poolside 的许可证没有读过，在准入时把关它们的轨迹。
+- **语料存在，而且很小。** 会话带着允许训练的条款；第一个 `--purpose training` 数据集（[`2026-09-19-openrouter-free-v1`](../../../../data/proving-ground/datasets/2026-09-19-openrouter-free-v1/README.md)）装着 22 条轨迹，18 条已认证、4 条是测得的失败，来自六个第 2 层任务上的四个免费模型，这是在 `terms` 字段之前导出的两份记录由当前折叠重新导出之后的结果。许可证当天在 Hugging Face hub 上读过：DeepSeek V4 Flash 为 MIT，Qwen3.8-27B 为 Apache-2.0，Nemotron 3 Super 采用 NVIDIA 自己的开放模型许可；Nex 与 poolside 的许可证没有读过，在准入时把关它们的轨迹。
 - **额度塑造了这一天。** 到 12:20 UTC，一千次每日请求里的 834 次已在五支 fleet 上花掉；一个 cell 每步一次请求，推理模型的一步要一分钟，所以一支十八个 cell 的第 2 层 fleet 就是一次八十分钟、三百次请求的运行。
 
 ## 考虑过的替代方案

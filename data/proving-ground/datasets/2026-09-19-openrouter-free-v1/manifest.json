@@ -1,10 +1,10 @@
 {
   "name": "2026-09-19-openrouter-free-v1",
   "format": "dsh-proving-ground-dataset/1",
-  "builtAt": "2026-09-19T12:24:34.784Z",
+  "builtAt": "2026-09-19T12:51:02.487Z",
   "repository": {
     "branch": "claude/coding-agent-harness-u9l4gt",
-    "head": "5b41c858c41463d03d2a7bf18e4cb55dc1fc6a9a"
+    "head": "22c09ab73620821362da432f5b834f7f6027710c"
   },
   "tool": {
     "path": "data/proving-ground/tools/build-dataset.mjs",
@@ -218,20 +218,20 @@
       "record": "2026-09-19-bench-h1-openrouter-smoke-t2",
       "composition": "examples/headless-agent/tests/fixtures/proving-ground-bench/overlays/with-openrouter.cordis.yml",
       "head": "6fb3aa84fa8be691af4fdcd398d3a06b11bf059c",
-      "manifestSha256": "2ce667e694478c009dde8a67786ac066ceef1a916052f62a3e68864c588e51ef"
+      "manifestSha256": "1ec7891ce64294908ee99a3c2bfc1ab5e00a31b0685f3c9c1f96f057e41e0762"
     },
     {
       "record": "2026-09-19-bench-h2-openrouter-agentic-t2",
       "composition": "examples/headless-agent/tests/fixtures/proving-ground-bench/overlays/with-openrouter.cordis.yml",
       "head": "5b41c858c41463d03d2a7bf18e4cb55dc1fc6a9a",
-      "manifestSha256": "39df34f0c4a4d0dd8569878d08f5eab18171e3dc04f593f11ddd29adb0cd9ba6"
+      "manifestSha256": "5a2dfd0be8b908ce2422eab64e34e64fd7a28d3eb2306ff32d37e4d5b81a9085"
     }
   ],
   "counts": {
     "seen": 852,
-    "train": 2,
+    "train": 22,
     "heldout": 0,
-    "withheldTerms": 824,
+    "withheldTerms": 804,
     "withheldHeldOut": 0,
     "delegated": 0,
     "delegatedExcluded": 0,
@@ -240,44 +240,57 @@
   },
   "distributions": {
     "arm": {
-      "fleet": 2
+      "fleet": 22
     },
     "domain": {
-      "parsing": 1,
-      "systems": 1
+      "data-structures-algorithms": 6,
+      "parsing": 8,
+      "systems": 5,
+      "text": 3
     },
     "environment": {
-      "code:glob-match": 1,
-      "code:path-normalize": 1
+      "code:csv-codec": 3,
+      "code:glob-match": 5,
+      "code:interval-ops": 3,
+      "code:path-normalize": 5,
+      "code:stable-sort-by": 3,
+      "code:table-format": 3
     },
     "implementer": {
-      "route": 2
+      "route": 22
     },
     "ladder": {
-      "openrouter/nex-agi/nex-n2.5-pro:free": 2
+      "openrouter/deepseek/deepseek-v4-flash-0731:free": 2,
+      "openrouter/nex-agi/nex-n2.5-pro:free": 8,
+      "openrouter/nvidia/nemotron-3-super-120b-a12b:free": 6,
+      "openrouter/poolside/laguna-s-2.1:free": 6
     },
     "model": {
-      "openrouter/nex-agi/nex-n2.5-pro:free": 2
+      "openrouter/deepseek/deepseek-v4-flash-0731:free": 2,
+      "openrouter/nex-agi/nex-n2.5-pro:free": 8,
+      "openrouter/nvidia/nemotron-3-super-120b-a12b:free": 6,
+      "openrouter/poolside/laguna-s-2.1:free": 6
     },
     "reward": {
-      "1": 2
+      "0": 4,
+      "1": 18
     },
     "tier": {
-      "2": 2
+      "2": 22
     }
   },
   "tokens": {
-    "steps": 34,
-    "stepsWithUsage": 34,
-    "inputTokens": 116063,
-    "outputTokens": 119135,
-    "cacheReadTokens": 546752
+    "steps": 708,
+    "stepsWithUsage": 703,
+    "inputTokens": 4818267,
+    "outputTokens": 494366,
+    "cacheReadTokens": 11614817
   },
   "files": [
     {
       "path": "train.jsonl",
-      "bytes": 636472,
-      "sha256": "47122a0fcf78e871c5b89dce755aef9199d9a03d939376810940887c83b74e1c"
+      "bytes": 4401829,
+      "sha256": "44a78795f43792c40f32c243615b9cae2473023f679626983fd509360ee7b988"
     },
     {
       "path": "heldout.jsonl",
