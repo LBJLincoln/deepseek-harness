@@ -1,0 +1,53 @@
+/*
+ * The two labels drawn over the enterprise graph: a division's name at the end
+ * of its leader line, and the name of the agent under the pointer. Both are
+ * anchored in 3D, so they carry no background box large enough to hide the
+ * scene behind them.
+ */
+
+.division {
+  white-space: nowrap;
+  text-align: center;
+  transform: translateY(-7px);
+  padding: 2px 2px 3px;
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.95), 0 1px 3px rgba(0, 0, 0, 0.9);
+  transition: opacity 260ms ease;
+}
+
+.divisionName {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.divisionCount {
+  font-size: 9px;
+  color: rgba(160, 178, 206, 0.62);
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.divisionDim { opacity: 0.35; }
+
+.agent {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(122, 152, 205, 0.32);
+  background: rgba(6, 10, 18, 0.92);
+  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, 0.95);
+  color: #e8eefc;
+  font-size: 11px;
+  transform: translateY(-6px);
+}
+
+.agentRole {
+  color: #64749a;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
