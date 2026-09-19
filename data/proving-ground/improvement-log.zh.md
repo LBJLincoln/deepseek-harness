@@ -2,7 +2,7 @@
 
 [English](improvement-log.md) | 中文
 
-这个 harness 至今跑过的每一次改进迭代，一次一行，按运行顺序排列：被提出的改动、检验它的实验或记录、返回的配对读数，以及 harness 为此做了什么。各行读自[结果笔记](../../.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)、[README.md](README.md) 中每份记录的段落，以及 [folds/](folds/) 下的折叠文件；[dashboard.html](dashboard.html) 以页面形式展示同样的裁决。
+这个 harness 至今跑过的每一次改进迭代，一次一行，按运行顺序排列：被提出的改动、检验它的实验或记录、返回的配对读数，以及 harness 为此做了什么。各行读自[结果笔记](../../.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)、[README.md](README.md) 中每份记录的段落、[folds/](folds/) 下的折叠文件，以及对由队列跑出的迭代而言与它们并列的、由机器写出的 `loop/ledger.jsonl`；[dashboard.html](dashboard.html) 以页面形式展示同样的裁决。
 
 只有冻结配对实验才能让一项改动被保留。计划——两个臂、环境 id、重复次数、策略版本与基础种子、四个阈值，以及上限——在任何单元运行之前就被摘要冻结，两臂会解析出不同上限的计划会被直接拒绝，配对的证书率差值带着一个百分位自举区间返回；当该区间的下界超过计划的 `minimumDelta` 时裁决为 `promote`，当其上界低于零时为 `reject`，其余情况为 `inconclusive`（[实验包 README](../../packages/improvement/experiments/README.md#statistics-and-verdict)）。本基准把 `minimumDelta` 设为 0.05，并把每个单元限制在 1,500,000 个计费 token 与 1,200,000 ms 之内（[cordis.yml](../../examples/headless-agent/tests/fixtures/proving-ground-bench/cordis.yml)）。成本不在这条规则里：结果会把每个臂的花费与 token 差值列在裁决旁边，由读者自行权衡，这正是下表中没有任何一项改动是以更差的代价换来证书的原因。离线折叠对两次分别记录的运行计算同样的统计量，它是证据而绝非晋级，因为它的两个臂并非被一同冻结。
 
@@ -32,7 +32,7 @@
 
 上面这些部件要构成一个循环，仍然需要有人在其中。有四个部分还不是自动的：
 
-- **提案由 harness 之外的人撰写。**[`packages/improvement/`](../../packages/improvement/README.md) 中没有任何东西会形成假设或写出计划；每份计划都是 [`plans/`](../../examples/headless-agent/tests/fixtures/proving-ground-bench/plans/README.md) 下一份手写的 JSON 夹具，而上面这些读数也是由人手写进结果笔记的。
-- **运行由人手启动。**[`pnpm run bench`](../../scripts/proving-ground.ts) 解析一份计划、创建一个运行目录并执行一个驱动器；它没有排程、没有队列，也不会由某个裁决触发。只有活的村镇按固定节奏运行，而它认证的是三个平凡任务，并不检验任何改动。
+- **提案由 harness 之外的人撰写。**[`packages/improvement/`](../../packages/improvement/README.md) 中没有任何东西会形成假设或写出计划；每份计划都是 [`plans/`](../../examples/headless-agent/tests/fixtures/proving-ground-bench/plans/README.md) 下一份手写的 JSON 夹具，为它们排序的每条队列也是。读数不再必须靠人手转录：一次入队的迭代会在记录该运行的同时，把裁决、区间与按 arm 的证书数写进 `loop/ledger.jsonl`，这里的一行便读那一行——而上面的每一行都早于这份台账，都是由人手从记录里读出的。一行所提出的改动，以及权衡其代价与证书的那句话，仍然出自人。
+- **运行有了队列，但仍没有排程。**[`pnpm run bench -- loop <queue>`](../../scripts/proving-ground.ts) 会无人值守地按顺序运行一条由已入库计划组成的队列：它以手工记录同样的方式记录每次运行，从那份记录中读回裁决，套用一条固定规则——`promote` 决定 `adopt-candidate`，`reject` 与 `inconclusive` 决定 `keep-baseline`，fleet 决定 `recorded`——并逐次迭代追加一行由机器写出的记录，失败的条目也照实写下并继续下一条。没有任何东西为这条命令排程，也没有任何东西因某个裁决而把计划入队，队列文件仍是手写的，而一个决定并不是一次编辑：下面那一条仍是人的活。只有活的村镇按固定节奏运行，而它认证的是三个平凡任务，并不检验任何改动。
 - **被保留的改动靠编辑组合来落地。**没有任何东西会把一个晋级的臂带回默认设置：被保留的结果要由人手写进 `cordis.yml` 或某个叠加层。臂甚至无法指明一个组合——`EnvironmentRunRequest` 不携带 agent preset，因此同一路由上的两个组合仍无从比较（[实验包 README](../../packages/improvement/experiments/README.md#known-limitations-and-deferred-work)）——而 [`composition/manifest`](../../packages/components/components-manifest/README.md) 事件只记录一个 agent 当时在用的东西，并不是改变它的途径。
 - **至今每一张证书都在同一家供应商的模型上。**上面每个实验的每个臂都是 `claude-code` 路由上的 `haiku`、`sonnet` 或 `opus`，跑在操作者自己的订阅上，所以每个读数说的都是这个 harness 在这个 bench 上经由一家厂商的表现。2026-09-19 的两份 OpenRouter 记录是另一条路由上的第一批 cell——条款允许训练的免费开放权重模型——其六个 cell 没有一个认证（[README](README.md)）。

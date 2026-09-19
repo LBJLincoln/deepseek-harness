@@ -17,7 +17,8 @@
 //
 // Every number on the page is read from the records: certificates and attempts
 // from the session logs (through summarize-run.mjs), verdicts and intervals from
-// the experiment results and the offline folds, escapes from the census.
+// the experiment results and the offline folds, escapes from the census, and the
+// loop's iterations from the machine-written ledger `loop/ledger.jsonl`.
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { basename, dirname, join, resolve } from 'node:path'
@@ -285,6 +286,17 @@ function foldCard(file, fold) {
   }
 }
 
+/**
+ * The loop's own ledger: one line per `pnpm run bench -- loop <queue>` iteration,
+ * in the order they ran, written by the loop and never by hand. An absent file is
+ * a loop that has not run yet, which leaves the page's Loop section hidden.
+ */
+function loopLedger() {
+  const path = join(PROVING_GROUND, 'loop', 'ledger.jsonl')
+  if (!existsSync(path)) return []
+  return readFileSync(path, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line))
+}
+
 /** A run directory a driver is still writing, or has finished without being recorded. */
 function loadLive(directory, environments) {
   const plan = tryJson(join(directory, 'plan.json'))
@@ -401,7 +413,7 @@ function build(options) {
   ]
   return {
     builtAt: new Date().toISOString(), head, branch, linkBase, summary,
-    records, experiments, tier5Models, routeSlots: MODEL_SLOTS, matrix, timeline, live,
+    records, experiments, tier5Models, routeSlots: MODEL_SLOTS, matrix, timeline, live, loop: loopLedger(),
     dataset: dataset ? { name: dataset.name, counts: dataset.manifest.counts, distributions: dataset.manifest.distributions, tokens: dataset.manifest.tokens, files: dataset.manifest.files, records: (dataset.manifest.records ?? []).length, builtAt: dataset.manifest.builtAt } : undefined,
     readings: { routing: routing ? { note: routing.note, results: routing.results } : undefined, repeatability: repeatability ? { note: repeatability.note, pairs: repeatability.pairs } : undefined },
     notes: pageNotes,
