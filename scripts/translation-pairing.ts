@@ -126,6 +126,12 @@ export interface TranslationPairingManifest {
 
 const README_ARTIFACT = /(?:^|\/)readme(?:\.md|\.zh\.md|\.i18n\.yaml)$/i
 const ROOT_CONTRIBUTING_ARTIFACT = /^contributing(?:\.md|\.zh\.md|\.i18n\.yaml)$/i
+/**
+ * The authored documents of `data/proving-ground/`, which sit directly in that
+ * directory. Everything below it is a recorded run, a fold, or a dataset that
+ * is never edited after the run, so the pattern stops at the first segment.
+ */
+const PROVING_GROUND_ARTIFACT = /^data\/proving-ground\/[^/]+(?:\.md|\.zh\.md|\.i18n\.yaml)$/
 const NON_SOURCE_DIRECTORIES = new Set([
   'node_modules',
   'lib',
@@ -181,6 +187,7 @@ export function isTranslationScopeFile(file: string): boolean {
   return !file.startsWith('.agents/notes/archived/')
     && !isTranslationSourceExcluded(file) && (README_ARTIFACT.test(file)
     || ROOT_CONTRIBUTING_ARTIFACT.test(file)
+    || PROVING_GROUND_ARTIFACT.test(file)
     || file.startsWith('.agents/notes/')
     || file.startsWith('docs/')
     || file.startsWith('python/'))

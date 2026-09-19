@@ -36,7 +36,7 @@ pnpm dsh web
 
 ## Proving Ground
 
-harness 在 Proving Ground 上度量自身：这是一个横跨三个领域、由 40 个小型环境组成的 bench，其最难的一档由 implementer 从未见过的隐藏用例验证，并以带 bootstrap 区间的冻结配对实验运行。[data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) 是由每一条已记录运行折叠而成的那一个页面：每组配对比较的判定及其区间、密封层级上的各模型、认证矩阵、时间线，以及训练语料折叠。[结果笔记](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)陈述这些运行证明了什么、驳倒了什么。
+harness 在 Proving Ground 上度量自身：这是一个横跨三个领域、由 40 个小型环境组成的 bench，其最难的一档由 implementer 从未见过的隐藏用例验证，并以带 bootstrap 区间的冻结配对实验运行。[data/proving-ground/dashboard.html](data/proving-ground/dashboard.html) 是由每一条已记录运行折叠而成的那一个页面：每组配对比较的判定及其区间、密封层级上的各模型、认证矩阵、时间线，以及训练语料折叠。[结果笔记](.agents/notes/proposed/architecture/2026-09-08-hypothesis-program-results.md)陈述这些运行证明了什么、驳倒了什么，而 [data/proving-ground/improvement-log.md](data/proving-ground/improvement-log.md) 是这个循环本身的台账：每次改进迭代一行，从被提出的改动到裁决为它挣得的决定。
 
 ![Proving Ground 仪表板：记录、cell 与证书的计数，以及带 bootstrap 区间的配对判定](data/proving-ground/dashboard.png)
 
