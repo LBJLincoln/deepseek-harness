@@ -1,0 +1,81 @@
+# The code-safety program with the operator's own Claude Code installation as
+# the route every session is driven through: the real review, and the only file
+# that differs from the keyless composition beside it.
+#
+# `implementer` stays `route`, so the program drives each department turn by
+# turn through the LLM seam and the department's own session holds every step it
+# took. The spec digest covers the implementer but not the route, so a keyless
+# and a real run over the same target are the same program id.
+#
+# One model serves every session: the frozen spec carries no per-goal model and
+# `agent-default-model` is process-wide, so a run cannot staff its departments
+# and its integration differently.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The scripted adapter is the keyless half's whole reason to exist; a real
+      # run composes no mock route at all.
+      - id: code-safety-llm
+        disabled: true
+      - insert:
+          - id: llm-claude-code
+            name: '@deepseek-ai/dsh-llm-claude-code'
+            config:
+              provider: claude-code
+              models:
+                - id: sonnet
+                  name: Claude Code sonnet
+                  productModel: sonnet
+                  contextWindow: 200000
+                - id: opus
+                  name: Claude Code opus
+                  productModel: opus
+                  contextWindow: 200000
+              effort: high
+      # The code-safety knowledge pack as the session's only skill root, found
+      # from the repository root above `baseUrl` the way the bench's craft-skills
+      # overlay finds its own. A tree that carries no pack resolves to no root at
+      # all rather than to an empty directory, so the pack is optional without
+      # the composition pretending it is there.
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          persona: 'You review code you did not write for security defects, on your own branch, and you report only what you have read.'
+          workspaceContext: false
+          skills:
+            filesystem:
+              includeDefaultRoots: false
+              watch: false
+              customSkillDirs: !!js |
+                (() => {
+                  const { fileURLToPath } = process.getBuiltinModule('node:url')
+                  const { existsSync } = process.getBuiltinModule('node:fs')
+                  const { dirname, join } = process.getBuiltinModule('node:path')
+                  const named = process.env.DSH_CODE_SAFETY_SKILLS
+                  if (named !== undefined) return existsSync(named) ? [named] : []
+                  let dir = fileURLToPath(baseUrl)
+                  while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                    const parent = dirname(dir)
+                    if (parent === dir) throw new Error('code-safety overlay: repository root not found above ' + baseUrl)
+                    dir = parent
+                  }
+                  const pack = join(dir, 'data', 'knowledge', 'code-safety')
+                  return existsSync(pack) ? [pack] : []
+                })()
+      - id: agent-default-model
+        config:
+          provider: claude-code
+          model: !!js process.env.DSH_CODE_SAFETY_MODEL ?? 'sonnet'
+      # A patch replaces the whole config of the entry it names, so the program's
+      # other fields are restated here. Six departments reading one tree share
+      # nothing but the target, so a real run runs three at a time.
+      - id: program
+        config:
+          workspaceRoot: !!js process.env.DSH_CODE_SAFETY_REPORT_REPO
+          requireSignoff: true
+          maxConcurrentGoals: 3
+          maxGoalRounds: 4
+          branchPrefix: safety
+          evidenceMaxChars: 4096
