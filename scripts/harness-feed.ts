@@ -6,14 +6,17 @@
  * disk, folds a run's session logs into a normalized event stream, and starts
  * a code-safety scan as a detached child process.
  *
- * Every discovery path is a runtime output directory (`.proving-ground/runs`,
- * `data/proving-ground/*\/sessions`, `.code-safety`) that a fresh checkout does
- * not have; every handler tolerates all three being absent, and never treats
- * a malformed log line as fatal — see {@link readJsonlLines} and
- * {@link foldSessionEvent}. `--fixtures <dir>` substitutes a self-contained
- * directory (mirroring the same `.proving-ground/`, `data/proving-ground/`,
- * `.code-safety/` layout) for the real discovery roots, which is what lets
- * the front end's own tests run against fixed data; it never substitutes for
+ * Four independent discovery paths feed `discoverRuns`: `.proving-ground/runs`
+ * and `.code-safety` are gitignored runtime output a fresh checkout does not
+ * have; `data/proving-ground` and `data/code-safety` are committed historical
+ * records a fresh checkout does have, though with none of a specific run
+ * until one is recorded into it. Every handler tolerates all four being
+ * absent, never treats a malformed log line as fatal, and never assumes a
+ * decoded line matches this module's expected shape — see
+ * {@link readJsonlLines}, {@link streamJsonlLines}, and {@link foldSessionEvent}.
+ * `--fixtures <dir>` substitutes a self-contained directory (mirroring the
+ * same four-path layout) for the real discovery roots, which is what lets the
+ * front end's own tests run against fixed data; it never substitutes for
  * `data/enterprise/roster.json`, which always names the repository's real
  * generated roster.
  *
@@ -21,11 +24,12 @@
  */
 
 import { spawn } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { createReadStream, existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import type { Dirent } from 'node:fs'
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import { dirname, extname, join, relative, resolve } from 'node:path'
+import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
 import type { Roster, RosterAgentDefinition } from './enterprise-roster.ts'
@@ -39,30 +43,63 @@ export type RunKind = 'program' | 'fleet' | 'experiment' | 'code-safety'
 /** A discovered run's lifecycle state, inferred from its plan/log/certificate data. */
 export type RunStatus = 'running' | 'completed' | 'failed' | 'unknown'
 
-/** The optional fields a `.proving-ground/runs/<id>/plan.json` may declare. */
+/**
+ * The fields a `.proving-ground/runs/<id>/plan.json` may declare. This file is
+ * a verbatim copy of the user-authored plan `scripts/proving-ground.ts` ran
+ * (see its own `planKind`), so it never carries an explicit `kind`, `status`,
+ * or `endedAt` — {@link classifyPlanKind} and {@link resolveRunLogStatus}
+ * derive those from the arms it declares and from `run.log`.
+ */
 interface PlanFile {
-  kind?: string
   name?: string
   startedAt?: string
+  /** A fleet plan's per-model arms. */
+  models?: unknown
+  /** A frozen-experiment plan's two arms. */
+  baseline?: unknown
+  candidate?: unknown
+  /** A `ProgramSpec`-shaped plan's goal list (`packages/improvement/program`), for a program co-located under this same discovery root. */
+  goals?: unknown
+}
+
+/** The fields this module reads from a recorded `data/proving-ground/<id>/manifest.json`, always written by the recording step. */
+interface RecordedRunManifest {
+  run?: string
+  ranAt?: string
   endedAt?: string
-  status?: string
+  /**
+   * Repository-relative path to the fixture composition the run booted; a
+   * `program` path names a program recording when {@link RecordedRunResult}
+   * does not already say so.
+   */
+  composition?: string
 }
 
-/** The optional fields a `data/proving-ground/<id>/meta.json` may declare. */
-interface RecordedRunMeta {
-  name?: string
-  startedAt?: string
-  endedAt?: string
+/**
+ * The fields this module reads from a recorded `data/proving-ground/<id>/result.json`
+ * to classify its kind; see {@link classifyRecordedRun}.
+ */
+interface RecordedRunResult {
+  /** A fleet's or a program's report; `goals` names a program's department list, `group`/`cells` a fleet's per-cell report. */
+  report?: { group?: string; cells?: unknown; goals?: unknown }
+  /** A frozen experiment's statistical comparison; `arms.baseline`/`arms.candidate` name its two arms. */
+  result?: { arms?: { baseline?: unknown; candidate?: unknown } }
 }
 
-/** The optional fields a `.code-safety/<id>/target.json` may declare. */
-interface TargetFile {
-  name?: string
-  path?: string
-  startedAt?: string
+/**
+ * The fields this module reads from a code-safety run's locked target: a live
+ * `.code-safety/<id>/repo/target.json` (the `TargetLock` the program driver
+ * commits, `examples/headless-agent/tests/fixtures/program-code-safety/driver.ts`)
+ * and a recorded `data/code-safety/<id>/manifest.json`'s `target` field both
+ * carry `root`, which is all this module reads; `files` differs in shape
+ * between the two (a path-to-hash record live, a plain count recorded) and is
+ * not read here.
+ */
+interface TargetLock {
+  root?: string
 }
 
-/** One discovered run directory, from `.proving-ground/runs`, `data/proving-ground`, or `.code-safety`. */
+/** One discovered run directory, from `.proving-ground/runs`, `data/proving-ground`, `.code-safety`, or `data/code-safety`. */
 export interface RunSummary {
   /** Run directory name. */
   id: string
@@ -116,22 +153,40 @@ export interface SafetyDepartmentStatus {
   findings: number
 }
 
-/** One finding row, passed through from the run's `findings.json` verbatim beyond normalization. */
+/**
+ * One finding row, passed through from the run's `findings.json` verbatim
+ * beyond normalization. A finding carries no `department` field — its `id`
+ * is prefixed with its department id instead (`access-idor-allocations`),
+ * which {@link buildSafetyDetail} matches against the six fixed
+ * {@link CODE_SAFETY_DEPARTMENTS}; `department` is read first when present,
+ * for a shape a future writer adds it to.
+ */
 export interface SafetyFinding {
   id?: string
   department?: string
+  cwe?: string
+  owasp?: string
   severity?: FeedSeverity
+  confidence?: 'confirmed' | 'likely' | 'possible'
+  title?: string
   file?: string
   line?: number
+  snippet?: string
+  evidence?: string
+  impact?: string
+  fix?: string
+  references?: string[]
   message?: string
   [key: string]: unknown
 }
 
-/** The run's verifier output, normalized from `verifier.json` or its stdout capture. */
+/** The run's verifier output, normalized from `verifier.json`, `verifier.txt`, or a live run's `stdout.jsonl`; see {@link readVerifier}. */
 export interface SafetyCertificate {
   verified: boolean
   verifier: string
   checkedAt?: string
+  /** The verifier's own report text, when captured. */
+  output?: string
   counts: Record<FeedSeverity, number>
   /** Department ids the verifier could not check. */
   unverified: string[]
@@ -159,7 +214,9 @@ export interface SafetyDetail {
 }
 
 /** A roster agent with live status computed from real session data, replacing the generated file's static `"defined"`. */
-export type LiveRosterAgent = Omit<RosterAgentDefinition, 'status'> & { status: RosterAgentDefinition['status'] | 'active' | 'certified' | 'failed' }
+export type LiveRosterAgent = Omit<RosterAgentDefinition, 'status'> & {
+  status: RosterAgentDefinition['status'] | 'active' | 'certified' | 'failed'
+}
 
 /** The `/roster` response: the generated roster with live status and `counts.active` overlaid. */
 export type LiveRoster = Omit<Roster, 'agents'> & { agents: LiveRosterAgent[] }
@@ -318,9 +375,51 @@ function findJsonlFiles(dir: string): string[] {
 // ---------------------------------------------------------------------------
 
 /**
- * One `.proving-ground/runs/<id>` fleet or experiment run: `plan.json` names
- * its kind/name/timestamps (all optional; absence falls back to a directory
- * stat and the `experiment` kind), and its sessions live under `.sessions`.
+ * Classify a `.proving-ground/runs/<id>/plan.json` by the arms it declares,
+ * mirroring `scripts/proving-ground.ts`'s own `planKind`: a `models` array is
+ * a fleet, a `baseline`/`candidate` pair is a frozen experiment, and a
+ * `goals` array (`packages/improvement/program`'s `ProgramSpec`) is a program
+ * spec co-located under the same discovery root. Tolerant where `planKind` is
+ * strict — a malformed or ambiguous plan must never break `GET /runs`.
+ * @param plan - the parsed plan file, or `undefined` when absent or unparsable.
+ * @param fallback - the kind to report when nothing on the plan is conclusive.
+ * @returns the inferred run kind.
+ */
+function classifyPlanKind(plan: PlanFile | undefined, fallback: RunKind): RunKind {
+  if (plan === undefined) return fallback
+  if (Array.isArray(plan.goals)) return 'program'
+  if (Array.isArray(plan.models)) return 'fleet'
+  if (plan.baseline !== undefined && plan.candidate !== undefined) return 'experiment'
+  return fallback
+}
+
+/**
+ * Classify a recorded `data/proving-ground/<id>` run from its `result.json`
+ * (preferred: it carries the frozen plan and report) or `manifest.json`.
+ * `report.goals` names a program's department list, `result.arms` names a
+ * frozen experiment's two arms, and `report.group`/`report.cells` names a
+ * fleet's per-cell report; the directory id and the manifest's `composition`
+ * fixture path are the last resort when neither file states a shape this
+ * function recognizes.
+ * @param id - the run directory name, used as a name-based last resort.
+ * @param result - the parsed `result.json`, or `undefined` when absent or unparsable.
+ * @param manifest - the parsed `manifest.json`, or `undefined` when absent or unparsable.
+ * @returns the inferred run kind; defaults to `experiment` when nothing matches.
+ */
+function classifyRecordedRun(id: string, result: RecordedRunResult | undefined, manifest: RecordedRunManifest | undefined): RunKind {
+  if (Array.isArray(result?.report?.goals)) return 'program'
+  if (result?.result?.arms?.baseline !== undefined && result.result.arms.candidate !== undefined) return 'experiment'
+  if (result?.report?.group !== undefined && Array.isArray(result.report.cells)) return 'fleet'
+  if (/program/i.test(id) || (manifest?.composition !== undefined && /program/i.test(manifest.composition))) return 'program'
+  return 'experiment'
+}
+
+/**
+ * One `.proving-ground/runs/<id>` fleet, experiment, or program run:
+ * `plan.json` names its arms/name/timestamps (all optional; absence falls
+ * back to a directory stat and the `experiment` kind), status and `endedAt`
+ * come from `run.log` (see {@link resolveRunLogStatus}), and its sessions
+ * live under `.sessions`.
  */
 function discoverProvingGroundRuns(discoveryRoot: string): RunSummary[] {
   const base = join(discoveryRoot, '.proving-ground/runs')
@@ -329,14 +428,14 @@ function discoverProvingGroundRuns(discoveryRoot: string): RunSummary[] {
     const dir = join(base, id)
     if (!statSafeIsDirectory(dir)) continue
     const plan = readJsonSafe(join(dir, 'plan.json')) as PlanFile | undefined
-    const kind: RunKind = plan?.kind === 'fleet' || plan?.kind === 'program' ? plan.kind : 'experiment'
+    const { status, endedAt } = resolveRunLogStatus(dir)
     runs.push({
       id,
-      kind,
+      kind: classifyPlanKind(plan, 'experiment'),
       name: plan?.name ?? id,
       startedAt: plan?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      ...(plan?.endedAt === undefined ? {} : { endedAt: plan.endedAt }),
-      status: resolveRunStatus(plan?.status, plan?.endedAt, dir),
+      ...endedAt === undefined ? {} : { endedAt },
+      status,
       path: relative(discoveryRoot, dir),
     })
   }
@@ -355,14 +454,15 @@ function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] 
     const dir = join(base, id)
     const sessionsDir = join(dir, 'sessions')
     if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(sessionsDir)) continue
-    const meta = readJsonSafe(join(dir, 'meta.json')) as RecordedRunMeta | undefined
-    const ended = meta?.endedAt ?? mtimeIso(dir)
+    const manifest = readJsonSafe(join(dir, 'manifest.json')) as RecordedRunManifest | undefined
+    const result = readJsonSafe(join(dir, 'result.json')) as RecordedRunResult | undefined
+    const endedAt = manifest?.endedAt ?? mtimeIso(dir)
     runs.push({
       id,
-      kind: 'experiment',
-      name: meta?.name ?? id,
-      startedAt: meta?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      ...(ended === undefined ? {} : { endedAt: ended }),
+      kind: classifyRecordedRun(id, result, manifest),
+      name: manifest?.run ?? id,
+      startedAt: manifest?.ranAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
+      ...endedAt === undefined ? {} : { endedAt },
       status: 'completed',
       path: relative(discoveryRoot, dir),
     })
@@ -370,11 +470,72 @@ function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] 
   return runs
 }
 
+/** One JSON line this module recognizes at the tail of a code-safety run's `stdout.jsonl`. */
+interface CodeSafetyResultLine {
+  type?: unknown
+  report?: { outcome?: unknown }
+  verifier?: { exitCode?: unknown; output?: unknown }
+}
+
 /**
- * One `.code-safety/<id>` scan run. Status follows `verifier.json` when
- * present (`verified: true` -> completed, `false` -> failed); with no
- * verifier yet, a run with findings recorded is `running`, and a wholly empty
- * one is `unknown` rather than guessed.
+ * Read a live `.code-safety/<id>` run's `stdout.jsonl` and return its last
+ * successfully parsed JSON line, or `undefined` when the file is missing,
+ * empty, or holds no JSON yet. The program driver
+ * (`examples/headless-agent/tests/fixtures/program-code-safety/driver.ts`)
+ * writes exactly one `type: "result"` line, only once every department and
+ * the integration have finished; {@link resolveCodeSafetyStdoutStatus} and
+ * {@link readVerifier} both read it from here rather than reparsing the file.
+ * @param dir - the run directory containing `stdout.jsonl`.
+ * @returns the last decoded line, or `undefined`.
+ */
+function readCodeSafetyResultLine(dir: string): CodeSafetyResultLine | undefined {
+  let text: string
+  try {
+    text = readFileSync(join(dir, 'stdout.jsonl'), 'utf8')
+  } catch {
+    return undefined
+  }
+  let terminal: CodeSafetyResultLine | undefined
+  for (const raw of text.split('\n')) {
+    const trimmed = raw.trim()
+    if (trimmed.length === 0) continue
+    try {
+      const parsed: unknown = JSON.parse(trimmed)
+      if (typeof parsed === 'object' && parsed !== null) terminal = parsed
+    } catch {
+      continue
+    }
+  }
+  return terminal
+}
+
+/**
+ * Resolve a live `.code-safety/<id>` run's status from `stdout.jsonl`'s
+ * terminal line (see {@link readCodeSafetyResultLine}): an empty or
+ * result-less file means the run is still in progress. The line's
+ * `report.outcome` and `verifier.exitCode` are `scripts/code-safety.ts`'s own
+ * success criterion (`outcome === 'released' && exitCode === 0`); anything
+ * else recorded there is `failed`, matching what the wrapper's own non-zero
+ * exit reports. A process that crashed before writing that line is
+ * indistinguishable on disk from one still running — `running` is the honest
+ * answer for both, the same principle {@link resolveRunLogStatus} documents
+ * for a proving-ground run.
+ * @param dir - the run directory containing `stdout.jsonl`.
+ * @returns the resolved status, and the file's own mtime as `endedAt` once terminal.
+ */
+function resolveCodeSafetyStdoutStatus(dir: string): { status: RunStatus; endedAt?: string } {
+  const terminal = readCodeSafetyResultLine(dir)
+  if (terminal === undefined || terminal.type !== 'result') return { status: 'running' }
+  const released = terminal.report?.outcome === 'released' && terminal.verifier?.exitCode === 0
+  const endedAt = mtimeIso(join(dir, 'stdout.jsonl'))
+  return { status: released ? 'completed' : 'failed', ...endedAt === undefined ? {} : { endedAt } }
+}
+
+/**
+ * One live `.code-safety/<id>` scan run (`scripts/code-safety.ts`'s output
+ * directory): status and `endedAt` come from `stdout.jsonl` (see
+ * {@link resolveCodeSafetyStdoutStatus}); member and integration session logs
+ * live under `.sessions`, matching {@link SESSION_SUBDIRS}.
  */
 function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
   const base = join(discoveryRoot, '.code-safety')
@@ -382,19 +543,52 @@ function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
   for (const id of listDirSafe(base).sort()) {
     const dir = join(base, id)
     if (!statSafeIsDirectory(dir)) continue
-    const target = readJsonSafe(join(dir, 'target.json')) as TargetFile | undefined
-    const verifier = readVerifier(dir)
-    const hasFindings = existsSync(join(dir, 'findings.json'))
-    const status: RunStatus = verifier !== undefined
-      ? (verifier.verified ? 'completed' : 'failed')
-      : hasFindings ? 'running' : 'unknown'
+    const { status, endedAt } = resolveCodeSafetyStdoutStatus(dir)
     runs.push({
       id,
       kind: 'code-safety',
-      name: target?.name ?? id,
-      startedAt: target?.startedAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      ...(verifier?.checkedAt === undefined ? {} : { endedAt: verifier.checkedAt }),
+      name: id,
+      startedAt: mtimeIso(dir) ?? new Date(0).toISOString(),
+      ...endedAt === undefined ? {} : { endedAt },
       status,
+      path: relative(discoveryRoot, dir),
+    })
+  }
+  return runs
+}
+
+/**
+ * The fields this module reads from a recorded `data/code-safety/<id>/manifest.json`,
+ * always written by `data/code-safety/tools/record-run.mjs`.
+ */
+interface RecordedCodeSafetyManifest {
+  run?: string
+  ranAt?: string
+  endedAt?: string
+  target?: TargetLock
+}
+
+/**
+ * One recorded `data/code-safety/<id>` review, a committed historical record
+ * like {@link discoverRecordedProvingGroundRuns}: always `completed`, with
+ * `manifest.json` naming its timestamps.
+ */
+function discoverRecordedCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
+  const base = join(discoveryRoot, 'data/code-safety')
+  const runs: RunSummary[] = []
+  for (const id of listDirSafe(base).sort()) {
+    const dir = join(base, id)
+    const sessionsDir = join(dir, 'sessions')
+    if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(sessionsDir)) continue
+    const manifest = readJsonSafe(join(dir, 'manifest.json')) as RecordedCodeSafetyManifest | undefined
+    const endedAt = manifest?.endedAt ?? mtimeIso(dir)
+    runs.push({
+      id,
+      kind: 'code-safety',
+      name: manifest?.run ?? id,
+      startedAt: manifest?.ranAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
+      ...endedAt === undefined ? {} : { endedAt },
+      status: 'completed',
       path: relative(discoveryRoot, dir),
     })
   }
@@ -410,32 +604,100 @@ function statSafeIsDirectory(path: string): boolean {
   }
 }
 
-/** Reconcile an explicit `plan.json` status with the presence of an end timestamp. */
-function resolveRunStatus(explicit: string | undefined, endedAt: string | undefined, dir: string): RunStatus {
-  if (explicit === 'running' || explicit === 'completed' || explicit === 'failed') return explicit
-  if (endedAt !== undefined) return 'completed'
-  // No plan.json status and no endedAt: an active run.log growing under a
-  // live process looks the same on disk as an abandoned one, so this reports
-  // "running" and lets the caller re-poll rather than guessing "failed".
-  return existsSync(join(dir, 'run.log')) ? 'running' : 'unknown'
+/** One JSON line this module recognizes at the tail of a driver's `run.log`; every other field is data this module does not read. */
+interface RunLogTerminalLine {
+  type?: unknown
+  endedAt?: unknown
 }
 
-/** Read and normalize `verifier.json`, or parse a trailing JSON object out of a plain-text verifier stdout capture. */
+/**
+ * Resolve a live `.proving-ground/runs/<id>` run's status from the last JSON
+ * line its driver appended to `run.log`. Every fleet and experiment driver in
+ * this repository (`examples/headless-agent/tests/fixtures/proving-ground-bench/{fleet,experiment}-driver.ts`)
+ * writes a `type: "result"` line carrying `endedAt` as the final line it
+ * prints before exiting — `run.log` tees that same stdout — so that line's
+ * presence is what distinguishes a completed run from one still writing; a
+ * last line of type `error` or `refused` marks a run its driver gave up on.
+ * This module defines no writer of those two types yet, the same
+ * forward-looking-vocabulary precedent {@link foldSessionEvent} documents for
+ * the parallel proving-ground and code-safety programs. `run.log` also opens
+ * with one plain-text banner line (`runTeeingToLog`'s `=== <timestamp> ... ===`),
+ * which never parses as JSON and is skipped rather than treated as malformed.
+ * Never throws: a missing or empty `run.log` (no driver has started writing
+ * yet) reports `unknown`, and a `run.log` with no terminal JSON line yet (a
+ * live process still running) reports `running`.
+ * @param dir - the run directory containing `run.log`.
+ * @returns the resolved status, and the completed run's `endedAt` when known.
+ */
+function resolveRunLogStatus(dir: string): { status: RunStatus; endedAt?: string } {
+  let text: string
+  try {
+    text = readFileSync(join(dir, 'run.log'), 'utf8')
+  } catch {
+    return { status: 'unknown' }
+  }
+  let terminal: RunLogTerminalLine | undefined
+  for (const raw of text.split('\n')) {
+    const trimmed = raw.trim()
+    if (trimmed.length === 0) continue
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(trimmed)
+    } catch {
+      // The banner line `runTeeingToLog` prepends, or a torn line at the tail
+      // of a still-writing process — neither is a driver's own status line.
+      continue
+    }
+    if (typeof parsed === 'object' && parsed !== null) terminal = parsed
+  }
+  if (terminal === undefined) return { status: 'running' }
+  if (terminal.type === 'result') {
+    return typeof terminal.endedAt === 'string' ? { status: 'completed', endedAt: terminal.endedAt } : { status: 'completed' }
+  }
+  if (terminal.type === 'error' || terminal.type === 'refused') return { status: 'failed' }
+  return { status: 'running' }
+}
+
+/**
+ * Read and normalize a run's verifier reading, from whichever real source
+ * this run recorded, checked in this order: a structured `verifier.json` (a
+ * format this module accepts but no writer emits today); a recorded run's
+ * plain-text `verifier.txt` (`exit <code>\n<output>`, written by
+ * `data/code-safety/tools/record-run.mjs`); or a live run's `stdout.jsonl`
+ * terminal line's own `verifier: { exitCode, output }` field (see
+ * {@link readCodeSafetyResultLine}).
+ * @param runDir - the run directory.
+ * @returns the normalized certificate, or `undefined` when no verifier reading exists yet.
+ */
 function readVerifier(runDir: string): SafetyCertificate | undefined {
   const structured = readJsonSafe(join(runDir, 'verifier.json')) as Partial<SafetyCertificate> | undefined
   if (structured !== undefined) return normalizeCertificate(structured)
-  const stdoutPath = join(runDir, 'verifier.stdout.txt')
-  if (!existsSync(stdoutPath)) return undefined
-  const text = readFileSync(stdoutPath, 'utf8')
-  const match = /\{[\s\S]*\}/.exec(text)
-  if (match === null) return undefined
+
+  let plainText: string | undefined
   try {
-    return normalizeCertificate(JSON.parse(match[0]) as Partial<SafetyCertificate>)
+    plainText = readFileSync(join(runDir, 'verifier.txt'), 'utf8')
   } catch {
-    // The verifier's stdout does not end in a parseable JSON object (still
-    // running, or a crash before it printed one) — no certificate yet.
-    return undefined
+    plainText = undefined
   }
+  if (plainText !== undefined) {
+    const match = /^exit (-?\d+)\n([\s\S]*)$/.exec(plainText)
+    if (match === null) return undefined
+    const [, exitCode, output] = match
+    // Both groups are non-optional in the pattern above, so a successful
+    // match always captures them; the fallback only satisfies
+    // `noUncheckedIndexedAccess`'s general array-index typing.
+    return normalizeCertificate({ verified: exitCode === '0', verifier: 'verify-safety-report.mjs', output: output ?? '' })
+  }
+
+  const verifierField = readCodeSafetyResultLine(runDir)?.verifier
+  const exitCode = verifierField?.exitCode
+  const output = verifierField?.output
+  if (typeof exitCode !== 'number') return undefined
+  return normalizeCertificate({
+    verified: exitCode === 0,
+    verifier: 'verify-safety-report.mjs',
+    ...typeof output === 'string' ? { output } : {},
+  })
 }
 
 /** Fill in every {@link SafetyCertificate} field a partial verifier record left out. */
@@ -443,7 +705,8 @@ function normalizeCertificate(partial: Partial<SafetyCertificate>): SafetyCertif
   return {
     verified: partial.verified ?? false,
     verifier: partial.verifier ?? 'unknown',
-    ...(partial.checkedAt === undefined ? {} : { checkedAt: partial.checkedAt }),
+    ...partial.checkedAt === undefined ? {} : { checkedAt: partial.checkedAt },
+    ...partial.output === undefined ? {} : { output: partial.output },
     counts: { critical: 0, high: 0, medium: 0, low: 0, info: 0, ...partial.counts },
     unverified: partial.unverified ?? [],
   }
@@ -451,8 +714,9 @@ function normalizeCertificate(partial: Partial<SafetyCertificate>): SafetyCertif
 
 /**
  * Discover every run this feed knows how to find. `.proving-ground/runs`,
- * `data/proving-ground`, and `.code-safety` are independent and each may be
- * absent; a missing directory contributes no runs rather than an error.
+ * `data/proving-ground`, `.code-safety`, and `data/code-safety` are
+ * independent and each may be absent; a missing directory contributes no
+ * runs rather than an error.
  * @param discoveryRoot - the real repository root, or a `--fixtures` directory.
  * @returns every discovered run, newest first.
  */
@@ -461,26 +725,65 @@ export function discoverRuns(discoveryRoot: string): RunSummary[] {
     ...discoverProvingGroundRuns(discoveryRoot),
     ...discoverRecordedProvingGroundRuns(discoveryRoot),
     ...discoverCodeSafetyRuns(discoveryRoot),
+    ...discoverRecordedCodeSafetyRuns(discoveryRoot),
   ]
   return runs.sort((a, b) => b.startedAt.localeCompare(a.startedAt))
 }
 
-/** @returns every `session.jsonl`-shaped file under one run's directory. */
+/**
+ * Known session-log subdirectory names: a recorded `data/proving-ground/<id>`
+ * or `data/code-safety/<id>` run uses `sessions`; a live
+ * `.proving-ground/runs/<id>` or `.code-safety/<id>` entry uses the
+ * dot-prefixed `.sessions` — recorded and live are symmetric within
+ * themselves, never mixed within one run. A run directory also holds
+ * non-session JSONL records at its top level (`facts.jsonl`,
+ * `trajectories.jsonl`), which carry none of this fold's fields and
+ * previously reached it by an unscoped recursive walk — scoping to the known
+ * subdirectory is what keeps them out.
+ */
+const SESSION_SUBDIRS = ['sessions', '.sessions'] as const
+
+/**
+ * @returns every `*.jsonl`-shaped file under one run's session subdirectory
+ *   (see {@link SESSION_SUBDIRS}), or under the run's own directory when
+ *   neither known subdirectory exists (a layout this module does not yet
+ *   recognize, tolerated rather than reporting no sessions at all).
+ */
 export function sessionFilesForRun(discoveryRoot: string, run: RunSummary): string[] {
-  return findJsonlFiles(join(discoveryRoot, run.path))
+  const runDir = join(discoveryRoot, run.path)
+  for (const subdir of SESSION_SUBDIRS) {
+    const candidate = join(runDir, subdir)
+    if (statSafeIsDirectory(candidate)) return findJsonlFiles(candidate)
+  }
+  return findJsonlFiles(runDir)
 }
 
 // ---------------------------------------------------------------------------
 // Session log parsing and event folding
 // ---------------------------------------------------------------------------
 
-/** One decoded `session.jsonl` line; a header line has no `seq`. */
+/**
+ * One decoded `session.jsonl` line. `type` is read as `unknown`, not `string`:
+ * this is JSON parsed from a durable file, one of this repository's named
+ * validation boundaries, and a real run directory's JSONL files include
+ * shapes this fold does not own (a header line, and a stray non-session
+ * record such as `facts.jsonl`'s rows when a layout this module does not
+ * recognize falls back to scanning a whole run directory — see
+ * {@link sessionFilesForRun}) whose `type` is absent or not a string. Every
+ * reader in this module goes through {@link typeOf} rather than assuming the
+ * field, so such a line is skipped, never thrown on.
+ */
 interface SessionLine {
-  type: string
+  type?: unknown
   seq?: number
   time?: number
   data?: Record<string, unknown>
   [key: string]: unknown
+}
+
+/** @returns `line.type` when it decoded as a string, else `undefined` — see {@link SessionLine}. */
+function typeOf(line: SessionLine): string | undefined {
+  return typeof line.type === 'string' ? line.type : undefined
 }
 
 /**
@@ -525,28 +828,38 @@ interface ToolResultMessage {
 
 /**
  * Fold one decoded session-log line into a feed event, or `undefined` when
- * the line carries no product-visible event this stream reports (chunks,
- * usage, request headers, and any type this fold does not recognize).
+ * the line carries no product-visible event this stream reports: a line
+ * without a string `type` (a header line, or a stray non-session record —
+ * see {@link SessionLine}), a chunk/usage/request-header row, or any type
+ * this fold does not recognize.
  *
- * Recognizes both this repository's real session-event vocabulary
- * (`turn/*`, `step/*`, `tool/call`, `tool/result`, `agent/inbox/spliced`) and
- * the forward-looking prefixes the parallel proving-ground and code-safety
- * programs are expected to emit (`verification/certificate`,
- * `program/integration`, a `finding`-prefixed type), so no change is needed
- * here once those programs start writing real logs.
+ * Recognizes this repository's real session-event vocabulary — `turn/*`,
+ * `step/*`, `tool/call`, `tool/result`, `agent/inbox/spliced`, `hook/*`,
+ * `tool-workflow/*`, `tool/code-dispatch*`, `verification/certificate`, and
+ * `program/integration` are all in `packages/core/session`'s
+ * `KNOWN_SESSION_EVENT_TYPES` — plus a small set of forward-looking types the
+ * not-yet-shipped code-safety scanner is expected to emit (`agent/step`, a
+ * `finding`-prefixed type, `code-safety/finding`), so no change is needed
+ * here once that scanner starts writing real logs.
  * @param line - one decoded `session.jsonl` row.
  * @param state - per-file fold state (tool-call name correlation).
  * @returns the folded event (`agentId` not yet attached), or `undefined` to drop the line.
  */
 export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEvent | undefined {
-  const { type } = line
+  const type = typeOf(line)
+  if (type === undefined) return undefined
   const data = line.data ?? {}
   const base = { ts: line.time ?? 0, seq: line.seq ?? 0, sessionId: state.sessionId }
 
   if (type === 'turn/start') return { ...base, kind: 'step', label: `Turn ${stringField(data, 'turn', '?')} started` }
   if (type === 'turn/end') {
     const reason = (data.reason as { kind?: string } | undefined)?.kind
-    return { ...base, kind: 'step', label: `Turn ${stringField(data, 'turn', '?')} ended`, ...(reason === undefined ? {} : { detail: reason }) }
+    return {
+      ...base,
+      kind: 'step',
+      label: `Turn ${stringField(data, 'turn', '?')} ended`,
+      ...reason === undefined ? {} : { detail: reason },
+    }
   }
   if (type === 'step/start') return { ...base, kind: 'step', label: `Step ${stringField(data, 'step', '?')} started` }
   if (type === 'step/end') return { ...base, kind: 'step', label: `Step ${stringField(data, 'step', '?')} ended` }
@@ -571,8 +884,8 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
       ...base,
       kind: DELEGATION_TOOL_NAMES.has(name) ? 'delegation' : 'tool',
       label: name,
-      ...(text.length > 0 ? { detail: text.slice(0, 500) } : {}),
-      ...(result?.isError === true ? { severity: 'high' as const } : {}),
+      ...text.length > 0 ? { detail: text.slice(0, 500) } : {},
+      ...result?.isError === true ? { severity: 'high' as const } : {},
     }
   }
   if (type.startsWith('tool-workflow/') || type.startsWith('tool/code-dispatch')) {
@@ -581,8 +894,8 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
 
   if (type === 'agent/inbox/spliced' || type.startsWith('hook/')) {
     const inserted = data.inserted as { content?: { text?: string }[] }[] | undefined
-    const preview = inserted?.[0]?.content?.[0]?.text
-    return { ...base, kind: 'directive', label: 'directive queued', ...(preview === undefined ? {} : { detail: preview.slice(0, 200) }) }
+    const preview = inserted?.[0]?.content?.[0]?.text?.slice(0, 200)
+    return { ...base, kind: 'directive', label: 'directive queued', ...preview === undefined ? {} : { detail: preview } }
   }
 
   if (type === 'verification/certificate' || type.startsWith('verification/certificate')) {
@@ -597,13 +910,16 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
     return { ...base, kind: 'merge', label: stringField(data, 'department', 'integration') }
   }
   if (type.startsWith('finding') || type === 'code-safety/finding') {
+    const severity = data.severity as FeedSeverity | undefined
+    const file = data.file as string | undefined
+    const findingLine = data.line as number | undefined
     return {
       ...base,
       kind: 'finding',
       label: stringField(data, 'message', stringField(data, 'rule', 'finding')),
-      ...(typeof data.severity === 'string' ? { severity: data.severity as FeedSeverity } : {}),
-      ...(typeof data.file === 'string' ? { file: data.file } : {}),
-      ...(typeof data.line === 'number' ? { line: data.line } : {}),
+      ...severity === undefined ? {} : { severity },
+      ...file === undefined ? {} : { file },
+      ...findingLine === undefined ? {} : { line: findingLine },
     }
   }
 
@@ -621,7 +937,7 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
  * @returns a roster agent id.
  */
 export function mapSessionToAgentId(lines: readonly SessionLine[], roster: Roster, fallbackAgentId: string): string {
-  const header = lines.find(line => line.type === 'request/header')
+  const header = lines.find(line => typeOf(line) === 'request/header')
   const config = (header?.data?.header as { config?: { provider?: string; model?: string }; system?: string } | undefined)
   const provider = config?.config?.provider
   const model = config?.config?.model
@@ -653,7 +969,7 @@ export function computeLiveRoster(roster: Roster, discoveryRoot: string): LiveRo
     for (const file of sessionFilesForRun(discoveryRoot, run)) {
       const lines = readJsonlLines(file)
       if (lines.length === 0) continue
-      const header = lines.find(line => line.type === 'session')
+      const header = lines.find(line => typeOf(line) === 'session')
       const sessionId = sessionIdOf(header, file)
       const agentId = mapSessionToAgentId(lines, roster, fallbackAgentId)
       const state: FoldState = { sessionId, callNameById: new Map() }
@@ -685,20 +1001,77 @@ function languageForPath(path: string): string {
 }
 
 /**
- * Build the `/safety/:id` response from one `.code-safety/<id>` run
- * directory: walks the reviewed target for its file inventory, reads
- * `findings.json` and the verifier output, and folds both against the six
- * fixed code-safety departments so every department is reported even with
- * zero findings.
+ * @returns the run directory for `id`, preferring a live `.code-safety/<id>`
+ *   over a recorded `data/code-safety/<id>`, or `undefined` when neither exists.
+ */
+function resolveCodeSafetyRunDir(discoveryRoot: string, id: string): string | undefined {
+  return [join(discoveryRoot, '.code-safety', id), join(discoveryRoot, 'data/code-safety', id)]
+    .find(candidate => statSafeIsDirectory(candidate))
+}
+
+/**
+ * @returns the reviewed target's root path on this host: a live run's locked
+ *   `repo/target.json`, or a recorded run's `manifest.json.target.root`;
+ *   `undefined` when neither source names one.
+ */
+function resolveCodeSafetyTargetRoot(runDir: string): string | undefined {
+  const live = readJsonSafe(join(runDir, 'repo/target.json')) as TargetLock | undefined
+  if (live?.root !== undefined) return live.root
+  const recorded = readJsonSafe(join(runDir, 'manifest.json')) as { target?: TargetLock } | undefined
+  return recorded?.target?.root
+}
+
+/** @returns the report repository's one `program-<hash>` subdirectory, or `undefined` before the driver has minted it. */
+function findProgramDir(repoDir: string): string | undefined {
+  const name = listDirSafe(repoDir).find(entry => statSafeIsDirectory(join(repoDir, entry)) && entry.startsWith('program-'))
+  return name === undefined ? undefined : join(repoDir, name)
+}
+
+/**
+ * The directory to read `findings.json`/`SAFETY-REPORT.md` from: a recorded
+ * `data/code-safety/<id>` run keeps them flat at its own root; a live
+ * `.code-safety/<id>` run keeps them in its report repository's integration
+ * worktree, `repo/<programId>/@integration` (`INTEGRATION_KEY` in
+ * `@deepseek-ai/dsh-program`), which exists only once every department has
+ * merged. `runDir` itself is the tolerant fallback for a run that has
+ * reached neither shape yet.
+ * @param runDir - the run directory.
+ * @returns the directory to read released files from.
+ */
+function resolveCodeSafetyReleaseDir(runDir: string): string {
+  if (existsSync(join(runDir, 'findings.json'))) return runDir
+  const repoDir = join(runDir, 'repo')
+  const programDir = statSafeIsDirectory(repoDir) ? findProgramDir(repoDir) : undefined
+  if (programDir !== undefined) {
+    const integrationDir = join(programDir, '@integration')
+    if (statSafeIsDirectory(integrationDir)) return integrationDir
+  }
+  return runDir
+}
+
+/**
+ * Build the `/safety/:id` response from one code-safety run directory (a live
+ * `.code-safety/<id>` or a recorded `data/code-safety/<id>`, see
+ * {@link resolveCodeSafetyRunDir}): walks the reviewed target for its file
+ * inventory, reads `findings.json` and the verifier reading, and folds both
+ * against the six fixed code-safety departments so every department is
+ * reported even with zero findings. A finding is attributed to its
+ * department by an explicit `department` field when present, else by its
+ * `id` prefix (`access-idor-allocations` names `access`) — see
+ * {@link SafetyFinding}. Per-severity `certificate.counts` are tallied from
+ * `findings` directly, the one source both a live and a recorded run always
+ * has, rather than trusted to a verifier reading that carries no counts in
+ * either real format.
  * @param discoveryRoot - where the run directory lives.
  * @param id - the run id.
  * @returns the safety detail, or `undefined` when the run does not exist.
  */
 export function buildSafetyDetail(discoveryRoot: string, id: string): SafetyDetail | undefined {
-  const runDir = join(discoveryRoot, '.code-safety', id)
-  if (!statSafeIsDirectory(runDir)) return undefined
-  const targetMeta = readJsonSafe(join(runDir, 'target.json')) as TargetFile | undefined
-  const targetPath = targetMeta?.path !== undefined && existsSync(targetMeta.path) ? targetMeta.path : runDir
+  const runDir = resolveCodeSafetyRunDir(discoveryRoot, id)
+  if (runDir === undefined) return undefined
+
+  const targetRoot = resolveCodeSafetyTargetRoot(runDir)
+  const targetPath = targetRoot !== undefined && existsSync(targetRoot) ? targetRoot : runDir
   const files: SafetyTargetFile[] = walkFiles(targetPath).map((absolute) => {
     const path = relative(targetPath, absolute)
     const bytes = (() => {
@@ -713,10 +1086,16 @@ export function buildSafetyDetail(discoveryRoot: string, id: string): SafetyDeta
   const languages: Record<string, number> = {}
   for (const file of files) languages[file.language] = (languages[file.language] ?? 0) + 1
 
-  const findings = (readJsonSafe(join(runDir, 'findings.json')) as SafetyFinding[] | undefined) ?? []
-  const certificate = readVerifier(runDir) ?? normalizeCertificate({})
+  const releaseDir = resolveCodeSafetyReleaseDir(runDir)
+  const findings = (readJsonSafe(join(releaseDir, 'findings.json')) as SafetyFinding[] | undefined) ?? []
+  const counts: Record<FeedSeverity, number> = { critical: 0, high: 0, medium: 0, low: 0, info: 0 }
+  for (const finding of findings) {
+    if (finding.severity !== undefined && finding.severity in counts) counts[finding.severity] += 1
+  }
+  const certificate = { ...readVerifier(runDir) ?? normalizeCertificate({}), counts }
   const departments: SafetyDepartmentStatus[] = CODE_SAFETY_DEPARTMENTS.map((department) => {
-    const departmentFindings = findings.filter(finding => finding.department === department.id)
+    const departmentFindings = findings.filter(finding => finding.department === department.id
+      || (finding.department === undefined && typeof finding.id === 'string' && finding.id.startsWith(`${department.id}-`)))
     const certified = certificate.verified && !certificate.unverified.includes(department.id)
     return {
       id: department.id,
@@ -726,10 +1105,11 @@ export function buildSafetyDetail(discoveryRoot: string, id: string): SafetyDeta
       findings: departmentFindings.length,
     }
   })
-  const report = { markdown: existsSync(join(runDir, 'SAFETY-REPORT.md')) ? readFileSync(join(runDir, 'SAFETY-REPORT.md'), 'utf8') : '' }
+  const reportPath = join(releaseDir, 'SAFETY-REPORT.md')
+  const report = { markdown: existsSync(reportPath) ? readFileSync(reportPath, 'utf8') : '' }
 
   return {
-    target: { name: targetMeta?.name ?? id, path: targetPath, files, languages },
+    target: { name: id, path: targetPath, files, languages },
     departments,
     findings,
     certificate,
@@ -771,15 +1151,84 @@ async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknow
 }
 
 /**
+ * Stream-read a session-log file's lines lazily: yields nothing (never
+ * throws) when the file cannot be opened, skips a line that fails to parse
+ * (a torn write at the tail of a live file) without ending the file's
+ * iteration, and stops silently on a read error mid-file so one bad file
+ * never takes down the run's replay. Reads in chunks via `readline` rather
+ * than materializing the file's lines into an array, so a run's replay never
+ * holds more than one line in memory at a time.
+ * @param file - absolute path to the JSONL file.
+ * @yields each successfully parsed line, in file order.
+ */
+async function* streamJsonlLines(file: string): AsyncGenerator<SessionLine> {
+  let stream: ReturnType<typeof createReadStream>
+  try {
+    stream = createReadStream(file, { encoding: 'utf8' })
+  } catch {
+    return
+  }
+  const rl = createInterface({ input: stream, crlfDelay: Infinity })
+  try {
+    for await (const raw of rl) {
+      const trimmed = raw.trim()
+      if (trimmed.length === 0) continue
+      try {
+        yield JSON.parse(trimmed) as SessionLine
+      } catch {
+        continue
+      }
+    }
+  } catch {
+    // A read error partway through the file (permissions, or the file
+    // vanished under a live process) ends this file's replay early; the
+    // caller moves on to the next file rather than failing the whole stream.
+  } finally {
+    rl.close()
+    stream.destroy()
+  }
+}
+
+/**
+ * Resolve one session file's id and roster agent without holding its lines:
+ * scans for the `session` header and the first `request/header` line — the
+ * only two {@link mapSessionToAgentId} reads — and stops as soon as both are
+ * found (or the file ends). A file this small few-hundred-line-scale
+ * discovery root produces is scanned in well under the time its own replay
+ * takes, so this adds no perceptible latency ahead of the first event sent.
+ * @param file - absolute path to the JSONL file.
+ * @param roster - the generated roster to map against.
+ * @param fallbackAgentId - agent id to use when nothing else matches.
+ * @returns the file's session id (falling back to its path) and resolved agent id.
+ */
+async function resolveFileIdentity(file: string, roster: Roster, fallbackAgentId: string): Promise<{ sessionId: string; agentId: string }> {
+  let sessionId: string | undefined
+  let headerLine: SessionLine | undefined
+  for await (const line of streamJsonlLines(file)) {
+    const type = typeOf(line)
+    if (sessionId === undefined && type === 'session') sessionId = sessionIdOf(line, file)
+    if (headerLine === undefined && type === 'request/header') headerLine = line
+    if (sessionId !== undefined && headerLine !== undefined) break
+  }
+  const agentId = mapSessionToAgentId(headerLine === undefined ? [] : [headerLine], roster, fallbackAgentId)
+  return { sessionId: sessionId ?? file, agentId }
+}
+
+/**
  * Stream one run's folded events over Server-Sent Events: replay every event
- * currently on disk, then poll each session file every 500ms for appended
- * lines until the client disconnects.
+ * currently on disk file by file and event by event, then poll each session
+ * file every 500ms for appended lines until the client disconnects. Each
+ * file is scanned once for identity ({@link resolveFileIdentity}) and once
+ * to fold and send its events ({@link streamJsonlLines}); neither pass
+ * materializes the file's lines into an array, so the replay's first event
+ * reaches the client as soon as the first file's identity scan completes,
+ * not after every session file on disk has been read.
  * @param res - the open response to write SSE frames to.
  * @param discoveryRoot - where the run's session files live.
  * @param run - the run to stream.
  * @param roster - used to map each session to a roster agent.
  */
-function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: RunSummary, roster: Roster): void {
+async function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: RunSummary, roster: Roster): Promise<void> {
   res.writeHead(200, {
     ...CORS_HEADERS,
     'Content-Type': 'text/event-stream; charset=utf-8',
@@ -797,13 +1246,11 @@ function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: RunSum
   }
 
   for (const file of files) {
-    const lines = readJsonlLines(file)
-    const header = lines.find(line => line.type === 'session')
-    const state: FoldState = { sessionId: sessionIdOf(header, file), callNameById: new Map() }
+    const { sessionId, agentId } = await resolveFileIdentity(file, roster, fallbackAgentId)
+    const state: FoldState = { sessionId, callNameById: new Map() }
     stateByFile.set(file, state)
-    const agentId = mapSessionToAgentId(lines, roster, fallbackAgentId)
     agentIdByFile.set(file, agentId)
-    for (const line of lines) {
+    for await (const line of streamJsonlLines(file)) {
       const event = foldSessionEvent(line, state)
       if (event !== undefined) send(event, agentId)
     }
@@ -904,7 +1351,14 @@ export function createHarnessFeedServer(options: HarnessFeedOptions): Server {
         sendError(res, 404, `no run "${eventsMatch[1]}"`)
         return
       }
-      streamRunEvents(res, discoveryRoot, run, loadRoster())
+      // Fire-and-forget: the SSE stream outlives this request handler. A
+      // rejection here is unexpected (every per-line and per-file failure
+      // inside streamRunEvents is already caught), so this only ends a
+      // response left hanging open rather than leaving the connection stuck.
+      void streamRunEvents(res, discoveryRoot, run, loadRoster()).catch((error: unknown) => {
+        console.error(`harness-feed: streaming run "${run.id}" failed: ${error instanceof Error ? error.message : String(error)}`)
+        if (!res.writableEnded) res.end()
+      })
       return
     }
     const safetyMatch = /^\/safety\/([^/]+)$/.exec(pathname)
@@ -977,14 +1431,14 @@ export function parseHarnessFeedArgs(argv: readonly string[]): { port: number; f
   if (!Number.isInteger(port) || port <= 0) {
     throw new Error(`harness-feed: --port must be a positive integer, got "${port}"`)
   }
-  return { port, ...(fixturesDir === undefined ? {} : { fixturesDir }) }
+  return { port, ...fixturesDir === undefined ? {} : { fixturesDir } }
 }
 
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   const { port, fixturesDir } = parseHarnessFeedArgs(process.argv.slice(2))
-  const server = createHarnessFeedServer({ root, ...(fixturesDir === undefined ? {} : { fixturesDir: resolve(fixturesDir) }) })
+  const server = createHarnessFeedServer({ root, ...fixturesDir === undefined ? {} : { fixturesDir: resolve(fixturesDir) } })
   server.listen(port, () => {
     console.log(`harness-feed: listening on http://localhost:${port}${fixturesDir === undefined ? '' : ` (fixtures: ${fixturesDir})`}`)
   })

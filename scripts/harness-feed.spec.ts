@@ -1,22 +1,20 @@
 import { get as httpGet } from 'node:http'
 import type { Server } from 'node:http'
-import { appendFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createHarnessFeedServer, foldSessionEvent, mapSessionToAgentId } from './harness-feed.ts'
-import type { FeedEvent, LiveRoster, RunSummary } from './harness-feed.ts'
+import { createHarnessFeedServer, foldSessionEvent, mapSessionToAgentId, sessionFilesForRun } from './harness-feed.ts'
+import type { FeedEvent, LiveRoster, RunSummary, SafetyDetail } from './harness-feed.ts'
 import type { Roster } from './enterprise-roster.ts'
 
 const root = resolve(import.meta.dirname, '..')
 
 // The real DeepSeek route and system-prompt phrasing a session stamps into its
 // first `request/header`, copied from `examples/headless-agent/tests/snapshots/
-// advanced-toolchain/session.jsonl` — a committed record of real event shapes.
-// This tree has no `data/proving-ground/` recording (see the Agent Note this
-// change adds), so the fixtures below reuse that headless-agent record's exact
-// event shapes rather than inventing a new one.
+// advanced-toolchain/session.jsonl` — a committed record of real event shapes,
+// reused here rather than inventing a new one.
 const REAL_ROUTE = { provider: 'deepseek-official', model: 'deepseek-v4-flash' }
 const REAL_SYSTEM_PROMPT = 'You are headless-agent, a coding assistant powered by the deepseek-v4-flash model.'
 
@@ -91,13 +89,25 @@ interface Fixture {
   sessionAFile: string
 }
 
+/**
+ * `.proving-ground/runs/bench-e3/plan.json`: a real driver never writes an
+ * explicit `kind` (it copies the user-authored plan file verbatim — see
+ * `scripts/proving-ground.ts`'s own `planKind`), so this fixture declares
+ * `baseline`/`candidate`, the real frozen-experiment marker, instead of the
+ * fictional field the generator used to read.
+ */
 function makeFixture(): Fixture {
   const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-'))
   const runDir = join(dir, '.proving-ground/runs/bench-e3')
   mkdirSync(join(runDir, '.sessions/session-a'), { recursive: true })
   mkdirSync(join(runDir, '.sessions/session-b'), { recursive: true })
-  writeFileSync(join(runDir, 'plan.json'), JSON.stringify({ kind: 'experiment', name: 'Bench E3', startedAt: '2026-09-19T00:00:00.000Z' }))
-  writeFileSync(join(runDir, 'run.log'), 'bench-e3 started\n')
+  writeFileSync(join(runDir, 'plan.json'), JSON.stringify({
+    name: 'Bench E3',
+    startedAt: '2026-09-19T00:00:00.000Z',
+    baseline: { provider: 'claude-code', model: 'sonnet' },
+    candidate: { provider: 'claude-code', model: 'sonnet' },
+  }))
+  writeFileSync(join(runDir, 'run.log'), '=== 2026-09-19T00:00:00.000Z plan=bench-e3 overlay=base head=abcdef012 ===\nbench-e3 started\n')
   const sessionAFile = join(runDir, '.sessions/session-a/session.jsonl')
   writeFileSync(sessionAFile, buildSessionA())
   writeFileSync(join(runDir, '.sessions/session-b/session.jsonl'), buildSessionB())
@@ -166,7 +176,7 @@ async function startServer(fixturesDir: string): Promise<{ server: Server; port:
 }
 
 describe('GET /runs', () => {
-  it('discovers a .proving-ground/runs fixture with its plan-declared kind and a running status', async () => {
+  it('discovers a .proving-ground/runs fixture with its structurally inferred kind and a running status', async () => {
     const fixture = makeFixture()
     cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
     const { port } = await startServer(fixture.dir)
@@ -177,6 +187,79 @@ describe('GET /runs', () => {
     expect(body).toHaveLength(1)
     expect(body[0]).toMatchObject({ id: 'bench-e3', kind: 'experiment', name: 'Bench E3', status: 'running' })
     expect(body[0]?.path).toBe('.proving-ground/runs/bench-e3')
+  })
+
+  it('classifies a plan.json with a models array as a fleet, not the experiment default', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-fleet-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const runDir = join(dir, '.proving-ground/runs/h3-baseline-sonnet-t5-20260919T181623Z')
+    mkdirSync(runDir, { recursive: true })
+    writeFileSync(join(runDir, 'plan.json'), JSON.stringify({
+      name: 'h3-baseline-sonnet-t5',
+      models: [{ provider: 'claude-code', model: 'sonnet' }],
+    }))
+    const { port } = await startServer(dir)
+
+    const { body: rawBody } = await getJson(port, '/runs')
+    const body = rawBody as RunSummary[]
+    expect(body).toHaveLength(1)
+    expect(body[0]).toMatchObject({ kind: 'fleet', status: 'unknown' })
+  })
+
+  it('reports completed with the driver\'s own endedAt once run.log ends in a type: "result" line', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-completed-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const runDir = join(dir, '.proving-ground/runs/h3-baseline-sonnet-t5-20260919T181623Z')
+    mkdirSync(runDir, { recursive: true })
+    writeFileSync(join(runDir, 'plan.json'), JSON.stringify({ name: 'h3-baseline-sonnet-t5', models: [{ provider: 'claude-code', model: 'sonnet' }] }))
+    const banner = '=== 2026-09-19T18:16:23.466Z plan=h3-baseline-sonnet-t5 overlay=base head=8d5b54857 ==='
+    const resultLine = JSON.stringify({ type: 'result', plan: 'h3-baseline-sonnet-t5', startedAt: '2026-09-19T18:16:25.923Z', endedAt: '2026-09-19T19:02:24.387Z', report: { group: 'fleet-x', cells: [] } })
+    writeFileSync(join(runDir, 'run.log'), `${banner}\n${resultLine}\n`)
+    const { port } = await startServer(dir)
+
+    const { body: rawBody } = await getJson(port, '/runs')
+    const body = rawBody as RunSummary[]
+    expect(body[0]).toMatchObject({ kind: 'fleet', status: 'completed', endedAt: '2026-09-19T19:02:24.387Z' })
+  })
+
+  it('reports failed once run.log ends in a type: "error" or "refused" line', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-failed-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    for (const [runId, terminalType] of [['broken-run-error', 'error'], ['broken-run-refused', 'refused']] as const) {
+      const runDir = join(dir, '.proving-ground/runs', runId)
+      mkdirSync(runDir, { recursive: true })
+      writeFileSync(join(runDir, 'plan.json'), JSON.stringify({ name: runId, baseline: {}, candidate: {} }))
+      writeFileSync(join(runDir, 'run.log'), `${JSON.stringify({ type: terminalType, reason: 'policy denial' })}\n`)
+    }
+    const { port } = await startServer(dir)
+
+    const { body: rawBody } = await getJson(port, '/runs')
+    const body = rawBody as RunSummary[]
+    expect(body.find(run => run.id === 'broken-run-error')).toMatchObject({ kind: 'experiment', status: 'failed' })
+    expect(body.find(run => run.id === 'broken-run-refused')).toMatchObject({ kind: 'experiment', status: 'failed' })
+    expect(body.every(run => run.endedAt === undefined)).toBe(true)
+  })
+
+  it('classifies a recorded run from result.json: report.goals is a program, result.arms is an experiment', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-recorded-kinds-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const programDir = join(dir, 'data/proving-ground/2026-09-19-csv-tools-program')
+    mkdirSync(join(programDir, 'sessions'), { recursive: true })
+    writeFileSync(join(programDir, 'sessions', 'program.jsonl'), sessionHeader('33333333-3333-4333-8333-333333333333'))
+    writeFileSync(join(programDir, 'manifest.json'), JSON.stringify({ run: 'csv-tools-program', ranAt: '2026-09-19T10:55:12.975Z', endedAt: '2026-09-19T11:00:48.688Z' }))
+    writeFileSync(join(programDir, 'result.json'), JSON.stringify({ type: 'result', report: { programId: 'program-x', goals: [{ key: 'stats', status: 'merged' }] } }))
+
+    const experimentDir = join(dir, 'data/proving-ground/2026-09-19-bench-e3-attempts-t5')
+    mkdirSync(join(experimentDir, 'sessions'), { recursive: true })
+    writeFileSync(join(experimentDir, 'sessions', 'environment.jsonl'), sessionHeader('44444444-4444-4444-8444-444444444444'))
+    writeFileSync(join(experimentDir, 'manifest.json'), JSON.stringify({ run: '2026-09-19-bench-e3-attempts-t5' }))
+    writeFileSync(join(experimentDir, 'result.json'), JSON.stringify({ type: 'result', plan: 'e3-attempts-t5', result: { arms: { baseline: {}, candidate: {} } } }))
+
+    const { port } = await startServer(dir)
+    const { body: rawBody } = await getJson(port, '/runs')
+    const body = rawBody as RunSummary[]
+    expect(body.find(run => run.id === '2026-09-19-csv-tools-program')).toMatchObject({ kind: 'program', status: 'completed' })
+    expect(body.find(run => run.id === '2026-09-19-bench-e3-attempts-t5')).toMatchObject({ kind: 'experiment', status: 'completed' })
   })
 })
 
@@ -238,8 +321,48 @@ describe('GET /runs/:id/events', () => {
   })
 })
 
+describe('GET /runs/:id/events for a recorded data/proving-ground run', () => {
+  it('streams events from a two-file sessions/ layout built from real committed lines, well under one second', async () => {
+    // Real lines copied out of two committed records (not re-typed by hand):
+    // a slice of a real, event-rich session, and a real header-only one — see
+    // the file-level comment for why `advanced-toolchain` is this suite's
+    // chosen real-event source.
+    const richLines = readFileSync(
+      resolve(root, 'examples/headless-agent/tests/snapshots/advanced-toolchain/session.jsonl'),
+      'utf8',
+    ).split('\n').slice(0, 30).join('\n')
+    const headerOnlyLine = readFileSync(
+      resolve(root, 'examples/headless-agent/tests/snapshots/ralph-loop/session.jsonl'),
+      'utf8',
+    )
+
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-recorded-replay-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const runDir = join(dir, 'data/proving-ground/2026-09-19-recorded-replay-test')
+    mkdirSync(join(runDir, 'sessions'), { recursive: true })
+    writeFileSync(join(runDir, 'sessions', 'session-1.jsonl'), richLines)
+    writeFileSync(join(runDir, 'sessions', 'session-2.jsonl'), headerOnlyLine)
+
+    const { port } = await startServer(dir)
+    const runsResponse = await getJson(port, '/runs')
+    const runs = runsResponse.body as RunSummary[]
+    expect(runs.find(run => run.id === '2026-09-19-recorded-replay-test')).toMatchObject({ status: 'completed' })
+
+    const startedAt = Date.now()
+    const sse = collectSse(port, '2026-09-19-recorded-replay-test')
+    cleanups.push(sse.close)
+    const events = await sse.waitForCount(5, 2_000)
+    expect(Date.now() - startedAt).toBeLessThan(1_000)
+    expect(events.length).toBeGreaterThanOrEqual(5)
+    expect(events.every(event => event.agentId.length > 0)).toBe(true)
+    // The real session's own event vocabulary (turn/step/request-header/etc.)
+    // folds to a mix of recognized kinds, not one repeated placeholder.
+    expect(new Set(events.map(event => event.kind)).size).toBeGreaterThan(1)
+  })
+})
+
 describe('the fold and mapping functions directly', () => {
-  it('folds the aspirational certificate, merge, finding, and refusal prefixes', () => {
+  it('folds the real certificate and merge types, the aspirational finding prefix, and a refusal', () => {
     const state = { sessionId: 's1', callNameById: new Map<string, string>() }
     expect(foldSessionEvent({ type: 'verification/certificate', seq: 1, time: 1, data: { verifier: 'oxlint' } }, state)?.kind)
       .toBe('certificate')
@@ -260,6 +383,17 @@ describe('the fold and mapping functions directly', () => {
   it('drops a request/header line: it stamps the session but is not itself a reported event', () => {
     const state = { sessionId: 's1', callNameById: new Map<string, string>() }
     expect(foldSessionEvent({ type: 'request/header', seq: 1, time: 1, data: { header: {} } }, state)).toBeUndefined()
+  })
+
+  it('skips a line whose type is missing, or not a string, instead of throwing', () => {
+    const state = { sessionId: 's1', callNameById: new Map<string, string>() }
+    // A session file's own header line, and `facts.jsonl`/`trajectories.jsonl`
+    // rows a layout this module does not recognize might still surface, both
+    // carry no `type` at all.
+    expect(foldSessionEvent({ version: 0, id: 's1', createdAt: 1, delegationDepth: 0 }, state)).toBeUndefined()
+    expect(foldSessionEvent({ identity: { environment: 'code:x' }, outcome: 'pass' }, state)).toBeUndefined()
+    // A `type` present but not a string must not reach `.startsWith` either.
+    expect(foldSessionEvent({ type: 42, seq: 1, time: 1 }, state)).toBeUndefined()
   })
 
   it('maps a session to the first agent sharing its stamped provider and model', () => {
@@ -314,12 +448,20 @@ describe('GET /roster', () => {
 })
 
 describe('POST /safety', () => {
-  it('answers 501 while pnpm run code-safety is not yet defined', async () => {
-    const empty = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-safety-'))
-    cleanups.push(() => { rmSync(empty, { recursive: true, force: true }) })
-    const { port } = await startServer(empty)
+  it('answers 501, naming code-safety, when the root package.json has no code-safety script', async () => {
+    // `hasCodeSafetyScript` checks the server's own `root`, not the discovery
+    // `fixturesDir` — a fake root with no such script exercises the 501
+    // branch even now that this repository's own package.json defines one.
+    const fakeRoot = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-no-script-'))
+    cleanups.push(() => { rmSync(fakeRoot, { recursive: true, force: true }) })
+    writeFileSync(join(fakeRoot, 'package.json'), JSON.stringify({ name: 'fake', scripts: {} }))
+    const server = createHarnessFeedServer({ root: fakeRoot })
+    await new Promise<void>((resolvePromise) => { server.listen(0, '127.0.0.1', resolvePromise) })
+    cleanups.push(() => { server.close() })
+    const address = server.address()
+    if (address === null || typeof address === 'string') throw new Error('harness-feed test: server did not bind a TCP port')
 
-    const response = await fetch(`http://127.0.0.1:${port}/safety`, {
+    const response = await fetch(`http://127.0.0.1:${address.port}/safety`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ target: '/tmp/some-target' }),
@@ -327,6 +469,97 @@ describe('POST /safety', () => {
     expect(response.status).toBe(501)
     const body = await response.json() as { error: string }
     expect(body.error).toMatch(/code-safety/)
+  })
+
+  it('answers 202 with a run id once the root package.json defines pnpm run code-safety', async () => {
+    // This repository's own package.json defines the script (scripts/code-safety.ts,
+    // merged from the parallel workstream), so the real server root exercises
+    // the spawn branch; a nonexistent target makes the detached child exit
+    // immediately without touching anything on disk.
+    const empty = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-safety-'))
+    cleanups.push(() => { rmSync(empty, { recursive: true, force: true }) })
+    const { port } = await startServer(empty)
+
+    const response = await fetch(`http://127.0.0.1:${port}/safety`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: '/tmp/dsh-harness-feed-spec-nonexistent-target' }),
+    })
+    expect(response.status).toBe(202)
+    const body = await response.json() as { id: string }
+    expect(body.id.length).toBeGreaterThan(0)
+  })
+})
+
+describe('code-safety runs', () => {
+  it('serves a recorded data/code-safety run: id-prefix department attribution and severity counts tallied from findings', async () => {
+    // Shapes copied from the real merged data/code-safety/2026-09-19-nodegoat
+    // record: a finding carries no `department` field, only an id prefixed
+    // with one; manifest.json is the source of ranAt/endedAt/target.root.
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-recorded-safety-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const runDir = join(dir, 'data/code-safety/2026-09-19-fixture-target')
+    mkdirSync(join(runDir, 'sessions'), { recursive: true })
+    writeFileSync(join(runDir, 'sessions', 'program.jsonl'), sessionHeader('55555555-5555-4555-8555-555555555555'))
+    writeFileSync(join(runDir, 'manifest.json'), JSON.stringify({
+      run: '2026-09-19-fixture-target',
+      ranAt: '2026-09-19T10:00:00.000Z',
+      endedAt: '2026-09-19T11:00:00.000Z',
+      target: { root: runDir },
+    }))
+    writeFileSync(join(runDir, 'findings.json'), JSON.stringify([
+      { id: 'secrets-hardcoded-key', severity: 'critical', file: 'src/config.js', line: 3, title: 'Hardcoded key' },
+      { id: 'access-idor-allocations', severity: 'high', file: 'app/routes/index.js', line: 63, title: 'IDOR' },
+    ]))
+    writeFileSync(join(runDir, 'SAFETY-REPORT.md'), '# Fixture target safety report\n')
+    writeFileSync(join(runDir, 'verifier.txt'), 'exit 0\nok: verified against fixture target\n')
+    const { port } = await startServer(dir)
+
+    const runsResponse = await getJson(port, '/runs')
+    const runs = runsResponse.body as RunSummary[]
+    expect(runs.find(run => run.id === '2026-09-19-fixture-target')).toMatchObject({
+      kind: 'code-safety', status: 'completed', endedAt: '2026-09-19T11:00:00.000Z',
+    })
+
+    const { status, body: rawBody } = await getJson(port, '/safety/2026-09-19-fixture-target')
+    expect(status).toBe(200)
+    const detail = rawBody as SafetyDetail
+    expect(detail.findings).toHaveLength(2)
+    expect(detail.certificate).toMatchObject({
+      verified: true,
+      output: 'ok: verified against fixture target\n',
+      counts: { critical: 1, high: 1, medium: 0, low: 0, info: 0 },
+    })
+    const secrets = detail.departments.find(department => department.id === 'secrets')
+    const access = detail.departments.find(department => department.id === 'access')
+    expect(secrets).toMatchObject({ findings: 1, status: 'findings', certified: true })
+    expect(access).toMatchObject({ findings: 1, status: 'findings', certified: true })
+    expect(detail.departments.filter(department => department.findings === 0).every(department => department.status === 'clean')).toBe(true)
+    expect(detail.report.markdown).toBe('# Fixture target safety report\n')
+  })
+
+  it('answers 404 for an unknown code-safety id, and reports a live run with no result line yet as running with pending departments', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-live-safety-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const runDir = join(dir, '.code-safety', 'fixture-run1')
+    mkdirSync(join(runDir, 'repo'), { recursive: true })
+    writeFileSync(join(runDir, 'repo', 'target.json'), JSON.stringify({ root: runDir }))
+    writeFileSync(join(runDir, 'stdout.jsonl'), '')
+    const { port } = await startServer(dir)
+
+    const missing = await fetch(`http://127.0.0.1:${port}/safety/does-not-exist`)
+    expect(missing.status).toBe(404)
+
+    const runsResponse = await getJson(port, '/runs')
+    const runs = runsResponse.body as RunSummary[]
+    expect(runs.find(run => run.id === 'fixture-run1')).toMatchObject({ kind: 'code-safety', status: 'running' })
+    expect(runs.find(run => run.id === 'fixture-run1')?.endedAt).toBeUndefined()
+
+    const { status, body: rawBody } = await getJson(port, '/safety/fixture-run1')
+    expect(status).toBe(200)
+    const detail = rawBody as SafetyDetail
+    expect(detail.findings).toEqual([])
+    expect(detail.departments.every(department => department.status === 'pending' && !department.certified)).toBe(true)
   })
 })
 
@@ -351,5 +584,30 @@ describe('CORS and malformed input', () => {
     const body = rawBody as RunSummary[]
     expect(status).toBe(200)
     expect(body).toHaveLength(1)
+  })
+
+  it('never crashes on a stray non-session *.jsonl file next to a recorded run\'s sessions/ directory', async () => {
+    // `facts.jsonl`/`trajectories.jsonl` sit beside `sessions/` in a real
+    // `data/proving-ground/<id>` directory and carry no `type` field at all;
+    // this reproduces the original crash directly rather than only through
+    // the scoped-discovery fix in sessionFilesForRun.
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-stray-jsonl-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    const runDir = join(dir, 'data/proving-ground/stray-jsonl-run')
+    mkdirSync(join(runDir, 'sessions'), { recursive: true })
+    writeFileSync(join(runDir, 'sessions', 'environment.jsonl'), buildSessionA())
+    writeFileSync(join(runDir, 'facts.jsonl'), `${JSON.stringify({ identity: { environment: 'code:x' }, outcome: 'pass' })}\n`)
+    writeFileSync(join(runDir, 'trajectories.jsonl'), `${JSON.stringify({ turns: [] })}\n`)
+    const { port } = await startServer(dir)
+
+    const rosterResponse = await getJson(port, '/roster')
+    expect(rosterResponse.status).toBe(200)
+    const runsResponse = await getJson(port, '/runs')
+    expect(runsResponse.status).toBe(200)
+    const runs = runsResponse.body as RunSummary[]
+    const run = runs.find(candidate => candidate.id === 'stray-jsonl-run')
+    expect(run).toBeDefined()
+    // Scoped to sessions/, so the stray files are never even opened.
+    expect(sessionFilesForRun(dir, run!)).toEqual([join(runDir, 'sessions', 'environment.jsonl')])
   })
 })
