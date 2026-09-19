@@ -191,4 +191,14 @@ export interface EnvironmentRunStamp extends EnvironmentContentHashes {
    * stay two rows. Absent in a payload that states none, which is the route.
    */
   readonly implementer?: string
+  /**
+   * Agent preset the cell session composed from, absent for a run that named
+   * none and therefore ran the composition's own model-facing rows. The preset
+   * decides the tool schemas and prompt sections the model sees, so it is part
+   * of the arm's identity: a scoreboard row is keyed by it, and two
+   * compositions over one route stay two rows. The session header records the
+   * same id as a creation fact; this field is what a fold reading the run
+   * stamp alone reads.
+   */
+  readonly preset?: string
 }

@@ -1,0 +1,31 @@
+# The candidate arm's composition: the fixture's three craft skills as a second
+# skill root, registered in this preset's scope layer so only the cells joined
+# to it see the catalog. The skills carry generic practice for a checked
+# command-line program (channel discipline, reading a specification for its
+# corners, working against a node:test suite inside a budget) and no
+# task-specific content.
+#
+# `includeDefaultRoots: false` and a provider name of its own keep this root
+# beside the base composition's `filesystem` provider rather than shadowing it:
+# the two presets differ in this catalog and in nothing else. The root is found
+# from the repository root above `baseUrl`, which inside a preset tree is the
+# preset's own directory.
+- name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    providerName: craft
+    includeDefaultRoots: false
+    watch: false
+    customSkillDirs:
+      - !!js |
+          (() => {
+            const { fileURLToPath } = process.getBuiltinModule('node:url')
+            const { existsSync } = process.getBuiltinModule('node:fs')
+            const { dirname, join } = process.getBuiltinModule('node:path')
+            let dir = fileURLToPath(baseUrl)
+            while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+              const parent = dirname(dir)
+              if (parent === dir) throw new Error('bench-craft preset: repository root not found above ' + baseUrl)
+              dir = parent
+            }
+            return join(dir, 'examples', 'headless-agent', 'tests', 'fixtures', 'proving-ground-bench', 'skills')
+          })()

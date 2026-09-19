@@ -15,12 +15,21 @@ import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 export type ExperimentArmRole = 'baseline' | 'candidate'
 
 /**
- * One arm as a plan names it: the model route its cells run and who implements
- * them. An arm that names no implementer runs its own route, so a plan that
- * omits the field and one that spells `{ kind: 'route' }` out are one
- * experiment and freeze to one digest.
+ * One arm as a plan names it: the model route its cells run, who implements
+ * them, and the agent preset they compose from. An arm that names no
+ * implementer runs its own route, so a plan that omits the field and one that
+ * spells `{ kind: 'route' }` out are one experiment and freeze to one digest.
  */
 export interface ExperimentArmPlan extends EnvironmentRunModel {
+  /**
+   * Agent preset every cell of this arm composes its model-facing rows from,
+   * absent for an arm that runs the composition's own rows. It is what lets
+   * two arms differ in nothing but the composition: the preset decides the
+   * tool schemas and prompt sections the model sees, so two arms on one route
+   * under two presets are a valid pair and freeze to two experiments. A preset
+   * no composed roster supplies refuses the plan before either arm starts.
+   */
+  readonly preset?: string
   /**
    * Who does the work of every cell of this arm — the arm's own model route,
    * or an out-of-band coding agent behind a registered subagent provider. The
@@ -92,10 +101,17 @@ export interface ExperimentPlan {
   readonly sink?: TrajectorySink
 }
 
-/** One arm as it ran: its model route, its ladder, its implementer, and the stamp `group` its sessions carry. */
+/** One arm as it ran: its model route, its ladder, its implementer, its agent preset, and the stamp `group` its sessions carry. */
 export interface ExperimentArm {
   /** Model route every cell of this arm ran its first attempt on. */
   readonly model: EnvironmentRunModel
+  /**
+   * Agent preset every cell of this arm composed from, absent for an arm that
+   * ran the composition's own model-facing rows. Restated on the result so a
+   * stored comparison of two compositions over one route says which one each
+   * arm was, without the plan file that froze it.
+   */
+  readonly preset?: string
   /**
    * Rungs every cell of this arm laddered over, in attempt order, absent for an
    * arm that ran no ladder. Restated on the result so a stored comparison names

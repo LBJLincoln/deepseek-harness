@@ -46,7 +46,7 @@ describe('withhold', () => {
 })
 
 describe('orderRows', () => {
-  it('orders by route, attempt ladder, environment, isolation, implementer, held-out split, and district whatever order the fold produced', () => {
+  it('orders by route, attempt ladder, environment, isolation, implementer, agent preset, held-out split, and district whatever order the fold produced', () => {
     const escalating = [{ provider: 'cli-mock', model: 'a' }, { provider: 'cli-mock', model: 'b' }]
     const ordered = orderRows([
       row({ model: 'b', environmentId: 'smoke:round-trip' }),
@@ -55,19 +55,21 @@ describe('orderRows', () => {
       row({ model: 'a', environmentId: 'smoke:round-trip', isolation: 'host' }),
       row({ model: 'a', environmentId: 'smoke:round-trip', implementer: 'claude-code' }),
       row({ model: 'a', environmentId: 'smoke:round-trip', ladder: escalating }),
+      row({ model: 'a', environmentId: 'smoke:round-trip', preset: 'bench-craft' }),
       row({ model: 'a', environmentId: 'smoke:round-trip' }),
     ])
     const key = (entry: ScoreboardRow): unknown[] => (
-      [entry.model, entry.ladder?.length ?? 0, entry.environmentId, entry.isolation, entry.implementer, entry.heldOut]
+      [entry.model, entry.ladder?.length ?? 0, entry.environmentId, entry.isolation, entry.implementer, entry.preset ?? null, entry.heldOut]
     )
     expect(ordered.map(key)).toEqual([
-      ['a', 2, 'smoke:round-trip', 'none', 'route', false],
-      ['a', 0, 'smoke:round-trip', 'host', 'route', false],
-      ['a', 0, 'smoke:round-trip', 'none', 'claude-code', false],
-      ['a', 0, 'smoke:round-trip', 'none', 'route', false],
-      ['a', 0, 'smoke:round-trip', 'none', 'route', true],
-      ['a', 0, 'smoke:unsatisfiable', 'none', 'route', false],
-      ['b', 0, 'smoke:round-trip', 'none', 'route', false],
+      ['a', 2, 'smoke:round-trip', 'none', 'route', null, false],
+      ['a', 0, 'smoke:round-trip', 'host', 'route', null, false],
+      ['a', 0, 'smoke:round-trip', 'none', 'claude-code', null, false],
+      ['a', 0, 'smoke:round-trip', 'none', 'route', 'bench-craft', false],
+      ['a', 0, 'smoke:round-trip', 'none', 'route', null, false],
+      ['a', 0, 'smoke:round-trip', 'none', 'route', null, true],
+      ['a', 0, 'smoke:unsatisfiable', 'none', 'route', null, false],
+      ['b', 0, 'smoke:round-trip', 'none', 'route', null, false],
     ])
   })
 })

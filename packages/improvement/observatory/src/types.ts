@@ -46,7 +46,11 @@ export interface ObservatorySnapshotRequest {
 
 /** One fold over every persisted session, before rendering decides what it shows. */
 export interface ObservatorySnapshot {
-  /** Scoreboard rows that survived withholding, ordered by route, attempt ladder, environment, isolation, held-out split, and district. */
+  /**
+   * Scoreboard rows that survived withholding, ordered by route, attempt
+   * ladder, environment, isolation, implementer, agent preset, held-out split,
+   * and district.
+   */
   readonly rows: readonly ScoreboardRow[]
   /** What withholding removed from those rows. */
   readonly withheld: ObservatoryWithheld
@@ -97,6 +101,14 @@ export interface ObservatoryPublishedRow {
   readonly isolation: CertificateIsolation
   /** Who did the work of the row's sessions: `route`, or the subagent provider name of a delegated cell. */
   readonly implementer: string
+  /**
+   * Agent preset the row's sessions composed their model-facing rows from,
+   * absent for a row whose sessions named none. It is published beside the
+   * route for the reason the ladder is: two compositions over one route saw
+   * different tools and prompt sections, and a page showing the route alone
+   * would read as if they were one arm.
+   */
+  readonly preset?: string
   /** Executors of the row's certificates; empty for a row that certified nothing. */
   readonly certificateExecutors: readonly RunExecutor[]
   /** Composition digest every session of the row states, absent when the page shows `pending`. */

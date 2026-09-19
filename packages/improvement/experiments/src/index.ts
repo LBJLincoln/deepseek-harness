@@ -153,13 +153,13 @@ export class ExperimentService extends Service {
    * kept as an error leaves its repetition unpaired instead of failing the
    * experiment.
    * @param plan - environments, repetitions, the two arms with their model
-   *   routes and optional attempt ladders and implementers, the workspace root,
-   *   and an optional policy version, base seed, frozen digest, abort signal,
-   *   and result sink.
-   * @returns the digest, both arms with their ladders and stamp groups, one
-   *   cell per environment, every cell an arm kept as an error, the pooled
-   *   delta with its interval, the spend, the caps both arms ran under, and
-   *   the verdict.
+   *   routes and optional attempt ladders, implementers, and agent presets, the
+   *   workspace root, and an optional policy version, base seed, frozen digest,
+   *   abort signal, and result sink.
+   * @returns the digest, both arms with their ladders, presets, and stamp
+   *   groups, one cell per environment, every cell an arm kept as an error, the
+   *   pooled delta with its interval, the spend, the caps both arms ran under,
+   *   and the verdict.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
    *   unregistered environment, asks for no repetition, sets a seed that is not
    *   a safe non-negative integer, carries an arm ladder with no rung or one
@@ -168,10 +168,12 @@ export class ExperimentService extends Service {
    *   projects more tokens than the budget.
    * @throws {@link EnvironmentRunError} unchanged from
    *   {@link EnvironmentRunner.checkImplementer}, when either arm names an
-   *   implementer provider this composition cannot honor.
+   *   implementer provider this composition cannot honor, and from
+   *   {@link EnvironmentRunner.checkPreset}, when either arm names an agent
+   *   preset this composition cannot compose a cell from.
    */
   async run(plan: ExperimentPlan): Promise<ExperimentResult> {
-    const { digest, caps } = this.freeze(plan)
+    const { digest, caps } = await this.freeze(plan)
     const arms: ExperimentArms = {
       baseline: resolveArm(plan.baseline, digest, 'baseline'),
       candidate: resolveArm(plan.candidate, digest, 'candidate'),
@@ -192,11 +194,11 @@ export class ExperimentService extends Service {
   }
 
   /**
-   * Validate the plan and both arms' implementers, resolve the caps both arms
-   * run under, compute the digest over them, and check the projection against
-   * the budget.
+   * Validate the plan, both arms' implementers, and both arms' agent presets,
+   * resolve the caps both arms run under, compute the digest over them, and
+   * check the projection against the budget.
    */
-  private freeze(plan: ExperimentPlan): { digest: string; caps: readonly BudgetCap[] } {
+  private async freeze(plan: ExperimentPlan): Promise<{ digest: string; caps: readonly BudgetCap[] }> {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
       throw new ExperimentError(`repetitions must be a positive integer, got ${String(plan.repetitions)}`, 'EXPERIMENT_INVALID_PLAN')
     }
@@ -220,6 +222,10 @@ export class ExperimentService extends Service {
       // arm's own route is the stamped one: a first rung naming another route
       // was refused above.
       this.ctx.environmentRuns.checkImplementer(armImplementer(arm), { provider: arm.provider, model: arm.model })
+      // Both arms' presets are checked here for the same reason: a candidate
+      // arm naming a preset the roster cannot supply would otherwise spend the
+      // baseline arm in full before failing every cell of its own.
+      await this.ctx.environmentRuns.checkPreset(arm.preset)
     }
     const named = new Set<EnvironmentId>()
     for (const environment of plan.environments) {
@@ -270,7 +276,7 @@ export class ExperimentService extends Service {
 function armPlan(plan: ExperimentPlan, arm: ExperimentArm): FleetPlan {
   return {
     environments: { ids: plan.environments },
-    models: [arm.model],
+    models: [{ ...arm.model, ...arm.preset === undefined ? {} : { preset: arm.preset } }],
     ...arm.ladder === undefined ? {} : { ladder: arm.ladder },
     implementer: arm.implementer,
     repetitions: plan.repetitions,
@@ -284,7 +290,8 @@ function armPlan(plan: ExperimentPlan, arm: ExperimentArm): FleetPlan {
 
 /**
  * One arm as it will run: the model route alone, the implementer the plan
- * named or the route default, and the stamp group its sessions carry.
+ * named or the route default, the agent preset it composes from, and the stamp
+ * group its sessions carry.
  * @param arm - one arm as the plan names it.
  * @param digest - the frozen plan digest both arm groups carry.
  * @param role - which arm of the comparison this is.
@@ -295,6 +302,7 @@ function resolveArm(arm: ExperimentArmPlan, digest: string, role: ExperimentArmR
     model: { provider: arm.provider, model: arm.model },
     ...arm.ladder === undefined ? {} : { ladder: arm.ladder },
     implementer: armImplementer(arm),
+    ...arm.preset === undefined ? {} : { preset: arm.preset },
     group: experimentGroup(digest, role),
   }
 }

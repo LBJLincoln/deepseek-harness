@@ -1,0 +1,37 @@
+# The bench with a two-preset roster, so an arm can name an agent composition
+# instead of only a model route and an implementer. `bench` composes no row of
+# its own and leaves the cell agent exactly as the base composition builds it;
+# `bench-craft` adds the fixture's three craft skills as a second skill root,
+# the same catalog the with-craft-skills overlay mounts for every cell. The two
+# presets therefore differ in the catalog and the bodies the model may load and
+# in nothing else, which is what makes a pair over one route a measurement of
+# the composition. The roots are found from the repository root above
+# `baseUrl`, as the craft-skills overlay does.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+
+# `includeUserRoot: false` keeps the machine's own `<dshHome>/.agent-presets`
+# out of the roster: a bench arm names a preset by id, and a home directory that
+# happened to supply that id would silently decide what the arm measured.
+- id: agent-presets
+  name: '@deepseek-ai/dsh-agent-presets'
+  config:
+    default: bench
+    includeUserRoot: false
+    roots:
+      - trust: system
+        path: !!js |
+            (() => {
+              const { fileURLToPath } = process.getBuiltinModule('node:url')
+              const { existsSync } = process.getBuiltinModule('node:fs')
+              const { dirname, join } = process.getBuiltinModule('node:path')
+              let dir = fileURLToPath(baseUrl)
+              while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                const parent = dirname(dir)
+                if (parent === dir) throw new Error('proving-ground-bench overlay: repository root not found above ' + baseUrl)
+                dir = parent
+              }
+              return join(dir, 'examples', 'headless-agent', 'tests', 'fixtures', 'proving-ground-bench', 'presets')
+            })()

@@ -15,12 +15,29 @@ export type FleetEnvironmentSelection =
   | { readonly ids: readonly EnvironmentId[] }
   | { readonly filter: EnvironmentFilter }
 
-/** One fleet run: every selected environment on every model route, `repetitions` times. */
+/**
+ * One entry of a plan's model list: a model route, and optionally the agent
+ * preset the cells of that entry compose from. Two entries naming one route
+ * and different presets are two arms, not one: the preset decides the tool
+ * schemas and prompt sections the model sees, so their cells, their keys, and
+ * their leaderboard rows stay apart.
+ */
+export interface FleetModelEntry extends EnvironmentRunModel {
+  /**
+   * Agent preset every cell of this entry composes from; absent leaves the
+   * composition's own model-facing rows in place. Preflighted once per distinct
+   * preset before the first cell, so a preset no composed roster supplies
+   * refuses the plan instead of every cell of it.
+   */
+  readonly preset?: string
+}
+
+/** One fleet run: every selected environment on every model entry, `repetitions` times. */
 export interface FleetPlan {
   /** Environments to run. */
   readonly environments: FleetEnvironmentSelection
-  /** Model routes each cell's FIRST attempt runs on; an empty list runs the composition's default route. */
-  readonly models: readonly EnvironmentRunModel[]
+  /** Model entries each cell's FIRST attempt runs on; an empty list runs the composition's default route with no preset. */
+  readonly models: readonly FleetModelEntry[]
   /**
    * One rung per attempt, handed to every cell of the plan: attempt `i` runs on
    * `ladder[i - 1].model`, or on the cell's own route for a rung that names
@@ -77,10 +94,11 @@ export interface FleetPlan {
   readonly signal?: AbortSignal
 }
 
-/** One environment × model × repetition unit of a plan. */
+/** One environment × model entry × repetition unit of a plan. */
 export interface FleetCell {
   readonly environment: EnvironmentId
-  readonly model: EnvironmentRunModel
+  /** The plan's model entry this cell runs: its route, and the preset its session composes from. */
+  readonly model: FleetModelEntry
   readonly repetition: number
 }
 
@@ -133,6 +151,14 @@ export interface LeaderboardRow {
    * name — absent when every cell of the row failed before a run.
    */
   readonly implementer?: string
+  /**
+   * Agent preset every cell of the row composed from, absent for a row whose
+   * model entry named none. It comes from the plan's entry rather than from a
+   * report, so a row whose cells all failed before a run still names the
+   * composition they would have run; rows are keyed by it, so two presets over
+   * one route stay two rows.
+   */
+  readonly preset?: string
   /** Cells that produced a report. */
   readonly runs: number
   /** Cells that produced no report. */
@@ -169,7 +195,7 @@ export interface FleetCellEvent {
   readonly group: string
   /** District the plan stamped its cells with, absent for a plan outside every district. */
   readonly district?: string
-  /** The environment, model route, and repetition that settled. */
+  /** The environment, model entry with its agent preset, and repetition that settled. */
   readonly cell: FleetCell
   /** The settled outcome, exactly as the report keeps it. */
   readonly outcome: FleetCellEventOutcome

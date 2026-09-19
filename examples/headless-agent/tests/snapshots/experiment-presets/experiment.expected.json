@@ -1,0 +1,119 @@
+{
+  "result": {
+    "digest": "31b8771704f808643d9a6380b646777cba411cf32b60c1f0e31f891ac6653a6f",
+    "arms": {
+      "baseline": {
+        "model": {
+          "provider": "cli-mock",
+          "model": "cli-mock"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "preset": "plain",
+        "group": "experiment-31b8771704f808643d9a6380b646777cba411cf32b60c1f0e31f891ac6653a6f-baseline"
+      },
+      "candidate": {
+        "model": {
+          "provider": "cli-mock",
+          "model": "cli-mock"
+        },
+        "implementer": {
+          "kind": "route"
+        },
+        "preset": "briefed",
+        "group": "experiment-31b8771704f808643d9a6380b646777cba411cf32b60c1f0e31f891ac6653a6f-candidate"
+      }
+    },
+    "cells": [
+      {
+        "environment": "smoke:round-trip",
+        "pairs": 1,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      },
+      {
+        "environment": "smoke:unsatisfiable",
+        "pairs": 1,
+        "unpaired": 0,
+        "baselineRate": 0,
+        "candidateRate": 0,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 0,
+        "outputTokenDelta": 0
+      }
+    ],
+    "errors": [],
+    "seedsPaired": 2,
+    "delta": 0,
+    "interval": {
+      "lower": 0,
+      "upper": 0
+    },
+    "spend": {
+      "inputTokens": 108,
+      "outputTokens": 48
+    },
+    "thresholds": {
+      "bootstrapResamples": 200,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0,
+      "cellTokenCap": 20000
+    },
+    "caps": [
+      [
+        "maxTotalTokens",
+        5000000
+      ],
+      [
+        "maxWallMs",
+        600000
+      ]
+    ],
+    "verdict": "inconclusive"
+  },
+  "cells": [
+    {
+      "arm": "baseline",
+      "environment": "smoke:round-trip",
+      "repetition": 0,
+      "preset": "plain",
+      "persona": "deployment"
+    },
+    {
+      "arm": "baseline",
+      "environment": "smoke:unsatisfiable",
+      "repetition": 0,
+      "preset": "plain",
+      "persona": "deployment"
+    },
+    {
+      "arm": "candidate",
+      "environment": "smoke:round-trip",
+      "repetition": 0,
+      "preset": "briefed",
+      "persona": "briefed"
+    },
+    {
+      "arm": "candidate",
+      "environment": "smoke:unsatisfiable",
+      "repetition": 0,
+      "preset": "briefed",
+      "persona": "briefed"
+    }
+  ]
+}

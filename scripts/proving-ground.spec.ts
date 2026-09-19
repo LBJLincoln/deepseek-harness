@@ -50,6 +50,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
       'with-knowledge-pack',
       'with-openai-gateway',
       'with-openrouter',
+      'with-presets',
       'with-spawn',
     ])
   })
@@ -82,8 +83,9 @@ describe('listOverlayNames / resolveOverlayPath', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(29)
+    expect(names).toHaveLength(30)
     expect(names).toContain('e3-attempts-t5')
+    expect(names).toContain('e9-preset-craft-vs-plain-t5')
     expect(names).toContain('e7-attempts-5-t5')
     expect(names).toContain('h1-fleet-deepseek-t2')
     expect(names).toContain('h2-openrouter-free-t2')

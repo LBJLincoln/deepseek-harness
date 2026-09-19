@@ -27,6 +27,7 @@ import type {
   FleetCellErrorCode,
   FleetCellEvent,
   FleetCellOutcome,
+  FleetModelEntry,
   FleetPairedReports,
   FleetPlan,
   FleetRunReport,
@@ -50,7 +51,7 @@ declare module '@deepseek-ai/cordis' {
      * order only while `maxConcurrent` is `1`.
      * @param payload.group - batch identity every run stamp of this fleet run carries.
      * @param payload.district - district the plan stamped its cells with, absent for a plan outside every district.
-     * @param payload.cell - the environment, model route, and repetition that settled.
+     * @param payload.cell - the environment, model entry with its agent preset, and repetition that settled.
      * @param payload.outcome - the session and certification of a reported cell, or the code and message of a cell that produced none.
      * @mode emit
      */
@@ -203,9 +204,9 @@ class PlanLedger {
   }
 }
 
-/** Key of the leaderboard row a cell belongs to. */
+/** Key of the leaderboard row a cell belongs to; the preset is part of it, so two compositions over one route stay two rows. */
 function rowKey(cell: FleetCell): string {
-  return `${cell.model.provider}\0${cell.model.model}\0${cell.environment}`
+  return `${cell.model.provider}\0${cell.model.model}\0${cell.model.preset ?? ''}\0${cell.environment}`
 }
 
 /**
@@ -230,11 +231,17 @@ function restrict(enumerated: readonly FleetCell[], selected: readonly FleetCell
  * same unit of the same plan, so a driver indexing cells across processes —
  * against a ledger or against the run stamps already in the session logs —
  * keys them by this instead of comparing the records field by field.
+ *
+ * A cell whose entry names an agent preset carries it in the key, because two
+ * entries over one route and two presets enumerate cells that differ in
+ * nothing else. A cell without one keys exactly as it always has, so a ledger
+ * written before presets existed still matches the plan it recorded.
  * @param cell - the cell to name.
  * @returns the key, unique inside one plan.
  */
 export function fleetCellKey(cell: FleetCell): string {
-  return `${cell.environment} ${cell.model.provider}/${cell.model.model} ${cell.repetition}`
+  const preset = cell.model.preset === undefined ? '' : ` preset=${cell.model.preset}`
+  return `${cell.environment} ${cell.model.provider}/${cell.model.model}${preset} ${cell.repetition}`
 }
 
 /** Fold the leaderboard from the cell outcomes, one row per model route and environment. */
@@ -249,6 +256,7 @@ function foldLeaderboard(
     const row = rows.get(key) ?? {
       provider: outcome.cell.model.provider,
       model: outcome.cell.model.model,
+      ...outcome.cell.model.preset === undefined ? {} : { preset: outcome.cell.model.preset },
       environmentId: outcome.cell.environment,
       environmentKind: definition.kind,
       heldOut: definition.heldOut,
@@ -365,10 +373,10 @@ function checkPairable(first: PlanRun, second: PlanRun): void {
  * @returns one table with a header row and one row per leaderboard entry.
  */
 export function leaderboardMarkdown(report: FleetRunReport): string {
-  const header = '| Model | Ladder | Implementer | Environment | Held out | Isolation | Runs | Errors | Certified | Rate | Attempts | Tokens in / out |'
-  const rule = '|---|---|---|---|---|---|---|---|---|---|---|---|'
+  const header = '| Model | Preset | Ladder | Implementer | Environment | Held out | Isolation | Runs | Errors | Certified | Rate | Attempts | Tokens in / out |'
+  const rule = '|---|---|---|---|---|---|---|---|---|---|---|---|---|'
   const lines = report.leaderboard.map(row => (
-    `| ${row.provider}/${row.model} | ${ladderCell(row.ladder)} | ${row.implementer ?? '-'} | ${row.environmentId} | ${row.heldOut ? 'yes' : 'no'} | ${row.isolation ?? '-'} | ${row.runs} | ${row.errors} | ${row.certified} | ${row.certificateRate.toFixed(2)} | ${row.attemptsMean.toFixed(2)} | ${row.inputTokens} / ${row.outputTokens} |`
+    `| ${row.provider}/${row.model} | ${row.preset ?? '-'} | ${ladderCell(row.ladder)} | ${row.implementer ?? '-'} | ${row.environmentId} | ${row.heldOut ? 'yes' : 'no'} | ${row.isolation ?? '-'} | ${row.runs} | ${row.errors} | ${row.certified} | ${row.certificateRate.toFixed(2)} | ${row.attemptsMean.toFixed(2)} | ${row.inputTokens} / ${row.outputTokens} |`
   ))
   return [`Fleet run \`${report.group}\``, '', header, rule, ...lines].join('\n') + '\n'
 }
@@ -408,10 +416,10 @@ export class FleetService extends Service {
    * throws is kept as an error outcome, as is a cell the route breaker or the
    * token ceiling refused to start; the fleet run itself rejects only for a
    * plan it cannot start.
-   * @param plan - environments, model routes, an optional attempt ladder and
-   *   implementer, repetitions, an optional exact cell selection, workspace
-   *   root, group, district, policy version, base seed, token ceiling, and
-   *   abort signal.
+   * @param plan - environments, model entries with their optional agent
+   *   presets, an optional attempt ladder and implementer, repetitions, an
+   *   optional exact cell selection, workspace root, group, district, policy
+   *   version, base seed, token ceiling, and abort signal.
    * @returns every cell's outcome in plan order, the leaderboard folded from the reports, and the run's spend.
    * @throws {@link FleetError} when the plan selects no environment, asks for
    *   no repetition, names no or an unenumerated cell, sets a token ceiling
@@ -419,7 +427,9 @@ export class FleetService extends Service {
    *   non-negative integer, or carries an attempt ladder with no rung.
    * @throws {@link EnvironmentRunError} unchanged from
    *   {@link EnvironmentRunner.checkImplementer}, when the plan's implementer
-   *   is a provider this composition cannot honor for a route the plan names.
+   *   is a provider this composition cannot honor for a route the plan names,
+   *   and from {@link EnvironmentRunner.checkPreset}, when a model entry names
+   *   an agent preset this composition cannot compose a cell from.
    * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
    *   the plan names is not composed or has no credential to reach it with.
    */
@@ -448,7 +458,8 @@ export class FleetService extends Service {
    * @throws {@link EnvironmentRunError} unchanged from
    *   {@link EnvironmentRunner.checkImplementer}, when either plan's
    *   implementer is a provider this composition cannot honor for a route that
-   *   plan names.
+   *   plan names, and from {@link EnvironmentRunner.checkPreset}, when either
+   *   plan names an agent preset this composition cannot compose a cell from.
    * @throws {@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route
    *   either plan names is not composed or has no credential to reach it with.
    */
@@ -488,6 +499,7 @@ export class FleetService extends Service {
     const models = plan.models.length === 0 ? [this.defaultModel()] : plan.models
     this.checkImplementer(plan, models)
     await this.checkRoutes(plan, models)
+    await this.checkPresets(models)
     const group = plan.group ?? `fleet-${randomUUID()}`
     const enumerated: FleetCell[] = []
     for (const environment of definitions.keys()) {
@@ -557,6 +569,26 @@ export class FleetService extends Service {
       ...(plan.ladder ?? []).flatMap(rung => rung.model === undefined ? [] : [rung.model.provider]),
     ])
     for (const provider of providers) await this.ctx.llm.checkRoute(provider)
+  }
+
+  /**
+   * Refuse an agent preset no composed roster supplies, before any cell of the
+   * plan is enumerated. A preset the roster cannot hand a cell refuses every
+   * cell it is given inside the agent factory's setup — after the workspace and
+   * the fixture overlay already exist — so a plan of such cells spends its whole
+   * schedule to produce a leaderboard whose rows nothing ran.
+   *
+   * Each distinct preset is asked about once, in plan order, and the first
+   * refusal is the plan's: the roster re-reads its roots on every resolution,
+   * so asking once per cell would put one directory scan on each of them.
+   * @param models - the model entries the plan's cells run, already defaulted.
+   * @throws {@link EnvironmentRunError} unchanged from
+   *   {@link EnvironmentRunner.checkPreset}, for a preset this composition
+   *   cannot compose a cell from.
+   */
+  private async checkPresets(models: readonly FleetModelEntry[]): Promise<void> {
+    const presets = new Set(models.flatMap(model => model.preset === undefined ? [] : [model.preset]))
+    for (const preset of presets) await this.ctx.environmentRuns.checkPreset(preset)
   }
 
   /** Resolve the plan's environment selection against the registry, in registry order. */
@@ -631,7 +663,8 @@ export class FleetService extends Service {
       const report = await this.ctx.environmentRuns.run({
         environment: cell.environment,
         workspace,
-        model: cell.model,
+        model: { provider: cell.model.provider, model: cell.model.model },
+        ...cell.model.preset === undefined ? {} : { preset: cell.model.preset },
         ...plan.ladder === undefined ? {} : { ladder: plan.ladder },
         ...plan.implementer === undefined ? {} : { implementer: plan.implementer },
         repetition: cell.repetition,

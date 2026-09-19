@@ -19,7 +19,7 @@ import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentTh
 export const EXPERIMENT_GROUP_PREFIX = 'experiment-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const EXPERIMENT_PLAN_VERSION = 6
+const EXPERIMENT_PLAN_VERSION = 7
 
 /** Arm roles in the order the digest and the runs take them. */
 export const EXPERIMENT_ARM_ROLES: readonly ExperimentArmRole[] = ['baseline', 'candidate']
@@ -88,10 +88,13 @@ export function ladderConflicts(arm: ExperimentArmPlan): boolean {
 /**
  * Content digest of the fields that decide what an experiment measures: the
  * two arms in role order, each with its model route, its attempt ladder with
- * the budget share of every rung, and its implementer, the environment ids
- * sorted so a caller's listing order cannot change the identity, the repetition
- * count, the policy version and base seed both arms ran under, the thresholds,
- * and the caps every cell of both arms ran under.
+ * the budget share of every rung, its implementer, and its agent preset, the
+ * environment ids sorted so a caller's listing order cannot change the
+ * identity, the repetition count, the policy version and base seed both arms
+ * ran under, the thresholds, and the caps every cell of both arms ran under.
+ * The preset is digested because it decides the tool schemas and prompt
+ * sections a cell's model sees, so two arms differing only in it are the pair
+ * the comparison exists to measure and must not collide on one group.
  * The caps are digested because a cell cut off at one wall or token ceiling
  * measures something different from the same cell cut off at another, so two
  * comparisons run under different budgets are two experiments, and the shares
@@ -118,6 +121,7 @@ export function planDigest(
       plan[role].model,
       digestedImplementer(armImplementer(plan[role])),
       digestedLadder(plan[role].ladder),
+      plan[role].preset ?? null,
     ]),
     environments: [...plan.environments].sort(),
     repetitions: plan.repetitions,

@@ -743,7 +743,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:116`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:120`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -766,7 +766,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:235`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:237`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 
@@ -824,7 +824,7 @@ export interface RouteBreakerConfig {
 export type WorkspaceRetention = 'keep' | 'remove-certified' | 'remove-all'
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:87`](../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:88`](../packages/improvement/fleet/src/index.ts)
 
 <a id="deepseek-aidsh-fs-local"></a>
 

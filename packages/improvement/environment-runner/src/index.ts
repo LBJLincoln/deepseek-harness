@@ -25,6 +25,8 @@ import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentSampling, ModelSelectionRef } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
+// Type-only: resolves the optional `ctx.agentPresets` roster a cell composes from.
+import type {} from '@deepseek-ai/dsh-agent-presets'
 // Also resolves the `usage/foreign` SessionEventMap merge the delegated caps write through.
 import type { AttemptBudget, BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
 import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
@@ -98,6 +100,8 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED'
   | 'ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED'
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED'
+  | 'ENVIRONMENT_RUN_PRESET_UNAVAILABLE'
+  | 'ENVIRONMENT_RUN_UNKNOWN_PRESET'
 
 /** Error returned by the environment runner boundary. */
 export class EnvironmentRunError extends HarnessError {
@@ -1082,10 +1086,26 @@ export class EnvironmentRunner extends Service {
   }
 
   /**
+   * Run the preset refusals of {@link run} against one preset id, without
+   * running anything. A planner calls it while it is still validating a plan,
+   * so a preset the roster cannot supply refuses the plan instead of every cell
+   * of it: the refusals are the same ones, raised from the same resolution,
+   * before the first workspace exists. A request naming no preset is refused
+   * nothing, because the composition's own model-facing rows are what such a
+   * run has always used.
+   * @param preset - the preset each cell would compose from, absent for a run that names none.
+   * @throws {@link EnvironmentRunError} when no roster is composed, or the
+   *   roster does not supply the preset or reports it unusable.
+   */
+  async checkPreset(preset: string | undefined): Promise<void> {
+    await this.requirePreset(preset)
+  }
+
+  /**
    * Run one environment as one fresh session and validate it.
    * @param request - environment id, absolute workspace directory, optional
-   *   implementer, model route, attempt ladder, repetition, group, district,
-   *   policy version, sampling seed, and abort signal.
+   *   implementer, agent preset, model route, attempt ladder, repetition,
+   *   group, district, policy version, sampling seed, and abort signal.
    * @returns the stamp, the attempts with the route each ran on, the
    *   certificate when one run passed, the accumulated usage, and the caps the
    *   cell ran under.
@@ -1093,8 +1113,9 @@ export class EnvironmentRunner extends Service {
    *   is not a safe non-negative integer, an attempt ladder that is empty, past
    *   the ceiling, unusably shared, or shared where no budget policy is
    *   composed, an implementer provider the composition does not hold, cannot
-   *   confine, or has no budget policy to bound, an unusable workspace or
-   *   fixture, an implementer that replaced the goal, or a lost standard.
+   *   confine, or has no budget policy to bound, an agent preset no composed
+   *   roster supplies, an unusable workspace or fixture, an implementer that
+   *   replaced the goal, or a lost standard.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
@@ -1116,6 +1137,7 @@ export class EnvironmentRunner extends Service {
     if (shared && implementer.budgets === undefined) {
       throw new EnvironmentRunError('an attempt ladder rung share is a share of the caps the cell runs under, and this composition has no budget policy to state them', 'ENVIRONMENT_RUN_INVALID_LADDER')
     }
+    const presets = await this.requirePreset(request.preset)
     const fixtureSha256 = await prepareWorkspace(request.workspace, definition.task)
     const stamp: EnvironmentRunStamp = {
       kind: 'environment/run',
@@ -1133,6 +1155,7 @@ export class EnvironmentRunner extends Service {
       ...ladder === undefined ? {} : { ladder },
       isolation: this.resolved.isolation,
       implementer: implementerName(requested),
+      ...request.preset === undefined ? {} : { preset: request.preset },
     }
     // The seed is per cell and topP is the deployment's; both are pinned for
     // the whole session, so every request of the run samples identically and
@@ -1149,11 +1172,22 @@ export class EnvironmentRunner extends Service {
     }
     const handle = await this.ctx.agents.create({
       sessionId: SessionId(`environment-${randomUUID()}`),
-      meta: { cwd: request.workspace },
+      meta: {
+        cwd: request.workspace,
+        // The creation header is the cell session's own record of the
+        // composition it started under; the run stamp above is what a fold
+        // reading the batch reads. Both name one preset, resolved above.
+        ...request.preset === undefined ? {} : { agentPreset: request.preset },
+      },
       agentOptions: { provider: model.provider, model: model.model },
       ...request.signal === undefined ? {} : { signal: request.signal },
-      setup: (agentCtx) => {
+      // The factory's setup is the one supported mount site: the join is
+      // installed while the agent is still unpublished, so a composition that
+      // fails there rolls the whole cell back instead of leaving a stamped
+      // session running the deployment's rows under the preset's name.
+      setup: async (agentCtx) => {
         installModelSelection(agentCtx, selection)
+        if (presets !== undefined) await presets.mount(agentCtx, request.preset)
       },
     })
     const sealed = this.sealWorkspace(handle.agent, request.workspace)
@@ -1250,6 +1284,38 @@ export class EnvironmentRunner extends Service {
       throw new EnvironmentRunError(`implementer provider "${name}" does the work of its attempts outside this session's own model route, where only the budget policy's caps can bound it, and this composition has none`, 'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED')
     }
     return budgets
+  }
+
+  /**
+   * Read the preset a cell composes from off the roster, before any agent
+   * exists. A roster the composition does not hold, and a preset it does not
+   * supply or reports broken, both fail here rather than inside the agent
+   * factory's `setup`, where the refusal would already have cost a workspace
+   * and a fixture overlay. A run that names no preset reads nothing and mounts
+   * nothing.
+   * @param preset - the preset the request named, absent for a run that named none.
+   * @returns the roster the cell mounts through, or `undefined` for a run that named no preset.
+   * @throws {@link EnvironmentRunError} when no roster is composed, or the
+   *   roster cannot supply the named preset.
+   */
+  private async requirePreset(preset: string | undefined): Promise<Context['agentPresets'] | undefined> {
+    if (preset === undefined) return undefined
+    const presets = this.ctx.get('agentPresets')
+    if (presets === undefined) {
+      throw new EnvironmentRunError(`agent preset "${preset}" is unavailable: this composition has no agent preset roster`, 'ENVIRONMENT_RUN_PRESET_UNAVAILABLE')
+    }
+    // The roster is read rather than resolved: `resolve` answers for a broken
+    // preset as readily as a usable one, and a cell can compose from neither,
+    // so both refusals are raised here under one code.
+    const supplied = await presets.list()
+    const resolved = supplied.find(candidate => candidate.id === preset)
+    if (resolved === undefined) {
+      throw new EnvironmentRunError(`agent preset "${preset}" cannot compose a cell: no root supplies it; the roster supplies ${supplied.map(candidate => candidate.id).join(', ') || 'nothing'}`, 'ENVIRONMENT_RUN_UNKNOWN_PRESET')
+    }
+    if (resolved.broken !== undefined) {
+      throw new EnvironmentRunError(`agent preset "${preset}" cannot compose a cell: ${resolved.broken}`, 'ENVIRONMENT_RUN_UNKNOWN_PRESET')
+    }
+    return presets
   }
 
   /**

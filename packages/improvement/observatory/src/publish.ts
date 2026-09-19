@@ -88,13 +88,14 @@ function sortKey(row: ScoreboardRow): string {
     row.environmentId,
     row.isolation,
     row.implementer,
+    row.preset ?? null,
     row.heldOut,
     row.district ?? null,
   ])
 }
 
 /**
- * Order rows by route, attempt ladder, environment, isolation, implementer, held-out split, and district. A
+ * Order rows by route, attempt ladder, environment, isolation, implementer, agent preset, held-out split, and district. A
  * scoreboard's own order is the order its session store listed the sessions in,
  * which no backend promises to keep, so an unordered page would reshuffle
  * between folds that measured the same thing.
@@ -163,6 +164,7 @@ export function publishRow(row: ScoreboardRow): ObservatoryPublishedRow {
     heldOut: row.heldOut,
     isolation: row.isolation,
     implementer: row.implementer,
+    ...row.preset === undefined ? {} : { preset: row.preset },
     certificateExecutors: row.certificateExecutors,
     ...row.compositionSha256 === undefined ? {} : { compositionSha256: row.compositionSha256 },
     tamper: tamperOf(row),

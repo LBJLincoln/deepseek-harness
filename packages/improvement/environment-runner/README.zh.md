@@ -42,7 +42,7 @@
 
 ## Service contract
 
-`ctx.environmentRuns.run({ environment, workspace, implementer?, model?, ladder?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 返回 stamp、每次尝试一条记录及该次尝试所运行的路由、某次运行通过时的证书、累计的 `usage`，以及该 cell 运行所处的 `caps`。它从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由、配置的隔离级别，以及 `implementer` 名称。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
+`ctx.environmentRuns.run({ environment, workspace, implementer?, preset?, model?, ladder?, repetition?, group?, district?, policyVersion?, seed?, signal? })` 返回 stamp、每次尝试一条记录及该次尝试所运行的路由、某次运行通过时的证书、累计的 `usage`，以及该 cell 运行所处的 `caps`。它从注册表读取定义，把 `task.fixture`（一个已存在的绝对目录）覆盖到 `workspace` 上并对其文件求哈希，然后创建一个新 agent：`meta.cwd = workspace`，使用请求的 `model` 路由或组合的默认选择，以及 headless bundle 所用的模型选择 setup。在任何其他内容进入日志之前，它追加 `environment/run` stamp：环境 id 与 kind、`heldOut`、提示词、夹具与检查的内容哈希、`repetition`（默认 `0`）、`group` 与 `district`、该次运行所要求的 `policyVersion` 与 `seed`、模型路由、配置的隔离级别、`implementer` 名称，以及该 cell 所组合的 `preset`。随后它由任务提示创建 goal，将其解除武装以免组合中的 goal-round driver 自行继续，并逐字用环境的检查编写标准。
 
 组合了屏障时，本次运行还会在整个运行期间，通过 `ctx.readBarrier.denyFor` 对该 cell 拒绝其工作区所在的目录——`dirname(workspace)`——并在运行结束时释放该登记。fleet 把每个 cell 的工作区都布置为运行目录下的同级目录，因此这一条拒绝同时覆盖该次运行的 plan、日志以及其他所有 cell；改为逐个列出同级目录，会让运行目录本身仍可列举，而这本身就说明了该 cell 所属的实验。屏障在该拒绝之下授予会话自己的工作区，因此 cell 读写自己的文件不受影响。未组合屏障时不拒绝任何内容，这正是 `isolation: none` 声明本就表达的含义。
 
@@ -78,6 +78,19 @@ stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由�
 报告中的每次尝试都陈述它属于两者中的哪一种，因此比较同一条阶梯两个 arm 的读者，不必知道哪一行由哪个实现者产生。`implementerTranscript(implementer)` 是导出的答案。
 
 进程外子进程上的 `keep` arm 是一处缺口而非一种选择：它需要 provider 在多次尝试之间恢复同一个外部会话，而[subagent 缝](../../subagent/subagent/README.md)并未为进程外后端宣告恢复能力。进程内的 [`spawn`](../../subagent/subagent-spawn-in-process/README.md) provider 因此充当 route 的 `drop` arm：它在父进程自身的组合与路由上运行子进程，于是一对仅在记录稿接口上不同的 arm，只差一份组合。
+
+## The agent preset a cell composes from
+
+`preset` 指名组合的名册所提供的一个 agent（智能体）preset，它是唯一一个改变 cell 的模型所见内容、而非改变由哪个模型或哪个 implementer 来看的请求字段。运行器在 agent 工厂的 `setup` 里经 `ctx.agentPresets.mount` 挂载它——那是名册唯一受支持的调用点：加入是在 cell agent 尚未发布时装上的，因此在那里失败的组合会把整个 cell 回滚，而不是留下一个已打 stamp、却以该 preset 之名运行部署自身那些行的会话。
+
+不指名 preset 的运行不挂载任何东西、也不打 preset 的 stamp，这正是该字段存在之前的每一次运行所做的事。
+
+preset 被记录两次，因为这两份记录回答的是不同的问题。cell 会话的创建 header 以 `meta.agentPreset` 携带它，那是该会话自身对它启动时所用组合的陈述，也是对这一份日志做冷读时解析到的值；`environment/run` stamp 以 `preset` 携带它，那是对整批做折叠时读取的值——计分板以它作为行的键，因此同一条路由上的两种组合仍是两行，而轨迹导出逐字携带该 stamp。preset 决定该 cell 每一次请求的工具 schema 与提示词分节，因此记录它正是「模型可见 ⟺ 已记录」规则的要求。
+
+两种拒绝都发生在任何 agent 存在之前，`ctx.environmentRuns.checkPreset(preset)` 不运行任何东西也能抛出同样的两种，因此 fleet 或实验拒绝的是一份计划，而不是它的每一个 cell：
+
+- `ENVIRONMENT_RUN_PRESET_UNAVAILABLE` —— 请求指名了 preset，而组合根本不持有名册。绝不静默跳过：一个以某 preset 为标签的 arm 之下、却运行部署自身那些行的 cell，会发布一份它从未运行过的组合的度量。
+- `ENVIRONMENT_RUN_UNKNOWN_PRESET` —— 名册不持有该 id 的 preset，或发现流程报告它所持有的那个不可用。消息会指名名册确实提供的那些 id。
 
 ## The two implementers
 

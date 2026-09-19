@@ -15,6 +15,7 @@ export interface RowOverrides {
   readonly district?: string
   readonly isolation?: CertificateIsolation
   readonly implementer?: string
+  readonly preset?: string
   readonly ladder?: readonly { readonly provider: string; readonly model: string; readonly share?: number }[]
   readonly runs?: number
   readonly errors?: number

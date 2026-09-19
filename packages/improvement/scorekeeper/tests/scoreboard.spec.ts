@@ -37,6 +37,7 @@ function cell(id: string, options: {
   readonly environmentId?: string
   readonly isolation?: string
   readonly implementer?: string
+  readonly preset?: string
   readonly ladder?: readonly { readonly provider: string; readonly model: string }[]
   readonly district?: string
   readonly verdict?: RunVerdict
@@ -52,6 +53,7 @@ function cell(id: string, options: {
     ...options.environmentId === undefined ? {} : { environmentId: options.environmentId },
     ...options.isolation === undefined ? {} : { isolation: options.isolation },
     ...options.implementer === undefined ? {} : { implementer: options.implementer },
+    ...options.preset === undefined ? {} : { preset: options.preset },
     ...options.ladder === undefined ? {} : { ladder: options.ladder },
     ...options.district === undefined ? {} : { district: options.district },
   }
@@ -141,6 +143,15 @@ describe('foldScoreboard', () => {
       cell('delegated', { certified: false, runs: 1, implementer: 'claude-code' }),
     ], {}, [1])
     expect(fold.rows.map(row => [row.implementer, row.certified])).toEqual([['route', 1], ['claude-code', 0]])
+  })
+
+  it('splits rows by agent preset, so two compositions over one route never average together', () => {
+    const fold = foldScoreboard([
+      cell('plain', { certified: true, runs: 1, preset: 'bench' }),
+      cell('craft', { certified: false, runs: 1, preset: 'bench-craft' }),
+      cell('rosterless', { certified: true, runs: 1 }),
+    ], {}, [1])
+    expect(fold.rows.map(row => [row.preset, row.certified])).toEqual([['bench', 1], ['bench-craft', 0], [undefined, 1]])
   })
 
   it('splits rows by attempt ladder, so a laddered cell never averages with a plain one on its first rung', () => {

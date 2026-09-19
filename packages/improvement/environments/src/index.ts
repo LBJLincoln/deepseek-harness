@@ -194,6 +194,7 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
   const policyVersion = value['policyVersion'] === undefined ? {} : { policyVersion: stampText(value, 'policyVersion') }
   const seed = value['seed'] === undefined ? {} : { seed: stampSeed(value['seed']) }
   const implementer = value['implementer'] === undefined ? {} : { implementer: stampText(value, 'implementer') }
+  const preset = value['preset'] === undefined ? {} : { preset: stampText(value, 'preset') }
   return {
     kind: 'environment/run',
     version: ENVIRONMENT_RUN_VERSION,
@@ -213,6 +214,7 @@ export function decodeEnvironmentRun(value: unknown): EnvironmentRunStamp | unde
     ...ladder,
     isolation: isolation as EnvironmentRunStamp['isolation'],
     ...implementer,
+    ...preset,
   }
 }
 
