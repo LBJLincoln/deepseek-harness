@@ -1,0 +1,308 @@
+{
+  "type": "result",
+  "plan": "h1-fleet-openrouter-nex-smoke-t2",
+  "environments": [
+    "code:glob-match",
+    "code:path-normalize"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-19T11:50:01.427Z",
+  "endedAt": "2026-09-19T12:16:21.989Z",
+  "report": {
+    "group": "fleet-4753823d-6f52-46d7-a3a8-c339c31f8afb",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:glob-match",
+          "model": {
+            "provider": "openrouter",
+            "model": "nex-agi/nex-n2.5-pro:free"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:glob-match",
+          "sessionId": "environment-af8519bd-4a8f-4268-8ce8-4c2ffb52396d",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:glob-match",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f4d8cc16fbb4a1572ff5b70106c292622bcf820ab13bb727b24b44e092679be9",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "fca9b8bddfc662c6405318bdc810a0a2ae4dafdddfe355513f964c559d978e15",
+            "contentSha256": "693e0c7cebe8628c5085a375d1874a51784e0882d9d83702d51f395ddb47045d",
+            "repetition": 0,
+            "group": "fleet-4753823d-6f52-46d7-a3a8-c339c31f8afb",
+            "district": "bench-openrouter",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "openrouter",
+              "model": "nex-agi/nex-n2.5-pro:free"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "openrouter",
+                "model": "nex-agi/nex-n2.5-pro:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: wildcards, globstars and the dot rule select the right paths\nok 1 - wildcards, globstars and the dot rule select the right paths\n  ---\n  duration_ms: 5.850516\n  type: 'test'\n  ...\n# Subtest: a globstar matches zero or more whole segments\nok 2 - a globstar matches zero or more whole segments\n  ---\n  duration_ms: 0.365978\n  type: 'test'\n  ...\n# Subtest: wildcards never cross a separator\nok 3 - wildcards never cross a separator\n  ---\n  duration_ms: 0.136985\n  type: 'test'\n  ...\n# Subtest: character classes follow the POSIX bracket rules\nok 4 - character classes follow the POSIX bracket rules\n  ---\n  duration_ms: 0.334374\n  type: 'test'\n  ...\n# Subtest: a leading dot is only matched by an explicit dot\nok 5 - a leading dot is only matched by an explicit dot\n  ---\n  duration_ms: 0.239451\n  type: 'test'\n  ...\n# Subtest: backslash escapes strip a metacharacter of its meaning\nok 6 - backslash escapes strip a metacharacter of its meaning\n  ---\n  duration_ms: 0.14864\n  type: 'test'\n  ...\n# Subtest: case folding is opt-in\nok 7 - case folding is opt-in\n  ---\n  duration_ms: 0.199348\n  type: 'test'\n  ...\n# Subtest: invalid patterns report the reason and the position\nok 8 - invalid patterns report the reason and the position\n  ---\n  duration_ms: 0.630188\n  type: 'test'\n  ...\n# Subtest: filter keeps duplicates and the original order\nok 9 - filter keeps duplicates and the original order\n  ---\n  duration_ms: 0.336448\n  type: 'test'\n  ...\n# Subtest: generated paths satisfy the matching invariants\nok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 14.641272\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 103.953927"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "06d0fb64d5fea7da83c70164fe9de6f9511b65e1e7d9b08b15bcff9e15abdcf9"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-3245a8f4-c0c4-4e80-a309-4731fcd55a1e",
+              "revision": 1
+            },
+            "goalId": "goal-6f82f323-d50d-4009-85c9-51525a100c92",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: wildcards, globstars and the dot rule select the right paths\nok 1 - wildcards, globstars and the dot rule select the right paths\n  ---\n  duration_ms: 5.850516\n  type: 'test'\n  ...\n# Subtest: a globstar matches zero or more whole segments\nok 2 - a globstar matches zero or more whole segments\n  ---\n  duration_ms: 0.365978\n  type: 'test'\n  ...\n# Subtest: wildcards never cross a separator\nok 3 - wildcards never cross a separator\n  ---\n  duration_ms: 0.136985\n  type: 'test'\n  ...\n# Subtest: character classes follow the POSIX bracket rules\nok 4 - character classes follow the POSIX bracket rules\n  ---\n  duration_ms: 0.334374\n  type: 'test'\n  ...\n# Subtest: a leading dot is only matched by an explicit dot\nok 5 - a leading dot is only matched by an explicit dot\n  ---\n  duration_ms: 0.239451\n  type: 'test'\n  ...\n# Subtest: backslash escapes strip a metacharacter of its meaning\nok 6 - backslash escapes strip a metacharacter of its meaning\n  ---\n  duration_ms: 0.14864\n  type: 'test'\n  ...\n# Subtest: case folding is opt-in\nok 7 - case folding is opt-in\n  ---\n  duration_ms: 0.199348\n  type: 'test'\n  ...\n# Subtest: invalid patterns report the reason and the position\nok 8 - invalid patterns report the reason and the position\n  ---\n  duration_ms: 0.630188\n  type: 'test'\n  ...\n# Subtest: filter keeps duplicates and the original order\nok 9 - filter keeps duplicates and the original order\n  ---\n  duration_ms: 0.336448\n  type: 'test'\n  ...\n# Subtest: generated paths satisfy the matching invariants\nok 10 - generated paths satisfy the matching invariants\n  ---\n  duration_ms: 14.641272\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 103.953927"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1789820181587
+          },
+          "usage": {
+            "inputTokens": 54799,
+            "outputTokens": 64933,
+            "cacheReadTokens": 89024
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:path-normalize",
+          "model": {
+            "provider": "openrouter",
+            "model": "nex-agi/nex-n2.5-pro:free"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:path-normalize",
+          "sessionId": "environment-142d95fc-34d7-4a34-8781-ebbbdc396154",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:path-normalize",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "316c9dc2a108108c94c6b6ab00066f174e699775032b3852cd527ba12422cce6",
+            "checksSha256": "a7a5967ebf68a924dd8555e2ea116a4a0da2f332f8ca1fb512b705a078100199",
+            "fixtureSha256": "94d7380f85cd709ec2555eeeb246aada7d97113e257cfc34bf42618d5389acd5",
+            "contentSha256": "1895803e3041da7c01b9457ecc0806bf9aaa20b41fbde69cfa1d75a66fb36342",
+            "repetition": 0,
+            "group": "fleet-4753823d-6f52-46d7-a3a8-c339c31f8afb",
+            "district": "bench-openrouter",
+            "policyVersion": "bench-2026-09-07-native-tools",
+            "seed": 1,
+            "model": {
+              "provider": "openrouter",
+              "model": "nex-agi/nex-n2.5-pro:free"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "openrouter",
+                "model": "nex-agi/nex-n2.5-pro:free"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: isAbsolute looks only at the leading slash\nok 1 - isAbsolute looks only at the leading slash\n  ---\n  duration_ms: 1.632525\n  type: 'test'\n  ...\n# Subtest: normalize collapses separators, dots and trailing slashes\nok 2 - normalize collapses separators, dots and trailing slashes\n  ---\n  duration_ms: 1.405824\n  type: 'test'\n  ...\n# Subtest: normalize keeps leading parents on relative paths only\nok 3 - normalize keeps leading parents on relative paths only\n  ---\n  duration_ms: 0.169274\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input and escapes from the root\nok 4 - normalize rejects malformed input and escapes from the root\n  ---\n  duration_ms: 0.211654\n  type: 'test'\n  ...\n# Subtest: join concatenates and then normalizes\nok 5 - join concatenates and then normalizes\n  ---\n  duration_ms: 0.245478\n  type: 'test'\n  ...\n# Subtest: join rejects empty, absolute and non-string segments\nok 6 - join rejects empty, absolute and non-string segments\n  ---\n  duration_ms: 0.249377\n  type: 'test'\n  ...\n# Subtest: relative walks up and back down\nok 7 - relative walks up and back down\n  ---\n  duration_ms: 0.420576\n  type: 'test'\n  ...\n# Subtest: relative demands two absolute paths\nok 8 - relative demands two absolute paths\n  ---\n  duration_ms: 0.273754\n  type: 'test'\n  ...\n# Subtest: normalized paths are stable and well formed for generated input\nok 9 - normalized paths are stable and well formed for generated input\n  ---\n  duration_ms: 3.285629\n  type: 'test'\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 5.216428\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 97.35912"
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "0093735581df442bcbf445054205fcf7a6560c29994badc17c20afb566bd2c97"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-97b378af-ad91-4343-976f-f81b94f12cc8",
+              "revision": 1
+            },
+            "goalId": "goal-4289d385-6c7f-4c11-9ce9-ccc36585298a",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: TAP version 13\n# Subtest: isAbsolute looks only at the leading slash\nok 1 - isAbsolute looks only at the leading slash\n  ---\n  duration_ms: 1.632525\n  type: 'test'\n  ...\n# Subtest: normalize collapses separators, dots and trailing slashes\nok 2 - normalize collapses separators, dots and trailing slashes\n  ---\n  duration_ms: 1.405824\n  type: 'test'\n  ...\n# Subtest: normalize keeps leading parents on relative paths only\nok 3 - normalize keeps leading parents on relative paths only\n  ---\n  duration_ms: 0.169274\n  type: 'test'\n  ...\n# Subtest: normalize rejects malformed input and escapes from the root\nok 4 - normalize rejects malformed input and escapes from the root\n  ---\n  duration_ms: 0.211654\n  type: 'test'\n  ...\n# Subtest: join concatenates and then normalizes\nok 5 - join concatenates and then normalizes\n  ---\n  duration_ms: 0.245478\n  type: 'test'\n  ...\n# Subtest: join rejects empty, absolute and non-string segments\nok 6 - join rejects empty, absolute and non-string segments\n  ---\n  duration_ms: 0.249377\n  type: 'test'\n  ...\n# Subtest: relative walks up and back down\nok 7 - relative walks up and back down\n  ---\n  duration_ms: 0.420576\n  type: 'test'\n  ...\n# Subtest: relative demands two absolute paths\nok 8 - relative demands two absolute paths\n  ---\n  duration_ms: 0.273754\n  type: 'test'\n  ...\n# Subtest: normalized paths are stable and well formed for generated input\nok 9 - normalized paths are stable and well formed for generated input\n  ---\n  duration_ms: 3.285629\n  type: 'test'\n  ...\n# Subtest: relative and join are inverses for generated absolute paths\nok 10 - relative and join are inverses for generated absolute paths\n  ---\n  duration_ms: 5.216428\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 97.35912"
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1789819878885
+          },
+          "usage": {
+            "inputTokens": 61264,
+            "outputTokens": 54202,
+            "cacheReadTokens": 457728
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 3
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "openrouter",
+        "model": "nex-agi/nex-n2.5-pro:free",
+        "environmentId": "code:glob-match",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 54799,
+        "outputTokens": 64933,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "openrouter",
+        "model": "nex-agi/nex-n2.5-pro:free",
+        "environmentId": "code:path-normalize",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 61264,
+        "outputTokens": 54202,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 116063,
+      "outputTokens": 119135
+    }
+  },
+  "rows": [
+    {
+      "provider": "openrouter",
+      "model": "nex-agi/nex-n2.5-pro:free",
+      "environmentId": "code:glob-match",
+      "environmentKind": "bench",
+      "district": "bench-openrouter",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "openrouter",
+      "model": "nex-agi/nex-n2.5-pro:free",
+      "environmentId": "code:path-normalize",
+      "environmentKind": "bench",
+      "district": "bench-openrouter",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 3,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    }
+  ],
+  "facts": {
+    "sessions": 2,
+    "exported": 2,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 2,
+    "exported": 2,
+    "rewarded": 2,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}

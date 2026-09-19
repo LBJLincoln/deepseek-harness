@@ -28,7 +28,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness 循环 fleet，不筛选层级 | all | fleet `sonnet`，district `bench-h1` | 1 | base | not recorded |
 | `h1-fleet-openrouter-deepseek-t2` | 免费路由上的 DeepSeek flash 模型跑一个层，推理以文本回放 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`，district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h1-openrouter-deepseek-t2-partial`（部分：跑完 6 个 cell 中的 3 个后停止） |
-| `h1-fleet-openrouter-nex-smoke-t2` | 免费路由上第一个拿到认证的模型跑两个点名的环境，也是 loop 的第一个队列 | 2 | fleet `openrouter`/`nex-agi/nex-n2.5-pro:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
+| `h1-fleet-openrouter-nex-smoke-t2` | 免费路由上第一个拿到认证的模型跑两个点名的环境，也是 loop 的第一个队列 | 2 | fleet `openrouter`/`nex-agi/nex-n2.5-pro:free`，district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h1-fleet-openrouter-nex-smoke-t2`（loop 的第一次迭代） |
 | `h1-fleet-openrouter-smoke-t2` | 免费开放权重路由，跑两个点名的环境 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`，district `bench-openrouter` | 1 | with-openrouter | `2026-09-19-bench-h1-openrouter-smoke-t2` |
 | `h1-fleet-product-loop-sonnet` | 产品循环 fleet，不筛选层级 | all | fleet `sonnet`，实现者 product-loop，district `bench-h1` | 1 | base | not recorded |
 | `h2-haiku-vs-sonnet-t2` | 模型层级：haiku 对 sonnet（native-tools 之前的策略） | 2 | 基线 `haiku` 对候选 `sonnet` | 1 | base | not recorded |
