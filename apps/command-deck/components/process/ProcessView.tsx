@@ -2,12 +2,13 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo, type ChangeEvent, type ReactNode } from 'react'
+import type { EventKind } from '@/deck/contract'
 import { clock, duration, stamp } from '@/deck/format'
-import { SEVERITY_COLOR } from '@/deck/palette'
 import { STAGES, stageOf } from '@/deck/pipeline'
 import { eventsUpTo, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { KIND_LOOK } from './kinds'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
 // the server; the rest of the view is ordinary React and does.
@@ -15,18 +16,6 @@ const ProcessStage = dynamic(
   async () => (await import('./ProcessStage')).ProcessStage,
   { ssr: false, loading: () => <div className="loading">laying out the pipeline…</div> },
 )
-
-/** Colour per event kind, matching the particles in the scene. */
-const KIND_COLOR: Record<string, string> = {
-  step: '#5fa8ff',
-  tool: '#4fd8ff',
-  delegation: '#9b7bff',
-  directive: '#ffbe5c',
-  certificate: '#49e0a6',
-  finding: SEVERITY_COLOR.critical,
-  merge: '#ff8a6b',
-  refusal: '#ff8a3d',
-}
 
 /**
  * The Process view: the pipeline on the left, the run and its stream on the right.
@@ -58,7 +47,7 @@ export function ProcessView(): ReactNode {
   }, [visible, agents])
 
   const perKind = useMemo(() => {
-    const totals = new Map<string, number>()
+    const totals = new Map<EventKind, number>()
     for (const event of visible) totals.set(event.kind, (totals.get(event.kind) ?? 0) + 1)
     return [...totals.entries()].sort((left, right) => right[1] - left[1])
   }, [visible])
@@ -150,7 +139,7 @@ export function ProcessView(): ReactNode {
             <div className="legend">
               {perKind.map(([kind, total]) => (
                 <span key={kind}>
-                  <i style={{ background: KIND_COLOR[kind] ?? '#5fa8ff' }} />
+                  <i style={{ background: KIND_LOOK[kind].color }} />
                   {kind} {total}
                 </span>
               ))}
