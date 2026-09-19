@@ -154,6 +154,8 @@ a { color: inherit; text-decoration: none; }
 .count span { font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); }
 .count[data-tone='active'] b { color: var(--cyan); }
 .count[data-tone='certified'] b { color: var(--green); }
+/* Lit while the number is travelling, so the eye catches that it moved. */
+.count [data-rolling='true'] { text-shadow: 0 0 16px currentColor; }
 
 .deck__main { position: relative; overflow: hidden; }
 
@@ -173,6 +175,15 @@ a { color: inherit; text-decoration: none; }
 
 .deck__footer b { color: var(--ink-2); font-weight: 500; }
 
+/* A run id is long enough to push the shortcut hints off the bar. */
+.deck__run {
+  display: inline-block;
+  max-width: 26ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
 /* ---------------------------------------------------------------- badge -- */
 
 .badge {
@@ -190,6 +201,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .badge__dot {
+  position: relative;
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -202,9 +214,31 @@ a { color: inherit; text-decoration: none; }
 
 .badge[data-mode='live'] .badge__dot { animation: pulse 2s ease-in-out infinite; }
 
+/*
+ * Only a live feed sweeps. Replay is a fixed recording, so its badge holds
+ * still in amber and nothing about it suggests something is arriving.
+ */
+.badge[data-mode='live'] .badge__dot::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  animation: radar 2s cubic-bezier(0.16, 0.84, 0.44, 1) infinite;
+}
+
+.badge[data-mode='replay'] .badge__dot { animation: none; }
+
 @keyframes pulse {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
   50% { opacity: 0.55; box-shadow: 0 0 0 4px rgba(73, 224, 166, 0); }
+}
+
+@keyframes radar {
+  0% { transform: scale(1); opacity: 0.8; }
+  70% { opacity: 0; }
+  100% { transform: scale(4.4); opacity: 0; }
 }
 
 /* ---------------------------------------------------------------- views -- */

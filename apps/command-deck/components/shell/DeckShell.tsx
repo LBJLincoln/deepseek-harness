@@ -4,13 +4,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, type ReactNode } from 'react'
 import { useDeck } from '@/deck/store'
-
-/** The three views, in the order their number keys select them. */
-const VIEWS = [
-  { href: '/', key: '1', label: 'Enterprise' },
-  { href: '/process', key: '2', label: 'Process' },
-  { href: '/safety', key: '3', label: 'Code safety' },
-] as const
+import { RollingNumber } from './RollingNumber.tsx'
+import { useEventRate } from './rate.ts'
+import { VIEWS } from './views.ts'
 
 /**
  * The persistent frame around every view: header, status footer, global
@@ -25,8 +21,11 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const source = useDeck(state => state.source)
   const streamState = useDeck(state => state.streamState)
   const roster = useDeck(state => state.roster)
+  const runs = useDeck(state => state.runs)
+  const selectedRunId = useDeck(state => state.selectedRunId)
   const error = useDeck(state => state.error)
   const selectAgent = useDeck(state => state.selectAgent)
+  const rate = useEventRate()
 
   useEffect(() => { void boot() }, [boot])
 
@@ -47,7 +46,8 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   }, [router, selectAgent])
 
   const mode = source?.mode ?? 'probing'
-  const certifiedToday = roster?.agents.filter(agent => agent.status === 'certified').length ?? 0
+  const certifiedToday = roster?.agents.filter(agent => agent.status === 'certified').length
+  const run = runs.find(entry => entry.id === selectedRunId)
 
   return (
     <div className="deck">
@@ -70,15 +70,15 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
 
         <div className="deck__counts">
           <div className="count">
-            <b>{roster?.counts.defined ?? '—'}</b>
+            <b><RollingNumber value={roster?.counts.defined} /></b>
             <span>defined</span>
           </div>
           <div className="count" data-tone="active">
-            <b>{roster?.counts.active ?? '—'}</b>
+            <b><RollingNumber value={roster?.counts.active} /></b>
             <span>active</span>
           </div>
           <div className="count" data-tone="certified">
-            <b>{roster === undefined ? '—' : certifiedToday}</b>
+            <b><RollingNumber value={certifiedToday} /></b>
             <span>certified today</span>
           </div>
         </div>
@@ -95,6 +95,10 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         <span>feed <b>{source?.configured ?? '…'}</b></span>
         <span>·</span>
         <span>stream <b>{streamState}</b></span>
+        <span>·</span>
+        <span>run <b className="deck__run">{run?.name ?? '—'}</b></span>
+        <span>·</span>
+        <span><b>{rate ?? '—'}</b> events/min</span>
         {source?.mode === 'replay' ? (
           <>
             <span>·</span>
