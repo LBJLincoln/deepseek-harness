@@ -23,6 +23,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e8-deepseek-vs-sonnet-t3` | 产品路由对开放权重路由 | 3 | 基线 `claude-code`/`sonnet` 对候选 `deepseek-official`/`deepseek-v4-flash` | 1 | with-deepseek | not recorded |
 | `e8-sonnet-vs-opus-t6` | 模型层级：在最大模型尚未被度量过的多文件层上比较 | 6 | 基线 `sonnet` 对候选 `opus` | 2 | base | not recorded |
 | `e9-preset-craft-vs-plain-t5` | Agent 组合：同一路由上工艺技能 preset 对普通 preset | 5 | 基线 `sonnet` preset `bench` 对候选 `sonnet` preset `bench-craft` | 2 | with-presets | `2026-09-19-bench-e9-preset-craft-vs-plain-t5` |
+| `e10-openrouter-nex-vs-laguna-t2` | 两个免费开放权重 agentic 模型组成的冻结配对，第一对没有订阅臂的配对 | 2 | 基线 `openrouter`/`nex-agi/nex-n2.5-pro:free` 对候选 `openrouter`/`poolside/laguna-s-2.1:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `h1-fleet-deepseek-t2` | 跑在开放权重路由上的 harness 循环 fleet | 2 | fleet `deepseek-official`/`deepseek-v4-flash`，district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
