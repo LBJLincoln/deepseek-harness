@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-13T19:38:46+08:00",
+  "generatedAt": "2026-09-19T20:13:07+00:00",
   "counts": {
     "defined": 147,
     "active": 0
@@ -217,6 +217,24 @@
         "read"
       ],
       "source": "packages/llm/llm/README.md",
+      "status": "defined"
+    },
+    {
+      "id": "harness-core-llm-claude-code-steward",
+      "name": "Llm Claude Code Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "llm-claude-code",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/llm-claude-code/README.md",
       "status": "defined"
     },
     {
@@ -472,29 +490,11 @@
       "status": "defined"
     },
     {
-      "id": "harness-core-tool-subagent-report-steward",
-      "name": "Tool Subagent Report Steward",
-      "role": "steward",
-      "division": "harness-core",
-      "specialization": "tool-subagent-report",
-      "route": {
-        "provider": "deepseek-official",
-        "model": "deepseek-v4-flash"
-      },
-      "preset": "coding",
-      "skills": [],
-      "tools": [
-        "read"
-      ],
-      "source": "packages/subagent/tool-subagent-report/README.md",
-      "status": "defined"
-    },
-    {
-      "id": "proving-ground-tool-outcome-unknown-bench-operator",
-      "name": "Tool Outcome Unknown Bench Operator",
+      "id": "proving-ground-bitset-bloom-bench-operator",
+      "name": "Bitset Bloom Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "tool-outcome-unknown",
+      "specialization": "bitset-bloom",
       "route": {
         "provider": "claude-code",
         "model": "sonnet"
@@ -505,15 +505,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/semantic-checkpoint-snapshots/tool-outcome-unknown",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/bitset-bloom",
       "status": "defined"
     },
     {
-      "id": "proving-ground-advanced-toolchain-bench-operator",
-      "name": "Advanced Toolchain Bench Operator",
+      "id": "proving-ground-build-schedule-bench-operator",
+      "name": "Build Schedule Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "advanced-toolchain",
+      "specialization": "build-schedule",
       "route": {
         "provider": "claude-code",
         "model": "opus"
@@ -524,15 +524,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/advanced-toolchain",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/build-schedule",
       "status": "defined"
     },
     {
-      "id": "proving-ground-compaction-recovery-bench-operator",
-      "name": "Compaction Recovery Bench Operator",
+      "id": "proving-ground-conf-canon-bench-operator",
+      "name": "Conf Canon Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "compaction-recovery",
+      "specialization": "conf-canon",
       "route": {
         "provider": "claude-code",
         "model": "haiku"
@@ -543,15 +543,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/compaction-recovery",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/conf-canon",
       "status": "defined"
     },
     {
-      "id": "proving-ground-goal-tools-bench-operator",
-      "name": "Goal Tools Bench Operator",
+      "id": "proving-ground-config-layers-bench-operator",
+      "name": "Config Layers Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "goal-tools",
+      "specialization": "config-layers",
       "route": {
         "provider": "claude-code",
         "model": "sonnet"
@@ -562,15 +562,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/goal-tools",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/config-layers",
       "status": "defined"
     },
     {
-      "id": "proving-ground-headless-profile-bench-operator",
-      "name": "Headless Profile Bench Operator",
+      "id": "proving-ground-cron-next-bench-operator",
+      "name": "Cron Next Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "headless-profile",
+      "specialization": "cron-next",
       "route": {
         "provider": "claude-code",
         "model": "opus"
@@ -581,15 +581,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/headless-profile",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next",
       "status": "defined"
     },
     {
-      "id": "proving-ground-invalid-credential-bench-operator",
-      "name": "Invalid Credential Bench Operator",
+      "id": "proving-ground-csv-codec-bench-operator",
+      "name": "Csv Codec Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "invalid-credential",
+      "specialization": "csv-codec",
       "route": {
         "provider": "claude-code",
         "model": "haiku"
@@ -600,15 +600,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/invalid-credential",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec",
       "status": "defined"
     },
     {
-      "id": "proving-ground-missing-credential-bench-operator",
-      "name": "Missing Credential Bench Operator",
+      "id": "proving-ground-dep-resolver-bench-operator",
+      "name": "Dep Resolver Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "missing-credential",
+      "specialization": "dep-resolver",
       "route": {
         "provider": "claude-code",
         "model": "sonnet"
@@ -619,15 +619,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/missing-credential",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/dep-resolver",
       "status": "defined"
     },
     {
-      "id": "proving-ground-provider-retry-bench-operator",
-      "name": "Provider Retry Bench Operator",
+      "id": "proving-ground-diff3-merge-bench-operator",
+      "name": "Diff3 Merge Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "provider-retry",
+      "specialization": "diff3-merge",
       "route": {
         "provider": "claude-code",
         "model": "opus"
@@ -638,15 +638,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/provider-retry",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/diff3-merge",
       "status": "defined"
     },
     {
-      "id": "proving-ground-pty-tools-bench-operator",
-      "name": "Pty Tools Bench Operator",
+      "id": "proving-ground-double-entry-ledger-bench-operator",
+      "name": "Double Entry Ledger Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "pty-tools",
+      "specialization": "double-entry-ledger",
       "route": {
         "provider": "claude-code",
         "model": "haiku"
@@ -657,15 +657,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/pty-tools",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/double-entry-ledger",
       "status": "defined"
     },
     {
-      "id": "proving-ground-ralph-loop-bench-operator",
-      "name": "Ralph Loop Bench Operator",
+      "id": "proving-ground-expr-eval-bench-operator",
+      "name": "Expr Eval Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "ralph-loop",
+      "specialization": "expr-eval",
       "route": {
         "provider": "claude-code",
         "model": "sonnet"
@@ -676,15 +676,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/ralph-loop",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval",
       "status": "defined"
     },
     {
-      "id": "proving-ground-startup-activation-error-bench-operator",
-      "name": "Startup Activation Error Bench Operator",
+      "id": "proving-ground-glob-brace-bench-operator",
+      "name": "Glob Brace Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "startup-activation-error",
+      "specialization": "glob-brace",
       "route": {
         "provider": "claude-code",
         "model": "opus"
@@ -695,15 +695,15 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/startup-activation-error",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-brace",
       "status": "defined"
     },
     {
-      "id": "proving-ground-subagent-settlement-bench-operator",
-      "name": "Subagent Settlement Bench Operator",
+      "id": "proving-ground-glob-match-bench-operator",
+      "name": "Glob Match Bench Operator",
       "role": "bench-operator",
       "division": "proving-ground",
-      "specialization": "subagent-settlement",
+      "specialization": "glob-match",
       "route": {
         "provider": "claude-code",
         "model": "haiku"
@@ -714,7 +714,7 @@
         "subagent",
         "bash"
       ],
-      "source": "examples/headless-agent/tests/snapshots/subagent-settlement",
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match",
       "status": "defined"
     },
     {
@@ -1574,17 +1574,18 @@
       "specialization": "javascript-typescript",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "deepseek/deepseek-v4-flash-0731:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/secrets"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1596,17 +1597,18 @@
       "specialization": "python",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/secrets"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1618,17 +1620,18 @@
       "specialization": "java",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/secrets"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1640,17 +1643,18 @@
       "specialization": "go",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "qwen/qwen3.8-27b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/secrets"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1662,17 +1666,18 @@
       "specialization": "php",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "google/gemma-4-31b-it:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/secrets"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1684,17 +1689,18 @@
       "specialization": "mobile",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "poolside/laguna-s-2.1:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/secrets"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1708,12 +1714,14 @@
         "model": "deepseek-v4-flash"
       },
       "preset": "reviewing",
-      "skills": [],
+      "skills": [
+        "code-safety/secrets"
+      ],
       "tools": [
         "read",
         "session_query"
       ],
-      "source": "packages/credentials/credentials/README.md",
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
       "status": "defined"
     },
     {
@@ -1725,17 +1733,18 @@
       "specialization": "javascript-typescript",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nex-agi/nex-n2.5-pro:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/injection"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1747,17 +1756,18 @@
       "specialization": "python",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "thinkingmachines/inkling:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/injection"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1769,17 +1779,18 @@
       "specialization": "java",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "deepseek/deepseek-v4-flash-0731:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/injection"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1791,17 +1802,18 @@
       "specialization": "go",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/injection"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1813,17 +1825,18 @@
       "specialization": "php",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/injection"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1835,17 +1848,18 @@
       "specialization": "mobile",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "qwen/qwen3.8-27b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/injection"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1859,12 +1873,14 @@
         "model": "deepseek-v4-flash"
       },
       "preset": "reviewing",
-      "skills": [],
+      "skills": [
+        "code-safety/injection"
+      ],
       "tools": [
         "read",
         "session_query"
       ],
-      "source": "packages/shell/shell/README.md",
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
       "status": "defined"
     },
     {
@@ -1876,17 +1892,18 @@
       "specialization": "javascript-typescript",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "google/gemma-4-31b-it:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/access"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -1898,17 +1915,18 @@
       "specialization": "python",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "poolside/laguna-s-2.1:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/access"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -1920,17 +1938,18 @@
       "specialization": "java",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nex-agi/nex-n2.5-pro:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/access"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -1942,17 +1961,18 @@
       "specialization": "go",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "thinkingmachines/inkling:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/access"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -1964,17 +1984,18 @@
       "specialization": "php",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "deepseek/deepseek-v4-flash-0731:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/access"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -1986,17 +2007,18 @@
       "specialization": "mobile",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/access"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -2010,12 +2032,14 @@
         "model": "deepseek-v4-flash"
       },
       "preset": "reviewing",
-      "skills": [],
+      "skills": [
+        "code-safety/access"
+      ],
       "tools": [
         "read",
         "session_query"
       ],
-      "source": "packages/fs/fs/README.md",
+      "source": "data/knowledge/code-safety/access/SKILL.md",
       "status": "defined"
     },
     {
@@ -2027,17 +2051,18 @@
       "specialization": "javascript-typescript",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/data"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2049,17 +2074,18 @@
       "specialization": "python",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "qwen/qwen3.8-27b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/data"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2071,17 +2097,18 @@
       "specialization": "java",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "google/gemma-4-31b-it:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/data"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2093,17 +2120,18 @@
       "specialization": "go",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "poolside/laguna-s-2.1:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/data"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2115,17 +2143,18 @@
       "specialization": "php",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nex-agi/nex-n2.5-pro:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/data"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2137,17 +2166,18 @@
       "specialization": "mobile",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "thinkingmachines/inkling:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/data"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2161,12 +2191,14 @@
         "model": "deepseek-v4-flash"
       },
       "preset": "reviewing",
-      "skills": [],
+      "skills": [
+        "code-safety/data"
+      ],
       "tools": [
         "read",
         "session_query"
       ],
-      "source": "packages/storage/storage/README.md",
+      "source": "data/knowledge/code-safety/data/SKILL.md",
       "status": "defined"
     },
     {
@@ -2178,17 +2210,18 @@
       "specialization": "javascript-typescript",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "deepseek/deepseek-v4-flash-0731:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/dependencies"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2200,17 +2233,18 @@
       "specialization": "python",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/dependencies"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2222,17 +2256,18 @@
       "specialization": "java",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/dependencies"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2244,17 +2279,18 @@
       "specialization": "go",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "qwen/qwen3.8-27b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/dependencies"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2266,17 +2302,18 @@
       "specialization": "php",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "google/gemma-4-31b-it:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/dependencies"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2288,17 +2325,18 @@
       "specialization": "mobile",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "poolside/laguna-s-2.1:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/dependencies"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2312,12 +2350,14 @@
         "model": "deepseek-v4-flash"
       },
       "preset": "reviewing",
-      "skills": [],
+      "skills": [
+        "code-safety/dependencies"
+      ],
       "tools": [
         "read",
         "session_query"
       ],
-      "source": "scripts/verify-dsh-package-licenses.ts",
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
       "status": "defined"
     },
     {
@@ -2329,17 +2369,18 @@
       "specialization": "javascript-typescript",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nex-agi/nex-n2.5-pro:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/platform"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2351,17 +2392,18 @@
       "specialization": "python",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "thinkingmachines/inkling:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/platform"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2373,17 +2415,18 @@
       "specialization": "java",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "deepseek/deepseek-v4-flash-0731:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/platform"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2395,17 +2438,18 @@
       "specialization": "go",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/platform"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2417,17 +2461,18 @@
       "specialization": "php",
       "route": {
         "provider": "openrouter",
-        "model": "meta-llama/llama-3.3-70b-instruct:free"
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/platform"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2439,17 +2484,18 @@
       "specialization": "mobile",
       "route": {
         "provider": "openrouter",
-        "model": "google/gemma-2-9b-it:free"
+        "model": "qwen/qwen3.8-27b:free"
       },
       "preset": "reviewing",
       "skills": [
-        "dsh-code-review"
+        "dsh-code-review",
+        "code-safety/platform"
       ],
       "tools": [
         "read",
         "bash"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2463,12 +2509,14 @@
         "model": "deepseek-v4-flash"
       },
       "preset": "reviewing",
-      "skills": [],
+      "skills": [
+        "code-safety/platform"
+      ],
       "tools": [
         "read",
         "session_query"
       ],
-      "source": "packages/sandbox/sandbox/README.md",
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
       "status": "defined"
     },
     {
@@ -2481,7 +2529,10 @@
         "model": "deepseek-v4-pro"
       },
       "preset": "coding",
-      "skills": [],
+      "skills": [
+        "code-safety/review-method",
+        "code-safety/severity-and-evidence"
+      ],
       "tools": [
         "subagent",
         "session_query"
@@ -3017,77 +3068,77 @@
       "kind": "verifies"
     },
     {
-      "from": "harness-core-llm-deepseek-steward",
+      "from": "harness-core-llm-claude-code-steward",
       "to": "verification-verify-dsh-package-licenses",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-llm-pi-ai-steward",
+      "from": "harness-core-llm-deepseek-steward",
       "to": "verification-verify-export-jsdoc",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-llm-retry-steward",
+      "from": "harness-core-llm-pi-ai-steward",
       "to": "verification-verify-md-links",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-token-meter-steward",
+      "from": "harness-core-llm-retry-steward",
       "to": "verification-verify-md-wrap",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-steward",
+      "from": "harness-core-token-meter-steward",
       "to": "verification-verify-mermaid",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-acp-steward",
+      "from": "harness-core-subagent-steward",
       "to": "verification-verify-agent-note-classification",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-claude-code-steward",
+      "from": "harness-core-subagent-acp-steward",
       "to": "verification-verify-agent-note-format",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-codex-steward",
+      "from": "harness-core-subagent-claude-code-steward",
       "to": "verification-verify-archived-agent-notes",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-dsh-sdk-steward",
+      "from": "harness-core-subagent-codex-steward",
       "to": "verification-verify-client-domain-graph",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-fork-in-process-steward",
+      "from": "harness-core-subagent-dsh-sdk-steward",
       "to": "verification-verify-config-source-ownership",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-in-process-driver-steward",
+      "from": "harness-core-subagent-fork-in-process-steward",
       "to": "verification-verify-cordis-config",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-subagent-spawn-in-process-steward",
+      "from": "harness-core-subagent-in-process-driver-steward",
       "to": "verification-verify-doc-budgets",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-tool-subagent-steward",
+      "from": "harness-core-subagent-spawn-in-process-steward",
       "to": "verification-verify-doc-refs",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-tool-subagent-control-steward",
+      "from": "harness-core-tool-subagent-steward",
       "to": "verification-verify-doc-site-fragments",
       "kind": "verifies"
     },
     {
-      "from": "harness-core-tool-subagent-report-steward",
+      "from": "harness-core-tool-subagent-control-steward",
       "to": "verification-verify-dsh-package-licenses",
       "kind": "verifies"
     },
@@ -3142,62 +3193,62 @@
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-tool-outcome-unknown-bench-operator",
+      "from": "proving-ground-bitset-bloom-bench-operator",
       "to": "verification-verify-doc-budgets",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-advanced-toolchain-bench-operator",
+      "from": "proving-ground-build-schedule-bench-operator",
       "to": "verification-verify-doc-refs",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-compaction-recovery-bench-operator",
+      "from": "proving-ground-conf-canon-bench-operator",
       "to": "verification-verify-doc-site-fragments",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-goal-tools-bench-operator",
+      "from": "proving-ground-config-layers-bench-operator",
       "to": "verification-verify-dsh-package-licenses",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-headless-profile-bench-operator",
+      "from": "proving-ground-cron-next-bench-operator",
       "to": "verification-verify-export-jsdoc",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-invalid-credential-bench-operator",
+      "from": "proving-ground-csv-codec-bench-operator",
       "to": "verification-verify-md-links",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-missing-credential-bench-operator",
+      "from": "proving-ground-dep-resolver-bench-operator",
       "to": "verification-verify-md-wrap",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-provider-retry-bench-operator",
+      "from": "proving-ground-diff3-merge-bench-operator",
       "to": "verification-verify-mermaid",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-pty-tools-bench-operator",
+      "from": "proving-ground-double-entry-ledger-bench-operator",
       "to": "verification-verify-agent-note-classification",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-ralph-loop-bench-operator",
+      "from": "proving-ground-expr-eval-bench-operator",
       "to": "verification-verify-agent-note-format",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-startup-activation-error-bench-operator",
+      "from": "proving-ground-glob-brace-bench-operator",
       "to": "verification-verify-archived-agent-notes",
       "kind": "verifies"
     },
     {
-      "from": "proving-ground-subagent-settlement-bench-operator",
+      "from": "proving-ground-glob-match-bench-operator",
       "to": "verification-verify-client-domain-graph",
       "kind": "verifies"
     },

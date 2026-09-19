@@ -1,20 +1,26 @@
 /**
  * Generates the customer proof-of-concept's 147-agent enterprise roster from
  * sources this repository actually defines: package READMEs, `verify-*`
- * scripts, CI gate names, Agent Notes, skill directories, and recorded bench
- * fixtures. Every {@link RosterAgentDefinition.source} is a repository-relative
- * path this generator checks with `existsSync` before emitting it, so a
- * renamed or removed source fails the generator loudly instead of shipping a
- * roster entry nothing backs.
+ * scripts, CI gate names, Agent Notes, skill directories, the Proving Ground
+ * bench's real task environments, and the code-safety review knowledge packs
+ * under `data/knowledge/code-safety`. Every {@link RosterAgentDefinition.source}
+ * is a repository-relative path this generator checks with `existsSync`
+ * before emitting it, so a renamed or removed source fails the generator
+ * loudly instead of shipping a roster entry nothing backs.
  *
- * The roster is a composition of role x division x specialization: each
- * division below builds its slice from one real, enumerable pool (a package
- * group's leaves, a directory of `verify-*.ts` scripts, the CI gate union in
- * `run-gates.ts`, an Agent Note class, a skill directory, or a recorded bench
- * scenario) so the entry count is a design constant while the cited source is
- * discovered, not hand-typed per entry. Pool iteration order is `Array#sort`
- * on the pool's own keys, which is what makes the output byte-identical for
- * the same tree.
+ * The roster is a composition of role x division x specialization. Every
+ * division's agent count is a fixed quota in {@link DIVISION_QUOTAS}, summing
+ * to {@link ROSTER_AGENT_COUNT}: a division whose members come from a
+ * variable pool (a package group's leaves, a `verify-*.ts` directory, a
+ * skill directory, a bench environment directory) takes exactly its quota
+ * from that pool, sorted, via {@link takeQuota}, which throws naming the
+ * division and the shortfall when the tree defines fewer sources than the
+ * quota needs — the count never silently drifts with an unrelated rename or
+ * removal. A division built from fixed enumerations (the CI gate union, the
+ * governance standards, the code-safety department x specialization
+ * cross-product) is exact by construction instead. Pool iteration order is
+ * `Array#sort` on the pool's own keys, which is what makes the output
+ * byte-identical for the same tree.
  *
  * `status` here is always `"defined"` and `counts.active` is always `0`: this
  * module describes what the repository defines, never what is running. Live
@@ -25,7 +31,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -55,7 +61,11 @@ export interface RosterAgentDefinition {
   route: RosterRoute
   /** The preset id (`coding` or `reviewing`, the two presets this repository ships as fixtures) this agent composes from. */
   preset: string
-  /** Repository skill ids (`.agents/skills/<id>`) this agent draws on; empty when none applies. */
+  /**
+   * Skill ids this agent draws on; empty when none applies. A bare id names
+   * `.agents/skills/<id>`; a `code-safety/<id>` id names the review
+   * knowledge pack at `data/knowledge/code-safety/<id>/SKILL.md`.
+   */
   skills: string[]
   /** Model-facing tool ids this agent's preset would register; empty when none applies. */
   tools: string[]
@@ -109,15 +119,28 @@ export interface Roster {
 /** The roster's fixed size: role x division x specialization composed over this repository's real sources. */
 export const ROSTER_AGENT_COUNT = 147
 
-/** The entry at `index` modulo the list length; every list cycled here is a non-empty constant. */
-function cycle<T>(list: readonly T[], index: number): T {
-  const value = list[index % list.length]
-  if (value === undefined) throw new Error('enterprise-roster: cycled an empty list')
-  return value
-}
+/**
+ * Every division's fixed agent count, summing to {@link ROSTER_AGENT_COUNT}.
+ * The count is a design constant, not a directory listing's length: a
+ * division whose members come from a variable pool (a package group, a
+ * fixture directory) takes exactly its quota from that pool via
+ * {@link takeQuota}, sorted, and throws naming the shortfall rather than
+ * silently reporting however many the tree happens to define today.
+ */
+const DIVISION_QUOTAS = {
+  'code-safety': 43,
+  'harness-core': 24,
+  verification: 14,
+  'proving-ground': 12,
+  judging: 11,
+  knowledge: 11,
+  'program-departments': 10,
+  'curation-data': 8,
+  governance: 8,
+  observatory: 6,
+} as const satisfies Record<string, number>
 
 const CLAUDE_CODE_MODELS = ['sonnet', 'opus', 'haiku'] as const
-const OPENROUTER_FREE_MODELS = ['meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-2-9b-it:free'] as const
 
 /**
  * Resolve one hardcoded relative source path against the repository root and
@@ -132,6 +155,59 @@ function cite(root: string, relative: string): string {
     throw new Error(`enterprise-roster: cited source "${relative}" does not exist in this tree`)
   }
   return relative
+}
+
+/**
+ * Take exactly `quota` sources from `pool` (already sorted for deterministic
+ * iteration), or throw a clear, named error when the tree defines fewer than
+ * `quota`.
+ * @param division - the division id, named in the shortfall error.
+ * @param pool - the sorted candidate sources.
+ * @param quota - the division's fixed agent count.
+ * @returns exactly `quota` sources, in pool order.
+ */
+function takeQuota<T>(division: string, pool: readonly T[], quota: number): T[] {
+  if (pool.length < quota) {
+    throw new Error(`enterprise-roster: division "${division}" needs ${quota} sources but this tree defines only ${pool.length}`)
+  }
+  return pool.slice(0, quota)
+}
+
+/**
+ * Pick one entry of `pool` cyclically by `index`, for an agent count larger
+ * than a fixed route or specialization pool (an OpenRouter model list, the
+ * three Claude Code models). Throws on an empty pool rather than returning
+ * `undefined`, which `noUncheckedIndexedAccess` cannot otherwise rule out at
+ * the call site.
+ * @param pool - the fixed values to cycle through.
+ * @param index - the agent's position in its division.
+ * @returns one entry of `pool`.
+ */
+function pickCyclic<T>(pool: readonly T[], index: number): T {
+  const item = pool[index % pool.length]
+  if (item === undefined) throw new Error('enterprise-roster: pickCyclic called with an empty pool')
+  return item
+}
+
+/**
+ * Extract every free OpenRouter model id from the Proving Ground bench's
+ * OpenRouter overlay, by regular expression over the file text rather than a
+ * YAML parse: the ids this roster cites for its `openrouter` routes must
+ * track whatever that overlay actually lists, never a hardcoded snapshot of
+ * it. Every model on this route is a `:free` id (a plugin-entry `id:` such as
+ * `llm-pi-ai` never carries that suffix), so matching on the suffix finds
+ * exactly the model list regardless of the file's other `id:` keys or indentation.
+ * @param root - repository root.
+ * @returns every free model id in file order.
+ */
+function openRouterFreeModels(root: string): string[] {
+  const path = 'examples/headless-agent/tests/fixtures/proving-ground-bench/overlays/with-openrouter.cordis.yml'
+  const text = readFileSync(join(root, cite(root, path)), 'utf8')
+  const ids = [...text.matchAll(/^\s*- id:\s*(\S+:free)\s*$/gm)]
+    .map(match => match[1])
+    .filter((id): id is string => id !== undefined)
+  if (ids.length === 0) throw new Error(`enterprise-roster: found no ":free" model id in ${path}`)
+  return ids
 }
 
 /**
@@ -162,26 +238,20 @@ function verifyScripts(root: string): string[] {
 }
 
 /**
- * Real recorded bench scenario directories under the headless-agent example's
- * snapshot suites, sorted for deterministic iteration.
+ * Real bench task directories under the Proving Ground bench fixture, sorted
+ * for deterministic iteration — the same environments the recorded runs
+ * under `data/proving-ground` name as cells (`code:build-schedule`,
+ * `code:glob-match`, …), so a bench operator seat names a task this
+ * repository's own bench actually runs, not an unrelated snapshot fixture.
  * @param root - repository root.
- * @returns sorted `examples/headless-agent/tests/...` scenario paths.
+ * @returns sorted `examples/headless-agent/tests/fixtures/proving-ground-bench/environments/<name>` paths.
  */
-function provingGroundScenarios(root: string): string[] {
-  const bases = [
-    'examples/headless-agent/tests/snapshots',
-    'examples/headless-agent/tests/workspace-context-resume-snapshots',
-    'examples/headless-agent/tests/semantic-checkpoint-snapshots',
-  ]
-  const scenarios: string[] = []
-  for (const base of bases) {
-    const abs = join(root, base)
-    if (!existsSync(abs)) continue
-    for (const entry of readdirSync(abs, { withFileTypes: true })) {
-      if (entry.isDirectory()) scenarios.push(`${base}/${entry.name}`)
-    }
-  }
-  return scenarios.sort()
+function provingGroundEnvironments(root: string): string[] {
+  const base = 'examples/headless-agent/tests/fixtures/proving-ground-bench/environments'
+  return readdirSync(join(root, base), { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => `${base}/${entry.name}`)
+    .sort()
 }
 
 /** Real `.agents/skills/<id>` directories, sorted for deterministic iteration. */
@@ -273,11 +343,15 @@ const DIVISIONS: RosterDivisionSummary[] = [
   },
 ]
 
-/** One code-safety department: its id, display name, and the real package that grounds it. */
+/**
+ * One code-safety department: its id and display name. Its grounding source
+ * and knowledge-pack skill both derive from `id` alone —
+ * `data/knowledge/code-safety/<id>/SKILL.md`, the real review knowledge pack
+ * for that department — so there is nothing further to hardcode per department.
+ */
 interface CodeSafetyDepartment {
   id: string
   name: string
-  source: string
 }
 
 /** One code-safety specialization: the language(s) a reviewer seat covers. */
@@ -287,12 +361,12 @@ interface CodeSafetySpecialization {
 }
 
 const CODE_SAFETY_DEPARTMENTS: readonly CodeSafetyDepartment[] = [
-  { id: 'secrets', name: 'Secrets', source: 'packages/credentials/credentials/README.md' },
-  { id: 'injection', name: 'Injection', source: 'packages/shell/shell/README.md' },
-  { id: 'access', name: 'Access', source: 'packages/fs/fs/README.md' },
-  { id: 'data', name: 'Data', source: 'packages/storage/storage/README.md' },
-  { id: 'dependencies', name: 'Dependencies', source: 'scripts/verify-dsh-package-licenses.ts' },
-  { id: 'platform', name: 'Platform', source: 'packages/sandbox/sandbox/README.md' },
+  { id: 'secrets', name: 'Secrets' },
+  { id: 'injection', name: 'Injection' },
+  { id: 'access', name: 'Access' },
+  { id: 'data', name: 'Data' },
+  { id: 'dependencies', name: 'Dependencies' },
+  { id: 'platform', name: 'Platform' },
 ]
 
 const CODE_SAFETY_SPECIALIZATIONS: readonly CodeSafetySpecialization[] = [
@@ -304,23 +378,34 @@ const CODE_SAFETY_SPECIALIZATIONS: readonly CodeSafetySpecialization[] = [
   { id: 'mobile', name: 'Mobile (Swift/Kotlin)' },
 ]
 
+/** A knowledge-pack skill id under `data/knowledge/code-safety/<id>/SKILL.md`; see {@link RosterAgentDefinition.skills}. */
+function codeSafetyKnowledgeSkill(root: string, id: string): string {
+  cite(root, `data/knowledge/code-safety/${id}/SKILL.md`)
+  return `code-safety/${id}`
+}
+
 /**
- * The 43-agent `code-safety` division: 36 department x specialization
- * reviewers, 6 per-department integrators, and 1 program lead. Java, Go, PHP,
- * and mobile have no implementing scanner in this repository yet (only
- * JavaScript/TypeScript and Python have first-party static-analysis tooling
- * here), so every reviewer cites the department's real grounding package —
- * the specialization narrows what the seat is *for*, not what already exists
- * for that language.
+ * The `code-safety` division ({@link DIVISION_QUOTAS}): 36 department x
+ * specialization reviewers, 6 per-department integrators, and 1 program
+ * lead — a fixed count by construction (6 departments x 6 specializations,
+ * plus 6 plus 1), not a pool slice. Java, Go, PHP, and mobile have no
+ * implementing scanner in this repository yet (only JavaScript/TypeScript
+ * and Python have first-party static-analysis tooling here), so every
+ * reviewer cites its department's real review knowledge pack — the
+ * specialization narrows what the seat is *for*, not what already exists for
+ * that language. Every reviewer's OpenRouter model cycles through the bench's
+ * real free-tier model list (see {@link openRouterFreeModels}).
  * @param root - repository root.
  * @param notePath - the roster design note, cited by the program lead.
+ * @param openRouterModels - the bench's real free OpenRouter model ids, cycled across reviewers.
  * @returns the division's agent definitions.
  */
-function buildCodeSafety(root: string, notePath: string): RosterAgentDefinition[] {
+function buildCodeSafety(root: string, notePath: string, openRouterModels: readonly string[]): RosterAgentDefinition[] {
   const agents: RosterAgentDefinition[] = []
   let index = 0
   for (const department of CODE_SAFETY_DEPARTMENTS) {
-    const source = cite(root, department.source)
+    const source = cite(root, `data/knowledge/code-safety/${department.id}/SKILL.md`)
+    const knowledgeSkill = codeSafetyKnowledgeSkill(root, department.id)
     for (const specialization of CODE_SAFETY_SPECIALIZATIONS) {
       agents.push({
         id: `code-safety-${department.id}-${specialization.id}-reviewer`,
@@ -329,9 +414,9 @@ function buildCodeSafety(root: string, notePath: string): RosterAgentDefinition[
         division: 'code-safety',
         department: department.id,
         specialization: specialization.id,
-        route: { provider: 'openrouter', model: cycle(OPENROUTER_FREE_MODELS, index) },
+        route: { provider: 'openrouter', model: pickCyclic(openRouterModels, index) },
         preset: 'reviewing',
-        skills: ['dsh-code-review'],
+        skills: ['dsh-code-review', knowledgeSkill],
         tools: ['read', 'bash'],
         source,
         status: 'defined',
@@ -346,7 +431,7 @@ function buildCodeSafety(root: string, notePath: string): RosterAgentDefinition[
       department: department.id,
       route: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
       preset: 'reviewing',
-      skills: [],
+      skills: [knowledgeSkill],
       tools: ['read', 'session_query'],
       source,
       status: 'defined',
@@ -359,7 +444,7 @@ function buildCodeSafety(root: string, notePath: string): RosterAgentDefinition[
     division: 'code-safety',
     route: { provider: 'deepseek-official', model: 'deepseek-v4-pro' },
     preset: 'coding',
-    skills: [],
+    skills: [codeSafetyKnowledgeSkill(root, 'review-method'), codeSafetyKnowledgeSkill(root, 'severity-and-evidence')],
     tools: ['subagent', 'session_query'],
     source: cite(root, notePath),
     status: 'defined',
@@ -368,47 +453,45 @@ function buildCodeSafety(root: string, notePath: string): RosterAgentDefinition[
 }
 
 /**
- * The 24-agent `harness-core` division: one steward per real leaf package
- * under `packages/core`, `packages/llm`, and `packages/subagent` — the
- * session/prompt/tool/agent spine, the LLM adapter capability, and the
- * subagent delegation capability.
+ * The `harness-core` division ({@link DIVISION_QUOTAS}): one steward per real
+ * leaf package under `packages/core`, `packages/llm`, and `packages/subagent`
+ * — the session/prompt/tool/agent spine, the LLM adapter capability, and the
+ * subagent delegation capability — taking exactly its quota from the sorted,
+ * group-major pool.
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
 function buildHarnessCore(root: string): RosterAgentDefinition[] {
-  const groups = ['core', 'llm', 'subagent']
-  const agents: RosterAgentDefinition[] = []
-  for (const group of groups) {
-    for (const leaf of packageLeaves(root, group)) {
-      const source = cite(root, `packages/${group}/${leaf}/README.md`)
-      agents.push({
-        id: `harness-core-${leaf}-steward`,
-        name: `${titleCase(leaf)} Steward`,
-        role: 'steward',
-        division: 'harness-core',
-        specialization: leaf,
-        route: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
-        preset: 'coding',
-        skills: [],
-        tools: ['read'],
-        source,
-        status: 'defined',
-      })
+  const groups = ['core', 'llm', 'subagent'] as const
+  const pool = groups.flatMap(group => packageLeaves(root, group).map(leaf => ({ group, leaf })))
+  return takeQuota('harness-core', pool, DIVISION_QUOTAS['harness-core']).map(({ group, leaf }) => {
+    const source = cite(root, `packages/${group}/${leaf}/README.md`)
+    return {
+      id: `harness-core-${leaf}-steward`,
+      name: `${titleCase(leaf)} Steward`,
+      role: 'steward',
+      division: 'harness-core',
+      specialization: leaf,
+      route: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
+      preset: 'coding',
+      skills: [],
+      tools: ['read'],
+      source,
+      status: 'defined',
     }
-  }
-  return agents
+  })
 }
 
 /**
- * The 12-agent `proving-ground` division: one bench operator per real
- * recorded scenario under the headless-agent example's snapshot suites,
- * sliced from the sorted pool so the count stays a fixed 12 regardless of how
- * many scenarios the tree currently records.
+ * The `proving-ground` division ({@link DIVISION_QUOTAS}): one bench
+ * operator per real task environment under the Proving Ground bench fixture
+ * (see {@link provingGroundEnvironments}), taking exactly its quota from the
+ * sorted pool.
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
 function buildProvingGround(root: string): RosterAgentDefinition[] {
-  const scenarios = provingGroundScenarios(root).slice(0, 12)
+  const scenarios = takeQuota('proving-ground', provingGroundEnvironments(root), DIVISION_QUOTAS['proving-ground'])
   return scenarios.map((scenario, index) => {
     const name = scenario.split('/').at(-1) ?? scenario
     return {
@@ -417,7 +500,7 @@ function buildProvingGround(root: string): RosterAgentDefinition[] {
       role: 'bench-operator',
       division: 'proving-ground',
       specialization: name,
-      route: { provider: 'claude-code', model: cycle(CLAUDE_CODE_MODELS, index) },
+      route: { provider: 'claude-code', model: pickCyclic(CLAUDE_CODE_MODELS, index) },
       preset: 'coding',
       skills: [],
       tools: ['subagent', 'bash'],
@@ -428,13 +511,13 @@ function buildProvingGround(root: string): RosterAgentDefinition[] {
 }
 
 /**
- * The 14-agent `verification` division: one verifier per real `verify-*.ts`
- * gate script, sliced from the sorted pool to a fixed 14.
+ * The `verification` division ({@link DIVISION_QUOTAS}): one verifier per
+ * real `verify-*.ts` gate script, taking exactly its quota from the sorted pool.
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
 function buildVerification(root: string): RosterAgentDefinition[] {
-  const scripts = verifyScripts(root).slice(0, 14)
+  const scripts = takeQuota('verification', verifyScripts(root), DIVISION_QUOTAS.verification)
   return scripts.map((file) => {
     const slug = file.replace(/\.ts$/, '')
     return {
@@ -474,14 +557,15 @@ const CI_GATE_IDS = [
 ] as const
 
 /**
- * The 11-agent `judging` division: one judge per named CI gate in
- * `scripts/run-gates.ts`.
+ * The `judging` division ({@link DIVISION_QUOTAS}): one judge per named CI
+ * gate in `scripts/run-gates.ts`.
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
 function buildJudging(root: string): RosterAgentDefinition[] {
   const source = cite(root, 'scripts/run-gates.ts')
-  return CI_GATE_IDS.map(gate => ({
+  const gates = takeQuota('judging', CI_GATE_IDS, DIVISION_QUOTAS.judging)
+  return gates.map(gate => ({
     id: `judging-${gate}`,
     name: `${titleCase(gate)} Judge`,
     role: 'judge',
@@ -573,13 +657,15 @@ function buildProgramDepartments(root: string): RosterAgentDefinition[] {
 }
 
 /**
- * The 11-agent `knowledge` division: one skill-keeper per real
- * `.agents/skills/<id>` directory.
+ * The `knowledge` division ({@link DIVISION_QUOTAS}): one skill-keeper per
+ * real `.agents/skills/<id>` directory, taking exactly its quota from the
+ * sorted pool.
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
 function buildKnowledge(root: string): RosterAgentDefinition[] {
-  return skillDirectories(root).map(id => ({
+  const ids = takeQuota('knowledge', skillDirectories(root), DIVISION_QUOTAS.knowledge)
+  return ids.map(id => ({
     id: `knowledge-${id}-skill-keeper`,
     name: `${titleCase(id)} Skill Keeper`,
     role: 'skill-keeper',
@@ -766,6 +852,11 @@ export function buildRoster(
   root: string,
   notePath = '.agents/notes/implemented/architecture/2026-09-19-enterprise-roster-and-harness-feed.md',
 ): Roster {
+  const quotaSum = Object.values(DIVISION_QUOTAS).reduce((sum, quota) => sum + quota, 0)
+  if (quotaSum !== ROSTER_AGENT_COUNT) {
+    throw new Error(`enterprise-roster: division quotas sum to ${quotaSum}, expected ${ROSTER_AGENT_COUNT}`)
+  }
+  const openRouterModels = openRouterFreeModels(root)
   const agents: RosterAgentDefinition[] = [
     ...buildHarnessCore(root),
     ...buildProvingGround(root),
@@ -773,7 +864,7 @@ export function buildRoster(
     ...buildJudging(root),
     ...buildCurationData(root),
     ...buildProgramDepartments(root),
-    ...buildCodeSafety(root, notePath),
+    ...buildCodeSafety(root, notePath, openRouterModels),
     ...buildKnowledge(root),
     ...buildGovernance(root),
     ...buildObservatory(root),
