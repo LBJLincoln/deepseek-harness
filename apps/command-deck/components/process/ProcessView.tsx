@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { useMemo, type ChangeEvent, type ReactNode } from 'react'
 import type { EventKind } from '@/deck/contract'
 import { clock, duration, stamp } from '@/deck/format'
-import { STAGES, stageOf } from '@/deck/pipeline'
+import { discoverLanes, laneTotals, STAGES, stageOf } from '@/deck/pipeline'
 import { eventsUpTo, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
@@ -36,6 +36,9 @@ export function ProcessView(): ReactNode {
   )
   const visible = useMemo(() => eventsUpTo(events, cursor), [events, cursor])
   const run = runs.find(entry => entry.id === selectedRunId)
+
+  const lanes = useMemo(() => discoverLanes(events, agents), [events, agents])
+  const laneCounts = useMemo(() => laneTotals(visible, agents, lanes), [visible, agents, lanes])
 
   const perStage = useMemo(() => {
     const totals = STAGES.map(() => 0)
@@ -145,6 +148,21 @@ export function ProcessView(): ReactNode {
               {visible.length} of {events.length} events
               {head === undefined ? '' : ` · head ${clock(head.ts)}`}
             </p>
+          </div>
+
+          <div className="section">
+            <h3>Department lanes</h3>
+            <div className="lane-key">
+              {lanes.list.map((lane, index) => (
+                <div key={lane.key}>
+                  <i style={{ background: lane.color }} />
+                  {lane.label}
+                  <span style={{ marginLeft: 'auto', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', fontSize: 10.5 }}>
+                    {laneCounts[index] ?? 0}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="section">
