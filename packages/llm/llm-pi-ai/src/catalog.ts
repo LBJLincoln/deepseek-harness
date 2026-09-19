@@ -196,6 +196,15 @@ export interface PiAiCompatProfile {
   thinkingFormat?: PiAiThinkingFormat
   /** Whether the endpoint accepts `reasoning_effort`; absent keeps the catalog entry's, then pi-ai's baseURL-derived guess. */
   supportsReasoningEffort?: boolean
+  /**
+   * Whether a prior step's reasoning is replayed inside the assistant
+   * message's `content` instead of its own `reasoning` field. A gateway that
+   * ignores that field on input (OpenRouter does) otherwise shows a reasoning
+   * model a history in which it said nothing, so a model that plans in its
+   * reasoning restarts every step. Absent keeps the catalog entry's value, then
+   * pi-ai's baseURL-derived guess.
+   */
+  requiresThinkingAsText?: boolean
 }
 
 /** One configured model entry: an id plus the catalog fields it overrides. */
@@ -394,11 +403,13 @@ function resolveModelCompat(
 ): { compat: OpenAICompletionsCompat } | Record<string, never> {
   const thinkingFormat = entry.compat?.thinkingFormat ?? route?.thinkingFormat
   const supportsReasoningEffort = entry.compat?.supportsReasoningEffort ?? route?.supportsReasoningEffort
-  if (thinkingFormat === undefined && supportsReasoningEffort === undefined) return {}
+  const requiresThinkingAsText = entry.compat?.requiresThinkingAsText ?? route?.requiresThinkingAsText
+  if (thinkingFormat === undefined && supportsReasoningEffort === undefined && requiresThinkingAsText === undefined) return {}
   if (api !== 'openai-completions') {
-    if (entry.compat?.thinkingFormat !== undefined || entry.compat?.supportsReasoningEffort !== undefined) {
+    if (entry.compat?.thinkingFormat !== undefined || entry.compat?.supportsReasoningEffort !== undefined
+      || entry.compat?.requiresThinkingAsText !== undefined) {
       invalid(provider, `model "${entry.id}" sets compat reasoning switches, but its api is "${api}";`
-        + ' thinkingFormat and supportsReasoningEffort exist only on openai-completions')
+        + ' thinkingFormat, supportsReasoningEffort, and requiresThinkingAsText exist only on openai-completions')
     }
     return {}
   }
@@ -414,6 +425,7 @@ function resolveModelCompat(
       ...inherited,
       ...thinkingFormat === undefined ? {} : { thinkingFormat },
       ...supportsReasoningEffort === undefined ? {} : { supportsReasoningEffort },
+      ...requiresThinkingAsText === undefined ? {} : { requiresThinkingAsText },
     },
   }
 }

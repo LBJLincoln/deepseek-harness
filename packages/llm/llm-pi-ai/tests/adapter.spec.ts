@@ -7,12 +7,14 @@ import type {
   SaveImageAttachment,
   StoredImageAttachment,
 } from '@deepseek-ai/dsh-attachment'
-import LlmRuntime, { createUserMessage, CONTEXT_WINDOW_EXCEEDED_CODE, LlmError, ReasoningEffortId, userAgent } from '@deepseek-ai/dsh-llm'
+import LlmRuntime, { createMessage, createUserMessage, CONTEXT_WINDOW_EXCEEDED_CODE, LlmError, ReasoningEffortId, userAgent } from '@deepseek-ai/dsh-llm'
+import type { Message } from '@deepseek-ai/dsh-llm'
 import * as LlmPiAi from '@deepseek-ai/dsh-llm-pi-ai'
 import { PiAiAdapter } from '@deepseek-ai/dsh-llm-pi-ai'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all'
 import { resolveProfiles } from '../src/config.ts'
+import { toPiReplayState } from '../src/replay.ts'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
@@ -594,6 +596,73 @@ describe('provider profile lifecycle', () => {
     await prompt('off')
     expect(server.requests[1]).toMatchObject({ thinking: { type: 'disabled' } })
     expect(server.requests[1]).not.toHaveProperty('reasoning_effort')
+  })
+
+  it('replays a prior step\'s reasoning inside content only when the route requires thinking as text', async () => {
+    vi.stubEnv('PI_TEST_KEY', 'test-key')
+    const server = await mockServer([{ events: textEvents }, { events: textEvents }])
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    await ctx.plugin(LlmPiAi, {
+      providers: {
+        'field-gateway': {
+          apiKeyEnv: 'PI_TEST_KEY',
+          api: 'openai-completions',
+          baseURL: `${server.url}/v1`,
+          // Stated rather than left to pi-ai's URL-derived guess, so the pair
+          // below pins the switch itself and not what pi-ai infers from a
+          // loopback endpoint.
+          compat: { requiresThinkingAsText: false },
+          models: [{ id: 'gateway-think', contextWindow: 65_536, maxTokens: 4096 }],
+        },
+        'text-gateway': {
+          apiKeyEnv: 'PI_TEST_KEY',
+          api: 'openai-completions',
+          baseURL: `${server.url}/v1`,
+          // A gateway that ignores the `reasoning` field on an input assistant
+          // message shows the model a history in which it said nothing.
+          compat: { requiresThinkingAsText: true },
+          models: [{ id: 'gateway-think', contextWindow: 65_536, maxTokens: 4096 }],
+        },
+      },
+    })
+    const plan = 'PLAN: the spec is read; write src/csv.js next'
+    // The history a real cell replays: the route's own prior step, whose
+    // reasoning came back from the wire under the `reasoning` field.
+    const history = (provider: string): Message[] => [
+      createUserMessage({ content: [{ type: 'text', text: 'implement it' }], source: { kind: 'plugin', plugin: 'test' } }),
+      createMessage({
+        role: 'assistant',
+        content: [{ type: 'reasoning', text: plan }, { type: 'text', text: 'Working.' }],
+        source: {
+          kind: 'model',
+          provider,
+          model: 'gateway-think',
+          replayState: toPiReplayState({
+            role: 'assistant',
+            content: [{ type: 'thinking', thinking: plan, thinkingSignature: 'reasoning' }, { type: 'text', text: 'Working.' }],
+            api: 'openai-completions',
+            provider,
+            model: 'gateway-think',
+            usage: {
+              input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2,
+              cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+            },
+            stopReason: 'stop',
+            timestamp: 0,
+          }),
+        },
+      }),
+      createUserMessage({ content: [{ type: 'text', text: 'go on' }], source: { kind: 'plugin', plugin: 'test' } }),
+    ]
+    await assemble(ctx, { provider: 'field-gateway', model: 'gateway-think', messages: history('field-gateway') })
+    await assemble(ctx, { provider: 'text-gateway', model: 'gateway-think', messages: history('text-gateway') })
+    const replayed = (index: number): unknown => (server.requests[index] as { messages: { role: string; content: unknown }[] })
+      .messages.find(message => message.role === 'assistant')
+
+    expect(replayed(0)).toMatchObject({ content: 'Working.', reasoning: plan })
+    expect(replayed(1)).toMatchObject({ content: [{ type: 'text', text: plan }, { type: 'text', text: 'Working.' }] })
+    expect(replayed(1)).not.toHaveProperty('reasoning')
   })
 
   it('sends a declared off value as the effort parameter instead of omitting it', async () => {

@@ -767,16 +767,24 @@ describe('reasoning-dispatch compat switches', () => {
       'acme-gateway': {
         api: 'openai-completions',
         baseURL: 'https://acme.test',
-        compat: { thinkingFormat: 'deepseek' },
+        compat: { thinkingFormat: 'deepseek', requiresThinkingAsText: true },
         models: [
           { id: 'dialect-default', reasoningEfforts: { off: null, high: 'high' } },
-          { id: 'dialect-odd', compat: { thinkingFormat: 'openai', supportsReasoningEffort: false } },
+          { id: 'dialect-odd', compat: { thinkingFormat: 'openai', supportsReasoningEffort: false, requiresThinkingAsText: false } },
         ],
       },
     }, 'acme-gateway')
 
-    expect(models.get('dialect-default')?.compat).toEqual({ thinkingFormat: 'deepseek' })
-    expect(models.get('dialect-odd')?.compat).toEqual({ thinkingFormat: 'openai', supportsReasoningEffort: false })
+    expect(models.get('dialect-default')?.compat).toEqual({ thinkingFormat: 'deepseek', requiresThinkingAsText: true })
+    expect(models.get('dialect-odd')?.compat).toEqual({ thinkingFormat: 'openai', supportsReasoningEffort: false, requiresThinkingAsText: false })
+  })
+
+  it('rejects a model-level thinking-as-text switch on a protocol that has no such field', () => {
+    expect(() => resolveProfiles({
+      anthropic: {
+        models: [{ id: 'claude-sonnet-4-5', compat: { requiresThinkingAsText: true } }],
+      },
+    })).toThrow(/exist only on openai-completions/)
   })
 
   it('merges the switches over the catalog entry’s own compat instead of replacing it', () => {

@@ -82,7 +82,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(30)
+    expect(names).toHaveLength(31)
     expect(names).toContain('e3-attempts-t5')
     expect(names).toContain('e7-attempts-5-t5')
     expect(names).toContain('h1-fleet-deepseek-t2')

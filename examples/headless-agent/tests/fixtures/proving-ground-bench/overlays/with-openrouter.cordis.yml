@@ -40,6 +40,14 @@
                 openrouter:
                   displayName: OpenRouter free models
                   apiKeyEnv: OPENROUTER_API_KEY
+                  # OpenRouter ignores the `reasoning` field on an input
+                  # assistant message, so a prior step's reasoning is replayed
+                  # inside `content`; without this a model that plans in its
+                  # reasoning restarts every step (the first DeepSeek cells on
+                  # this route read the same files for forty steps and never
+                  # wrote one).
+                  compat:
+                    requiresThinkingAsText: true
                   models:
                     - id: deepseek/deepseek-v4-flash-0731:free
                       name: DeepSeek V4 Flash 0731 (free)
