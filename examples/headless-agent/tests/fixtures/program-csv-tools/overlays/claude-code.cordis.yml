@@ -1,0 +1,36 @@
+# The csv-tools program with the operator's own Claude Code installation as the
+# route every department is driven through: the real run, and the only file that
+# differs from the keyless composition beside it.
+#
+# `implementer` stays `route`, so the program drives each department turn by
+# turn through the LLM seam and the department's own session holds every step it
+# took. The spec digest covers the implementer but not the route, so the keyless
+# and the real run are the same program id over the same goals.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The scripted adapter is the keyless half's whole reason to exist; a real
+      # run composes no mock route at all.
+      - id: csv-tools-llm
+        disabled: true
+      - insert:
+          - id: llm-claude-code
+            name: '@deepseek-ai/dsh-llm-claude-code'
+            config:
+              provider: claude-code
+              models:
+                - id: sonnet
+                  name: Claude Code sonnet
+                  productModel: sonnet
+                  contextWindow: 200000
+                - id: opus
+                  name: Claude Code opus
+                  productModel: opus
+                  contextWindow: 200000
+              effort: high
+      - id: agent-default-model
+        config:
+          provider: claude-code
+          model: opus
