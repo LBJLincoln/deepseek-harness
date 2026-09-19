@@ -86,7 +86,7 @@ describe('the curator through a real cordis.yml and headless process', () => {
       profile: 'village-v1',
       records: 1,
       withheld: { heldOut: 1, districts: 0, terms: 0 },
-      trajectoryFormat: 'dsh-trajectory/1',
+      trajectoryFormat: 'dsh-trajectory/2',
       ruleHits: {
         'shipped:email': 1,
         'shipped:bearer-token': 0,

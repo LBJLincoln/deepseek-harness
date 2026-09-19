@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-轨迹导出：把已持久化的会话折叠为 `dsh-trajectory/1` 记录，每条一行 JSON，包含训练器模板可消费的聊天格式消息列表、由证书决定的奖励，以及运行时在场的组件。导出经会话持久化 seam 读取，不写任何会话事件。[轨迹导出 Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) 承载设计理由。
+轨迹导出：把已持久化的会话折叠为 `dsh-trajectory/2` 记录，每条一行 JSON，包含训练器模板可消费的聊天格式消息列表、由证书决定的奖励、该会话所处的数据使用条款，以及运行时在场的组件。导出经会话持久化 seam 读取，不写任何会话事件。[轨迹导出 Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md) 承载设计理由。
 
 ## Config
 
@@ -38,11 +38,12 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 
 `outcome` 仍以证书为依据，`parity` 是它旁边的辅助信号。一次[加权用例](../../verification/verification/README.md#parity-and-what-it-does-not-decide)运行会把其加权通过率记录在 `verification/run` 事件上，而导出记录把最后一次运行的这一数值作为自己的 `parity` 字段携带。它绝不取代 `outcome`：通过率会被这样的候选者钻空子——它只把被展示的失败过拟合掉，其余弃之不顾——因此通过了标准大部分用例权重的会话与一个用例也没通过的会话，在证书覆盖该修订之前都导出为 `outcome: 0`。训练运行可以用 `parity` 塑形奖励；任何东西都不得单独优化它。
 
-## Record format `dsh-trajectory/1`
+## Record format `dsh-trajectory/2`
 
 | 字段 | 内容 |
 |---|---|
 | `id`、`source` | 会话 id；创建时间、工作目录、父会话，以及日志最后选择的 agent preset |
+| `terms` | 日志中最新一条 [`dataUse/terms`](../../governance/data-use/README.md) 的 `agreementId` 与 `purposes`；日志不含该事件的会话没有此字段 |
 | `environment` | 运行器追加的 `environment/run` stamp：环境 id 与 kind、留出标志、提示词、夹具与检查的内容哈希、repetition、group 与 district、模型路由、声明的隔离级别；未被运行器盖章的会话没有该字段 |
 | `config`、`system`、`tools` | 最后一条 `request/header` 的调用配置、渲染后的系统提示与工具 schema |
 | `messages` | 压缩替换之后按模型可见顺序排列的表面消息：`user`、`assistant`（有请求时带 `toolCalls`）与 `tool`（带 `toolCallId`、`isError`）角色；每条携带来源事件的 `seq`、其 `turn` 与 `step`、逐字的内容块（含 reasoning）以及记录的来源 kind |
@@ -50,6 +51,8 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 | `reward` | 当证书覆盖当前标准修订时 `outcome` 为 `1`，存在标准而无证书时为 `0`，其余为 `null`；`basis` 为 `tamper`（最后记录的运行发现检查方拥有的文件已被改动）、`certificate`、`uncertified-completion`（goal 完成但从未编写标准）或 `none`（无 goal）；附 goal 快照、覆盖证书以及尝试、directive 与 relaxation 计数 |
 | `parity` | 最后记录的那次运行的 `{ weightPassed, weightTotal }`；该次运行没有度量用例时不存在 |
 | `provenance` | 组件注册表方案中的组件 id（`composition:<preset>`、`environment:<id>`、`model-provider:<provider>`、`tool:<name>`）、按首次使用顺序排列的工具名，以及证书的隔离级别 |
+
+缺失的 `terms` 不接纳任何用途。按某个用途构建语料的消费方只保留 `terms.purposes` 列出该用途的记录，于是没有被钉过条款的会话会被扣留，而不是被假定允许任何事。格式标签承载这一读法：`dsh-trajectory/2` 记录陈述其会话的条款，因此缺失就是导出器在陈述日志里没有条款；而 `dsh-trajectory/1` 记录对数据使用根本不置一词，在任何用途下都被扣留。只携带协议与用途，因为没有哪个接纳决定会读取保留期、驻留地或客户；[`dsh-curator`](../../governance/curator/README.md) 用同一个 [`termsOf`](../../governance/data-use/README.md) 折叠决定它导出什么，于是该字段与那道关卡不会彼此矛盾。
 
 不含 token id 与 logprob：harness 从不看到 token id，on-policy 采集属于训练器的推理代理。
 

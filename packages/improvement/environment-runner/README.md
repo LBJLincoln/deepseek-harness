@@ -123,7 +123,7 @@ The report carries the environment id, the session id, the stamp exactly as appe
 
 `EnvironmentRunError` codes: `ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`, `ENVIRONMENT_RUN_INVALID_SEED`, `ENVIRONMENT_RUN_INVALID_LADDER`, `ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE`, `ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED`, `ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED`, `ENVIRONMENT_RUN_INVALID_WORKSPACE`, and `ENVIRONMENT_RUN_INVALID_FIXTURE` reject before any agent exists; `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`, `ENVIRONMENT_RUN_GOAL_REPLACED`, and `ENVIRONMENT_RUN_STANDARD_LOST` name a check the reservation cannot carry, an implementer that replaced the goal, or a standard that is no longer current, after the session was flushed; `ENVIRONMENT_RUN_NO_REFERENCE` and `ENVIRONMENT_RUN_NO_RESERVATION` refuse a reference staging the environment or the composition cannot support. `resolveConfig(config)` is the exported defaulting step.
 
-Call `run()` only over a settled composition: the runner creates agents through the registry factory the agent loop registers. The durable record is the session log; the trajectory exporter folds it into a `dsh-trajectory/1` line whose `environment` field is the stamp and withholds held-out sessions by it.
+Call `run()` only over a settled composition: the runner creates agents through the registry factory the agent loop registers. The durable record is the session log; the trajectory exporter folds it into a `dsh-trajectory/2` line whose `environment` field is the stamp and withholds held-out sessions by it.
 
 ## The staged reference
 

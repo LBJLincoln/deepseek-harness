@@ -12,9 +12,9 @@ Status: implemented
 
 [`data/proving-ground/tools/build-dataset.mjs`](../../../../data/proving-ground/tools/build-dataset.mjs) 读取每一个带 `trajectories.jsonl` 的记录目录，写出 `data/proving-ground/datasets/<name>/`：`train.jsonl`、`heldout.jsonl`，以及一份 `manifest.json`，其中带有各份来源记录及其 manifest 摘要、各项计数、已写出集合的各项分布、token 合计，以及每个写出文件的 SHA-256。它和旁边那三个工具一样，是一个只用 Node 内置模块的数据工具，并从 `summarize-run.mjs` 导入 `armOf`，使 arm 这套词汇只有一个归属处。
 
-写出的每一行都是导出的 `dsh-trajectory/1` 记录加上一个 `dataset` 字段——`record`、`tier`、`domain`、`arm`，以及形如 `{ value, basis }` 的 `reward`——其中 tier 与 domain 取自 bench 环境目录，不在其中的环境取 `null`。排序先按记录名、再按 trajectory id，同一个 id 的首次出现胜出，因此被两份记录导出的同一个会话只落地一次。
+写出的每一行都是导出的 trajectory 记录加上一个 `dataset` 字段——`record`、`tier`、`domain`、`arm`，以及形如 `{ value, basis }` 的 `reward`——其中 tier 与 domain 取自 bench 环境目录，不在其中的环境取 `null`。排序先按记录名、再按 trajectory id，同一个 id 的首次出现胜出，因此被两份记录导出的同一个会话只落地一次。
 
-保留环境从不进入 `train.jsonl`。在没有 `--include-held-out` 时它连任何文件都不进入，而 manifest 会记下被扣下的数量：空的 `heldout.jsonl` 无论如何都会写出，好让这个目录把这次扣留说出来，而不是把它藏起来。被委派的 cell——戳记中 `implementer` 不是 `route` 的那些——没有自己的模型轮次，因此除非给出 `--include-delegated` 否则被排除，而无论哪种情况都会在 manifest 中计数。`tamper` 依据意味着测量作废，因此那些被排除，且没有任何开关。`--check` 在内存中重建，把摘要与计数同已记录的 manifest 比对，并容忍 JSONL 文件不存在，使一份大到无法提交的数据集仍可校验。
+保留环境从不进入 `train.jsonl`。在没有 `--include-held-out` 时它连任何文件都不进入，而 manifest 会记下被扣下的数量：空的 `heldout.jsonl` 无论如何都会写出，好让这个目录把这次扣留说出来，而不是把它藏起来。被委派的 cell——戳记中 `implementer` 不是 `route` 的那些——没有自己的模型轮次，因此除非给出 `--include-delegated` 否则被排除，而无论哪种情况都会在 manifest 中计数。`tamper` 依据意味着测量作废，因此那些被排除，且没有任何开关。`--purpose <delivery|training|evaluation>` 只写出自身 `terms` 接纳该用途的 trajectory，其余计入 `withheldTerms`；这道过滤由[条款随轨迹笔记](../architecture/2026-09-19-trajectories-carry-data-use-terms.md)承载。`--check` 在内存中重建，把摘要与计数同已记录的 manifest 比对，并容忍 JSONL 文件不存在，使一份大到无法提交的数据集仍可校验。
 
 ## The redaction refusal
 
@@ -36,4 +36,4 @@ Status: implemented
 
 第一份数据集 [`2026-09-18-proving-ground-v1`](../../../../data/proving-ground/datasets/2026-09-18-proving-ground-v1/README.md) 写出了 750 条中的 521 条，并且没有发现任何凭据或邮箱。它的 `train.jsonl` 大于本仓库所提交的体积，因此该目录只带上 manifest 及其 README 对，JSONL 则按需重建——这也正是 `--check` 容忍文件不存在的由来。
 
-这次折叠还让语料说出了自己的条款：其中每个会话被钉上的 `dataUse/terms` 允许 `evaluation`，或者允许 `delivery` 与 `evaluation`，没有一个允许 `training`。因此这份数据集是一份评测记录，而一份 RLVR 语料需要在创建时就被钉上 `training` 的会话。工具本身不读这些条款——由 curator 在导出时执行——因此在未来某个允许训练的区上构建，会在不同条款下产出同样的文件，而每份数据集的 README 会说明是哪一种。
+这次折叠还让语料说出了自己的条款：其中每个会话被钉上的 `dataUse/terms` 允许 `evaluation`，或者允许 `delivery` 与 `evaluation`，没有一个允许 `training`。因此这份数据集是一份评测记录，而一份 RLVR 语料需要在创建时就被钉上 `training` 的会话。记录自身携带这些条款，`--purpose` 据其过滤，与 curator 在导出时的执行并行，因此在一个允许训练的区上构建会恰好写出它的 trajectory，而每份数据集的 README 会说明它是在哪套条款下构建的。

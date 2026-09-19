@@ -9,7 +9,7 @@
 | [`environments/`](environments/README.md) | 环境注册表：带验证器的任务，留出或可用于训练；`environment/run` stamp 词汇 | `ctx.environments` |
 | [`environment-runner/`](environment-runner/README.md) | 环境运行器：一个环境作为一个经验证的会话，运行器即验证者 | `ctx.environmentRuns` |
 | [`fleet/`](fleet/README.md) | Fleet 运行：环境 × 模型 × 重复的 cell 计划，保留每个结果，按路由与环境给出排行榜 | `ctx.fleet` |
-| [`trajectories/`](trajectories/README.md) | 轨迹导出：会话导出为带奖励、来源信息与环境 stamp 的 `dsh-trajectory/1` JSONL | `ctx.trajectories` |
+| [`trajectories/`](trajectories/README.md) | 轨迹导出：会话导出为带奖励、数据使用条款、来源信息与环境 stamp 的 `dsh-trajectory/2` JSONL | `ctx.trajectories` |
 | [`scorekeeper/`](scorekeeper/README.md) | 会话事实：`sessionFacts` 投影单元、由日志推导的记分板（含按环境的 pass@k），以及事实的 JSONL 导出 | `ctx.scorekeeper` |
 | [`experiments/`](experiments/README.md) | 实验：在 fleet cell 上对两个 arm 做被冻结的配对比较，带 bootstrap 区间与 promote/reject/inconclusive 判定 | `ctx.experiments` |
 | [`shifts/`](shifts/README.md) | 班次：在 fleet 计划之上按节拍、带花费窗口的循环，其台账存放在它自己的会话日志中，被中断的班次凭台账与运行 stamp 恢复 | `ctx.shifts` |

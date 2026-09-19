@@ -2,12 +2,13 @@
  * Pure projection of one session log into a {@link Trajectory}: surface
  * messages with their source seqs, per-step usage, the reward the log's goal
  * and verification events decide, the weighted pass rate of the last recorded
- * run beside it, and the components in play.
+ * run beside it, the data-use terms the log pins, and the components in play.
  * @module @deepseek-ai/dsh-trajectories
  */
 
 import { ComponentId } from '@deepseek-ai/dsh-components'
 import type { ComponentId as ComponentIdType } from '@deepseek-ai/dsh-components/types'
+import { termsOf } from '@deepseek-ai/dsh-data-use'
 import { decodeEnvironmentRun } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import { decodeGoalChange } from '@deepseek-ai/dsh-goal'
@@ -21,11 +22,12 @@ import type {
   TrajectoryMessage,
   TrajectoryReward,
   TrajectoryStep,
+  TrajectoryTerms,
   TrajectoryToolCall,
 } from './types.ts'
 
 /** The record format tag every exported line carries. */
-export const TRAJECTORY_FORMAT = 'dsh-trajectory/1'
+export const TRAJECTORY_FORMAT = 'dsh-trajectory/2'
 
 /** Position of a surface event inside the turn/step structure. */
 interface StepPosition {
@@ -200,6 +202,18 @@ export function foldTrajectoryReward(events: readonly SessionEvent[]): Trajector
   return { outcome: null, basis: 'none', ...goal, ...counts }
 }
 
+/**
+ * The admission-relevant part of the session's pinned terms, read through the
+ * {@link termsOf} fold `@deepseek-ai/dsh-data-use` owns so the record states
+ * exactly the terms a curated export gates on.
+ * @param events - the session's contiguous event log.
+ * @returns the agreement and the purposes it admits, or `undefined` for a log carrying no `dataUse/terms`.
+ */
+function termsFrom(events: readonly SessionEvent[]): TrajectoryTerms | undefined {
+  const terms = termsOf(events)
+  return terms === undefined ? undefined : { agreementId: terms.agreementId, purposes: [...terms.purposes] }
+}
+
 /** Component ids in play, in the component registry's id scheme. */
 function componentsOf(scan: LogScan): ComponentIdType[] {
   const ids: string[] = []
@@ -230,6 +244,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
   const reward = foldTrajectoryReward(events)
   const parity = foldVerification(events).lastRun?.parity
   const header = scan.header
+  const terms = termsFrom(events)
   return {
     format: TRAJECTORY_FORMAT,
     id: meta.id,
@@ -240,6 +255,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
       ...meta.parentSession === undefined ? {} : { parentSession: meta.parentSession },
       ...scan.agentPreset === undefined ? {} : { agentPreset: scan.agentPreset },
     },
+    ...terms === undefined ? {} : { terms },
     ...scan.environment === undefined ? {} : { environment: scan.environment },
     ...header === undefined ? {} : { config: header.config },
     ...header?.system === undefined ? {} : { system: header.system },

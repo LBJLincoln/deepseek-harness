@@ -311,7 +311,7 @@ describe('the export manifest', () => {
       profile: 'village-v1',
       records: 1,
       withheld: { heldOut: 1, districts: 1, terms: 0 },
-      trajectoryFormat: 'dsh-trajectory/1',
+      trajectoryFormat: 'dsh-trajectory/2',
     })
     expect(report.manifest.exportedAt).toBeGreaterThan(0)
     expect(report.manifest.recordsSha256).toBe(createHash('sha256').update(sink.lines.join('')).digest('hex'))

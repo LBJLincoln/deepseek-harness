@@ -72,12 +72,14 @@ export const SHIPPED_REDACTION_RULES: readonly RedactionRule[] = [
 ]
 
 /**
- * Record subtrees that carry only identifiers, digests, and counts. Nothing
- * under `environment` (the `environment/run` stamp), `steps`, `parity`, or
+ * Record subtrees that carry only identifiers, digests, counts, and closed
+ * vocabularies. Nothing under `terms` (the agreement and the purposes it
+ * admits), `environment` (the `environment/run` stamp), `steps`, `parity`, or
  * `provenance` is free text, and redacting one of them would break the keys a
- * scoreboard and a decontamination check are computed from.
+ * scoreboard and a decontamination check are computed from, or the terms a
+ * later consumer re-checks this export's purpose against.
  */
-const NEVER_REDACTED_SUBTREES: ReadonlySet<string> = new Set(['environment', 'steps', 'parity', 'provenance'])
+const NEVER_REDACTED_SUBTREES: ReadonlySet<string> = new Set(['terms', 'environment', 'steps', 'parity', 'provenance'])
 
 /**
  * Key names that hold an identifier or a closed vocabulary wherever they appear

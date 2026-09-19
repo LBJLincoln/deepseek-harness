@@ -473,7 +473,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Trajectory export',
     mode: 'core',
     consumers: ['headless-agent', 'scorekeeper'],
-    note: 'Folds persisted sessions into dsh-trajectory/1 records with certificate-decided rewards and component provenance; writes no session event.',
+    note: 'Folds persisted sessions into dsh-trajectory/2 records with certificate-decided rewards, the session data-use terms, and component provenance; writes no session event.',
   },
   {
     key: 'scorekeeper',

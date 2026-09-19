@@ -129,7 +129,7 @@ interface CuratedExportRequest {
 
 A session is admitted only when its newest `dataUse/terms` lists the export's purpose, and a session carrying no terms at all is withheld by the same rule. Admitted sessions alone reach the exporter, so a withheld transcript is never folded, serialized, or written. An export that names no profile over a deployment with no `defaultProfile` is refused with `CURATOR_PROFILE_REQUIRED`; there is no configuration that exports unredacted.
 
-Each written line is the `dsh-trajectory/1` record plus a `curation` block naming the profile that ran, the digest of its effective rules, the replacements this record received, and the residency its terms name. Every string in the record is redacted except the identifiers, the discriminants a reader switches on, and registered tool names; the [package README](../../packages/governance/curator/README.md) enumerates both sides.
+Each written line is the `dsh-trajectory/2` record plus a `curation` block naming the profile that ran, the digest of its effective rules, the replacements this record received, and the residency its terms name. Every string in the record is redacted except the identifiers, the discriminants a reader switches on, and registered tool names; the [package README](../../packages/governance/curator/README.md) enumerates both sides.
 
 ```ts type-equiv
 /** The block the curator adds to every record it exports. */

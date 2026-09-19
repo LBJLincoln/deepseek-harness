@@ -551,7 +551,7 @@ flowchart LR
 | `ctx.shifts` | `core` | [`shifts`](../packages/improvement/shifts) | - | `headless-agent` | - | 按每个区的节拍开启一个班次时槽，把该时槽运行的内容冻结为摘要，并把整个班次以 shift/* 事件记入它自己的会话，因此重启只会恢复那些从未开始过的 cell。 |
 | `ctx.programs` | `core` | [`program`](../packages/improvement/program) | - | `headless-agent` | - | 把一份交付物分解为部门目标，每个目标都有自己的工作树、会话、预设与配额，把每一次状态变化以 program/* 事件记入该程序自己的会话，并且只在合并后 head 的证书之上发布。 |
 | `ctx.experiments` | `core` | [`experiments`](../packages/improvement/experiments) | - | `headless-agent` | - | 以内容摘要冻结一份计划，让两个 arm 都经 fleet 以配对的重复索引、在由摘要派生的 stamp group 之下运行，并连同 bootstrap 区间与判定一起折叠出证书率 delta。 |
-| `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`、[`scorekeeper`](../packages/improvement/scorekeeper) | - | 将已持久化会话折叠为带证书判定奖励与组件来源的 dsh-trajectory/1 记录；不写入任何会话事件。 |
+| `ctx.trajectories` | `core` | [`trajectories`](../packages/improvement/trajectories) | - | `headless-agent`、[`scorekeeper`](../packages/improvement/scorekeeper) | - | 将已持久化会话折叠为带证书判定奖励、会话数据使用条款与组件来源的 dsh-trajectory/2 记录；不写入任何会话事件。 |
 | `ctx.scorekeeper` | `core` | [`scorekeeper`](../packages/improvement/scorekeeper) | - | `headless-agent`, [`observatory`](../packages/improvement/observatory) | - | 注册 sessionFacts 投影单元，并把已持久化日志折叠为事实记录、按路由、环境、隔离级别与留出划分分区的记分板，以及 JSONL 导出。 |
 | `ctx.observatory` | `core` | [`observatory`](../packages/improvement/observatory) | - | `headless-agent` | - | 在全部持久化会话上折叠记分板，把配置的区与留出划分扣留在公开行之外并对两者计数，并渲染出一个自包含的 HTML 页面以及同一次发布的 JSON。 |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | 拥有一个共享的 E2B SDK 句柄、远程工作目录和最终沙箱处置，使两个基础 E2B 提供方处于同一个 Linux 运行时中。 |
