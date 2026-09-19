@@ -85,14 +85,30 @@ const SWEEP_SECONDS = 5.5
 const SWEEP_GAP_SECONDS = 1.6
 
 /**
+ * How far back the camera stands from a city of this size, in scene units.
+ *
+ * A wide repository is framed by its footprint; a narrow one by its tallest
+ * beacon, which stands well above even the tallest file. Taking the larger of
+ * the two keeps the critical shafts inside the frame whatever the target's
+ * proportions, so height keeps reading as severity.
+ * @param extent - Half-extent of the city footprint.
+ * @param reach - Height of the tallest beacon above the ground.
+ * @returns The resting camera distance.
+ */
+function cityDistance(extent: number, reach: number): number {
+  return Math.max(extent * 3.15, reach * 2.7)
+}
+
+/**
  * The establishing view of one city: far enough back that the tallest beacon
  * stays inside the frame, looking at the towers rather than at the ground.
  * @param extent - Half-extent of the city footprint.
+ * @param reach - Height of the tallest beacon above the ground.
  * @returns The camera position and the point it looks at.
  */
-function cityView(extent: number): { position: Vector3; target: Vector3 } {
+function cityView(extent: number, reach: number): { position: Vector3; target: Vector3 } {
   return {
-    position: new Vector3(0.58, 0.8, 1.28).normalize().multiplyScalar(extent * 3.15),
+    position: new Vector3(0.58, 0.8, 1.28).normalize().multiplyScalar(cityDistance(extent, reach)),
     target: new Vector3(0, 15, 0),
   }
 }
@@ -101,11 +117,12 @@ function cityView(extent: number): { position: Vector3; target: Vector3 } {
  * Where the opening fly-over starts: high over the far edge of the city,
  * looking back across it.
  * @param extent - Half-extent of the city footprint.
+ * @param reach - Height of the tallest beacon above the ground.
  * @returns The camera position and the point it looks at.
  */
-function flyoverStart(extent: number): { position: Vector3; target: Vector3 } {
+function flyoverStart(extent: number, reach: number): { position: Vector3; target: Vector3 } {
   return {
-    position: new Vector3(-0.5, 1.52, -1).normalize().multiplyScalar(extent * 4),
+    position: new Vector3(-0.5, 1.52, -1).normalize().multiplyScalar(cityDistance(extent, reach) * 1.27),
     target: new Vector3(0, 4, 0),
   }
 }
@@ -869,15 +886,18 @@ function ScanSweep({ city, reduced }: { city: CityLayout; reduced: boolean }): R
  * Camera behaviour: the opening fly-over, the flight to a selected finding and
  * back, and the orbit controls in between. Under reduced motion every move is
  * an instant cut.
- * @param props - The city, the finding to frame, and the motion preference.
+ * @param props - The city, its beacon reach, the finding to frame, and the
+ * motion preference.
  * @returns The controls.
  */
 function CityRig({
   city,
+  reach,
   focus,
   reduced,
 }: {
   city: CityLayout
+  reach: number
   focus: PlacedFinding | undefined
   reduced: boolean
 }): ReactNode {
@@ -896,7 +916,7 @@ function CityRig({
   useEffect(() => {
     const control = controls.current
     if (control === null) return
-    const destination = focus === undefined ? cityView(city.extent) : focusView(focus)
+    const destination = focus === undefined ? cityView(city.extent, reach) : focusView(focus)
     const opening = !opened.current
     opened.current = true
 
@@ -910,7 +930,7 @@ function CityRig({
     }
 
     if (opening) {
-      const start = flyoverStart(city.extent)
+      const start = flyoverStart(city.extent, reach)
       camera.position.copy(start.position)
       control.target.copy(start.target)
     }
@@ -923,7 +943,7 @@ function CityRig({
       elapsed: 0,
       duration: opening ? FLYOVER_SECONDS : FOCUS_SECONDS,
     }
-  }, [focus, city.extent, reduced, camera])
+  }, [focus, city.extent, reach, reduced, camera])
 
   useFrame((_, delta) => {
     const control = controls.current
@@ -952,7 +972,7 @@ function CityRig({
       rotateSpeed={0.45}
       zoomSpeed={0.75}
       minDistance={14}
-      maxDistance={city.extent * 4.3}
+      maxDistance={cityDistance(city.extent, reach) * 1.35}
       maxPolarAngle={Math.PI * 0.47}
     />
   )
@@ -979,8 +999,17 @@ export function SafetyStage({
 }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const city = useMemo(() => layoutCity(target), [target])
-  const view = useMemo(() => cityView(city.extent), [city.extent])
   const placed = useMemo(() => placeFindings(findings, city), [findings, city])
+  // How high the scene actually stands: the tallest beacon, or the tallest
+  // file where the review found nothing.
+  const reach = useMemo(
+    () => placed.reduce(
+      (acc, entry) => Math.max(acc, entry.base.y + entry.height),
+      city.blocks.reduce((acc, block) => Math.max(acc, block.height), 0),
+    ),
+    [placed, city],
+  )
+  const view = useMemo(() => cityView(city.extent, reach), [city.extent, reach])
   const [hoveredBlock, setHoveredBlock] = useState<CityBlock | undefined>(undefined)
   const [hoveredFinding, setHoveredFinding] = useState<PlacedFinding | undefined>(undefined)
 
@@ -1087,7 +1116,7 @@ export function SafetyStage({
         )}
       </group>
 
-      <CityRig city={city} focus={focus} reduced={reduced} />
+      <CityRig city={city} reach={reach} focus={focus} reduced={reduced} />
     </Stage>
   )
 }
