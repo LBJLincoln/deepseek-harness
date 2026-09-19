@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-bench/`）的已入库计划文件。用 `pnpm run bench -- fleet <name>`（`models` 数组）或 `pnpm run bench -- experiment <name>`（`baseline`/`candidate` 配对）运行其中一个；`pnpm run bench -- plans` 会从每个文件现场解析并打印同样的信息。"叠加层"一列是该计划所需、位于 `../overlays/` 下的组合，不需要叠加层时写 `base`（即该 fixture 自己的 `cordis.yml`）。使用 `with-deepseek` 叠加层的计划需要在启动它的 shell 中导出 `DEEPSEEK_API_KEY`；其余每个计划都跑在操作者自己安装的 Claude Code 上。"已记录运行"一列给出该计划在 `data/proving-ground/` 下产生的目录名，仅在按名称能明确对应时给出；`not recorded` 表示尚无这样的目录。
+Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-bench/`）的已入库计划文件。用 `pnpm run bench -- fleet <name>`（`models` 数组）或 `pnpm run bench -- experiment <name>`（`baseline`/`candidate` 配对）运行其中一个；`pnpm run bench -- plans` 会从每个文件现场解析并打印同样的信息。"叠加层"一列是该计划所需、位于 `../overlays/` 下的组合，不需要叠加层时写 `base`（即该 fixture 自己的 `cordis.yml`）。使用 `with-deepseek` 叠加层的计划需要在启动它的 shell 中导出 `DEEPSEEK_API_KEY`，使用 `with-openrouter` 的则需要 `OPENROUTER_API_KEY`；其余每个计划都跑在操作者自己安装的 Claude Code 上。"已记录运行"一列给出该计划在 `data/proving-ground/` 下产生的目录名，仅在按名称能明确对应时给出；`not recorded` 表示尚无这样的目录。
 
 | 计划 | 比较对象 | 层 | Arms / 模型 | 种子 | 叠加层 | 已记录运行 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -26,8 +26,10 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness 循环 fleet，不筛选层级 | all | fleet `sonnet`，district `bench-h1` | 1 | base | not recorded |
+| `h1-fleet-openrouter-smoke-t2` | 免费开放权重路由，跑两个点名的环境 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `h1-fleet-product-loop-sonnet` | 产品循环 fleet，不筛选层级 | all | fleet `sonnet`，实现者 product-loop，district `bench-h1` | 1 | base | not recorded |
 | `h2-haiku-vs-sonnet-t2` | 模型层级：haiku 对 sonnet（native-tools 之前的策略） | 2 | 基线 `haiku` 对候选 `sonnet` | 1 | base | not recorded |
+| `h2-openrouter-free-t2` | 同一层上的三个免费开放权重模型 | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`、`nvidia/nemotron-3-super-120b-a12b:free`、`qwen/qwen3.8-27b:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `h2-sonnet-vs-opus-t3` | 模型层级：sonnet 对 opus（native-tools 之前的策略） | 3 | 基线 `sonnet` 对候选 `opus` | 1 | base | not recorded |
 | `h3-attempts1-sonnet-t5` | 尝试上限：单次尝试的 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | attempts-1 | not recorded |
 | `h3-baseline-sonnet-t5` | 尝试上限：基线 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | base | not recorded |

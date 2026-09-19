@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tests/fixtures/proving-ground-bench/`). Run one with `pnpm run bench -- fleet <name>` (a `models` array) or `pnpm run bench -- experiment <name>` (a `baseline`/`candidate` pair); `pnpm run bench -- plans` prints this same information parsed live from each file. "Overlay" is the composition under `../overlays/` the plan needs, or `base` for the fixture's own `cordis.yml`. A plan on the `with-deepseek` overlay needs `DEEPSEEK_API_KEY` exported in the launching shell; every other plan runs on the operator's own Claude Code installation. "Recorded run" names the directory under `data/proving-ground/` the plan produced, matched by name where that mapping is unambiguous; `not recorded` means no such directory exists yet.
+Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tests/fixtures/proving-ground-bench/`). Run one with `pnpm run bench -- fleet <name>` (a `models` array) or `pnpm run bench -- experiment <name>` (a `baseline`/`candidate` pair); `pnpm run bench -- plans` prints this same information parsed live from each file. "Overlay" is the composition under `../overlays/` the plan needs, or `base` for the fixture's own `cordis.yml`. A plan on the `with-deepseek` overlay needs `DEEPSEEK_API_KEY` exported in the launching shell and one on `with-openrouter` needs `OPENROUTER_API_KEY`; every other plan runs on the operator's own Claude Code installation. "Recorded run" names the directory under `data/proving-ground/` the plan produced, matched by name where that mapping is unambiguous; `not recorded` means no such directory exists yet.
 
 | Plan | Compares | Tier | Arms / models | Seed | Overlay | Recorded run |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -26,8 +26,10 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 | `h1-fleet-harness-loop-sonnet-t2` | harness-loop fleet | 2 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness-loop fleet | 4 | fleet `sonnet`, district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
 | `h1-fleet-harness-loop-sonnet` | harness-loop fleet, no tier filter | all | fleet `sonnet`, district `bench-h1` | 1 | base | not recorded |
+| `h1-fleet-openrouter-smoke-t2` | the free open-weight route on two named environments | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `h1-fleet-product-loop-sonnet` | product-loop fleet, no tier filter | all | fleet `sonnet`, implementer product-loop, district `bench-h1` | 1 | base | not recorded |
 | `h2-haiku-vs-sonnet-t2` | model tier: haiku vs sonnet (pre-native-tools policy) | 2 | baseline `haiku` vs candidate `sonnet` | 1 | base | not recorded |
+| `h2-openrouter-free-t2` | three free open-weight models on one tier | 2 | fleet `openrouter`/`deepseek/deepseek-v4-flash-0731:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `qwen/qwen3.8-27b:free`, district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `h2-sonnet-vs-opus-t3` | model tier: sonnet vs opus (pre-native-tools policy) | 3 | baseline `sonnet` vs candidate `opus` | 1 | base | not recorded |
 | `h3-attempts1-sonnet-t5` | attempt cap: the one-attempt fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | attempts-1 | not recorded |
 | `h3-baseline-sonnet-t5` | attempt cap: the baseline fleet arm | 5 | fleet `sonnet`, district `bench-h3` | 2 | base | not recorded |

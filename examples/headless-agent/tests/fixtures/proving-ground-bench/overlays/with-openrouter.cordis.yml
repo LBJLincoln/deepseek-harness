@@ -1,0 +1,118 @@
+# The bench on OpenRouter's free tier: one pi-ai route named `openrouter`,
+# serving the open-weight models listed below at no charge, composed beside the
+# base's product route so a plan's arm names `openrouter` for this route and
+# `claude-code` for the base's. pi-ai ships `openrouter` in its installed
+# catalog, so the route inherits the endpoint and the `openai-completions`
+# protocol and declares only its own model list; an id the installed catalog
+# also carries defaults its unset fields from there, the others from the sizes
+# stated on each entry, which are OpenRouter's own figures on 2026-09-19.
+#
+# The key is a reference, never a value: the adapter resolves
+# `OPENROUTER_API_KEY` per request, and this composition mounts no credential
+# seam, so the launching environment is the whole credential plane. The bench
+# drivers call `boot()` directly rather than through an app bin, so the
+# repository's `.env` is not read — export the variable in the shell that runs
+# `pnpm run bench`.
+#
+# Free models are rate-limited per account, not per model: twenty requests a
+# minute and a daily allowance (one thousand once the account holds credits,
+# fifty otherwise) shared by every `:free` id. The fleet therefore runs one cell
+# at a time, the route retries a rate-limited request with a longer backoff than
+# the adapter's default, and the breaker stops a route after four cells in a
+# row end in error rather than spending the allowance on a provider that is
+# down. Size a plan against the daily allowance before running it: a tier-2
+# cell on the harness loop takes roughly ten to thirty requests.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The base has no entry under this id, so the route is inserted: a
+      # non-insert patch only overrides an entry the base already names, and an
+      # unmatched one is warned about and skipped.
+      - insert:
+          - id: llm-pi-ai
+            name: '@deepseek-ai/dsh-llm-pi-ai'
+            config:
+              providers:
+                openrouter:
+                  displayName: OpenRouter free models
+                  apiKeyEnv: OPENROUTER_API_KEY
+                  models:
+                    - id: deepseek/deepseek-v4-flash-0731:free
+                      name: DeepSeek V4 Flash 0731 (free)
+                      contextWindow: 1048576
+                      maxTokens: 393216
+                    - id: nvidia/nemotron-3-super-120b-a12b:free
+                      name: NVIDIA Nemotron 3 Super 120B A12B (free)
+                      contextWindow: 262144
+                      maxTokens: 235929
+                    - id: nvidia/nemotron-3-ultra-550b-a55b:free
+                      name: NVIDIA Nemotron 3 Ultra 550B A55B (free)
+                      contextWindow: 1000000
+                      maxTokens: 65536
+                    - id: qwen/qwen3.8-27b:free
+                      name: Qwen 3.8 27B (free)
+                      contextWindow: 262144
+                      maxTokens: 235929
+                    - id: google/gemma-4-31b-it:free
+                      name: Gemma 4 31B IT (free)
+                      contextWindow: 262144
+                      maxTokens: 32768
+                    - id: poolside/laguna-s-2.1:free
+                      name: poolside Laguna S 2.1 (free)
+                      contextWindow: 262144
+                      maxTokens: 32768
+                    - id: nex-agi/nex-n2.5-pro:free
+                      name: Nex N2.5 Pro (free)
+                      contextWindow: 262144
+                      maxTokens: 235929
+                    - id: thinkingmachines/inkling:free
+                      name: Thinking Machines Inkling (free)
+                      contextWindow: 1048576
+                      maxTokens: 262144
+                  retryPolicy:
+                    mode: normal
+                    maxRetries: 8
+                    backoff:
+                      initialDelayMs: 3000
+                      maxDelayMs: 30000
+      - id: fleet
+        name: '@deepseek-ai/dsh-fleet'
+        config:
+          maxConcurrent: 1
+          routeBreaker:
+            consecutiveErrors: 4
+          workspaceRetention: keep
+      # Training terms, unlike the base: a session on this route runs an
+      # open-weight model under the operator's own OpenRouter account, so its
+      # transcript may enter the RLVR corpus, which the curator admits only from
+      # sessions whose pinned terms name `training`. The terms govern this
+      # repository's use of the session log; whether a given model's licence
+      # admits its outputs as training data is decided per model at admission.
+      - id: data-use
+        name: '@deepseek-ai/dsh-data-use'
+        config:
+          clientId: daliesk-lab
+          agreementId: proving-ground-openrouter-free
+          purposes:
+            - training
+            - evaluation
+          residency: eu-west
+          retentionDays: 90
+          redactionProfile: village-v1
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

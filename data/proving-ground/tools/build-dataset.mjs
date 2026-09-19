@@ -48,6 +48,7 @@ const TOOL_VERSION = 1
  */
 const SECRET_PATTERNS = [
   { name: 'anthropic-key', re: /sk-ant-[A-Za-z0-9_-]{20,}/g },
+  { name: 'openrouter-key', re: /\bsk-or-v1-[A-Za-z0-9]{20,}/g },
   { name: 'openai-style-key', re: /\bsk-(?:proj-)?[A-Za-z0-9]{20,}/g },
   { name: 'github-token', re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|\bgithub_pat_[A-Za-z0-9_]{20,}/g },
   { name: 'aws-access-key', re: /\bAKIA[0-9A-Z]{16}\b/g },
