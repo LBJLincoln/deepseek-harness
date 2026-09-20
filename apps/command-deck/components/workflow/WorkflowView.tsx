@@ -5,7 +5,7 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { clock, duration, stamp } from '@/deck/format'
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePlayback } from '@/deck/playback'
-import { eventsUpTo, useDeck } from '@/deck/store'
+import { eventsUpTo, eventTimeMs, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
 import { PlaybackControls } from './PlaybackControls.tsx'
@@ -46,8 +46,12 @@ export function WorkflowView(): ReactNode {
   const run = runs.find(entry => entry.id === selectedRunId)
 
   const card = selected === undefined ? undefined : graph.byId.get(selected)
+  // The feed folds one session at a time, so the newest frames of a session are
+  // the newest it logged, not the last it delivered.
   const own = useMemo(
-    () => (selected === undefined ? [] : visible.filter(event => event.sessionId === selected)),
+    () => (selected === undefined ? [] : visible
+      .filter(event => event.sessionId === selected)
+      .sort((left, right) => eventTimeMs(left) - eventTimeMs(right))),
     [visible, selected],
   )
 

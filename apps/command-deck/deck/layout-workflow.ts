@@ -332,7 +332,12 @@ function tiersOf(drafts: readonly Draft[], root: string | undefined, parents: Re
  * @returns The nodes, the edges between them, and what the camera frames.
  */
 export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, Agent>): WorkflowGraph {
-  const drafts = draftSessions(events, agents)
+  // Frames arrive in the order the feed folds its sessions, not the order they
+  // were logged, so the scan reads the logged order: a tier then fans its
+  // sessions out in the order they first reported, and a department takes the
+  // same lane colour here as it does on its rail in the process view.
+  const logged = [...events].sort((left, right) => eventTimeMs(left) - eventTimeMs(right))
+  const drafts = draftSessions(logged, agents)
   const root = rootOf(drafts.map(draft => draft.id))
   // The root emits its merges last, so a cut short of them still has to draw it.
   if (root !== undefined && !drafts.some(draft => draft.id === root)) {
@@ -358,7 +363,7 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
   }
 
   const tiers = tiersOf(drafts, root, parents)
-  const colors = laneColors(events, agents)
+  const colors = laneColors(logged, agents)
   const perTier = new Map<number, Draft[]>()
   for (const draft of drafts) {
     const tier = tiers.get(draft.id) ?? 0
@@ -401,7 +406,7 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
 
   const byId = new Map(nodes.map(node => [node.id, node]))
   const delegating = new Set(
-    events.filter(event => event.kind === 'delegation').map(event => event.sessionId),
+    logged.filter(event => event.kind === 'delegation').map(event => event.sessionId),
   )
   const edges: WorkflowEdge[] = []
   for (const node of nodes) {
