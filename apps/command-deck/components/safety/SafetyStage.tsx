@@ -29,6 +29,8 @@ import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { createGlowMaterial } from '@/components/three/glow'
 import { Stage } from '@/components/three/Stage'
+import type { VerdictKind } from './moments.ts'
+import { useReadTrail, type ReadTrail } from './read-trail.ts'
 import styles from './safety-stage.module.css'
 
 /** Beacon height per severity, in scene units: a critical finding stands over the whole city. */
@@ -73,6 +75,27 @@ const HALO_RADIUS = 1.9
 /** Window cell size on a building wall, in scene units: pane width, then floor height. */
 const WINDOW_CELL: [number, number] = [0.8, 1.05]
 
+/**
+ * Exponential decay rate of a read flare, per second.
+ *
+ * At this rate a file's flare is down to a twentieth about two and a half
+ * seconds after the department opened it, so the reads read as a rhythm rather
+ * than as a city that only ever gets brighter.
+ */
+const FLARE_DECAY = 1.2
+
+/** Seconds the pulse takes to run from a flaring file's foot to its roof. */
+const FLARE_PULSE_SECONDS = 0.85
+
+/**
+ * What a file keeps once its flare has decayed.
+ *
+ * A file the departments have opened holds a faint tint of the department's
+ * colour for the rest of the run, so the city fills in as the review reads it
+ * and the panel's file count has something on screen that matches it.
+ */
+const FLARE_MARK = 0.13
+
 /** Seconds the opening fly-over takes. */
 const FLYOVER_SECONDS = 3
 
@@ -84,6 +107,14 @@ const SWEEP_SECONDS = 5.5
 
 /** Seconds between one scan sweep and the next. */
 const SWEEP_GAP_SECONDS = 1.6
+
+/**
+ * Seconds the verdict ring takes to travel from the city centre to its edge.
+ *
+ * The beacons read the same number, because each one flares as the ring
+ * reaches its own district rather than all at once.
+ */
+const VERDICT_RING_SECONDS = 3.2
 
 /**
  * How far back the camera stands from a city of this size, in scene units.
@@ -217,6 +248,13 @@ function placeFindings(findings: readonly Finding[], city: CityLayout): PlacedFi
  * the same file lights the same windows in every render. The roof is dark with
  * a glowing parapet, and the window light carries the file's language colour
  * at low saturation.
+ *
+ * A building also carries the read trail: `aFlare` holds the acting
+ * department's colour and the scene time the file was last opened at, offset by
+ * one second so that a zero means never. The flare lights more of the tower's
+ * windows, runs a band of light up its walls and decays over
+ * {@link FLARE_DECAY}; with `uSteady` set it holds instead of decaying, which
+ * is what a reduced-motion city shows on the last file touched.
  * @returns A new building material; the layer owns its own instance.
  */
 function createBuildingMaterial(): ShaderMaterial {
@@ -227,14 +265,17 @@ function createBuildingMaterial(): ShaderMaterial {
       {
         uTime: { value: 0 },
         uMotion: { value: 1 },
+        uSteady: { value: 0 },
         uCell: { value: WINDOW_CELL },
       },
     ]),
     vertexShader: /* glsl */`
       attribute vec3 aTint;
       attribute vec3 aInfo;
+      attribute vec4 aFlare;
       varying vec3 vTint;
       varying vec3 vInfo;
+      varying vec4 vFlare;
       varying vec3 vLocal;
       varying vec3 vFace;
       varying vec3 vScale;
@@ -242,6 +283,7 @@ function createBuildingMaterial(): ShaderMaterial {
       void main() {
         vTint = aTint;
         vInfo = aInfo;
+        vFlare = aFlare;
         vLocal = position;
         vFace = normal;
         vScale = vec3(
@@ -257,9 +299,11 @@ function createBuildingMaterial(): ShaderMaterial {
     fragmentShader: /* glsl */`
       uniform float uTime;
       uniform float uMotion;
+      uniform float uSteady;
       uniform vec2 uCell;
       varying vec3 vTint;
       varying vec3 vInfo;
+      varying vec4 vFlare;
       varying vec3 vLocal;
       varying vec3 vFace;
       varying vec3 vScale;
@@ -271,9 +315,14 @@ function createBuildingMaterial(): ShaderMaterial {
 
       void main() {
         vec3 face = normalize(vFace);
-        float lit = vInfo.x;
         float seed = vInfo.y;
         float selected = vInfo.z;
+
+        float touched = step(0.5, vFlare.w);
+        float age = max(uTime - (vFlare.w - 1.0), 0.0);
+        float live = mix(exp(-age * ${FLARE_DECAY.toFixed(2)}), 1.0, uSteady);
+        float flare = touched * max(live, ${FLARE_MARK.toFixed(2)});
+        float lit = vInfo.x + (flare * 0.44);
 
         vec3 glassDark = mix(vec3(0.014, 0.022, 0.04), vTint * 0.08, 0.45);
         vec3 colour = glassDark;
@@ -282,6 +331,9 @@ function createBuildingMaterial(): ShaderMaterial {
           float edge = max(abs(vLocal.x), abs(vLocal.z)) * 2.0;
           float rim = smoothstep(0.82, 1.0, edge);
           colour = vec3(0.011, 0.017, 0.029) + (vTint * rim * (0.26 + (selected * 0.7)));
+          // A file being read lights its own roof, which is what the city shows
+          // from the resting camera.
+          colour += vFlare.rgb * flare * (0.85 + (rim * 1.3));
         } else if (face.y < -0.5) {
           colour = vec3(0.006, 0.009, 0.017);
         } else {
@@ -304,11 +356,17 @@ function createBuildingMaterial(): ShaderMaterial {
           vec3 pool = mix(vec3(1.0), vTint, 0.86);
           colour = glassDark + (pool * on * pane * lamp * breath * (0.72 + (selected * 0.6)));
           colour += vec3(0.01, 0.015, 0.026) * (1.0 - pane);
+          // The band of light the read runs up the file, once, on the way in.
+          float travel = clamp(age / ${FLARE_PULSE_SECONDS.toFixed(2)}, 0.0, 1.0);
+          float pulse = touched * (1.0 - uSteady) * (1.0 - travel)
+            * smoothstep(0.17, 0.0, abs((vLocal.y + 0.5) - travel));
+          colour += vFlare.rgb * pulse * 0.85;
         }
 
         float key = max(dot(face, normalize(vec3(0.42, 0.82, 0.39))), 0.0);
         colour += glassDark * key * 0.9;
         colour += vTint * selected * 0.06;
+        colour += vFlare.rgb * flare * 0.6;
 
         gl_FragColor = vec4(colour, 1.0);
         #include <tonemapping_fragment>
@@ -323,6 +381,10 @@ function createBuildingMaterial(): ShaderMaterial {
  * The material the beacon shafts are drawn with: an additive tube that fades
  * upward and glows at its silhouette, so the shaft reads as a column of light
  * rather than as geometry. Distance fades it into the city's own fog.
+ *
+ * `uFlare` is the scene time the verdict landed at, or a negative number while
+ * no verdict is playing. Each beacon bursts as the verdict ring reaches its own
+ * distance from the city centre, which `aInfo.z` carries.
  * @returns A new beacon material; the layer owns its own instance.
  */
 function createBeaconMaterial(): ShaderMaterial {
@@ -333,18 +395,23 @@ function createBeaconMaterial(): ShaderMaterial {
     side: DoubleSide,
     blending: AdditiveBlending,
     toneMapped: false,
-    uniforms: UniformsUtils.merge([UniformsLib.fog, {}]),
+    uniforms: UniformsUtils.merge([UniformsLib.fog, { uTime: { value: 0 }, uFlare: { value: -1 } }]),
     vertexShader: /* glsl */`
+      uniform float uTime;
+      uniform float uFlare;
       attribute vec3 aColor;
-      attribute vec2 aInfo;
+      attribute vec3 aInfo;
       varying vec3 vColor;
       varying float vGain;
+      varying float vBurst;
       varying float vUp;
       varying float vRim;
       #include <fog_pars_vertex>
       void main() {
         vColor = aColor;
         vGain = aInfo.x * (1.0 + (aInfo.y * 1.15));
+        float age = uTime - uFlare - (aInfo.z * ${VERDICT_RING_SECONDS.toFixed(2)});
+        vBurst = step(0.0, uFlare) * step(0.0, age) * exp(-max(age, 0.0) * 1.1);
         vUp = position.y + 0.5;
         vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
         vec3 viewNormal = normalize(mat3(modelViewMatrix) * mat3(instanceMatrix) * normal);
@@ -356,6 +423,7 @@ function createBeaconMaterial(): ShaderMaterial {
     fragmentShader: /* glsl */`
       varying vec3 vColor;
       varying float vGain;
+      varying float vBurst;
       varying float vUp;
       varying float vRim;
       #include <fog_pars_fragment>
@@ -363,12 +431,12 @@ function createBeaconMaterial(): ShaderMaterial {
         float fade = pow(1.0 - vUp, 1.5);
         float edge = pow(clamp(vRim, 0.0, 1.0), 1.7);
         float foot = smoothstep(0.14, 0.0, vUp) * 0.8;
-        float alpha = ((fade * (0.2 + (0.95 * edge))) + foot) * vGain * 0.62;
+        float alpha = ((fade * (0.2 + (0.95 * edge))) + foot) * vGain * 0.62 * (1.0 + (vBurst * 2.2));
         #ifdef USE_FOG
           alpha *= 1.0 - smoothstep(fogNear, fogFar, vFogDepth);
         #endif
         if (alpha < 0.003) discard;
-        gl_FragColor = vec4(vColor * (0.8 + (0.85 * edge)), alpha);
+        gl_FragColor = vec4(vColor * (0.8 + (0.85 * edge) + (vBurst * 0.9)), alpha);
       }
     `,
   })
@@ -376,7 +444,8 @@ function createBeaconMaterial(): ShaderMaterial {
 
 /**
  * The material the halo at a beacon's foot is drawn with: an additive ring
- * that breathes on the clock, one phase per finding.
+ * that breathes on the clock, one phase per finding, and bursts once with its
+ * beacon when the verdict ring passes over it.
  * @returns A new halo material; the layer owns its own instance.
  */
 function createHaloMaterial(): ShaderMaterial {
@@ -386,17 +455,25 @@ function createHaloMaterial(): ShaderMaterial {
     depthWrite: false,
     blending: AdditiveBlending,
     toneMapped: false,
-    uniforms: UniformsUtils.merge([UniformsLib.fog, { uTime: { value: 0 }, uMotion: { value: 1 } }]),
+    uniforms: UniformsUtils.merge([
+      UniformsLib.fog,
+      { uTime: { value: 0 }, uMotion: { value: 1 }, uFlare: { value: -1 } },
+    ]),
     vertexShader: /* glsl */`
+      uniform float uTime;
+      uniform float uFlare;
       attribute vec3 aColor;
-      attribute vec2 aInfo;
+      attribute vec3 aInfo;
       varying vec3 vColor;
       varying vec2 vInfo;
+      varying float vBurst;
       varying vec2 vUv;
       #include <fog_pars_vertex>
       void main() {
         vColor = aColor;
-        vInfo = aInfo;
+        vInfo = aInfo.xy;
+        float age = uTime - uFlare - (aInfo.z * ${VERDICT_RING_SECONDS.toFixed(2)});
+        vBurst = step(0.0, uFlare) * step(0.0, age) * exp(-max(age, 0.0) * 1.1);
         vUv = uv;
         vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
@@ -408,6 +485,7 @@ function createHaloMaterial(): ShaderMaterial {
       uniform float uMotion;
       varying vec3 vColor;
       varying vec2 vInfo;
+      varying float vBurst;
       varying vec2 vUv;
       #include <fog_pars_fragment>
       void main() {
@@ -416,7 +494,7 @@ function createHaloMaterial(): ShaderMaterial {
         float radius = 0.5 + (0.34 * breath);
         float ring = smoothstep(radius + 0.28, radius, d) * smoothstep(radius - 0.32, radius, d);
         float core = smoothstep(0.42, 0.0, d) * 0.5;
-        float alpha = ((ring * 1.05) + core) * vInfo.x * breath;
+        float alpha = ((ring * 1.05) + core) * vInfo.x * breath * (1.0 + (vBurst * 2.6));
         #ifdef USE_FOG
           alpha *= 1.0 - smoothstep(fogNear, fogFar, vFogDepth);
         #endif
@@ -472,30 +550,38 @@ function createSweepMaterial(): ShaderMaterial {
 
 /**
  * The file blocks, as one instanced mesh of lit towers.
- * @param props - The laid-out city, the selection, and the pointer callbacks.
+ * @param props - The laid-out city, the read trail, the selection, and the
+ * pointer callbacks.
  * @returns The city blocks.
  */
 function NightBlocks({
   city,
+  trail,
   selectedPath,
   reduced,
   onHover,
   onSelect,
 }: {
   city: CityLayout
+  trail: ReadTrail
   selectedPath: string | undefined
   reduced: boolean
   onHover: (block: CityBlock | undefined) => void
   onSelect: (block: CityBlock) => void
 }): ReactNode {
   const mesh = useRef<InstancedMesh>(null)
+  const clock = useThree(state => state.clock)
   const blocks = city.blocks
   const count = Math.max(1, blocks.length)
+  // When each flaring file was last opened, so a trail update restarts only the
+  // files whose touch is new.
+  const stamps = useRef(new Map<string, { seq: number; at: number }>())
 
   const geometry = useMemo(() => {
     const built = new BoxGeometry(1, 1, 1)
     built.setAttribute('aTint', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
     built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
+    built.setAttribute('aFlare', new InstancedBufferAttribute(new Float32Array(count * 4), 4))
     return built
   }, [count])
 
@@ -526,13 +612,41 @@ function NightBlocks({
     info.needsUpdate = true
   }, [blocks, selectedPath, geometry])
 
+  // The read trail, as one instanced attribute: the acting department's colour
+  // and the scene time the file was opened at, one second in so that an
+  // untouched file is a plain zero. Under reduced motion only the last file
+  // touched carries a flare, and it holds instead of decaying.
+  useEffect(() => {
+    const flare = geometry.getAttribute('aFlare')
+    const held = stamps.current
+    const colour = new Color()
+    const now = clock.elapsedTime
+    for (const path of held.keys()) if (!trail.byPath.has(path)) held.delete(path)
+    for (const [index, block] of blocks.entries()) {
+      const touch = reduced
+        ? (trail.last?.path === block.path ? trail.last : undefined)
+        : trail.byPath.get(block.path)
+      if (touch === undefined) {
+        flare.setXYZW(index, 0, 0, 0, 0)
+        continue
+      }
+      const previous = held.get(touch.path)
+      const at = previous?.seq === touch.seq ? previous.at : now
+      held.set(touch.path, { seq: touch.seq, at })
+      colour.set(touch.color)
+      flare.setXYZW(index, colour.r, colour.g, colour.b, reduced ? 1 : at + 1)
+    }
+    flare.needsUpdate = true
+  }, [blocks, trail, reduced, geometry, clock])
+
   useEffect(() => {
     material.uniforms.uMotion!.value = reduced ? 0 : 1
+    material.uniforms.uSteady!.value = reduced ? 1 : 0
   }, [material, reduced])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock: running }) => {
     if (reduced) return
-    material.uniforms.uTime!.value = clock.elapsedTime
+    material.uniforms.uTime!.value = running.elapsedTime
   })
 
   return (
@@ -669,19 +783,23 @@ function Districts({
 /**
  * The finding beacons: one light shaft per finding, a breathing halo at each
  * foot, and the marker head that carries the hover and the click.
- * @param props - The placed findings, the selection, the motion preference and
- * the pointer callbacks.
+ * @param props - The placed findings, how far the city reaches, the selection,
+ * the verdict burst, the motion preference and the pointer callbacks.
  * @returns The beacon layers.
  */
 function Beacons({
   placed,
+  extent,
   selectedId,
+  verdictAt,
   reduced,
   onHover,
   onSelect,
 }: {
   placed: PlacedFinding[]
+  extent: number
   selectedId: string | undefined
+  verdictAt: number | undefined
   reduced: boolean
   onHover: (entry: PlacedFinding | undefined) => void
   onSelect: (id: string) => void
@@ -693,7 +811,7 @@ function Beacons({
   const shaftGeometry = useMemo(() => {
     const built = new CylinderGeometry(1, 1, 1, 7, 1, true)
     built.setAttribute('aColor', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
-    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 2), 2))
+    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
     return built
   }, [count])
 
@@ -701,7 +819,7 @@ function Beacons({
     const built = new CircleGeometry(1, 22)
     built.rotateX(-Math.PI / 2)
     built.setAttribute('aColor', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
-    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 2), 2))
+    built.setAttribute('aInfo', new InstancedBufferAttribute(new Float32Array(count * 3), 3))
     return built
   }, [count])
 
@@ -744,13 +862,15 @@ function Beacons({
     for (const [index, entry] of placed.entries()) {
       const selected = entry.finding.id === selectedId ? 1 : 0
       colour.set(SEVERITY_COLOR[entry.finding.severity] ?? '#7f8fb0')
+      // Where the verdict ring reaches this beacon, as a share of its travel.
+      const reachedAt = Math.min(1, Math.hypot(entry.base.x, entry.base.z) / Math.max(extent, 1))
 
       SCRATCH_SCALE.set(entry.radius, entry.height, entry.radius)
       SCRATCH_POSITION.set(entry.base.x, entry.base.y + (entry.height / 2), entry.base.z)
       SCRATCH.identity().scale(SCRATCH_SCALE).setPosition(SCRATCH_POSITION)
       shaft.setMatrixAt(index, SCRATCH)
       shaftColour.setXYZ(index, colour.r, colour.g, colour.b)
-      shaftInfo.setXY(index, entry.gain, selected)
+      shaftInfo.setXYZ(index, entry.gain, selected, reachedAt)
 
       const halved = HALO_RADIUS * (0.7 + (entry.gain * 0.36))
       SCRATCH_SCALE.set(halved, 1, halved)
@@ -758,7 +878,7 @@ function Beacons({
       SCRATCH.identity().scale(SCRATCH_SCALE).setPosition(SCRATCH_POSITION)
       halo.setMatrixAt(index, SCRATCH)
       haloColour.setXYZ(index, colour.r, colour.g, colour.b)
-      haloInfo.setXY(index, entry.gain * (selected === 1 ? 1.9 : 1), index * 1.37)
+      haloInfo.setXYZ(index, entry.gain * (selected === 1 ? 1.9 : 1), index * 1.37, reachedAt)
 
       headPosition.setXYZ(index, entry.head.x, entry.head.y, entry.head.z)
       headColour.setXYZ(index, colour.r, colour.g, colour.b)
@@ -772,15 +892,22 @@ function Beacons({
       shaftColour, shaftInfo, haloColour, haloInfo, headPosition, headColour, headSize, headGain,
     ]) attribute.needsUpdate = true
     headGeometry.computeBoundingSphere()
-  }, [placed, selectedId, shaftGeometry, haloGeometry, headGeometry])
+  }, [placed, selectedId, extent, shaftGeometry, haloGeometry, headGeometry])
 
   useEffect(() => {
     haloMaterial.uniforms.uMotion!.value = reduced ? 0 : 1
   }, [haloMaterial, reduced])
 
+  useEffect(() => {
+    const at = verdictAt ?? -1
+    haloMaterial.uniforms.uFlare!.value = at
+    shaftMaterial.uniforms.uFlare!.value = at
+  }, [haloMaterial, shaftMaterial, verdictAt])
+
   useFrame(({ clock }) => {
     if (reduced) return
     haloMaterial.uniforms.uTime!.value = clock.elapsedTime
+    shaftMaterial.uniforms.uTime!.value = clock.elapsedTime
   })
 
   return (
@@ -870,6 +997,108 @@ function ScanSweep({ city, reduced }: { city: CityLayout; reduced: boolean }): R
       renderOrder={4}
     >
       <planeGeometry args={[city.extent * 2.2, height]} />
+    </mesh>
+  )
+}
+
+/**
+ * The material the verdict ring is drawn with: one bright band travelling out
+ * from the city centre over a dimmer wake, fading as it leaves the districts
+ * behind. `uProgress` is the band's radius as a share of the plane's own
+ * half-width.
+ * @returns A new ring material.
+ */
+function createVerdictMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    blending: AdditiveBlending,
+    toneMapped: false,
+    uniforms: {
+      uProgress: { value: 0 },
+      uColor: { value: new Color('#49e0a6') },
+    },
+    vertexShader: /* glsl */`
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */`
+      uniform float uProgress;
+      uniform vec3 uColor;
+      varying vec2 vUv;
+      void main() {
+        float d = length(vUv - 0.5) * 2.0;
+        float band = smoothstep(0.085, 0.0, abs(d - uProgress));
+        float wake = smoothstep(uProgress, uProgress - 0.4, d) * step(d, uProgress) * 0.2;
+        float fade = 1.0 - smoothstep(0.9, 1.3, uProgress);
+        float alpha = ((band * 0.9) + wake) * fade;
+        if (alpha < 0.004) discard;
+        gl_FragColor = vec4(uColor * (0.7 + (band * 0.8)), alpha);
+      }
+    `,
+  })
+}
+
+/**
+ * The scene clock reading one moment began at.
+ *
+ * The overlays are timed in wall-clock milliseconds and the scene in its own
+ * elapsed seconds, so a moment that reaches the city is stamped once, on the
+ * render that first sees it, in the clock the shaders read.
+ * @param moment - What is playing, or `undefined` when nothing is.
+ * @returns The scene time the moment began at, or `undefined`.
+ */
+function useSceneStamp(moment: string | undefined): number | undefined {
+  const clock = useThree(state => state.clock)
+  const [stamp, setStamp] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    setStamp(moment === undefined ? undefined : clock.elapsedTime)
+  }, [moment, clock])
+
+  return stamp
+}
+
+/**
+ * The verdict ring: a wall of light leaving the city centre when the
+ * certificate lands, green when it was issued and amber when it was withheld.
+ * @param props - The city, the verdict, and the scene time it landed at.
+ * @returns The ring plane.
+ */
+function VerdictRing({
+  city,
+  verdict,
+  at,
+}: {
+  city: CityLayout
+  verdict: VerdictKind
+  at: number
+}): ReactNode {
+  const material = useMemo(createVerdictMaterial, [])
+  const span = city.extent * 2.6
+  // One unit of travel is the city's own half-extent, which is where the
+  // beacons place themselves on the ring's clock; the plane reaches further so
+  // the ring is still drawn as it leaves the outermost district.
+  const unit = city.extent / (span / 2)
+
+  useEffect(() => () => material.dispose(), [material])
+
+  useEffect(() => {
+    const colour = material.uniforms.uColor!.value as Color
+    colour.set(verdict === 'certified' ? '#49e0a6' : '#ffbe5c')
+  }, [material, verdict])
+
+  useFrame(({ clock }) => {
+    material.uniforms.uProgress!.value = ((clock.elapsedTime - at) / VERDICT_RING_SECONDS) * unit
+  })
+
+  return (
+    <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} material={material} renderOrder={5}>
+      <planeGeometry args={[span, span]} />
     </mesh>
   )
 }
@@ -971,9 +1200,72 @@ function CityRig({
 }
 
 /**
+ * Everything the city draws from the followed run: the read trail on the
+ * buildings, the verdict ring, and the beacon burst that travels with it.
+ * @param props - The city, the placed findings, the selection, the verdict, and
+ * the motion preference.
+ * @returns The building layer, the beacons and the ring.
+ */
+function LiveCity({
+  city,
+  target,
+  placed,
+  selectedPath,
+  selectedId,
+  verdict,
+  reduced,
+  onHoverBlock,
+  onHoverFinding,
+  onSelectBlock,
+  onSelectFinding,
+}: {
+  city: CityLayout
+  target: SafetyTarget
+  placed: PlacedFinding[]
+  selectedPath: string | undefined
+  selectedId: string | undefined
+  verdict: VerdictKind | undefined
+  reduced: boolean
+  onHoverBlock: (block: CityBlock | undefined) => void
+  onHoverFinding: (entry: PlacedFinding | undefined) => void
+  onSelectBlock: (block: CityBlock) => void
+  onSelectFinding: (id: string | undefined) => void
+}): ReactNode {
+  const trail = useReadTrail(target)
+  // A reduced-motion city shows the verdict on the card alone, so the ring and
+  // the burst never start.
+  const verdictAt = useSceneStamp(reduced ? undefined : verdict)
+
+  return (
+    <group>
+      <NightBlocks
+        city={city}
+        trail={trail}
+        selectedPath={selectedPath}
+        reduced={reduced}
+        onHover={onHoverBlock}
+        onSelect={onSelectBlock}
+      />
+      <Beacons
+        placed={placed}
+        extent={city.extent}
+        selectedId={selectedId}
+        verdictAt={verdictAt}
+        reduced={reduced}
+        onHover={onHoverFinding}
+        onSelect={onSelectFinding}
+      />
+      {verdict === undefined || verdictAt === undefined
+        ? null
+        : <VerdictRing city={city} verdict={verdict} at={verdictAt} />}
+    </group>
+  )
+}
+
+/**
  * The code-city scene.
- * @param props - The reviewed target, its departments, its findings, and the
- * selection.
+ * @param props - The reviewed target, its departments, its findings, the
+ * selection, and the verdict the review has just reached, if any.
  * @returns The canvas and its contents.
  */
 export function SafetyStage({
@@ -981,12 +1273,14 @@ export function SafetyStage({
   departments,
   findings,
   selectedFindingId,
+  verdict,
   onSelectFinding,
 }: {
   target: SafetyTarget
   departments: readonly SafetyDepartment[]
   findings: readonly Finding[]
   selectedFindingId: string | undefined
+  verdict: VerdictKind | undefined
   onSelectFinding: (id: string | undefined) => void
 }): ReactNode {
   const reduced = usePrefersReducedMotion()
@@ -1028,22 +1322,21 @@ export function SafetyStage({
         <gridHelper args={[city.extent * 7, 64, '#1a3355', '#0d1b2e']} position={[0, -0.66, 0]} />
 
         <Districts city={city} running={running} reduced={reduced} />
-        <NightBlocks
+        <LiveCity
           city={city}
+          target={target}
+          placed={placed}
           selectedPath={focus?.block.path}
+          selectedId={selectedFindingId}
+          verdict={verdict}
           reduced={reduced}
-          onHover={setHoveredBlock}
-          onSelect={(block) => {
+          onHoverBlock={setHoveredBlock}
+          onHoverFinding={setHoveredFinding}
+          onSelectBlock={(block) => {
             const first = placed.find(entry => entry.block.path === block.path)
             if (first !== undefined) onSelectFinding(first.finding.id)
           }}
-        />
-        <Beacons
-          placed={placed}
-          selectedId={selectedFindingId}
-          reduced={reduced}
-          onHover={setHoveredFinding}
-          onSelect={onSelectFinding}
+          onSelectFinding={onSelectFinding}
         />
         {running ? <ScanSweep city={city} reduced={reduced} /> : null}
 

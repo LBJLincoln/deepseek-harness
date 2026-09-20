@@ -8,10 +8,15 @@ import { SEVERITY_ORDER, type Severity } from '@/deck/contract'
 import { departmentOf } from '@/deck/departments'
 import { startSafety } from '@/deck/feed'
 import { bytes, stamp } from '@/deck/format'
+import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { FilesOpened } from './FilesOpened'
 import { FindingCard } from './FindingCard'
+import { LaunchSequence } from './LaunchSequence'
+import { useSafetyMoments } from './moments.ts'
+import { VerdictCard } from './VerdictCard'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
 // the server; the rest of the view is ordinary React and does.
@@ -49,11 +54,14 @@ function download(name: string, content: string, type: string): void {
 export function SafetyView(): ReactNode {
   const safety = useDeck(state => state.safety)
   const safetyRunId = useDeck(state => state.safetyRunId)
+  const runs = useDeck(state => state.runs)
   const source = useDeck(state => state.source)
   const selectedFindingId = useDeck(state => state.selectedFindingId)
   const selectFinding = useDeck(state => state.selectFinding)
   const selectRun = useDeck(state => state.selectRun)
   const addRun = useDeck(state => state.addRun)
+  const reduced = usePrefersReducedMotion()
+  const moments = useSafetyMoments(safetyRunId, runs.find(run => run.id === safetyRunId), safety)
 
   const [tab, setTab] = useState<Tab>('findings')
   const [severity, setSeverity] = useState<Severity | 'all'>('all')
@@ -123,6 +131,7 @@ export function SafetyView(): ReactNode {
               departments={safety.departments}
               findings={findings}
               selectedFindingId={selectedFindingId}
+              verdict={moments.verdict}
               onSelectFinding={selectFinding}
             />
           )}
@@ -153,6 +162,14 @@ export function SafetyView(): ReactNode {
             onClose={() => selectFinding(undefined)}
           />
         )}
+
+        {moments.launch && safety !== undefined ? (
+          <LaunchSequence name={safety.target.name} files={safety.target.files.length} reduced={reduced} />
+        ) : null}
+
+        {moments.verdict === undefined || safety === undefined ? null : (
+          <VerdictCard verdict={moments.verdict} review={safety} reduced={reduced} />
+        )}
       </div>
 
       <aside className="panel">
@@ -164,6 +181,7 @@ export function SafetyView(): ReactNode {
               ? '—'
               : `${safety.target.files.length} files · ${Object.keys(safety.target.languages).length} languages · ${findings.length} findings`}
           </p>
+          <FilesOpened />
         </div>
 
         <div className="tabs">
