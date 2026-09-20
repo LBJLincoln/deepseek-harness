@@ -117,8 +117,7 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
 
   useLayoutEffect(() => {
     if (reducedAtMount) return
-    const opening = establishingShot(layout)
-    camera.position.copy(opening.position)
+    camera.position.copy(establishingShot(layout).position)
   }, [camera, layout, reducedAtMount])
 
   // While the cold open assembles the graph the camera stands still at the

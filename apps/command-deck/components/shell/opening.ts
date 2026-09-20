@@ -2,15 +2,15 @@
  * The cold open's clock.
  *
  * One module owns every mark, because the claim card, the header counters and
- * the enterprise reveal are three readings of the same eighteen seconds and
- * must not drift apart. The marks are absolute milliseconds from the key press,
- * so a beat lands where it was written whatever the frame rate.
+ * the enterprise reveal are three readings of the same sequence and must not
+ * drift apart. The marks are absolute milliseconds from the key press, so a
+ * beat lands where it was written whatever the frame rate.
  */
 
 /** How long the claim holds over a black stage before the first division lights. */
 const CLAIM_MS = 4_400
 
-/** How long the ten divisions take to light, from the first node to the last edge threading in. */
+/** How long the divisions take to light, from the first node to the last edge threading in. */
 const IGNITE_MS = 10_200
 
 /** When the graph starts to assemble. */

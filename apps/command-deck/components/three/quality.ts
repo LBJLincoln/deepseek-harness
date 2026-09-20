@@ -3,11 +3,11 @@
 /**
  * The three grades the shared stage steps between, and the ladder that picks one.
  *
- * Bloom and the device pixel ratio are the deck's frame cost, and SMAA is the
- * single most expensive pass on a scene made of thin rails and wires, so those
- * three are what a tier trades. Everything else — the tone map, the grain, the
- * vignette, the atmosphere — is the same picture at every tier, because a deck
- * that changes its look under load is a deck the room notices adapting.
+ * Bloom and the device pixel ratio are the deck's frame cost, and SMAA is its
+ * most expensive pass on a scene made of thin rails and wires, so those three
+ * are what a tier trades. The tone map, the grain, the vignette and the
+ * atmosphere hold at every tier: they cost little, and they are what makes the
+ * three views read as one instrument.
  */
 
 import { useCallback, useRef } from 'react'
@@ -68,7 +68,7 @@ export function qualityBounds(refreshrate: number): [lower: number, upper: numbe
 /** Consecutive declines before the grade steps down. */
 const DOWN_STRIKES = 2
 
-/** Consecutive inclines before it steps back up: a climb has to be earned twice over. */
+/** Consecutive inclines before it steps back up; twice the evidence a drop needs. */
 const UP_STRIKES = 4
 
 /** How long a tier holds after a change, so the composer's own rebuild never counts as evidence. */
@@ -79,7 +79,9 @@ const RATCHET = 2
 
 /** What the monitor calls when the frame rate leaves its bounds. */
 export interface QualityLadder {
+  /** The frame rate has held under the lower bound across the monitor's sample window. */
   onDecline: () => void
+  /** It has held at or above the upper bound across the same window. */
   onIncline: () => void
 }
 
@@ -89,9 +91,9 @@ export interface QualityLadder {
  * A drop needs {@link DOWN_STRIKES} declines in a row and a climb
  * {@link UP_STRIKES} inclines, either run broken by one signal the other way;
  * a tier then holds for {@link HOLD_MS} whatever arrives. After
- * {@link RATCHET} drops the tier reached becomes the ceiling, so a laptop that
- * cannot hold the richer grade is never walked back into it — which is the
- * difference between adapting once and flickering all afternoon.
+ * {@link RATCHET} drops the tier reached becomes the ceiling, so a machine that
+ * cannot hold the richer grade is never taken back up to it and the tier stops
+ * moving for the rest of the session.
  * @returns The two handlers the performance monitor is given.
  */
 export function useQualityLadder(): QualityLadder {

@@ -20,7 +20,7 @@ const ROLL_MS = 720
  * speed. Under `prefers-reduced-motion` the value is taken whole, since the
  * point of the tween is the motion.
  *
- * The frame only renders when the drawn integer changes, so a thirteen-second
+ * The frame only renders when the drawn integer changes, so a fourteen-second
  * climb costs the counter's own value in renders rather than one per frame.
  * @param value - The value to reach.
  * @param reduced - Whether the viewer asked for reduced motion.
