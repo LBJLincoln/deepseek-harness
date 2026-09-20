@@ -42,7 +42,7 @@ type PresentationMode = 'off' | 'focus' | 'tour'
  * `playing` the sequence itself, and `done` a deck that has already assembled,
  * which is why a second tour starts on its first view instead of replaying it.
  */
-export type OpeningPhase = 'idle' | 'playing' | 'done'
+type OpeningPhase = 'idle' | 'playing' | 'done'
 
 /**
  * Frame state the cold open drives.
@@ -51,7 +51,7 @@ export type OpeningPhase = 'idle' | 'playing' | 'done'
  * The enterprise layers read it from `useFrame` and turn it into per-division
  * progress; nothing renders on it, so the sequence costs no React work.
  */
-export interface OpeningFrame {
+interface OpeningFrame {
   reveal: number
 }
 

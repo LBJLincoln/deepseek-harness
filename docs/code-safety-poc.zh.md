@@ -38,6 +38,8 @@ pnpm run poc                       # the feed (port 4711) and the production dec
 pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the review from the deck's Safety view
 ```
 
+客户进场之前，在 Enterprise 视图按 `O` 播放冷开场，或按 `P` 开始巡览（巡览会先播放它）。如果演示笔记本上的指挥台卡顿，在彩排之后以 `http://localhost:3000/?quality=medium`（或 `low`）打开它；未固定时，指挥台会自行把质量降档，且不会再升回它到达的那一档之上。
+
 视图的顺序：
 
 1. **Enterprise**（`/`）。说明这张图是什么：是定义，不是营销数字；点亮的节点是此刻正在运行的会话。点开一个部门 agent，展示它的路由、preset、技能与工具。

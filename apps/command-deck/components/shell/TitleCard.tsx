@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { eventsUpTo, useDeck } from '@/deck/store'
+import { kinetic } from './kinetic.tsx'
 import { VIEWS } from './views.ts'
 
 /** How long a card holds before it fades back off the view. */
@@ -89,31 +90,6 @@ function useCard(pathname: string): Card {
       `${roster.edges.length} relationships between them`,
     ],
   }
-}
-
-/**
- * Split a title into per-letter spans that arrive one after another.
- *
- * Words stay whole so the line still wraps on word breaks; only the letters
- * inside them are staggered.
- * @param text - The title.
- * @returns The spans, each carrying its place in the stagger as `--i`.
- */
-function kinetic(text: string): ReactNode {
-  let letter = 0
-  return text.split(' ').map((word, wordIndex) => (
-    <span className="title-card__word" key={`${word}-${wordIndex}`}>
-      {[...word].map((char, charIndex) => (
-        <span
-          className="title-card__char"
-          key={charIndex}
-          style={{ '--i': letter++ } as CSSProperties}
-        >
-          {char}
-        </span>
-      ))}
-    </span>
-  ))
 }
 
 /**

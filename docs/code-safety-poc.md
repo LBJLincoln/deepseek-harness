@@ -38,6 +38,8 @@ pnpm run poc                       # the feed (port 4711) and the production dec
 pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the review from the deck's Safety view
 ```
 
+Before the client walks in, press `O` on the Enterprise view for the cold open, or `P` for the tour, which plays it first. If the deck stutters on the demonstration laptop, open it as `http://localhost:3000/?quality=medium` (or `low`) after the rehearsal; unpinned, the deck steps its own quality down and never back up past the tier it reached.
+
 The order of the views:
 
 1. **Enterprise** (`/`). Say what the graph is: definitions, not a marketing number; the lit nodes are the sessions running now. Click a department agent to show its route, preset, skills and tools.
