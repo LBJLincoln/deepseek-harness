@@ -86,7 +86,9 @@ export interface Run {
 
 /** One `data:` frame of `GET /runs/:id/events`. */
 export interface RunEvent {
-  ts: string
+  /** When the frame was logged, in epoch milliseconds. */
+  ts: number
+  /** Position inside the frame's own session, counted from one; unique only together with `sessionId`. */
   seq: number
   agentId: string
   sessionId: string

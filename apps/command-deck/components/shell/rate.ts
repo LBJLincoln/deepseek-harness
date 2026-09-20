@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { RunEvent } from '@/deck/contract'
-import { useDeck } from '@/deck/store'
+import { eventTimeMs, useDeck } from '@/deck/store'
 
 /** The window the rate is measured over: the last minute of the stream. */
 const WINDOW_MS = 60_000
@@ -35,7 +35,8 @@ function useNow(enabled: boolean): number {
  * Count the events whose timestamps fall in the minute before `anchorMs`.
  *
  * The scan runs backwards from the newest frame and stops at the first one
- * outside the window, because the stream arrives in sequence order.
+ * outside the window, because the feed folds a run's sessions into one stream
+ * in logged order.
  * @param events - The event window, oldest first.
  * @param anchorMs - The instant the window ends at.
  * @returns Events in the window.
@@ -46,7 +47,7 @@ function countInWindow(events: readonly RunEvent[], anchorMs: number): number {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index]
     if (event === undefined) break
-    const at = Date.parse(event.ts)
+    const at = eventTimeMs(event)
     if (Number.isNaN(at)) continue
     if (at < floor) break
     if (at <= anchorMs) count += 1
@@ -72,7 +73,7 @@ export function useEventRate(): number | undefined {
 
   const newest = events.at(-1)
   if (newest === undefined) return undefined
-  const anchor = live ? now : Date.parse(newest.ts)
+  const anchor = live ? now : eventTimeMs(newest)
   if (Number.isNaN(anchor)) return undefined
 
   const count = countInWindow(events, anchor)

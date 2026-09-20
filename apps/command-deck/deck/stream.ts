@@ -2,10 +2,11 @@
  * The run event stream client.
  *
  * `GET /runs/:id/events` replays history and then stays open, so a reconnect
- * receives frames the deck already holds. Every frame carries a monotonic
- * `seq`, which is what deduplication keys on: the caller's `onEvent` sees each
- * sequence number exactly once for the life of the subscription, across any
- * number of reconnections.
+ * receives frames the deck already holds. Every frame carries a `seq` that
+ * counts from one inside its own session, so deduplication keys on the pair of
+ * `sessionId` and `seq`: the caller's `onEvent` sees each pair exactly once for
+ * the life of the subscription, across any number of reconnections. Keying on
+ * `seq` alone kept 404 of the 1,079 frames of a seven-session review.
  */
 
 import type { RunEvent } from './contract.ts'
@@ -38,10 +39,24 @@ function parseFrame(data: string): RunEvent | undefined {
   }
   if (typeof value !== 'object' || value === null) return undefined
   const event = value as Partial<RunEvent>
-  if (typeof event.seq !== 'number' || typeof event.kind !== 'string' || typeof event.agentId !== 'string') {
+  if (
+    typeof event.seq !== 'number'
+    || typeof event.sessionId !== 'string'
+    || typeof event.kind !== 'string'
+    || typeof event.agentId !== 'string'
+  ) {
     return undefined
   }
   return event as RunEvent
+}
+
+/**
+ * The deduplication key of one frame.
+ * @param event - A parsed frame.
+ * @returns Its session and sequence number, which together name it once per run.
+ */
+function frameKey(event: RunEvent): string {
+  return `${event.sessionId}\u0000${String(event.seq)}`
 }
 
 /**
@@ -57,7 +72,7 @@ function parseFrame(data: string): RunEvent | undefined {
  */
 export function subscribeRun(base: string, runId: string, handlers: StreamHandlers): () => void {
   const url = `${base}/runs/${encodeURIComponent(runId)}/events`
-  const seen = new Set<number>()
+  const seen = new Set<string>()
   let source: EventSource | undefined
   let retry: ReturnType<typeof setTimeout> | undefined
   let failures = 0
@@ -76,8 +91,10 @@ export function subscribeRun(base: string, runId: string, handlers: StreamHandle
 
     next.onmessage = (message: MessageEvent<string>) => {
       const event = parseFrame(message.data)
-      if (event === undefined || seen.has(event.seq)) return
-      seen.add(event.seq)
+      if (event === undefined) return
+      const key = frameKey(event)
+      if (seen.has(key)) return
+      seen.add(key)
       handlers.onEvent(event)
     }
 

@@ -1,23 +1,23 @@
 /** Display formatting shared by every panel. */
 
 /**
- * Clock time of one ISO timestamp, in the viewer's locale.
- * @param iso - ISO-8601 timestamp.
+ * Clock time of one timestamp, in the viewer's locale.
+ * @param at - ISO-8601 text (a run's `startedAt`) or epoch milliseconds (an event's `ts`).
  * @returns `HH:MM:SS`, or `--:--:--` when the timestamp does not parse.
  */
-export function clock(iso: string): string {
-  const date = new Date(iso)
+export function clock(at: string | number): string {
+  const date = new Date(at)
   if (Number.isNaN(date.getTime())) return '--:--:--'
   return date.toLocaleTimeString('en-GB', { hour12: false })
 }
 
 /**
- * Date and clock time of one ISO timestamp.
- * @param iso - ISO-8601 timestamp.
+ * Date and clock time of one timestamp.
+ * @param at - ISO-8601 text or epoch milliseconds.
  * @returns `YYYY-MM-DD HH:MM`, or `—` when the timestamp does not parse.
  */
-export function stamp(iso: string): string {
-  const date = new Date(iso)
+export function stamp(at: string | number): string {
+  const date = new Date(at)
   if (Number.isNaN(date.getTime())) return '—'
   return `${date.toISOString().slice(0, 10)} ${date.toISOString().slice(11, 16)}`
 }

@@ -195,9 +195,8 @@ export const useDeck = create<DeckState>((set, get) => ({
  * When one frame was logged.
  *
  * `seq` restarts at the head of every session the feed folds, so it orders one
- * session's own work and nothing across sessions; `ts` is the only field that
- * orders a whole run. The feed sends it as epoch milliseconds and the contract
- * types it as an ISO-8601 string, both of which `Date` reads the same way.
+ * session's own work and nothing across sessions; `ts`, epoch milliseconds, is
+ * the only field that orders a whole run, and this is the one place it is read.
  * @param event - The frame to place.
  * @returns Milliseconds since the epoch, or `NaN` when the field does not parse.
  */

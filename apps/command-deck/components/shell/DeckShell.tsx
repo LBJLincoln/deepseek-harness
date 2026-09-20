@@ -112,7 +112,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         {presentation === 'off' ? null : (
           <span className="deck__mode" data-mode={presentation}>{presentation}</span>
         )}
-        <span>1 / 2 / 3 views · f focus · p tour · esc deselect</span>
+        <span>1 / 2 / 3 / 4 views · f focus · p tour · esc deselect</span>
       </footer>
     </div>
   )
