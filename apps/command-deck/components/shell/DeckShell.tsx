@@ -31,6 +31,8 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const selectedRunId = useDeck(state => state.selectedRunId)
   const error = useDeck(state => state.error)
   const presentation = useDeck(state => state.presentation)
+  const qualityTier = useDeck(state => state.qualityTier)
+  const qualityPinned = useDeck(state => state.qualityPinned)
   const rate = useEventRate()
 
   useEffect(() => { void boot() }, [boot])
@@ -96,6 +98,8 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         <span>run <b className="deck__run">{run?.name ?? '—'}</b></span>
         <span>·</span>
         <span><b>{rate ?? '—'}</b> events/min</span>
+        <span>·</span>
+        <span>quality <b>{qualityPinned ? 'pinned' : 'auto'} · {qualityTier}</b></span>
         {source?.mode === 'replay' ? (
           <>
             <span>·</span>

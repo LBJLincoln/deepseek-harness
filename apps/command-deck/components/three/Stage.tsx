@@ -1,12 +1,15 @@
 'use client'
 
+import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Bloom, ChromaticAberration, EffectComposer, Noise, SMAA, Vignette } from '@react-three/postprocessing'
 import { BlendFunction, EdgeDetectionMode, SMAAPreset, ToneMappingEffect, ToneMappingMode } from 'postprocessing'
 import { useEffect, useMemo, type ReactNode } from 'react'
 import { Vector2 } from 'three'
 import { Atmosphere } from '@/components/three/Atmosphere'
+import { pinnedQuality, qualityBounds, QUALITY, REDUCED_QUALITY, useQualityLadder } from '@/components/three/quality'
 import { usePrefersReducedMotion } from '@/deck/motion'
+import { useDeck } from '@/deck/store'
 
 /** Camera placement one stage asks for. */
 export interface StageCamera {
@@ -49,6 +52,12 @@ function useToneMapping(): ToneMappingEffect {
  * Under `prefers-reduced-motion` the grade loses its chromatic aberration,
  * halves the grain and holds bloom at a lower constant intensity, because the
  * effects that sell the image at rest are also the ones that shimmer.
+ *
+ * The pixel ratio, SMAA and the bloom are stepped between the three tiers in
+ * {@link QUALITY} on sustained evidence from drei's performance monitor, so an
+ * unknown laptop keeps its frame rate instead of its image. `?quality=` pins a
+ * tier and stops the monitor; the reduced grade overrides everything but the
+ * pixel ratio.
  * @param props - Camera placement and the scene contents.
  * @returns The canvas.
  */
@@ -66,10 +75,27 @@ export function Stage({
   const reduced = usePrefersReducedMotion()
   const aberration = useMemo(() => new Vector2(0.00055, 0.0009), [])
   const toneMapping = useToneMapping()
+  const tier = useDeck(state => state.qualityTier)
+  const pinned = useDeck(state => state.qualityPinned)
+  const pinQualityTier = useDeck(state => state.pinQualityTier)
+  const ladder = useQualityLadder()
+
+  // The stage mounts only in the browser, through `next/dynamic` with
+  // `ssr: false`, so the query is read from the location rather than through
+  // `useSearchParams`, which would opt each route out of static rendering.
+  useEffect(() => {
+    const asked = pinnedQuality(window.location.search)
+    if (asked !== undefined) pinQualityTier(asked)
+  }, [pinQualityTier])
+
+  const grade = QUALITY[tier]
+  const bloom = reduced ? REDUCED_QUALITY.bloom : grade.bloom
+  const radius = reduced ? REDUCED_QUALITY.radius : grade.radius
+  const smaa = reduced ? REDUCED_QUALITY.smaa : grade.smaa
 
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={[1, grade.dpr]}
       gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
       camera={{ position: camera.position, fov: camera.fov, near: 0.5, far: 2_000 }}
       frameloop="always"
@@ -84,6 +110,10 @@ export function Stage({
       <Atmosphere near={fogNear} far={fogFar} />
       {children}
 
+      {pinned ? <></> : (
+        <PerformanceMonitor bounds={qualityBounds} onDecline={ladder.onDecline} onIncline={ladder.onIncline} />
+      )}
+
       {/*
         Order is pass layout as much as look: the composer opens a new
         full-screen pass at every convolution effect, so the four effects that
@@ -91,11 +121,11 @@ export function Stage({
       */}
       <EffectComposer multisampling={0} enableNormalPass={false}>
         <Bloom
-          intensity={reduced ? 0.7 : 1.35}
+          intensity={bloom}
           luminanceThreshold={0.1}
           luminanceSmoothing={0.42}
           mipmapBlur
-          radius={0.78}
+          radius={radius}
         />
         <primitive object={toneMapping} dispose={null} />
         <Noise
@@ -117,9 +147,10 @@ export function Stage({
           and its cost is paid on every view. Luma edges over colour edges and
           the low preset over the medium one together halve the two search
           passes on a scene full of thin rails and wires, for a difference this
-          deck's geometry does not show.
+          deck's geometry does not show. It is also the pass the `low` tier
+          gives up, because it is the one worth a whole tier of frame time.
         */}
-        <SMAA preset={SMAAPreset.LOW} edgeDetectionMode={EdgeDetectionMode.LUMA} />
+        {smaa ? <SMAA preset={SMAAPreset.LOW} edgeDetectionMode={EdgeDetectionMode.LUMA} /> : <></>}
       </EffectComposer>
     </Canvas>
   )

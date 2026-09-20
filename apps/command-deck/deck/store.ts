@@ -35,6 +35,14 @@ interface Burst {
  */
 type PresentationMode = 'off' | 'focus' | 'tour'
 
+/**
+ * The grade the shared stage renders at.
+ *
+ * The three tiers trade image for frame time: pixel ratio, the antialiasing
+ * pass and the bloom are what a weak GPU cannot afford.
+ */
+export type QualityTier = 'high' | 'medium' | 'low'
+
 /** Everything the deck holds for one session. */
 export interface DeckState {
   source: FeedSource | undefined
@@ -57,6 +65,10 @@ export interface DeckState {
   bursts: Burst[]
   /** How the deck is being shown; presentation only, no effect on what is read. */
   presentation: PresentationMode
+  /** The grade the stage renders at, kept across a view change so a learned tier is not relearned. */
+  qualityTier: QualityTier
+  /** Whether a `?quality=` query pinned the tier, which also stops the performance monitor. */
+  qualityPinned: boolean
   boot: () => Promise<void>
   selectRun: (id: string) => void
   /** List a run the feed does not report yet, such as a review this deck just started. */
@@ -71,6 +83,9 @@ export interface DeckState {
   setPresentation: (mode: PresentationMode) => void
   /** Enter one presentation mode, or leave it when it is already the current one. */
   togglePresentation: (mode: Exclude<PresentationMode, 'off'>) => void
+  setQualityTier: (tier: QualityTier) => void
+  /** Fix the tier a `?quality=` query named, which the performance monitor then never moves. */
+  pinQualityTier: (tier: QualityTier) => void
 }
 
 let unsubscribe: (() => void) | undefined
@@ -103,6 +118,8 @@ export const useDeck = create<DeckState>((set, get) => ({
   activity: new Map<string, number>(),
   bursts: [],
   presentation: 'off',
+  qualityTier: 'high',
+  qualityPinned: false,
 
   boot: async () => {
     if (get().booted) return
@@ -196,6 +213,9 @@ export const useDeck = create<DeckState>((set, get) => ({
   togglePresentation: mode => set(state => ({
     presentation: state.presentation === mode ? 'off' : mode,
   })),
+
+  setQualityTier: tier => set({ qualityTier: tier }),
+  pinQualityTier: tier => set({ qualityTier: tier, qualityPinned: true }),
 }))
 
 /**
