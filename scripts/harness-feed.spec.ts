@@ -166,6 +166,33 @@ afterEach(() => {
 })
 
 /** Starts the feed server on an ephemeral port over `fixturesDir`, registering it for teardown. */
+/**
+ * A temporary tree holding one fleet plan under `.proving-ground/runs/`, removed after the test.
+ * @param prefix - The temporary directory's name prefix.
+ * @returns The tree root and the run directory inside it.
+ */
+function makeFleetPlanDir(prefix: string): { dir: string; runDir: string } {
+  const dir = mkdtempSync(join(tmpdir(), prefix))
+  cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+  const runDir = join(dir, '.proving-ground/runs/h3-baseline-sonnet-t5-20260919T181623Z')
+  mkdirSync(runDir, { recursive: true })
+  writeFileSync(join(runDir, 'plan.json'), JSON.stringify({ name: 'h3-baseline-sonnet-t5', models: [{ provider: 'claude-code', model: 'sonnet' }] }))
+  return { dir, runDir }
+}
+
+/**
+ * The two-session fixture served by a fresh feed, with its `bench-e3` event stream open; everything is closed after the test.
+ * @returns The fixture and the open stream.
+ */
+async function openFixtureStream(): Promise<{ fixture: Fixture; sse: ReturnType<typeof collectSse> }> {
+  const fixture = makeFixture()
+  cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
+  const { port } = await startServer(fixture.dir)
+  const sse = collectSse(port, 'bench-e3')
+  cleanups.push(sse.close)
+  return { fixture, sse }
+}
+
 async function startServer(fixturesDir: string): Promise<{ server: Server; port: number }> {
   const server = createHarnessFeedServer({ root, fixturesDir })
   await new Promise<void>((resolvePromise) => { server.listen(0, '127.0.0.1', resolvePromise) })
@@ -190,14 +217,7 @@ describe('GET /runs', () => {
   })
 
   it('classifies a plan.json with a models array as a fleet, not the experiment default', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-fleet-'))
-    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
-    const runDir = join(dir, '.proving-ground/runs/h3-baseline-sonnet-t5-20260919T181623Z')
-    mkdirSync(runDir, { recursive: true })
-    writeFileSync(join(runDir, 'plan.json'), JSON.stringify({
-      name: 'h3-baseline-sonnet-t5',
-      models: [{ provider: 'claude-code', model: 'sonnet' }],
-    }))
+    const { dir } = makeFleetPlanDir('dsh-harness-feed-fleet-')
     const { port } = await startServer(dir)
 
     const { body: rawBody } = await getJson(port, '/runs')
@@ -207,11 +227,7 @@ describe('GET /runs', () => {
   })
 
   it('reports completed with the driver\'s own endedAt once run.log ends in a type: "result" line', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-completed-'))
-    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
-    const runDir = join(dir, '.proving-ground/runs/h3-baseline-sonnet-t5-20260919T181623Z')
-    mkdirSync(runDir, { recursive: true })
-    writeFileSync(join(runDir, 'plan.json'), JSON.stringify({ name: 'h3-baseline-sonnet-t5', models: [{ provider: 'claude-code', model: 'sonnet' }] }))
+    const { dir, runDir } = makeFleetPlanDir('dsh-harness-feed-completed-')
     const banner = '=== 2026-09-19T18:16:23.466Z plan=h3-baseline-sonnet-t5 overlay=base head=8d5b54857 ==='
     const resultLine = JSON.stringify({ type: 'result', plan: 'h3-baseline-sonnet-t5', startedAt: '2026-09-19T18:16:25.923Z', endedAt: '2026-09-19T19:02:24.387Z', report: { group: 'fleet-x', cells: [] } })
     writeFileSync(join(runDir, 'run.log'), `${banner}\n${resultLine}\n`)
@@ -265,12 +281,7 @@ describe('GET /runs', () => {
 
 describe('GET /runs/:id/events', () => {
   it('replays both sessions in seq order, folding tool, delegation, directive, and step kinds', async () => {
-    const fixture = makeFixture()
-    cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
-    const { port } = await startServer(fixture.dir)
-
-    const sse = collectSse(port, 'bench-e3')
-    cleanups.push(sse.close)
+    const { sse } = await openFixtureStream()
     const events = await sse.waitForCount(13)
 
     // session-a's 9 events precede session-b's 4 (sorted file order), each
@@ -298,12 +309,7 @@ describe('GET /runs/:id/events', () => {
   })
 
   it('tails an appended line within one poll interval', async () => {
-    const fixture = makeFixture()
-    cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
-    const { port } = await startServer(fixture.dir)
-
-    const sse = collectSse(port, 'bench-e3')
-    cleanups.push(sse.close)
+    const { fixture, sse } = await openFixtureStream()
     await sse.waitForCount(13)
 
     appendFileSync(fixture.sessionAFile, line('step/start', 11, 1_800_000_002_000, { turn: 1, step: 2 }))

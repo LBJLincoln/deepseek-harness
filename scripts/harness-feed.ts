@@ -32,7 +32,7 @@ import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
-import type { Roster, RosterAgentDefinition } from './enterprise-roster.ts'
+import { CODE_SAFETY_DEPARTMENTS, type Roster, type RosterAgentDefinition } from './enterprise-roster.ts'
 
 /** Default TCP port; overridden with `--port <n>`. */
 export const DEFAULT_PORT = 4711
@@ -226,15 +226,6 @@ const DELEGATION_TOOL_NAMES = new Set(['subagent', 'subagent_control', 'subagent
 
 /** Case-insensitive phrases that mark a failed tool result as a policy refusal rather than an ordinary tool error. */
 const REFUSAL_PATTERN = /denied|refused|blocked|not permitted|requires reading/i
-
-const CODE_SAFETY_DEPARTMENTS: readonly { id: string; name: string }[] = [
-  { id: 'secrets', name: 'Secrets' },
-  { id: 'injection', name: 'Injection' },
-  { id: 'access', name: 'Access' },
-  { id: 'data', name: 'Data' },
-  { id: 'dependencies', name: 'Dependencies' },
-  { id: 'platform', name: 'Platform' },
-]
 
 const LANGUAGE_BY_EXTENSION: Record<string, string> = {
   '.ts': 'TypeScript', '.tsx': 'TypeScript', '.js': 'JavaScript', '.jsx': 'JavaScript', '.mjs': 'JavaScript',
@@ -443,23 +434,29 @@ function discoverProvingGroundRuns(discoveryRoot: string): RunSummary[] {
 }
 
 /**
- * One `data/proving-ground/<id>/sessions/*.jsonl` recorded, read-only run.
- * These are committed historical records, so a run with no explicit end
+ * The recorded, read-only runs under one `data/<subdir>/<id>/sessions/*.jsonl`
+ * tree. These are committed historical records, so a run with no explicit end
  * marker is still reported `completed` rather than `running`.
+ * @param discoveryRoot - The repository root the records live under.
+ * @param subdir - The record tree, relative to the root.
+ * @param kindOf - Names a record's kind from its id, directory and manifest.
+ * @returns One summary per record directory that holds a `sessions/` directory.
  */
-function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] {
-  const base = join(discoveryRoot, 'data/proving-ground')
+function discoverRecordedRuns(
+  discoveryRoot: string,
+  subdir: string,
+  kindOf: (id: string, dir: string, manifest: RecordedRunManifest | undefined) => RunKind,
+): RunSummary[] {
+  const base = join(discoveryRoot, subdir)
   const runs: RunSummary[] = []
   for (const id of listDirSafe(base).sort()) {
     const dir = join(base, id)
-    const sessionsDir = join(dir, 'sessions')
-    if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(sessionsDir)) continue
+    if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(join(dir, 'sessions'))) continue
     const manifest = readJsonSafe(join(dir, 'manifest.json')) as RecordedRunManifest | undefined
-    const result = readJsonSafe(join(dir, 'result.json')) as RecordedRunResult | undefined
     const endedAt = manifest?.endedAt ?? mtimeIso(dir)
     runs.push({
       id,
-      kind: classifyRecordedRun(id, result, manifest),
+      kind: kindOf(id, dir, manifest),
       name: manifest?.run ?? id,
       startedAt: manifest?.ranAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
       ...endedAt === undefined ? {} : { endedAt },
@@ -468,6 +465,18 @@ function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] 
     })
   }
   return runs
+}
+
+/**
+ * One `data/proving-ground/<id>` record, its kind read from `result.json`.
+ * @param discoveryRoot - The repository root the records live under.
+ * @returns The recorded Proving Ground runs.
+ */
+function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] {
+  return discoverRecordedRuns(discoveryRoot, 'data/proving-ground', (id, dir, manifest) => {
+    const result = readJsonSafe(join(dir, 'result.json')) as RecordedRunResult | undefined
+    return classifyRecordedRun(id, result, manifest)
+  })
 }
 
 /** One JSON line this module recognizes at the tail of a code-safety run's `stdout.jsonl`. */
@@ -558,41 +567,13 @@ function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
 }
 
 /**
- * The fields this module reads from a recorded `data/code-safety/<id>/manifest.json`,
- * always written by `data/code-safety/tools/record-run.mjs`.
- */
-interface RecordedCodeSafetyManifest {
-  run?: string
-  ranAt?: string
-  endedAt?: string
-  target?: TargetLock
-}
-
-/**
- * One recorded `data/code-safety/<id>` review, a committed historical record
- * like {@link discoverRecordedProvingGroundRuns}: always `completed`, with
- * `manifest.json` naming its timestamps.
+ * One recorded `data/code-safety/<id>` review: always `completed`, always a
+ * `code-safety` run, with `manifest.json` naming its timestamps.
+ * @param discoveryRoot - The repository root the records live under.
+ * @returns The recorded code-safety reviews.
  */
 function discoverRecordedCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
-  const base = join(discoveryRoot, 'data/code-safety')
-  const runs: RunSummary[] = []
-  for (const id of listDirSafe(base).sort()) {
-    const dir = join(base, id)
-    const sessionsDir = join(dir, 'sessions')
-    if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(sessionsDir)) continue
-    const manifest = readJsonSafe(join(dir, 'manifest.json')) as RecordedCodeSafetyManifest | undefined
-    const endedAt = manifest?.endedAt ?? mtimeIso(dir)
-    runs.push({
-      id,
-      kind: 'code-safety',
-      name: manifest?.run ?? id,
-      startedAt: manifest?.ranAt ?? mtimeIso(dir) ?? new Date(0).toISOString(),
-      ...endedAt === undefined ? {} : { endedAt },
-      status: 'completed',
-      path: relative(discoveryRoot, dir),
-    })
-  }
-  return runs
+  return discoverRecordedRuns(discoveryRoot, 'data/code-safety', () => 'code-safety')
 }
 
 /** @returns whether `path` is a directory, tolerating a missing or unreadable path. */

@@ -381,7 +381,7 @@ const DIVISIONS: RosterDivisionSummary[] = [
  * `data/knowledge/code-safety/<id>/SKILL.md`, the real review knowledge pack
  * for that department — so there is nothing further to hardcode per department.
  */
-interface CodeSafetyDepartment {
+export interface CodeSafetyDepartment {
   id: string
   name: string
 }
@@ -392,7 +392,8 @@ interface CodeSafetySpecialization {
   name: string
 }
 
-const CODE_SAFETY_DEPARTMENTS: readonly CodeSafetyDepartment[] = [
+/** The six departments of a code-safety review, in the order the program starts them; the feed reads the same list. */
+export const CODE_SAFETY_DEPARTMENTS: readonly CodeSafetyDepartment[] = [
   { id: 'secrets', name: 'Secrets' },
   { id: 'injection', name: 'Injection' },
   { id: 'access', name: 'Access' },
