@@ -21,7 +21,7 @@ import { eventTimeMs, useDeck } from './store.ts'
 export const PLAYBACK_SPEEDS = [1, 10, 30, 60] as const
 
 /** How much faster than the recording playback is running. */
-export type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number]
+type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number]
 
 /**
  * Frame state the scenes read: how fast recorded time is passing.

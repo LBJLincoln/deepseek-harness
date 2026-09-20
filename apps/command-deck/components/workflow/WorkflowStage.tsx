@@ -94,6 +94,15 @@ const HANDOVER_MS = 12_000
 /** Clear space the framing keeps around the graph, as a share of its extent. */
 const FRAME_PADDING = 1.28
 
+/**
+ * How far back the camera has to be to hold one reach in frame.
+ * @param reach - Half the graph's extent along the axis being framed.
+ * @returns The distance, in scene units.
+ */
+function framingDistance(reach: number): number {
+  return (reach * FRAME_PADDING) / Math.tan((Math.PI * FOV) / 360)
+}
+
 /** Scratch objects the frame loops write through; nothing is allocated per frame. */
 const PLACE = new Object3D()
 const HIDDEN = new Matrix4().makeScale(0.001, 0.001, 0.001)
@@ -587,6 +596,7 @@ function Nodes({
  * @returns The labels.
  */
 function Labels({ graph, hovered }: { graph: WorkflowGraph; hovered: string | undefined }): ReactNode {
+  const names = graph.dense ? [] : graph.nodes
   const reduced = usePrefersReducedMotion()
   const activity = useDeck(state => state.activity)
   const cursor = useDeck(state => state.cursor)
@@ -594,7 +604,7 @@ function Labels({ graph, hovered }: { graph: WorkflowGraph; hovered: string | un
 
   useFrame(() => {
     const now = performance.now()
-    for (const [index, node] of graph.nodes.entries()) {
+    for (const [index, node] of names.entries()) {
       const element = elements.current[index]
       if (element === null || element === undefined) continue
       const since = idleness(node, activity, cursor, now)
@@ -607,7 +617,7 @@ function Labels({ graph, hovered }: { graph: WorkflowGraph; hovered: string | un
 
   return (
     <group>
-      {graph.nodes.map((node, index) => (
+      {names.map((node, index) => (
         <Html
           key={node.id}
           center
@@ -662,10 +672,11 @@ function Labels({ graph, hovered }: { graph: WorkflowGraph; hovered: string | un
  * re-framing as tiers and rows are added under it. Touching the controls hands
  * the camera to the viewer and it is taken back only once the viewer has let go
  * of it. Under reduced motion the camera cuts to the framing and never moves.
- * @param props - Half the graph's reach in x and y.
+ * @param props - Half the graph's reach in x and y, and the distance its
+ * framing needs, which is what the viewer's own zoom is bounded against.
  * @returns The controls.
  */
-function Director({ extent }: { extent: { x: number; y: number } }): ReactNode {
+function Director({ extent, reach }: { extent: { x: number; y: number }; reach: number }): ReactNode {
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
   const reduced = usePrefersReducedMotion()
   const { camera, size } = useThree()
@@ -690,7 +701,7 @@ function Director({ extent }: { extent: { x: number; y: number } }): ReactNode {
     // Whichever of the two reaches needs the camera further back at this aspect
     // is the one that decides the framing, so a wide graph stays in frame.
     const half = Math.max(extent.y, extent.x / aspect)
-    GOAL.set(0, extent.y * 0.22, (half * FRAME_PADDING) / Math.tan((Math.PI * FOV) / 360))
+    GOAL.set(0, extent.y * 0.22, framingDistance(half))
 
     if (reduced) {
       camera.position.copy(GOAL)
@@ -718,8 +729,8 @@ function Director({ extent }: { extent: { x: number; y: number } }): ReactNode {
       dampingFactor={0.07}
       rotateSpeed={0.4}
       zoomSpeed={0.7}
-      minDistance={40}
-      maxDistance={720}
+      minDistance={30}
+      maxDistance={reach * 2.4}
       maxPolarAngle={Math.PI * 0.88}
     />
   )
@@ -755,14 +766,23 @@ export function WorkflowStage({
   useEffect(() => { noticeChanges(clocks, graph, reduced) }, [clocks, graph, reduced])
   useEffect(() => () => { document.body.style.cursor = 'auto' }, [])
 
+  // A fleet run opens dozens of sessions at once and is framed from much
+  // further back than a program's three tiers, so the fog follows the framing
+  // rather than a fixed depth that would swallow the whole graph.
+  const reach = framingDistance(Math.max(graph.extent.x, graph.extent.y))
+
   return (
-    <Canvas3D camera={{ position: [ESTABLISH.x, ESTABLISH.y, ESTABLISH.z], fov: FOV }} fogNear={200} fogFar={700}>
+    <Canvas3D
+      camera={{ position: [ESTABLISH.x, ESTABLISH.y, ESTABLISH.z], fov: FOV }}
+      fogNear={reach * 0.75}
+      fogFar={reach * 2.2}
+    >
       <gridHelper args={[640, 32, '#20344f', '#111d2e']} position={[0, -graph.extent.y - 34, 0]} />
       <Edges graph={graph} clocks={clocks} />
       <Pulses graph={graph} clocks={clocks} />
       <Nodes graph={graph} clocks={clocks} selected={selected} onHover={onHover} onSelect={onSelect} />
       <Labels graph={graph} hovered={hovered} />
-      <Director extent={graph.extent} />
+      <Director extent={graph.extent} reach={reach} />
     </Canvas3D>
   )
 }

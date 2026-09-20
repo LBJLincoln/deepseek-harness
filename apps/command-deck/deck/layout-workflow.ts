@@ -33,8 +33,20 @@ const INTEGRATION = 'integration'
 /** Distance between two tiers, along +x. */
 const TIER_SPAN = 76
 
-/** Distance between two nodes of one tier, along y. */
+/** Distance between two nodes of one tier, along y, where the tier has room. */
 const NODE_SPAN = 32
+
+/**
+ * How much room in y one tier is given.
+ *
+ * A tier packs its nodes closer rather than growing past this, because a fleet
+ * run opens dozens of cells at once and a graph the camera cannot frame shows
+ * nothing at all.
+ */
+const TIER_HEIGHT = 300
+
+/** Spacing below which a node's name would sit on its neighbour's. */
+const NAME_SPACING = 18
 
 /** Clear space kept around the graph when the camera frames it. */
 const MARGIN = 22
@@ -76,7 +88,7 @@ export interface WorkflowNode {
 }
 
 /** A directed relationship the graph draws between two sessions. */
-export interface WorkflowEdge {
+interface WorkflowEdge {
   id: string
   from: string
   to: string
@@ -103,6 +115,13 @@ export interface WorkflowGraph {
   merges: number
   /** The largest event count on any node; the node meters are read against it. */
   busiest: number
+  /**
+   * Whether a tier had to pack its nodes closer than a name needs.
+   *
+   * The scene drops the names at that point and leaves the sessions to the
+   * hover card and the panel, rather than printing them over each other.
+   */
+  dense: boolean
   /** Half the graph's reach in x and y, which is what the camera frames. */
   extent: { x: number; y: number }
 }
@@ -271,6 +290,7 @@ function laneColors(events: readonly RunEvent[], agents: Map<string, Agent>): Ma
  * tier is the pipeline stage the session's earliest work was logged at.
  * @param drafts - The scanned sessions.
  * @param root - The run root, when the ids state one.
+ * @param parents - The parent session id per child, where the ids state one.
  * @returns The tier per session id.
  */
 function tiersOf(drafts: readonly Draft[], root: string | undefined, parents: ReadonlyMap<string, string>): Map<string, number> {
@@ -349,8 +369,11 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
   const spread = [...perTier.keys()].sort((left, right) => left - right)
 
   const nodes: WorkflowNode[] = []
+  let dense = false
   for (const [column, tier] of spread.entries()) {
     const row = perTier.get(tier) ?? []
+    const span = Math.min(NODE_SPAN, TIER_HEIGHT / Math.max(1, row.length - 1))
+    dense = dense || (row.length > 1 && span < NAME_SPACING)
     for (const [index, draft] of row.entries()) {
       const principal = principalOf(draft.counts)
       const agent = principal === undefined ? undefined : agents.get(principal)
@@ -360,7 +383,7 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
         agentId: principal,
         tier: column,
         x: (column - ((spread.length - 1) / 2)) * TIER_SPAN,
-        y: (((row.length - 1) / 2) - index) * NODE_SPAN,
+        y: (((row.length - 1) / 2) - index) * span,
         color: (principal === undefined ? undefined : colors.get(principal))
           ?? (agent === undefined ? NEUTRAL : divisionColor(agent.division)),
         events: draft.events,
@@ -409,6 +432,7 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
     certificates: nodes.reduce((total, node) => total + node.certificates, 0),
     merges,
     busiest: nodes.reduce((most, node) => Math.max(most, node.events), 0),
+    dense,
     extent: {
       x: nodes.reduce((reach, node) => Math.max(reach, Math.abs(node.x)), 0) + MARGIN,
       y: nodes.reduce((reach, node) => Math.max(reach, Math.abs(node.y)), 0) + MARGIN,
