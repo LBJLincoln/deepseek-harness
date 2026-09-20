@@ -1,0 +1,196 @@
+/* The two set pieces the Safety view plays over the code city: the launch
+   sequence that ignites the six departments, and the verdict the certificate
+   lands as. Both hold the frame for a fixed time and are unmounted by their
+   own timer, so the last thing each animation does is fade itself out. */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 46;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  padding: 0 28px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: var(--ink-3);
+}
+
+/* ------------------------------------------------------------- launch -- */
+
+.launch {
+  background: radial-gradient(
+    86% 70% at 50% 46%,
+    rgba(4, 6, 11, 0.95) 0%,
+    rgba(4, 6, 11, 0.86) 40%,
+    rgba(4, 6, 11, 0.56) 70%,
+    rgba(4, 6, 11, 0.18) 100%
+  );
+  animation: veil 8000ms linear forwards;
+}
+
+.launch[data-reduced='true'] { animation: none; }
+
+.launchInner {
+  width: min(660px, 100%);
+}
+
+.launchHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+.launchTitle {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 16px 132px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0 10px;
+  border-bottom: 1px solid rgba(122, 152, 205, 0.09);
+  animation: ignite 900ms cubic-bezier(0.22, 0.85, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 820ms);
+}
+
+.launch[data-reduced='true'] .row { animation: none; }
+
+.rowMark {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.rowName {
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: currentColor;
+}
+
+.rowCharter {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------ verdict -- */
+
+.verdict {
+  z-index: 48;
+  text-align: center;
+  background: radial-gradient(
+    78% 62% at 50% 50%,
+    rgba(4, 6, 11, 0.94) 0%,
+    rgba(4, 6, 11, 0.78) 36%,
+    rgba(4, 6, 11, 0.36) 66%,
+    rgba(4, 6, 11, 0) 88%
+  );
+  animation: veil 10000ms linear forwards;
+}
+
+.verdict[data-reduced='true'] { animation: none; }
+
+.verdictTitle {
+  margin: 14px 0 0;
+  font-size: clamp(40px, 7.4vw, 104px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: currentColor;
+  text-shadow: 0 0 74px currentColor;
+}
+
+.char {
+  display: inline-block;
+  animation: strike 620ms cubic-bezier(0.19, 0.9, 0.24, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 32ms);
+}
+
+.verdict[data-reduced='true'] .char { animation: none; }
+
+.verdictLine {
+  margin: 20px 0 0;
+  font-size: 14.5px;
+  color: var(--ink-2);
+  animation: rise 700ms ease-out backwards;
+  animation-delay: calc(700ms + var(--i, 0) * 150ms);
+}
+
+.verdict[data-reduced='true'] .verdictLine { animation: none; }
+
+.verdictWhere {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.tally {
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+  margin-top: 26px;
+  animation: rise 700ms ease-out backwards;
+  animation-delay: 1250ms;
+}
+
+.verdict[data-reduced='true'] .tally { animation: none; }
+
+.tally div {
+  display: grid;
+  gap: 2px;
+}
+
+.tally b {
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.tally span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-3);
+}
+
+@keyframes veil {
+  0% { opacity: 0; }
+  4% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes ignite {
+  from { opacity: 0; transform: translate3d(-14px, 0, 0); filter: blur(5px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes strike {
+  from { opacity: 0; transform: translate3d(0, 0.3em, 0) scale(1.14); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: none; }
+}
