@@ -142,18 +142,24 @@ export function usePlayback(): Playback {
   useEffect(() => {
     if (!playing || !ready) return undefined
     let frame = 0
-    let previous = performance.now()
+    // Recorded time is measured from an anchor rather than summed over frames,
+    // so the speed the viewer chose is the speed they get: a scene rendering at
+    // two frames a second replays the run just as fast as one at sixty, it
+    // simply draws fewer of the steps between.
+    let anchorAt = at.current
+    let anchorWall = performance.now()
     let lastWrite = 0
 
     const tick = (now: number): void => {
       frame = requestAnimationFrame(tick)
-      const wall = Math.min(now - previous, 250)
-      previous = now
       // A scrub while playback runs moves the cursor under it; playback carries
       // on from where the viewer left it rather than snapping back.
       const live = useDeck.getState().cursor
-      if (live !== written.current && live !== undefined) at.current = live
-      at.current += wall * speed
+      if (live !== written.current && live !== undefined) {
+        anchorAt = live
+        anchorWall = now
+      }
+      at.current = anchorAt + ((now - anchorWall) * speed)
       if (last !== undefined && at.current >= last) {
         stop()
         return

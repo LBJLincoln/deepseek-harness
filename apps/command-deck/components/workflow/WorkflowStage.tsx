@@ -455,17 +455,19 @@ function Nodes({
     const position = layer.geometry.getAttribute('position')
     const colour = layer.geometry.getAttribute('aColor')
     const gain = layer.geometry.getAttribute('aGain')
-    const merged = decay(now - clocks.merged, SEAL_MS)
+    // Under reduced motion every clock reads settled: a seal is already landed,
+    // a merge is already lit and a new node is already at full size.
+    const merged = reduced ? 0 : decay(now - clocks.merged, SEAL_MS)
 
     for (const [index, node] of graph.nodes.entries()) {
       const clock = clocks.nodes.get(node.id)
       const since = idleness(node, activity, cursor, now)
       const working = reduced ? 0 : decay(since, LIVE_WINDOW_MS)
       const directed = clock === undefined || reduced ? 0 : decay(now - clock.directed, DIRECTIVE_MS)
-      const flash = clock === undefined ? 0 : decay(now - clock.refused, FLASH_MS)
+      const flash = clock === undefined || reduced ? 0 : decay(now - clock.refused, FLASH_MS)
       const lands = node.integration && clocks.merges > 0
       const chosen = node.id === selected
-      const arrival = easeInOutCubic(Math.min(1, (now - (clock?.born ?? now)) / GROW_MS))
+      const arrival = reduced ? 1 : easeInOutCubic(Math.min(1, (now - (clock?.born ?? now)) / GROW_MS))
 
       const breath = reduced ? 0 : Math.sin((beat * 2.4) + index) * 0.045
       const scale = arrival * (1 + breath + (working * 0.2) + (directed * 0.3) + (chosen ? 0.24 : 0))
@@ -487,7 +489,9 @@ function Nodes({
       PLACE.position.set(node.x, node.y, 0)
       PLACE.rotation.set(0, 0, 0)
       // The seal opens wide and settles onto the body it certifies.
-      const landing = clock === undefined ? 1 : easeInOutCubic(Math.min(1, (now - clock.sealed) / SEAL_MS))
+      const landing = clock === undefined || reduced
+        ? 1
+        : easeInOutCubic(Math.min(1, (now - clock.sealed) / SEAL_MS))
       PLACE.scale.setScalar(node.certificates === 0 ? 0.001 : 1 + ((1 - landing) * 1.7))
       PLACE.updateMatrix()
       ring.setMatrixAt(index * 2, PLACE.matrix)
