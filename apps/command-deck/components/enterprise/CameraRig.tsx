@@ -89,6 +89,10 @@ function focusShot(x: number, y: number, z: number, from: Vector3): Shot {
  * opening shot lands on the beat it was written for instead of drifting with
  * the frame rate. Under `prefers-reduced-motion` the deck opens at rest and
  * selection cuts straight to its shot.
+ *
+ * The cold open borrows the same two shots: the camera holds the establishing
+ * shot for the whole ignition, then flies down to rest as the claim dissolves,
+ * which is the flight the deck opens on whether or not a sequence ran.
  * @param props - The computed layout, which supplies every shot.
  * @returns The controls.
  */
@@ -96,6 +100,7 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
   const controls = useRef<ElementRef<typeof OrbitControls>>(null)
   const reduced = usePrefersReducedMotion()
   const selectedId = useDeck(state => state.selectedAgentId)
+  const opening = useDeck(state => state.opening)
   const { camera } = useThree()
   const flight = useRef<Flight | undefined>(undefined)
   const opened = useRef(false)
@@ -116,9 +121,23 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
     camera.position.copy(opening.position)
   }, [camera, layout, reducedAtMount])
 
+  // While the cold open assembles the graph the camera stands still at the
+  // establishing shot; the flight down is the sequence's last beat, started by
+  // the effect below once the phase leaves `playing`.
   useEffect(() => {
     const control = controls.current
-    if (control === null) return
+    if (control === null || opening !== 'playing' || reduced) return
+    const shot = establishingShot(layout)
+    flight.current = undefined
+    camera.position.copy(shot.position)
+    control.target.copy(shot.target)
+    opened.current = false
+    setResting(false)
+  }, [camera, layout, opening, reduced])
+
+  useEffect(() => {
+    const control = controls.current
+    if (control === null || opening === 'playing') return
     const node = selectedId === undefined ? undefined : layout.nodes[layout.index.get(selectedId) ?? -1]
     if (selectedId !== undefined && node === undefined) return
     const to = node === undefined ? resting3D : focusShot(node.x, node.y, node.z, camera.position)
@@ -140,7 +159,7 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
       duration: first ? ESTABLISH_MS : FOCUS_MS,
     }
     setResting(false)
-  }, [camera, layout, reduced, resting3D, selectedId])
+  }, [camera, layout, opening, reduced, resting3D, selectedId])
 
   useFrame(() => {
     const control = controls.current
@@ -175,7 +194,9 @@ export function CameraRig({ layout }: { layout: GraphLayout }): ReactNode {
         flight.current = undefined
         setResting(true)
       }}
-      autoRotate={!reduced && resting && selectedId === undefined}
+      // The orbit also runs through the cold open, so the enterprise assembles
+      // under a camera that is alive rather than parked.
+      autoRotate={!reduced && (opening === 'playing' || (resting && selectedId === undefined))}
       autoRotateSpeed={0.28}
     />
   )

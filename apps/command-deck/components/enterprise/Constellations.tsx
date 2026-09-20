@@ -11,6 +11,7 @@ import {
   Matrix4,
   Vector3,
   type InstancedMesh,
+  type LineBasicMaterial,
 } from 'three'
 import type { Roster } from '@/deck/contract'
 import type { GraphLayout } from '@/deck/layout-enterprise'
@@ -18,6 +19,7 @@ import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { FLOW_WINDOW_MS, sinceLast } from './activity.ts'
 import { stageClamped } from './labels.ts'
+import { buildIgnition, readIgnition } from './reveal.ts'
 import { createNebulaTexture } from './sprites.ts'
 import styles from './labels.module.css'
 
@@ -32,6 +34,9 @@ const NEBULA_FLOOR = 11
 
 /** How much brighter a division's nebula burns when all of its agents are working. */
 const NEBULA_ACTIVE = 0.26
+
+/** How far a nebula overshoots its standing brightness as the cold open lights its division. */
+const NEBULA_FLARE = 0.3
 
 /** How far a division unrelated to the selected agent falls back. */
 const DIM = 0.32
@@ -58,16 +63,25 @@ const SCRATCH_DIRECTION = new Vector3()
  * name down to the centre of its cloud, and the name itself. The nebula's
  * brightness is the share of that division's agents that have acted inside the
  * activity window, so a working division is visibly the bright one.
+ *
+ * The cold open brings each nebula up with its own division and flares it as
+ * the nodes arrive; the leader lines follow at the end of the reveal and the
+ * names wait for the sequence to finish, so a graph still assembling is not
+ * labelled as if it were done.
  * @param props - The roster and its computed layout.
  * @returns The constellation scene contents.
  */
 export function Constellations({ roster, layout }: { roster: Roster; layout: GraphLayout }): ReactNode {
   const nebulae = useRef<InstancedMesh>(null)
+  const leaderMaterial = useRef<LineBasicMaterial>(null)
   const { camera } = useThree()
   const activity = useDeck(state => state.activity)
   const selectedId = useDeck(state => state.selectedAgentId)
+  const opening = useDeck(state => state.openingFrame)
+  const naming = useDeck(state => state.opening) !== 'playing'
 
   const clusters = layout.clusters
+  const ignition = useMemo(() => buildIgnition(roster, layout), [roster, layout])
   const selectedDivision = useMemo(
     () => roster.agents.find(agent => agent.id === selectedId)?.division,
     [roster.agents, selectedId],
@@ -135,6 +149,12 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
     if (mesh === null) return
     const now = performance.now()
     const colors = mesh.instanceColor
+    readIgnition(ignition, opening.reveal)
+    // The leader lines are a pointer to the names, so they arrive with them
+    // rather than with the clouds they point at.
+    if (leaderMaterial.current !== null) {
+      leaderMaterial.current.opacity = LEADER_OPACITY * Math.min(1, Math.max(0, (opening.reveal - 0.8) / 0.2))
+    }
 
     for (const [index, cluster] of clusters.entries()) {
       const members = membership[index] ?? []
@@ -151,9 +171,11 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
       mesh.setMatrixAt(index, SCRATCH_MATRIX)
 
       if (colors !== null) {
+        const lit = ignition.lit[index] ?? 1
+        const flare = ignition.flare[index] ?? 0
         SCRATCH_COLOR
           .set(divisionColor(cluster.id))
-          .multiplyScalar((NEBULA_BASE + (share * NEBULA_ACTIVE)) * weight)
+          .multiplyScalar((((NEBULA_BASE + (share * NEBULA_ACTIVE)) * lit) + (flare * NEBULA_FLARE)) * weight)
         mesh.setColorAt(index, SCRATCH_COLOR)
       }
     }
@@ -184,6 +206,7 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
 
       <lineSegments geometry={leaders} frustumCulled={false}>
         <lineBasicMaterial
+          ref={leaderMaterial}
           vertexColors
           transparent
           opacity={LEADER_OPACITY}
@@ -193,7 +216,7 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
         />
       </lineSegments>
 
-      {clusters.map((cluster) => {
+      {!naming ? null : clusters.map((cluster) => {
         const division = roster.divisions.find(entry => entry.id === cluster.id)
         const dimmed = selectedDivision !== undefined && selectedDivision !== cluster.id
         return (

@@ -52,12 +52,18 @@ const ZERO_SCALE = new Vector3(0, 0, 0)
  * Both are instanced over one pool, so a run that certifies six agents at once
  * still costs two draw calls. Under `prefers-reduced-motion` the ring and the
  * beam hold their size and then cut, instead of expanding and fading.
+ *
+ * While the cold open is assembling the graph the queue is drained without
+ * drawing: a certificate landing on an agent that is not lit yet reads as a
+ * fault, and the burst is a moment rather than a record — the panel and the
+ * event feed still carry it.
  * @param props - The computed layout, used to place each burst on its agent.
  * @returns The burst layers.
  */
 export function CertificateBursts({ layout }: { layout: GraphLayout }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const bursts = useDeck(state => state.bursts)
+  const opening = useDeck(state => state.openingFrame)
   const rings = useRef<InstancedMesh>(null)
   const beams = useRef<InstancedMesh>(null)
   const { camera } = useThree()
@@ -91,11 +97,13 @@ export function CertificateBursts({ layout }: { layout: GraphLayout }): ReactNod
     const beam = beams.current
     if (ring === null || beam === null) return
     const now = performance.now()
+    const igniting = opening.reveal < 1
 
     // Drain the store's queue: every burst is drawn once, then forgotten.
     while (bursts.length > 0) {
       const burst = bursts.shift()
       if (burst === undefined) break
+      if (igniting) continue
       const node = layout.nodes[layout.index.get(burst.agentId) ?? -1]
       if (node === undefined) continue
       const slot = pool.cursor

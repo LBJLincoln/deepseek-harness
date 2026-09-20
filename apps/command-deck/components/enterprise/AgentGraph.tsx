@@ -24,6 +24,7 @@ import { useDeck } from '@/deck/store'
 import { createGlowMaterial } from '@/components/three/glow'
 import { decay, FLOW_WINDOW_MS, PULSE_WINDOW_MS, sinceLast } from './activity.ts'
 import { stageClamped } from './labels.ts'
+import { buildIgnition, readIgnition } from './reveal.ts'
 import styles from './labels.module.css'
 
 /** Core radius of one agent node before its status scale. */
@@ -97,6 +98,10 @@ const NO_ROTATION = new Quaternion()
  * Each of the four is one draw call over every agent, and every frame writes
  * typed arrays rather than React state: at 147 agents the scene animates a
  * buffer, never a component tree.
+ *
+ * The cold open rides the same writes: a node is scaled and lit by how far its
+ * own division has arrived, with a brief flare as it does, so the sequence adds
+ * a multiply to a loop that was already running.
  * @param props - The roster and its computed layout.
  * @returns The graph scene contents.
  */
@@ -110,10 +115,12 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
   const selectedId = useDeck(state => state.selectedAgentId)
   const selectAgent = useDeck(state => state.selectAgent)
   const activity = useDeck(state => state.activity)
+  const opening = useDeck(state => state.openingFrame)
   const [hovered, setHovered] = useState<number | undefined>(undefined)
 
   const nodes = layout.nodes
   const agents = roster.agents
+  const ignition = useMemo(() => buildIgnition(roster, layout), [roster, layout])
 
   // One weight per node, recomputed only when the selection moves: the frame
   // loop reads it, so selection dimming costs nothing per frame.
@@ -197,6 +204,9 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
     const time = clock.elapsedTime
     const gains = glow.current?.geometry.getAttribute('aGain')
     const orbitColors = orbit.instanceColor
+    // At rest every division reads as lit and every flare as nothing, so the
+    // graph at work runs the same loop the cold open does.
+    readIgnition(ignition, opening.reveal)
 
     for (const [index, node] of nodes.entries()) {
       const agent = agents[index]
@@ -207,9 +217,14 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
       const weight = focus[index] ?? 1
       const emphasis = node.id === selectedId ? 0.9 : hovered === index ? 0.5 : 0
       const wave = reduced ? 0.5 : (Math.sin((time * 4.2) + (index * 0.7)) * 0.5) + 0.5
+      const division = ignition.nodes[index] ?? 0
+      const lit = ignition.lit[division] ?? 1
+      const flare = ignition.flare[division] ?? 0
 
       SCRATCH_POSITION.set(node.x, node.y, node.z)
-      const scale = STATUS_SCALE[status] * (1 + (pulse * 0.55 * (0.5 + (wave * 0.5))) + (emphasis * 0.35))
+      const scale = STATUS_SCALE[status]
+        * (1 + (pulse * 0.55 * (0.5 + (wave * 0.5))) + (emphasis * 0.35) + (flare * 0.3))
+        * lit
       SCRATCH_SCALE.setScalar(NODE_RADIUS * scale)
       SCRATCH_MATRIX.compose(SCRATCH_POSITION, NO_ROTATION, SCRATCH_SCALE)
       mesh.setMatrixAt(index, SCRATCH_MATRIX)
@@ -217,12 +232,12 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
       if (gains !== undefined) {
         const idle = reduced ? 0 : Math.sin((time * 1.1) + (index * 1.7)) * 0.05
         const gain = 0.42 + STATUS_GAIN[status] + idle + (pulse * 1.2) + emphasis
-        gains.setX(index, Math.min(1.8, gain) * weight)
+        gains.setX(index, ((Math.min(1.8, gain) * lit) + (flare * 1.5)) * weight)
       }
 
       // The orbital ring is worn only while the agent is working: it spins on
       // a tilt so it reads as an orbit rather than a halo seen edge-on.
-      if (working > 0.02) {
+      if (working > 0.02 && lit >= 1) {
         const spin = reduced ? index * 0.9 : (time * 1.15) + (index * 0.9)
         SCRATCH_EULER.set(1.12, spin, 0.38)
         SCRATCH_QUATERNION.setFromEuler(SCRATCH_EULER)
@@ -240,7 +255,7 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
       if (RIM_GAIN[status] === undefined) {
         SCRATCH_MATRIX.compose(SCRATCH_POSITION, NO_ROTATION, ZERO_SCALE)
       } else {
-        SCRATCH_SCALE.setScalar(NODE_RADIUS * RIM_RADIUS * STATUS_SCALE[status])
+        SCRATCH_SCALE.setScalar(NODE_RADIUS * RIM_RADIUS * STATUS_SCALE[status] * lit)
         SCRATCH_MATRIX.compose(SCRATCH_POSITION, camera.quaternion, SCRATCH_SCALE)
       }
       rim.setMatrixAt(index, SCRATCH_MATRIX)

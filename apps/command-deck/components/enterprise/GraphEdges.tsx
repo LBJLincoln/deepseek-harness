@@ -7,7 +7,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   Vector3,
-  type LineBasicMaterial,
   type Points,
 } from 'three'
 import type { Roster } from '@/deck/contract'
@@ -17,6 +16,7 @@ import { useDeck } from '@/deck/store'
 import { createGlowMaterial } from '@/components/three/glow'
 import { FLOW_WINDOW_MS, sinceLast } from './activity.ts'
 import { arcPoint, buildArcs, buildEdgeGeometry, type EdgeArc } from './arcs.ts'
+import { buildIgnition, createEdgeMaterial } from './reveal.ts'
 
 /** How many traffic particles the scene keeps, shared out over the edges that are carrying work. */
 const PARTICLES = 320
@@ -61,6 +61,7 @@ const SCRATCH_POINT = new Vector3()
 function EdgeTraffic({ arcs, mask }: { arcs: readonly EdgeArc[]; mask: Uint8Array | undefined }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const activity = useDeck(state => state.activity)
+  const opening = useDeck(state => state.openingFrame)
   const points = useRef<Points>(null)
 
   const geometry = useMemo(() => {
@@ -103,7 +104,9 @@ function EdgeTraffic({ arcs, mask }: { arcs: readonly EdgeArc[]; mask: Uint8Arra
     if (now - pool.checkedAt > LIVE_REFRESH_MS) {
       pool.checkedAt = now
       let count = 0
-      if (!reduced) {
+      // A relationship that is still threading in carries no traffic: the cold
+      // open introduces the enterprise before it shows it working.
+      if (!reduced && opening.reveal >= 1) {
         for (const [index, arc] of arcs.entries()) {
           const from = sinceLast(activity, arc.fromId, now)
           const to = sinceLast(activity, arc.toId, now)
@@ -174,15 +177,28 @@ function EdgeTraffic({ arcs, mask }: { arcs: readonly EdgeArc[]; mask: Uint8Arra
 /**
  * The roster's relationships: one additive line layer for the graph, a
  * brighter layer for the selected agent's own edges, and the traffic on top.
+ *
+ * The base layer's material carries the cold open: each vertex knows when its
+ * edge lights and where it sits along its arc, so a whole division's
+ * relationships thread out from their sources on one uniform write.
  * @param props - The roster and its computed layout.
  * @returns The edge scene contents.
  */
 export function GraphEdges({ roster, layout }: { roster: Roster; layout: GraphLayout }): ReactNode {
   const reduced = usePrefersReducedMotion()
   const selectedId = useDeck(state => state.selectedAgentId)
-  const base = useRef<LineBasicMaterial>(null)
+  const opening = useDeck(state => state.openingFrame)
 
-  const arcs = useMemo(() => buildArcs(roster.edges, layout), [roster.edges, layout])
+  const ignition = useMemo(() => buildIgnition(roster, layout), [roster, layout])
+  const arcs = useMemo(() => buildArcs(roster.edges, layout, ignition), [roster.edges, layout, ignition])
+
+  const reveal = useMemo(() => ({ value: 1 }), [])
+  const base = useMemo(() => {
+    const material = createEdgeMaterial(reveal)
+    material.opacity = EDGE_OPACITY
+    return material
+  }, [reveal])
+  useEffect(() => () => base.dispose(), [base])
 
   const geometry = useMemo(() => buildEdgeGeometry(arcs), [arcs])
   useEffect(() => () => geometry.dispose(), [geometry])
@@ -207,27 +223,16 @@ export function GraphEdges({ roster, layout }: { roster: Roster; layout: GraphLa
   }, [arcs, selectedId])
 
   useFrame(({ clock }) => {
-    const material = base.current
-    if (material === null) return
+    reveal.value = opening.reveal
     // Breathing, not traffic: one brightness for the whole layer, slow enough
     // that it never suggests an agent is at work.
     const breath = reduced ? 0 : Math.sin(clock.elapsedTime * BREATH_RATE) * BREATH
-    material.opacity = selectedId === undefined ? EDGE_OPACITY + breath : EDGE_OPACITY * DIM
+    base.opacity = selectedId === undefined ? EDGE_OPACITY + breath : EDGE_OPACITY * DIM
   })
 
   return (
     <group>
-      <lineSegments geometry={geometry} frustumCulled={false}>
-        <lineBasicMaterial
-          ref={base}
-          vertexColors
-          transparent
-          opacity={EDGE_OPACITY}
-          blending={AdditiveBlending}
-          depthWrite={false}
-          toneMapped={false}
-        />
-      </lineSegments>
+      <lineSegments geometry={geometry} material={base} frustumCulled={false} />
       <lineSegments geometry={selectedGeometry} frustumCulled={false}>
         <lineBasicMaterial
           vertexColors
