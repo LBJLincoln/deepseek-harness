@@ -18,11 +18,14 @@ git clone https://github.com/LBJLincoln/deepseek-harness.git && cd deepseek-harn
 git checkout claude/coding-agent-harness-u9l4gt
 pnpm install
 pnpm run build:lib:host            # the program drivers run built lib/; about five minutes
+pnpm run code-safety -- --keyless  # ten-second self-test of the program on its bundled sample; no login needed
 claude --version                   # the departments run on your Claude Code login
 python3 -m venv ~/semgrep-venv && ~/semgrep-venv/bin/pip install semgrep
 ln -sf ~/semgrep-venv/bin/semgrep /usr/local/bin/semgrep   # or add the venv's bin to PATH
 git clone --depth 1 https://github.com/OWASP/NodeGoat.git ~/targets/NodeGoat
 ```
+
+新机器上的第一次 `pnpm install` 需要网络，并会为示例演示可执行文件打印两条 `Failed to create bin` 警告——它们只在构建之后才存在；两者都在预期之内。`--keyless` 在夹具自带的八文件样例目标上运行脚本化组合，并拒绝任何其他目标，因此它在无需登录的情况下证明程序的管线是通的，但对你的仓库不作任何说明。在本分支的一份干净克隆上，这些步骤在构建这一切的机器上不到五分钟完成（不含首次安装的下载），而 `pnpm run poc` 在启动后约九十秒提供 `LIVE`，其中大部分是指挥台的首次构建。
 
 NodeGoat 上已记录的运行（[`data/code-safety/2026-09-19-nodegoat/`](../data/code-safety/2026-09-19-nodegoat/SAFETY-REPORT.md)）就是演示所产出之物的样子：七个部门全部认证，42 条经验证的发现（5 critical、17 high、13 medium、5 low、2 info），中等模型上 1,301 s，审查器退出码 0，十八个已知问题中找到十四个（[该读数](../data/code-safety/README.md)）；在 Java Struts 2 应用 dvja 上的第二次运行在 1,414 s 内发布了 40 条经验证的发现（9 critical），十四个已记载问题中找到十三个；在构建这一切的机器上的一次彩排，完全按指挥台按钮的方式经由 feed 启动，在同一 NodeGoat 修订版上于 1,225 s 内发布了 38 条经验证的发现，同样是 18 之 14（[第二份记录](../data/code-safety/2026-09-19-nodegoat-2/SAFETY-REPORT.md)）。然后在 NodeGoat 上端到端彩排一次：启动 feed 与指挥台，从指挥台发起一次审查，等待证书，打开报告。一次彩排的时长约等于审查本身（中等模型上十五到三十分钟）。在另一个标签页保持已记录运行的报告打开，作为后备。
 

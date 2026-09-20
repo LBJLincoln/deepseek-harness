@@ -1,7 +1,8 @@
 /**
  * Run the code-safety program over one target tree and print what it released.
  *
- *   pnpm run code-safety -- <target path> [--out <dir>] [--model sonnet|opus] [--keyless]
+ *   pnpm run code-safety -- <target path> [--out <dir>] [--model sonnet|opus]
+ *   pnpm run code-safety -- --keyless [--out <dir>]
  *
  * It seeds nothing itself: the fixture's driver mints the report repository,
  * locks the target, signs the spec and drives the six departments and their
@@ -11,7 +12,7 @@
  * The run directory defaults to `.code-safety/<target>-<timestamp>/`, which the
  * repository ignores. `--keyless` boots the scripted composition instead of the
  * Claude Code overlay, which needs no credential and reviews only the fixture's
- * own sample target.
+ * own sample target; a target path next to it is refused.
  */
 
 import { spawn } from 'node:child_process'
@@ -67,11 +68,20 @@ const { values, positionals } = parseArgs({
 })
 
 const keyless = values.keyless === true
+// The scripted composition answers only for the fixture's own sample: another
+// target would run six departments that never certify, then fail after four rounds.
+if (keyless && positionals[0] !== undefined) {
+  throw new Error(
+    'code-safety: --keyless reviews only the bundled sample target; drop the target path, or drop --keyless to review it on your Claude Code login',
+  )
+}
 const target = positionals[0] === undefined
   ? (keyless ? SAMPLE_TARGET : undefined)
   : resolve(positionals[0])
 if (target === undefined) {
-  throw new Error('usage: pnpm run code-safety -- <target path> [--out <dir>] [--model sonnet|opus] [--keyless]')
+  throw new Error(
+    'usage: pnpm run code-safety -- <target path> [--out <dir>] [--model sonnet|opus]  |  pnpm run code-safety -- --keyless [--out <dir>]',
+  )
 }
 if (!existsSync(target)) throw new Error(`code-safety: the target tree ${target} is not on this host`)
 if (values.model !== undefined && !MODELS.includes(values.model)) {

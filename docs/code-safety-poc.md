@@ -18,11 +18,14 @@ git clone https://github.com/LBJLincoln/deepseek-harness.git && cd deepseek-harn
 git checkout claude/coding-agent-harness-u9l4gt
 pnpm install
 pnpm run build:lib:host            # the program drivers run built lib/; about five minutes
+pnpm run code-safety -- --keyless  # ten-second self-test of the program on its bundled sample; no login needed
 claude --version                   # the departments run on your Claude Code login
 python3 -m venv ~/semgrep-venv && ~/semgrep-venv/bin/pip install semgrep
 ln -sf ~/semgrep-venv/bin/semgrep /usr/local/bin/semgrep   # or add the venv's bin to PATH
 git clone --depth 1 https://github.com/OWASP/NodeGoat.git ~/targets/NodeGoat
 ```
+
+The first `pnpm install` on a new machine needs the network, and it prints two `Failed to create bin` warnings for the example demo binaries, which exist only after the build; both are expected. `--keyless` runs the scripted composition over the fixture's own eight-file sample target and refuses any other target, so it proves the program's plumbing without a login and says nothing about your repository. On a fresh clone of this branch these steps took under five minutes on the machine that built this, excluding the first install's downloads, and `pnpm run poc` served `LIVE` about ninety seconds after it was started, most of it the deck's first build.
 
 The recorded run on NodeGoat ([`data/code-safety/2026-09-19-nodegoat/`](../data/code-safety/2026-09-19-nodegoat/SAFETY-REPORT.md)) is the shape of what the demonstration produces: seven of seven departments certified, 42 verified findings (5 critical, 17 high, 13 medium, 5 low, 2 info) in 1,301 s on the middle model, examiner exit 0, and 14 of the 18 known issues found ([the reading](../data/code-safety/README.md)); a second run on dvja, a Java Struts 2 application, released 40 verified findings (9 critical) in 1,414 s with 13 of its 14 documented issues found; a rehearsal on the machine that built this, started through the feed exactly as the deck's button does it, released 38 verified findings on the same NodeGoat revision in 1,225 s with the same 14 of 18 ([the second record](../data/code-safety/2026-09-19-nodegoat-2/SAFETY-REPORT.md)). Then rehearse once, end to end, on NodeGoat: start the feed and the deck, start a review from the deck, wait for the certificate, open the report. A rehearsal takes about the length of the review itself (fifteen to thirty minutes on the middle model). Keep the recorded run's report open in another tab as the fallback.
 
