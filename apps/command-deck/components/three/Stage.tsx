@@ -29,6 +29,13 @@ export interface StageCamera {
  * convolution effect, which would put it in a full-screen pass of its own; the
  * underlying effect is not one, so building it here keeps the whole grade —
  * bloom, tone map, grain, vignette — inside a single pass.
+ *
+ * The effect is mounted as a bare `<primitive>` with no `dispose` prop, because
+ * react-three-fiber writes unknown props straight onto the object: `dispose={null}`
+ * replaces the effect's own `dispose` with `null`, and the cleanup below then
+ * throws on unmount, which React reports to the nearest error boundary and the
+ * whole deck goes blank on the next view change. A primitive is never disposed
+ * by the reconciler either way, so this hook owns the disposal.
  * @returns The effect, disposed with the stage.
  */
 function useToneMapping(): ToneMappingEffect {
@@ -127,7 +134,7 @@ export function Stage({
           mipmapBlur
           radius={radius}
         />
-        <primitive object={toneMapping} dispose={null} />
+        <primitive object={toneMapping} />
         <Noise
           blendFunction={BlendFunction.OVERLAY}
           opacity={reduced ? 0.05 : 0.11}
