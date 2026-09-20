@@ -49,7 +49,7 @@ export interface DeckState {
   selectedFindingId: string | undefined
   error: string | undefined
   booted: boolean
-  /** Timeline position as a sequence number; `undefined` follows the head. */
+  /** Timeline position as an epoch-millisecond cap; `undefined` follows the head. */
   cursor: number | undefined
   /** Last activity timestamp per agent, in `performance.now()` milliseconds. */
   activity: Map<string, number>
@@ -65,7 +65,7 @@ export interface DeckState {
   refresh: () => Promise<void>
   selectAgent: (id: string | undefined) => void
   selectFinding: (id: string | undefined) => void
-  setCursor: (seq: number | undefined) => void
+  setCursor: (atMs: number | undefined) => void
   /** Load a review's detail; `force` re-reads one already loaded. */
   loadSafety: (id: string, force?: boolean) => Promise<void>
   setPresentation: (mode: PresentationMode) => void
@@ -167,7 +167,7 @@ export const useDeck = create<DeckState>((set, get) => ({
 
   selectAgent: id => set({ selectedAgentId: id }),
   selectFinding: id => set({ selectedFindingId: id }),
-  setCursor: seq => set({ cursor: seq }),
+  setCursor: atMs => set({ cursor: atMs }),
 
   loadSafety: async (id, force = false) => {
     const source = get().source
@@ -192,12 +192,33 @@ export const useDeck = create<DeckState>((set, get) => ({
 }))
 
 /**
+ * When one frame was logged.
+ *
+ * `seq` restarts at the head of every session the feed folds, so it orders one
+ * session's own work and nothing across sessions; `ts` is the only field that
+ * orders a whole run. The feed sends it as epoch milliseconds and the contract
+ * types it as an ISO-8601 string, both of which `Date` reads the same way.
+ * @param event - The frame to place.
+ * @returns Milliseconds since the epoch, or `NaN` when the field does not parse.
+ */
+export function eventTimeMs(event: RunEvent): number {
+  return new Date(event.ts).getTime()
+}
+
+/**
  * The events the timeline currently admits.
+ *
+ * A frame whose timestamp does not parse is admitted rather than hidden: the
+ * deck received it, so a cut of the run that dropped it would under-report what
+ * the run produced.
  * @param events - The full window.
- * @param cursor - Sequence cap, or `undefined` to follow the head.
- * @returns Events up to and including the cursor.
+ * @param cursor - Epoch-millisecond cap, or `undefined` to follow the head.
+ * @returns Events logged at or before the cursor.
  */
 export function eventsUpTo(events: readonly RunEvent[], cursor: number | undefined): RunEvent[] {
   if (cursor === undefined) return [...events]
-  return events.filter(event => event.seq <= cursor)
+  return events.filter((event) => {
+    const at = eventTimeMs(event)
+    return Number.isNaN(at) || at <= cursor
+  })
 }
