@@ -1,9 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePrefersReducedMotion } from '@/deck/motion'
-import { useDeck } from '@/deck/store'
+import { eventsUpTo, useDeck } from '@/deck/store'
 import { VIEWS } from './views.ts'
 
 /** How long a card holds before it fades back off the view. */
@@ -42,7 +43,25 @@ function useCard(pathname: string): Card {
   const runs = useDeck(state => state.runs)
   const selectedRunId = useDeck(state => state.selectedRunId)
   const events = useDeck(state => state.events)
+  const cursor = useDeck(state => state.cursor)
   const safety = useDeck(state => state.safety)
+
+  const workflow = useMemo(() => {
+    if (pathname !== '/workflow') return undefined
+    const agents = new Map((roster?.agents ?? []).map(agent => [agent.id, agent]))
+    return layoutWorkflow(eventsUpTo(events, cursor), agents)
+  }, [pathname, roster, events, cursor])
+
+  if (pathname === '/workflow') {
+    if (workflow === undefined || workflow.nodes.length === 0) return { title: 'Workflow', lines: [] }
+    return {
+      title: 'Workflow',
+      lines: [
+        `${spell(workflow.nodes.length)} sessions, ${workflow.edges.length} edges between them`,
+        `${workflow.certificates} certificates, ${spell(workflow.merges)} merges`,
+      ],
+    }
+  }
 
   if (pathname === '/process') {
     const run = runs.find(entry => entry.id === selectedRunId)
