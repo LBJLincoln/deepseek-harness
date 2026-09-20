@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, type ReactNode } from 'react'
 import { useDeck } from '@/deck/store'
+import { Opening } from './Opening.tsx'
 import { RollingNumber } from './RollingNumber.tsx'
 import { TitleCard } from './TitleCard.tsx'
 import { useEventRate } from './rate.ts'
@@ -17,7 +18,8 @@ import { VIEWS } from './views.ts'
  * `data-presentation` on the root carries the mode the whole layout answers to:
  * in `focus` and `tour` the panel goes and the stage takes the frame. The view
  * itself is keyed on the route so each navigation replays the dissolve that
- * covers the cut.
+ * covers the cut. `data-opening` carries the cold open, which holds the tour's
+ * own title card back while the enterprise assembles.
  * @param props - The routed page to frame.
  * @returns The shell.
  */
@@ -33,6 +35,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const presentation = useDeck(state => state.presentation)
   const qualityTier = useDeck(state => state.qualityTier)
   const qualityPinned = useDeck(state => state.qualityPinned)
+  const opening = useDeck(state => state.opening)
   const rate = useEventRate()
 
   useEffect(() => { void boot() }, [boot])
@@ -43,7 +46,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   const run = runs.find(entry => entry.id === selectedRunId)
 
   return (
-    <div className="deck" data-presentation={presentation}>
+    <div className="deck" data-presentation={presentation} data-opening={opening}>
       <header className="deck__header">
         <div className="deck__mark">
           <b>Daliesk</b>
@@ -88,6 +91,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
           <i className="deck__veil" />
         </div>
         <TitleCard />
+        <Opening />
       </main>
 
       <footer className="deck__footer">
@@ -116,7 +120,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
         {presentation === 'off' ? null : (
           <span className="deck__mode" data-mode={presentation}>{presentation}</span>
         )}
-        <span>1 / 2 / 3 / 4 views · f focus · p tour · esc deselect</span>
+        <span>1 / 2 / 3 / 4 views · o open · f focus · p tour · esc deselect</span>
       </footer>
     </div>
   )

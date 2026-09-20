@@ -157,7 +157,12 @@ a { color: inherit; text-decoration: none; }
 /* Lit while the number is travelling, so the eye catches that it moved. */
 .count [data-rolling='true'] { text-shadow: 0 0 16px currentColor; }
 
-.deck__main { position: relative; overflow: hidden; }
+.deck__main {
+  position: relative;
+  overflow: hidden;
+  background-color: transparent;
+  transition: background-color 900ms ease;
+}
 
 /*
  * The routed view, keyed on the route, so every navigation remounts it and
@@ -311,6 +316,85 @@ a { color: inherit; text-decoration: none; }
   from { opacity: 0; transform: translate3d(0, 9px, 0); }
   to { opacity: 1; transform: none; }
 }
+
+/* ------------------------------------------------------------ cold open -- */
+
+/*
+ * The cold open carries its own black. The solid ground is opaque while the
+ * claim arrives, fades out from under it while the graph assembles behind, and
+ * leaves the gradient the title cards use so the claim stays readable over a
+ * lit scene; the whole card then dissolves.
+ */
+.opening {
+  --veil: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 24px;
+  background-color: rgba(4, 6, 11, var(--veil));
+  opacity: 1;
+  transition: background-color 1100ms ease, opacity 1400ms ease;
+}
+
+.opening::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    76% 60% at 50% 50%,
+    rgba(4, 6, 11, 0.92) 0%,
+    rgba(4, 6, 11, 0.6) 38%,
+    rgba(4, 6, 11, 0) 84%
+  );
+}
+
+.opening[data-beat='ignite'] { --veil: 0; }
+.opening[data-beat='out'] { opacity: 0; }
+
+.opening__inner { position: relative; }
+
+.opening__mark {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 26px;
+  animation: card-line 700ms ease-out backwards;
+}
+
+.opening__mark b { font-size: 21px; font-weight: 600; letter-spacing: 0.04em; }
+
+.opening__mark span {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: var(--ink-3);
+}
+
+/* The claim carries four counts, so it sets smaller than a title card's name. */
+.opening__claim { font-size: clamp(22px, 3.3vw, 48px); }
+
+/* The cold open is the enterprise's own title card; the tour's waits its turn. */
+.deck[data-opening='playing'] .title-card { opacity: 0; }
+
+/*
+ * The panel and the stage's own copy are the working deck, which is what the
+ * sequence ends by handing over. They fade rather than leave, so the stage
+ * keeps its width and the graph never jumps as the deck arrives.
+ */
+.deck[data-opening='playing'] :is(.panel, .stage__overlay) { opacity: 0; }
+.panel,
+.stage__overlay { transition: opacity 900ms ease; }
+
+/*
+ * With the panel gone the deck's own gradient would show beside the canvas as a
+ * lighter band, so the main area takes the canvas's ground for the sequence.
+ */
+.deck[data-opening='playing'] .deck__main { background-color: var(--bg); }
 
 /* ---------------------------------------------------------------- badge -- */
 

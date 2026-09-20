@@ -2,9 +2,9 @@
  * The deck's single client store.
  *
  * Two kinds of state live here. React state (roster, runs, events, selection)
- * drives rendering. Frame state — `activity` and `bursts` — is mutated in
- * place and read from `useFrame`, because a sixty-times-a-second render pass
- * must not go through React at all.
+ * drives rendering. Frame state — `activity`, `bursts` and `openingFrame` — is
+ * mutated in place and read from `useFrame`, because a sixty-times-a-second
+ * render pass must not go through React at all.
  */
 
 'use client'
@@ -36,6 +36,26 @@ interface Burst {
 type PresentationMode = 'off' | 'focus' | 'tour'
 
 /**
+ * How far the cold open has got.
+ *
+ * It runs at most once per page load: `idle` is a deck that has not opened,
+ * `playing` the sequence itself, and `done` a deck that has already assembled,
+ * which is why a second tour starts on its first view instead of replaying it.
+ */
+export type OpeningPhase = 'idle' | 'playing' | 'done'
+
+/**
+ * Frame state the cold open drives.
+ *
+ * `reveal` walks from 0, with the graph dark, to 1, with every division lit.
+ * The enterprise layers read it from `useFrame` and turn it into per-division
+ * progress; nothing renders on it, so the sequence costs no React work.
+ */
+export interface OpeningFrame {
+  reveal: number
+}
+
+/**
  * The grade the shared stage renders at.
  *
  * The three tiers trade image for frame time: pixel ratio, the antialiasing
@@ -65,6 +85,12 @@ export interface DeckState {
   bursts: Burst[]
   /** How the deck is being shown; presentation only, no effect on what is read. */
   presentation: PresentationMode
+  /** How far the cold open has got; it runs at most once per page load. */
+  opening: OpeningPhase
+  /** `performance.now()` at which the running sequence started, or `undefined` outside one. */
+  openingAt: number | undefined
+  /** The cold open's frame state, mutated in place and read from `useFrame`. */
+  openingFrame: OpeningFrame
   /** The grade the stage renders at, kept across a view change so a learned tier is not relearned. */
   qualityTier: QualityTier
   /** Whether a `?quality=` query pinned the tier, which also stops the performance monitor. */
@@ -83,6 +109,14 @@ export interface DeckState {
   setPresentation: (mode: PresentationMode) => void
   /** Enter one presentation mode, or leave it when it is already the current one. */
   togglePresentation: (mode: Exclude<PresentationMode, 'off'>) => void
+  /**
+   * Start the cold open, unless it has already run.
+   * @param ignite - Whether the graph assembles; `false` holds it at rest, for reduced motion.
+   * @returns Whether this call started the sequence.
+   */
+  startOpening: (ignite: boolean) => boolean
+  /** End the sequence at once, leaving the graph whole rather than half lit. */
+  endOpening: () => void
   setQualityTier: (tier: QualityTier) => void
   /** Fix the tier a `?quality=` query named, which the performance monitor then never moves. */
   pinQualityTier: (tier: QualityTier) => void
@@ -118,6 +152,9 @@ export const useDeck = create<DeckState>((set, get) => ({
   activity: new Map<string, number>(),
   bursts: [],
   presentation: 'off',
+  opening: 'idle',
+  openingAt: undefined,
+  openingFrame: { reveal: 1 },
   qualityTier: 'high',
   qualityPinned: false,
 
@@ -213,6 +250,21 @@ export const useDeck = create<DeckState>((set, get) => ({
   togglePresentation: mode => set(state => ({
     presentation: state.presentation === mode ? 'off' : mode,
   })),
+
+  startOpening: (ignite) => {
+    if (get().opening !== 'idle') return false
+    get().openingFrame.reveal = ignite ? 0 : 1
+    set({ opening: 'playing', openingAt: performance.now() })
+    return true
+  },
+
+  endOpening: () => {
+    if (get().opening !== 'playing') return
+    // A sequence cut short leaves the graph whole: the reveal is taken to its
+    // end here rather than wherever the viewer interrupted it.
+    get().openingFrame.reveal = 1
+    set({ opening: 'done', openingAt: undefined })
+  },
 
   setQualityTier: tier => set({ qualityTier: tier }),
   pinQualityTier: tier => set({ qualityTier: tier, qualityPinned: true }),
