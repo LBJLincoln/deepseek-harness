@@ -5,9 +5,11 @@ import { useMemo, type ChangeEvent, type ReactNode } from 'react'
 import type { EventKind } from '@/deck/contract'
 import { clock, duration, stamp } from '@/deck/format'
 import { discoverLanes, laneTotals, STAGES, stageOf } from '@/deck/pipeline'
-import { eventsUpTo, useDeck } from '@/deck/store'
+import { usePlayback } from '@/deck/playback'
+import { eventsUpTo, eventTimeMs, useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { PlaybackControls } from '@/components/workflow/PlaybackControls'
 import { KIND_LOOK } from './kinds'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
@@ -29,15 +31,22 @@ export function ProcessView(): ReactNode {
   const events = useDeck(state => state.events)
   const cursor = useDeck(state => state.cursor)
   const setCursor = useDeck(state => state.setCursor)
+  const playback = usePlayback()
 
   const agents = useMemo(
     () => new Map((roster?.agents ?? []).map(agent => [agent.id, agent])),
     [roster],
   )
-  const visible = useMemo(() => eventsUpTo(events, cursor), [events, cursor])
+  // The feed folds one session at a time, so frames arrive out of the order they
+  // were logged; the timeline is the logged order and the scrubber indexes it.
+  const ordered = useMemo(
+    () => [...events].sort((left, right) => eventTimeMs(left) - eventTimeMs(right)),
+    [events],
+  )
+  const visible = useMemo(() => eventsUpTo(ordered, cursor), [ordered, cursor])
   const run = runs.find(entry => entry.id === selectedRunId)
 
-  const lanes = useMemo(() => discoverLanes(events, agents), [events, agents])
+  const lanes = useMemo(() => discoverLanes(ordered, agents), [ordered, agents])
   const laneCounts = useMemo(() => laneTotals(visible, agents, lanes), [visible, agents, lanes])
 
   const perStage = useMemo(() => {
@@ -55,9 +64,9 @@ export function ProcessView(): ReactNode {
     return [...totals.entries()].sort((left, right) => right[1] - left[1])
   }, [visible])
 
-  const head = events.at(-1)
+  const head = ordered.at(-1)
   const at = visible.at(-1)
-  const max = Math.max(0, events.length - 1)
+  const max = Math.max(0, ordered.length - 1)
   const position = cursor === undefined ? max : Math.max(0, visible.length - 1)
 
   // A run reads as finished when the feed has given it an end — `endedAt`, or a
@@ -69,11 +78,12 @@ export function ProcessView(): ReactNode {
 
   const onScrub = (event: ChangeEvent<HTMLInputElement>): void => {
     const index = Number(event.target.value)
-    if (index >= max) {
+    const frame = ordered[index]
+    if (index >= max || frame === undefined) {
       setCursor(undefined)
       return
     }
-    setCursor(events[index]?.seq)
+    setCursor(eventTimeMs(frame))
   }
 
   return (
@@ -81,7 +91,7 @@ export function ProcessView(): ReactNode {
       <div className="stage">
         <ProcessStage
           events={visible}
-          history={events}
+          history={ordered}
           agents={agents}
           completed={completed}
           progress={progress}
@@ -145,9 +155,12 @@ export function ProcessView(): ReactNode {
               </button>
             </div>
             <p style={{ margin: '7px 0 0', fontSize: 11, color: 'var(--ink-3)' }}>
-              {visible.length} of {events.length} events
+              {visible.length} of {ordered.length} events
               {head === undefined ? '' : ` · head ${clock(head.ts)}`}
             </p>
+            <div style={{ marginTop: 10 }}>
+              <PlaybackControls playback={playback} />
+            </div>
           </div>
 
           <div className="section">

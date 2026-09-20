@@ -6,6 +6,7 @@ import { BufferAttribute, BufferGeometry, Color, Vector3, type Mesh, type Points
 import type { Agent, EventKind, RunEvent } from '@/deck/contract'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { flightOf, laneZ, PIPELINE, STAGES, type Lanes } from '@/deck/pipeline'
+import { playbackClock } from '@/deck/playback'
 import { createGlowMaterial } from '@/components/three/glow'
 import { createTrailMaterial } from './materials'
 import { lookOf } from './kinds'
@@ -21,11 +22,14 @@ const POINTS = 360
 const SEGMENTS = 14
 
 /**
- * How many comets leave per second.
+ * How many comets leave per second of real time, at recorded speed.
  *
  * A run's history reaches the deck in one burst, and a burst launched in one
  * frame is a single flash rather than work travelling. The launch queue
  * therefore releases at a fixed rate, so every logged event is seen to travel.
+ * Playback multiplies that rate by its own speed, because a queue that kept
+ * releasing ten a second while the cursor ran sixty times faster would fall
+ * behind the run it is drawing.
  */
 const LAUNCH_PER_SECOND = 10
 
@@ -281,14 +285,15 @@ export function Flow({
     if (heads === null || trails === null) return
     const now = performance.now()
 
-    released.current += delta * LAUNCH_PER_SECOND
+    const rate = LAUNCH_PER_SECOND * playbackClock.speed
+    released.current += delta * rate
     while (released.current >= 1 && queue.current.length > 0 && live.current.length < FLIGHTS) {
       released.current -= 1
       const event = queue.current.shift()
       if (event === undefined) break
       live.current.push(cometOf(event, agents.get(event.agentId), lanes, now, Math.random() - 0.5))
     }
-    released.current = Math.min(released.current, LAUNCH_PER_SECOND)
+    released.current = Math.min(released.current, rate)
 
     live.current = live.current.filter((comet) => {
       const t = (now - comet.started) / comet.flightMs
