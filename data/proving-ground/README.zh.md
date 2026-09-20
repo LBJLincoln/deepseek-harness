@@ -23,7 +23,7 @@ data/proving-ground/
   dashboard.png                                             that page at desktop width as it stood when it was last rebuilt, the image the repository's front page shows
   improvement-log.md                                        one row per improvement iteration: the change proposed, the record or fold that tested it, the paired reading, and the decision taken
   loop/ledger.jsonl                                         one JSON line per `bench loop` iteration, written by the loop and never by hand: the queue and position, the plan and overlay, the record it wrote, the verdict, delta, interval and per-arm certificates read back from that record, and the decision the fixed rule took
-  loop/preflight.jsonl                                      one JSON line per run of tools/preflight.mjs, the nightly Routine's first step: the install, the build, the Claude Code CLI and its login, and the queue's dry run, each with its exit status and seconds, and the step that stopped the run with the end of its output
+  loop/preflight.jsonl                                      one JSON line per run of tools/preflight.mjs, the nightly Routine's first step: the install, the build, the Claude Code CLI and its login, and the queue's dry run, each with its exit status and seconds, and the step that stopped the run, by failing or by running past its timeout, with the end of its output
 ```
 
 ## 运行一次
