@@ -14,15 +14,14 @@
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Run, SafetyReview } from '@/deck/contract'
-import { useDeck } from '@/deck/store'
 
 /** How long the launch sequence holds the frame. */
-export const LAUNCH_MS = 8_000
+const LAUNCH_MS = 8_000
 
 /** How long the verdict holds the frame. */
-export const VERDICT_MS = 10_000
+const VERDICT_MS = 10_000
 
 /** How recently a review must have started for its launch sequence to play. */
 const FRESH_MS = 90_000
@@ -61,30 +60,12 @@ function justStarted(run: Run | undefined, review: SafetyReview): boolean {
 }
 
 /**
- * Read one review's detail once more, on the refresh that first reports its run
- * as no longer running.
- *
- * `DeckState.refresh` re-reads a code-safety review only while the run list
- * still calls it running, so the last read it makes is up to one refresh
- * interval older than the certificate the examiner writes at the end. Without
- * this read the deck can hold a finished review's last running snapshot, and
- * the verdict it never sees cannot play.
- * @param runId - The followed review's run id.
- * @param run - The run entry the feed lists for it.
- */
-function useFinalRead(runId: string | undefined, run: Run | undefined): void {
-  const done = useRef<string | undefined>(undefined)
-
-  useEffect(() => {
-    if (runId === undefined || run === undefined || run.status === 'running') return
-    if (done.current === runId) return
-    done.current = runId
-    void useDeck.getState().loadSafety(runId, true)
-  }, [runId, run])
-}
-
-/**
  * The set pieces the Safety view should be playing.
+ *
+ * The verdict depends on the store re-reading a review once more on the
+ * refresh that first reports its run as no longer running, which
+ * `DeckState.refresh` does: the certificate lands after the last read made
+ * while the run was still running.
  * @param runId - The followed review's run id.
  * @param run - The run entry the feed lists for it, when it lists one.
  * @param review - The loaded review, once it has arrived.
@@ -100,8 +81,6 @@ export function useSafetyMoments(
 
   const verified = review?.certificate.verified ?? false
   const ended = review !== undefined && !review.departments.some(entry => entry.status === 'pending')
-
-  useFinalRead(runId, run)
 
   useEffect(() => {
     if (runId === undefined || review === undefined || launched.has(runId)) return

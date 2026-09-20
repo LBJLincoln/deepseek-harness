@@ -20,7 +20,7 @@ import { eventsUpTo, useDeck } from '@/deck/store'
 import { touchColor } from './charters.ts'
 
 /** One inventory file and the most recent event that opened it. */
-export interface Touch {
+interface Touch {
   path: string
   /** The acting department's colour; the flare is drawn in it. */
   color: string

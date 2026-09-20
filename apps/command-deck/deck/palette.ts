@@ -26,6 +26,21 @@ const DIVISION_COLOR: Record<string, string> = {
 /** Fallback for a division the roster names but the palette does not. */
 const DIVISION_FALLBACK = '#9fb0cc'
 
+/**
+ * Hex colour per code-safety department id, in the order the program starts
+ * them: the code-safety division's colour rotated across the 84° hue band that
+ * lanes sharing one division spread over, so a department is one colour on the
+ * process lanes and on the code city.
+ */
+const DEPARTMENT_COLOR: Record<string, string> = {
+  secrets: '#ff5ff6',
+  injection: '#ff5fc9',
+  access: '#ff5f9c',
+  data: '#ff5f70',
+  dependencies: '#ff7b5f',
+  platform: '#ffa85f',
+}
+
 /** Hex colour per severity, worst first. */
 export const SEVERITY_COLOR: Record<Severity, string> = {
   critical: '#ff3f6b',
@@ -66,6 +81,15 @@ const LANGUAGE_FALLBACK = '#6d7fa6'
  */
 export function divisionColor(id: string): string {
   return DIVISION_COLOR[id] ?? DIVISION_FALLBACK
+}
+
+/**
+ * Colour for one code-safety department.
+ * @param id - Department id, such as `access`.
+ * @returns The department's hex colour, or `undefined` for an id that is not one of the six.
+ */
+export function departmentColor(id: string): string | undefined {
+  return DEPARTMENT_COLOR[id]
 }
 
 /**

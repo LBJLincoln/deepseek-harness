@@ -14,7 +14,7 @@
  */
 
 import type { Agent, RunEvent } from './contract.ts'
-import { divisionColor, EDGE_COLOR } from './palette.ts'
+import { departmentColor, divisionColor, EDGE_COLOR } from './palette.ts'
 
 /** One stage of the pipeline. */
 export interface Stage {
@@ -194,10 +194,11 @@ interface LaneDraft {
 /**
  * Discover the first-stage lanes of one run.
  *
- * Every lane takes its division's colour. Divisions that own several lanes —
- * the six code-safety departments are one division — spread their lanes across
- * a narrow hue band around that colour, so the division stays recognisable
- * while its departments stay apart.
+ * Every lane takes its division's colour. Divisions that own several lanes
+ * spread their lanes across a narrow hue band around that colour, so the
+ * division stays recognisable while its lanes stay apart; a code-safety
+ * department takes its fixed {@link departmentColor} instead, so it is the
+ * same colour here as on the code city whatever order the departments start in.
  * @param events - The run's event window, oldest first.
  * @param agents - The roster index.
  * @returns The lanes in first-appearance order.
@@ -231,7 +232,7 @@ export function discoverLanes(events: readonly RunEvent[], agents: Map<string, A
   for (const [base, group] of shared) {
     for (const [position, key] of group.entries()) {
       const spread = group.length < 2 ? 0 : ((position / (group.length - 1)) - 0.5) * LANE_HUE_BAND
-      colors.set(key, shiftHue(base, spread))
+      colors.set(key, departmentColor(key) ?? shiftHue(base, spread))
     }
   }
 

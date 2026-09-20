@@ -134,7 +134,14 @@ export const useDeck = create<DeckState>((set, get) => ({
       const pending = known.filter(run => !listed.some(entry => entry.id === run.id))
       set({ runs: [...pending, ...listed] })
       const selected = [...pending, ...listed].find(run => run.id === selectedRunId)
-      if (selected?.kind === 'code-safety' && (selected.status === 'running' || get().safetyRunId !== selected.id)) {
+      // The refresh that first reports a review as no longer running re-reads it
+      // once more: the certificate lands after the last read made while it ran,
+      // and a deck that stopped reading at that moment would never show it.
+      const wasRunning = known.find(run => run.id === selectedRunId)?.status === 'running'
+      if (
+        selected?.kind === 'code-safety'
+        && (selected.status === 'running' || wasRunning || get().safetyRunId !== selected.id)
+      ) {
         await get().loadSafety(selected.id, true)
       }
     } catch (error) {
