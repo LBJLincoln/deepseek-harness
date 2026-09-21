@@ -54,6 +54,10 @@ jobs:
         env:
           DECK_STATIC: '1'
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # The feed the published deck reads: the repository variable when set,
+          # else the mirror relay the operator's container pushes to; a viewer
+          # can still name another with `?feed=` on the page URL.
+          NEXT_PUBLIC_FEED_URL: ${{ vars.DECK_FEED_URL || 'https://cnaxcqiuwibsswfjjpko.supabase.co/functions/v1/feed' }}
         run: pnpm --dir apps/command-deck run build
 
       - name: Keep the export's underscore directories out of Jekyll's hands

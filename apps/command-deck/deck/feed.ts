@@ -35,9 +35,36 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 /** Base URL of the committed fixtures, static files that mirror the feed's paths. */
 const FIXTURE_BASE = `${BASE_PATH}/fixtures`
 
-/** The configured feed URL, or the documented default. */
+/** Query parameter naming the feed for one browser tab: `?feed=https://feed.example`. */
+const FEED_PARAM = 'feed'
+
+/** Where the tab remembers a feed named by {@link FEED_PARAM}, so client navigation and a reload keep it. */
+const FEED_STORAGE_KEY = 'dsh-deck-feed'
+
+/**
+ * The feed named on the page URL, if any, or the one this tab was given
+ * earlier. A hosted deck follows any feed the viewer's browser can reach this
+ * way, without a rebuild; the build's `NEXT_PUBLIC_FEED_URL` stays the default.
+ * @returns The feed URL, or `undefined` outside a browser and when none was named.
+ */
+function feedOverride(): string | undefined {
+  if (typeof window === 'undefined') return undefined
+  const named = new URLSearchParams(window.location.search).get(FEED_PARAM)
+  try {
+    if (named !== null && named !== '') {
+      window.sessionStorage.setItem(FEED_STORAGE_KEY, named)
+      return named
+    }
+    return window.sessionStorage.getItem(FEED_STORAGE_KEY) ?? undefined
+  } catch {
+    // Storage can be unavailable (a private window, blocked site data); the query alone still names the feed for this load.
+    return named ?? undefined
+  }
+}
+
+/** The feed named for this tab, else the configured feed URL, else the documented default. */
 function feedUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_FEED_URL
+  const configured = feedOverride() ?? process.env.NEXT_PUBLIC_FEED_URL
   return (configured === undefined || configured === '' ? 'http://localhost:4711' : configured)
     .replace(/\/+$/, '')
 }

@@ -15,7 +15,7 @@ pnpm install
 pnpm run deck
 ```
 
-deck 在 `http://localhost:3000` 提供服务。用 `NEXT_PUBLIC_FEED_URL` 指向实时 feed；默认值是 `http://localhost:4711`。
+deck 在 `http://localhost:3000` 提供服务。用 `NEXT_PUBLIC_FEED_URL` 指向实时 feed；默认值是 `http://localhost:4711`。观看者也可以在 deck 的 URL 上用 `?feed=https://feed.example` 为一个浏览器标签页指定 feed；该标签页在切换视图和刷新后仍保留它，因此托管的 deck 无需重新构建即可跟随浏览器能访问的任何 feed。
 
 第二行是生产构建及其服务端，第三行从运行中的 feed 为 `public/fixtures/` 拍快照。
 

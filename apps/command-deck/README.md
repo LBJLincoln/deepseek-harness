@@ -15,7 +15,7 @@ pnpm install
 pnpm run deck
 ```
 
-The deck serves on `http://localhost:3000`. Point it at a live feed with `NEXT_PUBLIC_FEED_URL`; the default is `http://localhost:4711`.
+The deck serves on `http://localhost:3000`. Point it at a live feed with `NEXT_PUBLIC_FEED_URL`; the default is `http://localhost:4711`. A viewer can also name a feed for one browser tab with `?feed=https://feed.example` on the deck's URL; the tab keeps it across views and reloads, so a hosted deck follows any feed the browser can reach without a rebuild.
 
 The second line is the production build and the server over it; the third snapshots `public/fixtures/` from a running feed.
 
