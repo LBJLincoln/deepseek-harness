@@ -1,0 +1,157 @@
+{
+  "run": "2026-09-21-nodegoat-3",
+  "ranAt": "2026-09-21T07:55:07.854Z",
+  "endedAt": "2026-09-21T08:17:43.732Z",
+  "elapsedSeconds": 1356,
+  "repository": {
+    "branch": "claude/coding-agent-harness-u9l4gt",
+    "head": "a47c8f5191e269e546802e2f50c61223b692459e"
+  },
+  "composition": "examples/headless-agent/tests/fixtures/program-code-safety/overlays/claude-code.cordis.yml",
+  "programId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c",
+  "outcome": "released",
+  "mergedRevision": "580c8f81231b3b66274e04488076c9038588e26b",
+  "target": {
+    "root": "/root/targets/NodeGoat",
+    "files": 111,
+    "sha256": "78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3"
+  },
+  "departments": [
+    {
+      "key": "secrets",
+      "status": "merged",
+      "revision": "c61bb71127f4bce33f7636c24c534523a6f3346a",
+      "tree": "bb629f782ad3a4c7f0c810fec391e6bdcd6ffe86"
+    },
+    {
+      "key": "injection",
+      "status": "merged",
+      "revision": "f1735d56f2a9a92c53827a8d2ef40cdc0f9bd19f",
+      "tree": "63c52cc7bbeb798d54b22e9909dd5e21da067c22"
+    },
+    {
+      "key": "access",
+      "status": "merged",
+      "revision": "027954642274f554fa827b959921a7de19d3b972",
+      "tree": "54d9a8c39e34eb915727a2da51f0836159787fd6"
+    },
+    {
+      "key": "data",
+      "status": "merged",
+      "revision": "69347869a6466757646e298f60c0ed066e9c50d3",
+      "tree": "f826b2e9227b73cd38147c29752ae8000e23798a"
+    },
+    {
+      "key": "dependencies",
+      "status": "merged",
+      "revision": "c604d677b83cbec98b06731e00e410d4fe3ca011",
+      "tree": "e04d70a691d86fa46ca674dae68597bc212aed58"
+    },
+    {
+      "key": "platform",
+      "status": "merged",
+      "revision": "f81e7a8a9611f116a4c0acd39c5b5099733d60cd",
+      "tree": "68818065936f40ab28b2864dbdb955b907ac2365"
+    }
+  ],
+  "certified": [
+    "@integration",
+    "access",
+    "data",
+    "dependencies",
+    "injection",
+    "platform",
+    "secrets"
+  ],
+  "findings": {
+    "total": 47,
+    "bySeverity": {
+      "critical": 4,
+      "high": 18,
+      "medium": 17,
+      "low": 7,
+      "info": 1
+    },
+    "byConfidence": {
+      "confirmed": 33,
+      "likely": 13,
+      "possible": 1
+    }
+  },
+  "verifier": {
+    "exitCode": 0
+  },
+  "denials": 0,
+  "sessions": {
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform.jsonl",
+    "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets.jsonl"
+  },
+  "files": [
+    {
+      "path": "result.json",
+      "bytes": 153304,
+      "sha256": "91e065205941fd49dec58ce6537c39d6efdd00613e935a60f1d350f84287347f"
+    },
+    {
+      "path": "SAFETY-REPORT.md",
+      "bytes": 29557,
+      "sha256": "6e1b04e9e3b96b9b7859f5d77580b6fa32d389bd650b390f6ca576c247855c8b"
+    },
+    {
+      "path": "findings.json",
+      "bytes": 81313,
+      "sha256": "cf2f492ab9b9ac11c8c01f133c6ec1ad51e73e19f5d15aa6d2fc692c5d84867c"
+    },
+    {
+      "path": "verifier.txt",
+      "bytes": 86,
+      "sha256": "72a90ce8ffe90468aac032053950eefd0b67b96d05013ff69c722d07032e4756"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c.jsonl",
+      "bytes": 24648,
+      "sha256": "f56caeb63db4dba7d5cfaf37d2da2381223455f67a82b7a835782094eae95d38"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration.jsonl",
+      "bytes": 707642,
+      "sha256": "4c784695b6310039ce15464b9487d6030c2063b9cb9b876407857dfeb8da5179"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access.jsonl",
+      "bytes": 421781,
+      "sha256": "1eb818f8577cf5e4a154ff4f695fd643bc7628343d31a673f99493dd9fbf7f98"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data.jsonl",
+      "bytes": 533410,
+      "sha256": "9944ba899707790206a6e6fcafabb0f7a955ffbde16b40d2e67bee2a9b1c699e"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies.jsonl",
+      "bytes": 574838,
+      "sha256": "960ab8d3fd004587039fe2637919dbc148a503672c2b8a95eb3cb4a272a63a5e"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection.jsonl",
+      "bytes": 500595,
+      "sha256": "bc5e9142dbb18b932e35c64a11b4bd68b745e62c35784381ab4e64f8d0b96c9c"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform.jsonl",
+      "bytes": 427743,
+      "sha256": "479377b4d6cc14f2075e6fd51d48f1542e68afc7f881781d4beffb44a386c8ff"
+    },
+    {
+      "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets.jsonl",
+      "bytes": 533068,
+      "sha256": "df401340afc553086f630ec905ead3dd7fe755d5b4dd8487368944e8805aeb5e"
+    }
+  ]
+}
