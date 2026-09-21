@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { useViewPathname } from './pathname.ts'
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { layoutWorkflow } from '@/deck/layout-workflow'
 import { usePrefersReducedMotion } from '@/deck/motion'
@@ -102,7 +102,7 @@ function useCard(pathname: string): Card {
  * @returns The card, or nothing when no tour is running.
  */
 export function TitleCard(): ReactNode {
-  const pathname = usePathname()
+  const pathname = useViewPathname()
   const presentation = useDeck(state => state.presentation)
   const reduced = usePrefersReducedMotion()
   const card = useCard(pathname)

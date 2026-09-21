@@ -100,7 +100,7 @@ export function SafetyView(): ReactNode {
     setStarting(true)
     setStartError(undefined)
     try {
-      const id = await startSafety(source.base, target, model)
+      const id = await startSafety(source, target, model)
       // The feed lists the run once its directory exists; until then the deck
       // carries it itself so the views can follow it from the first event.
       addRun({

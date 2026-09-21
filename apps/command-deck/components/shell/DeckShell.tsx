@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useViewPathname } from './pathname.ts'
 import { useEffect, type ReactNode } from 'react'
 import { useDeck } from '@/deck/store'
 import { Opening } from './Opening.tsx'
@@ -24,7 +24,7 @@ import { VIEWS } from './views.ts'
  * @returns The shell.
  */
 export function DeckShell({ children }: { children: ReactNode }): ReactNode {
-  const pathname = usePathname()
+  const pathname = useViewPathname()
   const boot = useDeck(state => state.boot)
   const source = useDeck(state => state.source)
   const streamState = useDeck(state => state.streamState)

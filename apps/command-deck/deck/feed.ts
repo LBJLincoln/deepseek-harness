@@ -1,10 +1,12 @@
 /**
  * The deck's HTTP client for the feed, and the replay fallback.
  *
- * One base URL drives every read. When the configured feed does not answer,
- * `resolveFeed` returns the deck's own fixture routes, which serve the same
- * paths with the same payloads — so nothing downstream knows which it is
- * reading, beyond the `mode` the status bar shows.
+ * One `FeedSource` drives every read. When the configured feed does not
+ * answer, `resolveFeed` selects the committed fixtures under `public/fixtures`,
+ * static files holding the payloads the feed's paths return — so nothing
+ * downstream knows which it is reading, beyond the `mode` the status bar
+ * shows. Replay needs no server, which is what lets the deck ship as a static
+ * export.
  */
 
 import type { Roster, Run, SafetyReview } from './contract.ts'
@@ -23,8 +25,15 @@ export interface FeedSource {
   reason?: string
 }
 
-/** Base URL of the deck's own fixture routes, which mirror the feed's paths. */
-const FIXTURE_BASE = '/api/fixtures'
+/**
+ * The path prefix the deck is served under: empty unless the build set
+ * `NEXT_PUBLIC_BASE_PATH`, as the GitHub Pages export does because a
+ * repository site lives at `/<repository>`. Public files are reached through it.
+ */
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
+
+/** Base URL of the committed fixtures, static files that mirror the feed's paths. */
+const FIXTURE_BASE = `${BASE_PATH}/fixtures`
 
 /** The configured feed URL, or the documented default. */
 function feedUrl(): string {
@@ -81,54 +90,86 @@ function probeFailure(error: unknown): string {
 }
 
 /**
+ * The URL of one feed path on the selected source: the path itself on a live
+ * feed, the committed JSON file that mirrors it in replay.
+ * @param source - Source from {@link resolveFeed}.
+ * @param path - Feed path starting with `/`.
+ * @returns The URL to fetch.
+ */
+function urlOf(source: FeedSource, path: string): string {
+  return source.mode === 'live' ? `${source.base}${path}` : `${source.base}${path}.json`
+}
+
+/**
  * Read one JSON payload from the selected source.
- * @param base - Base URL from {@link resolveFeed}.
- * @param path - Path starting with `/`.
+ * @param source - Source from {@link resolveFeed}.
+ * @param path - Feed path starting with `/`.
  * @returns The parsed payload.
  */
-async function readJson<T>(base: string, path: string): Promise<T> {
-  const response = await fetch(`${base}${path}`, { cache: 'no-store' })
+async function readJson<T>(source: FeedSource, path: string): Promise<T> {
+  const response = await fetch(urlOf(source, path), { cache: 'no-store' })
   if (!response.ok) throw new Error(`${path} answered ${response.status}`)
   return await response.json() as T
 }
 
 /**
  * `GET /roster`.
- * @param base - Base URL from {@link resolveFeed}.
+ * @param source - Source from {@link resolveFeed}.
  * @returns The enterprise roster.
  */
-export function getRoster(base: string): Promise<Roster> {
-  return readJson<Roster>(base, '/roster')
+export function getRoster(source: FeedSource): Promise<Roster> {
+  return readJson<Roster>(source, '/roster')
 }
 
 /**
  * `GET /runs`.
- * @param base - Base URL from {@link resolveFeed}.
+ * @param source - Source from {@link resolveFeed}.
  * @returns Every run the feed knows about.
  */
-export function getRuns(base: string): Promise<Run[]> {
-  return readJson<Run[]>(base, '/runs')
+export function getRuns(source: FeedSource): Promise<Run[]> {
+  return readJson<Run[]>(source, '/runs')
 }
 
 /**
  * `GET /safety/:id`.
- * @param base - Base URL from {@link resolveFeed}.
+ * @param source - Source from {@link resolveFeed}.
  * @param id - Run id of the review.
  * @returns The review, its findings, and its certificate.
  */
-export function getSafety(base: string, id: string): Promise<SafetyReview> {
-  return readJson<SafetyReview>(base, `/safety/${encodeURIComponent(id)}`)
+export function getSafety(source: FeedSource, id: string): Promise<SafetyReview> {
+  return readJson<SafetyReview>(source, `/safety/${encodeURIComponent(id)}`)
+}
+
+/**
+ * The URL of one run's event stream: the feed's Server-Sent Events endpoint on
+ * a live feed, the committed JSON Lines recording in replay.
+ * @param source - Source from {@link resolveFeed}.
+ * @param runId - The run to follow.
+ * @returns The URL the stream client opens.
+ */
+export function eventsUrl(source: FeedSource, runId: string): string {
+  const id = encodeURIComponent(runId)
+  return source.mode === 'live' ? `${source.base}/runs/${id}/events` : `${source.base}/events/${id}.jsonl`
 }
 
 /**
  * `POST /safety` — start a review of one target.
- * @param base - Base URL from {@link resolveFeed}.
+ *
+ * Replay cannot start a review, so it reopens the recorded one instead; the
+ * form says so in replay mode, and the deck then follows that run exactly as
+ * it would follow a freshly started live one.
+ * @param source - Source from {@link resolveFeed}.
  * @param target - Path of the repository to review.
  * @param model - Optional model override for the review's agents.
  * @returns The started run's id.
  */
-export async function startSafety(base: string, target: string, model?: string): Promise<string> {
-  const response = await fetch(`${base}/safety`, {
+export async function startSafety(source: FeedSource, target: string, model?: string): Promise<string> {
+  if (source.mode === 'replay') {
+    const recorded = (await getRuns(source)).find(run => run.kind === 'code-safety')
+    if (recorded === undefined) throw new Error('no recorded code-safety run to reopen')
+    return recorded.id
+  }
+  const response = await fetch(`${source.base}/safety`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(model === undefined || model === '' ? { target } : { target, model }),

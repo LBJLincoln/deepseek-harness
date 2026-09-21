@@ -17,13 +17,15 @@ pnpm run deck
 
 deck 在 `http://localhost:3000` 提供服务。用 `NEXT_PUBLIC_FEED_URL` 指向实时 feed；默认值是 `http://localhost:4711`。
 
-第二行是生产构建及其服务端，第三行从运行中的 feed 为 `fixtures/` 拍快照。
+第二行是生产构建及其服务端，第三行从运行中的 feed 为 `public/fixtures/` 拍快照。
 
 ```sh
 NEXT_PUBLIC_FEED_URL=http://localhost:4711 pnpm run deck
 pnpm --dir apps/command-deck build && pnpm --dir apps/command-deck start
 pnpm --dir apps/command-deck fixtures
 ```
+
+`DECK_STATIC=1 pnpm --dir apps/command-deck build` 把同样的视图写成 `apps/command-deck/out/` 下的静态导出：每个视图都是基于静态 fixture 的 Client Component，因此这份导出就是回放模式下的整个 deck，而 `NEXT_PUBLIC_BASE_PATH` 设定它被提供时的路径前缀。[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在 deck 分支的每次推送时构建这份导出，并把它发布到仓库的 GitHub Pages 站点 <https://lbjlincoln.github.io/deepseek-harness/>：一个不需要 feed、不需要 key、不需要机器的演示 URL。那里提供的页面仍会先探测所配置的 feed，而浏览器拒绝从 `https` 页面访问 `http://localhost:4711`，所以它会在一秒内落入回放。
 
 ## 四个视图
 
@@ -72,20 +74,20 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 
 ## 回放：没有 feed 时会发生什么
 
-加载时，deck 向所配置的 feed 发送一次 `GET /roster`，超时 5 秒。任何失败——连接被拒、超时、非 2xx、被拦截的跨源请求——都会选择回放模式，此后所有读取都走 deck 自己在 `/api/fixtures` 下的路由，它们以相同的载荷提供相同的路径。顶栏徽标显示 `REPLAY` 而非 `LIVE`，状态栏点名它无法连上的 feed，每个视图都带有常驻的 **Example data**（示例数据）提示，因此截图不会被误认为实时运行。
+加载时，deck 向所配置的 feed 发送一次 `GET /roster`，超时 5 秒。任何失败——连接被拒、超时、非 2xx、被拦截的跨源请求——都会选择回放模式，此后所有读取都走 `public/fixtures` 下已提交的 fixture，它们是保存着 feed 各路径所返回载荷的静态文件（`/roster` 变为 `/fixtures/roster.json`，一次运行的事件流变为 `/fixtures/events/<run>.jsonl`）。顶栏徽标显示 `REPLAY` 而非 `LIVE`，状态栏点名它无法连上的 feed，每个视图都带有常驻的 **Example data**（示例数据）提示，因此截图不会被误认为实时运行。
 
-被回放的事件流是有节奏的，而非一次性倾倒：该路由先把录制的前 60% 作为历史立即投递，随后逐帧释放其余部分，然后保持连接打开。因此无需 key 的演示展现的是一家正在运转的企业，而不是一个静态文件。
+被回放的事件流是有节奏的，而非一次性倾倒：流客户端把录制读取一次，先把前 55% 作为历史立即投递，随后每 330 ms 释放一帧，然后保持打开并静默。因此无需 key 的演示展现的是一家正在运转的企业，而不是一个静态文件。
 
 回放模式下的 `POST /safety` 会重新打开已录制的审查，而不是启动新的审查，并在表单下方说明这一点。
 
 ## fixture
 
-`fixtures/` 是真实 feed 的一份快照，由 `scripts/snapshot-fixtures.ts` 生成（在 `pnpm run feed` 运行时执行 `pnpm --dir apps/command-deck fixtures`）：其中没有任何虚构内容，且该脚本拒绝实时运行目录，因为只有已提交的记录才经过了密钥材料的脱敏。
+`public/fixtures/` 是真实 feed 的一份快照，由 `scripts/snapshot-fixtures.ts` 生成（在 `pnpm run feed` 运行时执行 `pnpm --dir apps/command-deck fixtures`）：其中没有任何虚构内容，且该脚本拒绝实时运行目录，因为只有已提交的记录才经过了密钥材料的脱敏。
 
-- `fixtures/roster.json`——feed 的 `GET /roster`：生成的 [`data/enterprise/roster.json`](../../data/enterprise/README.md)，十个 division 中的 147 个 agent 与 124 条关系，并带有已记录运行赋予它们的状态。
-- `fixtures/runs.json`——五条已提交记录：2026-09-19 记录的两次代码安全审查（第二次 NodeGoat 运行、Java 的 dvja 运行）、一次 tier-5 fleet、一个配对实验，以及 csv-tools program。
-- `fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到四张证书与两次合并。
-- `fixtures/safety/<run>.json`——feed 对每次审查的 `GET /safety/:id`：NodeGoat 审查的 111 个文件与 38 条经验证的发现、dvja 审查的 174 个文件与 40 条，各自带有部门、证书与双语报告。
+- `public/fixtures/roster.json`——feed 的 `GET /roster`：生成的 [`data/enterprise/roster.json`](../../data/enterprise/README.md)，十个 division 中的 147 个 agent 与 124 条关系，并带有已记录运行赋予它们的状态。
+- `public/fixtures/runs.json`——五条已提交记录：2026-09-19 记录的两次代码安全审查（第二次 NodeGoat 运行、Java 的 dvja 运行）、一次 tier-5 fleet、一个配对实验，以及 csv-tools program。
+- `public/fixtures/events/<run>.jsonl`——每条记录的会话日志经 feed 折叠成指挥台跟随的事件流：NodeGoat 审查有 1,079 条事件，从各部门的开场指令、它们的工具调用，到四张证书与两次合并。
+- `public/fixtures/safety/<run>.json`——feed 对每次审查的 `GET /safety/:id`：NodeGoat 审查的 111 个文件与 38 条经验证的发现、dvja 审查的 174 个文件与 40 条，各自带有部门、证书与双语报告。
 
 已记录的审查正是 [`data/code-safety/README.md`](../../data/code-safety/README.md) 据以读取召回率的那几次，因此回放展示的与现场运行所展示的完全一致。
 
@@ -93,10 +95,10 @@ deck 读取 `NEXT_PUBLIC_FEED_URL`（默认 `http://localhost:4711`），并期�
 
 | 目录 | 内容 |
 | --- | --- |
-| `app/` | 路由，以及 `app/api/fixtures/` 下的 fixture 端点。 |
+| `app/` | 路由。 |
 | `components/` | 外壳，以及每个视图一个目录；所有接触 three.js 的都是 Client Component。 |
 | `deck/` | 契约、feed 客户端、事件流、store、回放时钟、布局、配色。 |
-| `fixtures/` | 已提交的回放数据。 |
+| `public/fixtures/` | 已提交的回放数据，作为静态文件提供。 |
 | `scripts/` | fixture 快照脚本。 |
 | `docs/` | 上方的截图。 |
 

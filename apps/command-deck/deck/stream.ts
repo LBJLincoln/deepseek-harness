@@ -7,9 +7,14 @@
  * `sessionId` and `seq`: the caller's `onEvent` sees each pair exactly once for
  * the life of the subscription, across any number of reconnections. Keying on
  * `seq` alone kept 404 of the 1,079 frames of a seven-session review.
+ *
+ * In replay the same subscription reads a committed recording once and paces
+ * it the way the feed would have streamed it, so the views cannot tell the two
+ * apart; a recording is read once, so it is not deduplicated.
  */
 
 import type { RunEvent } from './contract.ts'
+import { eventsUrl, type FeedSource } from './feed.ts'
 
 /** Connection state the status bar reports. */
 export type StreamState = 'idle' | 'connecting' | 'open' | 'retrying' | 'closed'
@@ -22,6 +27,12 @@ export interface StreamHandlers {
 
 /** Reconnection backoff, in milliseconds, indexed by consecutive failure count. */
 const BACKOFF_MS = [800, 1_600, 3_200, 6_400, 10_000] as const
+
+/** Share of a recording delivered at once, as the history a live stream replays first. */
+const BACKFILL_SHARE = 0.55
+
+/** Delay between the paced frames that follow a recording's backfill. */
+const PACE_MS = 330
 
 /**
  * Parse one `data:` frame.
@@ -61,17 +72,29 @@ function frameKey(event: RunEvent): string {
 
 /**
  * Subscribe to one run's events until the returned disposer is called.
+ * @param source - Source from `resolveFeed`; it decides between the live
+ * stream and a paced recording.
+ * @param runId - The run to follow.
+ * @param handlers - Event and state callbacks.
+ * @returns A disposer that closes the stream and stops any pending retry or
+ * paced frame.
+ */
+export function subscribeRun(source: FeedSource, runId: string, handlers: StreamHandlers): () => void {
+  const url = eventsUrl(source, runId)
+  return source.mode === 'live' ? subscribeLive(url, handlers) : subscribeRecorded(url, handlers)
+}
+
+/**
+ * Follow the feed's Server-Sent Events stream.
  *
  * The subscription owns its own `EventSource`: `EventSource` reconnects on its
  * own after a network drop, and this wrapper additionally reopens after an
  * error that closed the source for good, with bounded backoff.
- * @param base - Base URL from `resolveFeed`.
- * @param runId - The run to follow.
+ * @param url - The stream's URL.
  * @param handlers - Event and state callbacks.
  * @returns A disposer that closes the stream and stops any pending retry.
  */
-export function subscribeRun(base: string, runId: string, handlers: StreamHandlers): () => void {
-  const url = `${base}/runs/${encodeURIComponent(runId)}/events`
+function subscribeLive(url: string, handlers: StreamHandlers): () => void {
   const seen = new Set<string>()
   let source: EventSource | undefined
   let retry: ReturnType<typeof setTimeout> | undefined
@@ -120,6 +143,53 @@ export function subscribeRun(base: string, runId: string, handlers: StreamHandle
     disposed = true
     if (retry !== undefined) clearTimeout(retry)
     source?.close()
+    handlers.onState('closed')
+  }
+}
+
+/**
+ * Replay one committed recording the way the feed streams a run: the first
+ * BACKFILL_SHARE of its frames at once, as the history a live stream replays on
+ * connect, then one frame every PACE_MS, then silence with the subscription
+ * open. A keyless demo therefore shows an enterprise at work rather than a
+ * static file.
+ * @param url - The JSON Lines recording's URL.
+ * @param handlers - Event and state callbacks.
+ * @returns A disposer that stops the paced frames.
+ */
+function subscribeRecorded(url: string, handlers: StreamHandlers): () => void {
+  let disposed = false
+  let timer: ReturnType<typeof setTimeout> | undefined
+  handlers.onState('connecting')
+  void fetch(url, { cache: 'no-store' })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`${url} answered ${response.status}`)
+      return await response.text()
+    })
+    .then((text) => {
+      if (disposed) return
+      const events = text.split('\n').map(parseFrame).filter((event): event is RunEvent => event !== undefined)
+      handlers.onState('open')
+      const backfill = Math.floor(events.length * BACKFILL_SHARE)
+      for (const event of events.slice(0, backfill)) handlers.onEvent(event)
+      let cursor = backfill
+      const tick = (): void => {
+        const event = events[cursor]
+        if (disposed || event === undefined) return
+        handlers.onEvent(event)
+        cursor += 1
+        timer = setTimeout(tick, PACE_MS)
+      }
+      timer = setTimeout(tick, PACE_MS)
+    })
+    .catch(() => {
+      // A recording that cannot be read leaves the run without events: the
+      // status bar shows the closed stream and the views keep the roster.
+      if (!disposed) handlers.onState('closed')
+    })
+  return () => {
+    disposed = true
+    if (timer !== undefined) clearTimeout(timer)
     handlers.onState('closed')
   }
 }

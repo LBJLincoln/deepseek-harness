@@ -1,6 +1,7 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useViewPathname } from './pathname.ts'
 import { useEffect, useRef } from 'react'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { useDeck } from '@/deck/store'
@@ -35,7 +36,7 @@ const OPENING_VIEW = '/'
  */
 export function usePresentation(): void {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = useViewPathname()
   const reduced = usePrefersReducedMotion()
   const presentation = useDeck(state => state.presentation)
   const opening = useDeck(state => state.opening)

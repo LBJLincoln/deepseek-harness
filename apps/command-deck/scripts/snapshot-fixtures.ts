@@ -1,5 +1,5 @@
 /**
- * Snapshot the committed replay fixtures under `fixtures/` from a running feed.
+ * Snapshot the committed replay fixtures under `public/fixtures/` from a running feed.
  *
  * Replay mode shows recorded reality, never invented data: the roster is the
  * feed's own `GET /roster`, the runs are committed records the feed discovers
@@ -16,7 +16,7 @@ import { dirname, resolve } from 'node:path'
 import type { Roster, Run, RunEvent, SafetyReview } from '../deck/contract.ts'
 
 const here = dirname(new URL(import.meta.url).pathname)
-const fixtures = resolve(here, '..', 'fixtures')
+const fixtures = resolve(here, '..', 'public', 'fixtures')
 
 /** The feed to snapshot from; `FEED_URL` overrides the default local feed. */
 const FEED = (process.env['FEED_URL'] ?? 'http://localhost:4711').replace(/\/+$/, '')
@@ -95,7 +95,7 @@ async function readEvents(runId: string): Promise<RunEvent[]> {
 
 /**
  * Write one fixture as two-space JSON with a trailing newline.
- * @param relative - Path under `fixtures/`.
+ * @param relative - Path under `public/fixtures/`.
  * @param value - The payload.
  */
 function writeJson(relative: string, value: unknown): void {

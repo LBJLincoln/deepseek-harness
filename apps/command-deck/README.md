@@ -17,13 +17,15 @@ pnpm run deck
 
 The deck serves on `http://localhost:3000`. Point it at a live feed with `NEXT_PUBLIC_FEED_URL`; the default is `http://localhost:4711`.
 
-The second line is the production build and the server over it; the third snapshots `fixtures/` from a running feed.
+The second line is the production build and the server over it; the third snapshots `public/fixtures/` from a running feed.
 
 ```sh
 NEXT_PUBLIC_FEED_URL=http://localhost:4711 pnpm run deck
 pnpm --dir apps/command-deck build && pnpm --dir apps/command-deck start
 pnpm --dir apps/command-deck fixtures
 ```
+
+`DECK_STATIC=1 pnpm --dir apps/command-deck build` writes the same views as a static export under `apps/command-deck/out/`: every view is a Client Component over static fixtures, so the export is the whole deck in replay mode, and `NEXT_PUBLIC_BASE_PATH` sets the path prefix it is served under. [`deck-pages.yml`](../../.github/workflows/deck-pages.yml) builds that export on every push of the deck's branch and publishes it to the repository's GitHub Pages site, <https://lbjlincoln.github.io/deepseek-harness/>: the demo URL that needs no feed, no key and no machine. A page served there still probes the configured feed first, and a browser refuses `http://localhost:4711` from an `https` page, so it lands in replay within a second.
 
 ## The four views
 
@@ -72,20 +74,20 @@ Two deck-side rules are worth knowing because the feed does not carry them. A fi
 
 ## Replay: what happens with no feed
 
-On load the deck sends one `GET /roster` to the configured feed with a 5-second timeout. Any failure — connection refused, timeout, non-2xx, a blocked cross-origin request — selects replay mode, and every later read goes to the deck's own routes under `/api/fixtures`, which serve the same paths with the same payloads. The header badge reads `REPLAY` instead of `LIVE`, the status footer names the feed it could not reach, and each view carries a standing **Example data** notice, so a screenshot cannot be mistaken for a live run.
+On load the deck sends one `GET /roster` to the configured feed with a 5-second timeout. Any failure — connection refused, timeout, non-2xx, a blocked cross-origin request — selects replay mode, and every later read goes to the committed fixtures under `public/fixtures`, static files holding the payloads the feed's paths return (`/roster` becomes `/fixtures/roster.json`, a run's event stream becomes `/fixtures/events/<run>.jsonl`). The header badge reads `REPLAY` instead of `LIVE`, the status footer names the feed it could not reach, and each view carries a standing **Example data** notice, so a screenshot cannot be mistaken for a live run.
 
-The replayed event stream is paced rather than dumped: the route delivers the first 60% of the recording immediately as history, then releases the rest a frame at a time, then holds the connection open. A keyless demo therefore shows an enterprise at work rather than a static file.
+The replayed event stream is paced rather than dumped: the stream client reads the recording once, delivers the first 55% immediately as history, then releases the rest a frame every 330 ms, then stays open and silent. A keyless demo therefore shows an enterprise at work rather than a static file.
 
 `POST /safety` in replay mode reopens the recorded review instead of starting a new one, and says so under the form.
 
 ## The fixtures
 
-`fixtures/` is a snapshot of the real feed, taken by `scripts/snapshot-fixtures.ts` (`pnpm --dir apps/command-deck fixtures` with `pnpm run feed` running): nothing in it is invented, and the script refuses a live run directory because only committed records have their key material redacted.
+`public/fixtures/` is a snapshot of the real feed, taken by `scripts/snapshot-fixtures.ts` (`pnpm --dir apps/command-deck fixtures` with `pnpm run feed` running): nothing in it is invented, and the script refuses a live run directory because only committed records have their key material redacted.
 
-- `fixtures/roster.json` — the feed's `GET /roster`: the generated [`data/enterprise/roster.json`](../../data/enterprise/README.md), 147 agents in ten divisions and 124 relationships, with the statuses the recorded runs gave them.
-- `fixtures/runs.json` — five committed records: the two code-safety reviews recorded on 2026-09-19 (the second NodeGoat run, the Java dvja run), a tier-5 fleet, a paired experiment, and the csv-tools program.
-- `fixtures/events/<run>.jsonl` — each record's session logs folded by the feed into the event stream the deck follows: 1,079 events for the NodeGoat review, from the departments' opening directives through their tool calls to the four certificates and the two merges.
-- `fixtures/safety/<run>.json` — the feed's `GET /safety/:id` for each review: the NodeGoat review's 111 files and 38 verified findings, the dvja review's 174 files and 40, each with its departments, its certificate and its bilingual report.
+- `public/fixtures/roster.json` — the feed's `GET /roster`: the generated [`data/enterprise/roster.json`](../../data/enterprise/README.md), 147 agents in ten divisions and 124 relationships, with the statuses the recorded runs gave them.
+- `public/fixtures/runs.json` — five committed records: the two code-safety reviews recorded on 2026-09-19 (the second NodeGoat run, the Java dvja run), a tier-5 fleet, a paired experiment, and the csv-tools program.
+- `public/fixtures/events/<run>.jsonl` — each record's session logs folded by the feed into the event stream the deck follows: 1,079 events for the NodeGoat review, from the departments' opening directives through their tool calls to the four certificates and the two merges.
+- `public/fixtures/safety/<run>.json` — the feed's `GET /safety/:id` for each review: the NodeGoat review's 111 files and 38 verified findings, the dvja review's 174 files and 40, each with its departments, its certificate and its bilingual report.
 
 The recorded reviews are the same ones [`data/code-safety/README.md`](../../data/code-safety/README.md) reads recall against, so a replay shows exactly what the live run showed.
 
@@ -93,10 +95,10 @@ The recorded reviews are the same ones [`data/code-safety/README.md`](../../data
 
 | Directory | Holds |
 | --- | --- |
-| `app/` | The routes, and the fixture endpoints under `app/api/fixtures/`. |
+| `app/` | The routes. |
 | `components/` | The shell, and one folder per view; everything touching three.js is a Client Component. |
 | `deck/` | The contract, the feed client, the event stream, the store, the playback clock, the layouts, the palette. |
-| `fixtures/` | The committed replay data. |
+| `public/fixtures/` | The committed replay data, served as static files. |
 | `scripts/` | The fixture snapshot script. |
 | `docs/` | The screenshots above. |
 

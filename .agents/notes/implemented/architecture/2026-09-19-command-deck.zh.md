@@ -12,13 +12,13 @@ Status: implemented
 
 ## Decision
 
-**一份契约文件，其后两个数据源。** `deck/contract.ts` 是 feed 的路径与载荷被写下的唯一位置。`resolveFeed()` 以 5 秒超时（冷启动的 feed 会在首次应答之前折叠每个已记录的会话）向 `NEXT_PUBLIC_FEED_URL` 发送一次 `GET /roster`，并返回一个 base URL：feed 有响应时是所配置的 feed，否则是 deck 自己的 `/api/fixtures` 路由。这些路由以相同的载荷提供相同的路径，因此下游每个读取方——store、三个场景、各面板——都只按一份契约写一次，且永远不知道自己在读哪个源。探测失败不是需要恢复的错误状态；它是状态栏报告的二值选择的另一半。
+**一份契约文件，其后两个数据源。** `deck/contract.ts` 是 feed 的路径与载荷被写下的唯一位置。`resolveFeed()` 以 5 秒超时（冷启动的 feed 会在首次应答之前折叠每个已记录的会话）向 `NEXT_PUBLIC_FEED_URL` 发送一次 `GET /roster`，并返回一个 base URL：feed 有响应时是所配置的 feed，否则是 `public/fixtures` 下已提交的 fixture。这些静态文件保存着 feed 各路径所返回的载荷，feed 客户端把两者相互映射，因此下游每个读取方——store、三个场景、各面板——都只按一份契约写一次，且永远不知道自己在读哪个源。探测失败不是需要恢复的错误状态；它是状态栏报告的二值选择的另一半。
 
-**回放是有节奏的，而非一次性倾倒。** fixture 事件路由先把录制的前 60% 作为历史立即投递，随后逐帧释放其余部分，然后用心跳保持连接打开——正是实时端点自身契约所描述的行为。把录制的各阶段（department 扫描、finding、验证者复读、裁决、集成）交错而非顺序铺开，才使流水线的四个阶段从开场数秒起就都有内容。因此无需 key 的演示展现的是一家正在运转的企业。
+**回放是有节奏的，而非一次性倾倒。** 流客户端把一份录制读取一次，先把前 55% 作为历史立即投递，随后每 330 ms 释放一帧，然后保持打开并静默——正是实时端点自身契约所描述的行为，在浏览器中产生，因此回放不需要服务端。把录制的各阶段（department 扫描、finding、验证者复读、裁决、集成）交错而非顺序铺开，才使流水线的四个阶段从开场数秒起就都有内容。因此无需 key 的演示展现的是一家正在运转的企业。
 
 **示例数据会在每个视图上自陈。** 回放模式下，顶栏徽标显示 `REPLAY`，状态栏点名它无法连上的 feed，每个视图都带有常驻提示。该提示位于面板内部而非只在外壳中出现一次，这样任一单个视图的截图都会带着这一声明。
 
-**fixture 是 feed 的快照，绝不生成。** `scripts/snapshot-fixtures.ts` 从运行中的 feed 写出 `fixtures/`：生成的花名册、`data/` 下的五条已提交记录、它们折叠成事件流的会话日志，以及两次代码安全审查的详情。它拒绝 `data/` 之外的运行目录，因为只有已提交的记录经过了密钥材料的脱敏。回放所展示的每条 finding，都是某个 department 写下、并由已提交的审查器在指名修订版的那一行复读过的。在一个真实且广为人知的目标上编造 finding，是这次演示中懂安全的读者唯一能当场揭穿的东西，而仓库自己的记录使其不必要。
+**fixture 是 feed 的快照，绝不生成。** `scripts/snapshot-fixtures.ts` 从运行中的 feed 写出 `public/fixtures/`：生成的花名册、`data/` 下的五条已提交记录、它们折叠成事件流的会话日志，以及两次代码安全审查的详情。它拒绝 `data/` 之外的运行目录，因为只有已提交的记录经过了密钥材料的脱敏。回放所展示的每条 finding，都是某个 department 写下、并由已提交的审查器在指名修订版的那一行复读过的。在一个真实且广为人知的目标上编造 finding，是这次演示中懂安全的读者唯一能当场揭穿的东西，而仓库自己的记录使其不必要。
 
 **逐帧状态绝不经过 React。** store 把 `activity` 与 `bursts` 保存为就地改写、由 `useFrame` 读取的对象；只有 roster、runs、events 与选择是 React 状态。每个场景只用少数几次绘制调用——节点、文件方块与光柱用实例化网格，每层辉光用一个叠加点层，每组边用一个线段层——因此 147 个 agent、124 条带流量的曲线边、一条彗星流水线和一座每条 finding 立一道光柱的点亮代码城市，把帧预算留给了调色。
 
@@ -34,7 +34,9 @@ Status: implemented
 
 ## Consequences
 
-`pnpm run deck` 与 `pnpm --dir apps/command-deck build` 在干净检出、无 key、无 feed 的情况下均可工作，而 `pnpm run poc` 用一条命令为演示机器构建 deck、启动 feed 并提供生产构建。由于 `pnpm --dir apps/command-deck fixtures` 是快照，回放展示的正是已记录运行所展示的内容，审阅者可以把 `fixtures/` 与 `data/code-safety` 做 diff；新增一条记录后刷新 fixture 只是一条命令，而不是改一个生成器。
+`pnpm run deck` 与 `pnpm --dir apps/command-deck build` 在干净检出、无 key、无 feed 的情况下均可工作，而 `pnpm run poc` 用一条命令为演示机器构建 deck、启动 feed 并提供生产构建。由于 `pnpm --dir apps/command-deck fixtures` 是快照，回放展示的正是已记录运行所展示的内容，审阅者可以把 `public/fixtures/` 与 `data/code-safety` 做 diff；新增一条记录后刷新 fixture 只是一条命令，而不是改一个生成器。
+
+`DECK_STATIC=1` 把同样的视图构建为静态导出，[`deck-pages.yml`](../../../../.github/workflows/deck-pages.yml) 在 deck 分支的每次推送时把它发布到仓库的 GitHub Pages 站点：回放模式下的 deck 有了一个公开 URL，背后没有 feed、key 或机器。deck 就是整个 Pages 站点，因此文档工作流从 master 的部署会替换它；要两者兼得，就把这份导出并入那次构建。
 
 有两项 feed 并不携带的事实在 deck 侧推导，并在 README 中如实说明：finding 的归属 department，通过 `deck/departments.ts` 中的表由其 CWE 得出；以及它的验证状态，由证书的 `unverified` 清单是否点名它得出。若 feed 日后在 finding 上标注 department，该表即成死代码，应当删除。
 
@@ -45,7 +47,7 @@ Status: implemented
 ## Alternatives considered
 
 - **等待 feed 服务端，然后基于它开发。** 两半正是按一份写定的契约并行编写，才使任何一方都不阻塞另一方；没有服务端就无法启动的前端，同样没有服务端就无法演示。
-- **把 fixture 作为导入的 JSON 打包。** 更简单，并会丢掉使回放具有说服力的关键：一条带重连、由驱动实时 feed 的同一份客户端代码所检验的、有节奏的 Server-Sent Events 流。磁盘上的文件也更便于作为数据审阅。
+- **把 fixture 作为导入的 JSON 打包。** 更简单，并会丢掉使回放具有说服力的关键：一条由驱动实时 feed 的同一个订阅所检验的、有节奏的流，以及审阅者可以当作数据来读的文件。`public/` 下的静态文件两者都保留，而节奏在浏览器中产生，这正是静态托管所需要的。
 - **单独的"演示模式"开关。** 每个视图两条代码路径，其中一条只在会议室里被走到。回退因此被做成一个 base URL，于是演示路径就是生产路径。
 - **编造代码安全 finding。** 写起来更快，在会议室里无从辩护。仓库自己已记录的审查已经把真实 finding 落在指名修订版的具体行上。
 - **企业视图用 2D 图（SVG 或 canvas）。** 它能承载名册与边，却承载不了客户相信这家企业为真的理由。3D 场景是交付物，而非装饰。

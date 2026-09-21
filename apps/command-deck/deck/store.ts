@@ -164,7 +164,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     const source = await resolveFeed()
     set({ source })
     try {
-      const [roster, runs] = await Promise.all([getRoster(source.base), getRuns(source.base)])
+      const [roster, runs] = await Promise.all([getRoster(source), getRuns(source)])
       set({ roster, runs })
       const safetyRun = runs.find(run => run.kind === 'code-safety') ?? runs[0]
       if (safetyRun !== undefined) get().selectRun(safetyRun.id)
@@ -183,7 +183,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     const { source, runs: known, selectedRunId } = get()
     if (source === undefined) return
     try {
-      const listed = await getRuns(source.base)
+      const listed = await getRuns(source)
       // A review this deck started stays listed until the feed reports it.
       const pending = known.filter(run => !listed.some(entry => entry.id === run.id))
       set({ runs: [...pending, ...listed] })
@@ -212,7 +212,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     activity.clear()
     // A certificate queued under the previous run must not burst on this one.
     bursts.length = 0
-    unsubscribe = subscribeRun(source.base, id, {
+    unsubscribe = subscribeRun(source, id, {
       onState: state => set({ streamState: state }),
       onEvent: (event) => {
         get().activity.set(event.agentId, performance.now())
@@ -237,7 +237,7 @@ export const useDeck = create<DeckState>((set, get) => ({
       // No finding is preselected: the view opens on the whole city, and the
       // camera only flies in once a reviewer picks one. A re-read keeps the
       // selection when the finding is still there.
-      const safety = await getSafety(source.base, id)
+      const safety = await getSafety(source, id)
       const selectedFindingId = get().selectedFindingId
       const kept = force && safety.findings.some(finding => finding.id === selectedFindingId) ? selectedFindingId : undefined
       set({ safety, safetyRunId: id, selectedFindingId: kept, error: undefined })
