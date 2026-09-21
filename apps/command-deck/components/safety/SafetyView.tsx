@@ -16,6 +16,7 @@ import { FilesOpened } from './FilesOpened'
 import { FindingCard } from './FindingCard'
 import { LaunchSequence } from './LaunchSequence'
 import { useSafetyMoments } from './moments.ts'
+import { useFindingsTour } from './useFindingsTour.ts'
 import { VerdictCard } from './VerdictCard'
 
 // three.js reaches for a WebGL context on mount, so the scene never renders on
@@ -80,6 +81,7 @@ export function SafetyView(): ReactNode {
   }, [loadedTarget])
 
   const findings = safety?.findings ?? []
+  const touring = useFindingsTour(findings, selectFinding)
 
   const filtered = useMemo(() => findings.filter(finding => (
     (severity === 'all' || finding.severity === severity)
@@ -174,7 +176,10 @@ export function SafetyView(): ReactNode {
 
       <aside className="panel">
         <div className="panel__head">
-          <div className="panel__eyebrow">Code safety review</div>
+          <div className="panel__eyebrow">
+            Code safety review
+            {touring ? <span className="deck__mode" data-mode="tour">findings tour · g stops</span> : null}
+          </div>
           <h2 className="panel__title">{safety?.target.name ?? '—'}</h2>
           <p className="panel__sub">
             {safety === undefined
