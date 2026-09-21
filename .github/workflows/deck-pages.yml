@@ -1,10 +1,14 @@
 name: Deploy command deck
 
-# Publishes the Command Deck as a static export to this repository's GitHub
-# Pages site, in replay mode over the committed fixtures: a demo URL that
-# needs no feed, no key and no machine. The deck is the whole Pages site, so
-# this deployment and the documentation workflow's replace each other: the
-# documentation deploys from master, the deck from its branch.
+# Publishes the Command Deck's static export to this repository's GitHub
+# Pages site through the `gh-pages` branch, which GitHub serves at
+# https://lbjlincoln.github.io/deepseek-harness/. The page reads the mirror
+# relay by default, so it is live while the operator's machine pushes to the
+# relay and replays the committed fixtures otherwise. The branch holds one
+# commit, the current export, and is replaced on every publish. The deck is
+# the whole Pages site, so this deployment and the documentation workflow's
+# replace each other: the documentation deploys from master, the deck from
+# its branch.
 
 on:
   push:
@@ -16,21 +20,18 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: github-pages
+  group: gh-pages
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   NEXT_TELEMETRY_DISABLED: '1'
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
     steps:
       - uses: actions/checkout@v6
 
@@ -44,16 +45,11 @@ jobs:
       - name: Install the deck's dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts --filter @deepseek-ai/dsh-command-deck
 
-      - name: Configure Pages
-        id: pages
-        uses: actions/configure-pages@v6
-        with:
-          enablement: true
-
       - name: Build the static export
         env:
           DECK_STATIC: '1'
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # A project site lives under the repository's name.
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           # The feed the published deck reads: the repository variable when set,
           # else the mirror relay the operator's container pushes to; a viewer
           # can still name another with `?feed=` on the page URL.
@@ -63,20 +59,14 @@ jobs:
       - name: Keep the export's underscore directories out of Jekyll's hands
         run: touch apps/command-deck/out/.nojekyll
 
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: apps/command-deck/out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Publish the export as the gh-pages branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd apps/command-deck/out
+          git init -q -b gh-pages
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -q -m "deck: static export of ${GITHUB_SHA}"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
