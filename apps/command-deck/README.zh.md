@@ -25,7 +25,7 @@ pnpm --dir apps/command-deck build && pnpm --dir apps/command-deck start
 pnpm --dir apps/command-deck fixtures
 ```
 
-`DECK_STATIC=1 pnpm --dir apps/command-deck build` 把同样的视图写成 `apps/command-deck/out/` 下的静态导出：每个视图都是基于静态 fixture 的 Client Component，因此这份导出就是回放模式下的整个 deck，而 `NEXT_PUBLIC_BASE_PATH` 设定它被提供时的路径前缀。[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在 deck 分支的每次推送时构建这份导出，并把它发布到仓库的 GitHub Pages 站点 <https://lbjlincoln.github.io/deepseek-harness/>：一个不需要 feed、不需要 key、不需要机器的演示 URL。那里提供的页面仍会先探测所配置的 feed，而浏览器拒绝从 `https` 页面访问 `http://localhost:4711`，所以它会在一秒内落入回放。
+`DECK_STATIC=1 pnpm --dir apps/command-deck build` 把同样的视图写成 `apps/command-deck/out/` 下的静态导出：每个视图都是基于静态 fixture 的 Client Component，因此这份导出就是回放模式下的整个 deck，而 `NEXT_PUBLIC_BASE_PATH` 设定它被提供时的路径前缀。[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在 deck 分支的每次推送时构建这份导出，并把它发布到仓库的 GitHub Pages 站点 <https://lbjlincoln.github.io/deepseek-harness/>：一个不需要 feed、不需要 key、不需要机器的演示 URL。那里提供的页面仍会先探测所配置的 feed，而浏览器拒绝从 `https` 页面访问 `http://localhost:4711`，所以它会在一秒内落入回放。在操作者的机器向[镜像](mirror/README.md)推送期间，同一个页面是实时的：工作流把中继烘焙为页面的 feed，`?feed=` 可以指定另一个。
 
 ## 四个视图
 
