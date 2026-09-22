@@ -6,6 +6,10 @@
  * behavior (`examples/headless-agent/tests/fixtures/proving-ground-bench/`
  * and `data/proving-ground/tools/`).
  *
+ * `--fixture` names the bench fixture whose plans, overlays, composition, and
+ * admission a subcommand uses; the drivers are the proving-ground bench's for
+ * every fixture, since they read the composition they are given.
+ *
  *   pnpm run bench -- <subcommand> [options]
  *
  * Run `pnpm run bench -- --help` for the subcommand list.
@@ -17,7 +21,8 @@ import { basename, dirname, join, relative, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 
 export const REPO_ROOT = resolve(import.meta.dirname, '..')
-export const BENCH_DIR = join(REPO_ROOT, 'examples/headless-agent/tests/fixtures/proving-ground-bench')
+export const FIXTURES_ROOT = join(REPO_ROOT, 'examples/headless-agent/tests/fixtures')
+export const BENCH_DIR = join(FIXTURES_ROOT, 'proving-ground-bench')
 export const PLANS_DIR = join(BENCH_DIR, 'plans')
 export const OVERLAYS_DIR = join(BENCH_DIR, 'overlays')
 export const QUEUES_DIR = join(BENCH_DIR, 'queues')
@@ -30,6 +35,58 @@ export const LEDGER_PATH = join(RECORDS_ROOT, 'loop/ledger.jsonl')
 const OVERLAY_SUFFIX = '.cordis.yml'
 const PLAN_SUFFIX = '.json'
 const QUEUE_SUFFIX = '.json'
+
+/**
+ * The fixtures `--fixture` names, each with its admission script: the
+ * proving-ground bench (the default) checks its in-repository tasks under plain
+ * Node, and the polyglot bench stages a checkout's exercises through its
+ * TypeScript exercise model, so its admission runs under tsx.
+ */
+const BENCH_FIXTURE_ADMISSIONS = {
+  'proving-ground-bench': 'admit.mjs',
+  'polyglot-bench': 'admit.ts',
+} as const
+
+/** One fixture `--fixture` may name. */
+export type BenchFixtureName = keyof typeof BENCH_FIXTURE_ADMISSIONS
+
+/** The fixture a subcommand without `--fixture` uses. */
+export const DEFAULT_FIXTURE: BenchFixtureName = 'proving-ground-bench'
+
+/** One bench fixture's layout: its plans, its overlays, its own composition, and its admission script. */
+export interface BenchFixture {
+  readonly name: BenchFixtureName
+  readonly dir: string
+  readonly plansDir: string
+  readonly overlaysDir: string
+  readonly baseComposition: string
+  readonly admission: string
+}
+
+function isBenchFixtureName(name: string): name is BenchFixtureName {
+  return Object.hasOwn(BENCH_FIXTURE_ADMISSIONS, name)
+}
+
+/**
+ * Resolve a `--fixture <name>` value to the fixture's layout.
+ * @param name - the fixture as given on the command line, or undefined for {@link DEFAULT_FIXTURE}.
+ * @returns the fixture's directories, composition, and admission script.
+ */
+export function resolveFixture(name: string | undefined): BenchFixture {
+  const fixture = name ?? DEFAULT_FIXTURE
+  if (!isBenchFixtureName(fixture)) {
+    throw new Error(`unknown fixture '${fixture}'; expected one of ${Object.keys(BENCH_FIXTURE_ADMISSIONS).join(' | ')}`)
+  }
+  const dir = join(FIXTURES_ROOT, fixture)
+  return {
+    name: fixture,
+    dir,
+    plansDir: join(dir, 'plans'),
+    overlaysDir: join(dir, 'overlays'),
+    baseComposition: join(dir, 'cordis.yml'),
+    admission: join(dir, BENCH_FIXTURE_ADMISSIONS[fixture]),
+  }
+}
 
 /**
  * Fail loudly if a locally closed union gains an unhandled member.
@@ -642,6 +699,7 @@ export interface RegistrySummary {
   readonly heldOut: number
   readonly tiers: Record<string, number>
   readonly domains: Record<string, number>
+  readonly languages: Record<string, number>
   readonly withReference: number
   readonly cases: Record<string, number[]>
   readonly ids: string[]
@@ -669,35 +727,38 @@ export function selectRegistrySummary(
 
 export const USAGE = `Usage: pnpm run bench -- <subcommand> [options]
 
-  plans                                               list checked-in plans
-  environments [--tier <n>] [--held-out]              list registered environments
-  fleet <plan> [--overlay <name>] [--out <dir>]       run a fleet plan
-  experiment <plan> [--overlay <name>] [--out <dir>]  run a frozen paired experiment
+  plans [--fixture <name>]                                  list checked-in plans
+  environments [--fixture <name>] [--tier <n>] [--held-out]  list registered environments
+  fleet <plan> [--fixture <name>] [--overlay <name>] [--out <dir>]       run a fleet plan
+  experiment <plan> [--fixture <name>] [--overlay <name>] [--out <dir>]  run a frozen paired experiment
   loop <queue> [--dry-run] [--from <n>] [--only <plan>]  run a queue of plans, record each, append the loop ledger
   fold <baseline.json> <candidate.json> <out.json> [minimumDelta] [resamples]
   record <run dir> <name> --composition <path> [--elapsed-seconds <n>]
   summarize <dir> [--json]
   census <record> [--json]
-  admit [<environments-dir>]
+  admit [--fixture <name>] [<admission arguments>]
 
-<plan> is a checked-in plan name under examples/headless-agent/tests/fixtures/proving-ground-bench/plans/, or a path to a JSON file.
---overlay is one of the composition overlays under .../overlays/, without its .cordis.yml suffix; omit it for the fixture's base cordis.yml.
-<queue> is a checked-in queue name under .../queues/, or a path to a JSON file: an array of { "plan", "overlay", "note" } entries run in order.
+--fixture is proving-ground-bench (the default) or polyglot-bench, a directory under examples/headless-agent/tests/fixtures/ holding cordis.yml,
+plans/, and overlays/; the polyglot bench reads its checkout from POLYGLOT_BENCH_DIR.
+<plan> is a checked-in plan name under the fixture's plans/, or a path to a JSON file.
+--overlay is one of the fixture's composition overlays under overlays/, without its .cordis.yml suffix; omit it for the fixture's base cordis.yml.
+<queue> is a checked-in queue name under proving-ground-bench/queues/, or a path to a JSON file: an array of { "plan", "overlay", "note" } entries run in order.
 loop records each run as <UTC date>-bench-<plan> under data/proving-ground/ and appends one line per iteration to data/proving-ground/loop/ledger.jsonl.
 Its decision rule is fixed: verdict promote decides adopt-candidate, reject and inconclusive decide keep-baseline, a fleet decides recorded, and a failed
 entry decides none. adopt-candidate is a decision, not an edit: applying it to a composition stays a human act.
 `
 
-/** One parsed `bench` invocation. */
+/** One parsed `bench` invocation; `fixture` is the `--fixture` value as given, undefined for the default. */
 export type BenchCommand =
   | { readonly kind: 'help' }
-  | { readonly kind: 'plans' }
-  | { readonly kind: 'environments'; readonly tier: number | undefined; readonly heldOut: boolean }
+  | { readonly kind: 'plans'; readonly fixture: string | undefined }
+  | { readonly kind: 'environments'; readonly tier: number | undefined; readonly heldOut: boolean; readonly fixture: string | undefined }
   | {
     readonly kind: 'fleet' | 'experiment'
     readonly planArg: string
     readonly overlay: string | undefined
     readonly out: string | undefined
+    readonly fixture: string | undefined
   }
   | {
     readonly kind: 'loop'
@@ -706,7 +767,22 @@ export type BenchCommand =
     readonly only: string | undefined
     readonly dryRun: boolean
   }
-  | { readonly kind: 'fold' | 'record' | 'summarize' | 'census' | 'admit'; readonly args: readonly string[] }
+  | { readonly kind: 'admit'; readonly args: readonly string[]; readonly fixture: string | undefined }
+  | { readonly kind: 'fold' | 'record' | 'summarize' | 'census'; readonly args: readonly string[] }
+
+/**
+ * Take `--fixture <name>` out of an argument list forwarded to a script, which
+ * receives every other argument unchanged.
+ * @param args - the subcommand's arguments.
+ * @returns the fixture named, and the arguments without it.
+ */
+function takeFixture(args: readonly string[]): { readonly fixture: string | undefined; readonly rest: readonly string[] } {
+  const at = args.indexOf('--fixture')
+  if (at === -1) return { fixture: undefined, rest: args }
+  const fixture = args[at + 1]
+  if (fixture === undefined || fixture.startsWith('--')) throw new Error('--fixture needs a fixture name')
+  return { fixture, rest: [...args.slice(0, at), ...args.slice(at + 2)] }
+}
 
 /**
  * Parse `pnpm run bench -- <subcommand> …` into a command description. Pure:
@@ -722,14 +798,15 @@ export function parseCommand(argv: readonly string[]): BenchCommand {
   if (sub === undefined || sub === '--help' || sub === '-h') return { kind: 'help' }
   switch (sub) {
     case 'plans': {
-      if (rest.length > 0) throw new Error(`'plans' takes no arguments, got ${JSON.stringify(rest)}`)
-      return { kind: 'plans' }
+      const { values, positionals } = parseArgs({ args: rest, allowPositionals: true, options: { fixture: { type: 'string' } } })
+      if (positionals.length > 0) throw new Error(`'plans' takes no arguments other than --fixture, got ${JSON.stringify(positionals)}`)
+      return { kind: 'plans', fixture: values.fixture }
     }
     case 'environments': {
       const { values, positionals } = parseArgs({
         args: rest,
         allowPositionals: true,
-        options: { tier: { type: 'string' }, 'held-out': { type: 'boolean', default: false } },
+        options: { tier: { type: 'string' }, 'held-out': { type: 'boolean', default: false }, fixture: { type: 'string' } },
       })
       if (positionals.length > 0) throw new Error(`'environments' takes no positional arguments, got ${JSON.stringify(positionals)}`)
       let tier: number | undefined
@@ -737,20 +814,20 @@ export function parseCommand(argv: readonly string[]): BenchCommand {
         tier = Number(values.tier)
         if (!Number.isInteger(tier)) throw new Error(`--tier must be an integer, got ${JSON.stringify(values.tier)}`)
       }
-      return { kind: 'environments', tier, heldOut: values['held-out'] }
+      return { kind: 'environments', tier, heldOut: values['held-out'], fixture: values.fixture }
     }
     case 'fleet':
     case 'experiment': {
       const { values, positionals } = parseArgs({
         args: rest,
         allowPositionals: true,
-        options: { overlay: { type: 'string' }, out: { type: 'string' } },
+        options: { overlay: { type: 'string' }, out: { type: 'string' }, fixture: { type: 'string' } },
       })
       const [planArg] = positionals
       if (positionals.length !== 1 || planArg === undefined) {
         throw new Error(`'${sub}' requires exactly one <plan> argument, got ${JSON.stringify(positionals)}`)
       }
-      return { kind: sub, planArg, overlay: values.overlay, out: values.out }
+      return { kind: sub, planArg, overlay: values.overlay, out: values.out, fixture: values.fixture }
     }
     case 'loop': {
       const { values, positionals } = parseArgs({
@@ -769,11 +846,14 @@ export function parseCommand(argv: readonly string[]): BenchCommand {
       }
       return { kind: 'loop', queueArg, from, only: values.only, dryRun: values['dry-run'] }
     }
+    case 'admit': {
+      const { fixture, rest: args } = takeFixture(rest)
+      return { kind: 'admit', args, fixture }
+    }
     case 'fold':
     case 'record':
     case 'summarize':
     case 'census':
-    case 'admit':
       return { kind: sub, args: rest }
     default:
       throw new Error(`unknown subcommand '${sub}'; expected plans | environments | fleet | experiment | loop | fold | record | summarize | census | admit`)
@@ -858,9 +938,10 @@ async function runFleetOrExperiment(
   planArg: string,
   overlayName: string | undefined,
   outArg: string | undefined,
+  fixture: BenchFixture,
 ): Promise<number> {
-  const planPath = resolvePlanPath(planArg)
-  const compositionPath = resolveOverlayPath(overlayName)
+  const planPath = resolvePlanPath(planArg, fixture.plansDir)
+  const compositionPath = resolveOverlayPath(overlayName, fixture.overlaysDir, fixture.baseComposition)
   const now = new Date()
   const outDir = outArg === undefined ? resolveOutDir(basename(planPath, PLAN_SUFFIX), now) : resolve(process.cwd(), outArg)
   const code = await launchRun({
@@ -962,9 +1043,9 @@ async function runLoop(
   return failures === 0 ? 0 : 1
 }
 
-function runEnvironments(tier: number | undefined, heldOut: boolean): number {
+function runEnvironments(tier: number | undefined, heldOut: boolean, fixture: BenchFixture): number {
   const driverPath = join(BENCH_DIR, 'registry-driver.ts')
-  const compositionPath = join(OVERLAYS_DIR, 'registry-only.cordis.yml')
+  const compositionPath = join(fixture.overlaysDir, 'registry-only.cordis.yml')
   const result = spawnSync(tsxBinary(), [driverPath, compositionPath], { cwd: REPO_ROOT, encoding: 'utf8' })
   if (result.error !== undefined) throw result.error
   if (result.status !== 0) {
@@ -985,13 +1066,13 @@ function execute(command: BenchCommand): Promise<number> {
       process.stdout.write(USAGE)
       return Promise.resolve(0)
     case 'plans':
-      process.stdout.write(`${formatPlansListing().join('\n')}\n`)
+      process.stdout.write(`${formatPlansListing(resolveFixture(command.fixture).plansDir).join('\n')}\n`)
       return Promise.resolve(0)
     case 'environments':
-      return Promise.resolve(runEnvironments(command.tier, command.heldOut))
+      return Promise.resolve(runEnvironments(command.tier, command.heldOut, resolveFixture(command.fixture)))
     case 'fleet':
     case 'experiment':
-      return runFleetOrExperiment(command.kind, command.planArg, command.overlay, command.out)
+      return runFleetOrExperiment(command.kind, command.planArg, command.overlay, command.out, resolveFixture(command.fixture))
     case 'loop':
       return runLoop(command.queueArg, { from: command.from, only: command.only }, command.dryRun)
     case 'fold':
@@ -1002,8 +1083,12 @@ function execute(command: BenchCommand): Promise<number> {
       return runTool('summarize-run.mjs', command.args)
     case 'census':
       return runTool('census-escapes.mjs', command.args)
-    case 'admit':
-      return runInherited(process.execPath, [join(BENCH_DIR, 'admit.mjs'), ...command.args])
+    case 'admit': {
+      const { admission } = resolveFixture(command.fixture)
+      return admission.endsWith('.ts')
+        ? runInherited(tsxBinary(), [admission, ...command.args])
+        : runInherited(process.execPath, [admission, ...command.args])
+    }
     default:
       return assertNever(command, 'command kind')
   }

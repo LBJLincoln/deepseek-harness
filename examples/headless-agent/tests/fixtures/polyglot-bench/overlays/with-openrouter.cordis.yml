@@ -1,0 +1,92 @@
+# The polyglot bench on OpenRouter's free tier: the same pi-ai route the
+# proving-ground bench's with-openrouter overlay composes, with the same model
+# list, beside the base's product route, so a plan's arm names `openrouter` for
+# this route and `claude-code` for the base's. The key is a reference, never a
+# value: the adapter resolves OPENROUTER_API_KEY per request from the launching
+# shell, which the bench drivers read directly rather than through `.env`.
+#
+# Unlike the bench's overlay, the terms stay the base's, evaluation only: this
+# suite exists to be compared with published scores, and a model trained on its
+# transcripts would no longer be measured by it.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The base has no entry under this id, so the route is inserted.
+      - insert:
+          - id: llm-pi-ai
+            name: '@deepseek-ai/dsh-llm-pi-ai'
+            config:
+              providers:
+                openrouter:
+                  displayName: OpenRouter free models
+                  apiKeyEnv: OPENROUTER_API_KEY
+                  # OpenRouter ignores the `reasoning` field on an input
+                  # assistant message, so a prior step's reasoning is replayed
+                  # inside `content`.
+                  compat:
+                    requiresThinkingAsText: true
+                  models:
+                    - id: deepseek/deepseek-v4-flash-0731:free
+                      name: DeepSeek V4 Flash 0731 (free)
+                      contextWindow: 1048576
+                      maxTokens: 393216
+                    - id: nvidia/nemotron-3-super-120b-a12b:free
+                      name: NVIDIA Nemotron 3 Super 120B A12B (free)
+                      contextWindow: 262144
+                      maxTokens: 235929
+                    - id: nvidia/nemotron-3-ultra-550b-a55b:free
+                      name: NVIDIA Nemotron 3 Ultra 550B A55B (free)
+                      contextWindow: 1000000
+                      maxTokens: 65536
+                    - id: qwen/qwen3.8-27b:free
+                      name: Qwen 3.8 27B (free)
+                      contextWindow: 262144
+                      maxTokens: 235929
+                    - id: google/gemma-4-31b-it:free
+                      name: Gemma 4 31B IT (free)
+                      contextWindow: 262144
+                      maxTokens: 32768
+                    - id: poolside/laguna-s-2.1:free
+                      name: poolside Laguna S 2.1 (free)
+                      contextWindow: 262144
+                      maxTokens: 32768
+                    - id: nex-agi/nex-n2.5-pro:free
+                      name: Nex N2.5 Pro (free)
+                      contextWindow: 262144
+                      maxTokens: 235929
+                    - id: thinkingmachines/inkling:free
+                      name: Thinking Machines Inkling (free)
+                      contextWindow: 1048576
+                      maxTokens: 262144
+                  retryPolicy:
+                    mode: normal
+                    maxRetries: 8
+                    backoff:
+                      initialDelayMs: 3000
+                      maxDelayMs: 30000
+      # The breaker stops the route after four cells in a row end in error
+      # rather than spending the shared daily allowance on a provider that is down.
+      - id: fleet
+        name: '@deepseek-ai/dsh-fleet'
+        config:
+          maxConcurrent: 2
+          routeBreaker:
+            consecutiveErrors: 4
+          workspaceRetention: keep
+      # The village rule reads this file on its own: a composition that names the
+      # fleet must also name the session budget, the persistence backend, and the
+      # checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

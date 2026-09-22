@@ -1,0 +1,10 @@
+# Keyless view of the polyglot bench: the registry and its producer alone, so a
+# smoke can count what the checkout POLYGLOT_BENCH_DIR names registers without
+# composing any model route. No read barrier is composed, so nothing is denied.
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../register-environments.ts'
+  config:
+    checkout: !!js process.env.POLYGLOT_BENCH_DIR

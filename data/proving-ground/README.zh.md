@@ -77,6 +77,8 @@ pnpm run bench -- record <dir> <name> --composition <composition path>
 
 同一套 bench 也能经 `with-deepseek` 叠加层跑在开放权重路由上，该叠加层在基础组合的产品路由旁边再组合一个 `@deepseek-ai/dsh-llm-deepseek`：在启动它的 shell 中导出 `DEEPSEEK_API_KEY`，并为 arm 点名 `deepseek-official` 的计划加上 `--overlay with-deepseek`（fleet 用 `h1-fleet-deepseek-t2`，与 `sonnet` 的冻结配对用 `e8-deepseek-vs-sonnet-t3`）。没有这个变量时，fleet 会在第一个 cell 之前拒掉该计划并点名那条凭据，于是一次无密钥的尝试不花任何代价，并说明原因。这一点的意义不止于可移植性：上表中的每一条记录都产生自操作者的 Claude Code 订阅，其条款只允许把这些对话记录用于评测，因此这整份语料都不得进入 [RLVR 数据集](datasets/)：`--purpose training` 会扣留它的每一条 trajectory，只有跑在数据使用条款允许训练的路由上的运行才不会被它扣留。`with-openrouter` 叠加层就是那条路由：它在 OpenRouter 免费层之上组合 `@deepseek-ai/dsh-llm-pi-ai`，由启动 shell 导出 `OPENROUTER_API_KEY`，以自己的 agreement id 固定允许训练的条款，而它 2026-09-19 的两份记录（上文第三十四、三十五份）是另一条路由上的第一批 cell：最初两次启动的六个 cell 没有一个认证，loop 的第一次迭代认证了它的两个，agentic fleet 在三个模型上认证了 18 之 16。[`2026-09-19-openrouter-free-v1`](datasets/2026-09-19-openrouter-free-v1/README.md) 是第一个在 `--purpose training` 下构建的数据集：35 份已导出记录所载 852 条轨迹中的 22 条，其中 18 条已认证、4 条是测得的失败，来自六个非保留第 2 层任务上的四个免费模型；在折叠写入 `terms` 之前导出的两份记录已由 `tools/reexport-trajectories.mjs` 为此重新导出，而该路由的两份部分记录只有会话日志、没有导出，所以其中没有任何东西被准入。
 
+`--fixture polyglot-bench` 让 `plans`、`environments`、`fleet`、`experiment` 与 `admit` 指向 [polyglot bench](../../examples/headless-agent/tests/fixtures/polyglot-bench/README.md)：从 `POLYGLOT_BENCH_DIR` 所指检出中读取的 aider polyglot benchmark 的 Exercism 练习。它的运行经过同样的驱动，记录方式也相同，以该 fixture 的 `cordis.yml` 作为组合；不带这个选项时，每个子命令都使用 proving-ground bench。
+
 ## 运行列表
 
 | 运行 | Head | 实现者 | 环境 | 已认证 | 尝试次数 | 耗时 |

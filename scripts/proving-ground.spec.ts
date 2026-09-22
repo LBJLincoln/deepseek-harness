@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import {
   BASE_COMPOSITION,
+  BENCH_DIR,
   buildLedgerLine,
   decideIteration,
   describePlan,
@@ -14,6 +15,7 @@ import {
   formatRunBanner,
   formatSchedule,
   formatUtcTimestamp,
+  FIXTURES_ROOT,
   LEDGER_PATH,
   listOverlayNames,
   listPlanNames,
@@ -27,6 +29,7 @@ import {
   readRecordedReading,
   RECORDS_ROOT,
   REPO_ROOT,
+  resolveFixture,
   resolveOutDir,
   resolveOverlayPath,
   resolvePlanPath,
@@ -98,6 +101,38 @@ describe('listOverlayNames / resolveOverlayPath', () => {
     expect(listOverlayNames(dir)).toEqual(['alpha', 'beta'])
     expect(() => resolveOverlayPath('gamma', dir, '/base.yml')).toThrow('expected one of alpha | beta')
     expect(resolveOverlayPath('alpha', dir, '/base.yml')).toBe(join(dir, 'alpha.cordis.yml'))
+  })
+})
+
+describe('resolveFixture', () => {
+  it('resolves no fixture to the proving-ground bench, whose admission runs under plain Node', () => {
+    expect(resolveFixture(undefined)).toEqual({
+      name: 'proving-ground-bench',
+      dir: BENCH_DIR,
+      plansDir: PLANS_DIR,
+      overlaysDir: OVERLAYS_DIR,
+      baseComposition: BASE_COMPOSITION,
+      admission: join(BENCH_DIR, 'admit.mjs'),
+    })
+  })
+
+  it('resolves the polyglot bench to its own plans, overlays, composition, and TypeScript admission', () => {
+    const fixture = resolveFixture('polyglot-bench')
+    expect(fixture.dir).toBe(join(FIXTURES_ROOT, 'polyglot-bench'))
+    expect(fixture.admission).toBe(join(fixture.dir, 'admit.ts'))
+    for (const path of [fixture.plansDir, fixture.overlaysDir, fixture.baseComposition, fixture.admission]) {
+      expect(existsSync(path)).toBe(true)
+    }
+    expect(listPlanNames(fixture.plansDir)).toEqual(['polyglot-core-sonnet', 'polyglot-smoke-sonnet'])
+    expect(listOverlayNames(fixture.overlaysDir)).toEqual(['registry-only', 'with-openrouter'])
+    expect(resolvePlanPath('polyglot-smoke-sonnet', fixture.plansDir)).toBe(join(fixture.plansDir, 'polyglot-smoke-sonnet.json'))
+    expect(() => resolvePlanPath('e3-attempts-t5', fixture.plansDir, fixture.dir)).toThrow(/unknown plan 'e3-attempts-t5'/)
+    expect(formatPlansListing(fixture.plansDir).map(line => line.split(':')[0])).toEqual(['polyglot-core-sonnet', 'polyglot-smoke-sonnet'])
+  })
+
+  it('refuses an unknown fixture, listing the known ones', () => {
+    expect(() => resolveFixture('program-code-safety'))
+      .toThrow("unknown fixture 'program-code-safety'; expected one of proving-ground-bench | polyglot-bench")
   })
 })
 
@@ -566,6 +601,7 @@ describe('selectRegistrySummary', () => {
     heldOut: 6,
     tiers: { '2': 6, '3': 9, '4': 9, '5': 10 },
     domains: { parsing: 6 },
+    languages: { javascript: 30 },
     withReference: 10,
     cases: {},
     ids: ['code:csv-codec'],
@@ -668,6 +704,35 @@ describe('parseCommand', () => {
       overlay: 'with-spawn',
       out: '/tmp/run',
     })
+  })
+
+  it('parses --fixture on plans, environments, fleet, experiment, and admit, forwarding every other admission argument', () => {
+    expect(parseCommand(['plans', '--fixture', 'polyglot-bench'])).toEqual({ kind: 'plans', fixture: 'polyglot-bench' })
+    expect(parseCommand(['environments', '--fixture', 'polyglot-bench', '--held-out'])).toEqual({
+      kind: 'environments',
+      tier: undefined,
+      heldOut: true,
+      fixture: 'polyglot-bench',
+    })
+    expect(parseCommand(['fleet', 'polyglot-smoke-sonnet', '--fixture', 'polyglot-bench'])).toEqual({
+      kind: 'fleet',
+      planArg: 'polyglot-smoke-sonnet',
+      overlay: undefined,
+      out: undefined,
+      fixture: 'polyglot-bench',
+    })
+    expect(parseCommand(['experiment', 'e3', '--fixture', 'polyglot-bench', '--overlay', 'with-openrouter'])).toMatchObject({
+      kind: 'experiment',
+      overlay: 'with-openrouter',
+      fixture: 'polyglot-bench',
+    })
+    expect(parseCommand(['admit', '--write', '--fixture', 'polyglot-bench', '/checkout'])).toEqual({
+      kind: 'admit',
+      args: ['--write', '/checkout'],
+      fixture: 'polyglot-bench',
+    })
+    expect(() => parseCommand(['admit', '--fixture'])).toThrow('--fixture needs a fixture name')
+    expect(() => parseCommand(['plans', 'polyglot-bench'])).toThrow(/'plans' takes no arguments other than --fixture/)
   })
 
   it('refuses fleet or experiment without exactly one plan argument', () => {

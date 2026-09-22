@@ -25,16 +25,17 @@ import type { AuthoredCheck, CheckCase, CheckCaseChannel } from '@deepseek-ai/ds
 declare module '@deepseek-ai/dsh-environments/types' {
   interface EnvironmentKindMap {
     /**
-     * A bench task in one language, verified by its fixture's own test suite,
-     * with the bench's tier and domain. `family` and `completion` are absent on
-     * one of this producer's own curated tasks and present on a completion
-     * child `register-completion-environments.ts` synthesizes from one: they
-     * name the parent task and the one function its workspace stubs out.
+     * A bench task in one language, verified by its fixture's own test suite.
+     * The in-house bench's tasks carry its tier and domain; an external suite's
+     * tasks carry neither. `family` and `completion` are absent on a curated task
+     * and present on a completion child `register-completion-environments.ts`
+     * synthesizes from one: they name the parent task and the one function its
+     * workspace stubs out.
      */
     bench: {
       readonly language: string
-      readonly tier: number
-      readonly domain: string
+      readonly tier?: number
+      readonly domain?: string
       readonly family?: string
       readonly completion?: { readonly file: string; readonly function: string }
     }

@@ -1,0 +1,185 @@
+# The polyglot bench: the Exercism exercises of the aider polyglot benchmark in
+# the four tracks whose tests run offline in a sealed cell (C++, Go, Python,
+# Rust), read from the checkout POLYGLOT_BENCH_DIR names, and run on the
+# operator's Claude Code subscription through the harness's own agent loop.
+# The cell stack, the caps, the attempts, and the route are the proving-ground
+# bench's own, so one model's readings on the two suites come from one
+# composition. The product-loop implementer is not composed: its tool allowlist
+# names only the in-house bench's test command.
+- id: llm-claude-code
+  name: '@deepseek-ai/dsh-llm-claude-code'
+  config:
+    provider: claude-code
+    models:
+      - id: opus
+        name: Claude Code opus
+        productModel: opus
+        contextWindow: 200000
+      - id: sonnet
+        name: Claude Code sonnet
+        productModel: sonnet
+        contextWindow: 200000
+      - id: haiku
+        name: Claude Code haiku
+        productModel: haiku
+        contextWindow: 200000
+    effort: medium
+    queryTimeoutMs: 300000
+
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+# workspace-write over the cell session's own cwd, which the runner sets to the
+# cell workspace. The configured root is the fallback for the agentless calls
+# the runner itself makes: the checks run outside every session, in the same
+# kind of cell, with the run directory writable.
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.cwd()
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-sandbox'
+
+# A cell reads its own workspace and nothing above it. The registrar adds the
+# checkout and its staging directory to the denied set, since both hold every
+# exercise's reference solution.
+- id: read-barrier
+  name: '@deepseek-ai/dsh-read-barrier'
+
+- id: fs-read-barrier
+  name: '@deepseek-ai/dsh-fs-read-barrier'
+
+- id: fs-local
+  name: '@deepseek-ai/dsh-fs-local'
+
+- id: fs-observation-policy
+  name: '@deepseek-ai/dsh-fs-observation-policy'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: goal
+  name: '@deepseek-ai/dsh-goal'
+  config:
+    defaultMaxGoalRounds: 11
+
+- id: verification
+  name: '@deepseek-ai/dsh-verification'
+  config:
+    maxChecks: 32
+    maxTextChars: 4096
+
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+# The boot fails when the variable is unset, names no checkout, or names one at
+# another revision than admission.json records, or with local changes.
+- id: register-environments
+  name: './register-environments.ts'
+  config:
+    checkout: !!js process.env.POLYGLOT_BENCH_DIR
+
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+  config:
+    provider: claude-code
+    model: sonnet
+
+# `isolation: none` as on the bench: the Claude Code route spawns its CLI
+# through the subprocess service, which the census cannot tell from a tool the
+# implementer holds.
+- id: environment-runner
+  name: '@deepseek-ai/dsh-environment-runner'
+  config:
+    isolation: none
+    maxAttempts: 3
+    evidenceMaxChars: 2048
+
+- id: fleet
+  name: '@deepseek-ai/dsh-fleet'
+  config:
+    maxConcurrent: 2
+    workspaceRetention: keep
+
+- id: experiments
+  name: '@deepseek-ai/dsh-experiments'
+  config:
+    bootstrapResamples: 2000
+    confidenceLevel: 0.95
+    minimumDelta: 0.05
+    cellTokenCap: 600000
+    tokenBudget: 200000000
+
+# Village rule: unattended cells carry a session budget. A cell that has not
+# certified within these caps is a failed cell, not a longer one.
+- id: budget-policy
+  name: '@deepseek-ai/dsh-budget-policy'
+  config:
+    maxTotalTokens: 1500000
+    maxWallMs: 1200000
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    persona: |
+      You implement one program task in the workspace you are given, against its own test suite, and you stop when the tests pass.
+
+      The workspace is your working directory: every bash command and every file path resolves inside it, so read and edit its files by their relative paths and never search outside it.
+    workspaceContext: false
+
+- id: persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: './.sessions'
+    compression: none
+
+- id: checkpoint-policy
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+# Evaluation terms only, under their own agreement: the sessions quote
+# third-party exercises and run on the subscription, so none of them trains.
+- id: data-use
+  name: '@deepseek-ai/dsh-data-use'
+  config:
+    clientId: daliesk-lab
+    agreementId: polyglot-bench
+    purposes:
+      - evaluation
+    residency: eu-west
+    retentionDays: 90
+    redactionProfile: village-v1
+
+- id: session-projection
+  name: '@deepseek-ai/dsh-session-projection'
+
+- id: scorekeeper
+  name: '@deepseek-ai/dsh-scorekeeper'
+  config:
+    passAtK:
+      - 1
+
+- id: observatory
+  name: '@deepseek-ai/dsh-observatory'
+  config:
+    withhold:
+      districts:
+        - workshop
+      heldOut: true
+    staleAfterMs: 3600000
+    refreshIntervalMs: 900000
+
+- id: trajectories
+  name: '@deepseek-ai/dsh-trajectories'
+
+- id: curator
+  name: '@deepseek-ai/dsh-curator'
+  config:
+    defaultProfile: village-v1
+    profiles:
+      village-v1:
+        shipped: true
