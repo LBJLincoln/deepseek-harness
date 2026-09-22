@@ -54,6 +54,7 @@ The recorder refuses to overwrite an existing record. Add a row below afterwards
 | [2026-09-22-nodegoat-5-generalist-a](2026-09-22-nodegoat-5-generalist-a/manifest.json) | `192758404` | OWASP NodeGoat, 111 files, the loop's second iteration run as a pair, first `with` arm: the generalist department beside the six specialists (`--with-generalist`) | `sonnet` | 8 of 8 | 49 (9 critical, 18 high, 12 medium, 10 low, 0 info) | exit 0 | 1533 s |
 | [2026-09-22-nodegoat-6-base-a](2026-09-22-nodegoat-6-base-a/manifest.json) | `f59f7a70c` | OWASP NodeGoat, 111 files, the same pair's first `without` arm: the six specialists alone, run right after the `with` arm on the same knowledge pack | `sonnet` | 7 of 7 | 57 (7 critical, 16 high, 17 medium, 16 low, 1 info) | exit 0 | 1383 s |
 | [2026-09-22-nodegoat-7-generalist-b](2026-09-22-nodegoat-7-generalist-b/manifest.json) | `af1f81270` | OWASP NodeGoat, 111 files, the same pair's second `with` arm | `sonnet` | 8 of 8 | 44 (7 critical, 15 high, 13 medium, 6 low, 3 info) | exit 0 | 1556 s |
+| [2026-09-22-nodegoat-8-base-b](2026-09-22-nodegoat-8-base-b/manifest.json) | `a15e48033` | OWASP NodeGoat, 111 files, the same pair's second `without` arm; closes iteration 2 | `sonnet` | 7 of 7 | 46 (10 critical, 18 high, 14 medium, 3 low, 1 info) | exit 0 | 1347 s |
 
 ## What a record proves
 

@@ -54,6 +54,7 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | [2026-09-22-nodegoat-5-generalist-a](2026-09-22-nodegoat-5-generalist-a/manifest.json) | `192758404` | OWASP NodeGoat，111 个文件，循环的第二次迭代以配对方式运行，第一个 `with` 臂：在六个专科部门之外加上通才部门（`--with-generalist`） | `sonnet` | 8 of 8 | 49 (9 critical, 18 high, 12 medium, 10 low, 0 info) | 退出码 0 | 1533 s |
 | [2026-09-22-nodegoat-6-base-a](2026-09-22-nodegoat-6-base-a/manifest.json) | `f59f7a70c` | OWASP NodeGoat，111 个文件，同一配对的第一个 `without` 臂：只有六个专科部门，紧接在 `with` 臂之后、使用同一知识包运行 | `sonnet` | 7 of 7 | 57 (7 critical, 16 high, 17 medium, 16 low, 1 info) | 退出码 0 | 1383 s |
 | [2026-09-22-nodegoat-7-generalist-b](2026-09-22-nodegoat-7-generalist-b/manifest.json) | `af1f81270` | OWASP NodeGoat，111 个文件，同一配对的第二个 `with` 臂 | `sonnet` | 8 of 8 | 44 (7 critical, 15 high, 13 medium, 6 low, 3 info) | 退出码 0 | 1556 s |
+| [2026-09-22-nodegoat-8-base-b](2026-09-22-nodegoat-8-base-b/manifest.json) | `a15e48033` | OWASP NodeGoat，111 个文件，同一配对的第二个 `without` 臂；收束第二次迭代 | `sonnet` | 7 of 7 | 46 (10 critical, 18 high, 14 medium, 3 low, 1 info) | 退出码 0 | 1347 s |
 
 ## 一条记录证明了什么
 

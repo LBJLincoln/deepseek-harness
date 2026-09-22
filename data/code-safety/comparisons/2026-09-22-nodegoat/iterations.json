@@ -9,5 +9,57 @@
     "targets": ["NG-SSRF", "NG-REDOS", "NG-A1-3"],
     "decision": "keep-knowledge",
     "reading": "One run each side; the four NodeGoat enterprise runs on record read 14, 14, 13, 13 of 18, so a one-issue move is inside the program's own run-to-run variation. The knowledge stays because it is general and costs nothing measurable; the effect is not established."
+  },
+  {
+    "id": "2",
+    "ran": "2026-09-22",
+    "record": "data/code-safety/2026-09-22-nodegoat-5-generalist-a",
+    "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+    "mechanism": "code-safety composition: the with-generalist overlay adds a seventh, unscoped department",
+    "change": "A seventh department, the generalist, runs beside the six fixed-scope specialists (secrets, injection, access, data, dependencies, platform). It has no scope of its own; it reads the whole tree for anything the specialists' scopes leave uncovered, and its findings are verified by the same examiner. The pair runs the with-generalist overlay against the specialists-only overlay, interleaved on the same target, revision, model, and knowledge pack, twice each; nothing else differs.",
+    "targets": ["NG-A1-3", "NG-A2-2a", "NG-A2-2b"],
+    "decision": "not-adopted",
+    "pair": "2",
+    "arm": "with",
+    "reading": "With-generalist, first run: 15 of 18. The pair's honest reading is per arm across both runs, in the comparison README."
+  },
+  {
+    "id": "3",
+    "ran": "2026-09-22",
+    "record": "data/code-safety/2026-09-22-nodegoat-6-base-a",
+    "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+    "mechanism": "code-safety composition: the specialists-only overlay, the pair's control arm",
+    "change": "The six fixed-scope specialists alone (secrets, injection, access, data, dependencies, platform), the control arm of the generalist pair, run right after the first with-generalist arm on the same target, revision, model, and knowledge pack.",
+    "targets": ["NG-A1-3", "NG-A2-2a", "NG-A2-2b"],
+    "decision": "not-adopted",
+    "pair": "2",
+    "arm": "without",
+    "reading": "Specialists only, first run: 14 of 18."
+  },
+  {
+    "id": "4",
+    "ran": "2026-09-22",
+    "record": "data/code-safety/2026-09-22-nodegoat-7-generalist-b",
+    "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+    "mechanism": "code-safety composition: the with-generalist overlay adds a seventh, unscoped department",
+    "change": "The second with-generalist run of the pair: the seven departments on the same target, revision, model, and knowledge pack.",
+    "targets": ["NG-A1-3", "NG-A2-2a", "NG-A2-2b"],
+    "decision": "not-adopted",
+    "pair": "2",
+    "arm": "with",
+    "reading": "With-generalist, second run: 13 of 18."
+  },
+  {
+    "id": "5",
+    "ran": "2026-09-22",
+    "record": "data/code-safety/2026-09-22-nodegoat-8-base-b",
+    "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+    "mechanism": "code-safety composition: the specialists-only overlay, the pair's control arm",
+    "change": "The second specialists-only run of the pair: the six departments on the same target, revision, model, and knowledge pack.",
+    "targets": ["NG-A1-3", "NG-A2-2a", "NG-A2-2b"],
+    "decision": "not-adopted",
+    "pair": "2",
+    "arm": "without",
+    "reading": "Specialists only, second run: 15 of 18. Across the pair the with-generalist arm means 14.0 of 18 (15, 13), the specialists-only arm 14.5 (14, 15): the generalist adds no recall, inside the 12-to-15 band the enterprise reads on this target, and it caught none of the three broken-authentication and log-injection targets any arm still misses."
   }
 ]

@@ -44,6 +44,21 @@ The gap list was acted on the same day. The injection department's transcript sh
 
 Read it as the ledger reads a one-run pair: the four NodeGoat enterprise runs on record score 14, 14, 13, and 13 of 18, so a one-issue move in either direction is inside the program's own run-to-run variation, and the lost issue (`NG-A5`, security misconfiguration) is in a department the change never touched. The knowledge stays because it is general and costs nothing measurable; whether it caused the SSRF catch is not established by one run, which is why the next step for this loop is the same instrument the bench uses — a frozen pair with the change as the only difference and enough repetitions to read a one-issue effect — rather than another single run. `iterations.json` holds the authored proposal and decision; the reading in the table is scored from the record by the assembler.
 
+## The loop's second iteration: the generalist department, read as a pair
+
+The first iteration widened a skill; this one changes the roster. The six departments each hold a fixed scope (secrets, injection, access, data, dependencies, platform), so a defect that falls between those scopes has no owner. The `with-generalist` overlay adds a seventh department with no scope of its own: it reads the whole tree for anything the specialists leave uncovered, and its findings pass the same examiner. The question is whether that seventh reader catches issues the six miss — the standing gaps are log injection (`NG-A1-3`) and the two broken-authentication issues (`NG-A2-2a`, `NG-A2-2b`), which no enterprise run has ever caught.
+
+Rather than one run each way, the change ran as a pair: the with-generalist arm and the specialists-only arm, twice each, interleaved on the same target, revision, model (`sonnet`), and knowledge pack, so the only difference within a pair is the seventh department.
+
+| Iteration | Arm | Recall on 18 | Targets caught | Gained vs enterprise | Lost vs enterprise |
+| --- | --- | ---: | :---: | --- | --- |
+| 2 | with generalist | 15 / 18 | 0 of 3 | `NG-SSRF`, `NG-REDOS` | none |
+| 3 | specialists only | 14 / 18 | 0 of 3 | `NG-SSRF` | none |
+| 4 | with generalist | 13 / 18 | 0 of 3 | `NG-SSRF` | `NG-A5` |
+| 5 | specialists only | 15 / 18 | 0 of 3 | `NG-SSRF`, `NG-REDOS` | none |
+
+The generalist adds no recall. The with-generalist arm means 14.0 of 18 (15, 13); the specialists-only arm means 14.5 (14, 15) — the control arm is a hair higher, and both means sit inside the 12-to-15 band the untouched enterprise reads on this target. Neither arm caught any of the three targets: the broken-authentication and log-injection issues are still missed with the seventh department as without it. What does move — `NG-REDOS`, caught in one run of each arm and missed in the other — moves independently of the generalist, which is the run-to-run noise the pair exists to expose. The seventh department is not free: it read the tree and released findings beyond the ground truth in every run without converting one into a caught known issue. On this evidence the generalist is not adopted; the overlay stays available for a target whose defects genuinely fall outside the six scopes, where this small, well-partitioned application does not test it. `iterations.json` holds the four runs' authored side; the recall, the gains and losses, and the targets caught are scored from each record by the assembler.
+
 ## Files
 
 `comparison.json` is the machine record: the three tiers, the issue-by-issue matrix, the gaps, and the loop's iterations. `iterations.json` is the authored side of each iteration: its record, the change, the targeted issues, and the decision. `t0-semgrep-findings.json` and `t1-single-model-findings.json` are the two live tiers' findings, normalized to the findings schema; `t0-semgrep-raw.json` and `t1-single-model-meta.json` keep each producer's own output. `enterprise-trajectory.json` is the enterprise record's provenance and per-finding trail. Regenerate the scorecard with:
