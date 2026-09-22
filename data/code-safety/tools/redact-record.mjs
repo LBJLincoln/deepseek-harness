@@ -7,6 +7,11 @@
 // becomes `[REDACTED-EXAMPLE-KEY]`. Certificates and public keys are left as
 // they are. The escaping the surrounding file uses (a raw newline, a JSON `\n`,
 // or a doubly encoded `\\n`) is kept, so JSON and JSONL files stay parseable.
+// Two shapes hold a body outside one BEGIN…END string: a file-read tool's
+// `lines` meta, where every key line is its own JSON string, and a key a tool
+// cut off before its END line. Both are walked line by line after the BEGIN
+// marker; a base64-only line is body and is replaced, the walk stops at the
+// END marker or at the first line that is anything else.
 //
 // Idempotent: a redacted file has nothing left to replace. `record-run.mjs`
 // calls `redactRecordFiles` before it digests a new record; run this tool by
@@ -29,6 +34,68 @@ const EXAMPLE_AWS_KEY = /AKIAIOSFODNN7EXAMPLE/g
 const PRIVATE_KEY_MARKER = '[REDACTED PRIVATE KEY BODY]'
 const EXAMPLE_KEY_MARKER = '[REDACTED-EXAMPLE-KEY]'
 
+// The block rule cannot reach a key whose lines are separate JSON strings (a
+// file-read tool's `lines` meta holds one entry per line) or a key a tool cut
+// off before its END line. The line walk below covers both: after a BEGIN
+// marker it consumes one line at a time through whichever separator the file
+// uses and replaces body lines until the END marker or any other text.
+const PRIVATE_KEY_HEADER = /-----BEGIN ((?:[A-Z]+ )*PRIVATE KEY)-----/g
+const LINES_ENTRY_SEPARATOR = /^"\},\{"number":\d+,"text":"/
+// A tool that marks line ends (`cat -e`) puts a `$` before the newline.
+const ESCAPED_NEWLINE = /^\$?(\\+)(?:r\\+)?n/
+const RAW_NEWLINE = /^\$?\r?\n/
+const ESCAPED_NEWLINE_ANYWHERE = /(\\+)(?:r\\+)?n/
+// A PEM body line: base64 only, at most 76 columns, ended by the next separator.
+const BODY_LINE = /^[A-Za-z0-9+/=]{1,76}(?=\$?["\\\r\n])/
+// A line an earlier redaction already replaced; the walk steps over it.
+const REDACTED_LINE = /^\[REDACTED (?:PRIVATE KEY BODY|KEY MATERIAL)\](?=\$?["\\\r\n])/
+const LOOKAHEAD = 4096
+
+/**
+ * Replace private-key body lines the block rule left: the `lines`-meta shape and
+ * a key cut off before its END line. A flat body collapses into one marker line;
+ * a `lines` entry keeps one marker per entry so the JSON stays intact.
+ * @param {string} text - The file's content after the block rule ran.
+ * @returns {{ text: string, bodies: number }} The rewritten text and how many key bodies were replaced.
+ */
+function redactKeyLines(text) {
+  let bodies = 0
+  let out = ''
+  let last = 0
+  for (const header of text.matchAll(PRIVATE_KEY_HEADER)) {
+    const start = header.index + header[0].length
+    if (start < last) continue
+    let cursor = start
+    let segment = ''
+    let replaced = false
+    for (;;) {
+      const ahead = text.slice(cursor, cursor + LOOKAHEAD)
+      const entry = LINES_ENTRY_SEPARATOR.exec(ahead)
+      const separator = entry ?? ESCAPED_NEWLINE.exec(ahead) ?? RAW_NEWLINE.exec(ahead)
+      if (separator === null) break
+      const lineStart = cursor + separator[0].length
+      const line = text.slice(lineStart, lineStart + LOOKAHEAD)
+      if (line.startsWith('-----END ')) break
+      const marker = REDACTED_LINE.exec(line)
+      if (marker !== null) {
+        segment += separator[0] + marker[0]
+        cursor = lineStart + marker[0].length
+        continue
+      }
+      const body = BODY_LINE.exec(line)
+      if (body === null) break
+      if (entry !== null || !replaced) segment += separator[0] + PRIVATE_KEY_MARKER
+      replaced = true
+      cursor = lineStart + body[0].length
+    }
+    if (!replaced) continue
+    bodies += 1
+    out += text.slice(last, start) + segment
+    last = cursor
+  }
+  return { text: out + text.slice(last), bodies }
+}
+
 /**
  * Redact one file's text.
  * @param {string} text - The file's content.
@@ -37,21 +104,26 @@ const EXAMPLE_KEY_MARKER = '[REDACTED-EXAMPLE-KEY]'
 export function redactText(text) {
   let privateKeyBodies = 0
   let exampleAwsKeys = 0
-  const redacted = text
+  const blocks = text
     .replace(PRIVATE_KEY_BLOCK, (match, kind, body) => {
       if (body.includes(PRIVATE_KEY_MARKER)) return match
       privateKeyBodies += 1
       // A JSON-encoded newline carries one backslash per encoding level doubled
       // (`\n`, `\\n`, `\\\\n`, …); the marker is joined with the same escape so the
-      // file stays parseable at every depth. Raw text keeps a raw newline.
-      const escaped = /^(\\+)(?:r\\+)?n/.exec(body)
-      const separator = escaped === null ? '\n' : `${escaped[1]}n`
+      // file stays parseable at every depth. Raw text keeps a raw newline. The
+      // first newline of either kind in the body decides, wherever it sits: a
+      // raw newline written into a JSON string would break the file.
+      const escaped = ESCAPED_NEWLINE_ANYWHERE.exec(body)
+      const raw = body.indexOf('\n')
+      const separator = escaped !== null && (raw < 0 || escaped.index < raw) ? `${escaped[1]}n` : raw >= 0 ? '\n' : ''
       return `-----BEGIN ${kind}-----${separator}${PRIVATE_KEY_MARKER}${separator}-----END ${kind}-----`
     })
-    .replace(EXAMPLE_AWS_KEY, () => {
-      exampleAwsKeys += 1
-      return EXAMPLE_KEY_MARKER
-    })
+  const lines = redactKeyLines(blocks)
+  privateKeyBodies += lines.bodies
+  const redacted = lines.text.replace(EXAMPLE_AWS_KEY, () => {
+    exampleAwsKeys += 1
+    return EXAMPLE_KEY_MARKER
+  })
   return { text: redacted, privateKeyBodies, exampleAwsKeys }
 }
 
@@ -100,11 +172,20 @@ export function redactRecord(recordDir, options = {}) {
   }
   if (touched.length === 0 && refreshed === 0) return touched
   if (touched.length > 0) {
-    const previous = manifest.redactions?.files ?? []
+    // A file redacted on two occasions keeps one entry with the summed counts.
+    const files = new Map((manifest.redactions?.files ?? []).map(entry => [entry.file, { ...entry }]))
+    for (const entry of touched) {
+      const previous = files.get(entry.file)
+      if (previous === undefined) files.set(entry.file, { ...entry })
+      else {
+        previous.privateKeyBodies += entry.privateKeyBodies
+        previous.exampleAwsKeys += entry.exampleAwsKeys
+      }
+    }
     manifest.redactions = {
       rule: REDACTION_RULE,
       tool: 'tools/redact-record.mjs',
-      files: [...previous, ...touched],
+      files: [...files.values()],
     }
   }
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)

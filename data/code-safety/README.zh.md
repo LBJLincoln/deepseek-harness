@@ -21,6 +21,7 @@ data/code-safety/
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
   tools/record-run.mjs                 copies one run directory into a record, redacts it, and writes its manifest
   tools/redact-record.mjs              replaces private-key bodies and example cloud keys in a record and refreshes its manifest; record-run.mjs runs it before digesting
+  tools/redact-record.cases.mjs        one behavior case per private-key shape the tool covers; scripts/code-safety-redaction.spec.ts runs it under plain Node
   tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate
   tools/compare.mjs                    scores any findings list against a ground truth, the rule recall.mjs uses, for a cross-tool comparison
   tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail
@@ -50,6 +51,9 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | [2026-09-19-nodegoat-2](2026-09-19-nodegoat-2/manifest.json) | `5a59895fa` | OWASP NodeGoat，111 个文件，经由 feed 的 `POST /safety` 启动 | `sonnet` | 7 of 7 | 38 (4 critical, 16 high, 14 medium, 4 low) | 退出码 0 | 1225 s |
 | [2026-09-21-nodegoat-3](2026-09-21-nodegoat-3/manifest.json) | `a47c8f519` | OWASP NodeGoat，111 个文件，经由托管镜像中继的 `POST /safety` 启动 | `sonnet` | 7 of 7 | 47 (4 critical, 18 high, 17 medium, 7 low, 1 info) | 退出码 0 | 1356 s |
 | [2026-09-22-nodegoat-4-improved](2026-09-22-nodegoat-4-improved/manifest.json) | `c0efe64a3` | OWASP NodeGoat，111 个文件，改进循环的第一次迭代：在[三层对比](comparisons/2026-09-22-nodegoat/README.md)之后拓宽了注入技能 | `sonnet` | 7 of 7 | 44 (6 critical, 18 high, 12 medium, 7 low, 1 info) | 退出码 0 | 1426 s |
+| [2026-09-22-nodegoat-5-generalist-a](2026-09-22-nodegoat-5-generalist-a/manifest.json) | `192758404` | OWASP NodeGoat，111 个文件，循环的第二次迭代以配对方式运行，第一个 `with` 臂：在六个专科部门之外加上通才部门（`--with-generalist`） | `sonnet` | 8 of 8 | 49 (9 critical, 18 high, 12 medium, 10 low, 0 info) | 退出码 0 | 1533 s |
+| [2026-09-22-nodegoat-6-base-a](2026-09-22-nodegoat-6-base-a/manifest.json) | `f59f7a70c` | OWASP NodeGoat，111 个文件，同一配对的第一个 `without` 臂：只有六个专科部门，紧接在 `with` 臂之后、使用同一知识包运行 | `sonnet` | 7 of 7 | 57 (7 critical, 16 high, 17 medium, 16 low, 1 info) | 退出码 0 | 1383 s |
+| [2026-09-22-nodegoat-7-generalist-b](2026-09-22-nodegoat-7-generalist-b/manifest.json) | `af1f81270` | OWASP NodeGoat，111 个文件，同一配对的第二个 `with` 臂 | `sonnet` | 8 of 8 | 44 (7 critical, 15 high, 13 medium, 6 low, 3 info) | 退出码 0 | 1556 s |
 
 ## 一条记录证明了什么
 
