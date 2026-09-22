@@ -40,6 +40,16 @@
                 openrouter:
                   displayName: OpenRouter free models
                   apiKeyEnv: OPENROUTER_API_KEY
+                  # A free-tier request is queued behind paid traffic and can be
+                  # dropped without an error the client sees; with no request
+                  # timeout the cell then awaits forever, and only the wall cap ends
+                  # it after twenty minutes — so a stalled first cell burns the whole
+                  # window and the route breaker, which counts errors not silence,
+                  # never trips. These bound one HTTP attempt and one idle stream gap
+                  # to two minutes, turning a stall into a TIMEOUT the retry policy
+                  # recovers from or, past its retries, an error the breaker counts.
+                  timeoutMs: 120000
+                  streamIdleTimeoutMs: 120000
                   # OpenRouter ignores the `reasoning` field on an input
                   # assistant message, so a prior step's reasoning is replayed
                   # inside `content`; without this a model that plans in its
