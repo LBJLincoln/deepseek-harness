@@ -12,13 +12,13 @@ Status: implemented
 
 `pnpm run bench -- loop <queue>` 会无人值守地按顺序运行一条由已入库计划组成的队列。队列是 JSON——[`queues/`](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/queues/) 下一个已入库的名字，或一个路径——内含一个由 `{ plan, overlay, note }` 条目组成的数组：`overlay` 是叠加层名，或用 `null` 表示夹具的基础组合，`note` 说明该条目为何入队。`nightly-tier5.json` 是已入库的示例。每个条目都经由 `fleet` 与 `experiment` 子命令所用的同一套 `resolvePlanPath` 与 `resolveOverlayPath` 解析，并且整条队列都在第一个驱动器启动之前解析完毕，因此文件中任何位置上不认识的计划或叠加层都会让这条命令被拒，而不是跑到一半才停。一个条目用哪个驱动器由计划本身决定：`models` 数组是 fleet，`baseline`/`candidate` 配对是实验，而同时声明两者或两者皆无的计划会被拒。
 
-每个条目都像 `fleet` 与 `experiment` 那样跑进包装脚本运行根目录下的一个运行目录，随后由手工记录所用的同一个 `record-run.mjs` 记录为 `<UTC date>-bench-<plan>`（该名字已被占用时依次追加 `-2`、`-3`、……），再被汇总，最后作为 `data/proving-ground/loop/ledger.jsonl` 的一行写出。这一行携带 `ranAt`、`queue`、`index`、`plan`、`overlay`、`kind`、`record`、`head`、`verdict`、`delta`、`interval`、按 arm 的 `certified`、`decision`、`elapsedSeconds`、`outcome`，以及失败时的 `reason`。其中每一个数字都读自刚刚写出的那份记录——实验的裁决、差值与区间读自它的 `result.json`，每个臂的证书数读自该结果按环境给出的比率与配对数，fleet 按模型的证书数读自它的排行榜，经过的秒数读自 manifest——因此这份台账只陈述记录已陈述的内容，不编造任何东西。
+每个条目都像 `fleet` 与 `experiment` 那样跑进包装脚本运行根目录下的一个运行目录，随后由手工记录所用的同一个 `record-run.mjs` 记录为 `<UTC date>-bench-<plan>`（该名字已被占用时依次追加 `-2`、`-3`、……），再被汇总，最后作为 `data/proving-ground/loop/ledger.jsonl` 的一行写出。这一行携带 `ranAt`、`queue`、`index`、`plan`、`overlay`、`kind`、`record`、`head`、`verdict`、`delta`、`interval`、`statistic`、按 arm 的 `certified`、`decision`、`elapsedSeconds`、`outcome`，以及失败时的 `reason`。其中每一个数字都读自刚刚写出的那份记录——实验的裁决、差值、区间以及得出它们的统计方法读自它的 `result.json`（未指名统计方法的结果读作 `paired-bootstrap/0`），每个臂的证书数读自该结果按环境给出的比率与配对数，fleet 按模型的证书数读自它的排行榜，经过的秒数读自 manifest——因此这份台账只陈述记录已陈述的内容，不编造任何东西。
 
 决定规则固定在代码里，并与代码一同记录在案：裁决 `promote` 决定 `adopt-candidate`，`reject` 与 `inconclusive` 决定 `keep-baseline`，fleet 不带裁决、决定 `recorded`，失败的条目决定 `none`。`adopt-candidate` 命名的是一个决定，而不是一次编辑。循环中没有任何东西会写组合，因为一个臂无法指明组合：把晋级的臂带进 `cordis.yml` 或某个叠加层，仍是改进日志第三条限制所描述的那个人的动作。
 
 失败的条目——非零退出的驱动器、被 `record-run.mjs` 拒绝的记录、结果里既无裁决也无排行榜的记录——会以 `outcome: "failed"` 连同原因写进台账，队列继续下一个条目；命令在队列结束之后以非零码退出。`--dry-run` 解析全部内容、打印排程，不运行也不写出任何东西。`--from <n>` 与 `--only <plan>` 用于在中断之后续跑一条队列，二者收窄的都是已解析的队列而非已解析之前的队列，因此被跳过的条目里的笔误照样会被拒。
 
-这份台账归机器所有且只追加：由循环写出，别无他者，并且在第一次迭代运行之前都不存在。[`build-dashboard.mjs`](../../../../data/proving-ground/tools/build-dashboard.mjs) 在它存在时读取它，并渲染一个 Loop 小节——时间、队列与位置、计划、叠加层、种类、按 arm 的证书数、带区间的差值、裁决、决定、墙上时间，以及指向记录的链接——在台账缺席或为空时它保持隐藏，与页面的"正在运行"一节相同。各份记录自己的泳道、卡片与行都未被触动。[改进日志](../../../../data/proving-ground/improvement-log.md)仍由人手写，也仍是读者所读的那本台账；变化在于它的行如今读的是一行持久、可重放的机器记录，而不再只是一个记录目录。
+这份台账归机器所有且只追加：由循环写出，别无他者，并且在第一次迭代运行之前都不存在。[`build-dashboard.mjs`](../../../../data/proving-ground/tools/build-dashboard.mjs) 在它存在时读取它，并渲染一个 Loop 小节——时间、队列与位置、计划、叠加层、种类、按 arm 的证书数、带区间的差值及得出它的统计方法、裁决、决定、墙上时间，以及指向记录的链接——在台账缺席或为空时它保持隐藏，与页面的"正在运行"一节相同。各份记录自己的泳道、卡片与行都未被触动。[改进日志](../../../../data/proving-ground/improvement-log.md)仍由人手写，也仍是读者所读的那本台账；变化在于它的行如今读的是一行持久、可重放的机器记录，而不再只是一个记录目录。
 
 ## Alternatives considered
 

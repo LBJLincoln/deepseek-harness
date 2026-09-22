@@ -754,7 +754,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'async run(plan: ExperimentPlan): Promise<ExperimentResult>',
         description: 'Freeze a plan, run both arms through the fleet at the same repetition indexes, and fold the paired comparison. The arms run as one paired fleet run whose cells alternate, so neither arm is confounded with the hour it ran in. Every refusal happens before the first cell runs; a cell the fleet kept as an error leaves its repetition unpaired instead of failing the experiment.',
         parameters: [{ name: 'plan', description: 'environments, repetitions, the two arms with their model routes and optional attempt ladders, implementers, and agent presets, the workspace root, and an optional policy version, base seed, frozen digest, abort signal, and result sink.' }],
-        returns: 'the digest, both arms with their ladders, presets, and stamp groups, one cell per environment, every cell an arm kept as an error, the pooled delta with its interval, the spend, the caps both arms ran under, and the verdict.',
+        returns: 'the digest, both arms with their ladders, presets, and stamp groups, one cell per environment, every cell an arm kept as an error, the pooled delta with its interval and the statistic that drew it, the discordant pairs, the spend, the caps both arms ran under, and the verdict with what decided it.',
         throws: ['{@link ExperimentError} for a plan that names no or a duplicate or unregistered environment, asks for no repetition, sets a seed that is not a safe non-negative integer, carries an arm ladder with no rung or one whose first rung names another route, whose two arms would run under different caps, declares a digest its content does not freeze to, or projects more tokens than the budget.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when either arm names an implementer provider this composition cannot honor, and from {@link EnvironmentRunner.checkPreset}, when either arm names an agent preset this composition cannot compose a cell from.'],
       },
     ],
@@ -3885,19 +3885,27 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentResult',
-    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly errors: readonly ExperimentCellError[];\n    readonly seedsPaired: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly caps: readonly BudgetCap[];\n    readonly verdict: ExperimentVerdict;\n}',
+    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly errors: readonly ExperimentCellError[];\n    readonly seedsPaired: number;\n    readonly discordantPairs: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly statistic: ExperimentStatistic;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly caps: readonly BudgetCap[];\n    readonly verdict: ExperimentVerdict;\n    readonly verdictBasis: ExperimentVerdictBasis;\n}',
   },
   {
     name: 'ExperimentSpend',
     declaration: 'export interface ExperimentSpend {\n    readonly inputTokens: number;\n    readonly outputTokens: number;\n}',
   },
   {
+    name: 'ExperimentStatistic',
+    declaration: 'export type ExperimentStatistic = \'paired-bootstrap/0\' | \'paired-cluster-bootstrap/1\';',
+  },
+  {
     name: 'ExperimentThresholds',
-    declaration: 'export interface ExperimentThresholds {\n    readonly bootstrapResamples: number;\n    readonly confidenceLevel: number;\n    readonly minimumDelta: number;\n    readonly cellTokenCap: number;\n}',
+    declaration: 'export interface ExperimentThresholds {\n    readonly bootstrapResamples: number;\n    readonly confidenceLevel: number;\n    readonly minimumDelta: number;\n    readonly minimumDiscordantPairs: number;\n    readonly cellTokenCap: number;\n}',
   },
   {
     name: 'ExperimentVerdict',
     declaration: 'export type ExperimentVerdict = \'promote\' | \'reject\' | \'inconclusive\';',
+  },
+  {
+    name: 'ExperimentVerdictBasis',
+    declaration: 'export type ExperimentVerdictBasis = \'interval\' | \'no-pairs\' | \'too-few-discordant-pairs\';',
   },
   {
     name: 'ExportManifest',

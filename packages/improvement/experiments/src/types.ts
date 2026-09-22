@@ -62,6 +62,12 @@ export interface ExperimentThresholds {
   readonly confidenceLevel: number
   /** Certificate-rate delta the overall interval's lower bound must exceed to promote. */
   readonly minimumDelta: number
+  /**
+   * Paired repetitions whose arms disagree on the certificate that a `promote`
+   * or `reject` verdict needs. With fewer the verdict is `inconclusive`
+   * whatever the interval says; `0` never withholds a verdict.
+   */
+  readonly minimumDiscordantPairs: number
   /** Tokens one cell may spend; the projection the token budget is checked against. */
   readonly cellTokenCap: number
 }
@@ -153,7 +159,7 @@ export interface ExperimentCell {
   readonly candidateRate: number
   /** `candidateRate - baselineRate`. */
   readonly delta: number
-  /** Bootstrap interval of `delta`, absent without pairs. */
+  /** Bootstrap interval of `delta` over this environment's own paired deltas, absent without pairs. */
   readonly interval?: ConfidenceInterval
   /** Candidate mean attempts minus baseline mean attempts over the paired repetitions. */
   readonly attemptsDelta: number
@@ -188,6 +194,25 @@ export interface ExperimentSpend {
 export type ExperimentVerdict = 'promote' | 'reject' | 'inconclusive'
 
 /**
+ * What decided a verdict: `interval` when the verdict rule read the overall
+ * interval, `no-pairs` when nothing paired and there is no interval to read,
+ * and `too-few-discordant-pairs` when fewer paired repetitions than
+ * `minimumDiscordantPairs` had arms that disagree on the certificate, which
+ * holds the verdict at `inconclusive` whatever the interval says.
+ */
+export type ExperimentVerdictBasis = 'interval' | 'no-pairs' | 'too-few-discordant-pairs'
+
+/**
+ * The method that turned paired deltas into an interval and a verdict, named
+ * `<method>/<version>`. `paired-cluster-bootstrap/1` resamples environments
+ * with replacement and then the paired deltas inside each drawn environment;
+ * every result the fold writes names it. `paired-bootstrap/0` resampled inside
+ * every environment and never the environments themselves; it wrote no
+ * `statistic` field, so a stored result that names none was read by it.
+ */
+export type ExperimentStatistic = 'paired-bootstrap/0' | 'paired-cluster-bootstrap/1'
+
+/**
  * Outcome of one experiment. The sessions grouped by `arms` carry the durable
  * evidence; this record is the fold over them.
  */
@@ -205,10 +230,14 @@ export interface ExperimentResult {
   readonly errors: readonly ExperimentCellError[]
   /** Paired repetition indexes over every environment; the bootstrap's units. */
   readonly seedsPaired: number
+  /** Paired repetitions whose two arms disagree on the certificate; only these move `delta`. */
+  readonly discordantPairs: number
   /** Certificate-rate delta over every paired repetition, `0` without pairs. */
   readonly delta: number
   /** Bootstrap interval of `delta`, absent without pairs; the verdict reads it. */
   readonly interval?: ConfidenceInterval
+  /** The method that read the paired deltas into `interval` and `verdict`. */
+  readonly statistic: ExperimentStatistic
   /** Model usage of both arms together. */
   readonly spend: ExperimentSpend
   /** Thresholds the digest froze, restated so a stored result is readable alone. */
@@ -222,4 +251,6 @@ export interface ExperimentResult {
    */
   readonly caps: readonly BudgetCap[]
   readonly verdict: ExperimentVerdict
+  /** What decided `verdict`, so a stored result states why it is `inconclusive`. */
+  readonly verdictBasis: ExperimentVerdictBasis
 }

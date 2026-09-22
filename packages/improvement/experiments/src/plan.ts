@@ -19,7 +19,7 @@ import type { ExperimentArmPlan, ExperimentArmRole, ExperimentPlan, ExperimentTh
 export const EXPERIMENT_GROUP_PREFIX = 'experiment-'
 
 /** Self-declared version of the digested plan fields; a change to what they cover changes it. */
-const EXPERIMENT_PLAN_VERSION = 7
+const EXPERIMENT_PLAN_VERSION = 8
 
 /** Arm roles in the order the digest and the runs take them. */
 export const EXPERIMENT_ARM_ROLES: readonly ExperimentArmRole[] = ['baseline', 'candidate']
@@ -131,6 +131,7 @@ export function planDigest(
       thresholds.bootstrapResamples,
       thresholds.confidenceLevel,
       thresholds.minimumDelta,
+      thresholds.minimumDiscordantPairs,
       thresholds.cellTokenCap,
     ],
     caps,

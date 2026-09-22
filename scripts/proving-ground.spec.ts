@@ -288,7 +288,10 @@ describe('resolveRecordName', () => {
   })
 
   it('does not collide with an existing record of a different plan or date', () => {
-    expect(resolveRecordName(date, 'e7-attempts-5-t5', readdirSync(RECORDS_ROOT))).toBe('2026-09-19-bench-e7-attempts-5-t5-2')
+    // A past loop night, whose records can no longer grow: it holds other plans
+    // on that date, and this plan holds a record on another date.
+    const night = new Date('2026-09-21T22:09:51.509Z')
+    expect(resolveRecordName(night, 'e9-preset-craft-vs-plain-t5', readdirSync(RECORDS_ROOT))).toBe('2026-09-21-bench-e9-preset-craft-vs-plain-t5')
   })
 })
 
@@ -307,13 +310,15 @@ describe('decideIteration', () => {
 })
 
 describe('readRecordedReading', () => {
-  it('reads a frozen pair verdict, delta, interval, and per-arm certificates from the record', () => {
+  it('reads a frozen pair verdict, delta, interval, statistic, and per-arm certificates from the record', () => {
     const name = '2026-09-19-bench-e7-attempts-5-t5'
     expect(readRecordedReading(join(RECORDS_ROOT, name), name)).toEqual({
       record: name,
       verdict: 'inconclusive',
       delta: 0.0625,
       interval: { lower: -0.125, upper: 0.25 },
+      // The record predates results naming their statistic.
+      statistic: 'paired-bootstrap/0',
       certified: [
         { arm: 'baseline', certified: 14, cells: 16 },
         { arm: 'candidate', certified: 15, cells: 16 },
@@ -329,9 +334,20 @@ describe('readRecordedReading', () => {
       verdict: null,
       delta: null,
       interval: null,
+      statistic: null,
       certified: [{ arm: 'openrouter/deepseek/deepseek-v4-flash-0731:free', certified: 0, cells: 2 }],
       elapsedSeconds: 1594,
     })
+  })
+
+  it('reads the statistic a result names and refuses one the experiments service does not name', () => {
+    const dir = fixtureDir()
+    writeJson(join(dir, 'manifest.json'), {})
+    const result = { verdict: 'inconclusive', delta: 0.125, interval: { lower: 0, upper: 0.375 } }
+    writeJson(join(dir, 'result.json'), { result: { ...result, statistic: 'paired-cluster-bootstrap/1' } })
+    expect(readRecordedReading(dir, 'r').statistic).toBe('paired-cluster-bootstrap/1')
+    writeJson(join(dir, 'result.json'), { result: { ...result, statistic: 'paired-cluster-bootstrap/2' } })
+    expect(() => readRecordedReading(dir, 'r')).toThrow('record r carries the unknown statistic "paired-cluster-bootstrap/2"')
   })
 
   it('refuses a record that carries no verdict and no leaderboard', () => {
@@ -377,7 +393,7 @@ describe('buildLedgerLine / formatLedgerLine', () => {
     head: 'abc1234',
   }
 
-  it('carries the record reading and the decision the verdict earned', () => {
+  it('carries the record reading, the statistic that read it, and the decision the verdict earned', () => {
     const line = buildLedgerLine(identity, {
       kind: 'recorded',
       reading: {
@@ -385,6 +401,7 @@ describe('buildLedgerLine / formatLedgerLine', () => {
         verdict: 'promote',
         delta: 0.25,
         interval: { lower: 0.125, upper: 0.375 },
+        statistic: 'paired-cluster-bootstrap/1',
         certified: [{ arm: 'baseline', certified: 12, cells: 16 }, { arm: 'candidate', certified: 16, cells: 16 }],
         elapsedSeconds: 5616,
       },
@@ -401,6 +418,7 @@ describe('buildLedgerLine / formatLedgerLine', () => {
       verdict: 'promote',
       delta: 0.25,
       interval: { lower: 0.125, upper: 0.375 },
+      statistic: 'paired-cluster-bootstrap/1',
       certified: [{ arm: 'baseline', certified: 12, cells: 16 }, { arm: 'candidate', certified: 16, cells: 16 }],
       decision: 'adopt-candidate',
       elapsedSeconds: 5616,
@@ -418,6 +436,7 @@ describe('buildLedgerLine / formatLedgerLine', () => {
         verdict: null,
         delta: null,
         interval: null,
+        statistic: null,
         certified: [{ arm: 'claude-code/sonnet', certified: 15, cells: 16 }],
         elapsedSeconds: 3000,
       },
@@ -427,6 +446,7 @@ describe('buildLedgerLine / formatLedgerLine', () => {
     expect(line.verdict).toBeNull()
     expect(line.delta).toBeNull()
     expect(line.interval).toBeNull()
+    expect(line.statistic).toBeNull()
     expect(line.decision).toBe('recorded')
   })
 
@@ -437,6 +457,7 @@ describe('buildLedgerLine / formatLedgerLine', () => {
       verdict: null,
       delta: null,
       interval: null,
+      statistic: null,
       certified: [],
       decision: 'none',
       elapsedSeconds: null,

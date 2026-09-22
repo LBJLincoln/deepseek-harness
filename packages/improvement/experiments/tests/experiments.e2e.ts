@@ -42,16 +42,25 @@ describe('an experiment through a real cordis.yml and headless process', () => {
 
     const { result } = driver
     expect(result.digest).toMatch(/^[0-9a-f]{64}$/)
-    expect(result.thresholds).toEqual({ bootstrapResamples: 200, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 20000 })
+    expect(result.thresholds).toEqual({
+      bootstrapResamples: 200,
+      confidenceLevel: 0.95,
+      minimumDelta: 0,
+      minimumDiscordantPairs: 2,
+      cellTokenCap: 20000,
+    })
     expect(result.arms.baseline.model).toEqual(result.arms.candidate.model)
     expect([result.arms.baseline.implementer, result.arms.candidate.implementer]).toEqual([{ kind: 'route' }, { kind: 'route' }])
     expect(parseExperimentGroup(result.arms.baseline.group)).toEqual({ digest: result.digest, role: 'baseline' })
     expect(parseExperimentGroup(result.arms.candidate.group)).toEqual({ digest: result.digest, role: 'candidate' })
 
     expect(result.seedsPaired).toBe(4)
+    expect(result.discordantPairs).toBe(0)
     expect(result.delta).toBe(0)
     expect(result.interval).toEqual({ lower: 0, upper: 0 })
+    expect(result.statistic).toBe('paired-cluster-bootstrap/1')
     expect(result.verdict).toBe('inconclusive')
+    expect(result.verdictBasis).toBe('too-few-discordant-pairs')
     expect(result.cells.map(cell => [cell.environment, cell.pairs, cell.unpaired, cell.delta])).toEqual([
       ['smoke:round-trip', 2, 0, 0],
       ['smoke:unsatisfiable', 2, 0, 0],

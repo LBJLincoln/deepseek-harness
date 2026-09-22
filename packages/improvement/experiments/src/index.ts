@@ -2,10 +2,12 @@
  * Experiments: a paired comparison of two arms over fleet cells. A plan is
  * frozen by a content digest before any cell runs, both arms run through the
  * fleet at the same repetition indexes under groups derived from that digest,
- * and the paired certificate-rate delta is reported with a bootstrap interval
- * and a verdict. Nothing here calls a model. The
+ * and the paired certificate-rate delta is reported with a cluster bootstrap
+ * interval and a verdict. Nothing here calls a model. The
  * [experiments Agent Note](../../../.agents/notes/proposed/architecture/2026-09-05-experiments.md)
- * owns the design rationale.
+ * owns the design rationale, and the
+ * [cluster-bootstrap Agent Note](../../../.agents/notes/proposed/architecture/2026-09-22-cluster-bootstrap-for-paired-experiments.md)
+ * the statistic's.
  * @module @deepseek-ai/dsh-experiments
  */
 
@@ -44,8 +46,8 @@ import type {
 } from './types.ts'
 
 export type * from './types.ts'
-export { foldExperiment } from './fold.ts'
-export type { ExperimentFoldRequest } from './fold.ts'
+export { foldExperiment, readPairedDeltas } from './fold.ts'
+export type { ExperimentFoldRequest, PairedReading, PairedReadingRequest } from './fold.ts'
 export {
   capsAgree,
   describeCaps,
@@ -57,7 +59,7 @@ export {
   planDigest,
   projectedTokens,
 } from './plan.ts'
-export { bootstrapIntervals } from './statistics.ts'
+export { bootstrapIntervals, EXPERIMENT_STATISTIC, readStatistic } from './statistics.ts'
 export type { BootstrapRequest, BootstrapResult, DeltaStratum } from './statistics.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -95,6 +97,12 @@ export interface Config {
   confidenceLevel?: number
   /** Certificate-rate delta the overall interval's lower bound must exceed to promote. */
   minimumDelta?: number
+  /**
+   * Paired repetitions whose arms disagree on the certificate that a `promote`
+   * or `reject` verdict needs; fewer holds the verdict at `inconclusive`, and
+   * `0` never does.
+   */
+  minimumDiscordantPairs?: number
   /** Tokens one cell may spend; the plan's projection multiplies it by every cell of both arms. */
   cellTokenCap: number
   /** Tokens one plan's projection may reach; a plan projecting more is refused before it starts. */
@@ -120,6 +128,7 @@ export function resolveConfig(config: Config): ResolvedConfig {
       bootstrapResamples: config.bootstrapResamples ?? 1000,
       confidenceLevel: config.confidenceLevel ?? 0.95,
       minimumDelta: config.minimumDelta ?? 0,
+      minimumDiscordantPairs: config.minimumDiscordantPairs ?? 2,
       cellTokenCap: config.cellTokenCap,
     },
     tokenBudget: config.tokenBudget,
@@ -134,6 +143,7 @@ export class ExperimentService extends Service {
     bootstrapResamples: z.natural().min(1).default(1000),
     confidenceLevel: z.number().min(0).max(1).default(0.95),
     minimumDelta: z.number().default(0),
+    minimumDiscordantPairs: z.natural().default(2),
     cellTokenCap: z.natural().min(1).required(),
     tokenBudget: z.natural().min(1).required(),
   })
@@ -158,8 +168,9 @@ export class ExperimentService extends Service {
    *   abort signal, and result sink.
    * @returns the digest, both arms with their ladders, presets, and stamp
    *   groups, one cell per environment, every cell an arm kept as an error, the
-   *   pooled delta with its interval, the spend, the caps both arms ran under,
-   *   and the verdict.
+   *   pooled delta with its interval and the statistic that drew it, the
+   *   discordant pairs, the spend, the caps both arms ran under, and the
+   *   verdict with what decided it.
    * @throws {@link ExperimentError} for a plan that names no or a duplicate or
    *   unregistered environment, asks for no repetition, sets a seed that is not
    *   a safe non-negative integer, carries an arm ladder with no rung or one

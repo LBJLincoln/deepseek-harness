@@ -26,7 +26,7 @@ Status: proposed
 
 **Cell 按环境与重复索引配对。** 两个 arm 以相同的重复次数运行相同的环境 id，因此 baseline arm 上环境 `e` 的第 `r` 次重复与 candidate arm 上 `e` 的第 `r` 次重复配对——这正是 `EnvironmentRunStamp.repetition` 早已为之存在的配对。两次重复次数相同的 fleet 调用产生的配对，与一次带两条模型路由的调用完全相同，因此想让两个 arm 在一次调用中交错的部署得到的是同样的配对。只有当两个 arm 都产出了报告时，一次重复才成为配对；被 fleet 保留为 `{ cell, error }` 的 cell 会让它的对侧落单，而落单的 cell 按环境计数，不会被平均掉。
 
-**统计量是配对的证书率 delta 及其百分位 bootstrap 区间。** 结果按环境陈述配对重复上的 baseline 率与 candidate 率、二者的 delta（candidate 减 baseline）、attempts 均值 delta，以及输入与输出 token 的 delta。区间对该环境的配对重复做有放回重采样；总体区间在同一趟中对每个环境各自抽取，并对所有抽出的单元取均值，因此一个环境按其配对数量加权，而 cell 全部失败的环境贡献的是无，而不是一个零。重采样次数与置信水平属于 `Config`，因为一个部署花多少算力去收窄区间是部署的选择。
+**统计量是配对的证书率 delta 及其百分位 bootstrap 区间。** 结果按环境陈述配对重复上的 baseline 率与 candidate 率、二者的 delta（candidate 减 baseline）、attempts 均值 delta，以及输入与输出 token 的 delta。区间对该环境的配对重复做有放回重采样；总体区间在同一趟中对每个环境各自抽取，并对所有抽出的单元取均值，因此一个环境按其配对数量加权，而 cell 全部失败的环境贡献的是无，而不是一个零。重采样次数与置信水平属于 `Config`，因为一个部署花多少算力去收窄区间是部署的选择。[整群 bootstrap note](2026-09-22-cluster-bootstrap-for-paired-experiments.md) 取代了本段所述、从不重采样环境的总体区间，并在下文的判定规则中加入了不一致配对的最小数量。
 
 **重采样器的种子取自计划摘要，因此判定可以重放。** 对 `<digest>:<environmentId>` 取 32 位 FNV-1a 哈希，为每个环境播下一个 mulberry32 生成器的种子，区间是排序后重采样 delta 的百分位对。因此同一份被冻结的计划在同样的证书之上，在任何机器、任何进程、任何顺序下都给出同一个区间——从 `Math.random` 取数的 bootstrap 会让每个判定都无法复现，也让对任何一次晋升的审计都无从谈起。
 

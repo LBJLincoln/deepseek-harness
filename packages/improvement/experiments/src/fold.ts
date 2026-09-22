@@ -1,7 +1,8 @@
 /**
  * Folding two arms' fleet reports into one `ExperimentResult`: cells pair by
  * environment and repetition index, every statistic covers the paired
- * repetitions alone, and the verdict is one rule over the overall interval.
+ * repetitions alone, and the verdict is one rule over the overall interval and
+ * the count of paired repetitions whose arms disagree.
  *
  * @module @deepseek-ai/dsh-experiments/fold
  */
@@ -10,7 +11,7 @@ import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
 import type { FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
-import { bootstrapIntervals } from './statistics.ts'
+import { bootstrapIntervals, EXPERIMENT_STATISTIC } from './statistics.ts'
 import type { DeltaStratum } from './statistics.ts'
 import type {
   ConfidenceInterval,
@@ -20,8 +21,10 @@ import type {
   ExperimentCellError,
   ExperimentResult,
   ExperimentSpend,
+  ExperimentStatistic,
   ExperimentThresholds,
   ExperimentVerdict,
+  ExperimentVerdictBasis,
 } from './types.ts'
 
 /** What one fold needs beside the two arms' reports. */
@@ -135,23 +138,83 @@ function perPair(total: number, pairs: number): number {
   return pairs === 0 ? 0 : total / pairs
 }
 
+/** What reading one comparison's paired deltas needs beside the deltas. */
+export interface PairedReadingRequest {
+  /** Frozen plan digest; it seeds every bootstrap draw. */
+  readonly digest: string
+  /** Thresholds the digest froze; the resamples, the confidence level, and both minimums are read here. */
+  readonly thresholds: ExperimentThresholds
+}
+
+/** The statistic's reading of one comparison's paired deltas. */
+export interface PairedReading {
+  /** The method that produced this reading. */
+  readonly statistic: ExperimentStatistic
+  /** Each environment's interval, in the order the strata arrived; absent for an environment with no pair. */
+  readonly strata: readonly (ConfidenceInterval | undefined)[]
+  /** Cluster interval of the overall delta, absent without pairs. */
+  readonly interval?: ConfidenceInterval
+  /** Paired deltas that are not zero: repetitions whose two arms disagree on the certificate. */
+  readonly discordantPairs: number
+  readonly verdict: ExperimentVerdict
+  readonly verdictBasis: ExperimentVerdictBasis
+}
+
 /**
- * The verdict rule. `promote` is tested first, so a deployment configuring a
- * negative minimum delta still gets the promoting branch instead of an
- * order-dependent answer.
+ * The verdict rule. Without an interval nothing paired, and the verdict is
+ * `inconclusive`. With fewer discordant pairs than the minimum it is
+ * `inconclusive` whatever the interval says, because only the discordant pairs
+ * move the delta and one flipped certificate erases a delta that rests on one
+ * disagreement. Otherwise the interval decides, and `promote` is tested first,
+ * so a deployment configuring a negative minimum delta still gets the
+ * promoting branch instead of an order-dependent answer.
  */
-function verdictOf(interval: ConfidenceInterval | undefined, minimumDelta: number): ExperimentVerdict {
-  if (interval === undefined) return 'inconclusive'
-  if (interval.lower > minimumDelta) return 'promote'
-  if (interval.upper < 0) return 'reject'
-  return 'inconclusive'
+function verdictOf(
+  interval: ConfidenceInterval | undefined,
+  discordantPairs: number,
+  thresholds: ExperimentThresholds,
+): { verdict: ExperimentVerdict; verdictBasis: ExperimentVerdictBasis } {
+  if (interval === undefined) return { verdict: 'inconclusive', verdictBasis: 'no-pairs' }
+  if (discordantPairs < thresholds.minimumDiscordantPairs) {
+    return { verdict: 'inconclusive', verdictBasis: 'too-few-discordant-pairs' }
+  }
+  if (interval.lower > thresholds.minimumDelta) return { verdict: 'promote', verdictBasis: 'interval' }
+  if (interval.upper < 0) return { verdict: 'reject', verdictBasis: 'interval' }
+  return { verdict: 'inconclusive', verdictBasis: 'interval' }
+}
+
+/**
+ * Read one comparison's paired deltas the way the fold does: the bootstrap
+ * intervals, the count of discordant pairs, and the verdict with what decided
+ * it. Exported so an offline tool that rebuilt the paired deltas of a recorded
+ * comparison reads them under the same statistic and rule.
+ * @param strata - each environment's paired deltas in repetition order, keyed by environment id.
+ * @param request - the digest that seeds every draw and the thresholds it froze.
+ * @returns the statistic's name, each environment's interval, the overall interval, the discordant pairs, and the verdict with its basis.
+ */
+export function readPairedDeltas(strata: readonly DeltaStratum[], request: PairedReadingRequest): PairedReading {
+  const { thresholds } = request
+  const bootstrap = bootstrapIntervals(strata, {
+    digest: request.digest,
+    resamples: thresholds.bootstrapResamples,
+    confidenceLevel: thresholds.confidenceLevel,
+  })
+  const discordantPairs = strata.reduce((total, stratum) => total + stratum.deltas.filter(delta => delta !== 0).length, 0)
+  return {
+    statistic: EXPERIMENT_STATISTIC,
+    strata: bootstrap.strata,
+    ...bootstrap.overall === undefined ? {} : { interval: bootstrap.overall },
+    discordantPairs,
+    ...verdictOf(bootstrap.overall, discordantPairs, thresholds),
+  }
 }
 
 /**
  * Fold both arms' fleet reports into the experiment's record.
  * @param request - the frozen digest and arms, the environments and repetitions that were run, the thresholds, and the two reports.
  * @returns one cell per environment in plan order, every cell an arm kept as an
- *   error, the pooled delta and its interval, the spend, and the verdict.
+ *   error, the pooled delta, the discordant pairs, the interval and the
+ *   statistic that drew it, the spend, and the verdict with what decided it.
  */
 export function foldExperiment(request: ExperimentFoldRequest): ExperimentResult {
   const baseline = reportsOf(request.baseline)
@@ -163,15 +226,11 @@ export function foldExperiment(request: ExperimentFoldRequest): ExperimentResult
     key: environment,
     deltas: (totals[index] as PairedTotals).deltas,
   }))
-  const bootstrap = bootstrapIntervals(strata, {
-    digest: request.digest,
-    resamples: request.thresholds.bootstrapResamples,
-    confidenceLevel: request.thresholds.confidenceLevel,
-  })
+  const reading = readPairedDeltas(strata, { digest: request.digest, thresholds: request.thresholds })
   const cells: ExperimentCell[] = request.environments.map((environment, index) => {
     const total = totals[index] as PairedTotals
     const pairs = total.deltas.length
-    const interval = bootstrap.strata[index]
+    const interval = reading.strata[index]
     return {
       environment,
       pairs,
@@ -196,11 +255,14 @@ export function foldExperiment(request: ExperimentFoldRequest): ExperimentResult
       ...errorsOf('candidate', request.candidate),
     ],
     seedsPaired,
+    discordantPairs: reading.discordantPairs,
     delta: perPair(pooled, seedsPaired),
-    ...bootstrap.overall === undefined ? {} : { interval: bootstrap.overall },
+    ...reading.interval === undefined ? {} : { interval: reading.interval },
+    statistic: reading.statistic,
     spend: spendOf([request.baseline, request.candidate]),
     thresholds: request.thresholds,
     caps: request.caps,
-    verdict: verdictOf(bootstrap.overall, request.thresholds.minimumDelta),
+    verdict: reading.verdict,
+    verdictBasis: reading.verdictBasis,
   }
 }
