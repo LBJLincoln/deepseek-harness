@@ -4,6 +4,8 @@ Status: proposed
 
 [English](2026-09-19-objectives-step-back.md) | 中文
 
+其位置陈述与工作顺序已被 [2026-09-22 的四目标再思考](2026-09-22-four-goals-rethink.md)取代；下文的读数按当时的原样保留。
+
 ## Problem
 
 本项目有四个目标：一个让任何模型成为它所能成为的最好的 agentic coder 的 harness；通过这个 harness 进行的 agentic 软件创造；一个在 harness 经认证运行上以 RLVR 训练的约 120B 开放权重模型；以及一个 harness 依据证据改进自身的循环。两周的构建产出了这套仪器（一个带 validator 持有用例的 40 环境 bench、密封的 cell、带 bootstrap 裁决的冻结配对实验、带尝试阶梯与预算份额的 runner、program 工作流、trajectory 导出器与数据集构建器、条款门控、一个仪表板），以及 32 份已记录的运行、920 个 cell 与 844 份证书（[data/proving-ground](../../../../data/proving-ground/README.md)）。没有人写下的是：每个目标离"部分完成"究竟还有多远、哪些事实阻塞着它、余下的工作应按什么顺序进行。没有这些，精力会不断流向离手最近的东西。

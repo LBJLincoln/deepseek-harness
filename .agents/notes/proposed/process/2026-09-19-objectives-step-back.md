@@ -4,6 +4,8 @@ Status: proposed
 
 English | [中文](2026-09-19-objectives-step-back.zh.md)
 
+Superseded for standings and the order of work by [the four-goals rethink of 2026-09-22](2026-09-22-four-goals-rethink.md); the readings below are kept as they stood.
+
 ## Problem
 
 The project has four objectives: a harness that makes any model the best agentic coder it can be, agentic software creation through that harness, a roughly 120B open-weight model trained by RLVR on the harness's certified runs, and a loop in which the harness improves itself by evidence. Two weeks of building produced the instrument (a 40-environment bench with validator-held cases, sealed cells, frozen paired experiments with bootstrap verdicts, a runner with attempt ladders and budget shares, a program workflow, a trajectory exporter and dataset builder, terms gating, a dashboard) and 32 recorded runs, 920 cells, and 844 certificates ([data/proving-ground](../../../../data/proving-ground/README.md)). What nobody has written down is how far each objective actually is from "partly done", which facts block it, and what order the remaining work should take. Without that, effort keeps flowing to whatever is nearest.
