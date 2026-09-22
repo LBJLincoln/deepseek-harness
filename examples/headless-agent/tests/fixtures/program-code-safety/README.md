@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-A [program](../../../../../packages/improvement/program/README.md) whose deliverable is a report about a repository the harness did not write: six security departments read one target tree in parallel, each on its own branch and session, and an integration merges their findings into one report that an examiner committed before any of them started decides. The [csv-tools program](../program-csv-tools/README.md) builds software and is measured by a test suite; this one produces a document and is measured by whether every sentence of it resolves in the tree it claims to describe.
+A [program](../../../../../packages/improvement/program/README.md) whose deliverable is a report about a repository the harness did not write: its security departments — six specialists by default, or seven with the generalist added — read one target tree in parallel, each on its own branch and session, and an integration merges their findings into one report that an examiner committed before any of them started decides. The [csv-tools program](../program-csv-tools/README.md) builds software and is measured by a test suite; this one produces a document and is measured by whether every sentence of it resolves in the tree it claims to describe.
 
 ## The two trees
 
@@ -16,9 +16,12 @@ A run has a **target tree** — the customer's application, passed as a path and
 | `data` | sensitive-data exposure, PII in logs, cleartext transport, weak crypto, password storage | [`presets/data`](presets/data/agent.cordis.yml) |
 | `dependencies` | vulnerable and outdated packages, from `npm audit --json` or the manifest | [`presets/dependencies`](presets/dependencies/agent.cordis.yml) |
 | `platform` | headers, CORS, cookies, error handling, rate limiting, misconfiguration, client-side code | [`presets/platform`](presets/platform/agent.cordis.yml) |
-| integration | merges the six branches and writes the report | [`presets/integrating`](presets/integrating/agent.cordis.yml), the roster default |
+| `generalist` (optional) | the whole application end to end — every route, every data access, every configuration file — any defect class in one pass | [`presets/generalist`](presets/generalist/agent.cordis.yml) |
+| integration | merges the branches and writes the report | [`presets/integrating`](presets/integrating/agent.cordis.yml), the roster default |
 
 No department depends on another, so a real run works three at a time. Each commits `findings/<department>.json` and `report/<department>.md` and nothing else; the integration writes `SAFETY-REPORT.md` and `findings.json`. [`seed/REPORTING.md`](seed/REPORTING.md) is the whole contract between them and is the first file every session reads.
+
+**The department set is a run-time choice.** [`driver.ts`](driver.ts) resolves `DSH_CODE_SAFETY_DEPARTMENTS` — a comma-separated list of the keys above, validated against them and defaulting to the six specialists when unset — so every existing record, snapshot and e2e case stays unchanged. [`overlays/with-generalist.cordis.yml`](overlays/with-generalist.cordis.yml) is the same real composition as [`overlays/claude-code.cordis.yml`](overlays/claude-code.cordis.yml); `pnpm run code-safety -- <target> --with-generalist` adds the generalist to the default six and boots that overlay, and `--departments <list>` names an exact set instead. [The Agent Note](../../../../../.agents/notes/proposed/architecture/2026-09-22-code-safety-generalist-department.md) states why: a three-tier comparison found one whole-repository pass catching NodeGoat issues the six specialists missed.
 
 Each department first runs `semgrep --version` and, when it answers, `semgrep --config semgrep/ --config p/owasp-top-ten --metrics off --json <path>` over the target (the local rules alone when the registry is unreachable), reading every hit before it becomes a finding; the [local rules](semgrep/code-safety.yml) this fixture ships cover — eval, interpolated `child_process`, string-built SQL and `$where`, HTML sinks, weak hashes, hard-coded secrets, permissive CORS, insecure cookies, cleartext endpoints. The rules are local so a run needs no registry; a real run may name registry packs beside them. A scanner hit is a place to read, never a finding.
 
@@ -59,17 +62,19 @@ One model serves every session of a run. The frozen spec carries no per-goal mod
 pnpm exec vitest run --config vitest.e2e.config.ts examples/headless-agent/tests/program-code-safety.e2e.ts
 ```
 
-The e2e is [`examples/headless-agent/tests/program-code-safety.e2e.ts`](../../program-code-safety.e2e.ts). It asserts the ledger and the two signatures, the six certificates and their caps, the directive the `platform` department earned, the integration's failed-then-passed attempts and its three checks, the exact file list of the released tree, the sixteen finding ids, the per-severity counts the report states, and — as a negative case over the same committed examiner — that a finding whose line moved is refused and named by `--list-invalid`.
+The e2e is [`examples/headless-agent/tests/program-code-safety.e2e.ts`](../../program-code-safety.e2e.ts). It asserts the ledger and the two signatures, the six certificates and their caps, the directive the `platform` department earned, the integration's failed-then-passed attempts and its three checks, the exact file list of the released tree, the sixteen finding ids, the per-severity counts the report states, and — as a negative case over the same committed examiner — that a finding whose line moved is refused and named by `--list-invalid`. A second case runs the same target with `DSH_CODE_SAFETY_DEPARTMENTS` naming the generalist beside the six specialists, and asserts the seventh certificate and its three findings merged into the examined report.
 
 ## Running it for real
 
 ```sh
 pnpm run code-safety -- /path/to/target [--out <dir>] [--model sonnet|opus]
+pnpm run code-safety -- /path/to/target --with-generalist
+pnpm run code-safety -- /path/to/target --departments secrets,injection,generalist
 ```
 
 That seeds the report repository under `<out>` (by default `.code-safety/<target>-<timestamp>/`, which the repository ignores), boots the overlay, and prints the department ledger, the examiner's verdict and the paths of the released `SAFETY-REPORT.md` and `findings.json`. It needs the `claude` CLI installed and logged in, and no `DEEPSEEK_API_KEY`. It runs the driver from TypeScript source under tsx, so no build is needed; only a `DSH_EXAMPLE_MODE=lib` launch, which is CI's, requires `pnpm run build:lib:host` first.
 
-While it runs, `<out>/.sessions/` fills with one log per session — the ledger, the six departments and the integration — and the driver writes its single result line to `<out>/stdout.jsonl` when the program ends. Record it under `data/code-safety/` the way [the run table](../../../../../data/code-safety/README.md) states.
+While it runs, `<out>/.sessions/` fills with one log per session — the ledger, its departments and the integration — and the driver writes its single result line to `<out>/stdout.jsonl` when the program ends. Record it under `data/code-safety/` the way [the run table](../../../../../data/code-safety/README.md) states.
 
 ## The NodeGoat run
 

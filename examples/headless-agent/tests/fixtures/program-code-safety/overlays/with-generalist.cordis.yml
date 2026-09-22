@@ -1,0 +1,89 @@
+# The code-safety program with the operator's own Claude Code installation as
+# the route, exactly like `claude-code.cordis.yml` beside this file — and
+# nothing here to distinguish it beyond that filename. Which departments run is
+# `driver.ts`'s own concern, resolved from `DSH_CODE_SAFETY_DEPARTMENTS` rather
+# than from anything a composition can patch, so what makes this overlay the
+# generalist-enabled one is the pair `scripts/code-safety.ts` sets when
+# `--with-generalist` or `--departments` names it: this file, and that env var
+# naming `generalist` alongside the six specialists. The generalist's own
+# preset needs no entry here either — `agent-presets` already scans the whole
+# `presets/` root `cordis.yml` exports by path, so a preset directory added
+# under it is discovered the moment it exists.
+#
+# Restated in full rather than layered over `claude-code.cordis.yml`, because
+# `@deepseek-ai/cordis-plugin-include` patches only override or insert entries
+# by id on the file it names — it has no way to reach into a patch another
+# include already applied — so a second layer of patches could not change what
+# the first one set. Keep the two files' patches in step by hand.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The scripted adapter is the keyless half's whole reason to exist; a real
+      # run composes no mock route at all.
+      - id: code-safety-llm
+        disabled: true
+      - insert:
+          - id: llm-claude-code
+            name: '@deepseek-ai/dsh-llm-claude-code'
+            config:
+              provider: claude-code
+              models:
+                - id: sonnet
+                  name: Claude Code sonnet
+                  productModel: sonnet
+                  contextWindow: 200000
+                - id: opus
+                  name: Claude Code opus
+                  productModel: opus
+                  contextWindow: 200000
+              effort: high
+      # The code-safety knowledge pack as the session's only skill root, found
+      # from the repository root above `baseUrl` the way the bench's craft-skills
+      # overlay finds its own. A tree that carries no pack resolves to no root at
+      # all rather than to an empty directory, so the pack is optional without
+      # the composition pretending it is there. The generalist persona is the
+      # one that asks a session to load every skill in the pack rather than the
+      # two every specialist loads; the root is the same for both.
+      - id: agent-spine
+        name: '@deepseek-ai/dsh-agent-spine-demo'
+        config:
+          persona: 'You review code you did not write for security defects, on your own branch, and you report only what you have read.'
+          workspaceContext: false
+          skills:
+            filesystem:
+              includeDefaultRoots: false
+              watch: false
+              customSkillDirs: !!js |
+                (() => {
+                  const { fileURLToPath } = process.getBuiltinModule('node:url')
+                  const { existsSync } = process.getBuiltinModule('node:fs')
+                  const { dirname, join } = process.getBuiltinModule('node:path')
+                  const named = process.env.DSH_CODE_SAFETY_SKILLS
+                  if (named !== undefined) return existsSync(named) ? [named] : []
+                  let dir = fileURLToPath(baseUrl)
+                  while (!existsSync(join(dir, 'pnpm-workspace.yaml'))) {
+                    const parent = dirname(dir)
+                    if (parent === dir) throw new Error('code-safety overlay: repository root not found above ' + baseUrl)
+                    dir = parent
+                  }
+                  const pack = join(dir, 'data', 'knowledge', 'code-safety')
+                  return existsSync(pack) ? [pack] : []
+                })()
+      - id: agent-default-model
+        config:
+          provider: claude-code
+          model: !!js process.env.DSH_CODE_SAFETY_MODEL ?? 'sonnet'
+      # A patch replaces the whole config of the entry it names, so the program's
+      # other fields are restated here. `maxConcurrentGoals` stays 3: the
+      # generalist adds one more independent worktree to a set that already
+      # shares nothing but the target, not a reason to widen the window.
+      - id: program
+        config:
+          workspaceRoot: !!js process.env.DSH_CODE_SAFETY_REPORT_REPO
+          requireSignoff: true
+          maxConcurrentGoals: 3
+          maxGoalRounds: 4
+          branchPrefix: safety
+          evidenceMaxChars: 4096

@@ -29,6 +29,7 @@ import {
   type LlmResolvedModelInfo,
   type StreamChunk,
 } from '@deepseek-ai/dsh-llm'
+import { resolveDepartments } from './departments.ts'
 
 /** The turn text the program delivers when a worktree carries uncommitted work. */
 const UNCOMMITTED_MARKER = '<uncommitted_work>'
@@ -302,6 +303,53 @@ const SCRIPTED: Record<string, readonly Scripted[]> = {
       references: ['https://cwe.mitre.org/data/definitions/209.html'],
     },
   ],
+  // The generalist's findings are deliberately outside the six specialists'
+  // scripted set, across three different files: what a whole-application pass
+  // catches beside six subject-scoped ones, not instead of them.
+  generalist: [
+    {
+      id: 'generalist-admin-backup-command-injection',
+      cwe: 'CWE-78',
+      owasp: 'A03:2021 Injection',
+      severity: 'critical',
+      confidence: 'confirmed',
+      title: 'Backup route builds a shell command from the request body',
+      file: 'src/admin.js',
+      line: 14,
+      evidence: 'req.body.name is interpolated into the template literal exec runs as a shell command, with no escaping or allowlist.',
+      impact: "A crafted name runs arbitrary shell commands as the application's user.",
+      fix: 'Use execFile with an argument array, or validate name against a strict allowlist before building the command.',
+      references: ['https://cwe.mitre.org/data/definitions/78.html'],
+    },
+    {
+      id: 'generalist-admin-file-read-path-traversal',
+      cwe: 'CWE-22',
+      owasp: 'A01:2021 Broken Access Control',
+      severity: 'high',
+      confidence: 'confirmed',
+      title: 'Raw-file route concatenates a request parameter onto a filesystem path',
+      file: 'src/admin.js',
+      line: 28,
+      evidence: "req.query.name is concatenated onto the reports directory with no traversal check, and the file's contents are returned to the caller verbatim.",
+      impact: 'A crafted name reads any file the process can open, on a path the reports directory was never meant to expose.',
+      fix: 'Resolve the path and reject any result outside the reports directory, or map name to a known file id instead of a path segment.',
+      references: ['https://cwe.mitre.org/data/definitions/22.html'],
+    },
+    {
+      id: 'generalist-memo-dom-xss',
+      cwe: 'CWE-79',
+      owasp: 'A03:2021 Injection',
+      severity: 'medium',
+      confidence: 'confirmed',
+      title: 'Memo body is assigned to innerHTML with no escaping',
+      file: 'public/app.js',
+      line: 5,
+      evidence: 'memo.body is assigned to innerHTML directly, and renderMemo is what the page calls to display a memo.',
+      impact: 'A memo body containing script runs in the session of whoever views it.',
+      fix: 'Set textContent instead, or escape the body before assigning it to innerHTML.',
+      references: ['https://cwe.mitre.org/data/definitions/79.html'],
+    },
+  ],
 }
 
 /** The order the integration lists severities in, most severe first. */
@@ -416,13 +464,35 @@ function sectionOf(key: string): string {
 }
 
 /**
- * The union every department's findings merge into, deduplicated the way
- * `REPORTING.md` states.
+ * The departments this run includes, read from the same env var the driver
+ * resolves its goals from, so the scripted integration merges exactly the
+ * departments that actually ran rather than every key this file happens to
+ * script.
+ * @returns the active department keys, in run order.
+ */
+function activeDepartmentKeys(): readonly string[] {
+  return resolveDepartments(process.env.DSH_CODE_SAFETY_DEPARTMENTS).map(department => department.key)
+}
+
+/**
+ * Join department keys the way the scripted report's prose lists them.
+ * @param keys - the keys to join, in report order.
+ * @returns a comma-separated phrase with "and" before the last key.
+ */
+function departmentList(keys: readonly string[]): string {
+  return keys.length <= 1 ? keys.join('') : `${keys.slice(0, -1).join(', ')} and ${keys.at(-1)}`
+}
+
+/**
+ * The union every active department's findings merge into, deduplicated the
+ * way `REPORTING.md` states.
  * @returns the union, ordered by severity and then by id.
  */
 function union(): Quoted[] {
+  const active = new Set(activeDepartmentKeys())
   const kept = new Map<string, Quoted>()
   for (const key of Object.keys(SCRIPTED)) {
+    if (!active.has(key)) continue
     for (const finding of findingsOf(key)) {
       const identity = `${finding.file}:${String(finding.line)}:${finding.cwe}`
       if (!kept.has(identity)) kept.set(identity, finding)
@@ -438,9 +508,11 @@ function union(): Quoted[] {
  * counts `findings.json` holds, and the certificate the examiner reads.
  * @param findings - the union the same attempt writes to `findings.json`.
  * @param lockDigest - the target digest `target.json` carries.
+ * @param departmentKeys - the departments this run included, in run order.
  * @returns the Markdown the integration commits.
  */
-function safetyReport(findings: readonly Quoted[], lockDigest: string): string {
+function safetyReport(findings: readonly Quoted[], lockDigest: string, departmentKeys: readonly string[]): string {
+  const plural = departmentKeys.length !== 1
   const counts = SEVERITIES.map(severity => `- ${severity}: ${String(findings.filter(finding => finding.severity === severity).length)}`)
   const grouped = SEVERITIES.flatMap((severity) => {
     const listed = findings.filter(finding => finding.severity === severity)
@@ -457,7 +529,7 @@ function safetyReport(findings: readonly Quoted[], lockDigest: string): string {
     '',
     '## Résumé exécutif',
     '',
-    "Six départements ont relu l'arbre sous revue, chacun sur sa propre branche, et chaque constat cité a été vérifié mécaniquement à la ligne qu'il cite.",
+    `${plural ? `${String(departmentKeys.length)} départements ont` : 'Un département a'} relu l'arbre sous revue, chacun sur sa propre branche, et chaque constat cité a été vérifié mécaniquement à la ligne qu'il cite.`,
     '',
     "La revue est conduite par un modèle de langage, étayée par un analyseur statique et par l'examinateur committé ; elle ne porte que sur les fichiers effectivement lus.",
     '',
@@ -465,7 +537,7 @@ function safetyReport(findings: readonly Quoted[], lockDigest: string): string {
     '',
     '## Executive summary',
     '',
-    'Six departments read the tree under review, each on its own branch, and every listed finding was mechanically verified to exist at the line it cites.',
+    `${String(departmentKeys.length)} department${plural ? 's' : ''} read the tree under review, each on its own branch, and every listed finding was mechanically verified to exist at the line it cites.`,
     '',
     'The review is driven by a language model, grounded by a static scanner and by the committed examiner, and covers only the files that were actually read.',
     '',
@@ -475,7 +547,7 @@ function safetyReport(findings: readonly Quoted[], lockDigest: string): string {
     '',
     'The tree under review is the one `target.json` locks, and it was read only: the examiner re-hashes every locked file on every run.',
     '',
-    'The six departments were secrets, injection, access, data, dependencies and platform. Each read the files its subject covers, and each committed its findings and its own section under `report/`.',
+    `The department${plural ? 's were' : ' was'} ${departmentList(departmentKeys)}. Each read the files its subject covers, and each committed its findings and its own section under \`report/\`.`,
     '',
     'This run was driven by the fixture\'s scripted route rather than by a model, so what it demonstrates is the workflow and the examiner, not what a model finds.',
     '',
@@ -485,7 +557,7 @@ function safetyReport(findings: readonly Quoted[], lockDigest: string): string {
     '## What was not covered',
     '',
     '- Nothing was executed: no route was called, no payload was sent, and no finding here is a demonstrated exploit.',
-    '- Files no department opened are not covered, and neither is any defect outside the six subjects.',
+    "- Files no department opened are not covered, and neither is any defect outside the departments' combined subjects.",
     '- No finding was dropped by the examiner in this run.',
     '',
     '## Certificate',
@@ -580,7 +652,8 @@ class CodeSafetyAdapter extends LlmAdapter {
       return
     }
     if (results === 3) {
-      yield * call('write-report', 'write', { file_path: 'SAFETY-REPORT.md', content: safetyReport(merged, lockDigest()) })
+      const report = safetyReport(merged, lockDigest(), activeDepartmentKeys())
+      yield * call('write-report', 'write', { file_path: 'SAFETY-REPORT.md', content: report })
       return
     }
     if (results === 4) {
