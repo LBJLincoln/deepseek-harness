@@ -70,6 +70,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
       'with-knowledge-pack',
       'with-openai-gateway',
       'with-openrouter',
+      'with-openrouter-paid',
       'with-presets',
       'with-spawn',
     ])
@@ -103,7 +104,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(34)
+    expect(names).toHaveLength(35)
     expect(names).toContain('e3-attempts-t5')
     expect(names).toContain('e9-preset-craft-vs-plain-t5')
     expect(names).toContain('e7-attempts-5-t5')
@@ -141,7 +142,7 @@ describe('listPlanNames / resolvePlanPath', () => {
 
 describe('listQueueNames / resolveQueuePath', () => {
   it('lists the checked-in queues, sorted, without their suffix', () => {
-    expect(listQueueNames()).toEqual(['nightly-tier5', 'openrouter-pairs', 'openrouter-smoke', 'presets-t5'])
+    expect(listQueueNames()).toEqual(['nightly', 'nightly-tier5', 'openrouter-pairs', 'openrouter-smoke', 'presets-t5'])
   })
 
   it('finds a checked-in queue by name', () => {
