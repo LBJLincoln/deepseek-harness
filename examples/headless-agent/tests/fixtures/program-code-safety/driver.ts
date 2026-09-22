@@ -2,7 +2,7 @@
 /**
  * Driver of the code-safety program: lock the target tree, seed the report
  * repository the program delivers into with the examiner and the reporting
- * contract, record the two signatures, run the six security departments and
+ * contract, record the two signatures, run its security departments and
  * their integration to a release, and print the ledger, the member sessions,
  * the released report and the examiner's own verdict over the merged head.
  *
@@ -34,6 +34,8 @@ import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-signoff'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
+import { resolveDepartments } from './departments.ts'
+import type { Department } from './departments.ts'
 
 /** The artefact both of the program's signatures attest: the frozen specification. */
 const ARTEFACT = '5afe'.repeat(16)
@@ -104,48 +106,6 @@ interface VerifierLine {
   readonly output: string
 }
 
-/** What one department looks for, and the marker its session is recognised by. */
-interface Department {
-  readonly key: string
-  /** One line naming the department's subject, which opens its objective. */
-  readonly subject: string
-  /** What the department reads the target for, stated as the goal's own instruction. */
-  readonly instruction: string
-}
-
-const DEPARTMENTS: readonly Department[] = [
-  {
-    key: 'secrets',
-    subject: 'hard-coded credentials and leaked configuration',
-    instruction: 'Look for credentials, tokens, private keys, connection strings and API keys written as literals in source or configuration, for secrets committed in `.env`, config or deployment files, and for secrets reaching logs or client-side bundles. Name the exact literal line; do not report a placeholder a reader can see is one without saying so.',
-  },
-  {
-    key: 'injection',
-    subject: 'injection and traversal',
-    instruction: 'Look for SQL and NoSQL queries built by concatenation or interpolation, for `$where` and other server-side evaluation, for `eval`, `new Function` and string-bodied timers, for shell commands built from request data, for template injection, for unescaped HTML sinks, and for filesystem paths built from request data. Name the sink line, and say in `evidence` what reaches it.',
-  },
-  {
-    key: 'access',
-    subject: 'authentication, session handling and authorization',
-    instruction: 'Look for routes that change or read data without an authentication or authorization check, for direct object references taken from the request, for session configuration that does not regenerate or expire, for missing CSRF protection on state-changing routes, and for privilege changes a user can request for themselves. Name the route line that is missing the check.',
-  },
-  {
-    key: 'data',
-    subject: 'sensitive data exposure, logging and cryptography',
-    instruction: 'Look for personal data, credentials or tokens written to logs or error responses, for cleartext transport, for password storage that is not a memory-hard or iterated hash, for broken hashes and ciphers, and for secrets or personal data returned to the client. Name the line that discloses or weakly protects the data.',
-  },
-  {
-    key: 'dependencies',
-    subject: 'vulnerable and outdated dependencies',
-    instruction: 'Read the manifest and, when a lockfile is present, run `npm audit --json` in the target and read what it reports. Report the declared version and the advisory identifier — the GHSA or CVE — for each vulnerable package. `file` and `line` are the manifest line that declares the dependency, and `snippet` is that line. When the audit cannot reach the registry, say so in your report section and fall back to the declared versions.',
-  },
-  {
-    key: 'platform',
-    subject: 'security misconfiguration and the web platform',
-    instruction: 'Look for missing or weak security headers, permissive CORS, cookies without `httpOnly`, `secure` or `sameSite`, error handlers that return stack traces, missing rate limiting on authentication routes, debug or development settings left enabled, and client-side code that trusts the URL or the DOM. Name the configuration line.',
-  },
-]
-
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('code-safety driver requires a config path')
 
@@ -156,6 +116,10 @@ const targetRoot = process.env.DSH_CODE_SAFETY_TARGET
 if (targetRoot === undefined) throw new Error('code-safety driver requires DSH_CODE_SAFETY_TARGET')
 const target = resolve(targetRoot)
 if (!existsSync(target)) throw new Error(`code-safety driver: the target tree ${target} is not on this host`)
+
+// Named, validated and defaulted to the six specialists here rather than in the
+// spec builder below, so a bad name fails before the target is even locked.
+const departments = resolveDepartments(process.env.DSH_CODE_SAFETY_DEPARTMENTS)
 
 // The roster's root has to be absolute and the smoke runs in an isolated
 // temporary cwd, so the presets and the scanner rules beside this file are
@@ -234,7 +198,7 @@ function ensureRepository(root: string, lock: TargetLock): void {
 }
 
 /**
- * The program the fixture runs: six departments reading one target tree in
+ * The program the fixture runs: {@link departments} reading one target tree in
  * parallel, then one integration over the merged head.
  * @param lock - the locked target, whose root and size every objective states.
  * @returns the spec, which is frozen and digested before anything runs.
@@ -274,7 +238,7 @@ function programSpec(lock: TargetLock): ProgramSpec {
     objective: `review ${lock.root} for code-safety defects and deliver one verified report`,
     baseRevision: 'base',
     signoff: { artefactSha256: ARTEFACT },
-    goals: DEPARTMENTS.map(department),
+    goals: departments.map(department),
     integration: {
       // The committed examiner decides the release: every finding of the union
       // resolves in the target, every dropped one is disclosed, and the report

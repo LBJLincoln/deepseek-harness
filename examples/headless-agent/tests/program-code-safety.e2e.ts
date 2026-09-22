@@ -11,9 +11,14 @@
  * time. What this proves is the workflow and the examiner — that the target
  * stays read-only, that every finding resolves at the line it cites, that a
  * finding which does not is refused, and that the committed examiner decides
- * the release — not what a model finds. The overlay under the fixture's
- * `overlays/` is the same program driven on the operator's Claude Code route,
+ * the release — not what a model finds. The overlays under the fixture's
+ * `overlays/` are the same program driven on the operator's Claude Code route,
  * which is what answers that question.
+ *
+ * A second case runs the same composition with `DSH_CODE_SAFETY_DEPARTMENTS`
+ * naming a seventh, generalist department beside the six specialists, proving
+ * the department set is a run-time choice rather than a fixed six: the
+ * six-department case above stays the default and is asserted unchanged.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -63,6 +68,20 @@ const SEVERITY_COUNTS: Record<string, number> = { critical: 5, high: 9, medium: 
 
 /** Base-commit files no department and no integration may change. */
 const IMMUTABLE = ['REPORTING.md', 'verify-safety-report.mjs', 'target.json']
+
+/** The six specialists plus the generalist, in the order a generalist-enabled run declares them. */
+const DEPARTMENTS_WITH_GENERALIST = [...DEPARTMENTS, 'generalist']
+
+/** Every finding id the merged `findings.json` carries once the generalist runs beside the six specialists, sorted. */
+const GENERALIST_FINDING_IDS = [
+  ...FINDING_IDS,
+  'generalist-admin-backup-command-injection',
+  'generalist-admin-file-read-path-traversal',
+  'generalist-memo-dom-xss',
+].sort()
+
+/** Findings per severity once the generalist's three findings join the union. */
+const GENERALIST_SEVERITY_COUNTS: Record<string, number> = { critical: 6, high: 10, medium: 3, low: 0, info: 0 }
 
 interface RunLine {
   attempt: number
@@ -287,5 +306,89 @@ describe('a program that reviews code through a real cordis.yml', () => {
     // `--list-invalid` is how a dropped finding gets disclosed.
     expect(examine(workspace, ['--findings', 'findings.json', '--list-invalid']))
       .toEqual({ exitCode: 0, output: 'moved-finding\n' })
+  }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('certifies a seventh, generalist department alongside the six specialists and merges its findings into the examined report', async () => {
+    const sessions = await mkdtemp(join(tmpdir(), 'code-safety-sessions-'))
+    const repository = await mkdtemp(join(tmpdir(), 'code-safety-repo-'))
+    roots.push(sessions, repository)
+
+    // Same keyless composition and target as the six-department case above;
+    // only the department set differs, named the way a real run would name it
+    // through `scripts/code-safety.ts --with-generalist`.
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'program-code-safety-generalist',
+      tempDirPrefix: 'program-code-safety-generalist-e2e-',
+      binScript,
+      libBinScript: binScript,
+      configPath,
+      binArgs: [configPath],
+      tsconfigPath: repoTsconfig,
+      processTimeoutMs: PHASE_TIMEOUT_MS,
+      env: {
+        DSH_TEST_SESSION_ROOT: sessions,
+        DSH_CODE_SAFETY_REPORT_REPO: repository,
+        DSH_CODE_SAFETY_TARGET: sampleTarget,
+        DSH_CODE_SAFETY_DEPARTMENTS: DEPARTMENTS_WITH_GENERALIST.join(','),
+      },
+    })
+    expect(stderr).toBe('')
+    const observed = JSON.parse(stdout.trimEnd().split('\n').at(-1) ?? '') as DriverResult
+    expect(observed.type).toBe('result')
+
+    expect(observed.report.outcome).toBe('released')
+    expect(observed.report.goals.map(goal => [goal.key, goal.status]))
+      .toEqual(DEPARTMENTS_WITH_GENERALIST.map(key => [key, 'merged']))
+
+    // The seventh department is certified on exactly the same two checks, under
+    // the same caps, as every specialist in the six-department case.
+    const generalist = memberOf(observed, 'generalist')
+    expect(generalist.certified).toBe(true)
+    expect(generalist.caps).toEqual({ maxTotalTokens: 4_000_000, maxWallMs: 2_400_000 })
+    expect(generalist.runs.at(-1)?.results.map(result => [result.checkId, result.status]))
+      .toEqual([['generalist-findings', 'pass'], ['generalist-section', 'pass']])
+    expect(observed.members.filter(member => member.programId === observed.report.programId).map(member => member.key).sort())
+      .toEqual([INTEGRATION_KEY, ...DEPARTMENTS_WITH_GENERALIST].sort())
+
+    // The committed examiner is what releases the program, over the union that
+    // now carries the generalist's findings beside the six specialists'.
+    expect(observed.verifier.exitCode).toBe(0)
+    expect(observed.verifier.output).toContain('SAFETY-REPORT.md and findings.json verified')
+
+    const findings = JSON.parse(observed.findings) as Finding[]
+    expect(findings.map(finding => finding.id).sort()).toEqual(GENERALIST_FINDING_IDS)
+    for (const finding of findings) {
+      const text = await readFile(join(sampleTarget, finding.file), 'utf8')
+      expect(text.split('\n')[finding.line - 1], `${finding.id} cites ${finding.file}:${String(finding.line)}`)
+        .toContain(finding.snippet.split('\n')[0]?.trim())
+    }
+    for (const [severity, count] of Object.entries(GENERALIST_SEVERITY_COUNTS)) {
+      expect(findings.filter(finding => finding.severity === severity), severity).toHaveLength(count)
+      expect(observed.safetyReport).toContain(`- ${severity}: ${String(count)}`)
+    }
+    expect(observed.safetyReport).toContain('does not certify the absence of vulnerabilities')
+    expect(observed.safetyReport).not.toMatch(/\bno vulnerabilities\b|\bfree of vulnerabilities\b/)
+
+    // The released tree carries the generalist's two files beside the six
+    // specialists' and the integration's, with the examiner and the lock
+    // unchanged.
+    expect(observed.deliverable).toEqual([
+      'REPORTING.md',
+      'SAFETY-REPORT.md',
+      'findings.json',
+      'findings/.gitkeep',
+      ...DEPARTMENTS_WITH_GENERALIST.map(key => `findings/${key}.json`).sort(),
+      'report/.gitkeep',
+      ...DEPARTMENTS_WITH_GENERALIST.map(key => `report/${key}.md`).sort(),
+      'target.json',
+      'verify-safety-report.mjs',
+    ])
+    for (const path of IMMUTABLE) {
+      const merged = execFileSync('git', ['show', `${observed.report.mergedRevision}:${path}`], { cwd: repository, encoding: 'utf8' })
+      const seeded = path === 'target.json'
+        ? await readFile(join(repository, path), 'utf8')
+        : await readFile(join(fixtureDir, 'seed', path), 'utf8')
+      expect(merged, path).toBe(seeded)
+    }
   }, PHASE_TIMEOUT_MS + LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

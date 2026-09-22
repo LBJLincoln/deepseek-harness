@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-一个交付物是"关于 harness 未曾编写的仓库的报告"的 [program](../../../../../packages/improvement/program/README.md)：六个安全部门并行阅读同一棵目标树，各自在自己的分支与会话中工作，集成方把它们的发现合并成一份报告，由一个在任何部门启动之前就已提交的审查器裁定。[csv-tools program](../program-csv-tools/README.md) 构建软件、由测试套件衡量；这一个产出文档，衡量它的是报告中的每一句话能否在它所描述的那棵树里解析得到。
+一个交付物是"关于 harness 未曾编写的仓库的报告"的 [program](../../../../../packages/improvement/program/README.md)：它的安全部门——默认六个专科部门，或加上通才部门后为七个——并行阅读同一棵目标树，各自在自己的分支与会话中工作，集成方把它们的发现合并成一份报告，由一个在任何部门启动之前就已提交的审查器裁定。[csv-tools program](../program-csv-tools/README.md) 构建软件、由测试套件衡量；这一个产出文档，衡量它的是报告中的每一句话能否在它所描述的那棵树里解析得到。
 
 ## 两棵树
 
@@ -16,9 +16,12 @@
 | `data` | 敏感数据暴露、日志中的个人数据、明文传输、弱密码学、口令存储 | [`presets/data`](presets/data/agent.cordis.yml) |
 | `dependencies` | 存在漏洞与过时的依赖，来自 `npm audit --json` 或清单文件 | [`presets/dependencies`](presets/dependencies/agent.cordis.yml) |
 | `platform` | 响应头、CORS、Cookie、错误处理、限流、安全配置错误、客户端代码 | [`presets/platform`](presets/platform/agent.cordis.yml) |
-| 集成 | 合并六条分支并撰写报告 | [`presets/integrating`](presets/integrating/agent.cordis.yml)，即名册默认预设 |
+| `generalist`（可选） | 整个应用从头到尾——每条路由、每次数据访问、每个配置文件——一次覆盖任意缺陷类别 | [`presets/generalist`](presets/generalist/agent.cordis.yml) |
+| 集成 | 合并各分支并撰写报告 | [`presets/integrating`](presets/integrating/agent.cordis.yml)，即名册默认预设 |
 
 没有部门依赖另一个部门，因此真实运行一次并发三个。每个部门提交 `findings/<department>.json` 与 `report/<department>.md`，别无其他；集成方写出 `SAFETY-REPORT.md` 与 `findings.json`。[`seed/REPORTING.md`](seed/REPORTING.md) 是它们之间的全部约定，也是每个会话最先读的文件。
+
+**部门集合是运行时的选择。**[`driver.ts`](driver.ts) 解析 `DSH_CODE_SAFETY_DEPARTMENTS`——对上面这些键的一份逗号分隔列表，按其校验，未设置时默认为六个专科部门——因此现有的每条记录、快照与 e2e 用例都保持不变。[`overlays/with-generalist.cordis.yml`](overlays/with-generalist.cordis.yml) 与 [`overlays/claude-code.cordis.yml`](overlays/claude-code.cordis.yml) 是同一份真实组合；`pnpm run code-safety -- <target> --with-generalist` 把通才部门加入默认的六个并引导该 overlay，`--departments <list>` 则直接指定一个确切的集合。[该 Agent Note](../../../../../.agents/notes/proposed/architecture/2026-09-22-code-safety-generalist-department.md) 说明了原因：一次三层对比发现，一次覆盖全仓库的单次评审在 NodeGoat 上抓到了六个专科部门漏掉的问题。
 
 每个部门先运行 `semgrep --version`，有回应时再对目标运行 `semgrep --config semgrep/ --config p/owasp-top-ten --metrics off --json <path>`（注册表不可达时只用本地规则），每个命中都要先读过才能成为发现；本 fixture 附带的[本地规则](semgrep/code-safety.yml)覆盖——eval、带插值的 `child_process`、字符串拼接的 SQL 与 `$where`、HTML 注入点、弱哈希、硬编码密钥、过宽的 CORS、不安全的 Cookie、明文端点。规则是本地的，因此运行不需要规则注册中心；真实运行可以在其旁另行指定注册中心的规则包。扫描器命中只是"该去读的地方"，绝不是发现本身。
 
@@ -59,17 +62,19 @@
 pnpm exec vitest run --config vitest.e2e.config.ts examples/headless-agent/tests/program-code-safety.e2e.ts
 ```
 
-e2e 是 [`examples/headless-agent/tests/program-code-safety.e2e.ts`](../../program-code-safety.e2e.ts)。它断言账本与两份签名、六份证书及其额度、`platform` 部门挣得的那条指令、集成的"先失败后通过"两次尝试及其三项检查、已发布树的精确文件清单、十六个发现 id、报告陈述的按严重度计数，以及——作为针对同一个已提交审查器的反例——一条行号被挪动的发现会被拒绝并由 `--list-invalid` 点名。
+e2e 是 [`examples/headless-agent/tests/program-code-safety.e2e.ts`](../../program-code-safety.e2e.ts)。它断言账本与两份签名、六份证书及其额度、`platform` 部门挣得的那条指令、集成的"先失败后通过"两次尝试及其三项检查、已发布树的精确文件清单、十六个发现 id、报告陈述的按严重度计数，以及——作为针对同一个已提交审查器的反例——一条行号被挪动的发现会被拒绝并由 `--list-invalid` 点名。第二个用例在同一目标上运行，用 `DSH_CODE_SAFETY_DEPARTMENTS` 在六个专科部门之外再点名通才部门，并断言第七份证书及其三条发现已合并进经审查的报告。
 
 ## 真实运行
 
 ```sh
 pnpm run code-safety -- /path/to/target [--out <dir>] [--model sonnet|opus]
+pnpm run code-safety -- /path/to/target --with-generalist
+pnpm run code-safety -- /path/to/target --departments secrets,injection,generalist
 ```
 
 它在 `<out>`（默认 `.code-safety/<target>-<timestamp>/`，已被仓库忽略）下铸造报告仓库，引导 overlay，并打印部门账本、审查器的裁定，以及已发布的 `SAFETY-REPORT.md` 与 `findings.json` 的路径。它需要已安装并登录的 `claude` CLI，且不需要 `DEEPSEEK_API_KEY`。它在 tsx 下从 TypeScript 源码运行 driver，因此无需构建；只有 `DSH_EXAMPLE_MODE=lib` 的启动方式（CI 所用）才需要先执行 `pnpm run build:lib:host`。
 
-运行期间，`<out>/.sessions/` 会逐渐填满每个会话各一份日志——账本、六个部门与集成——program 结束时 driver 把它唯一的结果行写入 `<out>/stdout.jsonl`。按[运行表](../../../../../data/code-safety/README.md)所述，把它记录到 `data/code-safety/` 下。
+运行期间，`<out>/.sessions/` 会逐渐填满每个会话各一份日志——账本、它的各部门与集成——program 结束时 driver 把它唯一的结果行写入 `<out>/stdout.jsonl`。按[运行表](../../../../../data/code-safety/README.md)所述，把它记录到 `data/code-safety/` 下。
 
 ## NodeGoat 上的运行
 
