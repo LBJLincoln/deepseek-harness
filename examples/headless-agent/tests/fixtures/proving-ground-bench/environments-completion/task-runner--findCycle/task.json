@@ -1,0 +1,31 @@
+{
+  "id": "code:task-runner--complete-findCycle",
+  "tier": 6,
+  "domain": "systems",
+  "family": "code:task-runner",
+  "completion": {
+    "file": "src/graph.js",
+    "function": "findCycle"
+  },
+  "title": "Complete findCycle in Teach taskrun file dependencies, cycle detection, and an incremental plan",
+  "prompt": "`taskrun` is the repository in this workspace: `README.md` describes what it already does, `src/` holds it, and `test/taskrun.test.js` is its own suite, which passes. Extend it so the task file can declare the files a task touches, so a dependency cycle is reported instead of silently truncating the order, and so a plan can say which tasks a snapshot leaves stale. Every behaviour `README.md` documents stays exactly as it is, including the wording and the exit code of every failure it lists, and the work spans the parser, the graph, and the command.\n\nTwo directives join the task file, parsed like the ones already there. `reads <name> <path>...` names input files of a task and `writes <name> <path>...` names its outputs; each takes at least one path, a repeated path counts once, and either line may stand before the `task` line it names, exactly as `needs` may. A path is one or more of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `_`, `.`, `/` and `-`, does not begin with `/`, and holds no `..` segment; anything else fails with `error: line N: invalid path <path>`. A `reads` or `writes` line with fewer than two words after the directive fails with `error: line N: expected reads <name> <path>...` or `error: line N: expected writes <name> <path>...`. Every name a `reads` or `writes` line uses must be declared by a `task` line somewhere, on pain of the existing line-less `error: unknown task <name>`; as before, every failure that names a line is reported before that one, in line order.\n\n`files <name>` is a new mode taking exactly one name. It prints `reads: ` followed by that task's input paths in ascending order and then `writes: ` followed by its output paths in ascending order, each with `-` in place of an empty list, and it refuses an undeclared name the way `show` does. The usage line every malformed argument list reports becomes `error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>`; `order` takes no further word, `show`, `files` and `plan` take exactly one, and `digest` takes at least one.\n\n`order` now refuses a cyclic graph: it writes `error: cycle: ` followed by the cycle's names joined with ` -> ` and ending with a repeat of the first name, then exits 3, having written nothing to standard output. The reported cycle is the first one a depth-first search finds when it starts from each task in ascending name order and walks each task's dependencies in ascending name order; it runs from the task the search re-entered, through the search stack, back to that task. A task that needs itself is such a cycle. `show`, `files` and `digest` never look at the graph, so they answer a cyclic file as they answer any other.\n\n`plan <snapshot>` reads a digest snapshot and reports what the graph would have to rerun. The snapshot file is a line per recorded path, trimmed, with an empty line and a line starting with `#` ignored, and the rest split on runs of whitespace into exactly two words: a path and its digest, which is exactly eight lowercase hexadecimal digits. A snapshot that cannot be read fails with `error: cannot read snapshot <path>`, and a malformed line fails with `error: <snapshot>: line N: ` followed by `expected <path> <digest>`, `invalid digest <word>`, or `path <path> is recorded twice`, where N counts the snapshot's own lines from 1. The snapshot is read after the task file is parsed and before the graph is walked, so a task-file failure precedes a snapshot failure, and a snapshot failure precedes a cycle.\n\nA task's watched paths are its inputs and its outputs together, deduplicated and taken in ascending order. The first watched path with a reason decides that the task runs, and the reason is `new <path>` when the snapshot records no digest for it, `missing <path>` when the snapshot records one but the workspace has no such file, and `changed <path>` when the file's digest differs from the recorded one; a file whose digest matches gives no reason. A task no watched path condemns runs anyway when some dependency runs, with the reason `needs <dep>` naming the lexicographically smallest dependency that runs, so a path reason always wins over a dependency one. `plan` prints one line per task in the order `order` prints, `run <name> <reason>` or `skip <name>`, and then a final line `total run=<r> skip=<s>` counting the two.\n\nThis task is a completion exercise: every file and function in this workspace already holds its final implementation except `findCycle` in `src/graph.js`, whose body currently throws 'not implemented'. Implement only that function's body so it fulfills the specification above; keep its signature exactly as given, and do not edit any other file, export, or function. This is a visible-test tier: your certificate comes from the suite under test/, not from a held-back corpus.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json",
+    "data",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

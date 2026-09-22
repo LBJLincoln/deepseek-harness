@@ -1,0 +1,31 @@
+{
+  "id": "code:md-render--complete-renderList",
+  "tier": 6,
+  "domain": "text",
+  "family": "code:md-render",
+  "completion": {
+    "file": "src/block.js",
+    "function": "renderList"
+  },
+  "title": "Complete renderList in Give mdlite nested lists, reference links, and a code fence that escapes",
+  "prompt": "`mdlite` is the repository in this workspace: `README.md` describes what it already does, `src/` holds it, and `test/mdlite.test.js` is its own suite, which passes. Close the three gaps its README names. Everything else it documents stays exactly as it is — the block order, the inline grammar, the `outline` output, the joining of blocks, and the failure wording — and the work spans the block grammar, the inline grammar, and the command.\n\nA bullet item may now be indented. Its level is the number of leading spaces divided by two and rounded down, capped at one deeper than the deepest item currently open in the list, and it is appended to the last item of the level above. A list still may not interrupt an open paragraph, and a blank line still ends the whole list. An item with children renders as `<li>` and the item's own text, then a newline, then the nested `<ul>` on its own lines, then `</li>` on its own line; an item without children renders as today, on one line.\n\nLink definitions join the block grammar. A line whose trimmed text is `[` a label `]` `:` then whitespace then a non-empty url is a definition wherever it stands outside a code fence: it ends any open paragraph or list, contributes nothing to the output, and records the label. A label is compared trimmed, with runs of whitespace collapsed to one space, and lowercased, and it is that normalized form that is written down and reported. Defining a label twice fails with `error: line N: label <label> is defined twice`, naming the normalized label.\n\nTwo reference forms join the inline grammar, both tried after `[text](url)` fails. `[text][label]` uses the written label and `[text][]` uses the link text as the label; the label is normalized the same way, and a resolved reference renders as `<a href=\"<url>\">` with the text rendered inline and the url escaped for the attribute. A reference whose label no definition resolves is not a link: the `[` is literal text and scanning continues after it, exactly as an unmatched marker does today.\n\nA code fence now escapes what it writes: `&`, `<` and `>` become `&amp;`, `&lt;` and `&gt;` in the content and in the language class, so a document that shows HTML in a fence renders as text. Nothing else about fences changes.\n\nEvery mode takes an optional second argument naming a definitions file, so the usage line becomes `error: usage: cli.js html|outline|defs [<definitions>]`. That file is one definition per line, with a line trimmed and an empty one or one starting with `#` ignored; anything else fails with `error: <file>: line N: expected [label]: <url>`, and a label it defines twice with `error: <file>: line N: label <label> is defined twice`, N counting that file's own lines from 1. The file is read before the document, so its failures come first and the document may not redefine what it defined. A definitions file that cannot be read fails with `error: cannot read definitions <path>`.\n\n`defs` is a new mode. It prints one line per definition in force, in ascending normalized-label order, `<label> <url> <source>`, where the source is `file` or `document`, and then a final line `total <k>` counting them.\n\nThis task is a completion exercise: every file and function in this workspace already holds its final implementation except `renderList` in `src/block.js`, whose body currently throws 'not implemented'. Implement only that function's body so it fulfills the specification above; keep its signature exactly as given, and do not edit any other file, export, or function. This is a visible-test tier: your certificate comes from the suite under test/, not from a held-back corpus.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json",
+    "data",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

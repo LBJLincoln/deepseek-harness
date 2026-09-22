@@ -1,0 +1,2713 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=2\n7 a attempt=2 fail finish=9\n19 a attempt=3 ok finish=21\nend 21\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 ok\nend 21\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 fail\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=1\n6 a attempt=2 fail finish=7\n17 a attempt=3 fail finish=18\nend 18\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 fail\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 dead\nend 18\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 fail\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 at=18\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 fail ok\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 ok finish=1\n1 b attempt=1 fail finish=2\n10 b attempt=2 ok finish=11\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 fail ok\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 ok\nb attempts=2 ok\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 fail ok\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=5\n5 b attempt=1 fail finish=6\n10 a attempt=2 fail finish=15\n15 b attempt=2 fail finish=16\n25 a attempt=3 fail finish=30\n30 b attempt=3 fail finish=31\nend 31\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 dead\nb attempts=3 dead\nend 31\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 at=30\nb attempts=3 at=31\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 0 fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=0\n5 a attempt=2 ok finish=5\nend 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 0 fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=2 ok\nend 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 0 fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 0 fail\nsubmit 3 a\n",
+  "exitCode": 0,
+  "stdout": "3 a attempt=1 fail finish=3\n8 a attempt=2 fail finish=8\n18 a attempt=3 fail finish=18\nend 18\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 0 fail\nsubmit 3 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 dead\nend 18\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 0 fail\nsubmit 3 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 at=18\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\njob c 1 ok\nsubmit 0 a\nsubmit 0 b\nsubmit 0 c\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 ok finish=1\n1 b attempt=1 ok finish=2\n10 c attempt=1 ok finish=11\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\njob c 1 ok\nsubmit 0 a\nsubmit 0 b\nsubmit 0 c\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 ok\nb attempts=1 ok\nc attempts=1 ok\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\njob c 1 ok\nsubmit 0 a\nsubmit 0 b\nsubmit 0 c\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\njob c 1 ok\nsubmit 0 c\nsubmit 0 b\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 c attempt=1 ok finish=1\n1 b attempt=1 ok finish=2\n10 a attempt=1 ok finish=11\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\njob c 1 ok\nsubmit 0 c\nsubmit 0 b\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 ok\nb attempts=1 ok\nc attempts=1 ok\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\njob c 1 ok\nsubmit 0 c\nsubmit 0 b\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\nsubmit 40 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "0 b attempt=1 ok finish=1\n40 a attempt=1 ok finish=41\nend 41\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\nsubmit 40 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 ok\nb attempts=1 ok\nend 41\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob b 1 ok\nsubmit 40 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 3 fail ok fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=3\n8 a attempt=2 ok finish=11\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 3 fail ok fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=2 ok\nend 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 3 fail ok fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 fail ok\njob b 2 fail fail ok\nsubmit 0 a\nsubmit 1 b\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=1\n1 b attempt=1 fail finish=3\n10 a attempt=2 ok finish=11\n11 b attempt=2 fail finish=13\n23 b attempt=3 ok finish=25\nend 25\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 fail ok\njob b 2 fail fail ok\nsubmit 0 a\nsubmit 1 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=2 ok\nb attempts=3 ok\nend 25\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 fail ok\njob b 2 fail fail ok\nsubmit 0 a\nsubmit 1 b\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\n",
+  "exitCode": 0,
+  "stdout": "end 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\n",
+  "exitCode": 0,
+  "stdout": "end 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "end 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "end 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "# only a comment\n",
+  "exitCode": 0,
+  "stdout": "end 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "# only a comment\n",
+  "exitCode": 0,
+  "stdout": "end 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "# only a comment\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 4\njob a 1 fail\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 4\njob a 1 fail\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 4\njob a 1 fail\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 1 4\njob a 1 fail\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 1 4\njob a 1 fail\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 1 4\njob a 1 fail\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 1 5\nretry 3 1\njob a 1 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 1 5\nretry 3 1\njob a 1 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 1 5\nretry 3 1\njob a 1 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 3 4\nretry 2 0\njob a 1 fail\njob b 1 fail\njob c 1 ok\nsubmit 0 a\nsubmit 0 b\nsubmit 0 c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 3 4\nretry 2 0\njob a 1 fail\njob b 1 fail\njob c 1 ok\nsubmit 0 a\nsubmit 0 b\nsubmit 0 c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 3 4\nretry 2 0\njob a 1 fail\njob b 1 fail\njob c 1 ok\nsubmit 0 a\nsubmit 0 b\nsubmit 0 c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 5 1\njob a 1 fail fail fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 5 1\njob a 1 fail fail fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 5 1\njob a 1 fail fail fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 3 0\njob a 1 fail\njob b 1 ok\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 3 0\njob a 1 fail\njob b 1 ok\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 3 0\njob a 1 fail\njob b 1 ok\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 100\njob a 1 fail\njob b 1 ok\nsubmit 0 a\nsubmit 50 b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 100\njob a 1 fail\njob b 1 ok\nsubmit 0 a\nsubmit 50 b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 100\njob a 1 fail\njob b 1 ok\nsubmit 0 a\nsubmit 50 b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 4\nretry 3 4\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 4\nretry 3 4\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 4\nretry 3 4\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2 10\nlimit 2 10\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2 10\nlimit 2 10\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2 10\nlimit 2 10\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 0 4\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 0 4\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 0 4\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected retry <max> <base>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected retry <max> <base>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected retry <max> <base>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected limit <starts> <window>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected limit <starts> <window>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "limit 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected limit <starts> <window>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected job <id> <duration> <outcome>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected job <id> <duration> <outcome>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected job <id> <duration> <outcome>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a x ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: duration must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a x ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: duration must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a x ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: duration must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 maybe\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid outcome maybe\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 maybe\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid outcome maybe\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 maybe\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid outcome maybe\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a! 1 ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid job id a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-095",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a! 1 ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid job id a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-096",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a! 1 ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid job id a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-097",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob a 2 ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: job a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-098",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob a 2 ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: job a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-099",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\njob a 2 ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: job a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-100",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0 a\nsubmit 1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: job a is submitted twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-101",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0 a\nsubmit 1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: job a is submitted twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-102",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0 a\nsubmit 1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: job a is submitted twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-103",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit x a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: at must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-104",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit x a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: at must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-105",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit x a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: at must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-106",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected submit <at> <id>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-107",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected submit <at> <id>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-108",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected submit <at> <id>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-109",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0 ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown job ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-110",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0 ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown job ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-111",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 1 ok\nsubmit 0 ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown job ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-112",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "cancel a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown directive cancel\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-113",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "cancel a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown directive cancel\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-114",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "cancel a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown directive cancel\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-115",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 01 ok\nsubmit 00 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 ok finish=1\nend 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-116",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 01 ok\nsubmit 00 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 ok\nend 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-117",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 01 ok\nsubmit 00 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-118",
+  "weight": 3,
+  "argv": [
+   "trace"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=2\nend 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-119",
+  "weight": 3,
+  "argv": [
+   "summary"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 fail\nend 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-120",
+  "weight": 3,
+  "argv": [
+   "dead"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-121",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=2\n7 a attempt=2 fail finish=9\n19 a attempt=3 ok finish=21\nend 21\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-122",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 ok\nend 21\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-123",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-124",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/retry-only.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=2\n2 a attempt=2 fail finish=4\n4 a attempt=3 ok finish=6\nend 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-125",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/retry-only.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 ok\nend 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-126",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/retry-only.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-127",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/limit-only.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=2\nend 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-128",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/limit-only.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 fail\nend 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-129",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/limit-only.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-130",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/empty.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "0 a attempt=1 fail finish=2\nend 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-131",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/empty.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 fail\nend 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-132",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/empty.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-133",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/bad.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad.policy: line 2: unknown directive job\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-134",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/bad.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad.policy: line 2: unknown directive job\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-135",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/bad.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad.policy: line 2: unknown directive job\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-136",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/twice.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/twice.policy: line 2: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-137",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/twice.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/twice.policy: line 2: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-138",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/twice.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/twice.policy: line 2: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-139",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/nope.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read policy data/nope.policy\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-140",
+  "weight": 3,
+  "argv": [
+   "summary",
+   "data/nope.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read policy data/nope.policy\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-141",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/nope.policy"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read policy data/nope.policy\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-142",
+  "weight": 3,
+  "argv": [
+   "dead"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-143",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=3 at=30\nb attempts=3 at=31\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-144",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/retry-only.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "a attempts=4 at=23\nb attempts=4 at=24\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-145",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/limit-only.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-146",
+  "weight": 3,
+  "argv": [
+   "dead",
+   "data/empty.policy"
+  ],
+  "stdin": "job a 5 fail\njob b 1 fail\nsubmit 0 a\nsubmit 0 b\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-147",
+  "weight": 3,
+  "argv": [],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js trace|summary|dead [<policy>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-148",
+  "weight": 3,
+  "argv": [
+   "walk"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js trace|summary|dead [<policy>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-149",
+  "weight": 3,
+  "argv": [
+   "trace",
+   "data/steady.policy",
+   "x"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js trace|summary|dead [<policy>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-150",
+  "weight": 3,
+  "argv": [
+   "Trace"
+  ],
+  "stdin": "job a 2 fail fail ok\nsubmit 0 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js trace|summary|dead [<policy>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-151",
+  "weight": 1,
+  "argv": [
+   "summary",
+   "data/retry-only.policy"
+  ],
+  "stdin": "limit 3 9\nretry 2 2\njob a 3 ok fail ok\njob b 0 fail\njob c 1 ok\nsubmit 3 a\nsubmit 5 b\nsubmit 7 c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-152",
+  "weight": 1,
+  "argv": [
+   "dead",
+   "data/steady.policy"
+  ],
+  "stdin": "retry 2 2\njob a 1 ok\nsubmit 3 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-153",
+  "weight": 1,
+  "argv": [
+   "summary",
+   "data/retry-only.policy"
+  ],
+  "stdin": "retry 2 0\njob a 3 ok fail ok\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: retry is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-154",
+  "weight": 1,
+  "argv": [
+   "dead"
+  ],
+  "stdin": "limit 1 8\njob a 2 fail ok fail\njob b 3 ok\njob c 0 fail\njob d 1 ok\nsubmit 2 b\nsubmit 4 c\nsubmit 6 d\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-155",
+  "weight": 1,
+  "argv": [
+   "dead",
+   "data/retry-only.policy"
+  ],
+  "stdin": "job a 2 fail\njob b 3 ok\njob c 2 fail ok fail\njob d 2 ok fail\nsubmit 4 a\nsubmit 6 b\nsubmit 0 c\nsubmit 2 d\n",
+  "exitCode": 0,
+  "stdout": "a attempts=4 at=17\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-156",
+  "weight": 1,
+  "argv": [
+   "summary",
+   "data/retry-only.policy"
+  ],
+  "stdin": "job a 2 fail\njob b 1 ok fail ok\njob c 0 fail ok fail\njob d 1 ok\nsubmit 1 c\n",
+  "exitCode": 0,
+  "stdout": "c attempts=2 ok\nend 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-157",
+  "weight": 1,
+  "argv": [
+   "dead",
+   "data/limit-only.policy"
+  ],
+  "stdin": "job a 2 fail ok fail\njob b 2 ok fail\nsubmit 4 a\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-158",
+  "weight": 1,
+  "argv": [
+   "trace",
+   "data/limit-only.policy"
+  ],
+  "stdin": "limit 2 6\nretry 4 0\njob a 3 ok\nsubmit 1 a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: limit is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-159",
+  "weight": 1,
+  "argv": [
+   "trace",
+   "data/limit-only.policy"
+  ],
+  "stdin": "retry 4 2\njob a 2 ok fail\njob b 3 ok\njob c 0 fail\nsubmit 5 b\n",
+  "exitCode": 0,
+  "stdout": "5 b attempt=1 ok finish=8\nend 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-160",
+  "weight": 1,
+  "argv": [
+   "summary",
+   "data/limit-only.policy"
+  ],
+  "stdin": "job a 2 fail ok fail\njob b 3 ok\nsubmit 5 a\n",
+  "exitCode": 0,
+  "stdout": "a attempts=1 fail\nend 7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

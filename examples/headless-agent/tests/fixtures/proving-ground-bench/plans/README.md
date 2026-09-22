@@ -6,6 +6,8 @@ Checked-in plan files for the Proving Ground bench (`examples/headless-agent/tes
 
 | Plan | Compares | Tier | Arms / models | Seed | Overlay | Recorded run |
 | --- | --- | --- | --- | --- | --- | --- |
+| `completion-openrouter-free-t2` | the environment factory's tier-2 completion children on the free open-weight route | 2 | fleet three free OpenRouter models, district `bench-completion-openrouter` | 1 | with-completion-openrouter | not recorded |
+| `completion-smoke-sonnet` | the environment factory's completion children, one per tier | 2-6 | fleet `sonnet`, district `bench-completion` | 1 | with-completion | not recorded |
 | `e0-calibration-sonnet-t2` | `sonnet` against itself (noise floor) | 2 | baseline `sonnet` vs candidate `sonnet` | 1 | base | not recorded |
 | `e1-haiku-vs-sonnet-t3` | model tier: sonnet vs haiku | 3 | baseline `sonnet` vs candidate `haiku` | 1 | base | `2026-09-08-bench-e1-haiku-vs-sonnet-t3` |
 | `e1-sonnet-vs-opus-t3` | model tier: sonnet vs opus | 3 | baseline `sonnet` vs candidate `opus` | 1 | base | `2026-09-08-bench-e1-sonnet-vs-opus-t3` |

@@ -1,0 +1,2343 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "build\nbundle\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds b a\nneeds c a b\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds b a\nneeds c a b\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds a b\nneeds b a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> b -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds a b\nneeds b a\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nneeds a a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nneeds a a\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds b a\nneeds a c\nneeds c a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> c -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds b a\nneeds a c\nneeds c a\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task z echo z\ntask y echo y\ntask x echo x\nneeds x y\nneeds y z\n",
+  "exitCode": 0,
+  "stdout": "z\ny\nx\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task z echo z\ntask y echo y\ntask x echo x\nneeds x y\nneeds y z\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "# nothing but a comment\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "# nothing but a comment\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\n",
+  "exitCode": 0,
+  "stdout": "a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a data/files/a.txt\n",
+  "exitCode": 0,
+  "stdout": "a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a data/files/a.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/a.txt\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nwrites a data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nwrites a data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: data/files/out-a.txt\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/gone.txt\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a data/files/a.txt data/files/a.txt\nwrites a data/files/a.txt\n",
+  "exitCode": 0,
+  "stdout": "a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a data/files/a.txt data/files/a.txt\nwrites a data/files/a.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/a.txt\nwrites: data/files/a.txt\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "a\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/a.txt\nwrites: data/files/out-a.txt\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds b a\nneeds c b\nreads a data/files/a.txt\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds b a\nneeds c b\nreads a data/files/a.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/a.txt\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds c a b\nreads a data/files/a.txt\nreads b data/files/b.txt\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds c a b\nreads a data/files/a.txt\nreads b data/files/b.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/a.txt\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "reads b data/files/a.txt\ntask b echo b\n",
+  "exitCode": 0,
+  "stdout": "b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "reads b data/files/a.txt\ntask b echo b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "needs b a\ntask a echo a\ntask b echo b\n",
+  "exitCode": 0,
+  "stdout": "a\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "needs b a\ntask a echo a\ntask b echo b\n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a-1 echo a\ntask a.2 echo b\ntask a_3 echo c\nneeds a.2 a-1\nneeds a_3 a.2\n",
+  "exitCode": 0,
+  "stdout": "a-1\na.2\na_3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a-1 echo a\ntask a.2 echo b\ntask a_3 echo c\nneeds a.2 a-1\nneeds a_3 a.2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a   echo    spaced   out  \n",
+  "exitCode": 0,
+  "stdout": "a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a   echo    spaced   out  \n",
+  "exitCode": 0,
+  "stdout": "reads: -\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nneeds a ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nneeds a ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads ghost data/files/a.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads ghost data/files/a.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected task <name> <word>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected task <name> <word>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a! echo a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid task name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a! echo a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid task name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask a echo b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: task a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\ntask a echo b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: task a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nrun a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown directive run\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nrun a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unknown directive run\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nneeds a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected needs <name> <dependency>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nneeds a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected needs <name> <dependency>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected reads <name> <path>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected reads <name> <path>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nwrites a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected writes <name> <path>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nwrites a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: expected writes <name> <path>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a! data/files/a.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid task name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a! data/files/a.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid task name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a ../etc/passwd\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid path ../etc/passwd\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a ../etc/passwd\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid path ../etc/passwd\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a /etc/passwd\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid path /etc/passwd\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a /etc/passwd\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid path /etc/passwd\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nreads a data/files/a!.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid path data/files/a!.txt\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nreads a data/files/a!.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid path data/files/a!.txt\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\nneeds a b!\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid task name b!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task a echo a\nneeds a b!\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: invalid task name b!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task b echo b\ntask a echo a\nneeds b a\nreads a data/files/c.txt\nwrites b data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "a\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a"
+  ],
+  "stdin": "task b echo b\ntask a echo a\nneeds b a\nreads a data/files/c.txt\nwrites b data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/c.txt\nwrites: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/current.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "skip build\nskip bundle\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "run build changed data/files/a.txt\nrun bundle needs build\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-out.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "run build changed data/files/out-a.txt\nrun bundle changed data/files/out-a.txt\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "run build new data/files/b.txt\nrun bundle new data/files/out-b.txt\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "skip build\nskip bundle\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/empty.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "run build new data/files/a.txt\nrun bundle new data/files/out-a.txt\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/bad-line.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/snapshots/bad-line.snap: line 2: expected <path> <digest>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/bad-digest.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/snapshots/bad-digest.snap: line 2: invalid digest 784F5257\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/short-digest.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/snapshots/short-digest.snap: line 1: invalid digest e37d947\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/twice.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/snapshots/twice.snap: line 3: path data/files/a.txt is recorded twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/nope.snap"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read snapshot data/snapshots/nope.snap\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/current.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "run a changed data/files/a.txt\nrun b needs a\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-out.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "run a changed data/files/out-a.txt\nrun b changed data/files/out-a.txt\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "data/snapshots/empty.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b a\nreads a data/files/a.txt\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "run a new data/files/a.txt\nrun b new data/files/out-a.txt\ntotal run=2 skip=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "sweep"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "order",
+   "extra"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "show"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "show",
+   "a",
+   "b"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "files"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [
+   "files",
+   "a",
+   "b"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-095",
+  "weight": 3,
+  "argv": [
+   "plan"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-096",
+  "weight": 3,
+  "argv": [
+   "plan",
+   "a",
+   "b"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-097",
+  "weight": 3,
+  "argv": [
+   "digest"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js order|show <name>|files <name>|digest <path>...|plan <snapshot>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-098",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/a.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/a.txt e37d9473\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-099",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/b.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/b.txt 784f5257\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-100",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/c.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/c.txt b0aa7c00\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-101",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/out-a.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/out-a.txt ea404c2d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-102",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/out-b.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/out-b.txt 6838c3c2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-103",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/gone.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/gone.txt missing\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-104",
+  "weight": 3,
+  "argv": [
+   "digest",
+   "data/files/a.txt",
+   "data/files/b.txt",
+   "data/files/c.txt",
+   "data/files/out-a.txt",
+   "data/files/out-b.txt",
+   "data/files/gone.txt"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "data/files/a.txt e37d9473\ndata/files/b.txt 784f5257\ndata/files/c.txt b0aa7c00\ndata/files/out-a.txt ea404c2d\ndata/files/out-b.txt 6838c3c2\ndata/files/gone.txt missing\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-105",
+  "weight": 3,
+  "argv": [
+   "show",
+   "build"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "build: node build.js\nneeds: -\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-106",
+  "weight": 3,
+  "argv": [
+   "show",
+   "bundle"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "bundle: node bundle.js\nneeds: build\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-107",
+  "weight": 3,
+  "argv": [
+   "show",
+   "ghost"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-108",
+  "weight": 3,
+  "argv": [
+   "files",
+   "build"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/a.txt data/files/b.txt\nwrites: data/files/out-a.txt\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-109",
+  "weight": 3,
+  "argv": [
+   "files",
+   "bundle"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 0,
+  "stdout": "reads: data/files/out-a.txt\nwrites: data/files/out-b.txt\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-110",
+  "weight": 3,
+  "argv": [
+   "files",
+   "ghost"
+  ],
+  "stdin": "task build node build.js\ntask bundle node bundle.js\nneeds bundle build\nreads build data/files/a.txt data/files/b.txt\nwrites build data/files/out-a.txt\nreads bundle data/files/out-a.txt\nwrites bundle data/files/out-b.txt\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/current.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds b build\nneeds build a\nwrites c data/files/b.txt\nreads build data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip build\nskip b\nskip c\ntotal run=0 skip=4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b b\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: b -> b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds build build\nwrites b data/files/out-a.txt\nreads c data/files/b.txt\nwrites build data/files/gone.txt\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: build -> build\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds a c\nneeds c a\nwrites a data/files/b.txt\nreads b data/files/gone.txt\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> c -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds b b\nneeds build b\nreads a data/files/gone.txt\nwrites build data/files/b.txt\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: b -> b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds a b\nreads a data/files/b.txt\n",
+  "exitCode": 0,
+  "stdout": "skip b\nskip a\nskip c\ntotal run=0 skip=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nwrites build data/files/b.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\nrun build new data/files/b.txt\nskip c\ntotal run=1 skip=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/current.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\ntask bundle echo bundle\nneeds a b\nneeds build b\nneeds bundle c\nreads a data/files/gone.txt\nwrites a data/files/gone.txt\nreads b data/files/out-a.txt\nwrites c data/files/out-a.txt\nreads build data/files/out-a.txt\nwrites build data/files/b.txt\nreads bundle data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "skip b\nrun a new data/files/gone.txt\nskip build\nskip c\nrun bundle new data/files/gone.txt\ntotal run=2 skip=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nwrites a data/files/gone.txt\nreads b data/files/gone.txt\nwrites b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "a\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\ntask bundle echo bundle\nneeds b build\nneeds build c\nneeds bundle build\nreads a data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip c\nskip build\nskip b\nskip bundle\ntotal run=0 skip=5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds b build\nneeds c b\nwrites build data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nrun build new data/files/gone.txt\nrun b needs build\nrun c needs b\ntotal run=3 skip=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/current.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\ntask bundle echo bundle\nneeds a bundle\nneeds b c\nneeds c bundle\nneeds bundle c\nwrites b data/files/gone.txt\nreads c data/files/b.txt\nwrites c data/files/gone.txt\nreads build data/files/gone.txt\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: bundle -> c -> bundle\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds c a\nneeds build c\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nbuild\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nneeds b b\nwrites a data/files/gone.txt\nreads b data/files/out-a.txt\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: b -> b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nwrites b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\ntask bundle echo bundle\nneeds a build\nneeds bundle b\n",
+  "exitCode": 0,
+  "stdout": "skip b\nskip build\nskip a\nskip bundle\nskip c\ntotal run=0 skip=5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nwrites b data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\ntotal run=0 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "order"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds a c\nneeds b a\nwrites c data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "c\na\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/current.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\ntask bundle echo bundle\nneeds a c\nneeds c b\n",
+  "exitCode": 0,
+  "stdout": "skip b\nskip build\nskip bundle\nskip c\nskip a\ntotal run=0 skip=5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nwrites build data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\nrun build new data/files/gone.txt\nskip c\ntotal run=1 skip=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\ntask bundle echo bundle\nneeds b c\nneeds c a\nwrites a data/files/b.txt\nreads b data/files/b.txt\nwrites c data/files/b.txt\nreads build data/files/out-a.txt\nwrites build data/files/b.txt\nreads bundle data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "run a new data/files/b.txt\nrun build new data/files/b.txt\nskip bundle\nrun c new data/files/b.txt\nrun b new data/files/b.txt\ntotal run=4 skip=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds c a\nneeds build c\nwrites a data/files/b.txt\nreads b data/files/b.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\nskip c\nskip build\ntotal run=0 skip=4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nwrites a data/files/gone.txt\nreads b data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "run a missing data/files/gone.txt\nrun b missing data/files/gone.txt\nskip build\nskip c\ntotal run=2 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds c a\nneeds build c\nwrites b data/files/b.txt\nreads c data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\nrun c new data/files/gone.txt\nrun build needs c\ntotal run=2 skip=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nwrites a data/files/out-a.txt\nreads b data/files/out-a.txt\nwrites b data/files/b.txt\nreads c data/files/b.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nskip b\nskip build\nskip c\ntotal run=0 skip=4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/gone.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\ntask build echo build\nneeds b b\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: b -> b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/stale-a.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\nwrites b data/files/gone.txt\n",
+  "exitCode": 0,
+  "stdout": "skip a\nrun b new data/files/gone.txt\ntotal run=1 skip=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "plan",
+   "data/snapshots/partial.snap"
+  ],
+  "stdin": "task a echo a\ntask b echo b\ntask c echo c\nneeds a b\nneeds c a\nwrites c data/files/out-a.txt\n",
+  "exitCode": 0,
+  "stdout": "skip b\nskip a\nskip c\ntotal run=0 skip=3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

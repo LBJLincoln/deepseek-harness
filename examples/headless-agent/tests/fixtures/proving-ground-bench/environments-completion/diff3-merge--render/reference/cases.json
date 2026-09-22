@@ -1,0 +1,2561 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nX\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nX\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nmine 1\nstable 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\nZ\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\nZ\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\nZ\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\nZ\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\nZ\n",
+  "exitCode": 0,
+  "stdout": "stable 4\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "X\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\nZ\n",
+  "exitCode": 0,
+  "stdout": "X\nb\nc\nd\nZ\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "X\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\nZ\n",
+  "exitCode": 0,
+  "stdout": "X\nb\nc\nd\nZ\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "X\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\nZ\n",
+  "exitCode": 0,
+  "stdout": "mine 1\nstable 3\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nY\nc\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\nX\n||||||| base\nb\n=======\nY\n>>>>>>> theirs\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nY\nc\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\nX\n=======\nY\n>>>>>>> theirs\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nY\nc\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=1 base=1 theirs=1\nstable 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nX\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nX\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nX\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nX\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nX\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nboth 1\nstable 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nY\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\nX\nc\n||||||| base\nb\nc\n=======\nb\nY\n>>>>>>> theirs\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nY\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\nX\nc\n=======\nb\nY\n>>>>>>> theirs\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nX\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nY\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=2 base=2 theirs=2\nstable 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nmine 0\nstable 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nboth 0\nstable 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nc\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nc\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nmine 0\nstable 1\ntheirs 0\nstable 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nq\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nq\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nmine 1\nstable 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nr\nb\nc\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\nq\n||||||| base\n=======\nr\n>>>>>>> theirs\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nr\nb\nc\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\nq\n=======\nr\n>>>>>>> theirs\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nr\nb\nc\nd\ne\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=1 base=0 theirs=1\nstable 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nq\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nq\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nq\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nq\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nq\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\na\nq\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nboth 1\nstable 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "mine 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n%%%\n",
+  "exitCode": 0,
+  "stdout": "theirs 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "%%%\na\nb\nc\nd\ne\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "%%%\na\nb\nc\nd\ne\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "%%%\na\nb\nc\nd\ne\n%%%\n",
+  "exitCode": 0,
+  "stdout": "both 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "x\n%%%\n%%%\ny\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\nx\n||||||| base\n=======\ny\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "x\n%%%\n%%%\ny\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\nx\n=======\ny\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "x\n%%%\n%%%\ny\n",
+  "exitCode": 1,
+  "stdout": "conflict mine=1 base=0 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "x\n%%%\n%%%\nx\n",
+  "exitCode": 0,
+  "stdout": "x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "x\n%%%\n%%%\nx\n",
+  "exitCode": 0,
+  "stdout": "x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "x\n%%%\n%%%\nx\n",
+  "exitCode": 0,
+  "stdout": "both 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "x\n%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "x\n%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "x\n%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "mine 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "both 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\n%%%\na\nb\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\n%%%\na\nb\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\n%%%\na\nb\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "stable 2\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "stable 2\nboth 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\n%%%\na\nb\nd\n",
+  "exitCode": 1,
+  "stdout": "a\nb\n<<<<<<< mine\nc\n||||||| base\n=======\nd\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\n%%%\na\nb\nd\n",
+  "exitCode": 1,
+  "stdout": "a\nb\n<<<<<<< mine\nc\n=======\nd\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\n%%%\na\nb\nd\n",
+  "exitCode": 1,
+  "stdout": "stable 2\nconflict mine=1 base=0 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "e\nd\nc\nb\na\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "e\nd\nc\nb\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "e\nd\nc\nb\na\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "e\nd\nc\nb\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "e\nd\nc\nb\na\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "mine 0\nstable 1\nmine 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\na\na\n%%%\na\n%%%\na\na\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\na\na\n||||||| base\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\na\na\n%%%\na\n%%%\na\na\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\na\na\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\na\na\n%%%\na\n%%%\na\na\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=2 base=0 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\n%%%\na\na\na\n%%%\na\na\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\n||||||| base\na\na\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\n%%%\na\na\na\n%%%\na\na\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\n%%%\na\na\na\n%%%\na\na\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=0 base=2 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "\na\n%%%\na\n%%%\na\n\n",
+  "exitCode": 0,
+  "stdout": "\na\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "\na\n%%%\na\n%%%\na\n\n",
+  "exitCode": 0,
+  "stdout": "\na\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "\na\n%%%\na\n%%%\na\n\n",
+  "exitCode": 0,
+  "stdout": "mine 1\nstable 1\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "  a\n%%%\na\n%%%\na  \n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\n  a\n||||||| base\na\n=======\na  \n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "  a\n%%%\na\n%%%\na  \n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\n  a\n=======\na  \n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "  a\n%%%\na\n%%%\na  \n",
+  "exitCode": 1,
+  "stdout": "conflict mine=1 base=1 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "%%\n%%%\n%\n%%%\n%%%%\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\n%%\n||||||| base\n%\n=======\n%%%%\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "%%\n%%%\n%\n%%%\n%%%%\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\n%%\n=======\n%%%%\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "%%\n%%%\n%\n%%%\n%%%%\n",
+  "exitCode": 1,
+  "stdout": "conflict mine=1 base=1 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nB\nc\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nB\nc\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nB\nc\n%%%\na\nb\nc\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nboth 1\nstable 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "x\na\nb\nc\nd\ne\ny\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\nz\n",
+  "exitCode": 1,
+  "stdout": "x\na\nb\nc\nd\ne\n<<<<<<< mine\ny\n||||||| base\n=======\nz\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-095",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "x\na\nb\nc\nd\ne\ny\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\nz\n",
+  "exitCode": 1,
+  "stdout": "x\na\nb\nc\nd\ne\n<<<<<<< mine\ny\n=======\nz\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-096",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "x\na\nb\nc\nd\ne\ny\n%%%\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\nz\n",
+  "exitCode": 1,
+  "stdout": "mine 1\nstable 5\nconflict mine=1 base=0 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-097",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\na\nb\n%%%\na\nb\n%%%\na\nb\nb\n",
+  "exitCode": 0,
+  "stdout": "a\na\nb\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-098",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\na\nb\n%%%\na\nb\n%%%\na\nb\nb\n",
+  "exitCode": 0,
+  "stdout": "a\na\nb\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-099",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\na\nb\n%%%\na\nb\n%%%\na\nb\nb\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nmine 1\nstable 1\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-100",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "x\nx\nx\n%%%\nx\nx\n%%%\nx\n",
+  "exitCode": 1,
+  "stdout": "x\n<<<<<<< mine\nx\nx\n||||||| base\nx\n=======\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-101",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "x\nx\nx\n%%%\nx\nx\n%%%\nx\n",
+  "exitCode": 1,
+  "stdout": "x\n<<<<<<< mine\nx\nx\n=======\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-102",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "x\nx\nx\n%%%\nx\nx\n%%%\nx\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=2 base=1 theirs=0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-103",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\na\nb\n%%%\na\nb\n%%%\nb\na\n",
+  "exitCode": 1,
+  "stdout": "b\n<<<<<<< mine\na\nb\n||||||| base\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-104",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\na\nb\n%%%\na\nb\n%%%\nb\na\n",
+  "exitCode": 1,
+  "stdout": "b\n<<<<<<< mine\na\nb\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-105",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\na\nb\n%%%\na\nb\n%%%\nb\na\n",
+  "exitCode": 1,
+  "stdout": "theirs 0\nstable 1\nconflict mine=2 base=0 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-106",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\na\nb\nc\n%%%\na\nb\nc\n%%%\na\nb\nc\na\n",
+  "exitCode": 1,
+  "stdout": "a\nb\nc\n<<<<<<< mine\na\nb\nc\n||||||| base\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-107",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\na\nb\nc\n%%%\na\nb\nc\n%%%\na\nb\nc\na\n",
+  "exitCode": 1,
+  "stdout": "a\nb\nc\n<<<<<<< mine\na\nb\nc\n=======\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-108",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\na\nb\nc\n%%%\na\nb\nc\n%%%\na\nb\nc\na\n",
+  "exitCode": 1,
+  "stdout": "stable 3\nconflict mine=3 base=0 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-109",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "q\na\nb\n%%%\na\nb\n%%%\na\nq\nb\n",
+  "exitCode": 0,
+  "stdout": "q\na\nq\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-110",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "q\na\nb\n%%%\na\nb\n%%%\na\nq\nb\n",
+  "exitCode": 0,
+  "stdout": "q\na\nq\nb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-111",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "q\na\nb\n%%%\na\nb\n%%%\na\nq\nb\n",
+  "exitCode": 0,
+  "stdout": "mine 1\nstable 1\ntheirs 1\nstable 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-112",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\n%%%\na\nx\nb\n%%%\na\nb\nx\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nx\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-113",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\n%%%\na\nx\nb\n%%%\na\nb\nx\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nx\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-114",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\n%%%\na\nx\nb\n%%%\na\nb\nx\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nboth 0\nstable 1\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-115",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "1\n2\n3\n2\n1\n%%%\n1\n2\n1\n%%%\n1\n2\n2\n1\n",
+  "exitCode": 1,
+  "stdout": "1\n2\n<<<<<<< mine\n3\n2\n||||||| base\n=======\n2\n>>>>>>> theirs\n1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-116",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "1\n2\n3\n2\n1\n%%%\n1\n2\n1\n%%%\n1\n2\n2\n1\n",
+  "exitCode": 1,
+  "stdout": "1\n2\n<<<<<<< mine\n3\n2\n=======\n2\n>>>>>>> theirs\n1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-117",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "1\n2\n3\n2\n1\n%%%\n1\n2\n1\n%%%\n1\n2\n2\n1\n",
+  "exitCode": 1,
+  "stdout": "stable 2\nconflict mine=2 base=0 theirs=1\nstable 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-118",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\n%%%\na\na\n%%%\na\na\na\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\n||||||| base\na\n=======\na\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-119",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\n%%%\na\na\n%%%\na\na\na\n",
+  "exitCode": 1,
+  "stdout": "a\n<<<<<<< mine\n=======\na\na\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-120",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\n%%%\na\na\n%%%\na\na\na\n",
+  "exitCode": 1,
+  "stdout": "stable 1\nconflict mine=0 base=1 theirs=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-121",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "b\na\n%%%\na\nb\n%%%\na\nb\na\n",
+  "exitCode": 0,
+  "stdout": "b\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-122",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "b\na\n%%%\na\nb\n%%%\na\nb\na\n",
+  "exitCode": 0,
+  "stdout": "b\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-123",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "b\na\n%%%\na\nb\n%%%\na\nb\na\n",
+  "exitCode": 0,
+  "stdout": "mine 0\nstable 1\nboth 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-124",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-125",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "a\nb\nc\nd\ne\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-126",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\na\nb\nc\nd\ne\n%%%\na\nb\nc\nd\ne\n",
+  "exitCode": 0,
+  "stdout": "stable 5\nboth 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-127",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nx\nb\ny\nc\n%%%\na\nb\nc\n%%%\na\nb\ny\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nx\nb\ny\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-128",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nx\nb\ny\nc\n%%%\na\nb\nc\n%%%\na\nb\ny\nc\n",
+  "exitCode": 0,
+  "stdout": "a\nx\nb\ny\nc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-129",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nx\nb\ny\nc\n%%%\na\nb\nc\n%%%\na\nb\ny\nc\n",
+  "exitCode": 0,
+  "stdout": "stable 1\nmine 1\nstable 1\nboth 1\nstable 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-130",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\nc\n%%%\nc\nb\na\n",
+  "exitCode": 0,
+  "stdout": "c\nb\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-131",
+  "weight": 3,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\nc\n%%%\nc\nb\na\n",
+  "exitCode": 0,
+  "stdout": "c\nb\na\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-132",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "a\nb\nc\n%%%\na\nb\nc\n%%%\nc\nb\na\n",
+  "exitCode": 0,
+  "stdout": "theirs 0\nstable 1\ntheirs 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-133",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: expected three parts separated by %%%\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-134",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\n%%%\nb\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: expected three parts separated by %%%\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-135",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: expected three parts separated by %%%\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-136",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "a\n%%%\nb\n%%%\nc\n%%%\nd\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: expected three parts separated by %%%\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-137",
+  "weight": 3,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-138",
+  "weight": 3,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "\n%%%\n%%%\n",
+  "exitCode": 0,
+  "stdout": "\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-139",
+  "weight": 3,
+  "argv": [
+   "diff"
+  ],
+  "stdin": "a\n%%%\na\n%%%\na\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js merge|merge2|regions\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-140",
+  "weight": 3,
+  "argv": [],
+  "stdin": "a\n%%%\na\n%%%\na\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js merge|merge2|regions\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-141",
+  "weight": 3,
+  "argv": [
+   "merge",
+   "extra"
+  ],
+  "stdin": "a\n%%%\na\n%%%\na\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js merge|merge2|regions\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "n8\nL0\nL1\nL2\nL3\nL5\nL6\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\nL6\n%%%\nL0\nL1\nL2\nL3\nn3\nL4\nL5\nn5\nL6\n",
+  "exitCode": 1,
+  "stdout": "n8\nL0\nL1\nL2\nL3\n<<<<<<< mine\n=======\nn3\nL4\n>>>>>>> theirs\nL5\nn5\nL6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "m3\nL1\nL2\nL3\nL4\nL5\nn0\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\n%%%\nn5\nL0\nL1\nL2\nm2\nL4\nm5\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\nm3\n||||||| base\nL0\n=======\nn5\nL0\n>>>>>>> theirs\nL1\nL2\nm2\nL4\n<<<<<<< mine\nL5\nn0\n||||||| base\nL5\n=======\nm5\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "n4\nL0\nL1\nL2\nm2\nL4\nn6\n%%%\nL0\nL1\nL2\nL3\nL4\n%%%\nL1\nL3\nn6\nL4\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\nn4\nL0\n=======\n>>>>>>> theirs\nL1\n<<<<<<< mine\nL2\nm2\n=======\nL3\nn6\n>>>>>>> theirs\nL4\nn6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "L0\nL1\nL2\nL3\nL4\nL5\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\nL6\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\n",
+  "exitCode": 0,
+  "stdout": "L0\nL1\nL2\nL3\nL4\nL5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "L0\nL1\nn3\nL2\nL3\n%%%\nL0\nL1\nL2\nL3\nL4\n%%%\nm8\nL1\nL2\nL3\nL4\n",
+  "exitCode": 0,
+  "stdout": "theirs 1\nstable 1\nmine 1\nstable 2\nmine 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "L0\nL1\nn5\nL3\n%%%\nL0\nL1\nL2\nL3\nL4\n%%%\nL0\nL1\nL2\nL3\nm5\n",
+  "exitCode": 1,
+  "stdout": "L0\nL1\nn5\nL3\n<<<<<<< mine\n||||||| base\nL4\n=======\nm5\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "L0\nL1\nL2\n%%%\nL0\nL1\nL2\nL3\n%%%\nL0\nL1\nn2\n",
+  "exitCode": 1,
+  "stdout": "stable 2\nconflict mine=1 base=2 theirs=1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "L0\nL1\n%%%\nL0\nL1\nL2\n%%%\nL0\nL1\n",
+  "exitCode": 0,
+  "stdout": "L0\nL1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "L0\nL1\nL3\nL4\n%%%\nL0\nL1\nL2\nL3\nL4\n%%%\nL0\nn5\nL1\nL2\nL3\nL4\n",
+  "exitCode": 0,
+  "stdout": "L0\nn5\nL1\nL3\nL4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-151",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "L0\nL1\nL2\nn2\nL3\n%%%\nL0\nL1\nL2\nL3\n%%%\nL0\nm0\nL2\nL3\n",
+  "exitCode": 0,
+  "stdout": "L0\nm0\nL2\nn2\nL3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-152",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "m4\nn7\nL1\nL2\nL3\nL4\nL5\nn7\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\n%%%\nm7\nL0\nL2\nL3\nL4\nL5\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\nm4\nn7\nL1\n=======\nm7\nL0\n>>>>>>> theirs\nL2\nL3\nL4\nL5\nn7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-153",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "L0\nL1\nn2\nL2\nm3\n%%%\nL0\nL1\nL2\n%%%\nn4\nL0\nL1\nL2\n",
+  "exitCode": 0,
+  "stdout": "n4\nL0\nL1\nn2\nL2\nm3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-154",
+  "weight": 1,
+  "argv": [
+   "merge2"
+  ],
+  "stdin": "L0\nL1\nn6\nL2\nL3\nL4\nm7\nL6\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\nL6\n%%%\nn4\nL0\nL1\nL2\nL3\nL4\nL5\nL6\nn2\n",
+  "exitCode": 0,
+  "stdout": "n4\nL0\nL1\nn6\nL2\nL3\nL4\nm7\nL6\nn2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-155",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "L1\nn2\nL2\nL3\nL4\nL5\nL6\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\nL6\n%%%\nL2\nL3\nL4\nL6\n",
+  "exitCode": 1,
+  "stdout": "<<<<<<< mine\nL1\nn2\n||||||| base\nL0\nL1\n=======\n>>>>>>> theirs\nL2\nL3\nL4\nL6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-156",
+  "weight": 1,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "m4\nm4\nL2\nm2\n%%%\nL0\nL1\nL2\nL3\n%%%\nL0\nL1\n",
+  "exitCode": 1,
+  "stdout": "conflict mine=4 base=4 theirs=2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-157",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "n2\nm3\nn5\nL1\nL2\nL3\nL4\n%%%\nL0\nL1\nL2\nL3\nL4\n%%%\nL0\nL1\nm6\nL3\nL4\n",
+  "exitCode": 0,
+  "stdout": "n2\nm3\nn5\nL1\nm6\nL3\nL4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-158",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "L0\nL1\nL3\nm2\n%%%\nL0\nL1\nL2\nL3\nL4\n%%%\nL0\nL1\nL2\nL3\nn7\n",
+  "exitCode": 1,
+  "stdout": "L0\nL1\nL3\n<<<<<<< mine\nm2\n||||||| base\nL4\n=======\nn7\n>>>>>>> theirs\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-159",
+  "weight": 1,
+  "argv": [
+   "merge"
+  ],
+  "stdin": "L0\nL1\nm8\n%%%\nL0\nL1\nL2\nL3\n%%%\nm3\nL1\nL2\nL3\n",
+  "exitCode": 0,
+  "stdout": "m3\nL1\nm8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-160",
+  "weight": 1,
+  "argv": [
+   "regions"
+  ],
+  "stdin": "L0\nL1\nL5\nL6\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\nL6\n%%%\nL0\nL1\nL2\nL3\nL4\nL5\nL6\nn5\n",
+  "exitCode": 0,
+  "stdout": "stable 2\nmine 0\nstable 2\ntheirs 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

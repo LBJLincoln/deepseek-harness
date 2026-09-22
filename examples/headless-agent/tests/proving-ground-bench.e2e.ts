@@ -228,3 +228,28 @@ describe('the bench drivers on a scripted route', () => {
     expect(run.lines.map(line => line.reward.attempts).sort()).toEqual([1, 3])
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })
+
+describe('proving-ground bench completion family', () => {
+  it('registers a completion child beside the curated 44, under the same bench kind', async () => {
+    const completionConfigPath = join(benchDir, 'overlays', 'registry-only-with-completion.cordis.yml')
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'proving-ground-bench-completion',
+      tempDirPrefix: 'proving-ground-bench-completion-',
+      binScript,
+      libBinScript: binScript,
+      configPath: completionConfigPath,
+      binArgs: [completionConfigPath],
+      tsconfigPath,
+    })
+    expect(stderr).toBe('')
+    const summary = JSON.parse(stdout.trim().split('\n').at(-1) ?? '{}') as { total: number; tiers: Record<string, number>; ids: string[] }
+    const tasks = await taskFiles()
+    // uri-resolve's normalizePercent is long enough to survive the factory's
+    // min-lines filter and is exercised by uri-resolve's own visible suite, so
+    // its completion child is expected to admit and register.
+    const completionId = 'code:uri-resolve--complete-normalizePercent'
+    expect(summary.ids).toContain(completionId)
+    expect(summary.total).toBeGreaterThan(tasks.length)
+    expect(summary.tiers['5']).toBeGreaterThan(tasks.filter(task => task.tier === 5).length)
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+})

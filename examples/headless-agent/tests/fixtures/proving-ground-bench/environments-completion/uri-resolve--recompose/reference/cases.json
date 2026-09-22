@@ -1,0 +1,2402 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g:h\n",
+  "exitCode": 0,
+  "stdout": "g:h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ./g\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g/\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q /g\n",
+  "exitCode": 0,
+  "stdout": "http://a/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q //g\n",
+  "exitCode": 0,
+  "stdout": "http://g/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ?y\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/d;p?y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g?y\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g?y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q #s\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/d;p?q#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g#s\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g?y#s\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g?y#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ;x\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/;x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g;x\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g;x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g;x=1/./y\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g;x=1/y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g;x=1/../y\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q \n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/d;p?q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q .\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ./\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ..\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../g\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../..\n",
+  "exitCode": 0,
+  "stdout": "http://a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../../\n",
+  "exitCode": 0,
+  "stdout": "http://a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../../g\n",
+  "exitCode": 0,
+  "stdout": "http://a/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../../../g\n",
+  "exitCode": 0,
+  "stdout": "http://a/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ../../../../g\n",
+  "exitCode": 0,
+  "stdout": "http://a/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q /./g\n",
+  "exitCode": 0,
+  "stdout": "http://a/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q /../g\n",
+  "exitCode": 0,
+  "stdout": "http://a/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g.\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q .g\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/.g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g..\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g..\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ..g\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/..g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ./../g\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q ./g/.\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g/./h\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g/../h\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g?y/./x\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g?y/./x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g?y/../x\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g?y/../x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g#s/./x\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g#s/./x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q g#s/../x\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/g#s/../x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q http:g\n",
+  "exitCode": 0,
+  "stdout": "http:g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/d;p?q http://B/x\n",
+  "exitCode": 0,
+  "stdout": "http://b/x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTP://a:80/b/c/ ../d\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a d\n",
+  "exitCode": 0,
+  "stdout": "http://a/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/ ?\n",
+  "exitCode": 0,
+  "stdout": "http://a/?\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b?x#y \n",
+  "exitCode": 0,
+  "stdout": "http://a/b?x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b?x#y #\n",
+  "exitCode": 0,
+  "stdout": "http://a/b?x#\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "mailto:x %7Ey\n",
+  "exitCode": 0,
+  "stdout": "mailto:~y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "HTTP://User@ExAmPle.COM:80/%7Euser/./a/../b?Q=%2f#F%7e\n",
+  "exitCode": 0,
+  "stdout": "http://User@example.com/~user/b?Q=%2F#F~\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "https://example.com:443\n",
+  "exitCode": 0,
+  "stdout": "https://example.com/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "https://example.com:\n",
+  "exitCode": 0,
+  "stdout": "https://example.com/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "ftp://example.com:21/x\n",
+  "exitCode": 0,
+  "stdout": "ftp://example.com/x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "ws://example.com:80\n",
+  "exitCode": 0,
+  "stdout": "ws://example.com/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://example.com:443/\n",
+  "exitCode": 0,
+  "stdout": "wss://example.com/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://example.com:8080\n",
+  "exitCode": 0,
+  "stdout": "http://example.com:8080/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://[2001:DB8::1]:80/a\n",
+  "exitCode": 0,
+  "stdout": "http://[2001:db8::1]/a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://user:pa%73s@host/\n",
+  "exitCode": 0,
+  "stdout": "http://user:pass@host/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "\n",
+  "exitCode": 0,
+  "stdout": "\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "?\n",
+  "exitCode": 0,
+  "stdout": "?\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "#\n",
+  "exitCode": 0,
+  "stdout": "#\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "/a/../../b\n",
+  "exitCode": 0,
+  "stdout": "/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "a/./b/..\n",
+  "exitCode": 0,
+  "stdout": "a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "%41%42%43\n",
+  "exitCode": 0,
+  "stdout": "ABC\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "%2D%2E%5F%7E\n",
+  "exitCode": 0,
+  "stdout": "-._~\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "%3a%2F%3F%23\n",
+  "exitCode": 0,
+  "stdout": "%3A%2F%3F%23\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "urn:example:animal:ferret:nose\n",
+  "exitCode": 0,
+  "stdout": "urn:example:animal:ferret:nose\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a/b\nhttps://C:443/d/./e\n../f\n",
+  "exitCode": 0,
+  "stdout": "http://a/b\nhttps://c/d/e\nf\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "x%zz\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: the path has a truncated percent-encoding\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a/%\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: the path has a truncated percent-encoding\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "a/b c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: the base has no scheme\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "nospace\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected a base and a reference\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a/b\n\nhttp://a/c\n",
+  "exitCode": 0,
+  "stdout": "http://a/b\n\nhttp://a/c\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "/a/%2E%2E/b\n",
+  "exitCode": 0,
+  "stdout": "/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "/a/%2e/b\n",
+  "exitCode": 0,
+  "stdout": "/a/b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a/%2E%2E/%2E/x\n",
+  "exitCode": 0,
+  "stdout": "http://a/x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a/b/%2E%2E%2Fc\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/..%2Fc\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/ %2E%2E/d\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/d\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c/ %2E\n",
+  "exitCode": 0,
+  "stdout": "http://a/b/c/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a:080/\n",
+  "exitCode": 0,
+  "stdout": "http://a:080/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "https://a:0443/\n",
+  "exitCode": 0,
+  "stdout": "https://a:0443/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://a:8/\n",
+  "exitCode": 0,
+  "stdout": "http://a:8/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://%41.com/\n",
+  "exitCode": 0,
+  "stdout": "http://a.com/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://A%42C/\n",
+  "exitCode": 0,
+  "stdout": "http://abc/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://%2Fx/\n",
+  "exitCode": 0,
+  "stdout": "http://%2fx/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "foo://\n",
+  "exitCode": 0,
+  "stdout": "foo:///\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "file:///x/../y\n",
+  "exitCode": 0,
+  "stdout": "file:///y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "file://\n",
+  "exitCode": 0,
+  "stdout": "file:///\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "//a\n",
+  "exitCode": 0,
+  "stdout": "//a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "//\n",
+  "exitCode": 0,
+  "stdout": "///\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "HTTP://a\n",
+  "exitCode": 0,
+  "stdout": "http://a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "a%3Ab\n",
+  "exitCode": 0,
+  "stdout": "a%3Ab\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a/b/c ..\n",
+  "exitCode": 0,
+  "stdout": "http://a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://a ..\n",
+  "exitCode": 0,
+  "stdout": "http://a/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http:// x\n",
+  "exitCode": 0,
+  "stdout": "http:///x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-095",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "foo:bar ../x\n",
+  "exitCode": 0,
+  "stdout": "foo:x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-096",
+  "weight": 3,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "foo:/bar ../x\n",
+  "exitCode": 0,
+  "stdout": "foo:/x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://host:8080/a/%7Eu/b?a=%7e&b=%2F\n\n",
+  "exitCode": 0,
+  "stdout": "wss://host:8080/a/~u/b?a=~&b=%2F\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://a.example:21/%41/%2f? .\n",
+  "exitCode": 0,
+  "stdout": "https://a.example:21/A/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "wss://host:8080/ ../../g\n",
+  "exitCode": 0,
+  "stdout": "wss://host:8080/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://a.example:/?q http://Z/q\n",
+  "exitCode": 0,
+  "stdout": "http://z/q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "ftp://a.example/b/c/d;p?a=%7e&b=%2F\ng/../h\n",
+  "exitCode": 0,
+  "stdout": "ftp://a.example/b/c/d;p?a=~&b=%2F\n/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "sip://host:21/? g;x=1/./y\n",
+  "exitCode": 0,
+  "stdout": "sip://host:21/g;x=1/y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://[::1] #s\n",
+  "exitCode": 0,
+  "stdout": "http://[::1]/#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://x.y.z:80/x/./y/../z?q g/./h\n",
+  "exitCode": 0,
+  "stdout": "ws://x.y.z/x/g/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://a.example?a=%7e&b=%2F\n%7Ea/%2Fb\n",
+  "exitCode": 0,
+  "stdout": "wss://a.example/?a=~&b=%2F\n~a/%2Fb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://a.example:80/a/%7Eu/b? .\n",
+  "exitCode": 0,
+  "stdout": "https://a.example:80/a/~u/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://host:443/x/./y/../z http:g\n",
+  "exitCode": 0,
+  "stdout": "http:g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://[::1]:80/b/c/d;p?q g\n",
+  "exitCode": 0,
+  "stdout": "https://[::1]:80/b/c/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://x.y.z:443/b/c/d;p?a=%7e&b=%2F\ng/../h\n",
+  "exitCode": 0,
+  "stdout": "wss://x.y.z/b/c/d;p?a=~&b=%2F\n/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://x.y.z:80/? .\n",
+  "exitCode": 0,
+  "stdout": "https://x.y.z:80/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ftp://x.y.z:443/b/c/d;p ../../g\n",
+  "exitCode": 0,
+  "stdout": "ftp://x.y.z:443/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "sip://[::1]:21?q g?y#s\n",
+  "exitCode": 0,
+  "stdout": "sip://[::1]:21/g?y#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://a.example:443/?a=%7e&b=%2F\n./g\n",
+  "exitCode": 0,
+  "stdout": "wss://a.example/?a=~&b=%2F\ng\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://host:/x/./y/../z? .\n",
+  "exitCode": 0,
+  "stdout": "https://host/x/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://x.y.z g.\n",
+  "exitCode": 0,
+  "stdout": "http://x.y.z/g.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://[::1]:80/x/./y/../z?q /g\n",
+  "exitCode": 0,
+  "stdout": "ws://[::1]/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://[::1]/x/./y/../z?a=%7e&b=%2F\n./g\n",
+  "exitCode": 0,
+  "stdout": "wss://[::1]/x/z?a=~&b=%2F\ng\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://host:80/? g;x=1/./y\n",
+  "exitCode": 0,
+  "stdout": "https://host:80/g;x=1/y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://[::1]/b/c/d;p g.\n",
+  "exitCode": 0,
+  "stdout": "http://[::1]/b/c/g.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://x.y.z:/a/%7Eu/b?q g?y#s\n",
+  "exitCode": 0,
+  "stdout": "ws://x.y.z/a/~u/g?y#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://x.y.z:8080/a/%7Eu/b?a=%7e&b=%2F\n\n",
+  "exitCode": 0,
+  "stdout": "wss://x.y.z:8080/a/~u/b?a=~&b=%2F\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://[::1]:80? ../../../g\n",
+  "exitCode": 0,
+  "stdout": "ws://[::1]/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://x.y.z:8080/b/c/d;p #s\n",
+  "exitCode": 0,
+  "stdout": "http://x.y.z:8080/b/c/d;p#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://host:21/?q g\n",
+  "exitCode": 0,
+  "stdout": "ws://host:21/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://x.y.z/b/c/d;p?a=%7e&b=%2F\n\n",
+  "exitCode": 0,
+  "stdout": "http://x.y.z/b/c/d;p?a=~&b=%2F\n\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://host:80/x/./y/../z? ../g\n",
+  "exitCode": 0,
+  "stdout": "https://host:80/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ftp://B.Example:8080/a/%7Eu/b g.\n",
+  "exitCode": 0,
+  "stdout": "ftp://b.example:8080/a/~u/g.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "sip://B.Example:/b/c/d;p?q http://Z/q\n",
+  "exitCode": 0,
+  "stdout": "http://z/q\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://host:8080?a=%7e&b=%2F\n//g.Example:80/p\n",
+  "exitCode": 0,
+  "stdout": "http://host:8080/?a=~&b=%2F\n//g.example:80/p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "sip://a.example:21/x/./y/../z? ?y\n",
+  "exitCode": 0,
+  "stdout": "sip://a.example:21/x/z?y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "wss://B.Example:8080/b/c/d;p ../../g\n",
+  "exitCode": 0,
+  "stdout": "wss://b.example:8080/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "sip://B.Example:21/%41/%2f?q /g\n",
+  "exitCode": 0,
+  "stdout": "sip://b.example:21/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "ftp://x.y.z:443/%41/%2f?a=%7e&b=%2F\n./g\n",
+  "exitCode": 0,
+  "stdout": "ftp://x.y.z:443/A/%2F?a=~&b=%2F\ng\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "sip://B.Example:21/%41/%2f? ../g\n",
+  "exitCode": 0,
+  "stdout": "sip://b.example:21/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "wss://[::1]:443/a/%7Eu/b #s\n",
+  "exitCode": 0,
+  "stdout": "wss://[::1]/a/~u/b#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://[::1]:21/a/%7Eu/b?q g\n",
+  "exitCode": 0,
+  "stdout": "https://[::1]:21/a/~u/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://host:443?a=%7e&b=%2F\n//g.Example:80/p\n",
+  "exitCode": 0,
+  "stdout": "wss://host/?a=~&b=%2F\n//g.example:80/p\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://B.Example:21/x/./y/../z? g;x=1/./y\n",
+  "exitCode": 0,
+  "stdout": "ws://b.example:21/x/g;x=1/y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "wss://host:8080/%41/%2f g.\n",
+  "exitCode": 0,
+  "stdout": "wss://host:8080/A/g.\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://[::1]:80/a/%7Eu/b?q g?y#s\n",
+  "exitCode": 0,
+  "stdout": "https://[::1]:80/a/~u/g?y#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "ftp://host:8080/?a=%7e&b=%2F\ng/../h\n",
+  "exitCode": 0,
+  "stdout": "ftp://host:8080/?a=~&b=%2F\n/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://[::1]:/? g;x=1/./y\n",
+  "exitCode": 0,
+  "stdout": "ws://[::1]/g;x=1/y\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "http://x.y.z:8080/ #s\n",
+  "exitCode": 0,
+  "stdout": "http://x.y.z:8080/#s\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://x.y.z:21/b/c/d;p?q g/./h\n",
+  "exitCode": 0,
+  "stdout": "ws://x.y.z:21/b/c/g/h\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "http://[::1]:443/x/./y/../z?a=%7e&b=%2F\n%7Ea/%2Fb\n",
+  "exitCode": 0,
+  "stdout": "http://[::1]:443/x/z?a=~&b=%2F\n~a/%2Fb\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://x.y.z:80/a/%7Eu/b? .\n",
+  "exitCode": 0,
+  "stdout": "https://x.y.z:80/a/~u/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "wss://a.example:443/x/./y/../z http:g\n",
+  "exitCode": 0,
+  "stdout": "http:g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "ws://host:21/b/c/d;p?q /g\n",
+  "exitCode": 0,
+  "stdout": "ws://host:21/g\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "normalize"
+  ],
+  "stdin": "wss://[::1]/?a=%7e&b=%2F\n./g\n",
+  "exitCode": 0,
+  "stdout": "wss://[::1]/?a=~&b=%2F\ng\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "resolve"
+  ],
+  "stdin": "HTTPS://host:80? .\n",
+  "exitCode": 0,
+  "stdout": "https://host:80/\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

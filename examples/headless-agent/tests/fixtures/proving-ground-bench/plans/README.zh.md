@@ -6,6 +6,8 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 
 | 计划 | 比较对象 | 层 | Arms / 模型 | 种子 | 叠加层 | 已记录运行 |
 | --- | --- | --- | --- | --- | --- | --- |
+| `completion-openrouter-free-t2` | 环境工厂产出的第 2 层补全子环境，跑在免费开放权重路由上 | 2 | 舰队三个免费 OpenRouter 模型，district `bench-completion-openrouter` | 1 | with-completion-openrouter | not recorded |
+| `completion-smoke-sonnet` | 环境工厂产出的补全子环境，每层各取一个 | 2-6 | 舰队 `sonnet`，district `bench-completion` | 1 | with-completion | not recorded |
 | `e0-calibration-sonnet-t2` | `sonnet` 对自身（噪声基线） | 2 | 基线 `sonnet` 对候选 `sonnet` | 1 | base | not recorded |
 | `e1-haiku-vs-sonnet-t3` | 模型层级：sonnet 对 haiku | 3 | 基线 `sonnet` 对候选 `haiku` | 1 | base | `2026-09-08-bench-e1-haiku-vs-sonnet-t3` |
 | `e1-sonnet-vs-opus-t3` | 模型层级：sonnet 对 opus | 3 | 基线 `sonnet` 对候选 `opus` | 1 | base | `2026-09-08-bench-e1-sonnet-vs-opus-t3` |

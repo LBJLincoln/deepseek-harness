@@ -1,0 +1,31 @@
+{
+  "id": "code:config-layers--complete-envLayer",
+  "tier": 6,
+  "domain": "parsing",
+  "family": "code:config-layers",
+  "completion": {
+    "file": "src/cli.js",
+    "function": "envLayer"
+  },
+  "title": "Complete envLayer in Give conflayers a second file, an environment layer, and typed values with positions",
+  "prompt": "`conflayers` is the repository in this workspace: `README.md` describes what it already does, `src/` holds it, and `test/conflayers.test.js` is its own suite, which passes. Add the two layered modes its `merge` primitive was built for, make the declared types real, and report a bad value where it was written. Everything `README.md` documents about `dump`, `get`, the INI grammar and the existing failures stays exactly as it is, including every message and every column; the work spans the parser, the schema, the layer stack, and the command.\n\n`load <base> <site>` and `origin <base> <site>` each stack three layers, weakest first: the INI file named by the first argument, the INI file named by the second, and an environment layer read from standard input. A later layer overrides a key an earlier one set, one key at a time, so a file that sets only `server.port` leaves every other key to the layer below it. The layers are read in that order, and a layer's failures are all reported before the next layer is read.\n\nThe environment layer is a line per variable. A line is trimmed first; an empty one, and one beginning with `#`, is ignored. The rest is `NAME=VALUE`: the text before the first `=` is the name, trimmed, and everything after it is the value, trimmed. A setting travels under `CONF_` followed by its key uppercased with every `.` replaced by `_`, so `server.port` arrives as `CONF_SERVER_PORT`. Its failures carry a position too, worded `error: <stdin>:<line>:<column>: ` followed by `expected NAME=VALUE` or `expected a variable name` or `unknown environment variable <NAME>` or `<NAME> is set twice`, each reported at the line's first non-space character and each counting columns the way the INI parser does.\n\nBoth modes are strict about keys where `dump` is lenient: a key an INI layer sets and the schema does not know fails with `error: <file>:<line>:<column>: unknown setting <key>` at the value's position, and a layer's keys are checked in the order the file writes them, after that file parses. The value's position is the column of its first character, or, when the value is empty, one past the line's last non-space character.\n\n`origin <base> <site>` prints `<key> <layer>` for every schema key in ascending order, where the layer is `base`, `site`, `env`, or `default` when no layer set the key.\n\n`load <base> <site>` prints `<key>=<value>` for every schema key in ascending order, where the value is the winning layer's text coerced by the key's declared type, or the schema default coerced the same way. A `string` is its text. An `integer` is an optional `-` and then digits without a leading zero, unless the number is exactly `0`, and renders as written. A `boolean` is `true` or `false`, lowercase, and renders as written. An `enum` is one of its declared members and renders as written. A `duration` is digits followed by `ms`, `s`, `m` or `h`, and renders as its whole number of milliseconds. A `list` is items separated by commas, each trimmed, with a repeat dropped and the order kept, rendered joined by single commas; empty text is the empty list and renders empty, but an empty item between two commas is a failure. A value that does not fit its type fails with `error: <where>: <message>`, where `<where>` is the file and position it was written at, or `<stdin>` and its position when the environment layer set it, and the message is `<key> is not an integer: <text>`, `<key> is not a boolean: <text>`, `<key> is not one of <members joined by |>: <text>`, `<key> is not a duration: <text>` or `<key> has an empty item: <text>`. The keys are coerced in ascending order, so the first failing key in that order decides.\n\nThe usage line every malformed argument list reports becomes `error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>`; `dump` takes one path, `get` a path and a key, and `load` and `origin` exactly two paths.\n\nThis task is a completion exercise: every file and function in this workspace already holds its final implementation except `envLayer` in `src/cli.js`, whose body currently throws 'not implemented'. Implement only that function's body so it fulfills the specification above; keep its signature exactly as given, and do not edit any other file, export, or function. This is a visible-test tier: your certificate comes from the suite under test/, not from a held-back corpus.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json",
+    "data",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

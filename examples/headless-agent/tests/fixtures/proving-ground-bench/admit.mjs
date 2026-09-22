@@ -13,6 +13,12 @@
  * Exits 1 on the first task that fails admission; prints one line per admitted
  * task, carrying the hidden-case count where a task has one.
  *
+ * A completion child's id carries `--complete-` where its directory carries
+ * only `--` (`code:<parent>--complete-<function>` in
+ * `<parent>--<function>/`), the environment factory's own marker for a
+ * synthesized task; the directory check strips it before comparing, so a
+ * curated task's plain `code:<name>` is unaffected.
+ *
  *   node admit.mjs [<environments-dir>]
  */
 
@@ -79,7 +85,7 @@ for (const name of readdirSync(root).sort()) {
   const missing = REQUIRED.filter(field => !(field in task))
   const problems = []
   if (missing.length > 0) problems.push(`task.json lacks ${missing.join(', ')}`)
-  if (task.id !== `code:${name}`) problems.push(`id ${task.id} does not match directory ${name}`)
+  if (task.id.replace('--complete-', '--') !== `code:${name}`) problems.push(`id ${task.id} does not match directory ${name}`)
   if (existsSync(join(dir, 'node_modules'))) problems.push('node_modules present')
   if (!existsSync(join(dir, 'reference', 'src'))) problems.push('no reference/src')
   const cased = task.checks.filter(check => typeof check.cases === 'string')

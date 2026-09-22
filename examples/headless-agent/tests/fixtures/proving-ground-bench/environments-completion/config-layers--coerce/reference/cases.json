@@ -1,0 +1,2501 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=/var/log/app.log\nlog.level=debug\nlog.rotate=true\nretry.attempts=5\nretry.backoff=250\nserver.host=example.test\nserver.port=8443\nserver.timeout=120000\nserver.tls=true\ntags=web,api\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level env\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=debug\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8443\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file default\nlog.level env\nlog.rotate default\nretry.attempts default\nretry.backoff default\nserver.host default\nserver.port env\nserver.timeout default\nserver.tls default\ntags default\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/base.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=/var/log/app.log\nlog.level=debug\nlog.rotate=true\nretry.attempts=5\nretry.backoff=250\nserver.host=example.test\nserver.port=8443\nserver.timeout=120000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level env\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout base\nserver.tls default\ntags default\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=debug\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8443\nserver.timeout=30000\nserver.tls=true\ntags=web,api\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file default\nlog.level env\nlog.rotate default\nretry.attempts default\nretry.backoff default\nserver.host default\nserver.port env\nserver.timeout default\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/blank.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=debug\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=\nserver.port=8443\nserver.timeout=30000\nserver.tls=true\ntags=web,api\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/blank.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level env\nlog.rotate default\nretry.attempts default\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout default\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/base.ini",
+   "data/bad-type.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=/var/log/app.log\nlog.level=debug\nlog.rotate=true\nretry.attempts=5\nretry.backoff=250\nserver.host=other.test\nserver.port=8443\nserver.timeout=120000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/bad-type.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level env\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host site\nserver.port env\nserver.timeout base\nserver.tls default\ntags default\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/unknown.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unknown.ini:3:12: unknown setting server.colour\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/unknown.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unknown.ini:3:12: unknown setting server.colour\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/unknown.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unknown.ini:3:12: unknown setting server.colour\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/empty.ini",
+   "data/unknown.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unknown.ini:3:12: unknown setting server.colour\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/bad-line.ini",
+   "data/unknown.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad-line.ini:2:3: expected a section header or key = value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/bad-line.ini",
+   "data/unknown.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad-line.ini:2:3: expected a section header or key = value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/nope.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read data/nope.ini\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/nope.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read data/nope.ini\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/base.ini",
+   "data/nope.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read data/nope.ini\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/nope.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read data/nope.ini\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/dup.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/dup.ini:8:1: key server.port is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/dup.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/dup.ini:8:1: key server.port is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/unterminated.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unterminated.ini:1:8: expected \"]\"\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/unterminated.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unterminated.ini:1:8: expected \"]\"\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "# nothing\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=debug\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8443\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_TAGS=one, two ,one,three\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=one,two,three\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_TAGS=\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_TAGS=,\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:11: tags has an empty item: ,\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_TAGS=a,,b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:11: tags has an empty item: a,,b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=0s\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=0\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=1h\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=3600000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=90m\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=5400000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=30\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:21: server.timeout is not a duration: 30\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=-5s\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:21: server.timeout is not a duration: -5s\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_RETRY_ATTEMPTS=-1\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=-1\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_RETRY_ATTEMPTS=007\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:21: retry.attempts is not an integer: 007\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_RETRY_ATTEMPTS=0\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=0\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=True\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:17: server.tls is not a boolean: True\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:17: server.tls is not a boolean: 1\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_LOG_LEVEL=quiet\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:16: log.level is not one of debug|info|warn|error: quiet\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_LOG_LEVEL=INFO\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:16: log.level is not one of debug|info|warn|error: INFO\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_LOG_FILE=  spaced  out  \n",
+  "exitCode": 0,
+  "stdout": "log.file=spaced  out\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:18: server.port is not an integer: \n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT =  80  \n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=80\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "  CONF_SERVER_PORT=80\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=80\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "  CONF_TAGS\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:3: expected NAME=VALUE\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "=80\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: expected a variable name\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "HOME=/root\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: unknown environment variable HOME\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "conf_tags=a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: unknown environment variable conf_tags\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_TAGS=a\n# again\nCONF_TAGS=b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_TAGS is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_TAGS=a=b\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250\nserver.host=localhost\nserver.port=8080\nserver.timeout=30000\nserver.tls=false\ntags=a=b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/empty.ini"
+  ],
+  "stdin": "CONF_SERVER_HOST=a.test\nCONF_SERVER_PORT=1\nCONF_SERVER_TLS=false\nCONF_LOG_ROTATE=false\n",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=false\nretry.attempts=3\nretry.backoff=250\nserver.host=a.test\nserver.port=1\nserver.timeout=30000\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "# nothing\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=8443\nCONF_LOG_LEVEL=debug\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level env\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=one, two ,one,three\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=,\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=a,,b\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=0s\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout env\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=1h\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout env\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=90m\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout env\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=30\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout env\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=-5s\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout env\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/base.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=/var/log/app.log\nlog.level=warn\nlog.rotate=true\nretry.attempts=5\nretry.backoff=250ms\nserver.host=example.test\nserver.port=9090\nserver.timeout=2m\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/site.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=error\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250ms\nserver.host=localhost\nserver.port=443\nserver.timeout=30s\nserver.tls=true\ntags=web , api ,web\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/empty.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250ms\nserver.host=localhost\nserver.port=8080\nserver.timeout=30s\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/blank.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=debug\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250ms\nserver.host=\nserver.port=8080\nserver.timeout=30s\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/unknown.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250ms\nserver.host=other.test\nserver.port=8080\nserver.timeout=30s\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/bad-type.ini"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "log.file=\nlog.level=info\nlog.rotate=true\nretry.attempts=3\nretry.backoff=250ms\nserver.host=other.test\nserver.port=eighty\nserver.timeout=30s\nserver.tls=false\ntags=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/bad-line.ini"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad-line.ini:2:3: expected a section header or key = value\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/dup.ini"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/dup.ini:8:1: key server.port is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/unterminated.ini"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/unterminated.ini:1:8: expected \"]\"\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/nope.ini"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read data/nope.ini\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini",
+   "log.file"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "/var/log/app.log\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini",
+   "log.level"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "warn\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini",
+   "server.port"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "9090\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini",
+   "server.timeout"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "2m\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini",
+   "tags"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini",
+   "server.colour"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown setting server.colour\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "sweep"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "dump"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "dump",
+   "data/base.ini",
+   "x"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "get",
+   "data/base.ini"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/base.ini"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [
+   "origin"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "load",
+   "data/base.ini",
+   "data/site.ini",
+   "x"
+  ],
+  "stdin": "",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js dump <file>|get <file> <key>|load <base> <site>|origin <base> <site>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-093",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=0\nCONF_RETRY_BACKOFF=2h30m\nCONF_RETRY_ATTEMPTS=trace\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:21: retry.attempts is not an integer: trace\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-094",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=1\nCONF_TAGS=2h30m\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-095",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_LEVEL=\nCONF_SERVER_HOST=-2\nCONF_LOG_LEVEL=1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_LOG_LEVEL is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=trace\nCONF_LOG_ROTATE=1\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate env\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_ATTEMPTS=01\nCONF_RETRY_ATTEMPTS=true\nCONF_LOG_LEVEL=,a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: CONF_RETRY_ATTEMPTS is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=2h30m\nCONF_LOG_FILE=5s\n",
+  "exitCode": 0,
+  "stdout": "log.file env\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=0\nCONF_RETRY_BACKOFF=true\nCONF_SERVER_TLS=01\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_SERVER_TLS is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=1\nCONF_SERVER_TLS=true\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF=5s\nCONF_LOG_LEVEL=01\nCONF_TAGS=2h30m\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:16: log.level is not one of debug|info|warn|error: 01\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF=1\nCONF_LOG_ROTATE=01\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate env\nretry.attempts base\nretry.backoff env\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=,a\nCONF_LOG_ROTATE=\nCONF_LOG_ROTATE=1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_LOG_ROTATE is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=,a\nCONF_TAGS=5\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_HOST=-2\nCONF_LOG_LEVEL=true\nCONF_LOG_ROTATE=x y\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:16: log.level is not one of debug|info|warn|error: true\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_ROTATE=5\nCONF_SERVER_TLS=2h30m\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate env\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_HOST=1\nCONF_SERVER_HOST=0\nCONF_LOG_LEVEL=trace\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: CONF_SERVER_HOST is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_HOST=5s\nCONF_RETRY_BACKOFF=5s\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff env\nserver.host env\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_LEVEL=01\nCONF_TAGS=-2\nCONF_SERVER_TIMEOUT=trace\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:16: log.level is not one of debug|info|warn|error: 01\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=info\nCONF_RETRY_ATTEMPTS=\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts env\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=1\nCONF_RETRY_ATTEMPTS=a,b\nCONF_SERVER_COLOUR=trace\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF=trace\nCONF_SERVER_COLOUR=5\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_COLOUR==\nCONF_SERVER_COLOUR=false\nCONF_RETRY_BACKOFF=01\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_COLOUR=trace\nCONF_LOG_FILE=2h30m\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=500ms\nCONF_LOG_ROTATE=a,b\nCONF_SERVER_TLS=TRUE\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:17: log.rotate is not a boolean: a,b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TIMEOUT=-2\nCONF_SERVER_COLOUR=a,b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF=,a\nCONF_LOG_ROTATE=-2\nCONF_SERVER_PORT=TRUE\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:17: log.rotate is not a boolean: -2\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_ATTEMPTS=\nCONF_LOG_ROTATE==\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate env\nretry.attempts env\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF=\nCONF_RETRY_ATTEMPTS=2h30m\nCONF_RETRY_ATTEMPTS=x y\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_RETRY_ATTEMPTS is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=,a\nCONF_TAGS=2h30m\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=true\nCONF_SERVER_COLOUR=a,b\nCONF_RETRY_BACKOFF=false\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_LEVEL=info\nCONF_LOG_FILE=,a\n",
+  "exitCode": 0,
+  "stdout": "log.file env\nlog.level env\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_COLOUR=info\nCONF_LOG_FILE=5\nCONF_SERVER_TLS=01\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF==\nCONF_SERVER_TLS==\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff env\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=0\nCONF_SERVER_PORT=1\nCONF_LOG_LEVEL=5s\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: CONF_SERVER_PORT is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_FILE=false\nCONF_SERVER_COLOUR=-2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_HOST=500ms\nCONF_SERVER_HOST=0\nCONF_SERVER_COLOUR=false\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: CONF_SERVER_HOST is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_ROTATE=TRUE\nCONF_LOG_FILE=a,b\n",
+  "exitCode": 0,
+  "stdout": "log.file env\nlog.level site\nlog.rotate env\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls site\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_FILE=\nCONF_SERVER_TIMEOUT=\nCONF_SERVER_TIMEOUT==\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_SERVER_TIMEOUT is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=a,b\nCONF_RETRY_BACKOFF=a,b\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff env\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_LOG_FILE=5\nCONF_SERVER_TLS=a,b\nCONF_LOG_FILE=5\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_LOG_FILE is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_COLOUR=1\nCONF_SERVER_TIMEOUT=info\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:1: unknown environment variable CONF_SERVER_COLOUR\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_TAGS=0\nCONF_SERVER_TIMEOUT=trace\nCONF_SERVER_TIMEOUT=500ms\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:1: CONF_SERVER_TIMEOUT is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=-2\nCONF_LOG_LEVEL==\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level env\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=TRUE\nCONF_SERVER_PORT=true\nCONF_SERVER_COLOUR=5\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:2:1: CONF_SERVER_PORT is set twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=2h30m\nCONF_SERVER_TIMEOUT=trace\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port site\nserver.timeout env\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_ATTEMPTS=TRUE\nCONF_SERVER_TLS=x y\nCONF_RETRY_BACKOFF=1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:1:21: retry.attempts is not an integer: TRUE\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_PORT=true\nCONF_TAGS=,a\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout base\nserver.tls site\ntags env\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "load",
+   "data/empty.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_RETRY_BACKOFF=0\nCONF_SERVER_TIMEOUT==\nCONF_LOG_ROTATE==\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: <stdin>:3:17: log.rotate is not a boolean: =\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "origin",
+   "data/base.ini",
+   "data/site.ini"
+  ],
+  "stdin": "CONF_SERVER_TLS=a,b\nCONF_SERVER_PORT=a,b\n",
+  "exitCode": 0,
+  "stdout": "log.file base\nlog.level site\nlog.rotate default\nretry.attempts base\nretry.backoff default\nserver.host base\nserver.port env\nserver.timeout base\nserver.tls env\ntags site\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

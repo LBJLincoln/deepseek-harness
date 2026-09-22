@@ -1,0 +1,2561 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "let x = 0x1F_2A;\n\tif (x >= 10) { return \"a\\tb\\u{1F600}\"; }\n",
+  "exitCode": 0,
+  "stdout": "1:1 keyword let\n1:5 ident x\n1:7 punct =\n1:9 number 0x1F_2A\n1:16 punct ;\n2:5 keyword if\n2:8 punct (\n2:9 ident x\n2:11 punct >=\n2:14 number 10\n2:16 punct )\n2:18 punct {\n2:20 keyword return\n2:27 string \"a\\tb😀\"\n2:42 punct ;\n2:44 punct }\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "let x = 0x1F_2A;\n\tif (x >= 10) { return \"a\\tb\\u{1F600}\"; }\n",
+  "exitCode": 0,
+  "stdout": "ident 2\nkeyword 3\nnumber 2\npunct 8\nrawstring 0\nstring 1\ntotal 16\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* outer /* inner */ still */ y => r\"raw\nline\";\n",
+  "exitCode": 0,
+  "stdout": "1:31 ident y\n1:33 punct =>\n1:36 rawstring \"raw\\nline\"\n2:6 punct ;\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/* outer /* inner */ still */ y => r\"raw\nline\";\n",
+  "exitCode": 0,
+  "stdout": "ident 1\nkeyword 0\nnumber 0\npunct 2\nrawstring 1\nstring 0\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5e-3 1. .5 0b1010 0o17 09 0 00\n",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5e-3\n1:8 number 1\n1:9 punct .\n1:11 punct .\n1:12 number 5\n1:14 number 0b1010\n1:21 number 0o17\n1:26 number 09\n1:29 number 0\n1:31 number 00\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "1.5e-3 1. .5 0b1010 0o17 09 0 00\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 8\npunct 2\nrawstring 0\nstring 0\ntotal 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1e 1e+ 1e+2 1E-3 1_000 1_ _1 1__0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: invalid number 1e\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "1e 1e+ 1e+2 1E-3 1_000 1_ _1 1__0\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: invalid number 1e\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "0x 0b 0o 0xFF 0xff 0b12 0o18 0xG\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: invalid number 0x\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "0x 0b 0o 0xFF 0xff 0b12 0o18 0xG\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: invalid number 0x\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\n\\t\\r\\\\\\\"\\0\" \"\\x41\\x7A\" \"\\u{41}\\u{10FFFF}\"\n",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\n\\t\\r\\\\\\\"\\u0000\"\n1:16 string \"Az\"\n1:27 string \"A􏿿\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\"\\n\\t\\r\\\\\\\"\\0\" \"\\x41\\x7A\" \"\\u{41}\\u{10FFFF}\"\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 3\ntotal 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\q\" \"\\x4\" \"\\u{}\" \"\\u{110000}\" \"\\u41\"\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:2: invalid escape \\q\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\"\\q\" \"\\x4\" \"\\u{}\" \"\\u{110000}\" \"\\u41\"\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:2: invalid escape \\q\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"unterminated\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:14: newline in string\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\"unterminated\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:14: newline in string\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"unterminated\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unterminated string\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "r\"unterminated\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unterminated string\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"has\nnewline\"\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:5: newline in string\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\"has\nnewline\"\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:5: newline in string\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "a\t\tb\n\t a\n",
+  "exitCode": 0,
+  "stdout": "1:1 ident a\n1:9 ident b\n2:6 ident a\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "a\t\tb\n\t a\n",
+  "exitCode": 0,
+  "stdout": "ident 3\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\ta\n  \tb\n",
+  "exitCode": 0,
+  "stdout": "1:5 ident a\n2:5 ident b\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\ta\n  \tb\n",
+  "exitCode": 0,
+  "stdout": "ident 2\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "== != <= >= && || -> => + - * / % = < > ! ( ) { } [ ] , ; .\n",
+  "exitCode": 0,
+  "stdout": "1:1 punct ==\n1:4 punct !=\n1:7 punct <=\n1:10 punct >=\n1:13 punct &&\n1:16 punct ||\n1:19 punct ->\n1:22 punct =>\n1:25 punct +\n1:27 punct -\n1:29 punct *\n1:31 punct /\n1:33 punct %\n1:35 punct =\n1:37 punct <\n1:39 punct >\n1:41 punct !\n1:43 punct (\n1:45 punct )\n1:47 punct {\n1:49 punct }\n1:51 punct [\n1:53 punct ]\n1:55 punct ,\n1:57 punct ;\n1:59 punct .\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "== != <= >= && || -> => + - * / % = < > ! ( ) { } [ ] , ; .\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 26\nrawstring 0\nstring 0\ntotal 26\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "=== <== ->> =>=\n",
+  "exitCode": 0,
+  "stdout": "1:1 punct ==\n1:3 punct =\n1:5 punct <=\n1:7 punct =\n1:9 punct ->\n1:11 punct >\n1:13 punct =>\n1:15 punct =\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "=== <== ->> =>=\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 8\nrawstring 0\nstring 0\ntotal 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "let letx xlet if iff true false null nullish\n",
+  "exitCode": 0,
+  "stdout": "1:1 keyword let\n1:5 ident letx\n1:10 ident xlet\n1:15 keyword if\n1:18 ident iff\n1:22 keyword true\n1:27 keyword false\n1:33 keyword null\n1:38 ident nullish\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "let letx xlet if iff true false null nullish\n",
+  "exitCode": 0,
+  "stdout": "ident 4\nkeyword 5\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "// only a comment\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "// only a comment\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "// comment with no newline",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "// comment with no newline",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* unterminated\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unterminated block comment\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/* unterminated\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unterminated block comment\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* a */ /* b */\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/* a */ /* b */\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/*/ still open */\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/*/ still open */\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/**/x\n",
+  "exitCode": 0,
+  "stdout": "1:5 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/**/x\n",
+  "exitCode": 0,
+  "stdout": "ident 1\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* /* */ */x\n",
+  "exitCode": 0,
+  "stdout": "1:12 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/* /* */ */x\n",
+  "exitCode": 0,
+  "stdout": "ident 1\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* /* */ x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unterminated block comment\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "/* /* */ x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unterminated block comment\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "a $ b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:3: unexpected character $\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "a $ b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:3: unexpected character $\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "a @ b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:3: unexpected character @\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "a @ b\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:3: unexpected character @\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "#\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unexpected character #\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "#\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: 1:1: unexpected character #\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\n\n\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\n\n\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "   \n\t\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "   \n\t\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"a\" r \"a\" rr\"a\"\n",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"a\"\n1:6 ident r\n1:8 string \"a\"\n1:12 ident rr\n1:14 string \"a\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "r\"a\" r \"a\" rr\"a\"\n",
+  "exitCode": 0,
+  "stdout": "ident 2\nkeyword 0\nnumber 0\npunct 0\nrawstring 1\nstring 2\ntotal 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\" r\"\"\n",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\"\n1:4 rawstring \"\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\"\" r\"\"\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 1\nstring 1\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "x.\"y\"\n",
+  "exitCode": 0,
+  "stdout": "1:1 ident x\n1:2 punct .\n1:3 string \"y\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "x.\"y\"\n",
+  "exitCode": 0,
+  "stdout": "ident 1\nkeyword 0\nnumber 0\npunct 1\nrawstring 0\nstring 1\ntotal 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5.2\n",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:4 punct .\n1:5 number 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "1.5.2\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 2\npunct 1\nrawstring 0\nstring 0\ntotal 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "abc123 _x9 __ x_\n",
+  "exitCode": 0,
+  "stdout": "1:1 ident abc123\n1:8 ident _x9\n1:12 ident __\n1:15 ident x_\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "abc123 _x9 __ x_\n",
+  "exitCode": 0,
+  "stdout": "ident 4\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 0\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"tab\there\" \"cr\\r\"\n",
+  "exitCode": 0,
+  "stdout": "1:1 string \"tab\\there\"\n1:15 string \"cr\\r\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "stats"
+  ],
+  "stdin": "\"tab\there\" \"cr\\r\"\n",
+  "exitCode": 0,
+  "stdout": "ident 0\nkeyword 0\nnumber 0\npunct 0\nrawstring 0\nstring 2\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "scan"
+  ],
+  "stdin": "a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js tokens|stats\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [],
+  "stdin": "a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js tokens|stats\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "tokens",
+   "stats"
+  ],
+  "stdin": "a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js tokens|stats\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-074",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "=>(; = )0x1f _id\"\\t\"1e3",
+  "exitCode": 0,
+  "stdout": "1:1 punct =>\n1:3 punct (\n1:4 punct ;\n1:6 punct =\n1:8 punct )\n1:9 number 0x1f\n1:14 ident _id\n1:17 string \"\\t\"\n1:21 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-075",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5\t0x1f 1\"\\t\"\"s\"/* c */;1.5\t>= ",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:5 number 0x1f\n1:10 number 1\n1:11 string \"\\t\"\n1:15 string \"s\"\n1:25 punct ;\n1:26 number 1.5\n1:33 punct >=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-076",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */// c\n = )>= .1e3/* c *//* /* */ */1.5\t",
+  "exitCode": 0,
+  "stdout": "2:2 punct =\n2:4 punct )\n2:5 punct >=\n2:8 punct .\n2:9 number 1e3\n2:30 number 1.5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-077",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ".\"s\"let ;1.5)0x1f 1",
+  "exitCode": 0,
+  "stdout": "1:1 punct .\n1:2 string \"s\"\n1:5 keyword let\n1:9 punct ;\n1:10 number 1.5\n1:13 punct )\n1:14 number 0x1f\n1:19 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-078",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "(// c\n\nx 0x1f 1",
+  "exitCode": 0,
+  "stdout": "1:1 punct (\n3:1 ident x\n3:3 number 0x1f\n3:8 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-079",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "let // c\n\nx true _id\"\\t\"=>",
+  "exitCode": 0,
+  "stdout": "1:1 keyword let\n3:1 ident x\n3:3 keyword true\n3:8 ident _id\n3:11 string \"\\t\"\n3:15 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-080",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5\t>= ",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:5 punct >=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-081",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */ = x true _id",
+  "exitCode": 0,
+  "stdout": "1:20 punct =\n1:22 ident x\n1:24 keyword true\n1:29 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-082",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */\n)true r\"s\"=>/* c */// c\n",
+  "exitCode": 0,
+  "stdout": "2:1 punct )\n2:2 keyword true\n2:7 rawstring \"s\"\n2:11 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-083",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=_id\"\\t\"\"s\"/* c */;",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 ident _id\n1:6 string \"\\t\"\n1:10 string \"s\"\n1:20 punct ;\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-084",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "0x1f 1\"\\t\"\"s\"",
+  "exitCode": 0,
+  "stdout": "1:1 number 0x1f\n1:6 number 1\n1:7 string \"\\t\"\n1:11 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-085",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\nx>=_id",
+  "exitCode": 0,
+  "stdout": "2:1 ident x\n2:2 punct >=\n2:4 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-086",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */; = x>=_id r\"s\"\"s\"",
+  "exitCode": 0,
+  "stdout": "1:8 punct ;\n1:10 punct =\n1:12 ident x\n1:13 punct >=\n1:15 ident _id\n1:19 rawstring \"s\"\n1:23 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-087",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */;1.5\t",
+  "exitCode": 0,
+  "stdout": "1:8 punct ;\n1:9 number 1.5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-088",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"=>/* c *//* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-089",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=_id.1e3 let // c\n",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 ident _id\n1:6 punct .\n1:7 number 1e3\n1:11 keyword let\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-090",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true \"\\t\"=>let /* /* */ */1.5\t",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 string \"\\t\"\n1:10 punct =>\n1:12 keyword let\n1:27 number 1.5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-091",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"1e3(/* /* */ */1.5\t>=1\"\\t\"=>(// c\n",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 number 1e3\n1:8 punct (\n1:20 number 1.5\n1:25 punct >=\n1:27 number 1\n1:28 string \"\\t\"\n1:32 punct =>\n1:34 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-092",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=1.=>(/* /* */ */1.5)>=1\"\\t\"=>",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 number 1\n1:4 punct .\n1:5 punct =>\n1:7 punct (\n1:19 number 1.5\n1:22 punct )\n1:23 punct >=\n1:25 number 1\n1:26 string \"\\t\"\n1:30 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-093",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\n\ttrue 1\"\\t\"\"s\"let // c\n1.5 x",
+  "exitCode": 0,
+  "stdout": "2:5 keyword true\n2:10 number 1\n2:11 string \"\\t\"\n2:15 string \"s\"\n2:18 keyword let\n3:1 number 1.5\n3:5 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-094",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"=>/* c */// c\n = x>= ",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 punct =>\n2:2 punct =\n2:4 ident x\n2:5 punct >=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-095",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */\nx 0x1f \"\\t\"\"s\"/* c *//* /* */ */1.5)",
+  "exitCode": 0,
+  "stdout": "2:1 ident x\n2:3 number 0x1f\n2:8 string \"\\t\"\n2:12 string \"s\"\n2:33 number 1.5\n2:36 punct )\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"\"s\"(;",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 string \"s\"\n1:8 punct (\n1:9 punct ;\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true r\"s\"1e3/* c *//* /* */ */ = x",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 rawstring \"s\"\n1:10 number 1e3\n1:32 punct =\n1:34 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\t\"=>/* c *//* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\t\"\n1:5 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "0x1f 1 r\"s\"=>",
+  "exitCode": 0,
+  "stdout": "1:1 number 0x1f\n1:6 number 1\n1:8 rawstring \"s\"\n1:12 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = x true .\"s\"/* c *//* /* */ */\n\t",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:4 ident x\n1:6 keyword true\n1:11 punct .\n1:12 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"1e3(/* /* */ */ = x true _id.=>let ;",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 number 1e3\n1:8 punct (\n1:21 punct =\n1:23 ident x\n1:25 keyword true\n1:30 ident _id\n1:33 punct .\n1:34 punct =>\n1:36 keyword let\n1:40 punct ;\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true \"\\t\"1e3",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 string \"\\t\"\n1:10 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = x>=1 r\"s\"1e3/* c */; = )0x1f ",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:4 ident x\n1:5 punct >=\n1:7 number 1\n1:9 rawstring \"s\"\n1:13 number 1e3\n1:23 punct ;\n1:25 punct =\n1:27 punct )\n1:28 number 0x1f\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */ = x true _id.1e3(// c\n = )",
+  "exitCode": 0,
+  "stdout": "1:20 punct =\n1:22 ident x\n1:24 keyword true\n1:29 ident _id\n1:32 punct .\n1:33 number 1e3\n1:36 punct (\n2:2 punct =\n2:4 punct )\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ".1e3 let ;\n)0x1f \"\\t\"=>",
+  "exitCode": 0,
+  "stdout": "1:1 punct .\n1:2 number 1e3\n1:6 keyword let\n1:10 punct ;\n2:1 punct )\n2:2 number 0x1f\n2:7 string \"\\t\"\n2:11 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\nx>= r\"s\"1e3(; = x true ",
+  "exitCode": 0,
+  "stdout": "2:1 ident x\n2:2 punct >=\n2:5 rawstring \"s\"\n2:9 number 1e3\n2:12 punct (\n2:13 punct ;\n2:15 punct =\n2:17 ident x\n2:19 keyword true\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */ = \t0x1f _id",
+  "exitCode": 0,
+  "stdout": "1:20 punct =\n1:25 number 0x1f\n1:30 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */// c\n1.5)0x1f 1",
+  "exitCode": 0,
+  "stdout": "2:1 number 1.5\n2:4 punct )\n2:5 number 0x1f\n2:10 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */\n\t>=1 r\"s\"=>(/* /* */ */\n\t",
+  "exitCode": 0,
+  "stdout": "2:5 punct >=\n2:7 number 1\n2:9 rawstring \"s\"\n2:13 punct =>\n2:15 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"\"s\"(// c\n",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 string \"s\"\n1:8 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=1\"\\t\"1e3/* c *//* /* */ */ = )0x1f 1\"\\t\"\"s\"",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 number 1\n1:4 string \"\\t\"\n1:8 number 1e3\n1:30 punct =\n1:32 punct )\n1:33 number 0x1f\n1:38 number 1\n1:39 string \"\\t\"\n1:43 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = \t>=_id r\"s\"\"s\"(;1.5\t>=1",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:5 punct >=\n1:7 ident _id\n1:11 rawstring \"s\"\n1:15 string \"s\"\n1:18 punct (\n1:19 punct ;\n1:20 number 1.5\n1:25 punct >=\n1:27 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "(// c\n\n)0x1f 1.=>/* c */// c\n",
+  "exitCode": 0,
+  "stdout": "1:1 punct (\n3:1 punct )\n3:2 number 0x1f\n3:7 number 1\n3:8 punct .\n3:9 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=1.=>(;\n)0x1f _id r\"s\"\"s\"",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 number 1\n1:4 punct .\n1:5 punct =>\n1:7 punct (\n1:8 punct ;\n2:1 punct )\n2:2 number 0x1f\n2:7 ident _id\n2:11 rawstring \"s\"\n2:15 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\n\ttrue _id r\"s\"\"s\"",
+  "exitCode": 0,
+  "stdout": "2:5 keyword true\n2:10 ident _id\n2:14 rawstring \"s\"\n2:18 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\nx>= .1e3 let // c\n = \ttrue 1",
+  "exitCode": 0,
+  "stdout": "2:1 ident x\n2:2 punct >=\n2:5 punct .\n2:6 number 1e3\n2:10 keyword let\n3:2 punct =\n3:5 keyword true\n3:10 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "(;1.5)0x1f _id r\"s\"1e3 let // c\n\nx",
+  "exitCode": 0,
+  "stdout": "1:1 punct (\n1:2 punct ;\n1:3 number 1.5\n1:6 punct )\n1:7 number 0x1f\n1:12 ident _id\n1:16 rawstring \"s\"\n1:20 number 1e3\n1:24 keyword let\n3:1 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"\"s\"/* c *//* /* */ */1.5\t0x1f .=>let // c\n",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 string \"s\"\n1:26 number 1.5\n1:33 number 0x1f\n1:38 punct .\n1:39 punct =>\n1:41 keyword let\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "0x1f r\"s\"\"s\"/* c */;\nx",
+  "exitCode": 0,
+  "stdout": "1:1 number 0x1f\n1:6 rawstring \"s\"\n1:10 string \"s\"\n1:20 punct ;\n2:1 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ".=>/* c *//* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:1 punct .\n1:2 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=1.\"s\"let ;\n)0x1f ",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 number 1\n1:4 punct .\n1:5 string \"s\"\n1:8 keyword let\n1:12 punct ;\n2:1 punct )\n2:2 number 0x1f\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "(/* /* */ */1.5)>= r\"s\"1e3/* c *//* /* */ */1.5 x",
+  "exitCode": 0,
+  "stdout": "1:1 punct (\n1:13 number 1.5\n1:16 punct )\n1:17 punct >=\n1:20 rawstring \"s\"\n1:24 number 1e3\n1:45 number 1.5\n1:49 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\t\"=>let /* /* */ */1.5)true 1 r\"s\"=>",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\t\"\n1:5 punct =>\n1:7 keyword let\n1:22 number 1.5\n1:25 punct )\n1:26 keyword true\n1:31 number 1\n1:33 rawstring \"s\"\n1:37 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\n\t>=_id\"\\t\"\"s\"(/* /* */ */1.5 x>= ",
+  "exitCode": 0,
+  "stdout": "2:5 punct >=\n2:7 ident _id\n2:10 string \"\\t\"\n2:14 string \"s\"\n2:17 punct (\n2:29 number 1.5\n2:33 ident x\n2:34 punct >=\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c *//* /* */ */ = x true _id.=>(/* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:20 punct =\n1:22 ident x\n1:24 keyword true\n1:29 ident _id\n1:32 punct .\n1:33 punct =>\n1:35 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "0x1f 1.=>/* c */// c\n\n\t>=1",
+  "exitCode": 0,
+  "stdout": "1:1 number 0x1f\n1:6 number 1\n1:7 punct .\n1:8 punct =>\n3:5 punct >=\n3:7 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */// c\n = )",
+  "exitCode": 0,
+  "stdout": "2:2 punct =\n2:4 punct )\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\t\"\"s\"(;\n\ttrue _id\"\\t\"=>/* c */;",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\t\"\n1:5 string \"s\"\n1:8 punct (\n1:9 punct ;\n2:5 keyword true\n2:10 ident _id\n2:13 string \"\\t\"\n2:17 punct =>\n2:26 punct ;\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true r\"s\"1e3",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 rawstring \"s\"\n1:10 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = x true 1 r\"s\"1e3 let ; = \t",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:4 ident x\n1:6 keyword true\n1:11 number 1\n1:13 rawstring \"s\"\n1:17 number 1e3\n1:21 keyword let\n1:25 punct ;\n1:27 punct =\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"\"s\"/* c *//* /* */ */\n\t>=1.1e3",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 string \"s\"\n2:5 punct >=\n2:7 number 1.1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = x true _id",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:4 ident x\n1:6 keyword true\n1:11 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "(;1.5)0x1f 1.1e3(/* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:1 punct (\n1:2 punct ;\n1:3 number 1.5\n1:6 punct )\n1:7 number 0x1f\n1:12 number 1.1e3\n1:17 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=1.\"s\"(// c\n1.5 x 0x1f _id\"\\t\"=>",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 number 1\n1:4 punct .\n1:5 string \"s\"\n1:8 punct (\n2:1 number 1.5\n2:5 ident x\n2:7 number 0x1f\n2:12 ident _id\n2:15 string \"\\t\"\n2:19 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5)0x1f 1.=>",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:4 punct )\n1:5 number 0x1f\n1:10 number 1\n1:11 punct .\n1:12 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5)>= \"\\t\"1e3 let // c\n = )0x1f _id",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:4 punct )\n1:5 punct >=\n1:8 string \"\\t\"\n1:12 number 1e3\n1:16 keyword let\n2:2 punct =\n2:4 punct )\n2:5 number 0x1f\n2:10 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "let // c\n = x true _id",
+  "exitCode": 0,
+  "stdout": "1:1 keyword let\n2:2 punct =\n2:4 ident x\n2:6 keyword true\n2:11 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */;1.5)0x1f .\"s\"",
+  "exitCode": 0,
+  "stdout": "1:8 punct ;\n1:9 number 1.5\n1:12 punct )\n1:13 number 0x1f\n1:18 punct .\n1:19 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = )>= \"\\t\"1e3(/* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:4 punct )\n1:5 punct >=\n1:8 string \"\\t\"\n1:12 number 1e3\n1:15 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true 1.=>(// c\n1.5 x",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 number 1\n1:7 punct .\n1:8 punct =>\n1:10 punct (\n2:1 number 1.5\n2:5 ident x\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\t\"1e3/* c */// c\n = \t>=1",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\t\"\n1:5 number 1e3\n2:2 punct =\n2:5 punct >=\n2:7 number 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "let ;1.5)",
+  "exitCode": 0,
+  "stdout": "1:1 keyword let\n1:5 punct ;\n1:6 number 1.5\n1:9 punct )\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "r\"s\"\"s\"let /* /* */ */1.5 x>=_id",
+  "exitCode": 0,
+  "stdout": "1:1 rawstring \"s\"\n1:5 string \"s\"\n1:8 keyword let\n1:23 number 1.5\n1:27 ident x\n1:28 punct >=\n1:30 ident _id\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "/* c */// c\n\n)",
+  "exitCode": 0,
+  "stdout": "3:1 punct )\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\t\"=>let // c\n1.5 x true .1e3/* c */// c\n",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\t\"\n1:5 punct =>\n1:7 keyword let\n2:1 number 1.5\n2:5 ident x\n2:7 keyword true\n2:12 punct .\n2:13 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true 1 r\"s\"1e3/* c *//* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 number 1\n1:8 rawstring \"s\"\n1:12 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">=1.1e3",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:3 number 1.1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\n)0x1f _id\"\\t\"\"s\"/* c */; = x true ",
+  "exitCode": 0,
+  "stdout": "2:1 punct )\n2:2 number 0x1f\n2:7 ident _id\n2:10 string \"\\t\"\n2:14 string \"s\"\n2:24 punct ;\n2:26 punct =\n2:28 ident x\n2:30 keyword true\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "let /* /* */ */1.5\t0x1f 1\"\\t\"1e3/* c *//* /* */ */",
+  "exitCode": 0,
+  "stdout": "1:1 keyword let\n1:16 number 1.5\n1:21 number 0x1f\n1:26 number 1\n1:27 string \"\\t\"\n1:31 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ">= r\"s\"=>(;\n\t>=_id r\"s\"\"s\"",
+  "exitCode": 0,
+  "stdout": "1:1 punct >=\n1:4 rawstring \"s\"\n1:8 punct =>\n1:10 punct (\n1:11 punct ;\n2:5 punct >=\n2:7 ident _id\n2:11 rawstring \"s\"\n2:15 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-151",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\n)0x1f 1 r\"s\"1e3/* c *//* /* */ */\n\t",
+  "exitCode": 0,
+  "stdout": "2:1 punct )\n2:2 number 0x1f\n2:7 number 1\n2:9 rawstring \"s\"\n2:13 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-152",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "\"\\t\"1e3 let // c\n = x>= .1e3",
+  "exitCode": 0,
+  "stdout": "1:1 string \"\\t\"\n1:5 number 1e3\n1:9 keyword let\n2:2 punct =\n2:4 ident x\n2:5 punct >=\n2:8 punct .\n2:9 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-153",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5\ttrue .=>",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:5 keyword true\n1:10 punct .\n1:11 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-154",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = \ttrue 1\"\\t\"1e3/* c */;",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:5 keyword true\n1:10 number 1\n1:11 string \"\\t\"\n1:15 number 1e3\n1:25 punct ;\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-155",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true _id.=>/* c */; = x>=_id.\"s\"",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 ident _id\n1:9 punct .\n1:10 punct =>\n1:19 punct ;\n1:21 punct =\n1:23 ident x\n1:24 punct >=\n1:26 ident _id\n1:29 punct .\n1:30 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-156",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": " = \ttrue r\"s\"1e3(/* /* */ */\n)",
+  "exitCode": 0,
+  "stdout": "1:2 punct =\n1:5 keyword true\n1:10 rawstring \"s\"\n1:14 number 1e3\n1:17 punct (\n2:1 punct )\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-157",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": ".1e3 let // c\n\nx 0x1f _id.\"s\"(// c\n",
+  "exitCode": 0,
+  "stdout": "1:1 punct .\n1:2 number 1e3\n1:6 keyword let\n3:1 ident x\n3:3 number 0x1f\n3:8 ident _id\n3:11 punct .\n3:12 string \"s\"\n3:15 punct (\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-158",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "0x1f _id.1e3/* c */// c\n",
+  "exitCode": 0,
+  "stdout": "1:1 number 0x1f\n1:6 ident _id\n1:9 punct .\n1:10 number 1e3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-159",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "true 1 r\"s\"\"s\"",
+  "exitCode": 0,
+  "stdout": "1:1 keyword true\n1:6 number 1\n1:8 rawstring \"s\"\n1:12 string \"s\"\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-160",
+  "weight": 1,
+  "argv": [
+   "tokens"
+  ],
+  "stdin": "1.5)>= .=>",
+  "exitCode": 0,
+  "stdout": "1:1 number 1.5\n1:4 punct )\n1:5 punct >=\n1:8 punct .\n1:9 punct =>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

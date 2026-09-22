@@ -1,0 +1,31 @@
+{
+  "id": "code:job-queue--complete-parse",
+  "tier": 6,
+  "domain": "state-machines",
+  "family": "code:job-queue",
+  "completion": {
+    "file": "src/parse.js",
+    "function": "parse"
+  },
+  "title": "Complete parse in Give jobq retries with backoff, dead letters, and a policy file",
+  "prompt": "`jobq` is the repository in this workspace: `README.md` describes what it already does, `src/` holds it, and `test/jobq.test.js` is its own suite, which passes. Add the retry policy the simulator was built around, somewhere for a job that never succeeds to go, and a way to run one log under a policy that does not live in it. Everything `README.md` documents stays exactly as it is — the log grammar, the simulation, the `trace` and `summary` output, and every failure message and exit code — and the work spans the parser, the simulation, and the command.\n\n`retry <max> <base>` joins the log's directives, parsed like `limit`: exactly two words after it, `<max>` a positive integer and `<base>` a non-negative one, at most one such line, and the same failures as the others, worded `expected retry <max> <base>`, `max must be a positive integer`, `base must be a non-negative integer` and `retry is declared twice`. The directive turns the policy on. With no `retry` line anywhere a job still gets one attempt and a failure is simply final, exactly as today.\n\nUnder a retry policy, an attempt that finishes `fail` goes back in the queue when its attempt number is below `<max>`, ready at the instant it failed plus `<base>` multiplied by two raised to the power of one less than that attempt number, so the first backoff is `<base>`, the second twice that, the third four times. A re-queued attempt competes for the worker like any other: it is taken when its ready time is the smallest, ties still break by submission order, and its start still waits out the rate limit. An attempt that finishes `fail` at attempt `<max>` is dead-lettered instead, at the instant it failed.\n\n`dead` is a new mode. It prints one line per dead-lettered job in the order the jobs were written off, `<id> attempts=<n> at=<instant>`, and then a final line `total <k>` counting them. In `summary`, a dead-lettered job reads `dead` in place of its last attempt's outcome; every other job reads that outcome as before.\n\nEvery mode takes an optional second argument naming a policy file, so the usage line becomes `error: usage: cli.js trace|summary|dead [<policy>]`. A policy file holds `limit` and `retry` lines and nothing else, read under the log's own grammar, with a line trimmed and an empty one or one starting with `#` ignored. It is read before the log, so its failures come first, and a directive it sets is already in force when the log is parsed: a log that sets the same directive fails at the log's own line with `limit is declared twice` or `retry is declared twice`. A policy file's own failures are worded `error: <policy>: line N: ` followed by the message the same directive would give in the log, with `unknown directive <word>` for anything that is not `limit` or `retry`, and N counting the policy file's own lines from 1. A policy file that cannot be read fails with `error: cannot read policy <path>`.\n\nThis task is a completion exercise: every file and function in this workspace already holds its final implementation except `parse` in `src/parse.js`, whose body currently throws 'not implemented'. Implement only that function's body so it fulfills the specification above; keep its signature exactly as given, and do not edit any other file, export, or function. This is a visible-test tier: your certificate comes from the suite under test/, not from a held-back corpus.",
+  "heldOut": false,
+  "immutable": [
+    "test",
+    "package.json",
+    "data",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "id": "tests-pass",
+      "outcome": "the test suite passes",
+      "run": "node --test test/*.test.js"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

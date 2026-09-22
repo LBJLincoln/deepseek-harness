@@ -1,0 +1,20 @@
+# The bench with the completion family mounted as a second, independent
+# producer beside the curated one: `register-completion-environments` reads
+# `environments-completion/`, the environment factory's output
+# (`tools/synthesize-completion-tasks.mjs` writes it; `admit.mjs` and the
+# factory's own `--admit` step decide what survives there), and registers
+# each `<parent>--<function>/` child under the same `bench` kind the curated
+# 44 use. `config.directory` is restated at its default only to show the
+# field a different completion output would set; the base composition is
+# otherwise unchanged, so a plan that selects by tier or domain sees curated
+# and completion cells side by side.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - insert:
+          - id: register-completion-environments
+            name: './register-completion-environments.ts'
+            config:
+              directory: './environments-completion'

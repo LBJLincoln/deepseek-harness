@@ -1,0 +1,2323 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\nwave 1: b c\nwave 2: d\ntotal 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 0,
+  "stdout": "a start=0 finish=3 depth=0\nb start=3 finish=5 depth=1\nc start=3 finish=7 depth=1\nd start=7 finish=8 depth=2\ntotal 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-3 c@3-7 b@7-9 d@9-10\nmakespan 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-3 c@3-7 d@7-8\nworker 1: b@3-5\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-3 c@3-7 d@7-8\nworker 1: b@3-5\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task x 1\ntask y 2\ntask z 3\ndep y x\ndep z y\n",
+  "exitCode": 0,
+  "stdout": "wave 0: x\nwave 1: y\nwave 2: z\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task x 1\ntask y 2\ntask z 3\ndep y x\ndep z y\n",
+  "exitCode": 0,
+  "stdout": "x start=0 finish=1 depth=0\ny start=1 finish=3 depth=1\nz start=3 finish=6 depth=2\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task x 1\ntask y 2\ntask z 3\ndep y x\ndep z y\n",
+  "exitCode": 0,
+  "stdout": "worker 0: x@0-1 y@1-3 z@3-6\nworker 1:\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task r 1\ntask a 5\ntask b 5\ntask c 5\ntask d 5\ndep a r\ndep b r\ndep c r\ndep d r\n",
+  "exitCode": 0,
+  "stdout": "wave 0: r\nwave 1: a b c d\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task r 1\ntask a 5\ntask b 5\ntask c 5\ntask d 5\ndep a r\ndep b r\ndep c r\ndep d r\n",
+  "exitCode": 0,
+  "stdout": "worker 0: r@0-1 a@1-6 c@6-11\nworker 1: b@1-6 d@6-11\nmakespan 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task r 1\ntask a 5\ntask b 5\ntask c 5\ntask d 5\ndep a r\ndep b r\ndep c r\ndep d r\n",
+  "exitCode": 0,
+  "stdout": "worker 0: r@0-1 a@1-6 d@6-11\nworker 1: b@1-6\nworker 2: c@1-6\nmakespan 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "4"
+  ],
+  "stdin": "task r 1\ntask a 5\ntask b 5\ntask c 5\ntask d 5\ndep a r\ndep b r\ndep c r\ndep d r\n",
+  "exitCode": 0,
+  "stdout": "worker 0: r@0-1 a@1-6\nworker 1: b@1-6\nworker 2: c@1-6\nworker 3: d@1-6\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "9"
+  ],
+  "stdin": "task r 1\ntask a 5\ntask b 5\ntask c 5\ntask d 5\ndep a r\ndep b r\ndep c r\ndep d r\n",
+  "exitCode": 0,
+  "stdout": "worker 0: r@0-1 a@1-6\nworker 1: b@1-6\nworker 2: c@1-6\nworker 3: d@1-6\nworker 4:\nworker 5:\nworker 6:\nworker 7:\nworker 8:\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 0\ntask b 1\ntask c 0\ndep b a\ndep c b\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\nwave 1: b\nwave 2: c\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task a 0\ntask b 1\ntask c 0\ndep b a\ndep c b\n",
+  "exitCode": 0,
+  "stdout": "a start=0 finish=0 depth=0\nb start=0 finish=1 depth=1\nc start=1 finish=1 depth=2\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task a 0\ntask b 1\ntask c 0\ndep b a\ndep c b\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-0 b@0-1 c@1-1\nmakespan 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task a 0\ntask b 1\ntask c 0\ndep b a\ndep c b\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-0 b@0-1 c@1-1\nworker 1:\nmakespan 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task aa 2\ntask ab 2\ntask ac 2\ntask ad 2\n",
+  "exitCode": 0,
+  "stdout": "wave 0: aa ab ac ad\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task aa 2\ntask ab 2\ntask ac 2\ntask ad 2\n",
+  "exitCode": 0,
+  "stdout": "worker 0: aa@0-2 ad@2-4\nworker 1: ab@0-2\nworker 2: ac@0-2\nmakespan 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "worker 0:\nworker 1:\nmakespan 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task solo 7\n",
+  "exitCode": 0,
+  "stdout": "wave 0: solo\ntotal 7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task solo 7\n",
+  "exitCode": 0,
+  "stdout": "worker 0: solo@0-7\nmakespan 7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 0\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "# only a comment\n\n   \n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ntask b 1\ndep b a\ndep b a\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\nwave 1: b\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ntask b 1\ntask c 1\ndep c a b\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a b\nwave 1: c\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "dep b a\ntask a 1\ntask b 1\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\nwave 1: b\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ndep a a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ntask b 1\ndep a b\ndep b a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> b -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task c 1\ntask b 1\ntask a 1\ndep a b\ndep b c\ndep c a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> b -> c -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ntask b 1\ntask c 1\ntask d 1\ndep b a\ndep c b\ndep b c\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: b -> c -> b\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task a 1\ntask b 1\ndep a b\ndep b a\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: a -> b -> a\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ntask a 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: task a is declared twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a -1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: cost must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1.5\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: cost must be a non-negative integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 01\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected task <name> <cost>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1 2\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected task <name> <cost>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "dep a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: expected dep <name> <dependency>...\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ndep a ghost\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ndep ghost a\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: unknown task ghost\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "build a 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unknown directive build\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a! 1\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: invalid task name a!\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "0"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: workers must be a positive integer\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "pack"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js waves|explain|pack <workers>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2",
+   "3"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js waves|explain|pack <workers>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "sprint"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js waves|explain|pack <workers>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "waves",
+   "extra"
+  ],
+  "stdin": "task a 3\ntask b 2\ntask c 4\ntask d 1\ndep b a\ndep c a\ndep d b c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js waves|explain|pack <workers>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task a 0\ntask b 0\ntask c 0\ntask d 4\ndep b a\ndep c b\ndep d c\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-0 b@0-0 c@0-0 d@0-4\nworker 1:\nmakespan 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task a 0\ntask b 0\ntask c 0\ntask d 4\ndep b a\ndep c b\ndep d c\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-0 b@0-0 c@0-0 d@0-4\nmakespan 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task long 9\ntask s1 1\ntask s2 1\ntask s3 1\n",
+  "exitCode": 0,
+  "stdout": "worker 0: long@0-9\nworker 1: s1@0-1 s2@1-2 s3@2-3\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task s1 1\ntask s2 1\ntask s3 1\ntask long 9\n",
+  "exitCode": 0,
+  "stdout": "worker 0: long@0-9\nworker 1: s1@0-1 s2@1-2 s3@2-3\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task a 1\ntask b 1\ntask c 1\ntask d 1\ndep c a\ndep d b\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-1 c@1-2\nworker 1: b@0-1 d@1-2\nmakespan 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task r 1\ntask a 3\ntask b 3\ntask c 1\ntask tail 1\ndep a r\ndep b r\ndep c r\ndep tail c\n",
+  "exitCode": 0,
+  "stdout": "worker 0: r@0-1 a@1-4\nworker 1: b@1-4\nworker 2: c@1-2 tail@2-3\nmakespan 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task a 2\ntask b 2\ntask c 2\ntask d 2\ntask e 2\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-2 c@2-4 e@4-6\nworker 1: b@0-2 d@2-4\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task z 5\ntask y 5\ntask x 1\ndep x z\ndep x y\n",
+  "exitCode": 0,
+  "stdout": "worker 0: y@0-5 x@5-6\nworker 1: z@0-5\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task a 3\ntask b 1\ntask c 1\ntask d 1\ndep b a\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-3 b@3-4\nworker 1: c@0-1 d@1-2\nmakespan 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task a 0\ntask b 0\ntask c 0\ndep b a\ndep c b\n",
+  "exitCode": 0,
+  "stdout": "a start=0 finish=0 depth=0\nb start=0 finish=0 depth=1\nc start=0 finish=0 depth=2\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 0\ntask b 0\ntask c 0\ndep b a\ndep c b\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\nwave 1: b\nwave 2: c\ntotal 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "4"
+  ],
+  "stdin": "task solo 0\n",
+  "exitCode": 0,
+  "stdout": "worker 0: solo@0-0\nworker 1:\nworker 2:\nworker 3:\nmakespan 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task a 0\ntask b 0\n",
+  "exitCode": 0,
+  "stdout": "worker 0: a@0-0 b@0-0\nmakespan 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task a 1\ntask b 1\ntask c 1\ndep c a\ndep c b\ndep b a\n",
+  "exitCode": 0,
+  "stdout": "wave 0: a\nwave 1: b\nwave 2: c\ntotal 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task a 1\ntask b 1\ntask c 1\ndep c a\ndep c b\ndep b a\n",
+  "exitCode": 0,
+  "stdout": "a start=0 finish=1 depth=0\nb start=1 finish=2 depth=1\nc start=2 finish=3 depth=2\ntotal 3\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task B 1\ntask a 1\ntask A 1\ntask b 1\n",
+  "exitCode": 0,
+  "stdout": "wave 0: A B a b\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task B 1\ntask a 1\ntask A 1\ntask b 1\n",
+  "exitCode": 0,
+  "stdout": "worker 0: A@0-1 a@1-2\nworker 1: B@0-1 b@1-2\nmakespan 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-068",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 2\ntask n01 0\ntask n02 1\ntask n03 3\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n00\ndep n03 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n03@2-5\nworker 1: n02@2-3 n01@3-3\nmakespan 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-069",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 4\ntask n01 3\ntask n02 3\ntask n03 0\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-7 n02@7-10 n03@10-10\nworker 1:\nworker 2:\nworker 3:\nworker 4:\nmakespan 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-070",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 3\ntask n01 1\ntask n02 4\ntask n03 2\ntask n04 3\ntask n05 4\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n03 n02\ndep n04 n03\ndep n04 n02\ndep n05 n04\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-4 n02@4-8 n03@8-10 n04@10-13 n05@13-17\nworker 1:\nworker 2:\nmakespan 17\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-071",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 2\ntask n01 1\ntask n02 2\ntask n03 0\ntask n04 0\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n04 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-3 n02@3-5\nworker 1: n03@2-2 n04@3-3\nworker 2:\nworker 3:\nworker 4:\nmakespan 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-072",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 3\ntask n01 2\ntask n02 0\ntask n03 4\ntask n04 1\ntask n05 3\ntask n06 0\ntask n07 4\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n01\ndep n03 n02\ndep n04 n02\ndep n04 n01\ndep n05 n03\ndep n06 n05\ndep n06 n02\ndep n07 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-5 n02@5-5 n03@5-9 n05@9-12 n06@12-12\nworker 1: n07@5-9\nworker 2: n04@5-6\nmakespan 12\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-073",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 2\ntask n01 0\ntask n02 3\ntask n03 1\ntask n04 3\ntask n05 3\ntask n06 3\ntask n07 2\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n00\ndep n03 n01\ndep n04 n01\ndep n05 n01\ndep n05 n00\ndep n06 n00\ndep n07 n00\ndep n07 n03\ndep n07 n00\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01 n02 n06\nwave 2: n03 n04 n05\nwave 3: n07\ntotal 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-074",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 3\ntask n01 1\ntask n02 0\ntask n03 4\ntask n04 4\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n04 n01\ndep n04 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-4 n03@4-8\nworker 1: n04@4-8\nworker 2: n02@4-4\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-075",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 4\ntask n03 3\ntask n04 3\ndep n01 n00\ndep n02 n00\ndep n03 n00\ndep n03 n00\ndep n03 n00\ndep n04 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n02@0-4 n04@4-7\nworker 1: n01@0-3\nworker 2: n03@0-3\nmakespan 7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-076",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 2\ntask n01 4\ntask n02 2\ntask n03 2\ntask n04 3\ntask n05 1\ntask n06 1\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n01\ndep n03 n01\ndep n04 n01\ndep n04 n00\ndep n05 n04\ndep n06 n00\ndep n06 n01\ndep n06 n00\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01 n02\nwave 2: n03 n04 n06\nwave 3: n05\ntotal 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-077",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 2\ntask n01 4\ntask n02 2\ntask n03 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n01\ndep n03 n01\ndep n03 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-6 n02@6-8\nworker 1: n03@6-6\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-078",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 1\ntask n01 2\ntask n02 2\ntask n03 2\ntask n04 1\ntask n05 1\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n04 n02\ndep n04 n01\ndep n04 n00\ndep n05 n01\ndep n05 n02\ndep n05 n03\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-1 n01@1-3 n02@3-5 n03@5-7 n05@7-8\nworker 1: n04@5-6\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-079",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 1\ntask n01 3\ntask n02 4\ntask n03 1\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n02\ndep n03 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-1 n01@1-4 n02@4-8 n03@8-9\nworker 1:\nworker 2:\nworker 3:\nworker 4:\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-080",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 3\ntask n01 1\ntask n02 1\ntask n03 0\ntask n04 4\ntask n05 2\ntask n06 0\ntask n07 1\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n04 n01\ndep n05 n03\ndep n05 n00\ndep n05 n02\ndep n06 n03\ndep n06 n02\ndep n06 n01\ndep n07 n06\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-4 n04@4-8\nworker 1: n03@3-3 n02@4-5 n05@5-7 n06@7-7 n07@7-8\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-081",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 0\ntask n01 4\ntask n02 1\ntask n03 4\ntask n04 2\ntask n05 3\ntask n06 4\ntask n07 2\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n02\ndep n04 n00\ndep n04 n03\ndep n04 n02\ndep n05 n00\ndep n06 n04\ndep n07 n00\ndep n07 n05\ndep n07 n05\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01 n05\nwave 2: n02 n07\nwave 3: n03\nwave 4: n04\nwave 5: n06\ntotal 15\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-082",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 3\ntask n01 3\ntask n02 1\ntask n03 2\ntask n04 3\ndep n01 n00\ndep n02 n00\ndep n03 n02\ndep n03 n02\ndep n04 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-6 n04@6-9\nworker 1: n02@3-4 n03@4-6\nworker 2:\nworker 3:\nworker 4:\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-083",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 2\ntask n01 3\ntask n02 3\ntask n03 4\ntask n04 3\ntask n05 3\ntask n06 0\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n02\ndep n04 n01\ndep n04 n00\ndep n05 n01\ndep n06 n04\ndep n06 n05\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-5 n02@5-8 n03@8-12\nworker 1: n04@5-8 n05@8-11 n06@11-11\nmakespan 12\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-084",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 1\ntask n01 0\ntask n02 1\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n01 n02\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: n01 -> n02 -> n01\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-085",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 2\ntask n01 3\ntask n02 2\ntask n03 3\ntask n04 0\ntask n05 1\ntask n06 3\ntask n07 4\ntask n08 4\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n00\ndep n04 n00\ndep n05 n04\ndep n06 n04\ndep n07 n03\ndep n07 n06\ndep n08 n03\ndep n08 n06\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n03@2-5 n04@5-5 n06@5-8 n01@8-11 n07@11-15 n08@15-19 n02@19-21 n05@21-22\nmakespan 22\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-086",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 2\ntask n01 4\ntask n02 2\ntask n03 1\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-6 n02@6-8 n03@8-9\nworker 1:\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-087",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 4\ntask n03 4\ntask n04 2\ntask n05 2\ntask n06 4\ntask n07 0\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n02\ndep n03 n00\ndep n04 n01\ndep n05 n03\ndep n05 n00\ndep n06 n04\ndep n06 n01\ndep n06 n00\ndep n07 n03\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-3 n02@3-7 n03@7-11 n05@11-13\nworker 1: n04@3-5 n06@5-9 n07@11-11\nworker 2:\nmakespan 13\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-088",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 1\ntask n01 4\ntask n02 3\ntask n03 0\ntask n04 1\ntask n05 3\ntask n06 3\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n00\ndep n04 n03\ndep n04 n02\ndep n05 n02\ndep n05 n01\ndep n05 n04\ndep n06 n02\ndep n06 n05\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=1 depth=0\nn01 start=1 finish=5 depth=1\nn02 start=5 finish=8 depth=2\nn03 start=1 finish=1 depth=1\nn04 start=8 finish=9 depth=3\nn05 start=9 finish=12 depth=4\nn06 start=12 finish=15 depth=5\ntotal 15\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-089",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 2\ntask n02 2\ntask n03 1\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n01\ndep n03 n02\ndep n03 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-2 n02@2-4 n03@4-5\nworker 1:\nworker 2:\nmakespan 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-090",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 0\ntask n01 2\ntask n02 2\ntask n03 1\ntask n04 4\ntask n05 2\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n03 n01\ndep n03 n00\ndep n04 n02\ndep n04 n01\ndep n04 n00\ndep n05 n04\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-2 n02@2-4 n04@4-8 n05@8-10 n03@10-11\nmakespan 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-091",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 0\ntask n01 4\ntask n02 4\ntask n03 1\ntask n04 0\ntask n05 2\ntask n06 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n01\ndep n03 n02\ndep n04 n02\ndep n04 n01\ndep n05 n00\ndep n05 n04\ndep n06 n04\ndep n06 n03\ndep n06 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-4 n02@4-8 n04@8-8 n05@8-10 n03@10-11 n06@11-11\nmakespan 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-092",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 2\ntask n01 3\ntask n02 3\ntask n03 3\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-5 n02@5-8 n03@8-11\nworker 1:\nworker 2:\nworker 3:\nworker 4:\nmakespan 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-093",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 4\ntask n01 3\ntask n02 1\ntask n03 3\ntask n04 1\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n02\ndep n03 n02\ndep n04 n01\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=4 depth=0\nn01 start=4 finish=7 depth=1\nn02 start=4 finish=5 depth=1\nn03 start=5 finish=8 depth=2\nn04 start=7 finish=8 depth=2\ntotal 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-094",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 4\ntask n01 1\ntask n02 4\ntask n03 1\ntask n04 0\ntask n05 3\ntask n06 0\ntask n07 3\ntask n08 0\ndep n01 n00\ndep n02 n01\ndep n03 n02\ndep n03 n01\ndep n03 n00\ndep n04 n03\ndep n05 n04\ndep n05 n03\ndep n05 n01\ndep n06 n01\ndep n06 n02\ndep n06 n01\ndep n07 n00\ndep n08 n07\ndep n08 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-5 n02@5-9 n03@9-10 n04@10-10 n05@10-13\nworker 1: n07@4-7 n06@9-9 n08@9-9\nworker 2:\nmakespan 13\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-095",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 3\ntask n01 1\ntask n02 2\ntask n03 1\ntask n04 4\ntask n05 4\ntask n06 1\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n01\ndep n03 n01\ndep n04 n01\ndep n04 n00\ndep n05 n03\ndep n05 n00\ndep n05 n03\ndep n06 n02\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01\nwave 2: n02 n03 n04\nwave 3: n05 n06\ntotal 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 2\ntask n01 0\ntask n02 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=2 depth=0\nn01 start=2 finish=2 depth=1\nn02 start=2 finish=2 depth=2\ntotal 2\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 3\ntask n01 3\ntask n02 2\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-6 n02@6-8\nworker 1:\nworker 2:\nworker 3:\nworker 4:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 3\ntask n01 1\ntask n02 4\ntask n03 0\ntask n04 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n01\ndep n03 n02\ndep n04 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-4 n02@4-8 n03@8-8 n04@8-8\nworker 1:\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 3\ntask n01 4\ntask n02 2\ntask n03 0\ntask n04 2\ntask n05 1\ntask n06 2\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n03 n00\ndep n04 n03\ndep n05 n01\ndep n06 n03\ndep n06 n00\ndep n06 n05\ndep n05 n06\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: n05 -> n06 -> n05\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 1\ntask n01 0\ntask n02 1\ntask n03 1\ntask n04 1\ntask n05 0\ntask n06 4\ntask n07 4\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n04 n03\ndep n04 n02\ndep n04 n01\ndep n05 n02\ndep n05 n03\ndep n05 n03\ndep n06 n03\ndep n06 n00\ndep n06 n03\ndep n07 n05\ndep n07 n06\ndep n07 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-1 n01@1-1 n03@1-2 n06@2-6 n07@6-10\nworker 1: n02@1-2 n05@2-2 n04@2-3\nmakespan 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 3\ntask n01 3\ntask n02 4\ntask n03 3\ntask n04 2\ntask n05 2\ntask n06 3\ntask n07 4\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n02\ndep n03 n00\ndep n04 n02\ndep n04 n01\ndep n04 n00\ndep n05 n02\ndep n06 n02\ndep n07 n04\ndep n07 n04\ndep n07 n00\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01\nwave 2: n02\nwave 3: n03 n04 n05 n06\nwave 4: n07\ntotal 16\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 2\ntask n01 2\ntask n02 0\ntask n03 1\ntask n04 4\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n00\ndep n04 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n04@2-6\nworker 1: n01@2-4 n02@4-4\nworker 2: n03@2-3\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 4\ntask n01 2\ntask n02 2\ntask n03 2\ntask n04 0\ntask n05 0\ntask n06 0\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n04 n03\ndep n04 n02\ndep n04 n01\ndep n05 n00\ndep n05 n01\ndep n06 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-6 n02@6-8 n04@8-8 n06@8-8\nworker 1: n03@4-6 n05@6-6\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 4\ntask n02 2\ntask n03 4\ntask n04 0\ntask n05 1\ntask n06 4\ntask n07 3\ntask n08 3\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n02\ndep n03 n02\ndep n03 n02\ndep n04 n01\ndep n04 n00\ndep n04 n03\ndep n05 n04\ndep n06 n05\ndep n06 n04\ndep n07 n06\ndep n07 n02\ndep n07 n04\ndep n08 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-4 n02@4-6 n03@6-10 n04@10-10 n05@10-11 n06@11-15 n07@15-18\nworker 1: n08@0-3\nworker 2:\nmakespan 18\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 4\ntask n01 3\ntask n02 2\ntask n03 4\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n02\ndep n03 n01\ndep n00 n03\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: n00 -> n03 -> n00\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 1\ntask n01 4\ntask n02 3\ntask n03 3\ntask n04 0\ntask n05 4\ntask n06 4\ntask n07 2\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n04 n03\ndep n04 n02\ndep n04 n01\ndep n05 n00\ndep n06 n05\ndep n07 n05\ndep n07 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-1 n01@1-5 n05@5-9 n02@9-12 n06@12-16 n03@16-19 n07@19-21 n04@21-21\nmakespan 21\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 0\ntask n03 0\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n00\ndep n03 n02\ndep n00 n03\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: n00 -> n03 -> n00\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 2\ntask n01 2\ntask n02 2\ntask n03 3\ntask n04 4\ntask n05 1\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n02\ndep n03 n02\ndep n04 n02\ndep n04 n01\ndep n04 n00\ndep n05 n02\ndep n05 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-4 n02@4-6 n04@6-10\nworker 1: n03@6-9 n05@9-10\nmakespan 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 3\ntask n01 4\ntask n02 4\ntask n03 2\ntask n04 0\ntask n05 3\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n02\ndep n04 n03\ndep n05 n03\ndep n05 n04\ndep n05 n03\ndep n01 n05\n",
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "error: cycle: n01 -> n05 -> n03 -> n02 -> n01\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 0\ntask n01 4\ntask n02 4\ntask n03 3\ntask n04 2\ntask n05 4\ntask n06 2\ntask n07 0\ntask n08 4\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n03 n00\ndep n03 n02\ndep n03 n01\ndep n04 n03\ndep n04 n02\ndep n05 n01\ndep n05 n01\ndep n06 n05\ndep n06 n04\ndep n06 n01\ndep n07 n03\ndep n07 n04\ndep n08 n06\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01\nwave 2: n02 n05\nwave 3: n03\nwave 4: n04\nwave 5: n06 n07\nwave 6: n08\ntotal 19\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 4\ntask n01 2\ntask n02 0\ntask n03 2\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n02 n03\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-6 n03@6-8 n02@8-8\nworker 1:\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 4\ntask n01 0\ntask n02 4\ntask n03 2\ntask n04 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n00\ndep n04 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-4 n02@4-8 n03@8-10 n04@10-10\nmakespan 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 2\ntask n01 4\ntask n02 0\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01\nwave 2: n02\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 2\ntask n01 4\ntask n02 4\ntask n03 3\ntask n04 4\ntask n05 3\ndep n01 n00\ndep n02 n01\ndep n03 n02\ndep n03 n02\ndep n03 n01\ndep n04 n03\ndep n05 n01\ndep n05 n01\ndep n05 n00\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=2 depth=0\nn01 start=2 finish=6 depth=1\nn02 start=6 finish=10 depth=2\nn03 start=10 finish=13 depth=3\nn04 start=13 finish=17 depth=4\nn05 start=6 finish=9 depth=2\ntotal 17\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 2\ntask n01 0\ntask n02 4\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=2 depth=0\nn01 start=2 finish=2 depth=1\nn02 start=2 finish=6 depth=2\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 4\ntask n01 4\ntask n02 2\ntask n03 3\ntask n04 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n04 n02\ndep n04 n01\ndep n04 n00\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01 n03\nwave 2: n02\nwave 3: n04\ntotal 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 3\ntask n01 2\ntask n02 4\ndep n01 n00\ndep n02 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n02@3-7 n01@7-9\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 1\ntask n01 3\ntask n02 1\ntask n03 0\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=1 depth=0\nn01 start=1 finish=4 depth=1\nn02 start=4 finish=5 depth=2\nn03 start=1 finish=1 depth=1\ntotal 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 2\ntask n01 1\ntask n02 2\ntask n03 3\ntask n04 4\ntask n05 1\ntask n06 0\ntask n07 3\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n00\ndep n04 n02\ndep n04 n01\ndep n05 n00\ndep n05 n00\ndep n05 n00\ndep n06 n01\ndep n06 n00\ndep n06 n01\ndep n07 n03\ndep n07 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n02@2-4 n04@4-8\nworker 1: n03@2-5 n07@5-8\nworker 2: n01@2-3 n05@3-4 n06@4-4\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 1\ntask n01 3\ntask n02 3\ntask n03 1\ntask n04 3\ntask n05 0\ntask n06 0\ntask n07 3\ntask n08 0\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n03 n02\ndep n04 n01\ndep n05 n00\ndep n06 n01\ndep n07 n06\ndep n07 n05\ndep n07 n02\ndep n08 n07\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=1 depth=0\nn01 start=1 finish=4 depth=1\nn02 start=4 finish=7 depth=2\nn03 start=7 finish=8 depth=3\nn04 start=4 finish=7 depth=2\nn05 start=1 finish=1 depth=1\nn06 start=4 finish=4 depth=2\nn07 start=7 finish=10 depth=3\nn08 start=10 finish=10 depth=4\ntotal 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 1\ntask n01 2\ntask n02 1\ntask n03 0\ntask n04 3\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n01\ndep n04 n02\ndep n04 n01\ndep n03 n04\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-1 n01@1-3 n02@3-4 n04@4-7 n03@7-7\nworker 1:\nworker 2:\nmakespan 7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 1\ntask n01 4\ntask n02 4\ntask n03 4\ntask n04 2\ntask n05 1\ntask n06 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n01\ndep n04 n02\ndep n04 n01\ndep n04 n00\ndep n05 n02\ndep n05 n04\ndep n05 n00\ndep n06 n00\ndep n06 n01\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=1 depth=0\nn01 start=1 finish=5 depth=1\nn02 start=5 finish=9 depth=2\nn03 start=5 finish=9 depth=2\nn04 start=9 finish=11 depth=3\nn05 start=11 finish=12 depth=4\nn06 start=5 finish=5 depth=2\ntotal 12\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 4\ntask n01 4\ntask n02 4\ntask n03 4\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-8 n02@8-12 n03@12-16\nworker 1:\nworker 2:\nmakespan 16\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 4\ntask n01 3\ntask n02 1\ntask n03 0\ntask n04 0\ntask n05 4\ntask n06 3\ntask n07 3\ntask n08 2\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n01\ndep n04 n00\ndep n05 n04\ndep n05 n01\ndep n06 n05\ndep n07 n03\ndep n07 n01\ndep n07 n00\ndep n08 n01\ndep n08 n04\ndep n08 n03\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-7 n05@7-11 n06@11-14\nworker 1: n04@4-4 n03@7-7 n07@7-10 n08@10-12 n02@12-13\nmakespan 14\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 0\ntask n01 0\ntask n02 0\ntask n03 3\ntask n04 2\ntask n05 1\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n01\ndep n04 n00\ndep n04 n03\ndep n05 n02\ndep n05 n03\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-0 n03@0-3 n04@3-5 n02@5-5 n05@5-6\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 4\ntask n01 2\ntask n02 4\ntask n03 2\ntask n04 1\ntask n05 2\ntask n06 1\ntask n07 4\ntask n08 2\ndep n01 n00\ndep n02 n00\ndep n03 n00\ndep n03 n01\ndep n04 n03\ndep n04 n02\ndep n04 n01\ndep n05 n00\ndep n06 n01\ndep n06 n00\ndep n07 n06\ndep n08 n04\ndep n08 n03\ndep n05 n08\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01 n02\nwave 2: n03 n06\nwave 3: n04 n07\nwave 4: n08\nwave 5: n05\ntotal 13\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "explain"
+  ],
+  "stdin": "task n00 3\ntask n01 0\ntask n02 4\ntask n03 0\ntask n04 2\ntask n05 0\ntask n06 2\ntask n07 2\ntask n08 3\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n02\ndep n03 n00\ndep n03 n02\ndep n04 n02\ndep n05 n00\ndep n05 n04\ndep n06 n05\ndep n06 n02\ndep n06 n03\ndep n07 n05\ndep n08 n07\ndep n08 n02\ndep n08 n01\n",
+  "exitCode": 0,
+  "stdout": "n00 start=0 finish=3 depth=0\nn01 start=3 finish=3 depth=1\nn02 start=3 finish=7 depth=1\nn03 start=7 finish=7 depth=2\nn04 start=7 finish=9 depth=2\nn05 start=9 finish=9 depth=3\nn06 start=9 finish=11 depth=4\nn07 start=9 finish=11 depth=4\nn08 start=11 finish=14 depth=5\ntotal 14\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 4\ntask n03 0\ntask n04 1\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n02\ndep n04 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-3 n02@3-7 n04@7-8\nworker 1: n03@7-7\nworker 2:\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 3\ntask n01 0\ntask n02 3\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-3 n02@3-6\nworker 1:\nworker 2:\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 0\ntask n02 0\ntask n03 1\ntask n04 3\ntask n05 2\ntask n06 4\ntask n07 4\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n00\ndep n04 n01\ndep n05 n02\ndep n05 n00\ndep n06 n02\ndep n07 n06\ndep n07 n06\ndep n07 n05\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-0 n02@0-0 n06@0-4 n07@4-8\nworker 1: n05@0-2 n03@2-3\nworker 2: n04@0-3\nmakespan 8\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 2\ntask n01 4\ntask n02 3\ntask n03 3\ntask n04 0\ntask n05 2\ntask n06 4\ntask n07 4\ntask n08 2\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n02\ndep n03 n02\ndep n04 n00\ndep n05 n02\ndep n06 n02\ndep n06 n05\ndep n06 n00\ndep n07 n01\ndep n07 n00\ndep n08 n01\ndep n08 n04\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-2 n01@2-6 n02@6-9 n05@9-11 n06@11-15 n07@15-19 n03@19-22 n04@22-22 n08@22-24\nmakespan 24\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 3\ntask n01 1\ntask n02 1\ntask n03 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-4 n02@4-5 n03@5-5\nworker 1:\nmakespan 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "waves"
+  ],
+  "stdin": "task n00 3\ntask n01 3\ntask n02 0\ntask n03 2\ntask n04 3\ntask n05 0\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n00\ndep n03 n01\ndep n04 n00\ndep n04 n03\ndep n05 n01\ndep n05 n04\n",
+  "exitCode": 0,
+  "stdout": "wave 0: n00\nwave 1: n01\nwave 2: n02 n03\nwave 3: n04\nwave 4: n05\ntotal 11\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 4\ntask n01 1\ntask n02 2\ntask n03 2\ntask n04 4\ntask n05 4\ntask n06 0\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n00\ndep n03 n01\ndep n04 n03\ndep n04 n02\ndep n05 n02\ndep n05 n04\ndep n05 n04\ndep n06 n00\ndep n06 n05\ndep n06 n04\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-5 n02@5-7 n03@7-9 n04@9-13 n05@13-17 n06@17-17\nmakespan 17\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "2"
+  ],
+  "stdin": "task n00 4\ntask n01 4\ntask n02 2\ntask n03 4\ntask n04 1\ntask n05 1\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n00\ndep n04 n00\ndep n04 n03\ndep n05 n03\ndep n05 n04\ndep n05 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-8 n03@8-12 n04@12-13 n05@13-14\nworker 1: n02@8-10\nmakespan 14\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "1"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 1\ntask n03 2\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n03 n01\ndep n03 n01\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-3 n03@3-5 n02@5-6\nmakespan 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 3\ntask n01 0\ntask n02 0\ntask n03 3\ntask n04 2\ntask n05 0\ntask n06 4\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n01\ndep n04 n00\ndep n04 n03\ndep n05 n01\ndep n05 n00\ndep n06 n02\ndep n06 n03\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-3 n01@3-3 n03@3-6 n06@6-10\nworker 1: n02@3-3 n05@3-3 n04@6-8\nworker 2:\nworker 3:\nworker 4:\nmakespan 10\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 4\ntask n03 1\ntask n04 0\ntask n05 1\ntask n06 1\ndep n01 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n02\ndep n04 n01\ndep n04 n00\ndep n04 n03\ndep n05 n00\ndep n05 n03\ndep n05 n04\ndep n06 n01\ndep n06 n02\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n01@0-3 n02@3-7 n03@7-8 n04@8-8 n05@8-9\nworker 1: n06@7-8\nworker 2:\nmakespan 9\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "5"
+  ],
+  "stdin": "task n00 4\ntask n01 3\ntask n02 1\ntask n03 3\ntask n04 1\ntask n05 2\ntask n06 2\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n02 n01\ndep n02 n00\ndep n03 n02\ndep n03 n00\ndep n04 n01\ndep n04 n00\ndep n04 n03\ndep n05 n03\ndep n06 n05\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-4 n01@4-7 n02@7-8 n03@8-11 n05@11-13 n06@13-15\nworker 1: n04@11-12\nworker 2:\nworker 3:\nworker 4:\nmakespan 15\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "pack",
+   "3"
+  ],
+  "stdin": "task n00 0\ntask n01 3\ntask n02 4\ntask n03 1\ntask n04 2\ntask n05 0\ndep n01 n00\ndep n01 n00\ndep n01 n00\ndep n02 n00\ndep n03 n02\ndep n04 n00\ndep n04 n03\ndep n05 n04\ndep n05 n00\n",
+  "exitCode": 0,
+  "stdout": "worker 0: n00@0-0 n02@0-4 n03@4-5 n04@5-7 n05@7-7\nworker 1: n01@0-3\nworker 2:\nmakespan 7\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]

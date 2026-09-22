@@ -1,0 +1,19 @@
+# The completion family on the free open-weight route: `with-openrouter`'s
+# `openrouter` route and district-scoped training terms, plus the completion
+# registrar `with-completion` mounts, so a plan can name a completion child's
+# id while running it on a free model. Two `cordis-plugin-include` hops (this
+# file over `with-openrouter.cordis.yml` over the base `../cordis.yml`) is how
+# two overlays compose: each patches the tree the one before it produced.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ./with-openrouter.cordis.yml
+    patches:
+      - insert:
+          - id: register-completion-environments
+            name: '../register-completion-environments.ts'
+            config:
+              # Resolved against register-completion-environments.ts's own
+              # location (the bench root), never against this overlay file's,
+              # so this is the same value with-completion.cordis.yml uses.
+              directory: './environments-completion'

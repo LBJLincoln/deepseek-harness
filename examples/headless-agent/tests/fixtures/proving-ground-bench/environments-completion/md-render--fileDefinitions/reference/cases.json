@@ -1,0 +1,2527 @@
+[
+ {
+  "id": "corner-001",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- one\n  - inner\n    - deeper\n- two\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>one\n<ul>\n<li>inner\n<ul>\n<li>deeper</li>\n</ul>\n</li>\n</ul>\n</li>\n<li>two</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-002",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- one\n  - inner\n    - deeper\n- two\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-003",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- one\n   - odd\n- two\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>one\n<ul>\n<li>odd</li>\n</ul>\n</li>\n<li>two</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-004",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- one\n   - odd\n- two\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-005",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- one\n      - jump\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>one\n<ul>\n<li>jump</li>\n</ul>\n</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-006",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- one\n      - jump\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-007",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "  - lonely\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>lonely</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-008",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "  - lonely\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-009",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- a\n- b\n  - c\n  - d\n- e\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>a</li>\n<li>b\n<ul>\n<li>c</li>\n<li>d</li>\n</ul>\n</li>\n<li>e</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-010",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- a\n- b\n  - c\n  - d\n- e\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-011",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- a\n  - b\n- c\n  - d\n    - e\n  - f\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>a\n<ul>\n<li>b</li>\n</ul>\n</li>\n<li>c\n<ul>\n<li>d\n<ul>\n<li>e</li>\n</ul>\n</li>\n<li>f</li>\n</ul>\n</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-012",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- a\n  - b\n- c\n  - d\n    - e\n  - f\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-013",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- a\n\n  - b\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>a</li>\n</ul>\n<ul>\n<li>b</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-014",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- a\n\n  - b\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-015",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "text\n- not an item\n",
+  "exitCode": 0,
+  "stdout": "<p>text\n- not an item</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-016",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "text\n- not an item\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-017",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "see [Home][home] and [Docs][] and [x][nope]\n",
+  "exitCode": 0,
+  "stdout": "<p>see <a href=\"https://example.test/\">Home</a> and <a href=\"https://example.test/docs\">Docs</a> and [x][nope]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-018",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "see [Home][home] and [Docs][] and [x][nope]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-019",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[two   WORDS][]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"https://example.test/two?a=1&amp;b=2\">two   WORDS</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-020",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[two   WORDS][]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-021",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[q][quote]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"https://example.test/&quot;q&quot;\">q</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-022",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[q][quote]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-023",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "<p>see <a href=\"/l\">it</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-024",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nlocal /l document\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-025",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[Local]:    /l\n[other]: /o\n\n[a][local] [b][OTHER]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"/l\">a</a> <a href=\"/o\">b</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-026",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[Local]:    /l\n[other]: /o\n\n[a][local] [b][OTHER]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nlocal /l document\nother /o document\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-027",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "text\n[a]: /a\nmore\n",
+  "exitCode": 0,
+  "stdout": "<p>text</p>\n<p>more</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-028",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "text\n[a]: /a\nmore\n",
+  "exitCode": 0,
+  "stdout": "a /a document\ndocs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-029",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[home]: /x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-030",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[home]: /x\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-031",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[home]: /x\n[home]: /y\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-032",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[home]: /x\n[home]: /y\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-033",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[]: /x\n",
+  "exitCode": 0,
+  "stdout": "<p>[]: /x</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-034",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[]: /x\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-035",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[a]:\n",
+  "exitCode": 0,
+  "stdout": "<p>[a]:</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-036",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[a]:\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-037",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[a]: \n",
+  "exitCode": 0,
+  "stdout": "<p>[a]:</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-038",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[a]: \n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-039",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[*em*][home]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"https://example.test/\"><em>em</em></a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-040",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[*em*][home]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-041",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[`code`][home]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"https://example.test/\"><code>code</code></a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-042",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[`code`][home]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-043",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[a\\]b][home]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"https://example.test/\">a]b</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-044",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[a\\]b][home]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-045",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[nope][]\n",
+  "exitCode": 0,
+  "stdout": "<p>[nope][]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-046",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[nope][]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-047",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[home][home][home]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"https://example.test/\">home</a>[home]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-048",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[home][home][home]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-049",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "```html\n<b>&amp;</b>\n```\n",
+  "exitCode": 0,
+  "stdout": "<pre><code class=\"language-html\">&lt;b&gt;&amp;amp;&lt;/b&gt;\n</code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-050",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "```html\n<b>&amp;</b>\n```\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-051",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "```h<i>\na\n```\n",
+  "exitCode": 0,
+  "stdout": "<pre><code class=\"language-h&lt;i&gt;\">a\n</code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-052",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "```h<i>\na\n```\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-053",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "```  js  extra\nx\n```\n",
+  "exitCode": 0,
+  "stdout": "<pre><code class=\"language-js\">x\n</code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-054",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "```  js  extra\nx\n```\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-055",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "```\n<a href=\"x\">&\n```\n",
+  "exitCode": 0,
+  "stdout": "<pre><code>&lt;a href=\"x\"&gt;&amp;\n</code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-056",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "```\n<a href=\"x\">&\n```\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-057",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "```\n```\n",
+  "exitCode": 0,
+  "stdout": "<pre><code></code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-058",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "```\n```\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-059",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "````\n```\n````\n",
+  "exitCode": 0,
+  "stdout": "<pre><code>```\n</code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-060",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "````\n```\n````\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-061",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "# A & B\n\n- <b>\n\n> quoted\n",
+  "exitCode": 0,
+  "stdout": "<h1>A &amp; B</h1>\n<ul>\n<li>&lt;b&gt;</li>\n</ul>\n<p>&gt; quoted</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-062",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "# A & B\n\n- <b>\n\n> quoted\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-063",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "- [Home][home]\n  - [Docs][]\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li><a href=\"https://example.test/\">Home</a>\n<ul>\n<li><a href=\"https://example.test/docs\">Docs</a></li>\n</ul>\n</li>\n</ul>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-064",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "- [Home][home]\n  - [Docs][]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-065",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "# [Home][home]\n",
+  "exitCode": 0,
+  "stdout": "<h1><a href=\"https://example.test/\">Home</a></h1>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-066",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "# [Home][home]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-067",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-068",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-069",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "# only\n",
+  "exitCode": 0,
+  "stdout": "<h1>only</h1>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-070",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "# only\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-071",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "a\nb\n\n- c\n  - d\n\n```\ne\n```\n",
+  "exitCode": 0,
+  "stdout": "<p>a\nb</p>\n<ul>\n<li>c\n<ul>\n<li>d</li>\n</ul>\n</li>\n</ul>\n<pre><code>e\n</code></pre>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-072",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "a\nb\n\n- c\n  - d\n\n```\ne\n```\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-073",
+  "weight": 3,
+  "argv": [
+   "html"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "<p>see <a href=\"/l\">it</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-074",
+  "weight": 3,
+  "argv": [
+   "outline"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-075",
+  "weight": 3,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "local /l document\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-076",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "<p>see <a href=\"/l\">it</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-077",
+  "weight": 3,
+  "argv": [
+   "outline",
+   "data/site.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-078",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nlocal /l document\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 5\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-079",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "<p>see <a href=\"/l\">it</a></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-080",
+  "weight": 3,
+  "argv": [
+   "outline",
+   "data/empty.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-081",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 0,
+  "stdout": "local /l document\ntotal 1\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-082",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/bad.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad.links: line 2: expected [label]: <url>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-083",
+  "weight": 3,
+  "argv": [
+   "outline",
+   "data/bad.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad.links: line 2: expected [label]: <url>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-084",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/bad.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/bad.links: line 2: expected [label]: <url>\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-085",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/twice.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/twice.links: line 2: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-086",
+  "weight": 3,
+  "argv": [
+   "outline",
+   "data/twice.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/twice.links: line 2: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-087",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/twice.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: data/twice.links: line 2: label home is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-088",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/nope.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read definitions data/nope.links\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-089",
+  "weight": 3,
+  "argv": [
+   "outline",
+   "data/nope.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read definitions data/nope.links\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-090",
+  "weight": 3,
+  "argv": [
+   "defs",
+   "data/nope.links"
+  ],
+  "stdin": "[Local]: /l\n\nsee [it][local]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: cannot read definitions data/nope.links\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-091",
+  "weight": 3,
+  "argv": [],
+  "stdin": "- one\n  - inner\n    - deeper\n- two\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js html|outline|defs [<definitions>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-092",
+  "weight": 3,
+  "argv": [
+   "render"
+  ],
+  "stdin": "- one\n  - inner\n    - deeper\n- two\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js html|outline|defs [<definitions>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-093",
+  "weight": 3,
+  "argv": [
+   "html",
+   "data/site.links",
+   "x"
+  ],
+  "stdin": "- one\n  - inner\n    - deeper\n- two\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js html|outline|defs [<definitions>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "corner-094",
+  "weight": 3,
+  "argv": [
+   "HTML"
+  ],
+  "stdin": "- one\n  - inner\n    - deeper\n- two\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: usage: cli.js html|outline|defs [<definitions>]\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-095",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "## Sub\n## Sub\na & b < c\n[gone][]\n[gone][]\n```js\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 6: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-096",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "*em* **strong** `code`\nplain text\n- item\n[gone][]\n[label]: /url\n",
+  "exitCode": 0,
+  "stdout": "<p><em>em</em> <strong>strong</strong> <code>code</code>\nplain text\n- item\n[gone][]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-097",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/site.links"
+  ],
+  "stdin": "# Head\n[Other]: /other\na & b < c\n\nplain text\na & b < c\n*em* **strong** `code`\n",
+  "exitCode": 0,
+  "stdout": "1 Head\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-098",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[label]: /url\nplain text\na & b < c\n",
+  "exitCode": 0,
+  "stdout": "<p>plain text\na &amp; b &lt; c</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-099",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "- item\n[gone][]\n  - nested\n```\n[label]: /url\n# Head\n\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-100",
+  "weight": 1,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "    - deep\n<b>tag</b>\n- item\n```js\na & b < c\n<b>tag</b>\n## Sub\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-101",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "- item\n```js\n*em* **strong** `code`\n[x](y)\n- item\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-102",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "[Other]: /other\na & b < c\n## Sub\n## Sub\n<b>tag</b>\n",
+  "exitCode": 0,
+  "stdout": "<p>a &amp; b &lt; c</p>\n<h2>Sub</h2>\n<h2>Sub</h2>\n<p>&lt;b&gt;tag&lt;/b&gt;</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-103",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[gone][]\n- item\na & b < c\n",
+  "exitCode": 0,
+  "stdout": "<p>[gone][]\n- item\na &amp; b &lt; c</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-104",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "a & b < c\n- item\n  - nested\n",
+  "exitCode": 0,
+  "stdout": "<p>a &amp; b &lt; c\n- item\n- nested</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-105",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[label]: /url\n[label]: /url\n# Head\n[label]: /url\nplain text\n[Home][home]\n```\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: label label is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-106",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/site.links"
+  ],
+  "stdin": "a & b < c\n[Home][home]\n# Head\n  - nested\n- item\n",
+  "exitCode": 0,
+  "stdout": "1 Head\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-107",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/empty.links"
+  ],
+  "stdin": "  - nested\n  - nested\n[Other]: /other\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-108",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "plain text\n[Home][home]\n\\[escaped\\]\n[gone][]\n\\[escaped\\]\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-109",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "plain text\na & b < c\n## Sub\n```\n```js\n# Head\n[x](y)\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-110",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "## Sub\n<b>tag</b>\n<b>tag</b>\na & b < c\n```\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 5: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-111",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "a & b < c\na & b < c\n```js\n- item\n\\[escaped\\]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-112",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "[x](y)\n# Head\n[Home][home]\n  - nested\n[Home][home]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"y\">x</a></p>\n<h1>Head</h1>\n<p>[Home][home]\n- nested\n[Home][home]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-113",
+  "weight": 1,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "[x](y)\n```\n```js\n```js\n# Head\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-114",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "# Head\n[Home][home]\n```js\n<b>tag</b>\n# Head\n## Sub\n\\[escaped\\]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-115",
+  "weight": 1,
+  "argv": [
+   "outline"
+  ],
+  "stdin": "- item\n\\[escaped\\]\n# Head\n",
+  "exitCode": 0,
+  "stdout": "1 Head\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-116",
+  "weight": 1,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "*em* **strong** `code`\n[gone][]\n# Head\n\n# Head\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-117",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[x](y)\n# Head\n\n[Docs][]\n[x](y)\n[Docs][]\n[Home][home]\n",
+  "exitCode": 0,
+  "stdout": "<p><a href=\"y\">x</a></p>\n<h1>Head</h1>\n<p>[Docs][]\n<a href=\"y\">x</a>\n[Docs][]\n[Home][home]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-118",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "```\n*em* **strong** `code`\n\n[label]: /url\n[label]: /url\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-119",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "\n*em* **strong** `code`\n## Sub\n\\[escaped\\]\n\n# Head\n*em* **strong** `code`\n",
+  "exitCode": 0,
+  "stdout": "<p><em>em</em> <strong>strong</strong> <code>code</code></p>\n<h2>Sub</h2>\n<p>[escaped]</p>\n<h1>Head</h1>\n<p><em>em</em> <strong>strong</strong> <code>code</code></p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-120",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "```\nplain text\n# Head\n\n[gone][]\n\\[escaped\\]\n[Other]: /other\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-121",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[x](y)\n[label]: /url\n```js\n[gone][]\n    - deep\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-122",
+  "weight": 1,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "  - nested\n[x](y)\n[x](y)\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-123",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "  - nested\n[Home][home]\n[gone][]\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>nested</li>\n</ul>\n<p>[Home][home]\n[gone][]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-124",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[Other]: /other\n```js\n\\[escaped\\]\n```js\n```\n[Other]: /other\n[Home][home]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 6: label other is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-125",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "[gone][]\n\\[escaped\\]\n[Home][home]\n\\[escaped\\]\n[Home][home]\n\\[escaped\\]\n[Docs][]\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-126",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/site.links"
+  ],
+  "stdin": "## Sub\n  - nested\nplain text\n  - nested\n<b>tag</b>\n",
+  "exitCode": 0,
+  "stdout": "2 Sub\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-127",
+  "weight": 1,
+  "argv": [
+   "outline"
+  ],
+  "stdin": "[Docs][]\n    - deep\n    - deep\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-128",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "```\n<b>tag</b>\n[Docs][]\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-129",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "    - deep\na & b < c\n[label]: /url\n```\n\n\n  - nested\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-130",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "  - nested\n  - nested\n# Head\n- item\n# Head\n[Docs][]\n\\[escaped\\]\n",
+  "exitCode": 0,
+  "stdout": "<ul>\n<li>nested\n<ul>\n<li>nested</li>\n</ul>\n</li>\n</ul>\n<h1>Head</h1>\n<ul>\n<li>item</li>\n</ul>\n<h1>Head</h1>\n<p>[Docs][]\n[escaped]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-131",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "[x](y)\n[x](y)\n```\n[x](y)\na & b < c\n    - deep\n*em* **strong** `code`\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-132",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[x](y)\n*em* **strong** `code`\n[Home][home]\n```js\n[gone][]\n[label]: /url\n\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-133",
+  "weight": 1,
+  "argv": [
+   "outline"
+  ],
+  "stdin": "*em* **strong** `code`\n# Head\n\\[escaped\\]\n```\n## Sub\n```js\n```js\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-134",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "[Home][home]\n[Home][home]\n[Home][home]\na & b < c\n[Docs][]\n",
+  "exitCode": 0,
+  "stdout": "<p>[Home][home]\n[Home][home]\n[Home][home]\na &amp; b &lt; c\n[Docs][]</p>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-135",
+  "weight": 1,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "[gone][]\n  - nested\n\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-136",
+  "weight": 1,
+  "argv": [
+   "defs"
+  ],
+  "stdin": "[Home][home]\n[Docs][]\n# Head\n  - nested\n[Docs][]\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-137",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "plain text\n  - nested\n[Home][home]\n  - nested\n\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-138",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "plain text\n```js\n[x](y)\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-139",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/site.links"
+  ],
+  "stdin": "*em* **strong** `code`\n[label]: /url\n- item\n[x](y)\n- item\n[Other]: /other\n## Sub\n",
+  "exitCode": 0,
+  "stdout": "<p><em>em</em> <strong>strong</strong> <code>code</code></p>\n<ul>\n<li>item</li>\n</ul>\n<p><a href=\"y\">x</a>\n- item</p>\n<h2>Sub</h2>\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-140",
+  "weight": 1,
+  "argv": [
+   "outline"
+  ],
+  "stdin": "\\[escaped\\]\n[Docs][]\n```\n[Home][home]\na & b < c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-141",
+  "weight": 1,
+  "argv": [
+   "html"
+  ],
+  "stdin": "*em* **strong** `code`\n```\n## Sub\n[x](y)\n    - deep\n[Home][home]\n    - deep\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 2: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-142",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/site.links"
+  ],
+  "stdin": "plain text\n  - nested\n  - nested\n",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-143",
+  "weight": 1,
+  "argv": [
+   "html",
+   "data/empty.links"
+  ],
+  "stdin": "a & b < c\n[label]: /url\n[label]: /url\n```js\na & b < c\n## Sub\n\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 3: label label is defined twice\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-144",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "[Other]: /other\na & b < c\n## Sub\n\n[label]: /url\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nlabel /url document\nother /other document\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 6\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-145",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/empty.links"
+  ],
+  "stdin": "\\[escaped\\]\n[x](y)\n*em* **strong** `code`\n## Sub\nplain text\n[Docs][]\n\n",
+  "exitCode": 0,
+  "stdout": "total 0\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-146",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "```\n```js\n[Home][home]\n[Other]: /other\n# Head\nplain text\n[label]: /url\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 1: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-147",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "<b>tag</b>\n[Home][home]\n\n```\n<b>tag</b>\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 4: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-148",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/empty.links"
+  ],
+  "stdin": "plain text\n# Head\nplain text\n",
+  "exitCode": 0,
+  "stdout": "1 Head\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-149",
+  "weight": 1,
+  "argv": [
+   "outline",
+   "data/site.links"
+  ],
+  "stdin": "- item\n[x](y)\n\\[escaped\\]\n\\[escaped\\]\n```js\n[x](y)\na & b < c\n",
+  "exitCode": 2,
+  "stdout": "",
+  "stderr": "error: line 5: unterminated code fence\n",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ },
+ {
+  "id": "seeded-150",
+  "weight": 1,
+  "argv": [
+   "defs",
+   "data/site.links"
+  ],
+  "stdin": "## Sub\n\n<b>tag</b>\n",
+  "exitCode": 0,
+  "stdout": "docs https://example.test/docs file\nhome https://example.test/ file\nquote https://example.test/\"q\" file\ntwo words https://example.test/two?a=1&b=2 file\ntotal 4\n",
+  "stderr": "",
+  "channels": [
+   "exit",
+   "stdout",
+   "stderr"
+  ]
+ }
+]
