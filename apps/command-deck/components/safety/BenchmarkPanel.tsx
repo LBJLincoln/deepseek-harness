@@ -121,7 +121,10 @@ function IterationCard({ iteration, known }: { iteration: ComparisonIteration; k
       style={{ fontSize: 12, lineHeight: 1.5, padding: '8px 10px', marginBottom: 8, borderLeft: '2px solid #4fd1c5', background: 'rgba(255,255,255,0.03)' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontWeight: 600 }}>Iteration {iteration.id} · {iteration.ran}</span>
+        <span style={{ fontWeight: 600 }}>
+          Iteration {iteration.id} · {iteration.ran}
+          {iteration.pair !== undefined ? ` · pair ${iteration.pair}, ${iteration.arm ?? 'arm'}` : ''}
+        </span>
         <span className="mono" style={{ opacity: 0.8 }}>{iteration.found}/{known} · {iteration.findings} findings · {iteration.wall} · {iteration.verified ? 'verified' : 'unverified'}</span>
       </div>
       <div style={{ opacity: 0.85 }}>{iteration.change}</div>

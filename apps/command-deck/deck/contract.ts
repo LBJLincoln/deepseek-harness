@@ -272,6 +272,10 @@ export interface ComparisonIteration {
   targets: string[]
   decision: string
   reading: string
+  /** The pair this run belongs to, when the iteration was read as a pair of arms rather than one run. */
+  pair?: string
+  /** The arm the run took inside its pair, e.g. `with` or `without`. */
+  arm?: string
   found: number
   recall: number
   findings: number
