@@ -50,7 +50,9 @@ Playback replays a recorded run against its own clock. The transport in the Work
 
 While a review runs, every file a department opens flares on its own building in that department's colour and fades over about two and a half seconds, with a short pulse running up the tower; the file then keeps a faint tint of that colour, so the city fills in as the review reads it, and the panel counts `N of 111 files opened` from the same resolution, a tool event's paths matched against the target's inventory by longest path suffix (on the recorded NodeGoat review that resolves 124 of 634 tool events to 51 of the 111 files). A review that starts while the deck is watching opens on an eight-second launch sequence in which the six departments ignite one after another with what each one reads the code for. A review that reaches its certificate while the deck is watching plays a ten-second verdict, CERTIFIED or NOT CERTIFIED, with the departments that certified, the examiner the certificate names and its severity counts, over a ground ring that travels out from the city centre and bursts each beacon as it passes; a review loaded in its final state plays neither, because nothing happened while anyone was watching. Under `prefers-reduced-motion: reduce` the city holds a steady highlight on the last file touched alone, the launch sequence is one static card, and the verdict is the card without the ring or the burst. The six departments are one colour everywhere: the process lanes and the city's read trail both take it from the palette.
 
-![The enterprise view: 147 seats in ten division clusters](docs/enterprise.png)
+![The enterprise view: 147 seats defined, 19 occupied by recorded sessions, the rest dim](docs/enterprise.png)
+
+![The Record tab: one program run with its departments, certificates and sign-off chain](docs/record.png)
 
 ![The process view: departments, verification, judging and integration](docs/process.png)
 
