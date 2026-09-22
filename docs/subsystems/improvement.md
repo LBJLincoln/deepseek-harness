@@ -290,10 +290,14 @@ interface ExperimentResult {
   readonly errors: readonly ExperimentCellError[]
   /** Paired repetition indexes over every environment; the bootstrap's units. */
   readonly seedsPaired: number
+  /** Paired repetitions whose two arms disagree on the certificate; only these move `delta`. */
+  readonly discordantPairs: number
   /** Certificate-rate delta over every paired repetition, `0` without pairs. */
   readonly delta: number
   /** Bootstrap interval of `delta`, absent without pairs; the verdict reads it. */
   readonly interval?: ConfidenceInterval
+  /** The method that read the paired deltas into `interval` and `verdict`. */
+  readonly statistic: ExperimentStatistic
   /** Model usage of both arms together. */
   readonly spend: ExperimentSpend
   /** Thresholds the digest froze, restated so a stored result is readable alone. */
@@ -307,6 +311,8 @@ interface ExperimentResult {
    */
   readonly caps: readonly BudgetCap[]
   readonly verdict: ExperimentVerdict
+  /** What decided `verdict`, so a stored result states why it is `inconclusive`. */
+  readonly verdictBasis: ExperimentVerdictBasis
 }
 ```
 
@@ -748,8 +754,9 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
  *   abort signal, and result sink.
  * @returns the digest, both arms with their ladders, presets, and stamp
  *   groups, one cell per environment, every cell an arm kept as an error, the
- *   pooled delta with its interval, the spend, the caps both arms ran under,
- *   and the verdict.
+ *   pooled delta with its interval and the statistic that drew it, the
+ *   discordant pairs, the spend, the caps both arms ran under, and the
+ *   verdict with what decided it.
  * @throws {@link ExperimentError} for a plan that names no or a duplicate or
  *   unregistered environment, asks for no repetition, sets a seed that is not
  *   a safe non-negative integer, carries an arm ladder with no rung or one
@@ -765,7 +772,7 @@ Experiments (`ctx.experiments`): a frozen, paired, budgeted comparison of two ar
 async run(plan: ExperimentPlan): Promise<ExperimentResult>
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:130`](../../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:139`](../../packages/improvement/experiments/src/index.ts)
 
 <a id="ctxfleet--fleetservice"></a>
 

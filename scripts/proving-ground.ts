@@ -305,6 +305,16 @@ const EXPERIMENT_VERDICTS = ['promote', 'reject', 'inconclusive'] as const
 /** One frozen paired experiment's verdict, read from its record. */
 export type ExperimentVerdict = typeof EXPERIMENT_VERDICTS[number]
 
+/** The statistics the experiments service names in a recorded `result.json`. */
+const EXPERIMENT_STATISTICS = ['paired-bootstrap/0', 'paired-cluster-bootstrap/1'] as const
+
+/**
+ * The method that read one frozen pair's paired deltas into its interval and
+ * verdict. A recorded result that names none was written before results named
+ * theirs, by `paired-bootstrap/0`.
+ */
+export type ExperimentStatistic = typeof EXPERIMENT_STATISTICS[number]
+
 /** Whether one loop iteration produced a record. */
 export type LedgerOutcome = 'recorded' | 'failed'
 
@@ -354,6 +364,8 @@ export interface RecordedReading {
   readonly verdict: ExperimentVerdict | null
   readonly delta: number | null
   readonly interval: LedgerInterval | null
+  /** The statistic that read the interval and the verdict, `null` for a fleet. */
+  readonly statistic: ExperimentStatistic | null
   readonly certified: readonly LedgerArm[]
   readonly elapsedSeconds: number | null
 }
@@ -384,6 +396,8 @@ export interface LedgerLine {
   readonly verdict: ExperimentVerdict | null
   readonly delta: number | null
   readonly interval: LedgerInterval | null
+  /** The statistic that read the interval and the verdict, `null` for a fleet and a failed iteration. */
+  readonly statistic: ExperimentStatistic | null
   readonly certified: readonly LedgerArm[]
   readonly decision: LoopDecision
   readonly elapsedSeconds: number | null
@@ -414,6 +428,7 @@ export function buildLedgerLine(identity: IterationIdentity, outcome: IterationO
     verdict,
     delta: reading?.delta ?? null,
     interval: reading?.interval ?? null,
+    statistic: reading?.statistic ?? null,
     certified: reading?.certified ?? [],
     decision: decideIteration(outcome.kind, verdict),
     elapsedSeconds: reading?.elapsedSeconds ?? null,
@@ -437,6 +452,7 @@ interface RecordedResult {
     readonly verdict?: string
     readonly delta?: number
     readonly interval?: LedgerInterval
+    readonly statistic?: string
     readonly cells?: readonly { readonly pairs?: number; readonly baselineRate?: number; readonly candidateRate?: number }[]
   }
   readonly report?: {
@@ -453,7 +469,14 @@ function isExperimentVerdict(value: string | undefined): value is ExperimentVerd
   return EXPERIMENT_VERDICTS.some(known => known === value)
 }
 
-/** A frozen pair's reading: the verdict rule's own three numbers, and each arm's certificates over the paired cells. */
+function isExperimentStatistic(value: string): value is ExperimentStatistic {
+  return EXPERIMENT_STATISTICS.some(known => known === value)
+}
+
+/**
+ * A frozen pair's reading: the verdict rule's own three numbers, the statistic
+ * that produced them, and each arm's certificates over the paired cells.
+ */
 function experimentReading(
   record: string,
   experiment: NonNullable<RecordedResult['result']>,
@@ -466,6 +489,10 @@ function experimentReading(
   if (typeof delta !== 'number' || interval === undefined) {
     throw new Error(`record ${record} carries a verdict without a delta and an interval`)
   }
+  const statistic = experiment.statistic ?? 'paired-bootstrap/0'
+  if (!isExperimentStatistic(statistic)) {
+    throw new Error(`record ${record} carries the unknown statistic ${JSON.stringify(statistic)}`)
+  }
   const cells = experiment.cells ?? []
   const pairs = cells.reduce((total, cell) => total + (cell.pairs ?? 0), 0)
   const certificates = (rate: 'baselineRate' | 'candidateRate'): number =>
@@ -475,6 +502,7 @@ function experimentReading(
     verdict: experiment.verdict,
     delta,
     interval,
+    statistic,
     certified: [
       { arm: 'baseline', certified: certificates('baselineRate'), cells: pairs },
       { arm: 'candidate', certified: certificates('candidateRate'), cells: pairs },
@@ -503,16 +531,18 @@ function fleetReading(
     verdict: null,
     delta: null,
     interval: null,
+    statistic: null,
     certified: [...arms].map(([arm, totals]) => ({ arm, ...totals })),
     elapsedSeconds,
   }
 }
 
 /**
- * Read one record's own numbers: an experiment's verdict, paired delta, interval,
- * and per-arm certificates from its result cells, a fleet's certificates from its
- * leaderboard, and the elapsed seconds its manifest carries. Nothing is measured
- * here — the ledger states what the record states.
+ * Read one record's own numbers: an experiment's verdict, paired delta,
+ * interval, the statistic that read them (`paired-bootstrap/0` for a result that
+ * names none), and per-arm certificates from its result cells, a fleet's
+ * certificates from its leaderboard, and the elapsed seconds its manifest
+ * carries. Nothing is measured here — the ledger states what the record states.
  * @param recordDir - the record directory under `data/proving-ground/`.
  * @param record - that directory's name.
  * @returns the reading the ledger line carries.

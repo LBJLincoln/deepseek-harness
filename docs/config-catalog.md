@@ -783,6 +783,12 @@ export interface Config {
   confidenceLevel?: number
   /** Certificate-rate delta the overall interval's lower bound must exceed to promote. */
   minimumDelta?: number
+  /**
+   * Paired repetitions whose arms disagree on the certificate that a `promote`
+   * or `reject` verdict needs; fewer holds the verdict at `inconclusive`, and
+   * `0` never does.
+   */
+  minimumDiscordantPairs?: number
   /** Tokens one cell may spend; the plan's projection multiplies it by every cell of both arms. */
   cellTokenCap: number
   /** Tokens one plan's projection may reach; a plan projecting more is refused before it starts. */
@@ -790,7 +796,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/experiments/src/index.ts:91`](../packages/improvement/experiments/src/index.ts)
+Source: [`packages/improvement/experiments/src/index.ts:93`](../packages/improvement/experiments/src/index.ts)
 
 <a id="deepseek-aidsh-fleet"></a>
 

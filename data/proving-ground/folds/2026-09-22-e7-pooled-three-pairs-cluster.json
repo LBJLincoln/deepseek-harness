@@ -1,0 +1,209 @@
+{
+  "type": "offline-fold",
+  "reading": "pooled-reread",
+  "plan": "e7-attempts-5-t5",
+  "baseline": "e7-attempts-5-t5 baseline: 3-rung ladder",
+  "candidate": "e7-attempts-5-t5 candidate: 5-rung ladder",
+  "records": [
+    {
+      "record": "2026-09-19-bench-e7-attempts-5-t5",
+      "digest": "45de02dfae11cd503156ca98c0974748300ee20da5b778432cbcd3843cfb2ada",
+      "statistic": "paired-bootstrap/0",
+      "delta": 0.0625,
+      "interval": {
+        "lower": -0.125,
+        "upper": 0.25
+      },
+      "verdict": "inconclusive",
+      "discordantPairs": 3,
+      "certified": [
+        {
+          "arm": "baseline",
+          "certified": 14,
+          "cells": 16
+        },
+        {
+          "arm": "candidate",
+          "certified": 15,
+          "cells": 16
+        }
+      ]
+    },
+    {
+      "record": "2026-09-19-bench-e7-attempts-5-t5-2",
+      "digest": "d4db7d72b63d2081d7454c70fd4abce2aba4759a0c856303a95993224ce29e46",
+      "statistic": "paired-bootstrap/0",
+      "delta": -0.0625,
+      "interval": {
+        "lower": -0.125,
+        "upper": 0
+      },
+      "verdict": "inconclusive",
+      "discordantPairs": 1,
+      "certified": [
+        {
+          "arm": "baseline",
+          "certified": 15,
+          "cells": 16
+        },
+        {
+          "arm": "candidate",
+          "certified": 14,
+          "cells": 16
+        }
+      ]
+    },
+    {
+      "record": "2026-09-21-bench-e7-attempts-5-t5",
+      "digest": "d4db7d72b63d2081d7454c70fd4abce2aba4759a0c856303a95993224ce29e46",
+      "statistic": "paired-bootstrap/0",
+      "delta": 0.125,
+      "interval": {
+        "lower": 0.125,
+        "upper": 0.125
+      },
+      "verdict": "promote",
+      "discordantPairs": 2,
+      "certified": [
+        {
+          "arm": "baseline",
+          "certified": 12,
+          "cells": 16
+        },
+        {
+          "arm": "candidate",
+          "certified": 14,
+          "cells": 16
+        }
+      ]
+    }
+  ],
+  "environments": [
+    "code:build-schedule",
+    "code:conf-canon",
+    "code:diff3-merge",
+    "code:lex-states",
+    "code:ranked-choice",
+    "code:rate-limit-sim",
+    "code:sheet-eval",
+    "code:uri-resolve"
+  ],
+  "repetitions": 6,
+  "thresholds": {
+    "bootstrapResamples": 2000,
+    "confidenceLevel": 0.95,
+    "minimumDelta": 0.05,
+    "minimumDiscordantPairs": 2,
+    "cellTokenCap": 600000
+  },
+  "result": {
+    "digest": "2cabb8028db6072720896b504c79885e9b91a4b919d4e40f02f0aca4b1a5d34a",
+    "cells": [
+      {
+        "environment": "code:build-schedule",
+        "pairs": 6,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        }
+      },
+      {
+        "environment": "code:conf-canon",
+        "pairs": 6,
+        "baselineRate": 0.5,
+        "candidateRate": 1,
+        "delta": 0.5,
+        "interval": {
+          "lower": 0.16666666666666666,
+          "upper": 0.8333333333333334
+        }
+      },
+      {
+        "environment": "code:diff3-merge",
+        "pairs": 6,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        }
+      },
+      {
+        "environment": "code:lex-states",
+        "pairs": 6,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        }
+      },
+      {
+        "environment": "code:ranked-choice",
+        "pairs": 6,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        }
+      },
+      {
+        "environment": "code:rate-limit-sim",
+        "pairs": 6,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        }
+      },
+      {
+        "environment": "code:sheet-eval",
+        "pairs": 6,
+        "baselineRate": 0.3333333333333333,
+        "candidateRate": 0.16666666666666666,
+        "delta": -0.16666666666666666,
+        "interval": {
+          "lower": -0.6666666666666666,
+          "upper": 0.3333333333333333
+        }
+      },
+      {
+        "environment": "code:uri-resolve",
+        "pairs": 6,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        }
+      }
+    ],
+    "seedsPaired": 48,
+    "discordantPairs": 6,
+    "delta": 0.041666666666666664,
+    "interval": {
+      "lower": -0.08333333333333333,
+      "upper": 0.1875
+    },
+    "statistic": "paired-cluster-bootstrap/1",
+    "thresholds": {
+      "bootstrapResamples": 2000,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0.05,
+      "minimumDiscordantPairs": 2,
+      "cellTokenCap": 600000
+    },
+    "verdict": "inconclusive",
+    "verdictBasis": "interval"
+  }
+}

@@ -274,15 +274,17 @@ footer{max-width:80rem;margin:3rem auto 0;color:var(--muted);font-size:.8rem}
   if (D.loop.length) {
     $('loop-section').hidden = false
     const reading = (l) => l.delta === null ? '–' : `${signed(l.delta)}${l.interval ? ` [${signed(l.interval.lower)}, ${signed(l.interval.upper)}]` : ''}`
+    // A verdict on a line written before the ledger named its statistic was read by paired-bootstrap/0.
+    const statistic = (l) => l.verdict === null ? '' : ` <span class="tag">${esc(l.statistic ?? 'paired-bootstrap/0')}</span>`
     const arms = (l) => l.certified.map(a => `${esc(a.arm)} ${a.certified}/${a.cells}`).join(' · ') || '–'
     const source = (l) => l.record === null
       ? `<span class="badge-running">${esc(l.reason ?? 'failed')}</span>`
       : `<a href="${esc(linkRecord(l.record))}">${esc(l.record)}</a>${l.outcome === 'failed' ? ` <span class="tag">${esc(l.reason ?? 'failed')}</span>` : ''}`
     $('loop').innerHTML = '<thead><tr><th>ran</th><th>queue</th><th>plan</th><th>overlay</th><th>kind</th><th>certified</th>'
-      + '<th class="num">delta [interval]</th><th>verdict</th><th>decision</th><th class="num">wall</th><th>record</th></tr></thead><tbody>'
+      + '<th class="num">delta [interval] statistic</th><th>verdict</th><th>decision</th><th class="num">wall</th><th>record</th></tr></thead><tbody>'
       + D.loop.map(l => `<tr><td>${esc(when(l.ranAt))}</td><td>${esc(l.queue)} <span class="tag">${l.index}</span></td><td>${esc(l.plan)}</td>`
         + `<td>${esc(l.overlay ?? 'base')}</td><td><span class="kind" data-kind="${esc(l.kind)}">${esc(l.kind)}</span></td>`
-        + `<td>${arms(l)}</td><td class="num">${esc(reading(l))}</td>`
+        + `<td>${arms(l)}</td><td class="num">${esc(reading(l))}${statistic(l)}</td>`
         + `<td>${l.verdict ? `<span class="pill ${esc(l.verdict)}">${esc(l.verdict)}</span>` : ''}</td>`
         + `<td>${esc(l.decision)}</td><td class="num">${secs(l.elapsedSeconds)}</td><td>${source(l)}</td></tr>`).join('')
       + '</tbody>'

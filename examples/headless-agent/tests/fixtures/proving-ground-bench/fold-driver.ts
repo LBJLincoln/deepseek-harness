@@ -10,9 +10,11 @@
  * Both status files come from `fleet-driver.ts` and must cover the same
  * environments at the same repetition count. The digest that seeds the
  * bootstrap is derived from the two plan names and the cell set, so the same
- * pair of reports folds to the same interval in any process. The result is
- * labelled `offline` because the arms were not frozen together before running:
- * it is evidence for a hypothesis, never a promotion.
+ * pair of reports folds to the same interval in any process. The verdict holds
+ * at `inconclusive` below two discordant pairs, the experiments service's
+ * default minimum. The result is labelled `offline` because the arms were not
+ * frozen together before running: it is evidence for a hypothesis, never a
+ * promotion.
  */
 
 import { createHash } from 'node:crypto'
@@ -54,6 +56,7 @@ const thresholds = {
   bootstrapResamples: resamplesArg === undefined ? 2000 : Number(resamplesArg),
   confidenceLevel: 0.95,
   minimumDelta: minimumDeltaArg === undefined ? 0.05 : Number(minimumDeltaArg),
+  minimumDiscordantPairs: 2,
   cellTokenCap: 600000,
 }
 const result = foldExperiment({

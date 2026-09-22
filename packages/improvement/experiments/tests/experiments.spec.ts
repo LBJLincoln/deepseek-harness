@@ -14,6 +14,7 @@ import ExperimentService, {
   describeCaps,
   EXPERIMENT_ARM_ROLES,
   EXPERIMENT_GROUP_PREFIX,
+  EXPERIMENT_STATISTIC,
   ExperimentError,
   experimentGroup,
   foldExperiment,
@@ -270,9 +271,14 @@ describe('ExperimentService', () => {
     expect(plans.map(fleet => fleet.models)).toEqual([[BASELINE], [BASELINE]])
 
     expect(result.seedsPaired).toBe(4)
+    expect(result.discordantPairs).toBe(0)
     expect(result.delta).toBe(0)
     expect(result.interval).toEqual({ lower: 0, upper: 0 })
+    expect(result.statistic).toBe(EXPERIMENT_STATISTIC)
+    expect(result.statistic).toBe('paired-cluster-bootstrap/1')
+    // Identical arms disagree nowhere, so no interval could decide the verdict.
     expect(result.verdict).toBe('inconclusive')
+    expect(result.verdictBasis).toBe('too-few-discordant-pairs')
     const shared = { pairs: 2, unpaired: 0, baselineRate: 1, candidateRate: 1, delta: 0, interval: { lower: 0, upper: 0 } }
     const zeroDeltas = { attemptsDelta: 0, inputTokenDelta: 0, outputTokenDelta: 0 }
     expect(result.cells).toEqual([
@@ -280,7 +286,13 @@ describe('ExperimentService', () => {
       { environment: UNSATISFIABLE, ...shared, ...zeroDeltas },
     ])
     expect(result.spend).toEqual({ inputTokens: 0, outputTokens: 0 })
-    expect(result.thresholds).toEqual({ bootstrapResamples: 1000, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 1000 })
+    expect(result.thresholds).toEqual({
+      bootstrapResamples: 1000,
+      confidenceLevel: 0.95,
+      minimumDelta: 0,
+      minimumDiscordantPairs: 2,
+      cellTokenCap: 1000,
+    })
   })
 
   it('runs both arms as one paired fleet run and folds what two separate reports fold to', async () => {
@@ -336,30 +348,54 @@ describe('ExperimentService', () => {
     expect(result.spend).toEqual({ inputTokens: 200, outputTokens: 20 })
   })
 
+  it('widens an effect one environment carries by the chance of not drawing it, though no environment\'s own resample can move', async () => {
+    const { ctx, plan } = await harness()
+    // The candidate certifies both repetitions of one environment the baseline
+    // fails, and the arms agree on the other: every environment's own interval
+    // has zero width, and the whole comparison rests on one environment.
+    StubFleet.current.script = cell => ({ certified: cell.environment === UNSATISFIABLE || cell.model.model === CANDIDATE.model })
+    const result = await ctx.experiments.run(plan())
+
+    expect(result.cells.map(cell => cell.interval)).toEqual([{ lower: 1, upper: 1 }, { lower: 0, upper: 0 }])
+    expect(result.delta).toBe(0.5)
+    expect(result.discordantPairs).toBe(2)
+    // A resample misses the flipping environment one time in four, which puts
+    // the lower bound at zero; an interval that resampled inside each
+    // environment alone would have been `[0.5, 0.5]` and promoted.
+    expect(result.interval).toEqual({ lower: 0, upper: 1 })
+    expect(result.verdict).toBe('inconclusive')
+    expect(result.verdictBasis).toBe('interval')
+  })
+
   it('rejects a candidate strictly worse than the baseline, and stays inconclusive under a minimum delta it does not clear', async () => {
     const { ctx, plan } = await harness()
     StubFleet.current.script = certifiedFor(BASELINE)
     await expect(ctx.experiments.run(plan())).resolves.toMatchObject({
       verdict: 'reject',
+      verdictBasis: 'interval',
+      discordantPairs: 4,
       delta: -1,
       interval: { lower: -1, upper: -1 },
     })
 
     const demanding = await harness({ minimumDelta: 1 })
     StubFleet.current.script = certifiedFor(CANDIDATE)
-    await expect(demanding.ctx.experiments.run(demanding.plan())).resolves.toMatchObject({ delta: 1, verdict: 'inconclusive' })
+    await expect(demanding.ctx.experiments.run(demanding.plan()))
+      .resolves.toMatchObject({ delta: 1, verdict: 'inconclusive', verdictBasis: 'interval' })
   })
 
   it('leaves a repetition an arm did not report out of every statistic and counts it as unpaired', async () => {
     const { ctx, plan } = await harness()
-    StubFleet.current.script = (cell) => {
+    const script: CellScript = (cell) => {
       if (cell.environment === UNSATISFIABLE) return undefined
       if (cell.model.model === CANDIDATE.model && cell.repetition === 1) return undefined
       return { certified: cell.model.model === CANDIDATE.model, usage: { inputTokens: 7, outputTokens: 2 } }
     }
+    StubFleet.current.script = script
     const result = await ctx.experiments.run(plan())
 
     expect(result.seedsPaired).toBe(1)
+    expect(result.discordantPairs).toBe(1)
     const zeroDeltas = { attemptsDelta: 0, inputTokenDelta: 0, outputTokenDelta: 0 }
     const paired = { pairs: 1, unpaired: 1, baselineRate: 0, candidateRate: 1, delta: 1, interval: { lower: 1, upper: 1 } }
     expect(result.cells).toEqual([
@@ -368,7 +404,15 @@ describe('ExperimentService', () => {
     ])
     expect(result.cells[1]).not.toHaveProperty('interval')
     expect(result.spend).toEqual({ inputTokens: 21, outputTokens: 6 })
-    expect(result.verdict).toBe('promote')
+    // One paired repetition is the whole evidence, and its interval cannot
+    // move, so the discordant-pair minimum withholds the promotion it reads.
+    expect(result.interval).toEqual({ lower: 1, upper: 1 })
+    expect(result.verdict).toBe('inconclusive')
+    expect(result.verdictBasis).toBe('too-few-discordant-pairs')
+    const lenient = await harness({ minimumDiscordantPairs: 1 })
+    StubFleet.current.script = script
+    await expect(lenient.ctx.experiments.run(lenient.plan()))
+      .resolves.toMatchObject({ discordantPairs: 1, verdict: 'promote', verdictBasis: 'interval' })
     const couldNotBoot = { message: 'the cell could not boot' }
     expect(result.errors).toEqual([
       { arm: 'baseline', environment: UNSATISFIABLE, repetition: 0, ...couldNotBoot },
@@ -405,6 +449,7 @@ describe('ExperimentService', () => {
     expect(result.delta).toBe(0)
     expect(result).not.toHaveProperty('interval')
     expect(result.verdict).toBe('inconclusive')
+    expect(result.verdictBasis).toBe('no-pairs')
     expect(result.cells.every(cell => cell.pairs === 0 && cell.unpaired === 2)).toBe(true)
     expect(result.errors).toHaveLength(8)
     expect(result.errors.map(error => error.arm)).toEqual([...Array<string>(4).fill('baseline'), ...Array<string>(4).fill('candidate')])
@@ -667,6 +712,8 @@ describe('ExperimentService', () => {
     expect(sink.lines).toHaveLength(1)
     expect(JSON.parse(sink.lines[0] as string)).toEqual(JSON.parse(JSON.stringify(result)))
     expect(sink.lines[0]?.endsWith('\n')).toBe(true)
+    // The stored line names its statistic, so a later reader never has to infer it.
+    expect((JSON.parse(sink.lines[0] as string) as ExperimentResult).statistic).toBe('paired-cluster-bootstrap/1')
   })
 
   it('closes the sink when the write fails', async () => {
@@ -704,10 +751,16 @@ describe('ExperimentService', () => {
   })
 
   it('resolves defaults once, at the boundary, and digests only what decides the comparison', () => {
-    const thresholds: ExperimentThresholds = { bootstrapResamples: 1000, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 500 }
+    const thresholds: ExperimentThresholds = {
+      bootstrapResamples: 1000,
+      confidenceLevel: 0.95,
+      minimumDelta: 0,
+      minimumDiscordantPairs: 2,
+      cellTokenCap: 500,
+    }
     expect(resolveConfig({ cellTokenCap: 500, tokenBudget: 9000 })).toEqual({ thresholds, tokenBudget: 9000 })
-    expect(resolveConfig({ bootstrapResamples: 200, confidenceLevel: 0.9, minimumDelta: 0.05, cellTokenCap: 500, tokenBudget: 9000 }))
-      .toEqual({ thresholds: { bootstrapResamples: 200, confidenceLevel: 0.9, minimumDelta: 0.05, cellTokenCap: 500 }, tokenBudget: 9000 })
+    const chosen = { bootstrapResamples: 200, confidenceLevel: 0.9, minimumDelta: 0.05, minimumDiscordantPairs: 0, cellTokenCap: 500 }
+    expect(resolveConfig({ ...chosen, tokenBudget: 9000 })).toEqual({ thresholds: chosen, tokenBudget: 9000 })
 
     const ordered: ExperimentPlan = {
       environments: [ROUND_TRIP, UNSATISFIABLE],
@@ -720,5 +773,17 @@ describe('ExperimentService', () => {
     expect(planDigest(ordered, thresholds, CAPS)).toBe(planDigest(reordered, thresholds, CAPS))
     expect(planDigest(ordered, thresholds, CAPS)).not.toBe(planDigest({ ...ordered, baseline: CANDIDATE }, thresholds, CAPS))
     expect(planDigest(ordered, thresholds, CAPS)).not.toBe(planDigest(ordered, { ...thresholds, minimumDelta: 0.1 }, CAPS))
+    // What counts as promotable is frozen with the plan, so two minimums are two experiments.
+    expect(planDigest(ordered, thresholds, CAPS)).not.toBe(planDigest(ordered, { ...thresholds, minimumDiscordantPairs: 3 }, CAPS))
+  })
+
+  it('validates the discordant-pair minimum as a non-negative integer and defaults it to two', () => {
+    const validate = (overrides: Partial<Config>): Config =>
+      ExperimentService.Config({ cellTokenCap: 500, tokenBudget: 9000, ...overrides })
+    expect(() => validate({ minimumDiscordantPairs: 1.5 })).toThrow()
+    expect(() => validate({ minimumDiscordantPairs: -1 })).toThrow()
+    expect(validate({}).minimumDiscordantPairs).toBe(2)
+    expect(validate({ minimumDiscordantPairs: 0 }).minimumDiscordantPairs).toBe(0)
+    expect(validate({ minimumDiscordantPairs: 3 }).minimumDiscordantPairs).toBe(3)
   })
 })

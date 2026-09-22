@@ -125,10 +125,13 @@ export function experiment(
     cells: [],
     errors: [],
     seedsPaired: 4,
+    discordantPairs: 3,
     delta: 0.25,
+    statistic: 'paired-cluster-bootstrap/1',
     spend: { inputTokens: 40, outputTokens: 10 },
-    thresholds: { bootstrapResamples: 1000, confidenceLevel: 0.95, minimumDelta: 0, cellTokenCap: 1000 },
+    thresholds: { bootstrapResamples: 1000, confidenceLevel: 0.95, minimumDelta: 0, minimumDiscordantPairs: 2, cellTokenCap: 1000 },
     caps: [['maxTotalTokens', 1000]],
     verdict,
+    verdictBasis: 'interval',
   }
 }

@@ -1,6 +1,6 @@
 {
   "result": {
-    "digest": "31b8771704f808643d9a6380b646777cba411cf32b60c1f0e31f891ac6653a6f",
+    "digest": "3e3d0c3582618503c52b4850277808e2e8063e7fed3ef44c1e75b13c117c320f",
     "arms": {
       "baseline": {
         "model": {
@@ -11,7 +11,7 @@
           "kind": "route"
         },
         "preset": "plain",
-        "group": "experiment-31b8771704f808643d9a6380b646777cba411cf32b60c1f0e31f891ac6653a6f-baseline"
+        "group": "experiment-3e3d0c3582618503c52b4850277808e2e8063e7fed3ef44c1e75b13c117c320f-baseline"
       },
       "candidate": {
         "model": {
@@ -22,7 +22,7 @@
           "kind": "route"
         },
         "preset": "briefed",
-        "group": "experiment-31b8771704f808643d9a6380b646777cba411cf32b60c1f0e31f891ac6653a6f-candidate"
+        "group": "experiment-3e3d0c3582618503c52b4850277808e2e8063e7fed3ef44c1e75b13c117c320f-candidate"
       }
     },
     "cells": [
@@ -59,11 +59,13 @@
     ],
     "errors": [],
     "seedsPaired": 2,
+    "discordantPairs": 0,
     "delta": 0,
     "interval": {
       "lower": 0,
       "upper": 0
     },
+    "statistic": "paired-cluster-bootstrap/1",
     "spend": {
       "inputTokens": 108,
       "outputTokens": 48
@@ -72,6 +74,7 @@
       "bootstrapResamples": 200,
       "confidenceLevel": 0.95,
       "minimumDelta": 0,
+      "minimumDiscordantPairs": 2,
       "cellTokenCap": 20000
     },
     "caps": [
@@ -84,7 +87,8 @@
         600000
       ]
     ],
-    "verdict": "inconclusive"
+    "verdict": "inconclusive",
+    "verdictBasis": "too-few-discordant-pairs"
   },
   "cells": [
     {
