@@ -9,7 +9,7 @@
  * export.
  */
 
-import type { Comparison, Roster, Run, SafetyReview } from './contract.ts'
+import type { Comparison, ProgramRecord, Roster, Run, SafetyReview } from './contract.ts'
 
 /** Whether the deck is reading a live feed or the committed fixtures. */
 type FeedMode = 'live' | 'replay'
@@ -155,6 +155,15 @@ export function getRoster(source: FeedSource): Promise<Roster> {
  */
 export function getRuns(source: FeedSource): Promise<Run[]> {
   return readJson<Run[]>(source, '/runs')
+}
+
+/**
+ * `GET /programs`: every recorded program run, the organisation of record.
+ * @param source - Source from {@link resolveFeed}.
+ * @returns The program runs, newest first.
+ */
+export function getPrograms(source: FeedSource): Promise<ProgramRecord[]> {
+  return readJson<ProgramRecord[]>(source, '/programs')
 }
 
 /**

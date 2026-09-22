@@ -33,7 +33,9 @@ export function WorkflowView(): ReactNode {
   const selectRun = useDeck(state => state.selectRun)
   const events = useDeck(state => state.events)
   const cursor = useDeck(state => state.cursor)
-  const [selected, setSelected] = useState<string | undefined>(undefined)
+  // Held in the store rather than here, so the Enterprise view's Record panel can open a department's session.
+  const selected = useDeck(state => state.selectedSessionId)
+  const setSelected = useDeck(state => state.selectSession)
   const [hovered, setHovered] = useState<string | undefined>(undefined)
   const playback = usePlayback()
 

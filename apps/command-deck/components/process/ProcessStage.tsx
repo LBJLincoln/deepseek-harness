@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
-import type { Agent, RunEvent } from '@/deck/contract'
+import { seatOf, type Agent, type RunEvent } from '@/deck/contract'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import {
   discoverLanes,
@@ -83,7 +83,7 @@ export function ProcessStage({
   const arrivals = useMemo(() => {
     const perStage = STAGES.map(() => 0)
     for (const event of events) {
-      const at = flightOf(event, agents.get(event.agentId), lanes).arrival
+      const at = flightOf(event, seatOf(event, agents), lanes).arrival
       perStage[at] = (perStage[at] ?? 0) + 1
     }
     return perStage

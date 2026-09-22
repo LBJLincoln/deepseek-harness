@@ -39,13 +39,13 @@ export function EventFeed({
     <div className="feed">
       <div ref={top} />
       {shown.map(event => (
-        <div className="feed__row" key={`${event.seq}-${event.agentId}`} data-kind={event.kind}>
+        <div className="feed__row" key={`${event.sessionId}-${event.seq}`} data-kind={event.kind}>
           <time>{clock(event.ts)}</time>
           <div>
             <div className="feed__label">{event.label}</div>
             {event.detail === undefined ? null : <div className="feed__detail">{event.detail}</div>}
             <div className="feed__who">
-              {agents?.get(event.agentId)?.name ?? event.agentId}
+              {event.agentId === undefined ? 'no seat' : agents?.get(event.agentId)?.name ?? event.agentId}
               {event.file === undefined ? '' : ` · ${event.file}${event.line === undefined ? '' : `:${event.line}`}`}
             </div>
           </div>

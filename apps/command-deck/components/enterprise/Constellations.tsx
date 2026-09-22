@@ -18,6 +18,7 @@ import type { GraphLayout } from '@/deck/layout-enterprise'
 import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { FLOW_WINDOW_MS, sinceLast } from './activity.ts'
+import { isOccupied } from './evidence.ts'
 import { stageClamped } from './labels.ts'
 import { buildIgnition, readIgnition } from './reveal.ts'
 import { createNebulaTexture } from './sprites.ts'
@@ -101,6 +102,15 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
     }
     return ids
   }, [clusters, roster.agents])
+
+  // Seats per division that at least one recorded session occupied, for the division labels.
+  const occupiedByDivision = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const agent of roster.agents) {
+      if (isOccupied(agent)) counts.set(agent.division, (counts.get(agent.division) ?? 0) + 1)
+    }
+    return counts
+  }, [roster.agents])
 
   const leaders = useMemo(() => {
     const positions = new Float32Array(clusters.length * 6)
@@ -232,7 +242,9 @@ export function Constellations({ roster, layout }: { roster: Roster; layout: Gra
               <div className={styles.divisionName} style={{ color: divisionColor(cluster.id) }}>
                 {division?.name ?? cluster.id}
               </div>
-              <div className={styles.divisionCount}>{cluster.count} agents</div>
+              <div className={styles.divisionCount}>
+                {cluster.count} seats · {occupiedByDivision.get(cluster.id) ?? 0} occupied
+              </div>
             </div>
           </Html>
         )

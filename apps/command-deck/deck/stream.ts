@@ -50,11 +50,12 @@ function parseFrame(data: string): RunEvent | undefined {
   }
   if (typeof value !== 'object' || value === null) return undefined
   const event = value as Partial<RunEvent>
+  // `agentId` is absent on a frame whose session occupies no seat; present, it must name one.
   if (
     typeof event.seq !== 'number'
     || typeof event.sessionId !== 'string'
     || typeof event.kind !== 'string'
-    || typeof event.agentId !== 'string'
+    || (event.agentId !== undefined && typeof event.agentId !== 'string')
   ) {
     return undefined
   }

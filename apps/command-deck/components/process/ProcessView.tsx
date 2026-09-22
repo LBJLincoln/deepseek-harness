@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useMemo, type ChangeEvent, type ReactNode } from 'react'
-import type { EventKind } from '@/deck/contract'
+import { seatOf, type EventKind } from '@/deck/contract'
 import { clock, duration, stamp } from '@/deck/format'
 import { discoverLanes, laneTotals, STAGES, stageOf } from '@/deck/pipeline'
 import { usePlayback } from '@/deck/playback'
@@ -52,7 +52,7 @@ export function ProcessView(): ReactNode {
   const perStage = useMemo(() => {
     const totals = STAGES.map(() => 0)
     for (const event of visible) {
-      const index = stageOf(event, agents.get(event.agentId))
+      const index = stageOf(event, seatOf(event, agents))
       totals[index] = (totals[index] ?? 0) + 1
     }
     return totals

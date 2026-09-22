@@ -42,7 +42,7 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
   usePresentation()
 
   const mode = source?.mode ?? 'probing'
-  const certifiedToday = roster?.agents.filter(agent => agent.status === 'certified').length
+  const certified = roster?.agents.filter(agent => agent.status === 'certified').length
   const run = runs.find(entry => entry.id === selectedRunId)
 
   return (
@@ -69,13 +69,17 @@ export function DeckShell({ children }: { children: ReactNode }): ReactNode {
             <b><RollingNumber value={roster?.counts.defined} /></b>
             <span>defined</span>
           </div>
+          <div className="count" data-tone="occupied">
+            <b><RollingNumber value={roster?.counts.occupied} /></b>
+            <span>occupied</span>
+          </div>
           <div className="count" data-tone="active">
             <b><RollingNumber value={roster?.counts.active} /></b>
             <span>active</span>
           </div>
           <div className="count" data-tone="certified">
-            <b><RollingNumber value={certifiedToday} /></b>
-            <span>certified today</span>
+            <b><RollingNumber value={certified} /></b>
+            <span>certified</span>
           </div>
         </div>
 

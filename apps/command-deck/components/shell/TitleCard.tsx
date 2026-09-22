@@ -86,8 +86,8 @@ function useCard(pathname: string): Card {
   return {
     title: 'Enterprise',
     lines: [
-      `${roster.counts.defined} agents, ${spell(roster.divisions.length)} divisions`,
-      `${roster.edges.length} relationships between them`,
+      `${roster.counts.defined} seats defined in ${spell(roster.divisions.length)} divisions`,
+      `${roster.counts.occupied} occupied by ${roster.evidence.sessions - roster.unattributed.sessions} recorded sessions`,
     ],
   }
 }

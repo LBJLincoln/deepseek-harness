@@ -3,7 +3,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { BufferAttribute, BufferGeometry, Color, Vector3, type Mesh, type Points } from 'three'
-import type { Agent, EventKind, RunEvent } from '@/deck/contract'
+import { seatOf, type Agent, type EventKind, type RunEvent } from '@/deck/contract'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { flightOf, laneZ, PIPELINE, STAGES, type Lanes } from '@/deck/pipeline'
 import { playbackClock } from '@/deck/playback'
@@ -243,7 +243,7 @@ export function Flow({
     const gain = layer.getAttribute('aGain')
     const still = events.slice(-POINTS)
     const keys = still.map((event) => {
-      const flight = flightOf(event, agents.get(event.agentId), lanes)
+      const flight = flightOf(event, seatOf(event, agents), lanes)
       return `${flight.stage}:${flight.lane}`
     })
     const totals = new Map<string, number>()
@@ -256,7 +256,7 @@ export function Flow({
       ranks.set(key, rank + 1)
       // A still dot must not move between renders, so the offset comes from the
       // event's own sequence number rather than from a random draw.
-      const comet = cometOf(event, agents.get(event.agentId), lanes, 0, ((event.seq * 37) % 11) / 11 - 0.5)
+      const comet = cometOf(event, seatOf(event, agents), lanes, 0, ((event.seq * 37) % 11) / 11 - 0.5)
       // A still dot sits on its rail: the arc belongs to travelling. The row
       // starts clear of the lane label rather than under it.
       comet.lift = 0
@@ -291,7 +291,7 @@ export function Flow({
       released.current -= 1
       const event = queue.current.shift()
       if (event === undefined) break
-      live.current.push(cometOf(event, agents.get(event.agentId), lanes, now, Math.random() - 0.5))
+      live.current.push(cometOf(event, seatOf(event, agents), lanes, now, Math.random() - 0.5))
     }
     released.current = Math.min(released.current, rate)
 

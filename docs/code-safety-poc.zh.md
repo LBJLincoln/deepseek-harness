@@ -6,7 +6,7 @@
 
 ## 演示展示什么
 
-1. **企业。**指挥台的第一个视图是 147 个已定义 agent 组成的花名册，按部门分组，此刻正在运行的那些由其真实会话点亮。图上的每个 agent 都源自本仓库中的一个定义（一个 preset、一份计划、一个夹具、一篇笔记）；花名册文件点名了每一个的来源。
+1. **企业。**指挥台的第一个视图是花名册：147 个席位定义，按部门分组，每一个都源自本仓库中由花名册文件点名的一个来源。标题统计已定义的席位与被已记录会话占据的席位；被占据的席位显示为明亮，没有任何已记录会话占据过的席位显示为暗色并写着 `defined, never run`，路由图例统计每条路由实际承载的会话数，因此有席位为之定义却没有会话用过的路由会显示为从未运行。花名册不是组织本身：记录在案的组织是它旁边的 Record 标签页，即每次已记录的项目运行，连同其各部门、各部门的证书、整合的结论，以及谁在何时签署了每一次转换。
 2. **对客户应用的一次审查。**一次代码安全审查是一个[程序](../packages/improvement/program/README.md)：安全部门各在自己的 git worktree 和自己的会话里，读取目标仓库，运行静态扫描器与依赖审计，写出带文件、行号和该行原文的发现——默认六个专科部门，或加上一个可选的通才部门后为七个，它一次性阅读整个应用，覆盖专科式阅读可能遗漏的部分。一个集成部门合并这些分支，写出以法文执行摘要开头的报告，并运行已提交的验证器。
 3. **验证，而非信任。**验证器在任何部门运行之前就已提交，没有部门能改动它。它检查每条发现的文件存在于目标中、行号在文件之内、引用的片段与该行代码一致、标识符格式正确，以及报告引用了每条发现并陈述了与发现文件相同的计数。未通过验证的发现会被移除并列为未验证；证书说明的是通过了什么。
 4. **记录。**每份会话日志、发现、报告与验证器输出都写在运行目录下，一次被记录的运行放在 [`data/code-safety/`](../data/code-safety/README.md)。演示目标的基准真值列表（[`nodegoat.ground-truth.json`](../data/code-safety/targets/nodegoat.ground-truth.json)，十八个已知问题钉在行号上）让一次运行的召回率可以被数出来，而不是被断言。
@@ -42,10 +42,10 @@ pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the revie
 
 视图的顺序：
 
-1. **Enterprise**（`/`）。说明这张图是什么：是定义，不是营销数字；点亮的节点是此刻正在运行的会话。点开一个部门 agent，展示它的路由、preset、技能与工具。
+1. **Enterprise**（`/`）。说明这张图是什么：是带有证据的定义，不是营销数字；明亮的席位是已记录会话占据过的，暗色的从未运行过，正在脉动的节点是此刻正在运行的会话。点开一个部门席位，展示它为之定义的路由及其会话实际运行所在的路由、它的 preset、技能与工具。
 2. **Process**（`/process`）。展示六个部门并行启动、工具调用流动（扫描器、审计、读取）、第一批发现，然后是验证器与集成。屏幕上的每一次脉动都是磁盘上某份会话日志里的一个事件。
 3. **Safety**（`/safety`）。目标呈现为一座代码城市；发现是承载它们的文件上的标记；按严重度过滤的发现表；打开一条发现看它的片段、证据、影响与修复；证书卡片；以法文摘要开头的报告。下载 `findings.json` 与报告。
-4. **记录。**打开运行目录和某个部门的会话日志：客户看到这次审查可复现、可审计，而不是一段聊天记录。
+4. **记录。**打开 Enterprise 视图中该审查的 Record 标签页：它的各部门及其证书、步数与工具调用，整合的结论，以及签署链；在工作流视图中打开某个部门的会话，再打开运行目录中它的会话日志。客户看到这次审查可复现、可审计，而不是一段聊天记录。签署链会标出在整合认证之前签署的发布；要说明这意味着什么：该签名是在项目开启时记录的，而不是在工作完成之后。
 
 如果现场审查很慢或订阅被限速，在运行列表里把指挥台切到已记录的 NodeGoat 运行并继续叙述；说明它是一段录制。如果 feed 本身停止应答，指挥台会在五秒内回落到回放，从其已提交的 fixture 展示同样的已记录审查与同样的花名册，并带 `REPLAY` 徽标和示例数据提示；也要说明这一点。如果笔记本本身出了故障，同一份回放 deck 发布在 <https://lbjlincoln.github.io/deepseek-harness/>，由 [`deck-pages.yml`](../.github/workflows/deck-pages.yml) 部署，任何支持 WebGL 2 的浏览器都能打开，背后没有我们的任何机器。在操作者的容器向镜像中继推送期间，这个已发布的页面是实时的，而不只是回放：工作流把中继 <https://cnaxcqiuwibsswfjjpko.supabase.co/functions/v1/feed> 烘焙为页面的 feed，URL 上的 `?feed=` 可以指定另一个。
 
@@ -63,6 +63,7 @@ pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the revie
 - 代码是安全的。审查在它读过的文件里找它所寻找的缺陷类别的实例；它不证明缺陷不存在，不是渗透测试，也不执行该应用。
 - 发现是完整的，或严重度是最终的。严重度遵循一套由模型套用的书面评级，应由客户的安全团队确认；正因如此，置信度（`confirmed`、`likely`、`possible`）是每条发现的一部分。
 - 任何客户代码或发现被用于训练。每个会话都记录它的数据使用条款，订阅路由的条款只允许评估；客户的代码留在运行审查的那台机器上。
+- 有 147 个 agent 在工作，或席位为之定义的路由在为它们服务。这 147 个是定义；只有指挥台显示为明亮的席位背后有已记录的会话，也只有图例统计到会话数的路由运行过会话。
 
 ## 一次付费概念验证会增加什么
 
@@ -74,6 +75,6 @@ pnpm run code-safety -- ~/targets/NodeGoat --model sonnet   # or start the revie
 | --- | --- |
 | 程序（部门、验证器、组合、真实运行） | [`examples/headless-agent/tests/fixtures/program-code-safety/`](../examples/headless-agent/tests/fixtures/program-code-safety/README.md) |
 | 各部门阅读的安全技能 | [`data/knowledge/code-safety/`](../data/knowledge/code-safety/README.md) |
-| 企业花名册与 feed | [`data/enterprise/`](../data/enterprise/README.md)、`scripts/harness-feed.ts` |
+| 企业花名册、它的证据与 feed | [`data/enterprise/`](../data/enterprise/README.md)、`scripts/roster-evidence.ts`、`scripts/harness-feed.ts` |
 | 指挥台 | [`apps/command-deck/`](../apps/command-deck/README.md) |
 | 已记录的运行与基准真值 | [`data/code-safety/`](../data/code-safety/README.md) |

@@ -130,7 +130,7 @@ function foldTrail(events: readonly RunEvent[], index: PathIndex): ReadTrail {
     if (path === undefined) continue
     const previous = byPath.get(path)
     if (previous !== undefined && previous.seq > event.seq) continue
-    const touch: Touch = { path, color: touchColor(event.agentId), seq: event.seq }
+    const touch: Touch = { path, color: touchColor(event.agentId ?? ''), seq: event.seq }
     byPath.set(path, touch)
     if (last === undefined || touch.seq >= last.seq) last = touch
   }

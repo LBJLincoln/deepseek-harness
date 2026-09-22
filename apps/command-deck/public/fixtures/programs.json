@@ -1,0 +1,677 @@
+[
+  {
+    "programId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c",
+    "runId": "2026-09-22-nodegoat-4-improved",
+    "kind": "code-safety",
+    "path": "data/code-safety/2026-09-22-nodegoat-4-improved",
+    "target": "/root/targets/NodeGoat",
+    "spec": {
+      "sha256": "e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c",
+      "objective": "review /root/targets/NodeGoat for code-safety defects and deliver one verified report"
+    },
+    "startedAt": "2026-09-22T18:35:21.525Z",
+    "endedAt": "2026-09-22T18:59:07.301Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "secrets",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets.jsonl",
+        "certified": true,
+        "steps": 26,
+        "toolCalls": 44,
+        "seatId": "code-safety-secrets-integrator"
+      },
+      {
+        "key": "injection",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection.jsonl",
+        "certified": true,
+        "steps": 30,
+        "toolCalls": 54,
+        "seatId": "code-safety-injection-integrator"
+      },
+      {
+        "key": "access",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access.jsonl",
+        "certified": true,
+        "steps": 25,
+        "toolCalls": 34,
+        "seatId": "code-safety-access-integrator"
+      },
+      {
+        "key": "data",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data.jsonl",
+        "certified": true,
+        "steps": 40,
+        "toolCalls": 59,
+        "seatId": "code-safety-data-integrator"
+      },
+      {
+        "key": "dependencies",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies.jsonl",
+        "certified": true,
+        "steps": 31,
+        "toolCalls": 38,
+        "seatId": "code-safety-dependencies-integrator"
+      },
+      {
+        "key": "platform",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform.jsonl",
+        "certified": true,
+        "steps": 33,
+        "toolCalls": 49,
+        "seatId": "code-safety-platform-integrator"
+      }
+    ],
+    "integration": {
+      "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-@integration",
+      "status": "certified",
+      "sessionPath": "data/code-safety/2026-09-22-nodegoat-4-improved/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration.jsonl",
+      "certified": true,
+      "steps": 37,
+      "toolCalls": 48,
+      "seatId": "code-safety-lead",
+      "certifiedAt": "2026-09-22T18:59:07.288Z",
+      "mergedRevision": "9da952c2409b88d04d8ea4ace471ab12860ee2d9"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-22T18:35:21.490Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-22T18:35:21.492Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      }
+    ]
+  },
+  {
+    "programId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c",
+    "runId": "2026-09-21-nodegoat-3",
+    "kind": "code-safety",
+    "path": "data/code-safety/2026-09-21-nodegoat-3",
+    "target": "/root/targets/NodeGoat",
+    "spec": {
+      "sha256": "e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c",
+      "objective": "review /root/targets/NodeGoat for code-safety defects and deliver one verified report"
+    },
+    "startedAt": "2026-09-21T07:55:07.893Z",
+    "endedAt": "2026-09-21T08:17:43.732Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "secrets",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets.jsonl",
+        "certified": true,
+        "steps": 28,
+        "toolCalls": 51,
+        "seatId": "code-safety-secrets-integrator"
+      },
+      {
+        "key": "injection",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-injection.jsonl",
+        "certified": true,
+        "steps": 28,
+        "toolCalls": 47,
+        "seatId": "code-safety-injection-integrator"
+      },
+      {
+        "key": "access",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access.jsonl",
+        "certified": true,
+        "steps": 20,
+        "toolCalls": 34,
+        "seatId": "code-safety-access-integrator"
+      },
+      {
+        "key": "data",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-data.jsonl",
+        "certified": true,
+        "steps": 24,
+        "toolCalls": 42,
+        "seatId": "code-safety-data-integrator"
+      },
+      {
+        "key": "dependencies",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-dependencies.jsonl",
+        "certified": true,
+        "steps": 44,
+        "toolCalls": 48,
+        "seatId": "code-safety-dependencies-integrator"
+      },
+      {
+        "key": "platform",
+        "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-platform.jsonl",
+        "certified": true,
+        "steps": 22,
+        "toolCalls": 34,
+        "seatId": "code-safety-platform-integrator"
+      }
+    ],
+    "integration": {
+      "sessionId": "program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-@integration",
+      "status": "certified",
+      "sessionPath": "data/code-safety/2026-09-21-nodegoat-3/sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration.jsonl",
+      "certified": true,
+      "steps": 24,
+      "toolCalls": 38,
+      "seatId": "code-safety-lead",
+      "certifiedAt": "2026-09-21T08:17:43.704Z",
+      "mergedRevision": "580c8f81231b3b66274e04488076c9038588e26b"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-21T07:55:07.859Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-21T07:55:07.860Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      }
+    ]
+  },
+  {
+    "programId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+    "runId": "2026-09-19-nodegoat-2",
+    "kind": "code-safety",
+    "path": "data/code-safety/2026-09-19-nodegoat-2",
+    "target": "/home/user/targets/NodeGoat",
+    "spec": {
+      "sha256": "14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c",
+      "objective": "review /home/user/targets/NodeGoat for code-safety defects and deliver one verified report"
+    },
+    "startedAt": "2026-09-19T20:49:38.532Z",
+    "endedAt": "2026-09-19T21:10:03.684Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "secrets",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-secrets.jsonl",
+        "certified": true,
+        "steps": 31,
+        "toolCalls": 54,
+        "seatId": "code-safety-secrets-integrator"
+      },
+      {
+        "key": "injection",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-injection.jsonl",
+        "certified": true,
+        "steps": 25,
+        "toolCalls": 39,
+        "seatId": "code-safety-injection-integrator"
+      },
+      {
+        "key": "access",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-access.jsonl",
+        "certified": true,
+        "steps": 23,
+        "toolCalls": 35,
+        "seatId": "code-safety-access-integrator"
+      },
+      {
+        "key": "data",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-data.jsonl",
+        "certified": true,
+        "steps": 34,
+        "toolCalls": 54,
+        "seatId": "code-safety-data-integrator"
+      },
+      {
+        "key": "dependencies",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-dependencies.jsonl",
+        "certified": true,
+        "steps": 37,
+        "toolCalls": 40,
+        "seatId": "code-safety-dependencies-integrator"
+      },
+      {
+        "key": "platform",
+        "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-platform.jsonl",
+        "certified": true,
+        "steps": 26,
+        "toolCalls": 43,
+        "seatId": "code-safety-platform-integrator"
+      }
+    ],
+    "integration": {
+      "sessionId": "program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-@integration",
+      "status": "certified",
+      "sessionPath": "data/code-safety/2026-09-19-nodegoat-2/sessions/program-14494d741deff0512ffc76bf3fb973cef663fac2910e1756a531e2a887475c8c-~0040integration.jsonl",
+      "certified": true,
+      "steps": 28,
+      "toolCalls": 52,
+      "seatId": "code-safety-lead",
+      "certifiedAt": "2026-09-19T21:10:03.672Z",
+      "mergedRevision": "d9936acb74becdb1bcf318bf81f3e2542dc14ed8"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-19T20:49:38.495Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-19T20:49:38.496Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      }
+    ]
+  },
+  {
+    "programId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8",
+    "runId": "2026-09-19-dvja",
+    "kind": "code-safety",
+    "path": "data/code-safety/2026-09-19-dvja",
+    "target": "/home/user/targets/dvja",
+    "spec": {
+      "sha256": "308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8",
+      "objective": "review /home/user/targets/dvja for code-safety defects and deliver one verified report"
+    },
+    "startedAt": "2026-09-19T19:52:48.846Z",
+    "endedAt": "2026-09-19T20:16:23.041Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "secrets",
+        "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-secrets",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-secrets.jsonl",
+        "certified": true,
+        "steps": 17,
+        "toolCalls": 32,
+        "seatId": "code-safety-secrets-integrator"
+      },
+      {
+        "key": "injection",
+        "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-injection",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-injection.jsonl",
+        "certified": true,
+        "steps": 27,
+        "toolCalls": 43,
+        "seatId": "code-safety-injection-integrator"
+      },
+      {
+        "key": "access",
+        "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-access",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-access.jsonl",
+        "certified": true,
+        "steps": 25,
+        "toolCalls": 45,
+        "seatId": "code-safety-access-integrator"
+      },
+      {
+        "key": "data",
+        "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-data",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-data.jsonl",
+        "certified": true,
+        "steps": 24,
+        "toolCalls": 44,
+        "seatId": "code-safety-data-integrator"
+      },
+      {
+        "key": "dependencies",
+        "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-dependencies",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-dependencies.jsonl",
+        "certified": true,
+        "steps": 30,
+        "toolCalls": 38,
+        "seatId": "code-safety-dependencies-integrator"
+      },
+      {
+        "key": "platform",
+        "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-platform",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-platform.jsonl",
+        "certified": true,
+        "steps": 28,
+        "toolCalls": 50,
+        "seatId": "code-safety-platform-integrator"
+      }
+    ],
+    "integration": {
+      "sessionId": "program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-@integration",
+      "status": "certified",
+      "sessionPath": "data/code-safety/2026-09-19-dvja/sessions/program-308069d09c2f7ccb6b22b58bfdbb498067cdb1a2b504a069b8627417160dc5e8-~0040integration.jsonl",
+      "certified": true,
+      "steps": 21,
+      "toolCalls": 36,
+      "seatId": "code-safety-lead",
+      "certifiedAt": "2026-09-19T20:16:23.031Z",
+      "mergedRevision": "6a4fff09b36a98b33346d5d5d7a859f5c6151689"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-19T19:52:48.813Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-19T19:52:48.814Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      }
+    ]
+  },
+  {
+    "programId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580",
+    "runId": "2026-09-19-nodegoat",
+    "kind": "code-safety",
+    "path": "data/code-safety/2026-09-19-nodegoat",
+    "target": "/home/user/targets/NodeGoat",
+    "spec": {
+      "sha256": "8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580",
+      "objective": "review /home/user/targets/NodeGoat for code-safety defects and deliver one verified report"
+    },
+    "startedAt": "2026-09-19T19:19:26.502Z",
+    "endedAt": "2026-09-19T19:41:07.153Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "secrets",
+        "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-secrets",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-secrets.jsonl",
+        "certified": true,
+        "steps": 29,
+        "toolCalls": 53,
+        "seatId": "code-safety-secrets-integrator"
+      },
+      {
+        "key": "injection",
+        "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-injection",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-injection.jsonl",
+        "certified": true,
+        "steps": 29,
+        "toolCalls": 53,
+        "seatId": "code-safety-injection-integrator"
+      },
+      {
+        "key": "access",
+        "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-access",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-access.jsonl",
+        "certified": true,
+        "steps": 30,
+        "toolCalls": 39,
+        "seatId": "code-safety-access-integrator"
+      },
+      {
+        "key": "data",
+        "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-data",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-data.jsonl",
+        "certified": true,
+        "steps": 23,
+        "toolCalls": 41,
+        "seatId": "code-safety-data-integrator"
+      },
+      {
+        "key": "dependencies",
+        "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-dependencies",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-dependencies.jsonl",
+        "certified": true,
+        "steps": 42,
+        "toolCalls": 51,
+        "seatId": "code-safety-dependencies-integrator"
+      },
+      {
+        "key": "platform",
+        "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-platform",
+        "status": "merged",
+        "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-platform.jsonl",
+        "certified": true,
+        "steps": 33,
+        "toolCalls": 45,
+        "seatId": "code-safety-platform-integrator"
+      }
+    ],
+    "integration": {
+      "sessionId": "program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-@integration",
+      "status": "certified",
+      "sessionPath": "data/code-safety/2026-09-19-nodegoat/sessions/program-8ff902e3daa9f8df0d734f5009f2b073136664774c340a9be4fcc158e8145580-~0040integration.jsonl",
+      "certified": true,
+      "steps": 27,
+      "toolCalls": 40,
+      "seatId": "code-safety-lead",
+      "certifiedAt": "2026-09-19T19:41:07.141Z",
+      "mergedRevision": "a613fddc86196d609cfdd8beffaa2a54ab68030d"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-19T19:19:26.471Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-19T19:19:26.472Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "code-safety-client",
+          "displayName": "code-safety client"
+        },
+        "artefactSha256": "5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe5afe"
+      }
+    ]
+  },
+  {
+    "programId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+    "runId": "2026-09-19-csv-tools-program",
+    "kind": "program",
+    "path": "data/proving-ground/2026-09-19-csv-tools-program",
+    "spec": {
+      "sha256": "f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466",
+      "objective": "deliver csv-tools: a zero-dependency command line with stats, filter and join subcommands"
+    },
+    "startedAt": "2026-09-19T10:55:13.000Z",
+    "endedAt": "2026-09-19T11:00:48.688Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "stats",
+        "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats",
+        "status": "merged",
+        "sessionPath": "data/proving-ground/2026-09-19-csv-tools-program/sessions/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-stats.jsonl",
+        "certified": true,
+        "steps": 9,
+        "toolCalls": 14
+      },
+      {
+        "key": "filter",
+        "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter",
+        "status": "merged",
+        "sessionPath": "data/proving-ground/2026-09-19-csv-tools-program/sessions/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-filter.jsonl",
+        "certified": true,
+        "steps": 12,
+        "toolCalls": 13
+      },
+      {
+        "key": "join",
+        "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join",
+        "status": "merged",
+        "sessionPath": "data/proving-ground/2026-09-19-csv-tools-program/sessions/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-join.jsonl",
+        "certified": true,
+        "steps": 9,
+        "toolCalls": 11
+      }
+    ],
+    "integration": {
+      "sessionId": "program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-@integration",
+      "status": "certified",
+      "sessionPath": "data/proving-ground/2026-09-19-csv-tools-program/sessions/program-f81630f313a71a7cecc9996102d2a331284583783f2ff9f2641c7eae0be22466-~0040integration.jsonl",
+      "certified": true,
+      "steps": 0,
+      "toolCalls": 0,
+      "certifiedAt": "2026-09-19T11:00:48.680Z",
+      "mergedRevision": "67f5be3106ae85f5b0f820c4804c7bf9786a0fde"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-19T10:55:12.979Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "csv-tools-client",
+          "displayName": "csv-tools client"
+        },
+        "artefactSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-19T10:55:12.980Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "csv-tools-client",
+          "displayName": "csv-tools client"
+        },
+        "artefactSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    ]
+  },
+  {
+    "programId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+    "runId": "2026-09-08-self-assessment-program",
+    "kind": "program",
+    "path": "data/proving-ground/2026-09-08-self-assessment-program",
+    "spec": {
+      "sha256": "a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326",
+      "objective": "assess whether this project is viable and state of the art, from its own evidence"
+    },
+    "startedAt": "2026-09-08T11:43:04.634Z",
+    "endedAt": "2026-09-08T11:53:32.945Z",
+    "outcome": "released",
+    "departments": [
+      {
+        "key": "assessment",
+        "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment",
+        "status": "merged",
+        "sessionPath": "data/proving-ground/2026-09-08-self-assessment-program/sessions/program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-assessment.jsonl",
+        "certified": true,
+        "steps": 11,
+        "toolCalls": 17
+      }
+    ],
+    "integration": {
+      "sessionId": "program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-@integration",
+      "status": "certified",
+      "sessionPath": "data/proving-ground/2026-09-08-self-assessment-program/sessions/program-a47be3c16b2372b51ba2eb483e4109cda5ef317aa703b5ec20bea7f19ccdd326-~0040integration.jsonl",
+      "certified": true,
+      "steps": 0,
+      "toolCalls": 0,
+      "certifiedAt": "2026-09-08T11:53:32.912Z",
+      "mergedRevision": "c7f518df6bed4ecab0db56085b90dcbad5380001"
+    },
+    "signoffs": [
+      {
+        "transition": "spec-freeze",
+        "at": "2026-09-08T11:43:04.573Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "lab-lead",
+          "displayName": "Lab lead"
+        },
+        "artefactSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "transition": "release",
+        "at": "2026-09-08T11:43:04.576Z",
+        "decidedBy": {
+          "kind": "human",
+          "id": "lab-lead",
+          "displayName": "Lab lead"
+        },
+        "artefactSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  }
+]

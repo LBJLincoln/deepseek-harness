@@ -20,12 +20,10 @@ function useClaim(): string {
 
   const facts: string[] = []
   if (roster !== undefined) {
-    facts.push(`${roster.counts.defined} agents`)
-    facts.push(`${roster.divisions.length} divisions`)
+    facts.push(`${roster.counts.defined} seats defined`)
+    facts.push(`${roster.counts.occupied} occupied by recorded sessions`)
   }
   if (runs.length > 0) facts.push(`${runs.length} runs`)
-  const certified = roster?.agents.filter(agent => agent.status === 'certified').length ?? 0
-  if (certified > 0) facts.push(`${certified} certified today`)
   return facts.join(' · ')
 }
 

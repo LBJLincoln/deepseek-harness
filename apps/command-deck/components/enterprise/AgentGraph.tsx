@@ -23,6 +23,7 @@ import { divisionColor } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { createGlowMaterial } from '@/components/three/glow'
 import { decay, FLOW_WINDOW_MS, PULSE_WINDOW_MS, sinceLast } from './activity.ts'
+import { isOccupied, NEVER_RUN } from './evidence.ts'
 import { stageClamped } from './labels.ts'
 import { buildIgnition, readIgnition } from './reveal.ts'
 import styles from './labels.module.css'
@@ -78,8 +79,14 @@ const DIM = 0.3
 /** How far a node one edge away from the selection falls back. */
 const NEIGHBOUR = 0.62
 
+/**
+ * How bright a seat no recorded session occupied burns, against an occupied
+ * one: the definition stays visible, and the eye goes to the evidence.
+ */
+const NEVER_RUN_PRESENCE = 0.34
+
 /** Half the hover label's size, in pixels, for the stage clamp. */
-const HOVER_LABEL = { width: 110, height: 16 }
+const HOVER_LABEL = { width: 160, height: 16 }
 
 const SCRATCH_MATRIX = new Matrix4()
 const SCRATCH_SCALE = new Vector3()
@@ -93,7 +100,9 @@ const NO_ROTATION = new Quaternion()
 /**
  * The agent graph: instanced cores, the halo layer behind them, the orbital
  * ring an agent wears while it is working, and the standing rim a certified or
- * failed agent wears.
+ * failed agent wears. A seat no recorded session occupied burns at
+ * {@link NEVER_RUN_PRESENCE} of an occupied one's core and halo, and its hover
+ * label says so.
  *
  * Each of the four is one draw call over every agent, and every frame writes
  * typed arrays rather than React state: at 147 agents the scene animates a
@@ -121,6 +130,11 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
   const nodes = layout.nodes
   const agents = roster.agents
   const ignition = useMemo(() => buildIgnition(roster, layout), [roster, layout])
+  // Evidence changes only with the roster, so the frame loop reads a prepared weight per node.
+  const presence = useMemo(
+    () => Float32Array.from(agents, agent => (isOccupied(agent) ? 1 : NEVER_RUN_PRESENCE)),
+    [agents],
+  )
 
   // One weight per node, recomputed only when the selection moves: the frame
   // loop reads it, so selection dimming costs nothing per frame.
@@ -181,7 +195,7 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
     for (const [index, node] of nodes.entries()) {
       orbit.setColorAt(index, SCRATCH_COLOR.set(divisionColor(node.division)))
       const weight = focus[index] ?? 1
-      SCRATCH_COLOR.set(divisionColor(node.division)).multiplyScalar(weight)
+      SCRATCH_COLOR.set(divisionColor(node.division)).multiplyScalar(weight * (presence[index] ?? 1))
       mesh.setColorAt(index, SCRATCH_COLOR)
       const status = agents[index]?.status ?? 'defined'
       const rimColour = RIM_COLOR[status]
@@ -193,7 +207,7 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
     if (mesh.instanceColor !== null) mesh.instanceColor.needsUpdate = true
     if (rim.instanceColor !== null) rim.instanceColor.needsUpdate = true
     if (orbit.instanceColor !== null) orbit.instanceColor.needsUpdate = true
-  }, [agents, focus, nodes])
+  }, [agents, focus, nodes, presence])
 
   useFrame(({ clock }) => {
     const mesh = cores.current
@@ -232,7 +246,7 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
       if (gains !== undefined) {
         const idle = reduced ? 0 : Math.sin((time * 1.1) + (index * 1.7)) * 0.05
         const gain = 0.42 + STATUS_GAIN[status] + idle + (pulse * 1.2) + emphasis
-        gains.setX(index, ((Math.min(1.8, gain) * lit) + (flare * 1.5)) * weight)
+        gains.setX(index, ((Math.min(1.8, gain) * lit) + (flare * 1.5)) * weight * (presence[index] ?? 1))
       }
 
       // The orbital ring is worn only while the agent is working: it spins on
@@ -338,6 +352,9 @@ export function AgentGraph({ roster, layout }: { roster: Roster; layout: GraphLa
           <div className={styles.agent}>
             {hoveredAgent.name}
             <span className={styles.agentRole}>{hoveredAgent.role}</span>
+            {isOccupied(hoveredAgent)
+              ? <span className={styles.agentEvidence}>{hoveredAgent.evidence.sessions} recorded sessions</span>
+              : <span className={`${styles.agentEvidence} ${styles.agentNeverRun}`}>{NEVER_RUN}</span>}
           </div>
         </Html>
       )}

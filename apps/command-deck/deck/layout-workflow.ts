@@ -1,7 +1,8 @@
 /**
  * The followed run's own workflow graph, derived from its event stream.
  *
- * A node is one session of the run, named by the seat that acted in it. The
+ * A node is one session of the run, named by the seat that acted in it, or by
+ * the program member its id names when the feed attributes it to no seat. The
  * relationships between sessions are not carried by any frame: the feed folds
  * a program run's sessions under one id — the root is `program-<digest>`, a
  * department is `program-<digest>-<department>` and the integration session is
@@ -16,7 +17,7 @@
  * scrubbing or replaying the timeline rebuilds the graph as it stood then.
  */
 
-import type { Agent, RunEvent } from './contract.ts'
+import { actorOf, seatOf, type Agent, type RunEvent } from './contract.ts'
 import { divisionColor } from './palette.ts'
 import { discoverLanes, stageOf } from './pipeline.ts'
 import { eventTimeMs } from './store.ts'
@@ -58,9 +59,15 @@ const NEUTRAL = '#8296b8'
 export interface WorkflowNode {
   /** The session id, which is the node's identity across rebuilds. */
   id: string
-  /** Roster name of the seat that acted most in the session, else its agent id. */
+  /**
+   * Roster name of the seat that acted most in the session; for a session no
+   * seat is attributed to, the program member its id names, else its short id.
+   */
   label: string
-  /** The seat that acted most in the session; `undefined` for an implied node. */
+  /**
+   * The actor that acted most in the session (see `actorOf`): its seat's id, or
+   * the session's own id when it occupies no seat; `undefined` for an implied node.
+   */
   agentId: string | undefined
   tier: number
   x: number
@@ -129,7 +136,7 @@ export interface WorkflowGraph {
 /** One session under construction while the scan runs. */
 interface Draft {
   id: string
-  /** Frames per acting agent, in first-appearance order. */
+  /** Frames per actor, in first-appearance order. */
   counts: Map<string, number>
   events: number
   certificates: number
@@ -230,17 +237,18 @@ function draftSessions(events: readonly RunEvent[], agents: Map<string, Agent>):
         directives: 0,
         lastMs: Number.NaN,
         lastLabel: undefined,
-        stage: stageOf(event, agents.get(event.agentId)),
+        stage: stageOf(event, seatOf(event, agents)),
       }
       drafts.set(event.sessionId, draft)
     }
     draft.events += 1
-    draft.counts.set(event.agentId, (draft.counts.get(event.agentId) ?? 0) + 1)
+    const actor = actorOf(event)
+    draft.counts.set(actor, (draft.counts.get(actor) ?? 0) + 1)
     if (event.kind === 'certificate') draft.certificates += 1
     if (event.kind === 'merge') draft.merges += 1
     if (event.kind === 'refusal') draft.refusals += 1
     if (event.kind === 'directive') draft.directives += 1
-    draft.stage = Math.min(draft.stage, stageOf(event, agents.get(event.agentId)))
+    draft.stage = Math.min(draft.stage, stageOf(event, seatOf(event, agents)))
     const at = eventTimeMs(event)
     if (Number.isNaN(draft.lastMs) || (!Number.isNaN(at) && at >= draft.lastMs)) {
       draft.lastMs = at
@@ -382,9 +390,11 @@ export function layoutWorkflow(events: readonly RunEvent[], agents: Map<string, 
     for (const [index, draft] of row.entries()) {
       const principal = principalOf(draft.counts)
       const agent = principal === undefined ? undefined : agents.get(principal)
+      const member = suffixOf(draft.id, root)
+      const unseated = principal === undefined || principal === draft.id
       nodes.push({
         id: draft.id,
-        label: agent?.name ?? principal ?? shortId(draft.id),
+        label: agent?.name ?? (unseated ? (member === '' ? shortId(draft.id) : member) : principal),
         agentId: principal,
         tier: column,
         x: (column - ((spread.length - 1) / 2)) * TIER_SPAN,

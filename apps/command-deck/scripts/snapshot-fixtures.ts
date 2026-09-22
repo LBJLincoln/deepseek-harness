@@ -4,16 +4,17 @@
  * Replay mode shows recorded reality, never invented data: the roster is the
  * feed's own `GET /roster`, the runs are committed records the feed discovers
  * under `data/code-safety/` and `data/proving-ground/`, the event streams are
- * their session logs folded by the feed, and each review is the feed's
- * `GET /safety/:id` for the record. Point the feed at the repository (the
- * default `pnpm run feed`), then run `pnpm --dir apps/command-deck fixtures`.
+ * their session logs folded by the feed, each review is the feed's
+ * `GET /safety/:id` for the record, and the organisation of record is the
+ * feed's `GET /programs`. Point the feed at the repository (the default
+ * `pnpm run feed`), then run `pnpm --dir apps/command-deck fixtures`.
  *
  * Only committed record ids are eligible: a live `.code-safety/<id>` run is
  * refused, because its session logs are not redacted before they are recorded.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import type { Roster, Run, RunEvent, SafetyReview } from '../deck/contract.ts'
+import type { ProgramRecord, Roster, Run, RunEvent, SafetyReview } from '../deck/contract.ts'
 
 const here = dirname(new URL(import.meta.url).pathname)
 const fixtures = resolve(here, '..', 'public', 'fixtures')
@@ -112,12 +113,18 @@ const runs = RUN_IDS.map((id) => {
   if (!run.path.startsWith('data/')) throw new Error(`"${id}" is a live run at ${run.path}, not a committed record; refusing to snapshot it`)
   return run
 })
+// The roster's evidence and the record cover every run the feed discovers, so each of those must be committed too.
+const programs = await readJson<ProgramRecord[]>('/programs')
+const live = [...roster.evidence.records, ...programs.map(program => program.path)].find(path => !path.startsWith('data/'))
+if (live !== undefined) throw new Error(`the feed reads the live run at ${live}; move it aside or snapshot from a clean tree`)
 
 rmSync(resolve(fixtures, 'events'), { recursive: true, force: true })
 rmSync(resolve(fixtures, 'safety'), { recursive: true, force: true })
 writeJson('roster.json', roster)
 writeJson('runs.json', runs)
-console.log(`roster: ${roster.agents.length} agents, ${roster.edges.length} edges; runs: ${runs.length}`)
+writeJson('programs.json', programs)
+console.log(`roster: ${roster.agents.length} seats, ${roster.counts.occupied} occupied, ${roster.edges.length} edges; runs: ${runs.length}`)
+console.log(`record: ${programs.length} program runs; ${roster.unattributed.sessions} of ${roster.evidence.sessions} sessions unattributed`)
 
 for (const run of runs) {
   const events = await readEvents(run.id)

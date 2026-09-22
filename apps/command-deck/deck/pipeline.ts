@@ -13,7 +13,7 @@
  * gates stand vertically in y.
  */
 
-import type { Agent, RunEvent } from './contract.ts'
+import { actorOf, seatOf, type Agent, type RunEvent } from './contract.ts'
 import { departmentColor, divisionColor, EDGE_COLOR } from './palette.ts'
 
 /** One stage of the pipeline. */
@@ -67,25 +67,35 @@ export const PIPELINE = {
  */
 export function stageOf(event: RunEvent, agent: Agent | undefined): number {
   if (event.kind === 'merge') return 3
-  const division = agent?.division ?? event.agentId.split('/')[0] ?? ''
+  const actor = actorOf(event)
+  const division = agent?.division ?? actor.split('/')[0] ?? ''
   if (division === 'verification') return 1
   if (division === 'judging') return 2
   if (division === 'governance') return 3
   if (division === 'curation') return 3
-  if (event.agentId.includes('integration') || event.agentId.includes('release')) return 3
+  if (actor.includes('integration') || actor.includes('release')) return 3
   return 0
 }
+
+/** The lane key of work no seat is attributed to and no program member names. */
+const UNATTRIBUTED_LANE = 'unattributed'
+
+/** A program member's session id: `program-<digest>-<member>`. */
+const PROGRAM_MEMBER = /^program-[0-9a-f]{8,}-(.+)$/
 
 /**
  * Which first-stage lane one event belongs to.
  * @param event - The event to place.
  * @param agent - The acting agent, when the roster knows it.
- * @returns The lane key: a department where the agent has one, else its division.
+ * @returns The lane key: a department where the agent has one, else its
+ * division; for a session no seat is attributed to, the program member its id
+ * names, else the shared unattributed lane.
  */
 function laneOf(event: RunEvent, agent: Agent | undefined): string {
   if (agent?.department !== undefined) return agent.department
   if (agent !== undefined) return agent.division
-  return event.agentId.split('/')[0] ?? 'unknown'
+  if (event.agentId !== undefined) return event.agentId.split('/')[0] ?? 'unknown'
+  return PROGRAM_MEMBER.exec(event.sessionId)?.[1] ?? UNATTRIBUTED_LANE
 }
 
 /** One department lane of the first stage. */
@@ -95,7 +105,7 @@ interface Lane {
   label: string
   /** The lane's rail colour. */
   color: string
-  /** Every agent seen on the lane, which is what the activity clock is read for. */
+  /** Every actor seen on the lane (see `actorOf`), which is what the activity clock is read for. */
   agentIds: readonly string[]
 }
 
@@ -187,7 +197,7 @@ function titled(key: string): string {
 interface LaneDraft {
   key: string
   division: string
-  /** Events per agent seen on the lane, in first-appearance order. */
+  /** Events per actor seen on the lane, in first-appearance order. */
   counts: Map<string, number>
 }
 
@@ -208,7 +218,7 @@ export function discoverLanes(events: readonly RunEvent[], agents: Map<string, A
   const order: string[] = []
 
   for (const event of events.slice(0, LANE_SCAN)) {
-    const agent = agents.get(event.agentId)
+    const agent = seatOf(event, agents)
     if (stageOf(event, agent) !== 0) continue
     const key = laneOf(event, agent)
     let draft = drafts.get(key)
@@ -218,7 +228,8 @@ export function discoverLanes(events: readonly RunEvent[], agents: Map<string, A
       drafts.set(key, draft)
       order.push(key)
     }
-    draft.counts.set(event.agentId, (draft.counts.get(event.agentId) ?? 0) + 1)
+    const actor = actorOf(event)
+    draft.counts.set(actor, (draft.counts.get(actor) ?? 0) + 1)
   }
 
   const shared = new Map<string, string[]>()
@@ -330,7 +341,7 @@ export function laneTotals(
 ): number[] {
   const totals = lanes.list.map(() => 0)
   for (const event of events) {
-    const agent = agents.get(event.agentId)
+    const agent = seatOf(event, agents)
     if (stageOf(event, agent) !== 0) continue
     const position = lanes.index.get(laneOf(event, agent))
     if (position === undefined) continue

@@ -862,6 +862,64 @@ input[type='range']::-moz-range-thumb {
   text-transform: uppercase;
 }
 
+/* ------------------------------------------------ evidence and the record - */
+
+.count[data-tone='occupied'] b { color: var(--violet); }
+
+/* One row per route (its name, the count, what the count means) or per reason (the count, the reason), in aligned columns. */
+.routes {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  gap: 5px 9px;
+  align-items: baseline;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.routes--reasons { grid-template-columns: max-content 1fr; }
+.routes__row { display: contents; }
+.routes__row b { font-size: 12.5px; font-weight: 600; color: var(--ink); text-align: right; }
+.routes__row .mono { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink); }
+.routes__row span:last-child { color: var(--ink-3); }
+.routes__row[data-run='false'] b,
+.routes__row[data-run='false'] .mono { color: var(--ink-3); }
+
+.evidence-lead { margin: -2px 0 8px; font-size: 11px; color: var(--ink-2); line-height: 1.5; }
+.evidence-note { display: block; margin-top: 2px; font-family: var(--font-ui); font-size: 10.5px; color: var(--amber); }
+
+.record__lead { margin: 12px 0 12px; font-size: 11.5px; color: var(--ink-2); line-height: 1.55; }
+.record + .record { margin-top: 12px; }
+.record__what { margin: 6px 0 0; font-size: 11.5px; color: var(--ink); line-height: 1.45; overflow-wrap: anywhere; }
+.record__meta { margin: 3px 0 0; font-size: 10.5px; color: var(--ink-3); }
+.record__table { margin-top: 9px; }
+/* Several record cards share one scroll, so a card's header must not stick over the cards below it. */
+.record__table th { position: static; background: none; }
+.table tbody tr[data-link='false'] { cursor: default; }
+.table tbody tr[data-link='false']:hover td { background: none; }
+
+.record__chain { margin-top: 11px; }
+.record__chain h5 {
+  margin: 0 0 6px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.record__step {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 8px;
+  padding: 3px 0 3px 8px;
+  border-left: 2px solid var(--line-strong);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.record__step time { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+.record__step[data-early='true'] { border-left-color: var(--amber); color: var(--ink); }
+.record__note { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+.record__step[data-early='true'] .record__note { color: var(--amber); }
+.record__path { margin: 9px 0 0; font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); overflow-wrap: anywhere; }
+
 /* ------------------------------------------------------------ responsive - */
 
 @media (max-width: 1100px) {

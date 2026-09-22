@@ -10,8 +10,8 @@
 'use client'
 
 import { create } from 'zustand'
-import type { Roster, Run, RunEvent, SafetyReview } from './contract.ts'
-import { getRoster, getRuns, getSafety, resolveFeed, type FeedSource } from './feed.ts'
+import { actorOf, type ProgramRecord, type Roster, type Run, type RunEvent, type SafetyReview } from './contract.ts'
+import { getPrograms, getRoster, getRuns, getSafety, resolveFeed, type FeedSource } from './feed.ts'
 import { subscribeRun, type StreamState } from './stream.ts'
 
 /** How many events one run keeps in memory; older frames fall off the head. */
@@ -22,6 +22,7 @@ const REFRESH_MS = 10_000
 
 /** A certificate burst waiting to be drawn once, then dropped. */
 interface Burst {
+  /** The certifying frame's actor (see `actorOf`); only a seat's id matches a node. */
   agentId: string
   at: number
 }
@@ -69,17 +70,23 @@ export interface DeckState {
   streamState: StreamState
   roster: Roster | undefined
   runs: Run[]
+  /** The organisation of record from `GET /programs`; `undefined` until it is read, or when it could not be. */
+  programs: ProgramRecord[] | undefined
+  /** Why the organisation of record could not be read; the Record panel shows it in place of the list. */
+  programsError: string | undefined
   selectedRunId: string | undefined
   events: RunEvent[]
   safety: SafetyReview | undefined
   safetyRunId: string | undefined
   selectedAgentId: string | undefined
   selectedFindingId: string | undefined
+  /** The session the Workflow view opens its card on; cleared when the followed run changes. */
+  selectedSessionId: string | undefined
   error: string | undefined
   booted: boolean
   /** Timeline position as an epoch-millisecond cap; `undefined` follows the head. */
   cursor: number | undefined
-  /** Last activity timestamp per agent, in `performance.now()` milliseconds. */
+  /** Last activity timestamp per actor (a seat, or an unattributed session; see `actorOf`), in `performance.now()` milliseconds. */
   activity: Map<string, number>
   /** Certificate bursts the enterprise scene has not drawn yet. */
   bursts: Burst[]
@@ -103,6 +110,7 @@ export interface DeckState {
   refresh: () => Promise<void>
   selectAgent: (id: string | undefined) => void
   selectFinding: (id: string | undefined) => void
+  selectSession: (id: string | undefined) => void
   setCursor: (atMs: number | undefined) => void
   /** Load a review's detail; `force` re-reads one already loaded. */
   loadSafety: (id: string, force?: boolean) => Promise<void>
@@ -125,6 +133,21 @@ export interface DeckState {
 let unsubscribe: (() => void) | undefined
 
 /**
+ * Read the organisation of record into the store. A feed that does not serve
+ * `GET /programs` leaves the rest of the deck working and the Record panel
+ * saying why it is empty, so the failure is kept apart from the deck's error.
+ * @param source - Source from `resolveFeed`.
+ * @param set - The store's setter.
+ */
+async function loadPrograms(source: FeedSource, set: (state: Partial<DeckState>) => void): Promise<void> {
+  try {
+    set({ programs: await getPrograms(source), programsError: undefined })
+  } catch (error) {
+    set({ programsError: error instanceof Error ? error.message : String(error) })
+  }
+}
+
+/**
  * Append one event to the window, dropping the oldest frames past the cap.
  * @param events - The current window.
  * @param event - The frame to append.
@@ -140,12 +163,15 @@ export const useDeck = create<DeckState>((set, get) => ({
   streamState: 'idle',
   roster: undefined,
   runs: [],
+  programs: undefined,
+  programsError: undefined,
   selectedRunId: undefined,
   events: [],
   safety: undefined,
   safetyRunId: undefined,
   selectedAgentId: undefined,
   selectedFindingId: undefined,
+  selectedSessionId: undefined,
   error: undefined,
   booted: false,
   cursor: undefined,
@@ -163,6 +189,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     set({ booted: true })
     const source = await resolveFeed()
     set({ source })
+    void loadPrograms(source, set)
     try {
       const [roster, runs] = await Promise.all([getRoster(source), getRuns(source)])
       set({ roster, runs })
@@ -182,6 +209,7 @@ export const useDeck = create<DeckState>((set, get) => ({
   refresh: async () => {
     const { source, runs: known, selectedRunId } = get()
     if (source === undefined) return
+    void loadPrograms(source, set)
     try {
       const listed = await getRuns(source)
       // A review this deck started stays listed until the feed reports it.
@@ -207,7 +235,7 @@ export const useDeck = create<DeckState>((set, get) => ({
     const source = get().source
     if (source === undefined || get().selectedRunId === id) return
     unsubscribe?.()
-    set({ selectedRunId: id, events: [], cursor: undefined })
+    set({ selectedRunId: id, selectedSessionId: undefined, events: [], cursor: undefined })
     const { activity, bursts } = get()
     activity.clear()
     // A certificate queued under the previous run must not burst on this one.
@@ -215,9 +243,9 @@ export const useDeck = create<DeckState>((set, get) => ({
     unsubscribe = subscribeRun(source, id, {
       onState: state => set({ streamState: state }),
       onEvent: (event) => {
-        get().activity.set(event.agentId, performance.now())
+        get().activity.set(actorOf(event), performance.now())
         if (event.kind === 'certificate') {
-          get().bursts.push({ agentId: event.agentId, at: performance.now() })
+          get().bursts.push({ agentId: actorOf(event), at: performance.now() })
         }
         set(state => ({ events: appendEvent(state.events, event) }))
       },
@@ -228,6 +256,7 @@ export const useDeck = create<DeckState>((set, get) => ({
 
   selectAgent: id => set({ selectedAgentId: id }),
   selectFinding: id => set({ selectedFindingId: id }),
+  selectSession: id => set({ selectedSessionId: id }),
   setCursor: atMs => set({ cursor: atMs }),
 
   loadSafety: async (id, force = false) => {
