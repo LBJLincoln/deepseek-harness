@@ -1,5 +1,5 @@
 /**
- * Trajectory export: persisted sessions folded into `dsh-trajectory/2`
+ * Trajectory export: persisted sessions folded into `dsh-trajectory/3`
  * records and written one JSON line at a time to a caller-supplied sink. The
  * service reads through the session persistence seam and writes no session
  * event. The
@@ -22,7 +22,7 @@ import type {
 } from './types.ts'
 
 export type * from './types.ts'
-export { foldTrajectory, foldTrajectoryReward, TRAJECTORY_FORMAT } from './fold.ts'
+export { foldTrajectory, foldTrajectoryReward, foldTrajectoryStop, TRAJECTORY_FORMAT } from './fold.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {

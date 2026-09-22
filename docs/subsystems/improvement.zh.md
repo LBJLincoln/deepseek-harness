@@ -2,7 +2,7 @@
 
 [English](improvement.md) | 中文
 
-改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/2` 记录，其奖励由证书决定，并带有其日志所钉定的数据使用条款；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中；而一次观测台快照则是对全部持久化会话的公开折叠，被扣留的区与留出划分被挡在它的行之外并被计数。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)、[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)与[观测台](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 、[`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 与 [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts) 中的精确字段。
+改进 seam 共享的类型。一个环境以完成标准词汇声明一个带可执行检查的任务；运行器把它作为一个全新会话运行，并把所运行的内容盖章到日志上；fleet 运行环境 × 模型 × 重复的 cell 计划并折叠出排行榜；一条轨迹是一个已持久化会话折叠成的、训练器可读的 `dsh-trajectory/3` 记录，带有其工作的停止方式、由证书决定的奖励，以及其日志所钉定的数据使用条款；会话事实则是同一个会话折叠成的、记分板据以分组的行；实验结果则是两个 arm（实验分支）在同一批 cell 上的配对比较；一个班次是 fleet 一次持久、按节拍进行的运行，其台账存放在它自己的会话日志中；一个程序则是一份被拆解为部门目标的客户交付物，其台账存放在该程序自己的会话中；而一次观测台快照则是对全部持久化会话的公开折叠，被扣留的区与留出划分被挡在它的行之外并被计数。[轨迹导出](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md)、[环境运行器](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[记分员](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md)、[四目标工作流](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md)、[村庄班次](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md)、[程序台账](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md)与[观测台](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Note 承载设计；本页记录 [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts)、[`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts)、[`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts) 、[`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts) 、[`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts) 、[`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts) 、[`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts) 与 [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts) 中的精确字段。
 
 ## 环境定义
 
@@ -252,6 +252,26 @@ interface TrajectoryReward {
 记录在 `reward` 旁携带 `parity`：最后记录的那次运行的 `{ weightPassed, weightTotal }`，该次运行没有度量用例时不存在。它是塑形奖励可以读取的辅助信号，绝不取代以证书为依据的 `outcome`——加权通过率决定不了后者。
 
 消息从压缩替换之后的会话表面投影而来，每条携带来源事件的 seq；不含 token id 与 logprob，因为 harness 从不看到它们。
+
+## 轨迹停止原因
+
+记录的 `stopReason` 陈述会话最后一个工作单元如何结束，这是奖励无法陈述的：在被度量的 goal 下被预算提前截断的会话，与运行到底却失败的会话一样记为 `0`。按 rollout 评分的消费方只有在停止原因为 `completed` 时才把 `0` 读作失败；折叠逐事件的规则由[包 README](../../packages/improvement/trajectories/README.md) 承载。
+
+```ts type-equiv
+/**
+ * How the session's last unit of work ended: its last turn for a session whose
+ * own model route did the work, its last delegated attempt for one an
+ * implementer outside that route did. A `turn/end` reason kind is carried
+ * verbatim, including a kind a plugin merges into `TurnEndReasonMap`; a
+ * delegated attempt states the subagent seam's `completed`, `aborted`,
+ * `error`, `max-tokens`, or `refusal`. `budget` replaces either when a
+ * `budget/breach` ended the work: a turn the breach blocked, an attempt its
+ * wall deadline cut short, or a breach of the session's own caps after the
+ * last ended unit. A log that ends inside an open turn is `interrupted`, and a
+ * log recording no ended unit of work at all is `none`.
+ */
+type TrajectoryStopReason = TurnEndReason['kind'] | 'refusal' | 'budget' | 'none'
+```
 
 ## 会话事实
 

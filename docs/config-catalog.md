@@ -653,7 +653,7 @@ export interface RedactionRule {
 }
 ```
 
-Source: [`packages/governance/curator/src/index.ts:58`](../packages/governance/curator/src/index.ts)
+Source: [`packages/governance/curator/src/index.ts:76`](../packages/governance/curator/src/index.ts)
 
 <a id="deepseek-aidsh-data-use"></a>
 

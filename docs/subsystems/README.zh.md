@@ -16,7 +16,7 @@
 | [verification.md](verification.md) | 完成标准：每个 goal 的检查清单、来自完全通过运行的证书，以及运行所处的隔离级别 |
 | [governance.md](governance.md) | 五类签署转变上的具名人类签名，以及每份会话日志对自身所述的数据使用条款 |
 | [components.md](components.md) | 组件注册表的描述符：类别、来源、谱系、成员关系，以及到达每个可寻址单元的可调用路径 |
-| [improvement.md](improvement.md) | 作为带验证器任务的环境，以及作为奖励由证书决定的 `dsh-trajectory/2` 记录的轨迹 |
+| [improvement.md](improvement.md) | 作为带验证器任务的环境，以及作为奖励由证书决定、带停止原因的 `dsh-trajectory/3` 记录的轨迹 |
 | [schedule.md](schedule.md) | 仅限 Session 内的提醒记录、持久转换、活动视图与普通对话交付 |
 | [commands.md](commands.md) | 人类命令注册表服务：定义、适配器发现、直接调用、结果与解析视图 |
 | [session.md](session.md) | 完整的 `SessionEventMap` 变体目录、`TurnTrigger`/`TurnEndReason`、`deriveMessages()`、执行封闭与独立事件 |

@@ -16,7 +16,7 @@ One page per subsystem of the DeepSeek Harness: what it is, the data structures 
 | [verification.md](verification.md) | completion standards: check inventories per goal, certificates from fully passing runs, and the isolation level they ran under |
 | [governance.md](governance.md) | attributed human signatures over the five signed transitions, and the data-use terms every session log states about itself |
 | [components.md](components.md) | the component registry's descriptor: kind, provenance, lineage, membership, and the callable route to every addressable unit |
-| [improvement.md](improvement.md) | environments as tasks with verifiers and trajectories as `dsh-trajectory/2` records with certificate-decided rewards |
+| [improvement.md](improvement.md) | environments as tasks with verifiers and trajectories as `dsh-trajectory/3` records with certificate-decided rewards and stop reasons |
 | [schedule.md](schedule.md) | Session-local reminder records, durable transitions, active views, and ordinary-conversation delivery |
 | [commands.md](commands.md) | the human-command registry service: definitions, adapter discovery, direct invocation, results, and parsing views |
 | [session.md](session.md) | the full `SessionEventMap` variant catalog, `TurnTrigger`/`TurnEndReason`, `deriveMessages()`, execution enclosure, and standalone events |

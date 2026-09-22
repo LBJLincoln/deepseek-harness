@@ -197,6 +197,9 @@
 - id: trajectories
   name: '@deepseek-ai/dsh-trajectories'
 
+# Both drivers export through the curator and name no profile, so the default
+# profile is the one every bench export runs under; without it the export is
+# refused after the last cell has run.
 - id: curator
   name: '@deepseek-ai/dsh-curator'
   config:

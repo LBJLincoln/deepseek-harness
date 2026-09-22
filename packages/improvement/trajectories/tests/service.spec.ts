@@ -256,7 +256,7 @@ describe('TrajectoryService', () => {
     await ctx.trajectories.export({ sink: jsonlFileSink(path) })
     const lines = (await readFile(path, 'utf8')).trimEnd().split('\n')
     expect(lines).toHaveLength(1)
-    expect(JSON.parse(lines[0] as string)).toMatchObject({ format: 'dsh-trajectory/2', id: 'certified', reward: { outcome: 1 } })
+    expect(JSON.parse(lines[0] as string)).toMatchObject({ format: 'dsh-trajectory/3', id: 'certified', stopReason: 'completed', reward: { outcome: 1 } })
   })
 
   it('registers its empty invariant companion', async () => {

@@ -9,7 +9,7 @@ The improvement seam turns what the harness already records into what a trainer 
 | [`environments/`](environments/README.md) | Environment registry: tasks with verifiers, held out or training-eligible; the `environment/run` stamp vocabulary | `ctx.environments` |
 | [`environment-runner/`](environment-runner/README.md) | Environment runner: one environment as one validated session, the runner as validator | `ctx.environmentRuns` |
 | [`fleet/`](fleet/README.md) | Fleet runs: a plan of environment × model × repetition cells, every outcome kept, a leaderboard per route and environment | `ctx.fleet` |
-| [`trajectories/`](trajectories/README.md) | Trajectory export: sessions as `dsh-trajectory/2` JSONL with rewards, data-use terms, provenance, and the environment stamp | `ctx.trajectories` |
+| [`trajectories/`](trajectories/README.md) | Trajectory export: sessions as `dsh-trajectory/3` JSONL with rewards, stop reasons, data-use terms, provenance, and the environment stamp | `ctx.trajectories` |
 | [`scorekeeper/`](scorekeeper/README.md) | Session facts: the `sessionFacts` projection unit, a log-derived scoreboard with pass@k per environment, and a JSONL facts export | `ctx.scorekeeper` |
 | [`experiments/`](experiments/README.md) | Experiments: a frozen paired comparison of two arms over fleet cells, with bootstrap intervals and a promote/reject/inconclusive verdict | `ctx.experiments` |
 | [`shifts/`](shifts/README.md) | Shifts: a cadenced, spend-windowed loop over fleet plans whose ledger lives in its own session log and whose interrupted shifts resume by ledger and run stamp | `ctx.shifts` |

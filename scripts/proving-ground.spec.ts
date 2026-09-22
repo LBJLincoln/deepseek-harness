@@ -62,6 +62,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
     expect(listOverlayNames()).toEqual([
       'attempts-1',
       'attempts-5',
+      'mock-route',
       'registry-only',
       'route-only',
       'with-craft-skills',

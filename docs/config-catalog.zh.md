@@ -655,7 +655,7 @@ export interface RedactionRule {
 }
 ```
 
-来源：[`packages/governance/curator/src/index.ts:58`](../packages/governance/curator/src/index.ts)
+来源：[`packages/governance/curator/src/index.ts:76`](../packages/governance/curator/src/index.ts)
 
 <a id="deepseek-aidsh-data-use"></a>
 

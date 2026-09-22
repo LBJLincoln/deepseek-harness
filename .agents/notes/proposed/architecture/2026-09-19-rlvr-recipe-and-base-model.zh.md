@@ -106,9 +106,9 @@ Status: proposed
 
 #### 最小的代码新增，逐一点名
 
-1. **让 bench 的导出走 curator。** [fleet-driver.ts](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/fleet-driver.ts) 与 [experiment-driver.ts](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/experiment-driver.ts) 调用的是 `ctx.trajectories.export()`，那个不做脱敏、不读条款的导出器。训练语料需要改为 `ctx.curator.export({ purpose: 'training', … })`，正如 [curator 的 e2e 驱动](../../../../examples/headless-agent/tests/fixtures/curator/driver.ts)已经在调用的那样。没有这一步，条款门在语料真正的来源路径上什么都约束不了。
+1. **让 bench 的导出走 curator。** [fleet-driver.ts](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/fleet-driver.ts) 与 [experiment-driver.ts](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/experiment-driver.ts) 调用的是 `ctx.trajectories.export()`，那个不做脱敏、不读条款的导出器。训练语料需要改为 `ctx.curator.export({ purpose: 'training', … })`，正如 [curator 的 e2e 驱动](../../../../examples/headless-agent/tests/fixtures/curator/driver.ts)已经在调用的那样。没有这一步，条款门在语料真正的来源路径上什么都约束不了。[把 curator 放上导出路径的笔记](2026-09-22-curator-on-the-export-path.md)让两个驱动都走 curator。
 2. **一个开放权重路由叠加层与一份 `training` 协议。** 一份 `cordis.yml` 叠加层，把 `llm-claude-code` 换成 [`dsh-llm-deepseek`](../../../../packages/llm/llm-deepseek/README.md) 或通过 [`dsh-llm-pi-ai`](../../../../packages/llm/llm-pi-ai/README.md) 的自托管 OpenAI 兼容路由，外加一个点名允许 `training` 之协议的 `data-use` 块。属于配置，但它并不存在：七份已签入的叠加层没有一份替换路由。
-3. **trajectory 记录上的 `stopReason`。** `dsh-trajectories` 自己点名了这个缺口：被预算、中止或提供方错误结束的会话导出结果为 `0`，而训练器无法把它与真正的失败区分开。没有这个字段，每一次被预算结束的 rollout 都是负例，策略便学会提早收工。
+3. **trajectory 记录上的 `stopReason`。** `dsh-trajectories` 自己点名了这个缺口：被预算、中止或提供方错误结束的会话导出结果为 `0`，而训练器无法把它与真正的失败区分开。没有这个字段，每一次被预算结束的 rollout 都是负例，策略便学会提早收工。[同一份笔记](2026-09-22-curator-on-the-export-path.md)在 `dsh-trajectory/3` 中加入了该字段，并在数据集构建器中屏蔽这样的 rollout。
 4. **on-policy 捕获。** 记录按设计不携带 token id，也不携带 logprob。把它们放进 harness 前方训练器自己的推理代理里，而不是放进会话事件——harness 从不看见 token id，而 RL 框架本来就期望 rollout 来自它自己的采样器。
 5. **导出中的按环境分组统计**——best-of-N 选取与按环境的奖励均值与方差，`dsh-trajectories` 把它列为待办。可选：印记携带环境、重复序号与分组，训练器可以离线折叠出来。
 

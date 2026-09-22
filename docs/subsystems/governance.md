@@ -129,7 +129,7 @@ interface CuratedExportRequest {
 
 A session is admitted only when its newest `dataUse/terms` lists the export's purpose, and a session carrying no terms at all is withheld by the same rule. Admitted sessions alone reach the exporter, so a withheld transcript is never folded, serialized, or written. An export that names no profile over a deployment with no `defaultProfile` is refused with `CURATOR_PROFILE_REQUIRED`; there is no configuration that exports unredacted.
 
-Each written line is the `dsh-trajectory/2` record plus a `curation` block naming the profile that ran, the digest of its effective rules, the replacements this record received, and the residency its terms name. Every string in the record is redacted except the identifiers, the discriminants a reader switches on, and registered tool names; the [package README](../../packages/governance/curator/README.md) enumerates both sides.
+Each written line is the `dsh-trajectory/3` record plus a `curation` block naming the profile that ran, the digest of its effective rules, the replacements this record received, and the residency its terms name. Every string in the record is redacted except the identifiers, the discriminants a reader switches on, and registered tool names; the [package README](../../packages/governance/curator/README.md) enumerates both sides.
 
 ```ts type-equiv
 /** The block the curator adds to every record it exports. */
@@ -164,6 +164,13 @@ interface ExportManifest {
   readonly withheld: ExportWithheld
   /** Replacements over the whole export, per rule id; every rule of the profile is listed, including those that matched nothing. */
   readonly ruleHits: Readonly<Record<string, number>>
+  /**
+   * Written records each rule replaced anything in, per rule id, listed like
+   * {@link ruleHits}. Beside the replacement count it separates a rule firing
+   * in nearly every record, which is matching text every environment shares,
+   * from one firing in a few transcripts.
+   */
+  readonly ruleRecords: Readonly<Record<string, number>>
   /** Lowercase SHA-256 hex over the written lines in order, which is the digest of the sink's bytes. */
   readonly recordsSha256: string
   /** Record format of every written line. */
@@ -218,7 +225,7 @@ Curated export (`ctx.curator`): redacted, terms-gated trajectory export with a m
 async export(request: CuratedExportRequest): Promise<CuratedExportReport>
 ```
 
-Source: [`packages/governance/curator/src/index.ts:70`](../../packages/governance/curator/src/index.ts)
+Source: [`packages/governance/curator/src/index.ts:88`](../../packages/governance/curator/src/index.ts)
 
 <a id="ctxdatause--datauseservice"></a>
 

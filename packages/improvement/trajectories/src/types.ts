@@ -1,5 +1,5 @@
 /**
- * Pure types of the trajectory record: the `dsh-trajectory/2` line format a
+ * Pure types of the trajectory record: the `dsh-trajectory/3` line format a
  * trainer or a leaderboard reads, free of host-side imports.
  *
  * @module @deepseek-ai/dsh-trajectories/types
@@ -10,11 +10,25 @@ import type { DataUsePurpose } from '@deepseek-ai/dsh-data-use'
 import type { EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { GoalId, GoalPhase } from '@deepseek-ai/dsh-goal/types'
 import type { CallId, ContentBlock, LlmCallConfig, TokenUsage, ToolSchema } from '@deepseek-ai/dsh-llm'
-import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { SessionId, TurnEndReason } from '@deepseek-ai/dsh-session/types'
 import type { CertificateIsolation, RunParity, VerificationCertificate } from '@deepseek-ai/dsh-verification/types'
 
 /** The record format tag every exported line carries. */
-export type TrajectoryFormat = 'dsh-trajectory/2'
+export type TrajectoryFormat = 'dsh-trajectory/3'
+
+/**
+ * How the session's last unit of work ended: its last turn for a session whose
+ * own model route did the work, its last delegated attempt for one an
+ * implementer outside that route did. A `turn/end` reason kind is carried
+ * verbatim, including a kind a plugin merges into `TurnEndReasonMap`; a
+ * delegated attempt states the subagent seam's `completed`, `aborted`,
+ * `error`, `max-tokens`, or `refusal`. `budget` replaces either when a
+ * `budget/breach` ended the work: a turn the breach blocked, an attempt its
+ * wall deadline cut short, or a breach of the session's own caps after the
+ * last ended unit. A log that ends inside an open turn is `interrupted`, and a
+ * log recording no ended unit of work at all is `none`.
+ */
+export type TrajectoryStopReason = TurnEndReason['kind'] | 'refusal' | 'budget' | 'none'
 
 /**
  * The data-use terms the session was held under, as the admission rule reads
@@ -153,6 +167,13 @@ export interface Trajectory {
   readonly messages: readonly TrajectoryMessage[]
   /** Model calls in log order. */
   readonly steps: readonly TrajectoryStep[]
+  /**
+   * How the session's last unit of work ended. An `outcome` of `0` measures
+   * the work only when this is `completed`: any other value says the session
+   * stopped before its work ended on its own, so a consumer scoring rollouts
+   * masks that zero rather than counting it as a failure.
+   */
+  readonly stopReason: TrajectoryStopReason
   readonly reward: TrajectoryReward
   /**
    * Weighted pass rate of the last recorded run, absent when that run measured

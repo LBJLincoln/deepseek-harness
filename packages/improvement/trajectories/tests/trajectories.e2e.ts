@@ -20,7 +20,7 @@ const casedConfigPath = fileURLToPath(new URL(
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
 
 describe('trajectory export through a real cordis.yml and headless process', () => {
-  it('exports the certified session as one rewarded dsh-trajectory/2 line', async () => {
+  it('exports the certified session as one rewarded dsh-trajectory/3 line', async () => {
     let lines: string[] = []
     const { stdout, stderr } = await runLoaderSmoke({
       label: 'trajectory-export',
@@ -41,7 +41,9 @@ describe('trajectory export through a real cordis.yml and headless process', () 
 
     expect(lines).toHaveLength(1)
     const trajectory = JSON.parse(lines[0] as string) as Trajectory
-    expect(trajectory.format).toBe('dsh-trajectory/2')
+    expect(trajectory.format).toBe('dsh-trajectory/3')
+    // The session's one turn ended on its own, after its second run certified.
+    expect(trajectory.stopReason).toBe('completed')
     expect(trajectory.config).toMatchObject({ provider: 'cli-mock', model: 'cli-mock' })
     expect(trajectory.reward).toMatchObject({
       outcome: 1,
