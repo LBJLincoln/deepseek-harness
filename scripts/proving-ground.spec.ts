@@ -67,7 +67,10 @@ describe('listOverlayNames / resolveOverlayPath', () => {
       'attempts-5',
       'mock-route',
       'registry-only',
+      'registry-only-with-completion',
       'route-only',
+      'with-completion',
+      'with-completion-openrouter',
       'with-craft-skills',
       'with-deepseek',
       'with-knowledge-pack',
@@ -139,7 +142,7 @@ describe('resolveFixture', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(35)
+    expect(names).toHaveLength(37)
     expect(names).toContain('e3-attempts-t5')
     expect(names).toContain('e9-preset-craft-vs-plain-t5')
     expect(names).toContain('e7-attempts-5-t5')
