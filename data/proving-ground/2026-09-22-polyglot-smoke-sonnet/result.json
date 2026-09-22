@@ -1,0 +1,1046 @@
+{
+  "type": "result",
+  "plan": "polyglot-smoke-sonnet",
+  "environments": [
+    "polyglot:cpp:linked-list",
+    "polyglot:cpp:parallel-letter-frequency",
+    "polyglot:go:food-chain",
+    "polyglot:go:hexadecimal",
+    "polyglot:python:zebra-puzzle",
+    "polyglot:python:robot-name",
+    "polyglot:rust:bowling",
+    "polyglot:rust:fizzy"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-22T20:13:21.726Z",
+  "endedAt": "2026-09-22T20:19:27.269Z",
+  "report": {
+    "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+    "cells": [
+      {
+        "cell": {
+          "environment": "polyglot:cpp:linked-list",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:cpp:linked-list",
+          "sessionId": "environment-4c74892a-6228-4d70-9a10-7415f841de34",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:cpp:linked-list",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "a6ddaa0dfd92888e93a64961c626e3df310cd66dad320f3c7fa118ec9e73aef7",
+            "checksSha256": "0d5ef530e96a4206822138320867e7325b88b38cdf4b46b2517b6190235a9221",
+            "fixtureSha256": "3130a7ef40bb6b189e44dff75490b9ac71f8bddc602547e38511230f636d0dc9",
+            "contentSha256": "122cd5faa0b8bb15a80c39b06dd041e45c52fbe719a535d4d7ed7a4252ac0542",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: -- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.5s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-2nBbUk/build\n[ 25%] Building CXX object CMakeFiles/linked-list.dir/linked_list_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/linked-list.dir/linked_list.cpp.o\n[ 75%] Building CXX object CMakeFiles/linked-list.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable linked-list\n[100%] Built target linked-list\n===============================================================================\nAll tests passed (42 assertions in 19 test cases)\n\n[100%] Built target test_linked-list"
+                }
+              ],
+              "treeHash": "514f7a4b4255220dd4327d8067ee4d66821a23401c367619900226ecb00d9daf"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-ba539cdf-c023-45a8-bf2b-09c0d23d856b",
+              "revision": 1
+            },
+            "goalId": "goal-edf7c599-5c62-4d43-aa79-a3d7301a29ac",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: -- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.5s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-2nBbUk/build\n[ 25%] Building CXX object CMakeFiles/linked-list.dir/linked_list_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/linked-list.dir/linked_list.cpp.o\n[ 75%] Building CXX object CMakeFiles/linked-list.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable linked-list\n[100%] Built target linked-list\n===============================================================================\nAll tests passed (42 assertions in 19 test cases)\n\n[100%] Built target test_linked-list"
+              }
+            ],
+            "recordedAt": 1790108104385
+          },
+          "usage": {
+            "inputTokens": 16,
+            "outputTokens": 3463,
+            "cacheReadTokens": 80286,
+            "cacheWriteTokens": 12675
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:cpp:parallel-letter-frequency",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:cpp:parallel-letter-frequency",
+          "sessionId": "environment-03f5acce-7ed6-4cf6-9e97-2a47c6188942",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:cpp:parallel-letter-frequency",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "f0d86f81543a3e5f67ad4a2ad112e7dfeef4df0a2a90c3d7728ec32077d2037b",
+            "checksSha256": "0d5ef530e96a4206822138320867e7325b88b38cdf4b46b2517b6190235a9221",
+            "fixtureSha256": "2c569874386e6f6f1f4fed284d7d5297cf221e8a17098a7b99a842574fbdc92d",
+            "contentSha256": "30a0af89cfc0f8b282726836b717fff51559e0834a37ae91586da5a012246fb9",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: -- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.7s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-OvgPXm/build\n[ 25%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/parallel_letter_frequency_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/parallel_letter_frequency.cpp.o\n[ 75%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable parallel-letter-frequency\n[100%] Built target parallel-letter-frequency\n===============================================================================\nAll tests passed (64 assertions in 12 test cases)\n\n[100%] Built target test_parallel-letter-frequency\nstderr: CMake Warning at CMakeLists.txt:47 (find_package):\n  By not providing \"FindTBB.cmake\" in CMAKE_MODULE_PATH this project has\n  asked CMake to find a package configuration file provided by \"TBB\", but\n  CMake did not find one.\n\n  Could not find a package configuration file provided by \"TBB\" with any of\n  the following names:\n\n    TBBConfig.cmake\n    tbb-config.cmake\n\n  Add the installation prefix of \"TBB\" to CMAKE_PREFIX_PATH or set \"TBB_DIR\"\n  to a directory containing one of the above files.  If \"TBB\" provides a\n  separate development package or SDK, be sure it has been installed."
+                }
+              ],
+              "treeHash": "7de638970c6dde5f0ddab6d27322f4b7f0369905f817ac31e98c5e563ba172f9"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-7becfcb2-2202-4939-87ce-afbb1c89d38c",
+              "revision": 1
+            },
+            "goalId": "goal-c8b32d2d-b073-4b91-b9f7-8bf687821559",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: -- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.7s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-OvgPXm/build\n[ 25%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/parallel_letter_frequency_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/parallel_letter_frequency.cpp.o\n[ 75%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable parallel-letter-frequency\n[100%] Built target parallel-letter-frequency\n===============================================================================\nAll tests passed (64 assertions in 12 test cases)\n\n[100%] Built target test_parallel-letter-frequency\nstderr: CMake Warning at CMakeLists.txt:47 (find_package):\n  By not providing \"FindTBB.cmake\" in CMAKE_MODULE_PATH this project has\n  asked CMake to find a package configuration file provided by \"TBB\", but\n  CMake did not find one.\n\n  Could not find a package configuration file provided by \"TBB\" with any of\n  the following names:\n\n    TBBConfig.cmake\n    tbb-config.cmake\n\n  Add the installation prefix of \"TBB\" to CMAKE_PREFIX_PATH or set \"TBB_DIR\"\n  to a directory containing one of the above files.  If \"TBB\" provides a\n  separate development package or SDK, be sure it has been installed."
+              }
+            ],
+            "recordedAt": 1790108133740
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 2569,
+            "cacheReadTokens": 90858,
+            "cacheWriteTokens": 21706
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:go:food-chain",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:go:food-chain",
+          "sessionId": "environment-702d70ba-96e9-49c8-915e-8a985d00fc4e",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:go:food-chain",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "862965aaa55206caec3509ed53b3814324f5034a9d70561115de2b7300ef79c9",
+            "checksSha256": "a0a258d6dc60f0a4045cb774ed22a4a98059bb580cabf205b01a9b082dd85634",
+            "fixtureSha256": "296228bf53be6d31688241cd1493b033fa3b9d6e6f3aaf78a00877e497354ce2",
+            "contentSha256": "c3b04413a46a98c6a6bcd4686b3362176946d2e0f23ff36b3c94ea3ac27b1365",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: ok  \tfoodchain\t0.003s"
+                }
+              ],
+              "treeHash": "3df4caaa54be5d9a56041585b8a293057a37989092b2c0462655f6d4d02475b4"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-7dd473aa-660e-455a-8b06-8d603e39cafe",
+              "revision": 1
+            },
+            "goalId": "goal-7f8417e7-889c-47fb-8345-1788afd9aff0",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: ok  \tfoodchain\t0.003s"
+              }
+            ],
+            "recordedAt": 1790108230204
+          },
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 2339,
+            "cacheReadTokens": 42523,
+            "cacheWriteTokens": 10105
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:go:hexadecimal",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:go:hexadecimal",
+          "sessionId": "environment-a9f19915-2810-46f1-b5bc-b5e0ac631d95",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:go:hexadecimal",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "25eb332ef50ef0fa7a1e7b5cb30ee9b44d5feb6538b13de64874665434bc65c2",
+            "checksSha256": "a0a258d6dc60f0a4045cb774ed22a4a98059bb580cabf205b01a9b082dd85634",
+            "fixtureSha256": "216d7d235b4e7b5ffaf572e450aab7df3fe71b51cbd16606f497654e9b101bb4",
+            "contentSha256": "3327b0a9560f347af5a154407ea3f9447da86362486a904ed894fc4ff22267af",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: ok  \thexadecimal\t0.007s"
+                }
+              ],
+              "treeHash": "4d086f1b3c9aeb6f335a1f12195f510520ea11ef6a67ee68b7d7c1e21cb7fb63"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-26b19268-e851-436f-a31a-0bb95e8ea979",
+              "revision": 1
+            },
+            "goalId": "goal-11cf9ad7-ae32-4b40-aa8b-4acc5073e25c",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: ok  \thexadecimal\t0.007s"
+              }
+            ],
+            "recordedAt": 1790108264074
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 1876,
+            "cacheReadTokens": 57921,
+            "cacheWriteTokens": 8431
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:python:zebra-puzzle",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:python:zebra-puzzle",
+          "sessionId": "environment-efcfc913-469e-4ac7-921e-5415050ba40c",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:python:zebra-puzzle",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "4d05d14e564ff7314c1681e754c3e84ea68bf0cfb3a82a53641644f73c346534",
+            "checksSha256": "ca4c6a36b0499d56f0ae7c79fac6e7bc0e5a60d7fefdfd5fcdea33f99cf45c97",
+            "fixtureSha256": "84f6c5fbdf518333d7b7df01a78472603d43f547abf510a535eeb4e5d4e9c5bc",
+            "contentSha256": "6de8071d85feadb8b7925adc3a903b870e0bc6288b393353650544cc0246dd0c",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: ..                                                                       [100%]\n=============================== warnings summary ===============================\n../../../../../../../../../../usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469\n  /usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.pytest_cache/v/cache/nodeids: [Errno 30] Read-only file system: '/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/pytest-cache-files-wdnu1hyf'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 1 warning in 0.06s"
+                }
+              ],
+              "treeHash": "b5eb807f2595483790cfd9829012ea6073ebb371a2b6d01b5d928c70f085c873"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-c89f1427-b1d0-4aca-a6da-17f9adeafdd1",
+              "revision": 1
+            },
+            "goalId": "goal-6946b7bf-fa4f-4cff-9399-64a33a9403b5",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: ..                                                                       [100%]\n=============================== warnings summary ===============================\n../../../../../../../../../../usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469\n  /usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.pytest_cache/v/cache/nodeids: [Errno 30] Read-only file system: '/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/pytest-cache-files-wdnu1hyf'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 1 warning in 0.06s"
+              }
+            ],
+            "recordedAt": 1790108272117
+          },
+          "usage": {
+            "inputTokens": 12,
+            "outputTokens": 1863,
+            "cacheReadTokens": 45556,
+            "cacheWriteTokens": 8048
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:python:robot-name",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:python:robot-name",
+          "sessionId": "environment-9d25d853-8b6c-40be-a03e-3f5c9c8e9728",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:python:robot-name",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "40da490f9f395ac1fb07436aa577a189bb3a7357131df8fe1bd51125852716ff",
+            "checksSha256": "ca4c6a36b0499d56f0ae7c79fac6e7bc0e5a60d7fefdfd5fcdea33f99cf45c97",
+            "fixtureSha256": "c791760cbd90de6ed916009b8e1ff64ec5436a40f899f8a8b00412fe3777cfd0",
+            "contentSha256": "b6a37a2ffd9162ea529f951301ee91d85c55c01c77533d7790a5f00b5cd7d011",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: ....                                                                     [100%]\n=============================== warnings summary ===============================\n../../../../../../../../../../usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469\n  /usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.pytest_cache/v/cache/nodeids: [Errno 30] Read-only file system: '/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/pytest-cache-files-8pn8gux1'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n4 passed, 1 warning in 0.05s"
+                }
+              ],
+              "treeHash": "5161348f839993aad31be5237c4a3fc58fc2d3e2a603371b885d53829961d3b3"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-8b1531aa-b564-4530-9c58-1c4dc8a833e8",
+              "revision": 1
+            },
+            "goalId": "goal-76cbc405-f68f-4d3f-94b6-551a77fb0629",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: ....                                                                     [100%]\n=============================== warnings summary ===============================\n../../../../../../../../../../usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469\n  /usr/local/lib/python3.11/dist-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.pytest_cache/v/cache/nodeids: [Errno 30] Read-only file system: '/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/pytest-cache-files-8pn8gux1'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n4 passed, 1 warning in 0.05s"
+              }
+            ],
+            "recordedAt": 1790108318917
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 1487,
+            "cacheReadTokens": 52668,
+            "cacheWriteTokens": 7604
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:rust:bowling",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:rust:bowling",
+          "sessionId": "environment-42ff7d21-d0ba-45d1-a1eb-33f5a32bf6a6",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:rust:bowling",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "168cce6a62d5d6badeb5663951501afd8218df8da78a8286a2997f4b15d5a2b4",
+            "checksSha256": "33573a24275d1753036a45d4c5dab4600c087fa6d2305c803fe42e2a15cdd050",
+            "fixtureSha256": "f16ae16d8d025d207855d9648f5228d08617dbc576393654fae4b9a29d3257ad",
+            "contentSha256": "253ac31a9601da1de255df4852b06881e2fc51f6b036529a8845c1bfc448d702",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\n…e_an_invalid_number_of_pins ... ok\ntest if_the_last_frame_is_a_strike_you_cannot_score_before_the_extra_rolls_are_taken ... ok\ntest last_two_strikes_followed_by_only_last_bonus_with_non_strike_points ... ok\ntest points_scored_in_the_roll_after_a_spare_are_counted_twice_as_a_bonus ... ok\ntest cannot_roll_after_bonus_roll_for_spare ... ok\ntest if_the_last_frame_is_a_spare_you_cannot_create_a_score_before_extra_roll_is_taken ... ok\ntest if_the_last_frame_is_a_spare_you_get_one_extra_roll_that_is_scored_once ... ok\ntest roll_returns_a_result ... ok\ntest points_scored_in_the_two_rolls_after_a_strike_are_counted_twice_as_a_bonus ... ok\ntest second_bonus_ball_after_a_final_strike_cannot_score_an_invalid_number_of_pins_even_if_first_is_strike ... ok\ntest ten_frames_without_a_strike_or_spare ... ok\ntest the_two_balls_after_a_final_strike_cannot_be_a_non_strike_followed_by_a_strike ... ok\ntest the_two_balls_after_a_final_strike_cannot_score_an_invalid_number_of_pins ... ok\ntest twenty_zero_pin_rolls_scores_zero ... ok\ntest spare_in_the_first_frame_followed_by_zeros ... ok\ntest strikes_with_the_two_roll_bonus_do_not_get_a_bonus_roll ... ok\ntest the_two_balls_after_a_final_strike_can_be_a_strike_and_non_strike ... ok\ntest you_cannot_roll_more_than_ten_pins_in_a_single_roll ... ok\ntest you_cannot_roll_more_than_ten_pins_in_a_single_frame ... ok\ntest you_cannot_score_a_game_with_no_rolls ... ok\n\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\nstderr:    Compiling bowling v1.2.0 (/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-1Y52FX)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s\n     Running unittests src/lib.rs (target/debug/deps/bowling-e2759d270abbd5ad)\n     Running tests/bowling.rs (target/debug/deps/bowling-b6e673d380f53253)\n   Doc-tests bowling"
+                }
+              ],
+              "treeHash": "fb0b295c60c36699d50a4dcaccfafc9cc67df81e897855b16839d2b58f0fecf0"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-ff0087bc-25e3-459b-81b9-d81132e48e85",
+              "revision": 1
+            },
+            "goalId": "goal-9559bf4c-e243-46e6-a569-d185e4f4e813",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\n…e_an_invalid_number_of_pins ... ok\ntest if_the_last_frame_is_a_strike_you_cannot_score_before_the_extra_rolls_are_taken ... ok\ntest last_two_strikes_followed_by_only_last_bonus_with_non_strike_points ... ok\ntest points_scored_in_the_roll_after_a_spare_are_counted_twice_as_a_bonus ... ok\ntest cannot_roll_after_bonus_roll_for_spare ... ok\ntest if_the_last_frame_is_a_spare_you_cannot_create_a_score_before_extra_roll_is_taken ... ok\ntest if_the_last_frame_is_a_spare_you_get_one_extra_roll_that_is_scored_once ... ok\ntest roll_returns_a_result ... ok\ntest points_scored_in_the_two_rolls_after_a_strike_are_counted_twice_as_a_bonus ... ok\ntest second_bonus_ball_after_a_final_strike_cannot_score_an_invalid_number_of_pins_even_if_first_is_strike ... ok\ntest ten_frames_without_a_strike_or_spare ... ok\ntest the_two_balls_after_a_final_strike_cannot_be_a_non_strike_followed_by_a_strike ... ok\ntest the_two_balls_after_a_final_strike_cannot_score_an_invalid_number_of_pins ... ok\ntest twenty_zero_pin_rolls_scores_zero ... ok\ntest spare_in_the_first_frame_followed_by_zeros ... ok\ntest strikes_with_the_two_roll_bonus_do_not_get_a_bonus_roll ... ok\ntest the_two_balls_after_a_final_strike_can_be_a_strike_and_non_strike ... ok\ntest you_cannot_roll_more_than_ten_pins_in_a_single_roll ... ok\ntest you_cannot_roll_more_than_ten_pins_in_a_single_frame ... ok\ntest you_cannot_score_a_game_with_no_rolls ... ok\n\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\nstderr:    Compiling bowling v1.2.0 (/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-1Y52FX)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s\n     Running unittests src/lib.rs (target/debug/deps/bowling-e2759d270abbd5ad)\n     Running tests/bowling.rs (target/debug/deps/bowling-b6e673d380f53253)\n   Doc-tests bowling"
+              }
+            ],
+            "recordedAt": 1790108364634
+          },
+          "usage": {
+            "inputTokens": 18,
+            "outputTokens": 5804,
+            "cacheReadTokens": 101502,
+            "cacheWriteTokens": 17906
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "polyglot:rust:fizzy",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "polyglot:rust:fizzy",
+          "sessionId": "environment-4377ae17-4ac5-47ef-86d5-836239bfc3f9",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "polyglot:rust:fizzy",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "6a54acc91cb516817739902fbf51e69c5c8f1ddea8cb4958eb7fe7bec362dd34",
+            "checksSha256": "33573a24275d1753036a45d4c5dab4600c087fa6d2305c803fe42e2a15cdd050",
+            "fixtureSha256": "168656dd39a0a9dc432b9c0a1e4e11d57841605a70325672ee2dfc23d9ed85a2",
+            "contentSha256": "95fcffe02faa626f8ffe14e116e33402844fccefbc335129eba9cc62151939dc",
+            "repetition": 0,
+            "group": "fleet-466d1ec2-8e59-41c7-9bee-e34040be3a6b",
+            "district": "bench-polyglot",
+            "policyVersion": "bench-2026-09-08-sealed",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "tests-pass",
+                  "status": "pass",
+                  "evidence": "exit 0\nstdout: \nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 7 tests\ntest f64 ... ok\ntest custom ... ok\ntest minimal_generic_bounds ... ok\ntest nonsequential ... ok\ntest simple ... ok\ntest u64 ... ok\ntest u8 ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\nstderr:    Compiling fizzy v0.0.0 (/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-KVIPft)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s\n     Running unittests src/lib.rs (target/debug/deps/fizzy-328de006bbf265c0)\n     Running tests/fizzy.rs (target/debug/deps/fizzy-28f4bbc8a9cca36c)\n   Doc-tests fizzy"
+                }
+              ],
+              "treeHash": "cd25cf39387d1e2098f378085ff9a266d0e28bc1c2177ca1c211fa1fabaaf194"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-ef585a4f-0c86-4d3c-99ad-542fa6a5b510",
+              "revision": 1
+            },
+            "goalId": "goal-aab95afc-6784-4827-b126-41b0e796328d",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "tests-pass",
+                "status": "pass",
+                "evidence": "exit 0\nstdout: \nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 7 tests\ntest f64 ... ok\ntest custom ... ok\ntest minimal_generic_bounds ... ok\ntest nonsequential ... ok\ntest simple ... ok\ntest u64 ... ok\ntest u8 ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\nstderr:    Compiling fizzy v0.0.0 (/home/user/deepseek-harness/.claude/worktrees/agent-a951125abdb93ee06/.proving-ground/runs/polyglot-smoke-sonnet-20260922T201312Z/cell-KVIPft)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s\n     Running unittests src/lib.rs (target/debug/deps/fizzy-328de006bbf265c0)\n     Running tests/fizzy.rs (target/debug/deps/fizzy-28f4bbc8a9cca36c)\n   Doc-tests fizzy"
+              }
+            ],
+            "recordedAt": 1790108366132
+          },
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 2869,
+            "cacheReadTokens": 43411,
+            "cacheWriteTokens": 11642
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:cpp:linked-list",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 3463,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:cpp:parallel-letter-frequency",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 14,
+        "outputTokens": 2569,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:go:food-chain",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 10,
+        "outputTokens": 2339,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:go:hexadecimal",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 14,
+        "outputTokens": 1876,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:python:zebra-puzzle",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 12,
+        "outputTokens": 1863,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:python:robot-name",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 14,
+        "outputTokens": 1487,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:rust:bowling",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 18,
+        "outputTokens": 5804,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "polyglot:rust:fizzy",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 10,
+        "outputTokens": 2869,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 108,
+      "outputTokens": 22270
+    }
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:cpp:linked-list",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:cpp:parallel-letter-frequency",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:go:food-chain",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:go:hexadecimal",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:python:robot-name",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:python:zebra-puzzle",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:rust:bowling",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "polyglot:rust:fizzy",
+      "environmentKind": "bench",
+      "district": "bench-polyglot",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1
+    }
+  ],
+  "facts": {
+    "sessions": 8,
+    "exported": 8,
+    "skipped": []
+  },
+  "exported": {
+    "sessions": 8,
+    "exported": 8,
+    "rewarded": 8,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheld": 0,
+    "skipped": []
+  }
+}
