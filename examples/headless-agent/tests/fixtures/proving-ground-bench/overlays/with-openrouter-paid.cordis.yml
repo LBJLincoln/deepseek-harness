@@ -1,0 +1,79 @@
+# The bench on OpenRouter's paid catalog: the same `openrouter` route as
+# `with-openrouter.cordis.yml`, declaring the two open-weight models in the
+# 120B class the RLVR base-model decision weighs, billed to the operator's
+# OpenRouter credit at the prices OpenRouter listed on 2026-09-22
+# (Qwen3.5-122B-A10B: $0.26 in and $2.08 out per million tokens;
+# Nemotron 3 Super 120B-A12B: $0.08 and $0.45). A tier-2 cell on the harness
+# loop spends roughly two hundred thousand input and fifteen thousand output
+# tokens across its attempts, so a twenty-four-cell pair costs about two
+# dollars; the session budget below bounds a runaway cell at 1.5 million
+# tokens.
+#
+# The key is a reference, never a value: the adapter resolves
+# `OPENROUTER_API_KEY` per request, and this composition mounts no credential
+# seam, so the launching environment is the whole credential plane. Export the
+# variable in the shell that runs `pnpm run bench`.
+#
+# Terms are evaluation only, unlike the free overlay: whether each model's
+# licence admits its outputs as training data has not been read, so no session
+# on this overlay may enter the corpus until an agreement that names `training`
+# replaces this one after that reading.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - insert:
+          - id: llm-pi-ai
+            name: '@deepseek-ai/dsh-llm-pi-ai'
+            config:
+              providers:
+                openrouter:
+                  displayName: OpenRouter paid models
+                  apiKeyEnv: OPENROUTER_API_KEY
+                  compat:
+                    requiresThinkingAsText: true
+                  models:
+                    - id: qwen/qwen3.5-122b-a10b
+                      name: Qwen3.5 122B A10B
+                      contextWindow: 262144
+                      maxTokens: 65536
+                    - id: nvidia/nemotron-3-super-120b-a12b
+                      name: NVIDIA Nemotron 3 Super 120B A12B
+                      contextWindow: 262144
+                      maxTokens: 65536
+                  retryPolicy:
+                    mode: normal
+                    maxRetries: 8
+                    backoff:
+                      initialDelayMs: 3000
+                      maxDelayMs: 30000
+      - id: fleet
+        name: '@deepseek-ai/dsh-fleet'
+        config:
+          maxConcurrent: 2
+          routeBreaker:
+            consecutiveErrors: 4
+          workspaceRetention: keep
+      - id: data-use
+        name: '@deepseek-ai/dsh-data-use'
+        config:
+          clientId: daliesk-lab
+          agreementId: proving-ground-openrouter-paid
+          purposes:
+            - evaluation
+          residency: eu-west
+          retentionDays: 90
+          redactionProfile: village-v1
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'
