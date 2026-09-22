@@ -53,6 +53,7 @@ Generated English references and graphs participate in pairing when a reviewed C
 - [translation-prompt.md](translation-prompt.md) — the automated pipeline's prompt template; its body is machine-consumed verbatim, so a paired translation would change pipeline behavior.
 - `.agents/notes/archived/` — frozen historical triplets. [`verify-archived-agent-notes`](../../scripts/verify-archived-agent-notes.ts) validates their completeness and content seals; translation maintenance must never rewrite them.
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments/` — bench task content, not repository documentation. A tier-6 environment's README is one of the files the measured implementer reads, beside that task's English `prompt` in `task.json`; translating it would change what the bench measures.
+- `examples/headless-agent/tests/fixtures/proving-ground-bench/environments-completion/` — the completion family the factory synthesizes from those environments; a child copies its parent's task files, README included, so the same rule applies.
 
 **Universal requirement**: every current or future document in scope must merge as a complete bilingual pair. [scripts/translation-pairing.manifest.json](../../scripts/translation-pairing.manifest.json) contains only explicit exclusions; there is no per-file rollout list, date cutoff, or README-specific policy class.
 
