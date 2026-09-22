@@ -1,0 +1,20 @@
+# The bench with the repository-derived family mounted as a second, independent
+# producer beside the curated one: `register-repository-environments` reads
+# `environments-repository/`, the environment factory's output
+# (`tools/synthesize-repository-tasks.ts` writes it; `admit.mjs` and the
+# factory's own `--admit` step decide what survives there), and registers each
+# `<package>--<function>/` child under the same `bench` kind the curated tasks
+# use, in domain `repository`. `config.directory` is restated at its default
+# only to show the field a different factory output would set; the base
+# composition is otherwise unchanged, so a plan that selects by tier or domain
+# sees curated and repository cells side by side.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - insert:
+          - id: register-repository-environments
+            name: './register-repository-environments.ts'
+            config:
+              directory: './environments-repository'

@@ -1,0 +1,34 @@
+{
+  "id": "code:output-retention--implement-formatRetentionNotice",
+  "tier": 3,
+  "domain": "repository",
+  "repository": {
+    "package": "@deepseek-ai/dsh-output-retention",
+    "module": "packages/util/output-retention/src/index.ts",
+    "spec": "packages/util/output-retention/tests/output-retention.spec.ts"
+  },
+  "completion": {
+    "file": "src/index.js",
+    "function": "formatRetentionNotice"
+  },
+  "title": "Implement formatRetentionNotice in @deepseek-ai/dsh-output-retention",
+  "prompt": "`src/index.js` is the JavaScript build of `packages/util/output-retention/src/index.ts`, the module of the DeepSeek Harness repository published as `@deepseek-ai/dsh-output-retention`. Every export of the module is in place except `formatRetentionNotice`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Turn a {@link RetentionNotice} into a one-line footer: the library-owned\n * standardized omission clause ({@link describeOmitted}) followed by the tool's\n * own recovery guidance. The library never owns recovery words — only the tool\n * knows the action (\"narrow the pattern\", \"fetch a more specific URL\", \"read the\n * spill file\") — so `recovery` supplies them and receives the full notice to\n * phrase from (`kept`, `limit`, `omitted`, …). Either half may be empty; the two\n * are joined with a single space.\n *\n * @param notice The neutral retention outcome.\n * @param recovery Tool-supplied guidance builder; receives the notice, returns a sentence (or `''`).\n * @returns The combined footer line.\n */\nexport function formatRetentionNotice(\n  notice: RetentionNotice,\n  recovery: (notice: RetentionNotice) => string,\n): string\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation, so implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

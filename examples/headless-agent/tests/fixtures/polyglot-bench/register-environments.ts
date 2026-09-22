@@ -34,8 +34,12 @@ declare module '@deepseek-ai/dsh-environments/types' {
      * tasks carry neither. `family` and `completion` are absent on a curated task
      * and present on a completion child `register-completion-environments.ts`
      * synthesizes from one: they name the parent task and the one function its
-     * workspace stubs out. The declaration is repeated verbatim from the in-house
-     * bench's registrar, as declaration merging requires.
+     * workspace stubs out. `repository` and `completion` are present on a child
+     * `register-repository-environments.ts` registers from one of this
+     * repository's own packages: the package, module, and spec the child was
+     * derived from, and the one function its workspace stubs out. The
+     * declaration is repeated verbatim from the in-house bench's registrar, as
+     * declaration merging requires.
      */
     bench: {
       readonly language: string
@@ -43,6 +47,7 @@ declare module '@deepseek-ai/dsh-environments/types' {
       readonly domain?: string
       readonly family?: string
       readonly completion?: { readonly file: string; readonly function: string }
+      readonly repository?: { readonly package: string; readonly module: string; readonly spec: string }
     }
   }
 }
