@@ -57,6 +57,50 @@ function sha256(content) {
   return createHash('sha256').update(content).digest('hex')
 }
 
+/** Credential shapes a record may never carry; redaction handles key material, these refuse the record outright. */
+const CREDENTIAL_PATTERNS = [
+  { name: 'openrouter-key', re: /\bsk-or-v1-[A-Za-z0-9]{20,}/ },
+  { name: 'anthropic-key', re: /\bsk-ant-[A-Za-z0-9_-]{20,}/ },
+  { name: 'github-token', re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}/ },
+  { name: 'github-fine-grained-token', re: /\bgithub_pat_[A-Za-z0-9_]{20,}/ },
+  { name: 'slack-token', re: /\bxox[baprs]-[A-Za-z0-9-]{10,}/ },
+]
+
+/**
+ * Refuses a record that carries a credential-shaped string after redaction.
+ * @param {string} target the record directory
+ * @param {string[]} relativePaths the record's files
+ */
+function refuseCredentials(target, relativePaths) {
+  for (const path of relativePaths) {
+    const text = readFileSync(join(target, path), 'utf8')
+    for (const { name, re } of CREDENTIAL_PATTERNS) {
+      if (re.test(text)) throw new Error(`${path} carries a ${name}; the record is refused — remove the credential from the run before recording it`)
+    }
+  }
+}
+
+/**
+ * Digests the knowledge pack the departments read, so a record says which
+ * skill text was in play even when the tree was dirty at record time.
+ * @param {string} root the pack directory
+ * @returns {{ root: string, files: number, sha256: string }}
+ */
+function knowledgeDigest(root) {
+  const files = []
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const path = join(dir, entry.name)
+      if (entry.isDirectory()) walk(path)
+      else if (entry.name.endsWith('.md')) files.push(path)
+    }
+  }
+  walk(root)
+  const hash = createHash('sha256')
+  for (const path of files) hash.update(`${relative(root, path)}\0`).update(readFileSync(path)).update('\0')
+  return { root: relative(REPO_DIR, root), files: files.length, sha256: hash.digest('hex') }
+}
+
 /**
  * Finds every session log the driver's persistence root holds.
  * @param {string} runDirectory where the driver ran
@@ -127,6 +171,7 @@ function main() {
   for (const { sessionId, path } of logs) record(`sessions/${sessionId}.jsonl`, readFileSync(path))
   // Key material the departments read out of the target is replaced before anything is digested.
   const redactions = redactRecordFiles(target, written)
+  refuseCredentials(target, written)
   const files = written.map((path) => {
     const content = readFileSync(join(target, path))
     return { path, bytes: content.length, sha256: sha256(content) }
@@ -139,8 +184,17 @@ function main() {
     ranAt: startedAt === undefined ? undefined : new Date(startedAt).toISOString(),
     endedAt: endedAt === undefined ? undefined : new Date(endedAt).toISOString(),
     elapsedSeconds: result.elapsedSeconds,
-    repository: { branch: git(['branch', '--show-current']), head: git(['rev-parse', 'HEAD']) },
+    repository: {
+      branch: git(['branch', '--show-current']),
+      head: git(['rev-parse', 'HEAD']),
+      // A record made from a dirty tree names the paths that differed from its head.
+      changedPaths: execFileSync('git', ['-C', REPO_DIR, 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' })
+        .split('\n')
+        .filter(Boolean)
+        .map(line => line.replace(/^.{2} /, '')),
+    },
     composition,
+    knowledge: knowledgeDigest(process.env.DSH_CODE_SAFETY_SKILLS ?? join(REPO_DIR, 'data', 'knowledge', 'code-safety')),
     programId: result.report.programId,
     outcome: result.report.outcome,
     mergedRevision: result.report.mergedRevision,

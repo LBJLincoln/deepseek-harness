@@ -11,7 +11,7 @@ The program is [`examples/headless-agent/tests/fixtures/program-code-safety/`](.
 ```
 data/code-safety/
   <date>-<target>/
-    manifest.json      repository head, composition, locked target, per-department outcome, findings per severity and confidence, per-file bytes and SHA-256
+    manifest.json      repository head and the paths dirty at record time, composition, knowledge-pack digest, locked target, per-department outcome, findings per severity and confidence, per-file bytes and SHA-256, redactions
     result.json        the driver's result line: the ledger, the member sessions, the barrier refusals, the released file list
     SAFETY-REPORT.md   the report the program released, verbatim
     findings.json      the union of every department's findings, as released
