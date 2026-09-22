@@ -66,7 +66,7 @@ What to expect on the clock: `pnpm run poc` serves the deck only once the feed a
 
 ## What a funded proof of concept adds
 
-Four to six weeks on the customer's own applications: their languages and frameworks added to the departments' skills and scanner rules; a seeded ground truth agreed with their security team so recall is measured on their code; the verifier extended to reproduce a finding where a test can (a request that reaches the sink, a dependency version lookup); the report format aligned with their risk register; the review scheduled on every merge through the same loop that runs this repository's own bench each night.
+Four to six weeks on the customer's own applications: their languages and frameworks added to the departments' skills and scanner rules; a seeded ground truth agreed with their security team so recall is measured on their code; the verifier extended to reproduce a finding where a test can (a request that reaches the sink, a dependency version lookup); the report format aligned with their risk register; the review scheduled on every merge through the same loop that runs this repository's own bench each night. [Seeded-defect recall](../data/code-safety/README.md#recall-without-a-ground-truth-seeded-defects) turns that agreed ground truth into a number before any negotiation is needed: `seed-defects.mjs` plants known instances of the departments' defect classes into a copy of the customer's own repository, and `seeded-recall.mjs` reads the review's recall against them off with a stated confidence interval.
 
 ## Reference
 

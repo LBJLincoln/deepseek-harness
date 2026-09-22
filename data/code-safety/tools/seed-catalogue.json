@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "note": "Each entry names a defect class the departments' skills (data/knowledge/code-safety/) look for, a regex that finds a candidate insertion site, and a string template that introduces the defect at that site. seed-defects.mjs is the generic interpreter: it applies sitePattern per line, filters by fileRequirePattern/fileExcludePattern/fieldHintPattern, and fills insertTemplate's {{placeholders}}. {{indent}} is the site line's leading whitespace, {{source}} and {{field}} are the matched req.<source>.<field> (absent for hardcoded-credential), {{line}} is the 1-based line number of the site (for unique identifier names), and {{hex}} is a seeded pseudo-random 32-character hex string (hardcoded-credential only).",
+  "entries": [
+    {
+      "id": "eval-injection",
+      "cwe": "CWE-95",
+      "category": "Injection (eval of request data)",
+      "language": "javascript",
+      "skill": "injection",
+      "description": "Sites are lines that reference req.query/body/params.<field>; inserted code passes that same field to eval(), mirroring NodeGoat's own app/routes/contributions.js#eval(req.body.preTax) pattern generalized to any field, as if the field could carry a simple arithmetic expression.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileExcludePattern": "\\beval\\s*\\(",
+      "fieldHintPattern": "amount|value|total|tax|price|qty|quantity|count|score|percent|number|contribution",
+      "insertTemplate": "{{indent}}const {{field}}Eval{{line}} = eval(req.{{source}}.{{field}});"
+    },
+    {
+      "id": "nosql-where-injection",
+      "cwe": "CWE-943",
+      "category": "Injection (NoSQL $where)",
+      "language": "javascript",
+      "skill": "injection",
+      "description": "Sites are lines that reference req.query/body/params.<field>; inserted code builds a MongoDB $where clause by concatenating that field into a JavaScript-evaluated string, mirroring NodeGoat's own app/data/allocations-dao.js threshold filter.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileExcludePattern": "\\$where",
+      "fieldHintPattern": "threshold|amount|min|max|limit|value|filter|balance",
+      "insertTemplate": "{{indent}}const {{field}}Filter{{line}} = { $where: 'this.value > ' + req.{{source}}.{{field}} };"
+    },
+    {
+      "id": "ssrf-fetch",
+      "cwe": "CWE-918",
+      "category": "Server-side request forgery",
+      "language": "javascript",
+      "skill": "injection",
+      "description": "Sites are lines that reference req.query/body/params.<field>; inserted code hands that same field to fetch() as the request URL with no host allowlist, a fire-and-forget webhook-ping shape.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileExcludePattern": "\\bfetch\\s*\\(|\\bneedle\\s*\\.|\\baxios\\s*\\.|\\.get\\s*\\(\\s*req\\.",
+      "fieldHintPattern": "url|link|uri|target|endpoint|callback|webhook|redirect|source",
+      "insertTemplate": "{{indent}}fetch(req.{{source}}.{{field}}).catch(() => {});"
+    },
+    {
+      "id": "log-injection",
+      "cwe": "CWE-117",
+      "category": "Injection (log)",
+      "language": "javascript",
+      "skill": "injection",
+      "description": "Sites are lines that reference req.query/body/params.<field>; inserted code writes that field into a console.log line with no control-character stripping, mirroring NodeGoat's own app/routes/session.js login-username log line.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileExcludePattern": "console\\.log\\([^)]*req\\.",
+      "fieldHintPattern": null,
+      "insertTemplate": "{{indent}}console.log(`received {{field}}: ${req.{{source}}.{{field}}}`);"
+    },
+    {
+      "id": "unvalidated-redirect",
+      "cwe": "CWE-601",
+      "category": "Unvalidated redirect",
+      "language": "javascript",
+      "skill": "access",
+      "description": "Sites are lines that reference req.query/body/params.<field> in a file that also calls res.<something> elsewhere (so a res parameter is in scope); inserted code redirects to that field with no destination check, mirroring NodeGoat's own app/routes/index.js /learn redirect.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileRequirePattern": "\\bres\\s*\\.\\s*[A-Za-z]",
+      "fileExcludePattern": "res\\.redirect\\(\\s*req\\.",
+      "fieldHintPattern": "url|link|target|redirect|next|return|callback|dest|destination",
+      "insertTemplate": "{{indent}}res.redirect(req.{{source}}.{{field}});"
+    },
+    {
+      "id": "redos-new-regexp",
+      "cwe": "CWE-1333",
+      "category": "Regular-expression denial of service",
+      "language": "javascript",
+      "skill": "injection",
+      "description": "Sites are lines that reference req.query/body/params.<field>; inserted code compiles that field directly into a RegExp, the new RegExp(userInput) pattern the injection skill names explicitly.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileExcludePattern": "new\\s+RegExp\\s*\\(",
+      "fieldHintPattern": "regex|pattern|filter|search|match|routing|zip|postal|phone|code",
+      "insertTemplate": "{{indent}}const pattern{{line}} = new RegExp(req.{{source}}.{{field}});"
+    },
+    {
+      "id": "reflected-xss-send",
+      "cwe": "CWE-79",
+      "category": "Cross-site scripting (reflected, string-built response)",
+      "language": "javascript",
+      "skill": "injection",
+      "description": "Sites are lines that reference req.query/body/params.<field> in a file that also calls res.<something> elsewhere (so a res parameter is in scope); inserted code concatenates that field straight into an HTML response with no escaping.",
+      "sitePattern": "req\\.(query|body|params)\\.([A-Za-z_$][\\w$]*)",
+      "fileRequirePattern": "\\bres\\s*\\.\\s*[A-Za-z]",
+      "fileExcludePattern": "res\\.send\\([^)]*\\+",
+      "fieldHintPattern": null,
+      "insertTemplate": "{{indent}}res.send('<p>' + req.{{source}}.{{field}} + '</p>');"
+    },
+    {
+      "id": "hardcoded-credential",
+      "cwe": "CWE-798",
+      "category": "Hardcoded credentials",
+      "language": "javascript",
+      "skill": "secrets",
+      "description": "Sites are a file's own `const X = require('y');` lines, however the required value is then used (no request field needed); inserted code declares a secret with a hardcoded fallback used when the environment variable is unset, the process.env.JWT_SECRET || 'literal' pattern the secrets skill names explicitly.",
+      "sitePattern": "^\\s*(?:const|let|var)\\s+\\w+\\s*=\\s*require\\(['\"][^'\"]+['\"]\\)",
+      "fileExcludePattern": "AKIA[0-9A-Z]{16}|process\\.env\\.\\w+_SECRET\\s*\\|\\|",
+      "fieldHintPattern": null,
+      "insertTemplate": "{{indent}}const appSecret{{line}} = process.env.APP_SECRET || '{{hex}}';"
+    }
+  ]
+}
