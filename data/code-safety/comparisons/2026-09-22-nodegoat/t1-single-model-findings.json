@@ -1,0 +1,186 @@
+[
+  {
+    "id": "single-model-1",
+    "file": "server.js",
+    "line": 137,
+    "severity": "critical",
+    "cwe": "CWE-79",
+    "title": "Swig template auto-escaping disabled globally, enabling stored/reflected XSS"
+  },
+  {
+    "id": "single-model-2",
+    "file": "app/routes/index.js",
+    "line": 55,
+    "severity": "critical",
+    "cwe": "CWE-862",
+    "title": "/benefits routes mounted with only isLoggedIn, missing isAdmin authorization check"
+  },
+  {
+    "id": "single-model-3",
+    "file": "app/routes/benefits.js",
+    "line": 29,
+    "severity": "critical",
+    "cwe": "CWE-639",
+    "title": "Any authenticated user can update any other user's benefitStartDate via arbitrary userId in request body"
+  },
+  {
+    "id": "single-model-4",
+    "file": "app/routes/contributions.js",
+    "line": 32,
+    "severity": "critical",
+    "cwe": "CWE-95",
+    "title": "eval() used on user-supplied preTax/afterTax/roth values, allowing arbitrary server-side code execution"
+  },
+  {
+    "id": "single-model-5",
+    "file": "app/routes/research.js",
+    "line": 15,
+    "severity": "critical",
+    "cwe": "CWE-918",
+    "title": "Server-Side Request Forgery: user-controlled url/symbol query params passed directly to needle.get"
+  },
+  {
+    "id": "single-model-6",
+    "file": "app/data/allocations-dao.js",
+    "line": 78,
+    "severity": "critical",
+    "cwe": "CWE-943",
+    "title": "NoSQL injection via unsanitized threshold parameter concatenated into $where JavaScript expression"
+  },
+  {
+    "id": "single-model-7",
+    "file": "app/data/user-dao.js",
+    "line": 25,
+    "severity": "critical",
+    "cwe": "CWE-256",
+    "title": "User passwords stored in plaintext instead of hashed with bcrypt"
+  },
+  {
+    "id": "single-model-8",
+    "file": "app/data/user-dao.js",
+    "line": 61,
+    "severity": "high",
+    "cwe": "CWE-916",
+    "title": "Password validation uses plaintext string comparison instead of secure hash comparison"
+  },
+  {
+    "id": "single-model-9",
+    "file": "app/routes/session.js",
+    "line": 116,
+    "severity": "high",
+    "cwe": "CWE-384",
+    "title": "Session ID not regenerated on login, allowing session fixation"
+  },
+  {
+    "id": "single-model-10",
+    "file": "app/routes/allocations.js",
+    "line": 17,
+    "severity": "high",
+    "cwe": "CWE-639",
+    "title": "Insecure Direct Object Reference: userId taken from URL path param instead of authenticated session"
+  },
+  {
+    "id": "single-model-11",
+    "file": "app/routes/profile.js",
+    "line": 64,
+    "severity": "high",
+    "cwe": "CWE-79",
+    "title": "Reflected XSS: firstName echoed back unescaped into template on validation error (no encoding, autoescape disabled)"
+  },
+  {
+    "id": "single-model-12",
+    "file": "app/routes/profile.js",
+    "line": 33,
+    "severity": "high",
+    "cwe": "CWE-79",
+    "title": "Stored XSS: user-controlled profile fields (firstName, lastName, address, ssn, dob, bankAcc, bankRouting) rendered unescaped from DB"
+  },
+  {
+    "id": "single-model-13",
+    "file": "server.js",
+    "line": 127,
+    "severity": "high",
+    "cwe": "CWE-79",
+    "title": "marked 0.3.5 sanitize:true option used for memo Markdown rendering, a known-bypassable sanitizer enabling stored XSS"
+  },
+  {
+    "id": "single-model-14",
+    "file": "server.js",
+    "line": 107,
+    "severity": "high",
+    "cwe": "CWE-352",
+    "title": "CSRF protection (csurf middleware) disabled application-wide while state-changing POST routes remain active"
+  },
+  {
+    "id": "single-model-15",
+    "file": "config/config.js",
+    "line": 8,
+    "severity": "high",
+    "cwe": "CWE-798",
+    "title": "Hardcoded session cookie secret in source code"
+  },
+  {
+    "id": "single-model-16",
+    "file": "app/routes/index.js",
+    "line": 72,
+    "severity": "medium",
+    "cwe": "CWE-601",
+    "title": "Open redirect via unvalidated req.query.url on /learn route"
+  },
+  {
+    "id": "single-model-17",
+    "file": "server.js",
+    "line": 145,
+    "severity": "medium",
+    "cwe": "CWE-319",
+    "title": "Server runs over plain HTTP; TLS/HTTPS support is present but disabled, exposing session cookies and credentials in transit"
+  },
+  {
+    "id": "single-model-18",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-1004",
+    "title": "Session cookie configured without HttpOnly, Secure, or maxAge attributes (cookie options commented out)"
+  },
+  {
+    "id": "single-model-19",
+    "file": "config/config.js",
+    "line": 9,
+    "severity": "medium",
+    "cwe": "CWE-798",
+    "title": "Hardcoded encryption key for sensitive-data crypto (cryptoKey) in source code"
+  },
+  {
+    "id": "single-model-20",
+    "file": "app/routes/profile.js",
+    "line": 59,
+    "severity": "medium",
+    "cwe": "CWE-1333",
+    "title": "ReDoS: bankRouting regex /([0-9]+)+\\#/ uses nested quantifiers vulnerable to catastrophic backtracking"
+  },
+  {
+    "id": "single-model-21",
+    "file": "server.js",
+    "line": 39,
+    "severity": "medium",
+    "cwe": "CWE-16",
+    "title": "Security headers middleware (helmet: frameguard, HSTS, CSP, noCache) disabled, leaving app exposed to clickjacking and related misconfigurations"
+  },
+  {
+    "id": "single-model-22",
+    "file": "app/routes/session.js",
+    "line": 64,
+    "severity": "low",
+    "cwe": "CWE-117",
+    "title": "Unsanitized userName written to application log, allowing log injection/forging via CRLF"
+  },
+  {
+    "id": "single-model-23",
+    "file": "package.json",
+    "line": 17,
+    "severity": "low",
+    "cwe": "CWE-1104",
+    "title": "Use of outdated/unmaintained marked 0.3.5 dependency with known XSS sanitizer bypass vulnerabilities"
+  }
+]

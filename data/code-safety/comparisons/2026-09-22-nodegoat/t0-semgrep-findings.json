@@ -1,0 +1,146 @@
+[
+  {
+    "id": "semgrep-1-code-string-concat",
+    "file": "app/routes/contributions.js",
+    "line": 32,
+    "severity": "high",
+    "cwe": "CWE-95",
+    "title": "Found data from an Express or Next web request flowing to `eval`. If this data is user-controllable this can lead to execution of arbitrary system commands in t",
+    "rule": "javascript.lang.security.audit.code-string-concat.code-string-concat"
+  },
+  {
+    "id": "semgrep-2-code-string-concat",
+    "file": "app/routes/contributions.js",
+    "line": 33,
+    "severity": "high",
+    "cwe": "CWE-95",
+    "title": "Found data from an Express or Next web request flowing to `eval`. If this data is user-controllable this can lead to execution of arbitrary system commands in t",
+    "rule": "javascript.lang.security.audit.code-string-concat.code-string-concat"
+  },
+  {
+    "id": "semgrep-3-code-string-concat",
+    "file": "app/routes/contributions.js",
+    "line": 34,
+    "severity": "high",
+    "cwe": "CWE-95",
+    "title": "Found data from an Express or Next web request flowing to `eval`. If this data is user-controllable this can lead to execution of arbitrary system commands in t",
+    "rule": "javascript.lang.security.audit.code-string-concat.code-string-concat"
+  },
+  {
+    "id": "semgrep-4-express-open-redirect",
+    "file": "app/routes/index.js",
+    "line": 72,
+    "severity": "medium",
+    "cwe": "CWE-601",
+    "title": "The application redirects to a URL specified by user-supplied input `req` that is not validated. This could redirect users to malicious locations. Consider usin",
+    "rule": "javascript.express.security.audit.express-open-redirect.express-open-redirect"
+  },
+  {
+    "id": "semgrep-5-var-in-href",
+    "file": "app/views/profile.html",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-79",
+    "title": "Detected a template variable used in an anchor tag with the 'href' attribute. This allows a malicious actor to input the 'javascript:' URI and is subject to cro",
+    "rule": "generic.html-templates.security.var-in-href.var-in-href"
+  },
+  {
+    "id": "semgrep-6-plaintext-http-link",
+    "file": "app/views/tutorial/a2.html",
+    "line": 207,
+    "severity": "medium",
+    "cwe": "CWE-319",
+    "title": "This link points to a plaintext HTTP URL. Prefer an encrypted HTTPS URL if possible.",
+    "rule": "html.security.plaintext-http-link.plaintext-http-link"
+  },
+  {
+    "id": "semgrep-7-plaintext-http-link",
+    "file": "app/views/tutorial/a2.html",
+    "line": 209,
+    "severity": "medium",
+    "cwe": "CWE-319",
+    "title": "This link points to a plaintext HTTP URL. Prefer an encrypted HTTPS URL if possible.",
+    "rule": "html.security.plaintext-http-link.plaintext-http-link"
+  },
+  {
+    "id": "semgrep-8-plaintext-http-link",
+    "file": "app/views/tutorial/a2.html",
+    "line": 210,
+    "severity": "medium",
+    "cwe": "CWE-319",
+    "title": "This link points to a plaintext HTTP URL. Prefer an encrypted HTTPS URL if possible.",
+    "rule": "html.security.plaintext-http-link.plaintext-http-link"
+  },
+  {
+    "id": "semgrep-9-plaintext-http-link",
+    "file": "app/views/tutorial/a5.html",
+    "line": 50,
+    "severity": "medium",
+    "cwe": "CWE-319",
+    "title": "This link points to a plaintext HTTP URL. Prefer an encrypted HTTPS URL if possible.",
+    "rule": "html.security.plaintext-http-link.plaintext-http-link"
+  },
+  {
+    "id": "semgrep-10-plaintext-http-link",
+    "file": "app/views/tutorial/a5.html",
+    "line": 51,
+    "severity": "medium",
+    "cwe": "CWE-319",
+    "title": "This link points to a plaintext HTTP URL. Prefer an encrypted HTTPS URL if possible.",
+    "rule": "html.security.plaintext-http-link.plaintext-http-link"
+  },
+  {
+    "id": "semgrep-11-express-cookie-session-default-name",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-522",
+    "title": "Don’t use the default session cookie name Using the default session cookie name can open your app to attacks. The security issue posed is similar to X-Powered-B",
+    "rule": "javascript.express.security.audit.express-cookie-settings.express-cookie-session-default-name"
+  },
+  {
+    "id": "semgrep-12-express-cookie-session-no-domain",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-522",
+    "title": "Default session middleware settings: `domain` not set. It indicates the domain of the cookie; use it to compare against the domain of the server in which the UR",
+    "rule": "javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-domain"
+  },
+  {
+    "id": "semgrep-13-express-cookie-session-no-expires",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-522",
+    "title": "Default session middleware settings: `expires` not set. Use it to set expiration date for persistent cookies.",
+    "rule": "javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-expires"
+  },
+  {
+    "id": "semgrep-14-express-cookie-session-no-httponly",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-522",
+    "title": "Default session middleware settings: `httpOnly` not set. It ensures the cookie is sent only over HTTP(S), not client JavaScript, helping to protect against cros",
+    "rule": "javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-httponly"
+  },
+  {
+    "id": "semgrep-15-express-cookie-session-no-path",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-522",
+    "title": "Default session middleware settings: `path` not set. It indicates the path of the cookie; use it to compare against the request path. If this and domain match, ",
+    "rule": "javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-path"
+  },
+  {
+    "id": "semgrep-16-express-cookie-session-no-secure",
+    "file": "server.js",
+    "line": 78,
+    "severity": "medium",
+    "cwe": "CWE-522",
+    "title": "Default session middleware settings: `secure` not set. It ensures the browser only sends the cookie over HTTPS.",
+    "rule": "javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-secure"
+  }
+]

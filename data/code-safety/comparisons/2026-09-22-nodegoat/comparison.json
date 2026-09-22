@@ -1,0 +1,191 @@
+{
+  "target": "OWASP NodeGoat",
+  "revision": "c5cb68a7084e4ae7dcc60e6a98768720a81841e8",
+  "knownIssues": 18,
+  "date": "2026-09-22",
+  "note": "Same target, same revision, same 18-issue ground truth, scored by the same rule (a finding within three lines of a known issue). The single-model and enterprise tiers run the same model (sonnet); the only difference between them is the harness. The issue count and locations were never disclosed to any tier.",
+  "tiers": [
+    {
+      "id": "semgrep",
+      "name": "Semgrep, community rules",
+      "kind": "commodity static analysis, no model",
+      "caught": {},
+      "found": 4,
+      "recall": 0.222,
+      "findings": 16,
+      "onKnown": 11,
+      "verified": false,
+      "wall": "seconds",
+      "cost": "$0",
+      "detail": "96 rules over 44 files"
+    },
+    {
+      "id": "single-model",
+      "name": "One frontier model, one pass",
+      "kind": "a single sonnet session, no departments, no verifier",
+      "caught": {},
+      "found": 15,
+      "recall": 0.833,
+      "findings": 23,
+      "onKnown": 15,
+      "verified": false,
+      "wall": "113 s",
+      "cost": "$0.36",
+      "detail": "29 turns"
+    },
+    {
+      "id": "enterprise",
+      "name": "Daliesk enterprise",
+      "kind": "six departments, a verifier, and integration; same sonnet",
+      "caught": {},
+      "found": 13,
+      "recall": 0.722,
+      "findings": 47,
+      "onKnown": 32,
+      "verified": true,
+      "wall": "1356 s",
+      "cost": "subscription",
+      "detail": "7 certified; record 2026-09-21-nodegoat-3"
+    }
+  ],
+  "matrix": [
+    {
+      "id": "NG-A1-1",
+      "category": "A1 Injection (server-side JavaScript)",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A1-2",
+      "category": "A1 Injection (NoSQL)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A1-3",
+      "category": "A1 Injection (log)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": false
+    },
+    {
+      "id": "NG-A2-1",
+      "category": "A2 Broken authentication (password storage)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A2-2a",
+      "category": "A2 Broken authentication (user enumeration)",
+      "semgrep": false,
+      "singleModel": false,
+      "enterprise": false
+    },
+    {
+      "id": "NG-A2-2b",
+      "category": "A2 Broken authentication (password policy)",
+      "semgrep": false,
+      "singleModel": false,
+      "enterprise": false
+    },
+    {
+      "id": "NG-A2-3",
+      "category": "A2 Session management (cookie flags)",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A3",
+      "category": "A3 Cross-site scripting",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A4",
+      "category": "A4 Insecure direct object reference",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A5",
+      "category": "A5 Security misconfiguration (headers)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A6-1",
+      "category": "A6 Sensitive data exposure (at rest)",
+      "semgrep": false,
+      "singleModel": false,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A6-2",
+      "category": "A6 Sensitive data exposure (in transit)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A7",
+      "category": "A7 Missing function-level access control",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A8",
+      "category": "A8 Cross-site request forgery",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A9",
+      "category": "A9 Components with known vulnerabilities",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A10",
+      "category": "A10 Unvalidated redirect",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-SSRF",
+      "category": "Server-side request forgery",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": false
+    },
+    {
+      "id": "NG-REDOS",
+      "category": "Regular expression denial of service",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": false
+    }
+  ],
+  "bothModelsMiss": [
+    "NG-A2-2a",
+    "NG-A2-2b"
+  ],
+  "singleModelOnly": [
+    "NG-A1-3",
+    "NG-SSRF",
+    "NG-REDOS"
+  ],
+  "enterpriseOnly": [
+    "NG-A6-1"
+  ]
+}

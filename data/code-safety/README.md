@@ -21,6 +21,10 @@ data/code-safety/
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
   tools/record-run.mjs                 copies one run directory into a record and writes its manifest
   tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate
+  tools/compare.mjs                    scores any findings list against a ground truth, the rule recall.mjs uses, for a cross-tool comparison
+  tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail
+  tools/assemble-comparison.mjs        assembles one target's three-tier comparison into comparisons/<date>-<target>/comparison.json
+  comparisons/<date>-<target>/         a target reviewed three ways — a scanner, one model, the enterprise — scored against one ground truth
 ```
 
 ## Running one, and recording it

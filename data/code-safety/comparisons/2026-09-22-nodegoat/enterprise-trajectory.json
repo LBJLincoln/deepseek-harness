@@ -1,0 +1,495 @@
+{
+  "record": "2026-09-21-nodegoat-3",
+  "provenance": {
+    "operatorCommands": 1,
+    "agentSessions": 7,
+    "autonomousSteps": 190,
+    "autonomousToolCalls": 294,
+    "departmentsCertified": 7,
+    "findingsWithReadTrail": 31,
+    "findings": 47
+  },
+  "departments": [
+    {
+      "department": "access",
+      "steps": 20,
+      "toolCalls": 34,
+      "tools": {
+        "bash": 11,
+        "skill": 3,
+        "read": 18,
+        "write": 2
+      },
+      "certified": true,
+      "filesRead": 17
+    },
+    {
+      "department": "data",
+      "steps": 24,
+      "toolCalls": 42,
+      "tools": {
+        "skill": 3,
+        "bash": 13,
+        "read": 21,
+        "grep": 3,
+        "write": 2
+      },
+      "certified": true,
+      "filesRead": 21
+    },
+    {
+      "department": "dependencies",
+      "steps": 44,
+      "toolCalls": 48,
+      "tools": {
+        "bash": 38,
+        "skill": 3,
+        "read": 4,
+        "write": 2,
+        "edit": 1
+      },
+      "certified": true,
+      "filesRead": 4
+    },
+    {
+      "department": "injection",
+      "steps": 28,
+      "toolCalls": 47,
+      "tools": {
+        "skill": 3,
+        "bash": 17,
+        "read": 19,
+        "grep": 6,
+        "write": 2
+      },
+      "certified": true,
+      "filesRead": 17
+    },
+    {
+      "department": "integration",
+      "steps": 24,
+      "toolCalls": 38,
+      "tools": {
+        "bash": 19,
+        "read": 17,
+        "skill": 1,
+        "write": 1
+      },
+      "certified": true,
+      "filesRead": 17
+    },
+    {
+      "department": "lead",
+      "steps": 0,
+      "toolCalls": 0,
+      "tools": {},
+      "certified": false,
+      "filesRead": 0
+    },
+    {
+      "department": "platform",
+      "steps": 22,
+      "toolCalls": 34,
+      "tools": {
+        "bash": 15,
+        "read": 14,
+        "skill": 3,
+        "write": 2
+      },
+      "certified": true,
+      "filesRead": 14
+    },
+    {
+      "department": "secrets",
+      "steps": 28,
+      "toolCalls": 51,
+      "tools": {
+        "bash": 13,
+        "read": 29,
+        "skill": 3,
+        "grep": 4,
+        "write": 2
+      },
+      "certified": true,
+      "filesRead": 29
+    }
+  ],
+  "trajectories": [
+    {
+      "id": "deps-mongodb",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 18,
+      "severity": "critical",
+      "readItsFile": false
+    },
+    {
+      "id": "injection-eval-contributions",
+      "department": "injection",
+      "file": "app/routes/contributions.js",
+      "line": 32,
+      "severity": "critical",
+      "readItsFile": true
+    },
+    {
+      "id": "injection-xss-memos-marked",
+      "department": "injection",
+      "file": "app/views/memos.html",
+      "line": 31,
+      "severity": "critical",
+      "readItsFile": false
+    },
+    {
+      "id": "secrets-admin-seed-password",
+      "department": "secrets",
+      "file": "artifacts/db-reset.js",
+      "line": 18,
+      "severity": "critical",
+      "readItsFile": true
+    },
+    {
+      "id": "access-csrf-missing-profile-update",
+      "department": "access",
+      "file": "app/routes/index.js",
+      "line": 48,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "access-idor-allocations-userid",
+      "department": "access",
+      "file": "app/routes/index.js",
+      "line": 63,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "access-missing-admin-check-benefits-update",
+      "department": "access",
+      "file": "app/routes/index.js",
+      "line": 56,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "access-password-compare-not-constant-time",
+      "department": "access",
+      "file": "app/data/user-dao.js",
+      "line": 61,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "data-cleartext-http-transport",
+      "department": "data",
+      "file": "server.js",
+      "line": 145,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "data-plaintext-password-storage",
+      "department": "data",
+      "file": "app/data/user-dao.js",
+      "line": 25,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "data-secrets-logged-on-startup",
+      "department": "data",
+      "file": "config/config.js",
+      "line": 13,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "data-ssn-bank-cleartext-storage",
+      "department": "data",
+      "file": "app/data/profile-dao.js",
+      "line": 55,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "deps-marked",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 17,
+      "severity": "high",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-swig",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 22,
+      "severity": "high",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-underscore",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 23,
+      "severity": "high",
+      "readItsFile": false
+    },
+    {
+      "id": "injection-nosql-where-allocations",
+      "department": "injection",
+      "file": "app/data/allocations-dao.js",
+      "line": 78,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "injection-xss-profile-reflected",
+      "department": "injection",
+      "file": "app/views/profile.html",
+      "line": 41,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "injection-xss-profile-stored",
+      "department": "injection",
+      "file": "app/views/profile.html",
+      "line": 45,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-cookie-flags-missing",
+      "department": "platform",
+      "file": "server.js",
+      "line": 78,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-csrf-disabled",
+      "department": "platform",
+      "file": "server.js",
+      "line": 104,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-no-tls",
+      "department": "platform",
+      "file": "server.js",
+      "line": 144,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "secrets-cookie-secret",
+      "department": "secrets",
+      "file": "config/env/all.js",
+      "line": 8,
+      "severity": "high",
+      "readItsFile": true
+    },
+    {
+      "id": "access-login-no-session-regenerate",
+      "department": "access",
+      "file": "app/routes/session.js",
+      "line": 116,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "access-session-cookie-insecure-config",
+      "department": "access",
+      "file": "server.js",
+      "line": 78,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "data-hardcoded-creds-logged",
+      "department": "data",
+      "file": "artifacts/db-reset.js",
+      "line": 99,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "data-verbose-error-to-client",
+      "department": "data",
+      "file": "app/routes/error.js",
+      "line": 10,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "deps-body-parser",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 9,
+      "severity": "medium",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-express",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 13,
+      "severity": "medium",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-forever",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 15,
+      "severity": "medium",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-grunt",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 45,
+      "severity": "medium",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-helmet",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 16,
+      "severity": "medium",
+      "readItsFile": false
+    },
+    {
+      "id": "injection-nosql-login-operator",
+      "department": "injection",
+      "file": "app/data/user-dao.js",
+      "line": 91,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "injection-open-redirect-learn",
+      "department": "injection",
+      "file": "app/routes/index.js",
+      "line": 72,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-default-env-is-development",
+      "department": "platform",
+      "file": "config/config.js",
+      "line": 5,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-missing-security-headers",
+      "department": "platform",
+      "file": "server.js",
+      "line": 38,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-no-rate-limit-auth-routes",
+      "department": "platform",
+      "file": "app/routes/index.js",
+      "line": 32,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-open-redirect-learn",
+      "department": "platform",
+      "file": "app/routes/index.js",
+      "line": 70,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "platform-session-unbounded-lifetime",
+      "department": "platform",
+      "file": "server.js",
+      "line": 82,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "secrets-committed-private-key",
+      "department": "secrets",
+      "file": "artifacts/cert/server.key",
+      "line": 1,
+      "severity": "medium",
+      "readItsFile": true
+    },
+    {
+      "id": "deps-bcrypt-nodejs-unmaintained",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 8,
+      "severity": "low",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-csurf",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 11,
+      "severity": "low",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-cypress",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 44,
+      "severity": "low",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-express-session",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 14,
+      "severity": "low",
+      "readItsFile": false
+    },
+    {
+      "id": "deps-mocha",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 57,
+      "severity": "low",
+      "readItsFile": false
+    },
+    {
+      "id": "secrets-e2e-admin-fixture",
+      "department": "secrets",
+      "file": "test/e2e/fixtures/users/admin.json",
+      "line": 3,
+      "severity": "low",
+      "readItsFile": true
+    },
+    {
+      "id": "secrets-zap-api-key",
+      "department": "secrets",
+      "file": "config/env/development.js",
+      "line": 6,
+      "severity": "low",
+      "readItsFile": true
+    },
+    {
+      "id": "deps-node-esapi-unmaintained",
+      "department": "unknown",
+      "file": "package.json",
+      "line": 20,
+      "severity": "info",
+      "readItsFile": false
+    }
+  ]
+}
