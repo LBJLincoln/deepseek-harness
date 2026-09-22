@@ -1,6 +1,6 @@
 ---
 name: injection
-description: SQL, NoSQL, command, template/eval, and code injection; XSS DOM sinks and unescaped templates; path traversal; SSRF; and unsafe deserialization — the code smell and the safe alternative per framework, with CWE ids for each.
+description: SQL, NoSQL, command, template/eval, and code injection; XSS DOM sinks and unescaped templates; path traversal; SSRF; log injection; regular-expression denial of service; and unsafe deserialization — the code smell and the safe alternative per framework, with CWE ids for each.
 ---
 
 # Injection and its sinks
@@ -29,7 +29,15 @@ Recognize a filename, path segment, or archive-entry name from the request conca
 
 ## SSRF (CWE-918)
 
-Recognize a server-side HTTP client (`axios`, `fetch`, `requests`, Java `RestTemplate`/`HttpClient`, Go `net/http`, PHP `file_get_contents`/`curl`) called with a URL or host taken from the request, especially in webhooks, URL-preview, and PDF/image-fetch features. Fix: an allowlist of destination hosts, a block on private/link-local/metadata-service ranges (`169.254.169.254`, RFC 1918), and re-resolving and re-checking the IP after DNS resolution to close TOCTOU/DNS-rebind gaps.
+Recognize a server-side HTTP client (`axios`, `fetch`, `requests`, Java `RestTemplate`/`HttpClient`, Go `net/http`, PHP `file_get_contents`/`curl`) called with a URL or host taken from the request, especially in webhooks, URL-preview, and PDF/image-fetch features. Enumerate every server-side request call site in the target and confirm each one validates its destination before the call; one unvalidated fetch of a request-supplied URL is the vulnerability, so a route that reads a URL from the request and hands it to a client without a host check is a finding even when the feature looks benign. Fix: an allowlist of destination hosts, a block on private/link-local/metadata-service ranges (`169.254.169.254`, RFC 1918), and re-resolving and re-checking the IP after DNS resolution to close TOCTOU/DNS-rebind gaps.
+
+## Log injection (CWE-117)
+
+Recognize request data written into a log line without neutralizing control characters: `console.log(\`login for ${req.body.email}\`)`, `logger.info("user " + username)`, Python `logging.info(f"... {value}")`, Java `log.info("... " + input)`, especially on authentication, error, and audit paths where the value is an attacker-controlled username, email, path, or header. A newline (`\n`, `\r`) in that value forges a second log entry, and when the log is later rendered in a browser-based viewer without escaping it becomes stored XSS in the operator's own dashboard. Fix: strip or encode CR/LF and other control characters before logging, or use a structured logger that keeps the message template fixed and carries the value as a separate field the sink escapes.
+
+## Regular-expression denial of service (CWE-1333, CWE-1284)
+
+Recognize a regular expression with catastrophic backtracking — nested quantifiers or overlapping alternation such as `(a+)+`, `(.*)*`, `(\d+)*$`, `(\w+\s?)*$`, or `([a-z]+)+$` — applied to request-controlled input, and any `new RegExp(userInput)` that compiles a pattern from the request. A crafted input a few dozen characters long can pin a single-threaded server (Node's event loop, a worker) at 100% CPU for seconds to minutes, taking the service down. Common homes are input validators (email, URL, phone), a `String.prototype.match`/`test` on a request body or query, and routing or sanitization patterns. Fix: refactor the pattern to remove the ambiguous nesting, cap the length of the input before the match, or run it on a linear-time engine (RE2, `re2` bindings); never compile a user-supplied pattern.
 
 ## Unsafe deserialization (CWE-502)
 

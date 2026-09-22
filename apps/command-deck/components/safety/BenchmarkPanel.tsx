@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import type { Comparison, ComparisonTier } from '@/deck/contract'
+import type { Comparison, ComparisonIteration, ComparisonTier } from '@/deck/contract'
 
 /** The bar colour per tier: the enterprise reads as the certified accent, the model amber, the scanner muted. */
 const TIER_COLOR: Record<string, string> = {
@@ -93,6 +93,42 @@ export function BenchmarkPanel({ comparison }: { comparison: Comparison }): Reac
         <li>The single pass caught, the departments missed: <span className="mono">{comparison.singleModelOnly.join(', ') || 'none'}</span> — the loop's targets.</li>
         <li>The enterprise caught, the single pass missed: <span className="mono">{comparison.enterpriseOnly.join(', ') || 'none'}</span></li>
       </ul>
+
+      {comparison.iterations.length > 0
+        ? (
+          <>
+            <h4 style={{ margin: '18px 0 8px' }}>The loop, iteration by iteration</h4>
+            {comparison.iterations.map(iteration => (
+              <IterationCard key={iteration.id} iteration={iteration} known={comparison.knownIssues} />
+            ))}
+          </>
+        )
+        : null}
+    </div>
+  )
+}
+
+/**
+ * One improvement-loop iteration: the change tested, the scored reading against
+ * the enterprise baseline, and the decision taken.
+ * @param props.iteration - The iteration.
+ * @param props.known - The ground truth's issue count.
+ * @returns The card.
+ */
+function IterationCard({ iteration, known }: { iteration: ComparisonIteration; known: number }): ReactNode {
+  return (
+    <div
+      style={{ fontSize: 12, lineHeight: 1.5, padding: '8px 10px', marginBottom: 8, borderLeft: '2px solid #4fd1c5', background: 'rgba(255,255,255,0.03)' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontWeight: 600 }}>Iteration {iteration.id} · {iteration.ran}</span>
+        <span className="mono" style={{ opacity: 0.8 }}>{iteration.found}/{known} · {iteration.findings} findings · {iteration.wall} · {iteration.verified ? 'verified' : 'unverified'}</span>
+      </div>
+      <div style={{ opacity: 0.85 }}>{iteration.change}</div>
+      <div className="mono" style={{ marginTop: 4, opacity: 0.8 }}>
+        targets {iteration.targetsCaught.length}/{iteration.targets.length} caught ({iteration.targetsCaught.join(', ') || 'none'}) · gained {iteration.gained.join(', ') || 'none'} · lost {iteration.lost.join(', ') || 'none'}
+      </div>
+      <div style={{ marginTop: 4, opacity: 0.85 }}><span style={{ color: '#f0b429' }}>{iteration.decision}</span> — {iteration.reading}</div>
     </div>
   )
 }

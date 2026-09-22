@@ -45,6 +45,7 @@ The recorder refuses to overwrite an existing record. Add a row below afterwards
 | [2026-09-19-dvja](2026-09-19-dvja/manifest.json) | `3d386bac2` | dvja (Java, Struts 2 and Spring), 174 files | `sonnet` | 7 of 7 | 40 (9 critical, 10 high, 13 medium, 7 low, 1 info) | exit 0 | 1414 s |
 | [2026-09-19-nodegoat-2](2026-09-19-nodegoat-2/manifest.json) | `5a59895fa` | OWASP NodeGoat, 111 files, started through the feed's `POST /safety` | `sonnet` | 7 of 7 | 38 (4 critical, 16 high, 14 medium, 4 low) | exit 0 | 1225 s |
 | [2026-09-21-nodegoat-3](2026-09-21-nodegoat-3/manifest.json) | `a47c8f519` | OWASP NodeGoat, 111 files, started through the hosted mirror relay's `POST /safety` | `sonnet` | 7 of 7 | 47 (4 critical, 18 high, 17 medium, 7 low, 1 info) | exit 0 | 1356 s |
+| [2026-09-22-nodegoat-4-improved](2026-09-22-nodegoat-4-improved/manifest.json) | `c0efe64a3` | OWASP NodeGoat, 111 files, the improvement loop's first iteration: the injection skill widened after [the three-tier comparison](comparisons/2026-09-22-nodegoat/README.md) | `sonnet` | 7 of 7 | 44 (6 critical, 18 high, 12 medium, 7 low, 1 info) | exit 0 | 1426 s |
 
 ## What a record proves
 

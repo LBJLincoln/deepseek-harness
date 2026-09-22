@@ -34,9 +34,19 @@
 
 那份差距清单就是部门技能应关闭的待办，也是应对每个目标运行对比、而非只运行一次的理由。
 
+## 循环的第一次迭代
+
+差距清单当天就被付诸行动。注入部门的记录显示它读过 `research.js`、`profile.js` 与 `session.js`，且持有一节服务端请求伪造的知识，却三个都没有标出；日志注入与正则表达式拒绝服务则在每个技能中都缺失。[注入技能](../../../knowledge/code-safety/injection/SKILL.md)新增了对服务端请求调用点的枚举指令与这两个缺失的缺陷类别，未提及任何 NodeGoat 的文件、路由或行号，随后程序在同一目标、修订版、模型与组合上再次运行（[记录](../../2026-09-22-nodegoat-4-improved/manifest.json)）。
+
+| 迭代 | 变更 | 18 项召回 | 命中的目标 | 新增 | 丢失 | 决定 |
+| --- | --- | ---: | --- | --- | --- | --- |
+| 1 | 注入技能：SSRF 枚举、日志注入、ReDoS | 13 / 18 | 3 之 1（`NG-SSRF`） | `NG-SSRF` | `NG-A5` | 保留该知识；效应未被确立 |
+
+请像账本解读单次运行配对那样解读它：记录在案的四次 NodeGoat 企业运行得分为 18 之 14、14、13、13，因此任一方向上一个问题的变动都在程序自身的逐次运行波动之内，而丢失的问题（`NG-A5`，安全配置错误）属于此次变更从未触及的部门。该知识得以保留，因为它是通用的且没有可测量的成本；它是否导致了 SSRF 的命中，无法由一次运行确立，这正是这个循环的下一步要用与基准台相同的仪器——以该变更为唯一差异、且重复次数足以读出一个问题效应的冻结配对——而不是再来一次单次运行的原因。`iterations.json` 保存每次迭代的人工撰写部分（提案与决定）；表中的读数由组装器从记录打分得出。
+
 ## 文件
 
-`comparison.json` 是机器记录：三个层级、逐问题矩阵与差距。`t0-semgrep-findings.json` 与 `t1-single-model-findings.json` 是两个现场层级的发现，已规范化为发现结构；`t0-semgrep-raw.json` 与 `t1-single-model-meta.json` 保留各生产者自身的输出。`enterprise-trajectory.json` 是企业记录的来源与逐发现轨迹。用以下命令重新生成成绩单：
+`comparison.json` 是机器记录：三个层级、逐问题矩阵、差距，以及循环的各次迭代。`iterations.json` 是每次迭代的人工撰写部分：其记录、变更、瞄准的问题与决定。`t0-semgrep-findings.json` 与 `t1-single-model-findings.json` 是两个现场层级的发现，已规范化为发现结构；`t0-semgrep-raw.json` 与 `t1-single-model-meta.json` 保留各生产者自身的输出。`enterprise-trajectory.json` 是企业记录的来源与逐发现轨迹。用以下命令重新生成成绩单：
 
 ```sh
 node data/code-safety/tools/compare.mjs <findings.json> data/code-safety/targets/nodegoat.ground-truth.json

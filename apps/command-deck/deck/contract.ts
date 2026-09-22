@@ -201,6 +201,34 @@ export interface Comparison {
   bothModelsMiss: string[]
   singleModelOnly: string[]
   enterpriseOnly: string[]
+  iterations: ComparisonIteration[]
+}
+
+/**
+ * One improvement-loop iteration run against the enterprise baseline: the change
+ * it tested and the decision taken are authored in the record's `iterations.json`;
+ * the recall, the issues gained and lost against the baseline, and the targets it
+ * caught are scored from the iteration's own record.
+ */
+export interface ComparisonIteration {
+  id: string
+  ran: string
+  record: string
+  baseline: string
+  mechanism: string
+  change: string
+  targets: string[]
+  decision: string
+  reading: string
+  found: number
+  recall: number
+  findings: number
+  onKnown: number
+  verified: boolean
+  wall: string
+  gained: string[]
+  lost: string[]
+  targetsCaught: string[]
 }
 
 /** Severity order used for sorting and for the legend, worst first. */

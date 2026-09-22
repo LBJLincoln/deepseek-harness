@@ -1,0 +1,13 @@
+[
+  {
+    "id": "1",
+    "ran": "2026-09-22",
+    "record": "data/code-safety/2026-09-22-nodegoat-4-improved",
+    "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+    "mechanism": "knowledge pack: data/knowledge/code-safety/injection/SKILL.md",
+    "change": "The injection department's skill gained an enumeration directive for server-side request forgery (every server-side request call site is listed and its destination validation checked) and two defect classes it did not hold at all: log injection (CWE-117) and regular-expression denial of service (CWE-1333). The change names no NodeGoat file, route, or line.",
+    "targets": ["NG-SSRF", "NG-REDOS", "NG-A1-3"],
+    "decision": "keep-knowledge",
+    "reading": "One run each side; the four NodeGoat enterprise runs on record read 14, 14, 13, 13 of 18, so a one-issue move is inside the program's own run-to-run variation. The knowledge stays because it is general and costs nothing measurable; the effect is not established."
+  }
+]

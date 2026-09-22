@@ -9,9 +9,14 @@
 //
 // Usage: node assemble-comparison.mjs <ground-truth json> <out dir>
 //   reads, from <out dir>: t0-semgrep-findings.json, t1-single-model-findings.json,
-//   t1-single-model-meta.json; and the enterprise record named in ENTERPRISE_RECORD.
+//   t1-single-model-meta.json; the enterprise record named in ENTERPRISE_RECORD; and,
+//   when present, iterations.json: the improvement-loop iterations run against the
+//   enterprise baseline, each naming its record, the change it tested, the issues it
+//   targeted, and the decision taken. The proposal and the decision are authored;
+//   the reading (recall, issues gained and lost against the baseline, targets caught)
+//   is scored here from the record.
 // Writes <out dir>/comparison.json.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const [groundTruthPath, outDir] = process.argv.slice(2)
@@ -58,6 +63,22 @@ const bothMiss = matrix.filter(m => !m.singleModel && !m.enterprise).map(m => m.
 /** Drop the internal caught-set before a tier goes into the record; it does not serialize to JSON usefully. */
 const tierFields = ({ caught: _caught, ...rest }) => rest
 
+const iterationsPath = join(outDir, 'iterations.json')
+const iterations = (existsSync(iterationsPath) ? readJson(iterationsPath) : []).map((iteration) => {
+  const scored = score(asFindings(readJson(join(iteration.record, 'findings.json'))))
+  const manifest = readJson(join(iteration.record, 'manifest.json'))
+  const ids = truth.issues.map(issue => issue.id)
+  return {
+    ...iteration,
+    ...tierFields(scored),
+    verified: manifest.verifier?.exitCode === 0,
+    wall: `${manifest.elapsedSeconds} s`,
+    gained: ids.filter(id => scored.caught.has(id) && !enterprise.caught.has(id)),
+    lost: ids.filter(id => enterprise.caught.has(id) && !scored.caught.has(id)),
+    targetsCaught: iteration.targets.filter(id => scored.caught.has(id)),
+  }
+})
+
 const comparison = {
   target: truth.target,
   revision: truth.revision,
@@ -73,8 +94,12 @@ const comparison = {
   bothModelsMiss: bothMiss,
   singleModelOnly: only('singleModel', 'semgrep', 'enterprise'),
   enterpriseOnly: only('enterprise', 'semgrep', 'singleModel'),
+  iterations,
 }
 
 writeFileSync(join(outDir, 'comparison.json'), JSON.stringify(comparison, null, 2))
 console.log(`comparison.json: semgrep ${semgrep.found}/${truth.issues.length}, single-model ${single.found}/${truth.issues.length}, enterprise ${enterprise.found}/${truth.issues.length} (verified)`)
 console.log(`single-model only: ${comparison.singleModelOnly.join(', ') || 'none'}; enterprise only: ${comparison.enterpriseOnly.join(', ') || 'none'}; both miss: ${bothMiss.join(', ') || 'none'}`)
+for (const iteration of iterations) {
+  console.log(`iteration ${iteration.id}: ${iteration.found}/${truth.issues.length}; gained ${iteration.gained.join(', ') || 'none'}; lost ${iteration.lost.join(', ') || 'none'}; targets caught ${iteration.targetsCaught.join(', ') || 'none'} of ${iteration.targets.join(', ')}`)
+}

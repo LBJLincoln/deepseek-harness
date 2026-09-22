@@ -45,6 +45,7 @@ node data/code-safety/tools/record-run.mjs .code-safety/<name> <date>-<target> \
 | [2026-09-19-dvja](2026-09-19-dvja/manifest.json) | `3d386bac2` | dvja（Java，Struts 2 与 Spring），174 个文件 | `sonnet` | 7 of 7 | 40 (9 critical, 10 high, 13 medium, 7 low, 1 info) | 退出码 0 | 1414 s |
 | [2026-09-19-nodegoat-2](2026-09-19-nodegoat-2/manifest.json) | `5a59895fa` | OWASP NodeGoat，111 个文件，经由 feed 的 `POST /safety` 启动 | `sonnet` | 7 of 7 | 38 (4 critical, 16 high, 14 medium, 4 low) | 退出码 0 | 1225 s |
 | [2026-09-21-nodegoat-3](2026-09-21-nodegoat-3/manifest.json) | `a47c8f519` | OWASP NodeGoat，111 个文件，经由托管镜像中继的 `POST /safety` 启动 | `sonnet` | 7 of 7 | 47 (4 critical, 18 high, 17 medium, 7 low, 1 info) | 退出码 0 | 1356 s |
+| [2026-09-22-nodegoat-4-improved](2026-09-22-nodegoat-4-improved/manifest.json) | `c0efe64a3` | OWASP NodeGoat，111 个文件，改进循环的第一次迭代：在[三层对比](comparisons/2026-09-22-nodegoat/README.md)之后拓宽了注入技能 | `sonnet` | 7 of 7 | 44 (6 critical, 18 high, 12 medium, 7 low, 1 info) | 退出码 0 | 1426 s |
 
 ## 一条记录证明了什么
 

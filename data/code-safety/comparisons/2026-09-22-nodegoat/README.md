@@ -34,9 +34,19 @@ The comparison is not only a scorecard; it is an input to the loop that improves
 
 That gap list is the backlog the departments' skills should close, and the reason to run the comparison on every target rather than once.
 
+## The loop's first iteration
+
+The gap list was acted on the same day. The injection department's transcript showed it had read `research.js`, `profile.js`, and `session.js` and held a server-side request forgery section, yet flagged none of the three; log injection and regular-expression denial of service were absent from every skill. [The injection skill](../../../knowledge/code-safety/injection/SKILL.md) gained an enumeration directive for server-side request call sites and the two missing defect classes, with no NodeGoat file, route, or line named, and the program ran again on the same target, revision, model, and composition ([the record](../../2026-09-22-nodegoat-4-improved/manifest.json)).
+
+| Iteration | Change | Recall on 18 | Targets caught | Gained | Lost | Decision |
+| --- | --- | ---: | --- | --- | --- | --- |
+| 1 | injection skill: SSRF enumeration, log injection, ReDoS | 13 / 18 | 1 of 3 (`NG-SSRF`) | `NG-SSRF` | `NG-A5` | keep the knowledge; effect not established |
+
+Read it as the ledger reads a one-run pair: the four NodeGoat enterprise runs on record score 14, 14, 13, and 13 of 18, so a one-issue move in either direction is inside the program's own run-to-run variation, and the lost issue (`NG-A5`, security misconfiguration) is in a department the change never touched. The knowledge stays because it is general and costs nothing measurable; whether it caused the SSRF catch is not established by one run, which is why the next step for this loop is the same instrument the bench uses — a frozen pair with the change as the only difference and enough repetitions to read a one-issue effect — rather than another single run. `iterations.json` holds the authored proposal and decision; the reading in the table is scored from the record by the assembler.
+
 ## Files
 
-`comparison.json` is the machine record: the three tiers, the issue-by-issue matrix, and the gaps. `t0-semgrep-findings.json` and `t1-single-model-findings.json` are the two live tiers' findings, normalized to the findings schema; `t0-semgrep-raw.json` and `t1-single-model-meta.json` keep each producer's own output. `enterprise-trajectory.json` is the enterprise record's provenance and per-finding trail. Regenerate the scorecard with:
+`comparison.json` is the machine record: the three tiers, the issue-by-issue matrix, the gaps, and the loop's iterations. `iterations.json` is the authored side of each iteration: its record, the change, the targeted issues, and the decision. `t0-semgrep-findings.json` and `t1-single-model-findings.json` are the two live tiers' findings, normalized to the findings schema; `t0-semgrep-raw.json` and `t1-single-model-meta.json` keep each producer's own output. `enterprise-trajectory.json` is the enterprise record's provenance and per-finding trail. Regenerate the scorecard with:
 
 ```sh
 node data/code-safety/tools/compare.mjs <findings.json> data/code-safety/targets/nodegoat.ground-truth.json
