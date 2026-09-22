@@ -16,11 +16,12 @@ Status: proposed
 
 ### 基座模型
 
-下面是总参数量在 120B 上下、开放权重、有可下载检查点且截至今天仍属当前的每一个候选。`openai`、`zai-org`、`Qwen`、`mistralai`、`moonshotai`、`MiniMaxAI`、`nvidia`、`inclusionAI` 与 `ByteDance-Seed` 的 Hub 列表于 2026-09-19 读取；这个尺寸级别里没有出现别的模型。
+下面是总参数量在 120B 上下、开放权重、有可下载检查点且截至今天仍属当前的每一个候选。`openai`、`zai-org`、`Qwen`、`mistralai`、`moonshotai`、`MiniMaxAI`、`nvidia`、`inclusionAI` 与 `ByteDance-Seed` 的 Hub 列表于 2026-09-19 读取；这个尺寸级别里没有出现别的模型。NVIDIA-Nemotron-3-Super-120B-A12B 于 2026-03-11 发布，在它成为 OpenRouter 路由上可免费调用的模型之后于 2026-09-22 读取，补入下表。
 
 | 模型 | 许可 | 总参数／激活 | 架构 | 上下文 | 工具调用 | 权重格式 | 来源 |
 |---|---|---|---|---|---|---|---|
 | Qwen3.5-122B-A10B | Apache-2.0（`LICENSE` 中为原文） | 122B／10B | MoE，48 层，256 个专家（8 路由 + 1 共享），Gated DeltaNet 线性注意力，每四层一个门控注意力，带视觉编码器与 MTP | 原生 262,144，用 YaRN 可到 1,010,000 | 原生；Qwen-Agent、Qwen Code、vLLM、SGLang | BF16 safetensors，39 个分片；官方另有 FP8 与 GPTQ-Int4 | https://huggingface.co/Qwen/Qwen3.5-122B-A10B |
+| NVIDIA-Nemotron-3-Super-120B-A12B | NVIDIA Nemotron Open Model License（`license:other`，允许商用；训练用途导出需先做一次条款法务审查，随后由 `dsh-data-use` 编码进去） | 120B／12B | Mamba-2 + MoE + Attention 混合 Latent MoE（`nemotron_h`），带 MTP；纯文本；以 NVFP4 训练 | 默认 262,144，最高可到 1,000,000 | 原生（`--tool-call-parser qwen3_coder`、`trust_remote_code`）；vLLM、SGLang、TRT-LLM | BF16 safetensors；官方另有 FP8 与 NVFP4，以及一个 MTPv2 头 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 |
 | gpt-oss-120b | Apache-2.0 | 117B／5.1B | MoE，36 层，128 个专家，每 token 4 个，harmony 响应格式 | 131,072 | 原生函数调用、浏览、Python | MoE 权重为 MXFP4；注意力、路由器、嵌入与 `lm_head` 未量化 | https://huggingface.co/openai/gpt-oss-120b |
 | GLM-4.5-Air | MIT | 106B／12B（Hub 报 110B） | `glm4_moe`，思考与直答双模 | 128K | 原生；transformers、vLLM、SGLang 中有工具解析器 | BF16，官方另有 FP8 | https://huggingface.co/zai-org/GLM-4.5-Air |
 | Mistral-Small-4-119B-2603 | Apache-2.0 | 119B／6.5B | MoE，128 个专家，4 个激活，多模态，按请求设定推理强度 | 256K | 原生；`--tool-call-parser mistral` | safetensors；官方另有 FP8、NVFP4 与 EAGLE 头 | https://huggingface.co/mistralai/Mistral-Small-4-119B-2603 |
@@ -34,6 +35,7 @@ Status: proposed
 | 模型 | SWE-bench Verified | Terminal Bench 2 | LiveCodeBench v6 | 其他 | 报告方 |
 |---|---|---|---|---|---|
 | Qwen3.5-122B-A10B | 72.0 | 49.4 | 78.9 | CodeForces 2100、BFCL-V4 72.2、TAU2-Bench 79.5 | Qwen，模型卡，2026-09-19 |
+| NVIDIA-Nemotron-3-Super-120B-A12B | 60.47（OpenHands） | 31.00（Terminal Bench Core 2.0） | 81.19（v5） | RULER@1M 91.75、TauBench V2 平均 61.15、GPQA 79.23 | NVIDIA，模型卡，2026-09-22；同一张卡的横向对比把 Qwen3.5 列为 SWE-Bench 66.4、Terminal Bench Core 2.0 37.5，低于 Qwen 自报的 72.0 与 49.4，可见两家厂商的评测口径不一致，只有同一报告方的列之间可比 |
 | gpt-oss-120b | 62.4 | 18.7（Qwen 的表） | 82.7（Qwen 的表） | Qwen 的表中为 62.0 | OpenAI 模型卡，<https://arxiv.org/abs/2508.10925>，2025-08-05；Terminal Bench 2 与 LiveCodeBench 来自 Qwen 的卡 |
 | GLM-4.5-Air | 所读来源中未公布 | — | — | 12 项基准平均 59.8，对 GLM-4.5 的 63.2 | z.ai 模型卡；https://arxiv.org/abs/2508.06471 的 GLM-4.5 报告给出的 64.2 属于 355B 的 GLM-4.5，不属于 Air |
 | Mistral-Small-4-119B-2603 | 卡上未公布 | — | 声称在少 20% 输出下高于 gpt-oss-120b | AA-LCR 0.72，仅 1.6K 字符 | Mistral，模型卡，2026-09-19 |
@@ -47,12 +49,13 @@ Status: proposed
 - **GLM 一脉。** slime 就是其厂商训练它所用的框架，覆盖 GLM-4.5 到 GLM-5.3（<https://github.com/THUDM/slime>）。
 - **Mistral Small 4。** 卡上指向 Axolotl 做微调。所读来源中没有出现这一尺寸上的 RLVR 配方。
 - **Devstral 2 123B。** 所读来源中没有出现已公布的 RL 配方。
+- **NVIDIA-Nemotron-3-Super-120B-A12B。** 第一方，且是这组里最强的 RL 方案：该模型自身的第三阶段就是跨数学、代码、科学、指令遵循、多步工具使用、多轮与结构化输出等环境的异步 GRPO，NVIDIA 公开了端到端配方（https://github.com/NVIDIA-NeMo/Nemotron ）、训练器（NeMo RL，https://github.com/NVIDIA-NeMo/RL ）与这些环境本身（NeMo Gym，https://github.com/NVIDIA-NeMo/Gym ）。其 Mamba-2 混合架构需要 `trust_remote_code`，被第三方训练器（verl、slime）覆盖得不如纯 transformer，但其厂商自家的 RL 栈原生支持它，并给出了本 harness 的长 agentic rollout 最需要的异步 rollout 技巧（in-flight 权重更新、由 MTP 加速的生成）。2026-09-22 读取。
 
-**推荐：Qwen3.5-122B-A10B。次选：Mistral-Small-4-119B-2603。**
+**推荐：Qwen3.5-122B-A10B。次选：NVIDIA-Nemotron-3-Super-120B-A12B，待其许可完成法务审查；以 Mistral-Small-4-119B-2603 作为许可干净的兜底。**
 
 决定它的两个理由。第一，它是这个尺寸级别里唯一同时做到许可宽松、以 BF16 权重发布、并且在完全相同的尺寸上已经有一条可用 RLVR 路径的模型——一个点名 122B-A10B 检查点的 verl GRPO 脚本、覆盖该架构的 slime 插件，以及第三方在 16 到 64 张 H200 上的 GRPO 运行。其余每一个都要付出让步：gpt-oss-120b 的 MXFP4 权重没有反向传播，第一步梯度之前就得上转；Devstral 2 123B 是 SWE-bench 数字唯一持平的那个，却被营收条款挡住；Mistral Small 4 许可正确，却既没公布 SWE-bench 数字，也没有 RL 配方。第二，在本 harness 真正测量的那条轴上——一个终端、一个 shell、一条测试命令和一个 validator——它已公布的 agentic 结果领先全级：Terminal Bench 2 为 49.4，对 Devstral 2 的 32.6 与 gpt-oss-120b 的 18.7，而 SWE-bench Verified 为 72.0，与 Devstral 2 持平。它原生 262,144 token 的上下文也覆盖了 bench 实际产生的 rollout，其第 5 层 cell 单个记录到多达 53,787 个输出 token。
 
-什么会改变这个选择。一个 MIT 许可、重新出现在 106B 到 130B 级别的 GLM 模型会凭第一方 RL 工具链胜出，因为 slime 正是其厂商训练它所用的；z.ai 的中等尺寸线目前是 31B（GLM-4.7-Flash）与 321B（GLM-5.3-Flash），中间没有任何东西。若要求报告的数字是仓库规模的编辑而非终端作业，Devstral 2 123B 便与之持平，届时只剩许可把它排除。若要求纯文本检查点——Qwen3.5-122B-A10B 带有视觉编码器——选择就移到 80B 的 Qwen3-Next-80B-A3B-Instruct。若整个训练任务硬性限定在一个 8 卡节点内，就移到激活参数仅 5.1B 的 gpt-oss-120b，并接受上转。而如果法务审查把 Qwen 的 `LICENSE` 读成它所包含的 Apache 2.0 原文之外的任何东西，就移到 Mistral Small 4。
+什么会改变这个选择。NVIDIA-Nemotron-3-Super-120B-A12B 是本仓库在投入任何算力之前就能实测的基座：它现在就能在 OpenRouter 路由上免费调用，其第三阶段是第一方 GRPO 且训练器与环境都已开源，它是纯文本检查点而 Qwen3.5 带视觉编码器，其 1M 上下文与 LiveCodeBench 81.19（高于 Qwen 的 78.93）都具竞争力。它没有拿下推荐，因两点：Qwen 逐字的 Apache-2.0 比 NVIDIA Nemotron Open Model License 更干净，后者在任何训练用途导出前需要一次法务审查；而在本 harness 度量的那条终端与 validator 轴上，NVIDIA 自家的表把 Qwen 列在前面（SWE-Bench 66.4 对 60.47，Terminal Bench Core 2.0 37.5 对 31.0）。一次为训练用途导出扫清 Nemotron 许可的法务审查，或一个把第一方 RL 栈与纯文本检查点看得重过这两处基准差距的决定，都会把选择翻向它——而无论如何，在推荐的检查点还等着付费算力时，它都是要在免费路由上先跑的那个。一个 MIT 许可、重新出现在 106B 到 130B 级别的 GLM 模型会凭第一方 RL 工具链胜出，因为 slime 正是其厂商训练它所用的；z.ai 的中等尺寸线目前是 31B（GLM-4.7-Flash）与 321B（GLM-5.3-Flash），中间没有任何东西。若要求报告的数字是仓库规模的编辑而非终端作业，Devstral 2 123B 便与之持平，届时只剩许可把它排除。若要求纯文本检查点——Qwen3.5-122B-A10B 带有视觉编码器——选择就移到 80B 的 Qwen3-Next-80B-A3B-Instruct。若整个训练任务硬性限定在一个 8 卡节点内，就移到激活参数仅 5.1B 的 gpt-oss-120b，并接受上转。而如果法务审查把 Qwen 的 `LICENSE` 读成它所包含的 Apache 2.0 原文之外的任何东西，就移到 Mistral Small 4。
 
 ### 配方
 
