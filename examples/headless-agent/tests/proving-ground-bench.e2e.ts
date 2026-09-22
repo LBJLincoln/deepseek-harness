@@ -253,3 +253,35 @@ describe('proving-ground bench completion family', () => {
     expect(summary.tiers['5']).toBeGreaterThan(tasks.filter(task => task.tier === 5).length)
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })
+
+describe('proving-ground bench repository family', () => {
+  it('registers a repository child beside the curated tasks, in domain repository, judged on its hidden cases', async () => {
+    const repositoryConfigPath = join(benchDir, 'overlays', 'registry-only-with-repository.cordis.yml')
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'proving-ground-bench-repository',
+      tempDirPrefix: 'proving-ground-bench-repository-',
+      binScript,
+      libBinScript: binScript,
+      configPath: repositoryConfigPath,
+      binArgs: [repositoryConfigPath],
+      tsconfigPath,
+    })
+    expect(stderr).toBe('')
+    const summary = JSON.parse(stdout.trim().split('\n').at(-1) ?? '{}') as {
+      total: number
+      domains: Record<string, number>
+      cases: Record<string, number[]>
+      ids: string[]
+    }
+    const tasks = await taskFiles()
+    // output-retention's describeOmitted is documented, exported, and reached
+    // by seven blocks of the package's own spec, so its child is expected to
+    // admit and register with those blocks as its cases.
+    const repositoryId = 'code:output-retention--implement-describeOmitted'
+    const repositoryCells = summary.domains.repository ?? 0
+    expect(summary.ids).toContain(repositoryId)
+    expect(summary.total).toBe(tasks.length + repositoryCells)
+    expect(repositoryCells).toBeGreaterThanOrEqual(2)
+    expect(summary.cases[repositoryId]).toEqual([7])
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+})

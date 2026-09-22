@@ -1,0 +1,34 @@
+{
+  "id": "code:output-retention--implement-describeOmitted",
+  "tier": 3,
+  "domain": "repository",
+  "repository": {
+    "package": "@deepseek-ai/dsh-output-retention",
+    "module": "packages/util/output-retention/src/index.ts",
+    "spec": "packages/util/output-retention/tests/output-retention.spec.ts"
+  },
+  "completion": {
+    "file": "src/index.js",
+    "function": "describeOmitted"
+  },
+  "title": "Implement describeOmitted in @deepseek-ai/dsh-output-retention",
+  "prompt": "`src/index.js` is the JavaScript build of `packages/util/output-retention/src/index.ts`, the module of the DeepSeek Harness repository published as `@deepseek-ai/dsh-output-retention`. Every export of the module is in place except `describeOmitted`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Standardized, false-precision-safe wording for one {@link Omitted} value —\n * the \"may standardize omission wording\" half the library owns. `exact` prints\n * the count (`Omitted 3 items`); `unknown` prints NO count because the caller\n * did not provide one. `none` is the empty string.\n *\n * @param omitted The omission metadata from a retainer result.\n * @param unit The noun for the omitted quantity (`items`, `bytes`, `chars`, `lines`).\n * @returns A neutral clause (no trailing space), or `''` when nothing was omitted.\n */\nexport function describeOmitted(omitted: Omitted, unit: RetentionNotice['unit']): string\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation, so implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

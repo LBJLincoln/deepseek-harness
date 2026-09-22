@@ -1,0 +1,65 @@
+# Agent Note: Repository-derived environments: function tasks from this repository's own tested code
+
+Status: proposed
+
+English | [中文](2026-09-22-repository-derived-environments.zh.md)
+
+## Problem
+
+The [completion family](2026-09-22-completion-task-factory.md) multiplies the Proving Ground bench's hand-authored environments, but it still rests on hand-authored parents: 44 reference programs bound how many completion children can exist, and every new parent costs a specification, a reference, a visible suite, and admission. Meanwhile the repository holds another corpus of documented, tested functions that no one authored for the bench: every `packages/*/*/src/*.ts` module ships with JSDoc on each export and a vitest spec that passes in CI. That corpus is already an answer key with a verifier attached, and a harness that can measure itself on its own code has a task source that grows with the code.
+
+Two things stand between the corpus and the bench. The modules are TypeScript, and a bench workspace runs under plain `node` through the composed shell, with no compiler, no test runner, and no dependency installed. And the specs are vitest specs: their `describe`/`it` structure and their `expect` matchers are a runtime the bench's cased checks do not have, while their bodies are exactly the material an implementer must never see, since they are the standard the implementation is judged against.
+
+## Proposal
+
+`tools/synthesize-repository-tasks.ts`, run by plain `node` through its native type stripping like the polyglot fixture's `admit.ts`, reads every module under `<packages-dir>/<package>/src/*.ts` (default `packages/util`) and pairs it with the spec under `<package>/tests/` whose runtime imports are exactly that module (its relative path or its package name) and `vitest`, binding only `describe`, `it`, `test`, and `expect`. Type-only imports are erased by transpiling and do not count. The analysis runs through the TypeScript compiler's parser rather than a text scan, because the factory already depends on the compiler to transpile: `ts.transpileModule` produces the plain ESM JavaScript the workspace holds, comments kept and type-only imports elided, and the same parser locates each exported block-bodied function, its own JSDoc (the last `/**` comment directly above it, so a file's `@module` comment does not become the first declaration's documentation), its TypeScript signature up to the body, and every top-level `interface` and `type` declaration.
+
+Each `it` block of the spec becomes one hidden case: a self-contained ESM program that `node --input-type=module` reads from standard input in the workspace, made of the matcher shim `tools/expect-shim.mjs` inlined verbatim, the spec's imports with the module import redirected to `./src/index.js`, the spec's module-level statements, and one block per enclosing `describe` holding that level's other statements, the innermost holding the `it` body. Every statement of a level runs before the body, which is vitest's own order (collection, then execution), and each level is a block so a name declared at one level shadows an outer one as the callback scopes did. The case's expected exit code is 0 and only the exit channel is compared, so what an implementation happens to log cannot fail a case whose assertions held; a failed assertion is an uncaught `AssertionError`, which `node` reports on stderr and exits non-zero on. The shim implements `toBe`, `toEqual`, `toStrictEqual`, `toBeUndefined`, `toBeNull`, `toBeTruthy`, `toBeFalsy`, `toHaveLength`, `toContain`, `toThrow`, `toMatch`, `toBeGreaterThan`, and `toBeLessThan`, each with `.not`, and the spec analysis rejects, with the reason printed, any spec that reaches outside that set: another import, another vitest binding, `it.each` or any modifier, a callback with parameters or without a block body, a `describe`/`it` called anywhere but as a titled block statement, `expect.any` or `.resolves`/`.rejects`, a dynamic import, or a spec with no `it`.
+
+The factory runs every case against the transpiled reference first and skips a module whose reference fails any case, since that is the shim or the transform falling short, not the module. Per exported function with JSDoc it stubs the transpiled module — the body replaced by `throw new Error('not implemented')`, every other byte untouched — runs the cases against the stub, and keeps the ones that fail: those are the cases that reach the function, directly or through another export. A function no case reaches yields no child. The child's tier follows that count (`--tier-bands`, default `4,12`: tier 2 below four, tier 3 below twelve, tier 4 from twelve on), every child is `heldOut: false` since the family has no parent whose split it could inherit, and the child directory `environments-repository/<package>--<function>/` holds `src/index.js` (the stub), `README.md` (the prompt plus the erased type declarations, so every name the signature and the documentation use resolves), `package.json`, `reference/src/index.js`, `reference/cases.json`, and `task.json` with `id: code:<package>--implement-<function>`, `domain: repository`, `repository: { package, module, spec }`, `completion: { file, function }`, and two checks: `spec-cases` (`run: node --input-type=module`, `cases: reference/cases.json`) and `no-dependencies`. The prompt names the file, the function, and hands over the JSDoc and the signature; it never reveals the spec.
+
+`admit.mjs` gains the second family marker (`--implement-` stripped like `--complete-` before the directory comparison) and reads the visible suite from the task's own checks — the check whose `run` invokes `node --test` — instead of a fixed command; a task without one is judged on its cases alone, with the pre-state required to mismatch at least one case and the reference to reproduce every case, and a task with neither a suite nor a cased check is rejected. For every curated and completion task the suite check is the same `node --test test/*.test.js`, so their admission is unchanged. `register-repository-environments.ts` registers whatever admission kept under the same `bench` kind, whose detail gains an optional `repository` field in both fixtures' identical declarations; the case-file reading moved out of `register-environments.ts` into `bench-cases.ts` so both registrars read case files through one function. `overlays/with-repository.cordis.yml` mounts the producer beside the base composition and `overlays/registry-only-with-repository.cordis.yml` is the keyless variant the registrar e2e boots.
+
+### Counts
+
+Run against `packages/util` with the defaults (`--min-lines 1`, `--tier-bands 4,12`):
+
+- 7 packages, 14 modules; 1 module with a spec the rules admit.
+- Skipped modules by reason: 7 have no spec that imports them (the six `invariant.ts` companions and `dsh-brand`, whose spec-less type is compile-time only); 3 specs bind a vitest name outside the four (`home-paths` and `timeout` bind `afterEach`, `launch-environment` binds `vi`); 2 specs import outside the module and `vitest` (`atomic-write`'s index spec imports `node:fs/promises`, its invariant spec imports `@deepseek-ai/cordis`); 1 module exports no block-bodied function (`dsh-native-command`'s runner is an expression-bodied arrow).
+- 2 candidate functions, both from `@deepseek-ai/dsh-output-retention`; 0 without JSDoc, 0 too short, 0 unreached, 0 dropped by `node --check`.
+- 2 written, both tier 3: `describeOmitted` with 7 exercising cases (its own three blocks and the four `formatRetentionNotice` blocks that call it), `formatRetentionNotice` with 4.
+- Admission: 2 admitted, 0 refused; `environments-repository/REFUSED.json` is `[]`.
+
+## Alternatives considered
+
+**Run vitest inside the validator.** Rejected: the bench's cells and reservations install nothing, a cased check is one process per case compared on its channels, and a runner in the reservation would be a second verifier with its own composition to maintain. Inlining a matcher subset into each case keeps the verifier to `node` alone, and the admission rule that the reference must pass every case is the empirical check that the subset is faithful for each admitted spec.
+
+**Keep the TypeScript module in the workspace and run it under `node`'s own type stripping.** Rejected: the bench's language is JavaScript, its checks run through the composed shell under whatever `node` the host has, and strip-only mode refuses parameter properties, enums, and namespaces, which some modules use. The compiler's JavaScript build is what a consumer of the package runs, and the README carries the erased type declarations so the signature the prompt hands over resolves.
+
+**Carry every `it` block of the spec as a case, regardless of whether it reaches the function.** Rejected: a case the stub already passes measures nothing about the function and inflates the cased check's weighted count, and the tier would say how large the module's spec is rather than how much of it the function bears. Keeping only the cases the stub fails is exact, and admission independently re-checks that at least one case discriminates.
+
+**Extract the JSDoc, the signature, and the type declarations with the completion factory's text scanner.** Rejected: that scanner exists for plain JavaScript references and reads no TypeScript, while this factory needs the compiler for transpiling in any case; its parser reads `describe`/`it` structure, `expect` chains, and import forms exactly, where a scanner would need one heuristic per construct.
+
+**Generate a `.d.ts` for the workspace instead of quoting type declarations in the README.** Rejected: declaration emit needs a full program with the module's dependencies resolved, and the verbatim declarations with their JSDoc are what a reader of the source sees.
+
+**Allow `node:` built-in imports in a spec.** Deferred rather than rejected: it would admit `atomic-write`'s two functions, whose spec uses only `node:fs/promises`, `node:os`, and `node:path` beside the module, and the transpiled module runs under `node` either way. The stated rule is "only the module under test and `vitest`", and widening it is a one-line policy change with a census to show its effect.
+
+## Acceptance criteria
+
+- `node admit.mjs environments-repository` exits 0 against the committed tree, admitting every child in it with its case count.
+- `environments-repository/REFUSED.json` accounts for every candidate the factory generated but did not keep, with the reason `admit.mjs` gave.
+- The registrar e2e test's repository-family case boots `overlays/registry-only-with-repository.cordis.yml` and finds `code:output-retention--implement-describeOmitted` among the registered set with seven cases, in domain `repository`.
+- Re-running the factory with the same inputs and flags reproduces the same written and admitted sets, verified by diffing two consecutive runs.
+- The pure library `tools/repository-environments.ts` is covered line for line by `examples/headless-agent/tests/proving-ground-repository-family.spec.ts`, which also runs the factory end to end over a synthetic packages directory and the shim's every matcher as a case program.
+
+## Risks
+
+**The shim approximates vitest.** `toEqual` and `toStrictEqual` follow vitest on undefined-valued properties, prototypes, arrays, typed arrays, `Map`, `Set`, `Date`, `RegExp`, `Error`, and cycles, and `toThrow` on its five argument forms, but a spec resting on a corner outside that (asymmetric matchers, `toEqual` on a class instance with accessors) fails against the reference and skips the module with the failing case named, rather than admitting a child with a wrong standard.
+
+**The census is small by construction.** Two children from `packages/util` is what the strict rule set yields; the family grows by widening the rules (`node:` built-ins, `beforeEach` that only assigns), by covering class methods, or by pointing `--packages-dir` at another group, each a separate decision with its own census.
+
+**The hidden cases are the module's own tests, which live in this repository.** An implementer that has read the repository, or a model trained on it, may recall the spec rather than implement from the documentation; the family measures implementation from documentation only to the extent the implementer has not seen the tests, and a result on it says so.
+
+**Documentation can under-specify.** `describeOmitted`'s JSDoc quotes `Omitted 3 items` where its spec expects a trailing period; a child whose documentation leaves such a corner open is hard to certify from the documentation alone. That is a measurement of the documentation as much as of the implementer, and the census reports it rather than hiding it.
+
+**`ownDocStart` is a heuristic.** A declaration's JSDoc is taken to be the last `/**` comment directly above it with no blank line between, which matches this repository's style; a module that separates a declaration from its JSDoc by a blank line yields a candidate without JSDoc, which the census counts.

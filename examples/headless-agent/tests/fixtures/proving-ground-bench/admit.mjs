@@ -13,11 +13,18 @@
  * Exits 1 on the first task that fails admission; prints one line per admitted
  * task, carrying the hidden-case count where a task has one.
  *
- * A completion child's id carries `--complete-` where its directory carries
- * only `--` (`code:<parent>--complete-<function>` in
- * `<parent>--<function>/`), the environment factory's own marker for a
- * synthesized task; the directory check strips it before comparing, so a
- * curated task's plain `code:<name>` is unaffected.
+ * A synthesized child's id carries a family marker where its directory carries
+ * only `--`: `code:<parent>--complete-<function>` in `<parent>--<function>/`
+ * for the completion family, `code:<package>--implement-<function>` in
+ * `<package>--<function>/` for the repository-derived family. The directory
+ * check strips the marker before comparing, so a curated task's plain
+ * `code:<name>` is unaffected.
+ *
+ * The visible suite is the check whose `run` invokes `node --test`; admission
+ * runs that command. A task without one is judged on its cases alone, which
+ * is how the repository-derived family ships: its workspace holds no test, so
+ * its pre-state must fail at least one case and its reference must reproduce
+ * every case, and a task with neither a suite nor a case is rejected.
  *
  *   node admit.mjs [<environments-dir>]
  */
@@ -35,9 +42,16 @@ const REQUIRED = ['id', 'tier', 'domain', 'title', 'prompt', 'heldOut', 'immutab
 const DEFAULT_CHANNELS = ['exit', 'stdout']
 /** One case may not outrun the visible suite's own budget. */
 const CASE_TIMEOUT_MS = 20_000
+/** The family markers a synthesized child's id carries in place of its directory's `--`. */
+const FAMILY_MARKER = /--(?:complete|implement)-/u
 
-function runTests(cwd) {
-  return spawnSync('node', ['--test', 'test/*.test.js'], { cwd, encoding: 'utf8', shell: true, timeout: 120_000 })
+/** The check that is the task's visible suite: the one whose `run` invokes `node --test`. */
+function visibleSuite(task) {
+  return task.checks.find(check => check.cases === undefined && /^node\s+--test\b/u.test(check.run))
+}
+
+function runTests(cwd, command) {
+  return spawnSync(command, { cwd, encoding: 'utf8', shell: true, timeout: 120_000 })
 }
 
 /**
@@ -85,17 +99,18 @@ for (const name of readdirSync(root).sort()) {
   const missing = REQUIRED.filter(field => !(field in task))
   const problems = []
   if (missing.length > 0) problems.push(`task.json lacks ${missing.join(', ')}`)
-  if (task.id.replace('--complete-', '--') !== `code:${name}`) problems.push(`id ${task.id} does not match directory ${name}`)
+  if (task.id.replace(FAMILY_MARKER, '--') !== `code:${name}`) problems.push(`id ${task.id} does not match directory ${name}`)
   if (existsSync(join(dir, 'node_modules'))) problems.push('node_modules present')
   if (!existsSync(join(dir, 'reference', 'src'))) problems.push('no reference/src')
   const cased = task.checks.filter(check => typeof check.cases === 'string')
+  const suite = visibleSuite(task)
+  if (suite === undefined && cased.length === 0) problems.push('no visible suite and no cased check')
   let caseCount = 0
   const copy = mkdtempSync(join(tmpdir(), `admit-${name}-`))
   try {
     cpSync(dir, copy, { recursive: true })
     rmSync(join(copy, 'reference'), { recursive: true, force: true })
-    const pre = runTests(copy)
-    if (pre.status === 0) problems.push('pre-state passes its tests')
+    if (suite !== undefined && runTests(copy, suite.run).status === 0) problems.push('pre-state passes its tests')
     for (const check of cased) {
       const relative = check.cases
       if (!relative.startsWith('reference/')) {
@@ -126,8 +141,10 @@ for (const name of readdirSync(root).sort()) {
     }
     rmSync(join(copy, 'src'), { recursive: true, force: true })
     cpSync(join(dir, 'reference', 'src'), join(copy, 'src'), { recursive: true })
-    const ref = runTests(copy)
-    if (ref.status !== 0) problems.push(`reference fails its tests: ${(ref.stdout + ref.stderr).split('\n').filter(line => /not ok|Error/.test(line)).slice(0, 3).join(' | ')}`)
+    if (suite !== undefined) {
+      const ref = runTests(copy, suite.run)
+      if (ref.status !== 0) problems.push(`reference fails its tests: ${(ref.stdout + ref.stderr).split('\n').filter(line => /not ok|Error/.test(line)).slice(0, 3).join(' | ')}`)
+    }
     for (const check of cased) {
       const command = caseCommand(check)
       if (command === undefined) continue
