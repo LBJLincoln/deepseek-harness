@@ -19,7 +19,8 @@ data/code-safety/
     stderr.txt         what the driver wrote to stderr, when it wrote anything
     sessions/          every session log: the ledger, the six departments and the integration, named by session id
   targets/<target>.ground-truth.json   a target's own documented defects, for reading a record's recall against; never part of the release gate
-  tools/record-run.mjs                 copies one run directory into a record and writes its manifest
+  tools/record-run.mjs                 copies one run directory into a record, redacts it, and writes its manifest
+  tools/redact-record.mjs              replaces private-key bodies and example cloud keys in a record and refreshes its manifest; record-run.mjs runs it before digesting
   tools/recall.mjs                     reads a record's recall against a ground-truth list; never part of the release gate
   tools/compare.mjs                    scores any findings list against a ground truth, the rule recall.mjs uses, for a cross-tool comparison
   tools/trajectory.mjs                 reads a record's session logs for its provenance and each finding's read trail

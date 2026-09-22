@@ -21,6 +21,7 @@ import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
+import { REDACTION_RULE, redactRecordFiles } from './redact-record.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const RECORDS_DIR = resolve(import.meta.dirname, '..')
@@ -112,10 +113,10 @@ function main() {
   const { startedAt, endedAt } = span(logs)
   mkdirSync(join(target, 'sessions'), { recursive: true })
 
-  const files = []
+  const written = []
   const record = (relativePath, content) => {
     writeFileSync(join(target, relativePath), content)
-    files.push({ path: relativePath, bytes: content.length, sha256: sha256(content) })
+    written.push(relativePath)
   }
   record('result.json', Buffer.from(`${JSON.stringify(result, null, 2)}\n`))
   if (result.safetyReport !== '') record('SAFETY-REPORT.md', Buffer.from(result.safetyReport))
@@ -124,6 +125,12 @@ function main() {
   const stderr = join(runDirectory, 'stderr.txt')
   if (existsSync(stderr) && statSync(stderr).size > 0) record('stderr.txt', readFileSync(stderr))
   for (const { sessionId, path } of logs) record(`sessions/${sessionId}.jsonl`, readFileSync(path))
+  // Key material the departments read out of the target is replaced before anything is digested.
+  const redactions = redactRecordFiles(target, written)
+  const files = written.map((path) => {
+    const content = readFileSync(join(target, path))
+    return { path, bytes: content.length, sha256: sha256(content) }
+  })
 
   const findings = result.findings === '' ? [] : JSON.parse(result.findings)
   const git = (args) => execFileSync('git', ['-C', REPO_DIR, ...args], { encoding: 'utf8' }).trim()
@@ -149,9 +156,10 @@ function main() {
     denials: result.denials.length,
     sessions: Object.fromEntries(logs.map(log => [log.sessionId, `sessions/${log.sessionId}.jsonl`])),
     files,
+    redactions: { rule: REDACTION_RULE, tool: 'tools/redact-record.mjs', files: redactions },
   }
   writeFileSync(join(target, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
-  console.log(`recorded ${relative(REPO_DIR, target)}: ${files.length} files, ${logs.length} session logs, ${findings.length} findings, outcome ${result.report.outcome}, examiner exit ${result.verifier.exitCode}`)
+  console.log(`recorded ${relative(REPO_DIR, target)}: ${files.length} files, ${logs.length} session logs, ${findings.length} findings, outcome ${result.report.outcome}, examiner exit ${result.verifier.exitCode}, ${redactions.length} files redacted`)
 }
 
 main()

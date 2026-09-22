@@ -95,8 +95,8 @@
   "files": [
     {
       "path": "result.json",
-      "bytes": 153304,
-      "sha256": "91e065205941fd49dec58ce6537c39d6efdd00613e935a60f1d350f84287347f"
+      "bytes": 152479,
+      "sha256": "f483bcfafccd9362361ac807c39714ed3efa5c40713fac82050ea7fb64759139"
     },
     {
       "path": "SAFETY-REPORT.md",
@@ -105,8 +105,8 @@
     },
     {
       "path": "findings.json",
-      "bytes": 81313,
-      "sha256": "cf2f492ab9b9ac11c8c01f133c6ec1ad51e73e19f5d15aa6d2fc692c5d84867c"
+      "bytes": 80500,
+      "sha256": "ad2b50776a2586a513a12437e93345e0288d06cc95d73b3c2501f1a08837a88e"
     },
     {
       "path": "verifier.txt",
@@ -120,8 +120,8 @@
     },
     {
       "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration.jsonl",
-      "bytes": 707642,
-      "sha256": "4c784695b6310039ce15464b9487d6030c2063b9cb9b876407857dfeb8da5179"
+      "bytes": 705992,
+      "sha256": "5d7c2ed7a37382b8521d94ea17366517500a84900697a4b4c6794231f2185283"
     },
     {
       "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-access.jsonl",
@@ -150,8 +150,34 @@
     },
     {
       "path": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets.jsonl",
-      "bytes": 533068,
-      "sha256": "df401340afc553086f630ec905ead3dd7fe755d5b4dd8487368944e8805aeb5e"
+      "bytes": 528000,
+      "sha256": "5cccdb64753fb7726afeb09649815f883280a408e38e4e936913a6151b3220b8"
     }
-  ]
+  ],
+  "redactions": {
+    "rule": "Private key material and example cloud keys the departments read out of the target were replaced before the record was committed; the cited lines the examiner verified are untouched.",
+    "tool": "tools/redact-record.mjs",
+    "files": [
+      {
+        "file": "result.json",
+        "privateKeyBodies": 1,
+        "exampleAwsKeys": 0
+      },
+      {
+        "file": "findings.json",
+        "privateKeyBodies": 1,
+        "exampleAwsKeys": 0
+      },
+      {
+        "file": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-~0040integration.jsonl",
+        "privateKeyBodies": 2,
+        "exampleAwsKeys": 0
+      },
+      {
+        "file": "sessions/program-e570066f04d23255d2013278e0ba6258138c9ec2f50b7ee6592b34b6329a7b5c-secrets.jsonl",
+        "privateKeyBodies": 6,
+        "exampleAwsKeys": 1
+      }
+    ]
+  }
 }
