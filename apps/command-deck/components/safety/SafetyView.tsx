@@ -4,14 +4,15 @@ import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { SEVERITY_ORDER, type Severity } from '@/deck/contract'
+import { SEVERITY_ORDER, type Comparison, type Severity } from '@/deck/contract'
 import { departmentOf } from '@/deck/departments'
-import { startSafety } from '@/deck/feed'
+import { comparisonSlugFor, getComparison, startSafety } from '@/deck/feed'
 import { bytes, stamp } from '@/deck/format'
 import { usePrefersReducedMotion } from '@/deck/motion'
 import { languageColor, SEVERITY_COLOR } from '@/deck/palette'
 import { useDeck } from '@/deck/store'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
+import { BenchmarkPanel } from './BenchmarkPanel'
 import { FilesOpened } from './FilesOpened'
 import { FindingCard } from './FindingCard'
 import { LaunchSequence } from './LaunchSequence'
@@ -27,7 +28,7 @@ const SafetyStage = dynamic(
 )
 
 /** Which panel tab is open. */
-type Tab = 'findings' | 'certificate' | 'report'
+type Tab = 'findings' | 'certificate' | 'report' | 'benchmark'
 
 /** The models `pnpm run code-safety -- --model` accepts; the feed forwards the name unchanged. */
 const REVIEW_MODELS = ['sonnet', 'opus'] as const
@@ -82,6 +83,29 @@ export function SafetyView(): ReactNode {
 
   const findings = safety?.findings ?? []
   const touring = useFindingsTour(findings, selectFinding)
+
+  // The target's committed benchmark, when one is bundled for it: a static
+  // record, so it is read once per review from the fixtures in either mode.
+  const [comparison, setComparison] = useState<Comparison | undefined>(undefined)
+  const reviewName = safety?.target.name
+  useEffect(() => {
+    if (reviewName === undefined) {
+      setComparison(undefined)
+      return
+    }
+    const slug = comparisonSlugFor(reviewName)
+    if (slug === undefined) {
+      setComparison(undefined)
+      return
+    }
+    let live = true
+    void getComparison(slug).then((result) => {
+      if (live) setComparison(result)
+    })
+    return () => {
+      live = false
+    }
+  }, [reviewName])
 
   const filtered = useMemo(() => findings.filter(finding => (
     (severity === 'all' || finding.severity === severity)
@@ -193,6 +217,7 @@ export function SafetyView(): ReactNode {
           <button type="button" data-active={tab === 'findings'} onClick={() => setTab('findings')}>Findings</button>
           <button type="button" data-active={tab === 'certificate'} onClick={() => setTab('certificate')}>Certificate</button>
           <button type="button" data-active={tab === 'report'} onClick={() => setTab('report')}>Report</button>
+          {comparison !== undefined ? <button type="button" data-active={tab === 'benchmark'} onClick={() => setTab('benchmark')}>Benchmark</button> : null}
         </div>
 
         <div className="panel__body">
@@ -412,6 +437,8 @@ export function SafetyView(): ReactNode {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{safety.report.markdown}</ReactMarkdown>
             </div>
           ) : null}
+
+          {tab === 'benchmark' && comparison !== undefined ? <BenchmarkPanel comparison={comparison} /> : null}
         </div>
       </aside>
     </div>

@@ -55,6 +55,8 @@ const matrix = truth.issues.map(issue => ({
 }))
 const only = (a, b, c) => matrix.filter(m => m[a] && !m[b] && !m[c]).map(m => m.id)
 const bothMiss = matrix.filter(m => !m.singleModel && !m.enterprise).map(m => m.id)
+/** Drop the internal caught-set before a tier goes into the record; it does not serialize to JSON usefully. */
+const tierFields = ({ caught: _caught, ...rest }) => rest
 
 const comparison = {
   target: truth.target,
@@ -63,9 +65,9 @@ const comparison = {
   date: new Date().toISOString().slice(0, 10),
   note: 'Same target, same revision, same 18-issue ground truth, scored by the same rule (a finding within three lines of a known issue). The single-model and enterprise tiers run the same model (sonnet); the only difference between them is the harness. The issue count and locations were never disclosed to any tier.',
   tiers: [
-    { id: 'semgrep', name: 'Semgrep, community rules', kind: 'commodity static analysis, no model', ...semgrep, verified: false, wall: 'seconds', cost: '$0', detail: '96 rules over 44 files' },
-    { id: 'single-model', name: 'One frontier model, one pass', kind: 'a single sonnet session, no departments, no verifier', ...single, verified: false, wall: `${Math.round(singleMeta.duration_ms / 1000)} s`, cost: `$${singleMeta.cost_usd.toFixed(2)}`, detail: `${singleMeta.num_turns} turns` },
-    { id: 'enterprise', name: 'Daliesk enterprise', kind: 'six departments, a verifier, and integration; same sonnet', ...enterprise, verified: enterpriseManifest.verifier?.exitCode === 0, wall: `${enterpriseManifest.elapsedSeconds} s`, cost: 'subscription', detail: `${enterpriseManifest.certified.length} certified; record ${ENTERPRISE_RECORD.split('/').pop()}` },
+    { id: 'semgrep', name: 'Semgrep, community rules', kind: 'commodity static analysis, no model', ...tierFields(semgrep), verified: false, wall: 'seconds', cost: '$0', detail: '96 rules over 44 files' },
+    { id: 'single-model', name: 'One frontier model, one pass', kind: 'a single sonnet session, no departments, no verifier', ...tierFields(single), verified: false, wall: `${Math.round(singleMeta.duration_ms / 1000)} s`, cost: `$${singleMeta.cost_usd.toFixed(2)}`, detail: `${singleMeta.num_turns} turns` },
+    { id: 'enterprise', name: 'Daliesk enterprise', kind: 'six departments, a verifier, and integration; same sonnet', ...tierFields(enterprise), verified: enterpriseManifest.verifier?.exitCode === 0, wall: `${enterpriseManifest.elapsedSeconds} s`, cost: 'subscription', detail: `${enterpriseManifest.certified.length} certified; record ${ENTERPRISE_RECORD.split('/').pop()}` },
   ],
   matrix: matrix.map(({ id, category, semgrep: s, singleModel: m, enterprise: e }) => ({ id, category, semgrep: s, singleModel: m, enterprise: e })),
   bothModelsMiss: bothMiss,

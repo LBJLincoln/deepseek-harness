@@ -9,7 +9,7 @@
  * export.
  */
 
-import type { Roster, Run, SafetyReview } from './contract.ts'
+import type { Comparison, Roster, Run, SafetyReview } from './contract.ts'
 
 /** Whether the deck is reading a live feed or the committed fixtures. */
 type FeedMode = 'live' | 'replay'
@@ -165,6 +165,38 @@ export function getRuns(source: FeedSource): Promise<Run[]> {
  */
 export function getSafety(source: FeedSource, id: string): Promise<SafetyReview> {
   return readJson<SafetyReview>(source, `/safety/${encodeURIComponent(id)}`)
+}
+
+/**
+ * The committed comparison for one target slug, or `undefined` when none is
+ * bundled. A comparison is a static record (a target reviewed three ways and
+ * scored against one ground truth), identical in live and replay, so it is
+ * always read from the committed fixtures under `public/fixtures/comparison`,
+ * never from the feed.
+ * @param slug - The target slug, e.g. `nodegoat`.
+ * @returns The comparison, or `undefined` when the target has none.
+ */
+export async function getComparison(slug: string): Promise<Comparison | undefined> {
+  try {
+    const response = await fetch(`${FIXTURE_BASE}/comparison/${encodeURIComponent(slug)}.json`, { cache: 'no-store' })
+    if (!response.ok) return undefined
+    return await response.json() as Comparison
+  } catch {
+    // No comparison bundled for this target, or the fetch failed: the deck hides the tab.
+    return undefined
+  }
+}
+
+/**
+ * The comparison target slug a review's name maps to, or `undefined` when the
+ * target has no bundled comparison. The review's name is its run id, which
+ * carries the target name; a slug matches when the id contains it.
+ * @param reviewName - The review's `target.name`, the run id.
+ * @returns The slug to pass to {@link getComparison}, or `undefined`.
+ */
+export function comparisonSlugFor(reviewName: string): string | undefined {
+  const lower = reviewName.toLowerCase()
+  return ['nodegoat', 'dvja'].find(slug => lower.includes(slug))
 }
 
 /**

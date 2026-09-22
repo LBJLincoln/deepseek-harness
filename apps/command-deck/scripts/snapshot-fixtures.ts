@@ -11,7 +11,7 @@
  * Only committed record ids are eligible: a live `.code-safety/<id>` run is
  * refused, because its session logs are not redacted before they are recorded.
  */
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import type { Roster, Run, RunEvent, SafetyReview } from '../deck/contract.ts'
 
@@ -131,4 +131,20 @@ for (const run of runs) {
     console.log(`${run.id}: ${review.target.files.length} files, ${review.findings.length} findings, verified ${review.certificate.verified}`)
   }
 }
+// The comparisons are committed static records, not feed paths, so they are
+// copied straight from `data/code-safety/comparisons/` rather than fetched.
+// Each one is keyed by the target slug the deck derives from a review's name.
+const comparisonsRoot = resolve(here, '..', '..', '..', 'data', 'code-safety', 'comparisons')
+const COMPARISON_SLUGS = ['nodegoat', 'dvja']
+rmSync(resolve(fixtures, 'comparison'), { recursive: true, force: true })
+for (const dir of existsSync(comparisonsRoot) ? readdirSync(comparisonsRoot) : []) {
+  const file = resolve(comparisonsRoot, dir, 'comparison.json')
+  if (!existsSync(file)) continue
+  const comparison = JSON.parse(readFileSync(file, 'utf8')) as { target: string }
+  const slug = COMPARISON_SLUGS.find(candidate => comparison.target.toLowerCase().includes(candidate))
+  if (slug === undefined) continue
+  writeJson(`comparison/${slug}.json`, comparison)
+  console.log(`comparison ${slug}: from ${dir}`)
+}
+
 console.log(`fixtures: ${readdirSync(fixtures).join(', ')}`)

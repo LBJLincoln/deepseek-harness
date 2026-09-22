@@ -160,5 +160,48 @@ export interface SafetyReview {
   report: { markdown: string }
 }
 
+/** One approach's score in a target's comparison, as `assemble-comparison.mjs` records it. */
+export interface ComparisonTier {
+  id: string
+  name: string
+  kind: string
+  found: number
+  recall: number
+  findings: number
+  onKnown: number
+  verified: boolean
+  wall: string
+  cost: string
+  detail: string
+}
+
+/** One known issue and which approaches caught it. */
+export interface ComparisonRow {
+  id: string
+  category: string
+  semgrep: boolean
+  singleModel: boolean
+  enterprise: boolean
+}
+
+/**
+ * One target reviewed three ways and scored against one ground truth, the
+ * `comparison.json` a committed record carries. It is a static artifact, the
+ * same in live and replay, so the deck reads it from the committed fixtures in
+ * both modes rather than from the feed.
+ */
+export interface Comparison {
+  target: string
+  revision: string
+  knownIssues: number
+  date: string
+  note: string
+  tiers: ComparisonTier[]
+  matrix: ComparisonRow[]
+  bothModelsMiss: string[]
+  singleModelOnly: string[]
+  enterpriseOnly: string[]
+}
+
 /** Severity order used for sorting and for the legend, worst first. */
 export const SEVERITY_ORDER: readonly Severity[] = ['critical', 'high', 'medium', 'low', 'info']
