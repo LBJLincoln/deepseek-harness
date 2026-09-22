@@ -33,11 +33,11 @@ node data/transcripts/tools/transcripts-to-dataset.mjs data/transcripts/2026-09-
 pnpm run verify-translation-pairing --write data/transcripts/2026-09-06-build/README.md
 ```
 
-只要源文件中还有任何形似凭证的字符串没有对应的 `--accept-hit <sha256>` 指明已审阅的匹配，采集器就拒绝写入；被拒绝的运行会打印每个匹配及应传入的参数，被接受的摘要记录在 `manifest.json` 中。它在行边界处拆分超过 40 MiB 的文件，使任何 blob 都不超过 GitHub 的单文件上限，记录每个文件的摘要，并对未变化的目录树不做任何改动，因此可以在构建期间反复运行而不产生噪音。原始目录树、重新生成的数据集和重新记录的配对要一起提交。
+采集器以三种方式之一处理形似凭证的字符串：`--accept-hit <sha256>` 将已审阅的占位符逐字保留，`--redact <pattern>`（一个 `SECRET_PATTERNS` 名称，如 `openrouter-key`）把匹配遮蔽为 `[REDACTED-<PATTERN>]`，从而让操作者自己消息中携带的真实凭证在去除机密后仍能被保存，其余情况则拒绝写入——被拒绝的运行会打印每个未处理的匹配以及可传入的两个参数。写入之后会重新扫描整棵目录树，任何不是已接受占位符的凭证形状都会删除该目录树并失败，因此漏掉一处遮蔽也绝不会提交出机密；被接受的摘要与 `redactions` 区块都记录在 `manifest.json` 中。它在行边界处拆分超过 40 MiB 的文件，使任何 blob 都不超过 GitHub 的单文件上限，记录每个文件的摘要，并对未变化的目录树不做任何改动，因此可以在构建期间反复运行而不产生噪音。原始目录树、重新生成的数据集和重新记录的配对要一起提交。
 
 ## 这些数据是什么、不是什么
 
-- 原始目录树是逐字的：消息文本、工具输入、工具结果、token 用量和时间都与 Claude Code 记录的一致，包括 harness 上下文提醒中携带的操作者账户邮箱。形似凭证的字符串会被拒绝，而不会被改写。
+- 原始目录树是逐字的：消息文本、工具输入、工具结果、token 用量和时间都与 Claude Code 记录的一致，包括 harness 上下文提醒中携带的操作者账户邮箱。形似凭证的字符串会被拒绝，除非其摘要作为占位符被接受、或其模式被遮蔽——那时只有该匹配被遮蔽；其余内容不作改写。
 - 数据集去掉了工具结果正文并遮蔽了形似凭证的字符串；每次构建生成的 README 给出其计数和数据质量说明。
 - 这些 transcript 是 Claude 的输出。根据 Anthropic 的使用政策，它们不得用于训练或微调竞争模型；请将其用于分析、过程挖掘、失败分类，以及使用虚构实体的环境合成。Daliesk 模型的 RLVR 语料来自 harness 自身在条款允许的路由上完成的经认证运行，经由[数据使用条款](../../packages/governance/data-use/README.md)和 [curator](../../packages/governance/curator/README.md)。
 

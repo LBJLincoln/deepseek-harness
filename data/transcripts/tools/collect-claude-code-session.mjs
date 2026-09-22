@@ -6,7 +6,7 @@
 //
 // Usage:
 //   node collect-claude-code-session.mjs --out <dir> [--session <id>] [--projects-dir <dir>]
-//                                        [--accept-hit <sha256>]...
+//                                        [--accept-hit <sha256>]... [--redact <pattern>]...
 //
 //   --out           destination directory, e.g. data/transcripts/2026-09-06-build/raw
 //   --session       session id; defaults to $CLAUDE_CODE_SESSION_ID
@@ -14,13 +14,24 @@
 //                   <session>/{subagents,tool-results}; defaults to
 //                   ~/.claude/projects/<cwd with every non-alphanumeric byte as "-">
 //   --accept-hit    SHA-256 of one credential-shaped match reviewed as a
-//                   placeholder (printed by a refused run); repeatable
+//                   placeholder to keep verbatim (printed by a refused run); repeatable
+//   --redact        name of a SECRET_PATTERNS entry whose matches are replaced by
+//                   `[REDACTED-<PATTERN>]` in the written copy instead of being
+//                   refused; repeatable. Use it for a real credential that appears
+//                   in the transcript (the operator's own key echoed in a message),
+//                   which must never be kept verbatim, so the transcript can still
+//                   be preserved with the secret masked.
 //
-// Nothing is written while any credential-shaped match lacks an --accept-hit:
-// the run prints every match with its digest and exits 1. Files above
-// MAX_PART_BYTES are written as line-split parts so no single blob exceeds
-// GitHub's per-file ceiling; the manifest records the whole file's digest and
-// the part list. A re-run over unchanged sources leaves the tree untouched.
+// A credential-shaped match is handled in one of three ways: a `--redact` of its
+// pattern masks it, an `--accept-hit` of its digest keeps it verbatim (for a
+// reviewed placeholder), and anything else refuses the write — the run prints
+// every unhandled match with its digest and exits 1. After writing, the tree is
+// re-scanned and any credential shape that is not an accepted placeholder aborts
+// the run and removes the tree, so a redaction miss can never ship a secret.
+// Files above MAX_PART_BYTES are written as line-split parts so no single blob
+// exceeds GitHub's per-file ceiling; the manifest records the whole file's
+// digest, the part list, and what was redacted. A re-run over unchanged sources
+// leaves the tree untouched.
 
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
@@ -43,13 +54,16 @@ const SECRET_PATTERNS = [
   { name: 'bearer-token', re: /\bBearer [A-Za-z0-9._~+/=-]{20,}/g },
 ]
 
+/** SECRET_PATTERNS entry names, for validating --redact. */
+const SECRET_PATTERN_NAMES = new Set(SECRET_PATTERNS.map(pattern => pattern.name))
+
 /**
  * Parses the command line.
  * @param {string[]} argv arguments after the script path
- * @returns {{ out: string, session: string, projectsDir: string, acceptedHits: Set<string> }}
+ * @returns {{ out: string, session: string, projectsDir: string, acceptedHits: Set<string>, redact: Set<string> }}
  */
 function parseArgs(argv) {
-  const options = { out: undefined, session: process.env.CLAUDE_CODE_SESSION_ID, projectsDir: undefined, acceptedHits: new Set() }
+  const options = { out: undefined, session: process.env.CLAUDE_CODE_SESSION_ID, projectsDir: undefined, acceptedHits: new Set(), redact: new Set() }
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
     const value = argv[i + 1]
@@ -57,6 +71,12 @@ function parseArgs(argv) {
     else if (arg === '--session') { options.session = value; i++ }
     else if (arg === '--projects-dir') { options.projectsDir = value; i++ }
     else if (arg === '--accept-hit') { options.acceptedHits.add(value); i++ }
+    else if (arg === '--redact') {
+      if (!SECRET_PATTERN_NAMES.has(value)) {
+        throw new Error(`--redact ${value ?? ''}: unknown pattern; one of ${[...SECRET_PATTERN_NAMES].join(', ')}`)
+      }
+      options.redact.add(value); i++
+    }
     else throw new Error(`unknown argument ${arg}`)
   }
   if (options.out === undefined) throw new Error('--out <dir> is required')
@@ -65,6 +85,29 @@ function parseArgs(argv) {
     options.projectsDir = join(homedir(), '.claude', 'projects', process.cwd().replace(/[^A-Za-z0-9]/g, '-'))
   }
   return options
+}
+
+/** The marker one redacted match becomes; distinct from every SECRET_PATTERNS shape. */
+const redactionMarker = (pattern) => `[REDACTED-${pattern.toUpperCase()}]`
+
+/**
+ * Replaces the matches of the named patterns with their marker.
+ * @param {string} text file content
+ * @param {Set<string>} redact SECRET_PATTERNS names to mask
+ * @returns {{ text: string, counts: Record<string, number> }} the masked text and how many matches each named pattern replaced
+ */
+function redactText(text, redact) {
+  const counts = {}
+  let redacted = text
+  for (const { name, re } of SECRET_PATTERNS) {
+    if (!redact.has(name)) continue
+    const marker = redactionMarker(name)
+    redacted = redacted.replace(new RegExp(re.source, re.flags), () => {
+      counts[name] = (counts[name] ?? 0) + 1
+      return marker
+    })
+  }
+  return { text: redacted, counts }
 }
 
 /**
@@ -148,22 +191,28 @@ function readRepository() {
 }
 
 function main() {
-  const { out, session, projectsDir, acceptedHits } = parseArgs(process.argv.slice(2))
+  const { out, session, projectsDir, acceptedHits, redact } = parseArgs(process.argv.slice(2))
   const outDir = resolve(out)
   const files = listSourceFiles(projectsDir, session)
 
   const entries = []
   const refused = []
+  const redactions = []
   for (const { source, target } of files) {
-    const text = readFileSync(source, 'utf8')
+    const source_text = readFileSync(source, 'utf8')
+    // Mask the --redact patterns first, then scan what remains: a redacted
+    // secret is gone before it can be refused, and anything left must still be
+    // an accepted placeholder or the run refuses.
+    const { text, counts } = redact.size > 0 ? redactText(source_text, redact) : { text: source_text, counts: {} }
+    for (const [pattern, count] of Object.entries(counts)) redactions.push({ target, pattern, count })
     for (const hit of scanSecrets(target, text)) {
       if (!acceptedHits.has(hit.digest)) refused.push(hit)
     }
     entries.push({ target, text, bytes: Buffer.byteLength(text, 'utf8'), sha256: sha256(text) })
   }
   if (refused.length > 0) {
-    console.error(`refusing to write ${outDir}: ${refused.length} credential-shaped match(es) without --accept-hit`)
-    for (const hit of refused) console.error(`  ${hit.target}:${hit.line} ${hit.pattern} ${hit.preview} --accept-hit ${hit.digest}`)
+    console.error(`refusing to write ${outDir}: ${refused.length} credential-shaped match(es) without --accept-hit or --redact`)
+    for (const hit of refused) console.error(`  ${hit.target}:${hit.line} ${hit.pattern} ${hit.preview} --accept-hit ${hit.digest} (or --redact ${hit.pattern})`)
     process.exit(1)
   }
 
@@ -177,6 +226,7 @@ function main() {
     sourceDir: projectsDir,
     repository: readRepository(),
     acceptedHits: [...acceptedHits].sort(),
+    ...(redactions.length === 0 ? {} : { redactions: { patterns: [...redact].sort(), files: redactions } }),
     files: manifestFiles.map(({ text: _text, partBodies: _parts, ...entry }) => entry),
   }
 
@@ -204,6 +254,25 @@ function main() {
     }
   }
   writeFileSync(manifestPath, `${JSON.stringify({ collectedAt: new Date().toISOString(), ...manifest }, null, 2)}\n`)
+
+  // Prove no secret shipped: re-scan every written blob and abort on any match
+  // that is not an accepted placeholder, so a redaction gap removes the tree
+  // rather than committing a key.
+  const survived = []
+  for (const entry of manifestFiles) {
+    const paths = entry.partBodies === undefined ? [entry.path] : entry.parts
+    for (const path of paths) {
+      for (const hit of scanSecrets(path, readFileSync(join(outDir, path), 'utf8'))) {
+        if (!acceptedHits.has(hit.digest)) survived.push(hit)
+      }
+    }
+  }
+  if (survived.length > 0) {
+    rmSync(outDir, { recursive: true, force: true })
+    console.error(`removed ${outDir}: ${survived.length} credential-shaped match(es) survived redaction`)
+    for (const hit of survived) console.error(`  ${hit.target}:${hit.line} ${hit.pattern} ${hit.preview}`)
+    process.exit(1)
+  }
 
   const totalBytes = manifest.files.reduce((sum, file) => sum + file.bytes, 0)
   console.log(`wrote ${manifest.files.length} files (${(totalBytes / 1024 / 1024).toFixed(1)} MiB) to ${relative(REPO_DIR, outDir)} for session ${session}`)
