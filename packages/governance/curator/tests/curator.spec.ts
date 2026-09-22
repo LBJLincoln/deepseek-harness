@@ -20,7 +20,7 @@ import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import TrajectoryService from '@deepseek-ai/dsh-trajectories'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories'
-import CuratorService, { EXPORT_MANIFEST_VERSION } from '@deepseek-ai/dsh-curator'
+import CuratorService, { EXPORT_MANIFEST_VERSION, SHIPPED_REDACTION_RULES } from '@deepseek-ai/dsh-curator'
 import type { Config, CuratedTrajectory, CuratorError } from '@deepseek-ai/dsh-curator'
 import * as invariantCompanion from '@deepseek-ai/dsh-curator/invariant'
 
@@ -42,6 +42,11 @@ const TERMS: DataUseConfig = {
 
 /** A profile of the shipped rules alone, which every case exports under. */
 const PROFILES: Config = { profiles: { 'village-v1': { shipped: true } }, defaultProfile: 'village-v1' }
+
+/** A manifest's per-rule counts under the shipped profile: every rule listed, zero unless `fired` names it. */
+function perShippedRule(fired: Record<string, number>): Record<string, number> {
+  return Object.fromEntries(SHIPPED_REDACTION_RULES.map(rule => [rule.id, fired[rule.id] ?? 0]))
+}
 
 async function harness(config: Config = PROFILES): Promise<{ ctx: Context; root: string }> {
   const root = await mkdtemp(join(tmpdir(), 'dsh-curator-'))
@@ -266,13 +271,9 @@ describe('what one exported record carries', () => {
     })
     expect(record.id).toBe('pinned')
     expect(record.environment?.environmentId).toBe('smoke:round-trip')
-    expect(report.manifest.ruleHits).toEqual({
-      'shipped:email': 1,
-      'shipped:bearer-token': 0,
-      'shipped:api-key': 1,
-      'shipped:ipv4': 0,
-      'shipped:e164-phone': 0,
-    })
+    expect(record.stopReason).toBe('completed')
+    expect(report.manifest.ruleHits).toEqual(perShippedRule({ 'shipped:email': 1, 'shipped:api-key': 1 }))
+    expect(report.manifest.ruleRecords).toEqual(perShippedRule({ 'shipped:email': 1, 'shipped:api-key': 1 }))
   })
 
   it('copies the residency named by each session\'s own terms', async () => {
@@ -311,10 +312,25 @@ describe('the export manifest', () => {
       profile: 'village-v1',
       records: 1,
       withheld: { heldOut: 1, districts: 1, terms: 0 },
-      trajectoryFormat: 'dsh-trajectory/2',
+      trajectoryFormat: 'dsh-trajectory/3',
     })
     expect(report.manifest.exportedAt).toBeGreaterThan(0)
     expect(report.manifest.recordsSha256).toBe(createHash('sha256').update(sink.lines.join('')).digest('hex'))
+  })
+
+  it('counts the records each rule fired in beside its replacements, and states no matched text', async () => {
+    const { ctx } = await harness()
+    await persist(ctx, 'twice', { terms: TERMS, text: 'cc a@example.invalid and b@example.invalid' })
+    await persist(ctx, 'once', { terms: TERMS, text: 'cc c@example.invalid from 203.0.113.7' })
+    await persist(ctx, 'clean', { terms: TERMS, text: 'nothing to redact' })
+    const report = await ctx.curator.export({ purpose: 'evaluation', sink: memorySink() })
+    expect(report.manifest.records).toBe(3)
+    expect(report.manifest.ruleHits).toEqual(perShippedRule({ 'shipped:email': 3, 'shipped:ipv4': 1 }))
+    expect(report.manifest.ruleRecords).toEqual(perShippedRule({ 'shipped:email': 2, 'shipped:ipv4': 1 }))
+    const manifest = JSON.stringify(report.manifest)
+    for (const matched of ['a@example.invalid', 'b@example.invalid', 'c@example.invalid', '203.0.113.7']) {
+      expect(manifest).not.toContain(matched)
+    }
   })
 
   it('digests the same records identically on a second export', async () => {

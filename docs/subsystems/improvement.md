@@ -2,7 +2,7 @@
 
 English | [中文](improvement.zh.md)
 
-Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/2` record a trainer reads, with the reward a certificate decided and the data-use terms its log pins; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log; a program is one client deliverable decomposed into department goals whose ledger lives in the program's own session; and an observatory snapshot is the public fold of every persisted session, with the withheld districts and the held-out split kept out of its rows and counted. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md), [program-ledger](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md), and [observatory](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts), [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts), and [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts).
+Types shared by the improvement seam. An environment declares one task with executable checks in the completion-standard vocabulary; the runner runs it as one fresh session and stamps the log with what ran; the fleet runs a plan of environment × model × repetition cells and folds a leaderboard; a trajectory is one persisted session folded into the `dsh-trajectory/3` record a trainer reads, with how its work stopped, the reward a certificate decided, and the data-use terms its log pins; session facts are the same session folded into the row a scoreboard is grouped from; an experiment result is the paired comparison of two arms over the same cells; a shift is one durable, cadenced pass of the fleet whose ledger lives in its own session log; a program is one client deliverable decomposed into department goals whose ledger lives in the program's own session; and an observatory snapshot is the public fold of every persisted session, with the withheld districts and the held-out split kept out of its rows and counted. The [trajectory-export](../../.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md), [environment-runner](../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md), [scorekeeper](../../.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md), [four-goal-workflows](../../.agents/notes/proposed/architecture/2026-09-05-four-goal-workflows.md), [village-shifts](../../.agents/notes/proposed/architecture/2026-09-05-village-shifts.md), [program-ledger](../../.agents/notes/proposed/architecture/2026-09-06-program-ledger.md), and [observatory](../../.agents/notes/proposed/architecture/2026-09-06-observatory.md) Agent Notes own the design; this page records the exact fields from [`packages/improvement/environments/src/types.ts`](../../packages/improvement/environments/src/types.ts), [`packages/improvement/fleet/src/types.ts`](../../packages/improvement/fleet/src/types.ts), [`packages/improvement/trajectories/src/types.ts`](../../packages/improvement/trajectories/src/types.ts), [`packages/improvement/scorekeeper/src/types.ts`](../../packages/improvement/scorekeeper/src/types.ts), [`packages/improvement/experiments/src/types.ts`](../../packages/improvement/experiments/src/types.ts), [`packages/improvement/shifts/src/types.ts`](../../packages/improvement/shifts/src/types.ts), [`packages/improvement/program/src/types.ts`](../../packages/improvement/program/src/types.ts), and [`packages/improvement/observatory/src/types.ts`](../../packages/improvement/observatory/src/types.ts).
 
 ## Environment definition
 
@@ -252,6 +252,26 @@ interface TrajectoryReward {
 The record carries `parity` beside `reward`: the `{ weightPassed, weightTotal }` of the last recorded run, absent when that run measured no cases. It is an auxiliary signal a shaped reward may read and never a replacement for the certificate-based `outcome`, which a weighted pass rate cannot decide.
 
 Messages are projected from the session surface after compaction replacements, each carrying the seq of its source event; token ids and logprobs are absent because the harness never sees them.
+
+## Trajectory stop reason
+
+The record's `stopReason` states how the session's last unit of work ended, beside a reward that cannot: a session the budget cut short under a measured goal scores `0` exactly as one that ran to its end and failed. A consumer scoring rollouts reads a `0` as a failure only when the stop reason is `completed`; the [package README](../../packages/improvement/trajectories/README.md) owns the fold's event-by-event rules.
+
+```ts type-equiv
+/**
+ * How the session's last unit of work ended: its last turn for a session whose
+ * own model route did the work, its last delegated attempt for one an
+ * implementer outside that route did. A `turn/end` reason kind is carried
+ * verbatim, including a kind a plugin merges into `TurnEndReasonMap`; a
+ * delegated attempt states the subagent seam's `completed`, `aborted`,
+ * `error`, `max-tokens`, or `refusal`. `budget` replaces either when a
+ * `budget/breach` ended the work: a turn the breach blocked, an attempt its
+ * wall deadline cut short, or a breach of the session's own caps after the
+ * last ended unit. A log that ends inside an open turn is `interrupted`, and a
+ * log recording no ended unit of work at all is `none`.
+ */
+type TrajectoryStopReason = TurnEndReason['kind'] | 'refusal' | 'budget' | 'none'
+```
 
 ## Session facts
 

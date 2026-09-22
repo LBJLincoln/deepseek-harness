@@ -1,0 +1,13 @@
+# Keyless view of the bench for the drivers' own e2e: the whole base
+# composition with a scripted route composed beside the product route, so a
+# plan naming the `cli-mock` provider runs real cells, validation, and the
+# curated export with no model and no login. The route answers each attempt
+# with one bash call and a closing reply and never implements the task, so
+# every cell it runs ends uncertified.
+- id: cli-mock-llm
+  name: '../../cli-mock-llm.ts'
+
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml

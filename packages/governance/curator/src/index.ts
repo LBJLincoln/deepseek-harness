@@ -52,7 +52,25 @@ declare module '@deepseek-ai/cordis' {
 }
 
 /** Format tag every {@link ExportManifest} carries. */
-export const EXPORT_MANIFEST_VERSION = 'dsh-export-manifest/1'
+export const EXPORT_MANIFEST_VERSION = 'dsh-export-manifest/2'
+
+/** Export-wide counts per rule id, accumulated record by record; never the text a rule matched. */
+interface RuleAudit {
+  /** Replacements. */
+  readonly hits: Map<string, number>
+  /** Records with at least one replacement. */
+  readonly records: Map<string, number>
+}
+
+/**
+ * One count per rule of the profile, in run order, zero for a rule that never fired.
+ * @param profile - the profile the export ran under.
+ * @param counts - the counts accumulated per rule id.
+ * @returns the manifest entry.
+ */
+function perRule(profile: RedactionProfile, counts: ReadonlyMap<string, number>): Record<string, number> {
+  return Object.fromEntries(profile.rules.map(rule => [rule.id, counts.get(rule.id) ?? 0]))
+}
 
 /** Deployment choices of the curated export, validated from `cordis.yml`. */
 export interface Config {
@@ -137,13 +155,13 @@ export class CuratorService extends Service {
       admitted.set(sessionId, terms)
     }
 
-    const ruleHits = new Map<string, number>()
+    const audit: RuleAudit = { hits: new Map(), records: new Map() }
     const records = createHash('sha256')
     const report = await this.ctx.trajectories.export({
       sessions: [...admitted.keys()],
       sink: {
         write: async (line) => {
-          const curated = this.curate(JSON.parse(line) as Trajectory, profile, admitted, ruleHits)
+          const curated = this.curate(JSON.parse(line) as Trajectory, profile, admitted, audit)
           records.update(curated)
           await request.sink.write(curated)
         },
@@ -164,7 +182,8 @@ export class CuratorService extends Service {
       withheld: { heldOut: report.heldOut, districts: report.withheld, terms: withheldByTerms },
       // Every rule of the profile is listed, so a reviewer reading the manifest
       // sees which rules never fired at all.
-      ruleHits: Object.fromEntries(profile.rules.map(rule => [rule.id, ruleHits.get(rule.id) ?? 0])),
+      ruleHits: perRule(profile, audit.hits),
+      ruleRecords: perRule(profile, audit.records),
       recordsSha256: records.digest('hex'),
       trajectoryFormat: TRAJECTORY_FORMAT,
     }
@@ -211,7 +230,7 @@ export class CuratorService extends Service {
    * @param record - the record the exporter serialized.
    * @param profile - the profile this export runs under.
    * @param admitted - the terms of every session the terms pass admitted.
-   * @param ruleHits - export-wide replacement counts, incremented in place.
+   * @param audit - export-wide counts per rule, incremented in place.
    * @returns the curated line, newline included.
    * @throws {@link CuratorError} when the record names a session the terms pass did not admit.
    */
@@ -219,7 +238,7 @@ export class CuratorService extends Service {
     record: Trajectory,
     profile: RedactionProfile,
     admitted: ReadonlyMap<SessionId, DataUseTerms>,
-    ruleHits: Map<string, number>,
+    audit: RuleAudit,
   ): string {
     const terms = admitted.get(record.id)
     /* v8 ignore next 4 -- the exporter reads only the sessions the terms pass admitted and mapped. */
@@ -231,7 +250,10 @@ export class CuratorService extends Service {
     }
     const hits = new Map<string, number>()
     const redacted = redactTrajectory(record, profile.rules, hits)
-    for (const [id, count] of hits) ruleHits.set(id, (ruleHits.get(id) ?? 0) + count)
+    for (const [id, count] of hits) {
+      audit.hits.set(id, (audit.hits.get(id) ?? 0) + count)
+      audit.records.set(id, (audit.records.get(id) ?? 0) + 1)
+    }
     const curated: CuratedTrajectory = {
       ...redacted,
       curation: {

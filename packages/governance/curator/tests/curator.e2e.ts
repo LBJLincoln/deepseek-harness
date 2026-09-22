@@ -14,6 +14,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
+import { SHIPPED_REDACTION_RULES } from '@deepseek-ai/dsh-curator'
 import type { CuratedExportReport, CuratedTrajectory, ExportManifest } from '@deepseek-ai/dsh-curator'
 
 const binScript = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/curator/driver.ts', import.meta.url))
@@ -23,6 +24,12 @@ const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.m
 /** The fake credentials the fixture's scripted answer carries. */
 const FAKE_ADDRESS = 'nobody@example.invalid'
 const FAKE_KEY = 'sk-test-0000'
+
+/** The shipped profile's per-rule counts for the one evaluation record: the address and the key, nothing else. */
+const EVALUATION_COUNTS = Object.fromEntries(SHIPPED_REDACTION_RULES.map(rule => [
+  rule.id,
+  rule.id === 'shipped:email' || rule.id === 'shipped:api-key' ? 1 : 0,
+]))
 
 interface DriverResult {
   type: string
@@ -81,19 +88,14 @@ describe('the curator through a real cordis.yml and headless process', () => {
       skipped: [],
     })
     expect(observed.evaluation.manifest).toMatchObject({
-      version: 'dsh-export-manifest/1',
+      version: 'dsh-export-manifest/2',
       purpose: 'evaluation',
       profile: 'village-v1',
       records: 1,
       withheld: { heldOut: 1, districts: 0, terms: 0 },
-      trajectoryFormat: 'dsh-trajectory/2',
-      ruleHits: {
-        'shipped:email': 1,
-        'shipped:bearer-token': 0,
-        'shipped:api-key': 1,
-        'shipped:ipv4': 0,
-        'shipped:e164-phone': 0,
-      },
+      trajectoryFormat: 'dsh-trajectory/3',
+      ruleHits: EVALUATION_COUNTS,
+      ruleRecords: EVALUATION_COUNTS,
     })
 
     // The manifest addresses exactly the bytes the sink received.
@@ -115,6 +117,7 @@ describe('the curator through a real cordis.yml and headless process', () => {
       residency: 'eu-west',
     })
     expect(record.environment).toMatchObject({ environmentId: 'smoke:round-trip', heldOut: false })
+    expect(record.stopReason).toBe('completed')
     expect(record.reward.outcome).toBe(1)
     const answers = record.messages
       .filter(message => message.role === 'assistant')

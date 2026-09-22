@@ -16,24 +16,26 @@
 // the JSONL backend's own `scanLog` — the decoder `JsonlSessionPersistence`
 // uses, which expands the packed chunk rows a log actually holds — and passes
 // the header and events to `foldTrajectory`. It reproduces
-// `ctx.trajectories.export({ sink })` with no further options, the request every
-// Proving Ground driver makes: a session whose stamp is held out is withheld,
-// and no district filter applies because the bench composition configures none.
+// `ctx.trajectories.export({ sink })` with no further options, the request
+// every uncurated record under data/proving-ground/ was exported with: a
+// session whose stamp is held out is withheld, and no district filter applies
+// because the bench composition configures none.
 //
-// It applies no redaction. `@deepseek-ai/dsh-curator` redacts and attaches a
-// `curation` block, but a curated export runs through `ctx.curator.export()`,
-// and no record under data/proving-ground/ was written that way — the fleet and
-// experiment drivers call the exporter directly, and their lines carry no
-// `curation` block. Redacting here would write a record no run ever produced.
+// It applies no redaction, so it re-exports only an uncurated record. A record
+// whose lines carry a `curation` block was written by `ctx.curator.export()`,
+// and re-folding its session logs here would drop that block and put back
+// every string the profile replaced, so the tool refuses such a record in both
+// modes. Redacting here instead would write a record no run ever produced.
 //
 // What it may change: trajectories.jsonl, and in manifest.json that file's
 // bytes and SHA-256 plus one appended `reexports` entry. What it never changes:
 // result.json, facts.jsonl, observatory.json, observatory.html, sessions/, and
 // every earlier `reexports` entry. It refuses to run at all when the record
-// holds no sessions/, when it holds no trajectories.jsonl to re-export, when a
-// session the previous export named is missing, and when the re-fold would drop
-// or add a trajectory: the set of session ids must be identical, because the
-// point is a newer projection of the same sessions and never a different corpus.
+// holds no sessions/, when it holds no trajectories.jsonl to re-export, when
+// that export is curated, when a session the previous export named is missing,
+// and when the re-fold would drop or add a trajectory: the set of session ids
+// must be identical, because the point is a newer projection of the same
+// sessions and never a different corpus.
 //
 // Lines keep the previous export's order, matched by session id, so a re-export
 // changes what each line says and never where it sits.
@@ -181,6 +183,7 @@ function refusals(previous, admitted, logged) {
 function describeChange(before, after, beforeBytes, afterBytes) {
   const formats = records => [...new Set(records.map(record => record.format))].sort().join(', ') || '(none)'
   const withTerms = records => records.filter(record => record.terms !== undefined).length
+  const withStop = records => records.filter(record => record.stopReason !== undefined).length
   const beforeSha = sha256(beforeBytes)
   const afterSha = sha256(afterBytes)
   return {
@@ -188,6 +191,7 @@ function describeChange(before, after, beforeBytes, afterBytes) {
     lines: [
       `  format: ${formats(before)} -> ${formats(after)}`,
       `  terms:  ${withTerms(before)} of ${before.length} -> ${withTerms(after)} of ${after.length}`,
+      `  stop:   ${withStop(before)} of ${before.length} -> ${withStop(after)} of ${after.length}`,
       `  lines:  ${before.length} -> ${after.length}`,
       `  sha256: ${beforeSha} -> ${afterSha}`,
     ],
@@ -231,6 +235,12 @@ async function main() {
 
   const logs = sessionLogs(record)
   const previous = readPreviousExport(exportPath)
+  const curated = previous.records.filter(line => line.curation !== undefined).length
+  if (curated > 0) {
+    console.error(`refusing to re-export ${shown}: ${curated} of ${previous.records.length} line(s) carry a curation block`)
+    console.error('  this tool re-folds with the unredacted exporter, which would drop the redaction a curated export applied')
+    process.exit(1)
+  }
   const { admitted, heldOut } = refold(logs, scanLog, foldTrajectory)
   const refused = refusals(previous.records, admitted, new Set(logs.map(log => log.sessionId)))
   if (refused.length > 0) {

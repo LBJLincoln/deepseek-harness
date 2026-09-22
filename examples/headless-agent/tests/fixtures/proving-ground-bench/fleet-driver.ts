@@ -2,9 +2,15 @@
 /**
  * Driver: boot the bench composition and run one fleet plan from a plan file,
  * then publish the observatory page and document, the session facts, the
- * trajectories, and `status.json` beside the report.
+ * curated trajectories with their `export-manifest.json`, and `status.json`
+ * beside the report.
  *
  *   fleet-driver.ts <config> <plan.json>
+ *
+ * The trajectories go through `ctx.curator.export()`, redacted under the
+ * curator's default profile, for the purpose `benchExportPurpose` reads from
+ * the composition's data-use terms; a composition whose terms admit neither
+ * `training` nor `evaluation` is refused before the first cell runs.
  *
  * The plan file holds `{ name, environments?, tier?, domain?, heldOut?,
  * models: [{ provider, model, preset? }], ladder?, implementer?, repetitions,
@@ -28,6 +34,8 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
+import type {} from '@deepseek-ai/dsh-curator'
+import type {} from '@deepseek-ai/dsh-data-use'
 import type { EnvironmentRunImplementer, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentId as EnvironmentIdType } from '@deepseek-ai/dsh-environments/types'
@@ -35,6 +43,7 @@ import type { FleetPlan } from '@deepseek-ai/dsh-fleet'
 import type {} from '@deepseek-ai/dsh-observatory'
 import type {} from '@deepseek-ai/dsh-scorekeeper'
 import { jsonlFileSink } from '@deepseek-ai/dsh-trajectories'
+import { benchExportPurpose } from './export-purpose.ts'
 
 interface PlanFile {
   readonly name: string
@@ -62,11 +71,13 @@ try {
   const environments = ctx.get('environments')
   const observatory = ctx.get('observatory')
   const scorekeeper = ctx.get('scorekeeper')
-  const trajectories = ctx.get('trajectories')
+  const curator = ctx.get('curator')
+  const dataUse = ctx.get('dataUse')
   if (fleet === undefined || environments === undefined || observatory === undefined
-    || scorekeeper === undefined || trajectories === undefined) {
-    throw new Error('the bench requires the fleet, environments, observatory, scorekeeper, and trajectories services')
+    || scorekeeper === undefined || curator === undefined || dataUse === undefined) {
+    throw new Error('the bench requires the fleet, environments, observatory, scorekeeper, curator, and dataUse services')
   }
+  const exportPurpose = benchExportPurpose(dataUse.defaultTerms)
   const selected: readonly EnvironmentIdType[] = plan.environments === undefined
     ? environments
       .list({ heldOut: plan.heldOut ?? false })
@@ -94,7 +105,11 @@ try {
   await writeFile('observatory.html', page.html)
   await writeFile('observatory.json', `${JSON.stringify(page.json, null, 2)}\n`)
   const facts = await scorekeeper.exportFacts({ sink: jsonlFileSink('./facts.jsonl') })
-  const exported = await trajectories.export({ sink: jsonlFileSink('./trajectories.jsonl') })
+  const exported = await curator.export({
+    purpose: exportPurpose,
+    sink: jsonlFileSink('./trajectories.jsonl'),
+    manifestPath: './export-manifest.json',
+  })
   const status = {
     type: 'result',
     plan: plan.name,

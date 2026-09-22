@@ -30,13 +30,78 @@ export class CuratorError extends HarnessError {
   }
 }
 
+/** A PEM private-key label: `PRIVATE KEY` after at most three algorithm words, or PGP's `PRIVATE KEY BLOCK`. */
+const PEM_LABEL = String.raw`(?:[A-Z0-9]+ ){0,3}PRIVATE KEY(?: BLOCK)?`
+
+/**
+ * Whitespace between an armor line and the body, including the `\n` escape a
+ * JSON-encoded key carries. Bounded, so a whitespace run after an armor line is
+ * never rescanned without limit.
+ */
+const PEM_GAP = String.raw`(?:\s|\\[nrt]){0,32}`
+
+/** One body line: base64, or a legacy `Proc-Type:`/`DEK-Info:` header line, and never the start of another armor line. */
+const PEM_LINE = String.raw`(?:(?!-----)[A-Za-z0-9+/=:,-])+(?:(?<=:) [A-Za-z0-9,-]+)?`
+
+/** Breaks between body lines, raw or JSON-escaped, with the indentation a YAML block scalar keeps. */
+const PEM_BREAK = String.raw`(?:[\t ]*(?:\r?\n|\\r\\n|\\n))+[\t ]*`
+
 /**
  * The rules this package owns, applied ahead of a profile's own when it sets
  * `shipped: true`. Each covers one credential or identifier format that turns
  * up verbatim in agent transcripts; none of them claims to be exhaustive, and a
- * deployment adds its own formats through `rules`.
+ * deployment adds its own formats through `rules`. The credential formats run
+ * before the generic rules, so a key body or a token is replaced whole and
+ * counted under its own rule before a generic pattern could match part of it.
  */
 export const SHIPPED_REDACTION_RULES: readonly RedactionRule[] = [
+  {
+    id: 'shipped:private-key',
+    // Only the body is matched, so both armor lines stay and name the key
+    // type. A body followed by its END line is replaced up to that line
+    // without crossing another BEGIN line; a body whose END line is missing,
+    // as a truncated tool output leaves it, is replaced while its lines still
+    // read as base64 or as a legacy encryption header.
+    pattern: String.raw`(?<=-----BEGIN ${PEM_LABEL}-----${PEM_GAP})(?:(?!-----END |\\[nrt])\S(?:(?!-----BEGIN )[\s\S])*?(?=${PEM_GAP}-----END ${PEM_LABEL}-----)|${PEM_LINE}(?:${PEM_BREAK}${PEM_LINE})*)`,
+    flags: 'g',
+    replacement: '[redacted:private-key]',
+  },
+  {
+    id: 'shipped:jwt',
+    // A header and a payload that are both base64url JSON objects, then the
+    // signature, which an unsecured token leaves empty.
+    pattern: String.raw`\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*`,
+    flags: 'g',
+    replacement: '[redacted:jwt]',
+  },
+  {
+    id: 'shipped:aws-access-key',
+    // Long-term (`AKIA`) and temporary (`ASIA`) access key ids.
+    pattern: String.raw`\b(?:AKIA|ASIA)[0-9A-Z]{16}\b`,
+    flags: 'g',
+    replacement: '[redacted:aws-access-key]',
+  },
+  {
+    id: 'shipped:aws-secret-key',
+    // The forty-character secret has no prefix of its own, so only a value
+    // written under its name is matched: a credentials file, an environment
+    // assignment, or the `SecretAccessKey` field of the CLI's JSON.
+    pattern: String.raw`(?<=\b(?:aws_?)?secret_?access_?key["']?\s*[:=]\s*["']?)[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+])`,
+    flags: 'gi',
+    replacement: '[redacted:aws-secret-key]',
+  },
+  {
+    id: 'shipped:github-token',
+    pattern: String.raw`\b(?:gh[oprsu]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,})`,
+    flags: 'g',
+    replacement: '[redacted:github-token]',
+  },
+  {
+    id: 'shipped:slack-token',
+    pattern: String.raw`\bxox[abprs]-[A-Za-z0-9-]{10,}`,
+    flags: 'g',
+    replacement: '[redacted:slack-token]',
+  },
   {
     id: 'shipped:email',
     pattern: String.raw`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}`,
@@ -59,7 +124,11 @@ export const SHIPPED_REDACTION_RULES: readonly RedactionRule[] = [
   },
   {
     id: 'shipped:ipv4',
-    pattern: String.raw`\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\b`,
+    // A dotted quad is not matched inside a longer run of dotted numbers, which
+    // is a version string (`1.2.3.4.5`), and the word boundary already keeps a
+    // `v`-prefixed one (`v1.2.3.4`). A bare four-part version whose parts are
+    // all at most 255 still reads as an address.
+    pattern: String.raw`(?<!\d\.)\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\b(?!\.\d)`,
     flags: 'g',
     replacement: '[redacted:ipv4]',
   },
@@ -108,6 +177,7 @@ const NEVER_REDACTED_KEYS: ReadonlySet<string> = new Set([
   'reasoningEffort',
   'attachmentId',
   'mediaType',
+  'stopReason',
 ])
 
 /**

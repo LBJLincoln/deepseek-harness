@@ -25,6 +25,16 @@
 // purpose nobody recorded is never assumed, so it is withheld and counted under
 // `withheldTerms`. Without --purpose nothing is withheld on those grounds.
 //
+// A reward of 0 is a failure only when the session's last unit of work ended on
+// its own, which the record states as `stopReason: 'completed'`. A train-bound
+// trajectory scored 0 under any other stop reason — the budget, an abort, a
+// provider error, an output-token ceiling, a crash — is masked: it reaches no
+// file and is counted under `maskedNegatives`, per reason in
+// `maskedStopReasons`. A record whose format predates the field
+// (`dsh-trajectory/1`, `dsh-trajectory/2`) states no stop reason, so its zero is
+// masked as `(unstated)` until the record is re-exported. heldout.jsonl keeps
+// such rows: an evaluation that ran out of budget did fail.
+//
 // Nothing is written while any trajectory carries a credential- or
 // mailbox-shaped string: the run prints every match and exits 1. There is no
 // accept flag — a recorded run is never edited, so a hit is a record to
@@ -46,7 +56,11 @@ const TOOL_PATH = relative(REPO_DIR, fileURLToPath(import.meta.url))
 const NON_RECORDS = new Set(['folds', 'datasets', 'tools'])
 /** Format tag of the lines this tool writes, bumped when the `dataset` field changes meaning. */
 const DATASET_FORMAT = 'dsh-proving-ground-dataset/1'
-const TOOL_VERSION = 2
+const TOOL_VERSION = 3
+/** The only stop reason under which a reward of 0 measures the work rather than a session cut short. */
+const COMPLETED_STOP = 'completed'
+/** The stop reason a record written before the field existed is counted under. */
+const UNSTATED_STOP = '(unstated)'
 
 /**
  * Data-use purposes `--purpose` accepts, which are the purposes
@@ -279,7 +293,19 @@ function admitsPurpose(trajectory, purpose) {
  */
 function buildDataset(options) {
   const catalog = readTaskCatalog()
-  const counts = { seen: 0, train: 0, heldout: 0, withheldTerms: 0, withheldHeldOut: 0, delegated: 0, delegatedExcluded: 0, tamperedExcluded: 0, duplicatesDropped: 0 }
+  const counts = {
+    seen: 0,
+    train: 0,
+    heldout: 0,
+    withheldTerms: 0,
+    withheldHeldOut: 0,
+    delegated: 0,
+    delegatedExcluded: 0,
+    tamperedExcluded: 0,
+    maskedNegatives: 0,
+    duplicatesDropped: 0,
+  }
+  const maskedStopReasons = new Map()
   const distributions = new Map()
   const tokens = newTokenTotals()
   const records = []
@@ -332,6 +358,12 @@ function buildDataset(options) {
         continue
       }
       if (delegated && !options.includeDelegated) { counts.delegatedExcluded += 1; continue }
+      const stopReason = trajectory.stopReason ?? UNSTATED_STOP
+      if (trajectory.reward.outcome === 0 && stopReason !== COMPLETED_STOP) {
+        counts.maskedNegatives += 1
+        maskedStopReasons.set(stopReason, (maskedStopReasons.get(stopReason) ?? 0) + 1)
+        continue
+      }
 
       trainLines.push(line)
       counts.train += 1
@@ -343,6 +375,7 @@ function buildDataset(options) {
       tally(distributions, 'ladder', stamp === undefined ? '(none)' : (stamp.ladder ?? [stamp.model]).map(routeOf).join('>'))
       tally(distributions, 'model', stamp === undefined ? '(none)' : routeOf(stamp.model))
       tally(distributions, 'reward', String(dataset.reward.value))
+      tally(distributions, 'stopReason', stopReason)
       tally(distributions, 'tier', dataset.tier === null ? '(none)' : String(dataset.tier))
     }
   }
@@ -365,6 +398,7 @@ function buildDataset(options) {
     },
     records,
     counts,
+    maskedStopReasons: sorted(maskedStopReasons),
     distributions: sorted([...distributions].map(([name, bucket]) => [name, sorted(bucket)])),
     tokens,
     files: files.map(({ path, content }) => ({ path, bytes: Buffer.byteLength(content, 'utf8'), sha256: sha256(content) })),
@@ -382,7 +416,7 @@ function formatSummary(manifest) {
   const purpose = manifest.options.purpose
   const lines = [
     `${manifest.name}: ${counts.train} train, ${counts.heldout} held out, of ${counts.seen} trajectories in ${manifest.records.length} records${purpose === null ? '' : ` admitted for ${purpose}`}`,
-    `  excluded: ${counts.withheldTerms} withheld by terms, ${counts.withheldHeldOut} withheld held-out, ${counts.delegatedExcluded} delegated (${counts.delegated} seen), ${counts.tamperedExcluded} tampered, ${counts.duplicatesDropped} duplicates`,
+    `  excluded: ${counts.withheldTerms} withheld by terms, ${counts.withheldHeldOut} withheld held-out, ${counts.delegatedExcluded} delegated (${counts.delegated} seen), ${counts.tamperedExcluded} tampered, ${counts.maskedNegatives} negatives masked by stop reason (${Object.entries(manifest.maskedStopReasons).map(([reason, count]) => `${reason}=${count}`).join(' ') || 'none'}), ${counts.duplicatesDropped} duplicates`,
     `  tokens: ${tokens.inputTokens} input, ${tokens.outputTokens} output, ${tokens.cacheReadTokens ?? 0} cache-read, ${tokens.cacheWriteTokens ?? 0} cache-write over ${tokens.stepsWithUsage} of ${tokens.steps} steps${tokens.note === undefined ? '' : ` (${tokens.note})`}`,
   ]
   for (const [name, bucket] of Object.entries(manifest.distributions)) {

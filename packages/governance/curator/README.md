@@ -37,14 +37,20 @@ There is no `requireProfile` field: redaction is required by design. An export t
 
 ## The shipped rules
 
-`shipped: true` prepends five rules this package owns. Each covers one credential or identifier format that appears verbatim in agent transcripts; none is exhaustive, and a deployment adds its own formats through `rules`.
+`shipped: true` prepends eleven rules this package owns, in the order the table lists them: the credential formats run before the generic rules, so a key body or a token is replaced whole and counted under its own rule before a generic pattern could match part of it. Each covers one credential or identifier format that appears verbatim in agent transcripts; none is exhaustive, and a deployment adds its own formats through `rules`.
 
 | Rule id | Matches | Leaves alone |
 |---|---|---|
+| `shipped:private-key` | The body of a PEM private key between its armor lines, `PRIVATE KEY` and PGP's `PRIVATE KEY BLOCK` alike, raw or with JSON-escaped line breaks; a body whose END line is missing is replaced while its lines read as base64 or a legacy encryption header | Both armor lines, which keep naming the key type, and an armor line with no body after it |
+| `shipped:jwt` | A token whose header and payload are both base64url JSON objects (`eyJ….eyJ….`), with its signature or with the empty one an unsecured token carries | A single base64url segment |
+| `shipped:aws-access-key` | An `AKIA` or `ASIA` access key id | A shorter run after the same prefix |
+| `shipped:aws-secret-key` | A forty-character secret written under its name — `aws_secret_access_key`, `AWS_SECRET_ACCESS_KEY`, or `SecretAccessKey` — case-insensitively | The same characters under no name, and a longer run |
+| `shipped:github-token` | A `ghp_`, `gho_`, `ghu_`, `ghs_`, or `ghr_` token of thirty or more characters, and a `github_pat_` token | A short identifier that starts the same way |
+| `shipped:slack-token` | An `xoxa-`, `xoxb-`, `xoxp-`, `xoxr-`, or `xoxs-` token of ten or more characters | A shorter one |
 | `shipped:email` | An address with a dotted top-level domain | A bare host with no domain dot |
 | `shipped:bearer-token` | `Bearer` followed by twenty or more credential characters, case-insensitively | The prose "Bearer token" |
-| `shipped:api-key` | An `sk-` prefixed key of four or more characters at a word boundary | `sk-` inside a longer word, such as `risk-averse` |
-| `shipped:ipv4` | A dotted quad whose every octet is 0–255 | A dotted number with an out-of-range octet |
+| `shipped:api-key` | An `sk-` prefixed key of four or more characters at a word boundary, OpenRouter's `sk-or-v1-` keys included | `sk-` inside a longer word, such as `risk-averse` |
+| `shipped:ipv4` | A dotted quad whose every octet is 0–255 | A dotted number with an out-of-range octet, a quad inside a longer dotted run such as the version `1.2.3.4.5`, and a `v`-prefixed version |
 | `shipped:e164-phone` | `+` followed by eight to fifteen digits | A shorter `+` number |
 
 ## Service contract
@@ -61,13 +67,13 @@ The curator walks each record and redacts every string except three enumerated e
 
 Redacted: the rendered system prompt (`system`), each tool schema's `description` and parameter text (`tools`), every message content block including reasoning text and the content nested inside a tool result (`messages[].content[]`), the raw argument strings the model produced (`messages[].content[].arguments`, `messages[].toolCalls[].arguments`), the working directory (`source.cwd`), the goal objective (`reward.goal.objective`), and each check's run evidence (`reward.certificate.results[].evidence`).
 
-Never redacted: the `terms`, `environment`, `steps`, `parity`, and `provenance` subtrees, which hold only identifiers, digests, counts, and closed vocabularies — a rule rewriting `terms` would corrupt the very agreement and purposes this export was gated on; the key names `format`, `type`, `id`, `sessionId`, `parentSession`, `agentPreset`, `role`, `sourceKind`, `toolCallId`, `basis`, `phase`, `goalId`, `checkId`, `status`, `isolation`, `executor`, `provider`, `model`, `reasoningEffort`, `attachmentId`, and `mediaType` at any depth, each of which a reader switches on; and `name` at `tools[]`, `messages[].content[]`, and `messages[].toolCalls[]`, where it is a registered tool name.
+Never redacted: the `terms`, `environment`, `steps`, `parity`, and `provenance` subtrees, which hold only identifiers, digests, counts, and closed vocabularies — a rule rewriting `terms` would corrupt the very agreement and purposes this export was gated on; the key names `format`, `type`, `id`, `sessionId`, `parentSession`, `agentPreset`, `role`, `sourceKind`, `toolCallId`, `basis`, `phase`, `goalId`, `checkId`, `status`, `isolation`, `executor`, `provider`, `model`, `reasoningEffort`, `attachmentId`, `mediaType`, and `stopReason` at any depth, each of which a reader switches on; and `name` at `tools[]`, `messages[].content[]`, and `messages[].toolCalls[]`, where it is a registered tool name.
 
 Directives reach the record as the count `reward.directives`; the record carries no directive text, so there is none to redact.
 
 ## The curation block
 
-Every exported line is the `dsh-trajectory/2` record plus one `curation` block.
+Every exported line is the `dsh-trajectory/3` record plus one `curation` block.
 
 | Field | Content |
 |---|---|
@@ -78,19 +84,20 @@ Every exported line is the `dsh-trajectory/2` record plus one `curation` block.
 
 ## The export manifest
 
-Every export produces one `ExportManifest`, written to `manifestPath` when the request names one and returned in the report either way. `TrajectorySink` is a `write`/`close` pair with no path, so the caller states where the manifest goes rather than the curator guessing it from the sink.
+Every export produces one `ExportManifest`, written to `manifestPath` when the request names one and returned in the report either way. `TrajectorySink` is a `write`/`close` pair with no path, so the caller states where the manifest goes rather than the curator guessing it from the sink. The manifest holds counts and digests only, never the text a rule matched, so it can be read and published without the lines it describes.
 
 | Field | Content |
 |---|---|
-| `version` | `dsh-export-manifest/1` |
+| `version` | `dsh-export-manifest/2` |
 | `exportedAt` | Epoch milliseconds the export finished at |
 | `purpose` | The purpose every written session's terms admit |
 | `profile`, `profileSha256` | The profile that ran and the digest of its effective rules |
 | `records` | Lines written |
 | `withheld` | `heldOut`, `districts`, and `terms` counted separately, so no withholding hides inside another |
 | `ruleHits` | Replacements over the whole export, per rule id, listing every rule of the profile including those that matched nothing |
+| `ruleRecords` | Written records each rule replaced anything in, per rule id, listed the same way; a rule firing in nearly every record is matching text the environments share rather than a credential in a few transcripts |
 | `recordsSha256` | SHA-256 over the written lines in order, which is the digest of exactly the bytes the sink received |
-| `trajectoryFormat` | `dsh-trajectory/2` |
+| `trajectoryFormat` | `dsh-trajectory/3` |
 
 An export is not a session, so the manifest is a file rather than a session event: it spans every session the request considered and belongs to none of them.
 
@@ -106,7 +113,8 @@ None; the service neither adds to nor changes any model request.
 
 - **The unredacted exporter is still callable** — `ctx.trajectories.export()` remains a service any plugin in the process can call, so this package is the export path that refuses rather than a barrier around the data. A composition rule that rejects a district composing the exporter without the curator waits for a district that needs it.
 - **Rules are regular expressions** — a credential in a format no rule covers is exported, and `redactionApplied: true` states that a profile ran, never that a record is clean. The manifest's per-rule counts are what a reviewer reads to see whether a profile fires at all.
-- **Redaction can corrupt meaning** — the IPv4 rule rewrites a version string shaped like a dotted quad, and an aggressive deployment rule can make a record unusable for training. The never-redacted set protects the identifiers a reader switches on, not the meaning inside the text.
+- **Redaction can corrupt meaning** — the IPv4 rule rewrites a bare four-part version whose parts are all at most 255, such as `4.0.0.0`, and an aggressive deployment rule can make a record unusable for training. The never-redacted set protects the identifiers a reader switches on, not the meaning inside the text.
+- **A key's armor lines bound its body** — a source file that spells a BEGIN line and a later END line loses the text between them, and a body whose END line is missing is replaced only up to the first line that does not read as base64 or a legacy header, which takes the first word of a text line directly after it and leaves any key text past a line of other text.
 - **One profile per export** — the profile a session's terms name is not cross-checked against the export's, because one manifest states one profile. A deployment holding several clients' transcripts runs one export per profile.
 - **Each admitted session is read twice** — once for its terms and once by the exporter's own fold, which is the cost of composing the exporter rather than duplicating its withholding and skip accounting.
 - **No dataset manifest** — dedupe, decontamination against the held-out suite, the per-record content hash, and the split assignment belong to the `DatasetManifest` slice and are not produced here.

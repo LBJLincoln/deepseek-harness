@@ -1,8 +1,9 @@
 /**
  * Pure projection of one session log into a {@link Trajectory}: surface
- * messages with their source seqs, per-step usage, the reward the log's goal
- * and verification events decide, the weighted pass rate of the last recorded
- * run beside it, the data-use terms the log pins, and the components in play.
+ * messages with their source seqs, per-step usage, how the last unit of work
+ * ended, the reward the log's goal and verification events decide, the
+ * weighted pass rate of the last recorded run beside it, the data-use terms the
+ * log pins, and the components in play.
  * @module @deepseek-ai/dsh-trajectories
  */
 
@@ -22,12 +23,24 @@ import type {
   TrajectoryMessage,
   TrajectoryReward,
   TrajectoryStep,
+  TrajectoryStopReason,
   TrajectoryTerms,
   TrajectoryToolCall,
 } from './types.ts'
 
 /** The record format tag every exported line carries. */
-export const TRAJECTORY_FORMAT = 'dsh-trajectory/2'
+export const TRAJECTORY_FORMAT = 'dsh-trajectory/3'
+
+/** How a delegated child's run ends in the subagent seam's terminal vocabulary. */
+const DELEGATED_STOP_REASONS = ['completed', 'aborted', 'error', 'max-tokens', 'refusal'] as const
+
+/** One of {@link DELEGATED_STOP_REASONS}. */
+type DelegatedStopReason = typeof DELEGATED_STOP_REASONS[number]
+
+/** Whether a durable payload value is a stop reason a delegated child reports. */
+function isDelegatedStop(value: unknown): value is DelegatedStopReason {
+  return (DELEGATED_STOP_REASONS as readonly unknown[]).includes(value)
+}
 
 /** Position of a surface event inside the turn/step structure. */
 interface StepPosition {
@@ -55,6 +68,38 @@ function presetOf(event: SessionEvent): string | undefined {
   if ((event.type as string) !== 'agent-preset/selected') return undefined
   const data = event.data as { agentPreset?: unknown }
   return typeof data.agentPreset === 'string' ? data.agentPreset : undefined
+}
+
+/**
+ * Read which ceiling a `budget/breach` measured against, from a log-only event
+ * this package does not declare. The event belongs to `dsh-budget-policy`, and
+ * reading it by name keeps the fold free of that dependency. A payload stating
+ * no scope is a breach of the session's own caps, as the policy writes it.
+ * @throws when the payload states a scope the policy never writes, which fails
+ *   the fold rather than guessing whether the session could continue.
+ */
+function breachScopeOf(event: SessionEvent): 'session' | 'attempt' | undefined {
+  if ((event.type as string) !== 'budget/breach') return undefined
+  const { scope } = event.data as { scope?: unknown }
+  if (scope === undefined || scope === 'session') return 'session'
+  if (scope === 'attempt') return 'attempt'
+  throw new Error(`budget/breach at seq ${event.seq} states an unknown scope ${JSON.stringify(scope)}`)
+}
+
+/**
+ * Read how one delegated attempt ended, from the `environment/delegation` event
+ * `dsh-environment-runner` declares; reading it by name keeps the fold free of
+ * that dependency. `budget-deadline`, the runner's record of an attempt its
+ * wall budget cut short, is `budget`.
+ * @throws when the payload states a stop reason the subagent seam does not
+ *   define, which fails the fold rather than mislabelling the session.
+ */
+function delegatedStopOf(event: SessionEvent): DelegatedStopReason | 'budget' | undefined {
+  if ((event.type as string) !== 'environment/delegation') return undefined
+  const { stopReason } = event.data as { stopReason?: unknown }
+  if (stopReason === 'budget-deadline') return 'budget'
+  if (isDelegatedStop(stopReason)) return stopReason
+  throw new Error(`environment/delegation at seq ${event.seq} states an unknown stopReason ${JSON.stringify(stopReason)}`)
 }
 
 /** One ordered pass over every event, collecting what the projection needs. */
@@ -203,6 +248,54 @@ export function foldTrajectoryReward(events: readonly SessionEvent[]): Trajector
 }
 
 /**
+ * Decide how one session's last unit of work ended, from its turn, budget, and
+ * delegation events in log order. Each `turn/end` and each
+ * `environment/delegation` restates the reason, so a session whose earlier
+ * attempt the budget cut short and whose last attempt ended on its own folds as
+ * `completed`.
+ * A turn that ends `blocked` after a `budget/breach` is `budget`, and a breach
+ * of the session's own caps is `budget` at once, because a delegated cell
+ * whose budget ran out before its next attempt records no turn and no
+ * delegation after it.
+ * @param events - the session's contiguous event log.
+ * @returns the stop reason; deterministic for the same events.
+ * @throws when a `budget/breach` or `environment/delegation` payload states a
+ *   value its owning package never writes.
+ */
+export function foldTrajectoryStop(events: readonly SessionEvent[]): TrajectoryStopReason {
+  let stop: TrajectoryStopReason = 'none'
+  let open = false
+  // A breach since the last ended unit of work: the turn it blocked ended on the budget.
+  let breached = false
+  for (const event of events) {
+    switch (event.type) {
+      case 'turn/start':
+        open = true
+        break
+      case 'turn/end':
+        open = false
+        stop = event.data.reason.kind === 'blocked' && breached ? 'budget' : event.data.reason.kind
+        breached = false
+        break
+      default: {
+        const scope = breachScopeOf(event)
+        if (scope !== undefined) {
+          breached = true
+          if (scope === 'session') stop = 'budget'
+        }
+        const delegated = delegatedStopOf(event)
+        if (delegated !== undefined) {
+          stop = delegated
+          breached = false
+        }
+      }
+    }
+  }
+  // A still-running session and one whose process stopped before a reload closed its turn read alike.
+  return open ? 'interrupted' : stop
+}
+
+/**
  * The admission-relevant part of the session's pinned terms, read through the
  * {@link termsOf} fold `@deepseek-ai/dsh-data-use` owns so the record states
  * exactly the terms a curated export gates on.
@@ -262,6 +355,7 @@ export function foldTrajectory(meta: SessionHeader, events: readonly SessionEven
     ...header?.tools === undefined ? {} : { tools: header.tools },
     messages,
     steps: scan.steps,
+    stopReason: foldTrajectoryStop(events),
     reward,
     ...parity === undefined ? {} : { parity },
     provenance: {

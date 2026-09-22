@@ -129,7 +129,7 @@ interface CuratedExportRequest {
 
 只有当会话最新的 `dataUse/terms` 列出了本次导出的用途时它才被接纳，完全不携带条款的会话按同一条规则被扣留。只有被接纳的会话才到达导出器，因此被扣留的转录从不被折叠、序列化或写出。在没有 `defaultProfile` 的部署上，未指名配置的导出以 `CURATOR_PROFILE_REQUIRED` 被拒绝；不存在任何能绕过脱敏进行导出的配置。
 
-每一行写出的内容都是 `dsh-trajectory/2` 记录加上一个 `curation` 块，其中指名运行过的配置、其有效规则的摘要、本条记录收到的替换次数，以及其条款所指名的驻留地。记录里的每个字符串都会被脱敏，除了标识符、读者据以分支的判别式，以及已注册的工具名；[包 README](../../packages/governance/curator/README.md) 枚举了两侧。
+每一行写出的内容都是 `dsh-trajectory/3` 记录加上一个 `curation` 块，其中指名运行过的配置、其有效规则的摘要、本条记录收到的替换次数，以及其条款所指名的驻留地。记录里的每个字符串都会被脱敏，除了标识符、读者据以分支的判别式，以及已注册的工具名；[包 README](../../packages/governance/curator/README.md) 枚举了两侧。
 
 ```ts type-equiv
 /** The block the curator adds to every record it exports. */
@@ -164,6 +164,13 @@ interface ExportManifest {
   readonly withheld: ExportWithheld
   /** Replacements over the whole export, per rule id; every rule of the profile is listed, including those that matched nothing. */
   readonly ruleHits: Readonly<Record<string, number>>
+  /**
+   * Written records each rule replaced anything in, per rule id, listed like
+   * {@link ruleHits}. Beside the replacement count it separates a rule firing
+   * in nearly every record, which is matching text every environment shares,
+   * from one firing in a few transcripts.
+   */
+  readonly ruleRecords: Readonly<Record<string, number>>
   /** Lowercase SHA-256 hex over the written lines in order, which is the digest of the sink's bytes. */
   readonly recordsSha256: string
   /** Record format of every written line. */
@@ -218,7 +225,7 @@ Curated export (`ctx.curator`): redacted, terms-gated trajectory export with a m
 async export(request: CuratedExportRequest): Promise<CuratedExportReport>
 ```
 
-Source: [`packages/governance/curator/src/index.ts:70`](../../packages/governance/curator/src/index.ts)
+Source: [`packages/governance/curator/src/index.ts:88`](../../packages/governance/curator/src/index.ts)
 
 <a id="ctxdatause--datauseservice"></a>
 

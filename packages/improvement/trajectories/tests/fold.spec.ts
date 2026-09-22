@@ -6,7 +6,7 @@ import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import { SESSION_FORMAT_VERSION, Session, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import { CheckId } from '@deepseek-ai/dsh-verification'
-import { TRAJECTORY_FORMAT, foldTrajectory } from '@deepseek-ai/dsh-trajectories'
+import { TRAJECTORY_FORMAT, foldTrajectory, foldTrajectoryStop } from '@deepseek-ai/dsh-trajectories'
 
 type Raw = Record<string, unknown>
 
@@ -201,6 +201,7 @@ describe('foldTrajectory', () => {
       { turn: 1, step: 1, usage: { inputTokens: 10, outputTokens: 5 } },
       { turn: 1, step: 2, usage: { inputTokens: 20, outputTokens: 3 } },
     ])
+    expect(trajectory.stopReason).toBe('completed')
     expect(trajectory.reward).toMatchObject({
       outcome: 1,
       basis: 'certificate',
@@ -320,6 +321,7 @@ describe('foldTrajectory', () => {
       source: { sessionId: 'bare', createdAt: 1 },
       messages: [],
       steps: [],
+      stopReason: 'none',
       reward: { outcome: null, basis: 'none', directives: 0, relaxations: 0, attempts: 0 },
       provenance: { components: [], toolNames: [] },
     })
@@ -417,5 +419,133 @@ describe('foldTrajectory', () => {
     const { messages } = foldTrajectory(header, log.events)
     expect(messages[0]).toEqual({ role: 'user', seq: 0, content: [{ type: 'text', text: 'before any step' }], sourceKind: 'user' })
     expect(messages[1]).toEqual({ role: 'assistant', seq: 1, content: [{ type: 'text', text: 'also before any step' }], sourceKind: 'model' })
+  })
+})
+
+/** One turn of `log` closed with `reason`. */
+function turn(log: Log, index: number, reason: Raw): void {
+  log.push('turn/start', { turn: index })
+  log.push('turn/end', { turn: index, reason })
+}
+
+/** One `budget/breach` payload; `scope` absent is how the policy records a breach of the session's own caps. */
+function breach(scope?: string): Raw {
+  return { cap: 'maxTotalTokens', measured: 1_600_000, limit: 1_500_000, ...scope === undefined ? {} : { scope } }
+}
+
+/** One `environment/delegation` payload for a child that ended with `stopReason`. */
+function delegation(attempt: number, stopReason: unknown): Raw {
+  return { attempt, restatedTask: attempt > 1, provider: 'external-agent', runId: `run-${attempt}`, stopReason }
+}
+
+describe('foldTrajectoryStop', () => {
+  it('carries the reason the last turn ended with, whichever it is', () => {
+    const reasons: Raw[] = [
+      { kind: 'completed' },
+      { kind: 'aborted', reason: { kind: 'user' } },
+      { kind: 'blocked' },
+      { kind: 'error', error: { message: 'upstream 503', code: 'UNKNOWN' } },
+      { kind: 'max-tokens' },
+      { kind: 'interrupted' },
+    ]
+    for (const reason of reasons) {
+      const log = new Log()
+      turn(log, 1, { kind: 'completed' })
+      turn(log, 2, reason)
+      expect(foldTrajectoryStop(log.events)).toBe(reason.kind)
+    }
+  })
+
+  it('states none for a log that ended no unit of work', () => {
+    const log = new Log()
+    log.user('queued and never claimed')
+    expect(foldTrajectoryStop(log.events)).toBe('none')
+    expect(foldTrajectory(header, log.events).stopReason).toBe('none')
+  })
+
+  it('reads a turn the budget blocked as a budget stop, and a blocked turn with no breach as blocked', () => {
+    const cut = new Log()
+    turn(cut, 1, { kind: 'completed' })
+    cut.push('turn/start', { turn: 2 })
+    cut.push('budget/breach', breach())
+    cut.push('turn/end', { turn: 2, reason: { kind: 'blocked' } })
+    // The runner still validates the tree the cut attempt left; nothing after the breach ends a unit of work.
+    cut.push('verification/run', runRecord(2, 'fail'))
+    expect(foldTrajectoryStop(cut.events)).toBe('budget')
+
+    const refused = new Log()
+    turn(refused, 1, { kind: 'blocked' })
+    expect(foldTrajectoryStop(refused.events)).toBe('blocked')
+  })
+
+  it('reads an attempt its own share cut short as budget only when no later attempt ended on its own', () => {
+    const recovered = new Log()
+    recovered.push('turn/start', { turn: 1 })
+    recovered.push('budget/breach', breach('attempt'))
+    recovered.push('turn/end', { turn: 1, reason: { kind: 'blocked' } })
+    turn(recovered, 2, { kind: 'completed' })
+    expect(foldTrajectoryStop(recovered.events)).toBe('completed')
+
+    const exhausted = new Log()
+    turn(exhausted, 1, { kind: 'completed' })
+    exhausted.push('turn/start', { turn: 2 })
+    exhausted.push('budget/breach', breach('attempt'))
+    exhausted.push('turn/end', { turn: 2, reason: { kind: 'blocked' } })
+    expect(foldTrajectoryStop(exhausted.events)).toBe('budget')
+  })
+
+  it('lets a later turn that ended on its own outrank a spent budget, as a session resumed under raised caps does', () => {
+    const log = new Log()
+    log.push('turn/start', { turn: 1 })
+    log.push('budget/breach', breach('session'))
+    log.push('turn/end', { turn: 1, reason: { kind: 'blocked' } })
+    turn(log, 2, { kind: 'completed' })
+    expect(foldTrajectoryStop(log.events)).toBe('completed')
+  })
+
+  it('reads a log that ends inside an open turn as interrupted', () => {
+    const log = new Log()
+    turn(log, 1, { kind: 'completed' })
+    log.push('turn/start', { turn: 2 })
+    log.push('step/start', { turn: 2, step: 1 })
+    expect(foldTrajectoryStop(log.events)).toBe('interrupted')
+  })
+
+  it('reads a delegated cell from its attempts and the breach that ended it before another could start', () => {
+    const certified = new Log()
+    certified.push('environment/delegation', delegation(1, 'completed'))
+    expect(foldTrajectoryStop(certified.events)).toBe('completed')
+
+    const declined = new Log()
+    declined.push('environment/delegation', delegation(1, 'refusal'))
+    expect(foldTrajectoryStop(declined.events)).toBe('refusal')
+
+    const deadline = new Log()
+    deadline.push('environment/delegation', delegation(1, 'completed'))
+    deadline.push('environment/delegation', delegation(2, 'budget-deadline'))
+    deadline.push('budget/breach', breach())
+    expect(foldTrajectoryStop(deadline.events)).toBe('budget')
+
+    // The pre-attempt measurement found the cell's caps spent, so attempt 2 never started.
+    const spent = new Log()
+    spent.push('environment/delegation', delegation(1, 'completed'))
+    spent.push('budget/breach', breach())
+    expect(foldTrajectoryStop(spent.events)).toBe('budget')
+
+    // A rung that overran its share is measured after its child returned; the child still ended on its own.
+    const overran = new Log()
+    overran.push('environment/delegation', delegation(1, 'completed'))
+    overran.push('budget/breach', breach('attempt'))
+    expect(foldTrajectoryStop(overran.events)).toBe('completed')
+  })
+
+  it('fails the fold on a breach scope or a delegated stop reason no owning package writes', () => {
+    const scoped = new Log()
+    scoped.push('budget/breach', breach('rung'))
+    expect(() => foldTrajectoryStop(scoped.events)).toThrow('budget/breach at seq 0 states an unknown scope "rung"')
+
+    const unknown = new Log()
+    unknown.push('environment/delegation', delegation(1, 42))
+    expect(() => foldTrajectoryStop(unknown.events)).toThrow('environment/delegation at seq 0 states an unknown stopReason 42')
   })
 })

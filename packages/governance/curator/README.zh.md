@@ -37,14 +37,20 @@
 
 ## 随包发布的规则
 
-`shipped: true` 会在前面加上本包拥有的五条规则。每条覆盖一种在 agent 转录里原样出现的凭据或标识符格式；没有一条声称穷尽，部署方通过 `rules` 补充自己的格式。
+`shipped: true` 会在前面加上本包拥有的十一条规则，按表中所列顺序运行：凭据格式先于通用规则运行，因此一段密钥主体或一个令牌会被整体替换并计入它自己的规则，通用模式没有机会只匹配其中一部分。每条覆盖一种在 agent 转录里原样出现的凭据或标识符格式；没有一条声称穷尽，部署方通过 `rules` 补充自己的格式。
 
 | 规则 id | 匹配 | 不动 |
 |---|---|---|
+| `shipped:private-key` | PEM 私钥在两条封装行之间的主体，`PRIVATE KEY` 与 PGP 的 `PRIVATE KEY BLOCK` 皆然，无论换行是原样还是经 JSON 转义；缺少 END 行的主体，只要其行仍读作 base64 或旧式加密头就会被替换 | 两条封装行本身（它们继续指明密钥类型），以及之后没有主体的封装行 |
+| `shipped:jwt` | 头部与载荷都是 base64url JSON 对象的令牌（`eyJ….eyJ….`），带签名，或带不安全令牌所携带的空签名 | 单独一段 base64url |
+| `shipped:aws-access-key` | `AKIA` 或 `ASIA` 访问密钥 id | 同一前缀之后更短的串 |
+| `shipped:aws-secret-key` | 以其名称写出的四十字符密钥——`aws_secret_access_key`、`AWS_SECRET_ACCESS_KEY` 或 `SecretAccessKey`——不区分大小写 | 不带名称的同样字符，以及更长的串 |
+| `shipped:github-token` | 三十个及以上字符的 `ghp_`、`gho_`、`ghu_`、`ghs_` 或 `ghr_` 令牌，以及 `github_pat_` 令牌 | 以同样方式开头的短标识符 |
+| `shipped:slack-token` | 十个及以上字符的 `xoxa-`、`xoxb-`、`xoxp-`、`xoxr-` 或 `xoxs-` 令牌 | 更短的同类串 |
 | `shipped:email` | 带点分顶级域的地址 | 不含域名点的裸主机名 |
 | `shipped:bearer-token` | `Bearer` 后跟二十个及以上凭据字符，不区分大小写 | 散文里的 "Bearer token" |
-| `shipped:api-key` | 位于词边界、以 `sk-` 开头且不少于四个字符的密钥 | 更长单词内部的 `sk-`，例如 `risk-averse` |
-| `shipped:ipv4` | 每一段都在 0–255 之间的点分四段 | 存在越界段的点分数字 |
+| `shipped:api-key` | 位于词边界、以 `sk-` 开头且不少于四个字符的密钥，OpenRouter 的 `sk-or-v1-` 密钥也在其中 | 更长单词内部的 `sk-`，例如 `risk-averse` |
+| `shipped:ipv4` | 每一段都在 0–255 之间的点分四段 | 存在越界段的点分数字、位于更长点分串里的四段（例如版本号 `1.2.3.4.5`），以及以 `v` 开头的版本号 |
 | `shipped:e164-phone` | `+` 后跟八到十五位数字 | 更短的 `+` 号码 |
 
 ## 服务契约
@@ -61,13 +67,13 @@ curator 遍历每条记录，对除三类被枚举的例外之外的每个字符
 
 被脱敏的：渲染后的系统提示（`system`）、每个工具 schema 的 `description` 与参数文本（`tools`）、每个消息内容块，包括推理文本与嵌套在 tool result 内部的内容（`messages[].content[]`）、模型产出的原始参数串（`messages[].content[].arguments`、`messages[].toolCalls[].arguments`）、工作目录（`source.cwd`）、目标陈述（`reward.goal.objective`），以及每个检查项的运行证据（`reward.certificate.results[].evidence`）。
 
-永不脱敏的：`terms`、`environment`、`steps`、`parity` 与 `provenance` 五棵子树，它们只含标识符、摘要、计数与封闭词表——重写 `terms` 的规则会破坏本次导出据以设卡的那份协议与那些用途；任何深度上的键名 `format`、`type`、`id`、`sessionId`、`parentSession`、`agentPreset`、`role`、`sourceKind`、`toolCallId`、`basis`、`phase`、`goalId`、`checkId`、`status`、`isolation`、`executor`、`provider`、`model`、`reasoningEffort`、`attachmentId` 与 `mediaType`，读者都会据其分支；以及 `tools[]`、`messages[].content[]` 与 `messages[].toolCalls[]` 上的 `name`，那里它是已注册的工具名。
+永不脱敏的：`terms`、`environment`、`steps`、`parity` 与 `provenance` 五棵子树，它们只含标识符、摘要、计数与封闭词表——重写 `terms` 的规则会破坏本次导出据以设卡的那份协议与那些用途；任何深度上的键名 `format`、`type`、`id`、`sessionId`、`parentSession`、`agentPreset`、`role`、`sourceKind`、`toolCallId`、`basis`、`phase`、`goalId`、`checkId`、`status`、`isolation`、`executor`、`provider`、`model`、`reasoningEffort`、`attachmentId`、`mediaType` 与 `stopReason`，读者都会据其分支；以及 `tools[]`、`messages[].content[]` 与 `messages[].toolCalls[]` 上的 `name`，那里它是已注册的工具名。
 
 指令以 `reward.directives` 这个计数进入记录；记录不携带指令文本，因此没有可脱敏的指令。
 
 ## curation 块
 
-每行被导出的内容都是 `dsh-trajectory/2` 记录加上一个 `curation` 块。
+每行被导出的内容都是 `dsh-trajectory/3` 记录加上一个 `curation` 块。
 
 | 字段 | 内容 |
 |---|---|
@@ -78,19 +84,20 @@ curator 遍历每条记录，对除三类被枚举的例外之外的每个字符
 
 ## 导出 manifest
 
-每次导出产出一份 `ExportManifest`：当请求指名 `manifestPath` 时写到那里，无论如何都在报告中返回。`TrajectorySink` 是一对没有路径的 `write`/`close`，因此由调用方陈述 manifest 的去向，而不是由 curator 从 sink 猜测。
+每次导出产出一份 `ExportManifest`：当请求指名 `manifestPath` 时写到那里，无论如何都在报告中返回。`TrajectorySink` 是一对没有路径的 `write`/`close`，因此由调用方陈述 manifest 的去向，而不是由 curator 从 sink 猜测。manifest 只持有计数与摘要，从不持有规则所匹配的文本，因此可以脱离它所描述的那些行被阅读和发布。
 
 | 字段 | 内容 |
 |---|---|
-| `version` | `dsh-export-manifest/1` |
+| `version` | `dsh-export-manifest/2` |
 | `exportedAt` | 导出结束时刻的 epoch 毫秒 |
 | `purpose` | 每个被写出会话的条款都接纳的用途 |
 | `profile`、`profileSha256` | 运行过的配置，以及其有效规则的摘要 |
 | `records` | 写出的行数 |
 | `withheld` | 分别计数的 `heldOut`、`districts` 与 `terms`，于是没有哪一种扣留藏在另一种里面 |
 | `ruleHits` | 整次导出的替换次数，按规则 id 计，列出该配置的每一条规则，包括没有匹配到任何东西的那些 |
+| `ruleRecords` | 每条规则在其中替换过任何内容的已写出记录数，按规则 id 计，列法相同；一条几乎在每条记录里都触发的规则匹配的是各环境共有的文本，而不是少数几份转录里的凭据 |
 | `recordsSha256` | 按顺序对写出行取的 SHA-256，也就是 sink 所收到字节的摘要 |
-| `trajectoryFormat` | `dsh-trajectory/2` |
+| `trajectoryFormat` | `dsh-trajectory/3` |
 
 一次导出不是一个会话，因此 manifest 是文件而不是会话事件：它横跨请求所考虑的每一个会话，且不属于其中任何一个。
 
@@ -106,7 +113,8 @@ None; the service neither adds to nor changes any model request.
 
 - **未经脱敏的导出器依然可调用** —— `ctx.trajectories.export()` 仍是进程内任何插件都能调用的服务，因此本包是那条会拒绝的导出路径，而不是围绕数据的屏障。一条拒绝"组合了导出器却没有 curator 的区"的组合规则，要等到出现需要它的区时再落地。
 - **规则是正则表达式** —— 没有规则覆盖其格式的凭据会被导出，`redactionApplied: true` 陈述的是有一个配置运行过，绝不是这条记录是干净的。manifest 的逐规则计数正是评审者据以判断某个配置是否会触发的东西。
-- **脱敏可能损坏含义** —— IPv4 规则会改写形似点分四段的版本串，而部署方一条激进的规则能让一条记录不再可用于训练。永不脱敏集合保护读者据以分支的标识符，而非文本内部的含义。
+- **脱敏可能损坏含义** —— IPv4 规则会改写各段都不超过 255 的裸四段版本号，例如 `4.0.0.0`，而部署方一条激进的规则能让一条记录不再可用于训练。永不脱敏集合保护读者据以分支的标识符，而非文本内部的含义。
+- **密钥的封装行界定其主体** —— 一个先写出 BEGIN 行、之后又写出 END 行的源文件会失去两行之间的文本；缺少 END 行的主体只被替换到第一行不读作 base64 或旧式头的行为止，这会带走紧随其后的文本行的第一个词，并留下任何位于一行其他文本之后的密钥文本。
 - **一次导出一个配置** —— 会话条款所指名的配置不与本次导出的配置交叉核对，因为一份 manifest 陈述一个配置。持有多个客户转录的部署方按配置分别导出一次。
 - **每个被接纳的会话读两次** —— 一次为其条款，一次为导出器自身的折叠；这是组合导出器而非重复实现其扣留与跳过记账的代价。
 - **没有数据集 manifest** —— 去重、对留出套件的去污染、逐记录的内容哈希与划分归属属于 `DatasetManifest` 切片，本包不产出它们。

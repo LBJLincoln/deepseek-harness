@@ -3901,7 +3901,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExportManifest',
-    declaration: 'export interface ExportManifest {\n    readonly version: string;\n    readonly exportedAt: number;\n    readonly purpose: DataUsePurpose;\n    readonly profile: string;\n    readonly profileSha256: string;\n    readonly records: number;\n    readonly withheld: ExportWithheld;\n    readonly ruleHits: Readonly<Record<string, number>>;\n    readonly recordsSha256: string;\n    readonly trajectoryFormat: TrajectoryFormat;\n}',
+    declaration: 'export interface ExportManifest {\n    readonly version: string;\n    readonly exportedAt: number;\n    readonly purpose: DataUsePurpose;\n    readonly profile: string;\n    readonly profileSha256: string;\n    readonly records: number;\n    readonly withheld: ExportWithheld;\n    readonly ruleHits: Readonly<Record<string, number>>;\n    readonly ruleRecords: Readonly<Record<string, number>>;\n    readonly recordsSha256: string;\n    readonly trajectoryFormat: TrajectoryFormat;\n}',
   },
   {
     name: 'ExportWithheld',
@@ -5697,7 +5697,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TrajectoryFormat',
-    declaration: 'export type TrajectoryFormat = \'dsh-trajectory/2\';',
+    declaration: 'export type TrajectoryFormat = \'dsh-trajectory/3\';',
   },
   {
     name: 'TrajectoryRewardBasis',

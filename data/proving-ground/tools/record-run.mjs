@@ -8,9 +8,11 @@
 // Usage: node record-run.mjs <run-directory> <name> --composition <path> [--elapsed-seconds <n>] [--partial <reason>]
 //
 //   <run-directory>   where the driver ran: holds facts.jsonl, trajectories.jsonl,
-//                     observatory.json, observatory.html, .sessions/, and either
-//                     stdout.jsonl (a fleet driver's result line) or status.json
-//                     (a shift driver's status)
+//                     export-manifest.json (the curator's manifest of that
+//                     export, which a driver writing the raw export leaves
+//                     out), observatory.json, observatory.html, .sessions/, and
+//                     either stdout.jsonl (a fleet driver's result line) or
+//                     status.json (a shift driver's status)
 //   <name>            the run directory name, e.g. 2026-09-06-claude-code-run-2
 //   --composition     repository-relative cordis.yml the driver booted
 //   --elapsed-seconds wall time of the run when the driver did not record it
@@ -34,7 +36,7 @@ import { formatTotals, summarizeRun } from './summarize-run.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const RUNS_DIR = resolve(import.meta.dirname, '..')
-const EXPORTS = ['facts.jsonl', 'trajectories.jsonl', 'observatory.json', 'observatory.html']
+const EXPORTS = ['facts.jsonl', 'trajectories.jsonl', 'export-manifest.json', 'observatory.json', 'observatory.html']
 
 /**
  * Parses the command line.

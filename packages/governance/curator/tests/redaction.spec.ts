@@ -1,7 +1,7 @@
 /**
  * The redaction machinery on its own: what the shipped rules hit and what they
  * deliberately leave alone, which configured profiles a load refuses, and which
- * fields of a `dsh-trajectory/2` record the walk rewrites.
+ * fields of a `dsh-trajectory/3` record the walk rewrites.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -18,6 +18,28 @@ import type { CompiledRedactionRule } from '@deepseek-ai/dsh-curator'
 /** The shipped profile every rule fixture runs against. */
 const SHIPPED = compileProfile('shipped', { shipped: true })
 
+// Every credential below is fake and assembled from fragments at runtime, so
+// this file holds no credential-shaped literal for a secret scanner to report.
+
+/** One PEM armor line; `block` spells PGP's `PRIVATE KEY BLOCK`. */
+function armor(edge: 'BEGIN' | 'END', label: string, block = ''): string {
+  return `-----${edge} ${label}PRIVATE KEY${block}-----`
+}
+
+/** Three lines of base64 standing in for a key body; `+12345678/` would read as a phone number on its own. */
+const PEM_BODY = ['MIIEowIBAAKCAQEA'.padEnd(64, 'q'), 'AB+12345678/'.padEnd(64, 'Z'), 'AbC+/9=='].join('\n')
+
+/** One base64url JSON segment, as a token's header and payload are encoded. */
+function segment(value: object): string {
+  return Buffer.from(JSON.stringify(value)).toString('base64url')
+}
+
+const FAKE_JWT = [segment({ alg: 'HS256', typ: 'JWT' }), segment({ sub: 'fixture' }), 's'.repeat(43)].join('.')
+const FAKE_AWS_KEY_ID = ['AKIA', 'FIXTURE0NOTAKEY0'].join('')
+const FAKE_AWS_SECRET = ['w'.repeat(20), 'K'.repeat(19)].join('/')
+const FAKE_GITHUB_TOKEN = ['ghp', 'x'.repeat(36)].join('_')
+const FAKE_SLACK_TOKEN = ['xoxb', '123456789012', '1234567890123', 'x'.repeat(24)].join('-')
+
 /** One shipped rule with the text that must hit it and the text that must not. */
 interface ShippedCase {
   readonly id: string
@@ -26,7 +48,44 @@ interface ShippedCase {
   readonly miss: string
 }
 
+/** One case per shipped rule, in the order the rules run. */
 const SHIPPED_CASES: readonly ShippedCase[] = [
+  {
+    id: 'shipped:private-key',
+    hit: `${armor('BEGIN', 'RSA ')}\n${PEM_BODY}\n${armor('END', 'RSA ')}\n`,
+    redacted: `${armor('BEGIN', 'RSA ')}\n[redacted:private-key]\n${armor('END', 'RSA ')}\n`,
+    miss: `const header = '${armor('BEGIN', '')}'`,
+  },
+  {
+    id: 'shipped:jwt',
+    hit: `Cookie: session=${FAKE_JWT}; Path=/`,
+    redacted: 'Cookie: session=[redacted:jwt]; Path=/',
+    miss: `header ${segment({ alg: 'HS256' })} alone`,
+  },
+  {
+    id: 'shipped:aws-access-key',
+    hit: `aws_access_key_id = ${FAKE_AWS_KEY_ID}`,
+    redacted: 'aws_access_key_id = [redacted:aws-access-key]',
+    miss: 'the AKIA prefix alone',
+  },
+  {
+    id: 'shipped:aws-secret-key',
+    hit: `aws_secret_access_key = ${FAKE_AWS_SECRET}`,
+    redacted: 'aws_secret_access_key = [redacted:aws-secret-key]',
+    miss: `an unnamed checksum ${FAKE_AWS_SECRET}`,
+  },
+  {
+    id: 'shipped:github-token',
+    hit: `GH_TOKEN=${FAKE_GITHUB_TOKEN}`,
+    redacted: 'GH_TOKEN=[redacted:github-token]',
+    miss: 'a ghp_short identifier',
+  },
+  {
+    id: 'shipped:slack-token',
+    hit: `slack ${FAKE_SLACK_TOKEN} posted`,
+    redacted: 'slack [redacted:slack-token] posted',
+    miss: 'slack xoxb-12 posted',
+  },
   {
     id: 'shipped:email',
     hit: 'write to nobody@example.invalid today',
@@ -87,6 +146,100 @@ describe('the shipped rule set', () => {
     expect(hits).toEqual({ 'shipped:email': 2 })
   })
 
+  it('replaces a key body between its armor lines in every form a transcript carries it', () => {
+    const begin = armor('BEGIN', 'EC ')
+    const end = armor('END', 'EC ')
+    const escaped = PEM_BODY.replaceAll('\n', String.raw`\n`)
+    expect(redact(`{"key":"${begin}\\n${escaped}\\n${end}\\n"}`, SHIPPED.rules).text)
+      .toBe(`{"key":"${begin}\\n[redacted:private-key]\\n${end}\\n"}`)
+
+    const indented = `tls:\n  key: |\n    ${begin}\n    ${PEM_BODY.replaceAll('\n', '\n    ')}\n    ${end}\n`
+    expect(redact(indented, SHIPPED.rules).text).toBe(`tls:\n  key: |\n    ${begin}\n    [redacted:private-key]\n    ${end}\n`)
+
+    const windows = `${begin}\r\n${PEM_BODY.replaceAll('\n', '\r\n')}\r\n${end}`
+    expect(redact(windows, SHIPPED.rules).text).toBe(`${begin}\r\n[redacted:private-key]\r\n${end}`)
+
+    const legacy = `${armor('BEGIN', 'RSA ')}\nProc-Type: 4,ENCRYPTED\nDEK-Info: AES-128-CBC,0A1B2C3D\n\n${PEM_BODY}\n${armor('END', 'RSA ')}`
+    expect(redact(legacy, SHIPPED.rules).text).toBe(`${armor('BEGIN', 'RSA ')}\n[redacted:private-key]\n${armor('END', 'RSA ')}`)
+
+    const pgpBegin = armor('BEGIN', 'PGP ', ' BLOCK')
+    const pgpEnd = armor('END', 'PGP ', ' BLOCK')
+    expect(redact(`${pgpBegin}\n\n${PEM_BODY}\n${pgpEnd}`, SHIPPED.rules)).toEqual({
+      text: `${pgpBegin}\n\n[redacted:private-key]\n${pgpEnd}`,
+      hits: { 'shipped:private-key': 1 },
+    })
+  })
+
+  it('replaces a key body whose END line was cut off, up to the first line that is not base64', () => {
+    const truncated = `${armor('BEGIN', 'OPENSSH ')}\n${PEM_BODY}\n... [output truncated at 4096 bytes]`
+    expect(redact(truncated, SHIPPED.rules)).toEqual({
+      text: `${armor('BEGIN', 'OPENSSH ')}\n[redacted:private-key]\n... [output truncated at 4096 bytes]`,
+      hits: { 'shipped:private-key': 1 },
+    })
+    // A cut-off body never reaches past the next armor line, so a complete key after it keeps both of its own.
+    const both = `${armor('BEGIN', '')}\n${PEM_BODY}\n${armor('BEGIN', 'EC ')}\n${PEM_BODY}\n${armor('END', 'EC ')}`
+    expect(redact(both, SHIPPED.rules)).toEqual({
+      text: `${armor('BEGIN', '')}\n[redacted:private-key]\n${armor('BEGIN', 'EC ')}\n[redacted:private-key]\n${armor('END', 'EC ')}`,
+      hits: { 'shipped:private-key': 2 },
+    })
+  })
+
+  it('leaves armor lines with no body between them alone', () => {
+    const empty = `${armor('BEGIN', '')}\n${armor('END', '')}`
+    expect(redact(empty, SHIPPED.rules)).toEqual({ text: empty, hits: {} })
+  })
+
+  it('redacts every body of a log that repeats a key with no END line, one match per key', () => {
+    const repeated = `${armor('BEGIN', '')}\nQUJD\n`.repeat(20_000)
+    const { text, hits } = redact(repeated, SHIPPED.rules)
+    expect(hits).toEqual({ 'shipped:private-key': 20_000 })
+    expect(text).toBe(`${armor('BEGIN', '')}\n[redacted:private-key]\n`.repeat(20_000))
+  })
+
+  it('replaces an unsecured token, whose signature is empty, and counts a bearer token under its own rule', () => {
+    const unsecured = `${segment({ alg: 'none' })}.${segment({ sub: 'fixture' })}.`
+    expect(redact(`token ${unsecured} end`, SHIPPED.rules).text).toBe('token [redacted:jwt] end')
+    expect(redact(`Authorization: Bearer ${FAKE_JWT}`, SHIPPED.rules)).toEqual({
+      text: 'Authorization: Bearer [redacted:jwt]',
+      hits: { 'shipped:jwt': 1 },
+    })
+  })
+
+  it('replaces a temporary access key id and a secret written under each name it is given', () => {
+    expect(redact(['ASIA', 'FIXTURE0NOTAKEY0'].join(''), SHIPPED.rules).text).toBe('[redacted:aws-access-key]')
+    expect(redact(`export AWS_SECRET_ACCESS_KEY="${FAKE_AWS_SECRET}"`, SHIPPED.rules).text)
+      .toBe('export AWS_SECRET_ACCESS_KEY="[redacted:aws-secret-key]"')
+    expect(redact(`{"SecretAccessKey": "${FAKE_AWS_SECRET}",`, SHIPPED.rules).text)
+      .toBe('{"SecretAccessKey": "[redacted:aws-secret-key]",')
+    // Forty-one characters is not an AWS secret.
+    const longer = `aws_secret_access_key = ${FAKE_AWS_SECRET}x`
+    expect(redact(longer, SHIPPED.rules).text).toBe(longer)
+  })
+
+  it('replaces every GitHub token prefix and a fine-grained personal access token', () => {
+    for (const prefix of ['gho', 'ghr', 'ghs', 'ghu']) {
+      expect(redact([prefix, 'y'.repeat(36)].join('_'), SHIPPED.rules).text).toBe('[redacted:github-token]')
+    }
+    const fineGrained = ['github', 'pat', '1'.repeat(22), 'z'.repeat(59)].join('_')
+    expect(redact(`pat ${fineGrained}`, SHIPPED.rules).text).toBe('pat [redacted:github-token]')
+  })
+
+  it('counts an OpenRouter key under the api-key rule, which covers every sk- key', () => {
+    const openRouter = ['sk', 'or', 'v1', 'a1b2'.repeat(16)].join('-')
+    expect(redact(`OPENROUTER_API_KEY=${openRouter}`, SHIPPED.rules)).toEqual({
+      text: 'OPENROUTER_API_KEY=[redacted:api-key]',
+      hits: { 'shipped:api-key': 1 },
+    })
+  })
+
+  it('leaves a longer dotted version and a v-prefixed one alone, and still reads a bare four-part version as an address', () => {
+    for (const version of ['node 1.2.3.4.5 build', 'release 2.4.1.0.3', 'tag v1.2.3.4']) {
+      expect(redact(version, SHIPPED.rules).text).toBe(version)
+    }
+    expect(redact('connect to 10.0.0.1:8080, then 10.0.0.2.', SHIPPED.rules).text).toBe('connect to [redacted:ipv4]:8080, then [redacted:ipv4].')
+    expect(redact('Version=4.0.0.0', SHIPPED.rules).text).toBe('Version=[redacted:ipv4]')
+  })
+
   it('digests the rules that run, not the name they were filed under', () => {
     expect(SHIPPED.sha256).toMatch(/^[0-9a-f]{64}$/)
     expect(compileProfile('other-name', { shipped: true }).sha256).toBe(SHIPPED.sha256)
@@ -141,7 +294,7 @@ describe('compiling a configured profile', () => {
 /** Every string of this record is `SECRET`-bearing, so one rule decides each field's fate. */
 function record(): Trajectory {
   return {
-    format: 'dsh-trajectory/2',
+    format: 'dsh-trajectory/3',
     id: 'SECRET-session',
     source: {
       sessionId: 'SECRET-session',
@@ -192,6 +345,7 @@ function record(): Trajectory {
       },
     ],
     steps: [{ turn: 1, step: 1 }],
+    stopReason: 'SECRET-stop',
     reward: {
       outcome: null,
       basis: 'certificate',
@@ -234,8 +388,9 @@ describe('redacting one trajectory record', () => {
   })
 
   it('never redacts an identifier, a discriminant, or a registered tool name', () => {
-    expect(redacted.format).toBe('dsh-trajectory/2')
+    expect(redacted.format).toBe('dsh-trajectory/3')
     expect(redacted.id).toBe('SECRET-session')
+    expect(redacted.stopReason).toBe('SECRET-stop')
     expect(redacted.source).toMatchObject({
       sessionId: 'SECRET-session',
       parentSession: 'SECRET-parent',

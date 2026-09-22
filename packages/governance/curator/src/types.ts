@@ -88,6 +88,13 @@ export interface ExportManifest {
   readonly withheld: ExportWithheld
   /** Replacements over the whole export, per rule id; every rule of the profile is listed, including those that matched nothing. */
   readonly ruleHits: Readonly<Record<string, number>>
+  /**
+   * Written records each rule replaced anything in, per rule id, listed like
+   * {@link ruleHits}. Beside the replacement count it separates a rule firing
+   * in nearly every record, which is matching text every environment shares,
+   * from one firing in a few transcripts.
+   */
+  readonly ruleRecords: Readonly<Record<string, number>>
   /** Lowercase SHA-256 hex over the written lines in order, which is the digest of the sink's bytes. */
   readonly recordsSha256: string
   /** Record format of every written line. */
