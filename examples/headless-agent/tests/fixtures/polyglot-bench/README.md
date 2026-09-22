@@ -47,7 +47,7 @@ In each track the admitted exercises are ranked by a seeded SHA-256 of their ids
 | Python | 34 | 34 | 7 | 0 |
 | Rust | 30 | 22 | 4 | 8 |
 
-The refusals fall under five causes. The first two are properties of the exercises and hold on any host: aider's leaderboard counts those three exercises, and a model that leaves the working code alone passes the refactoring ones. The third is a property of this host. The last two come from the cell being offline: three Rust exercises declare a crates.io dependency their tests cannot build without, and five Rust reference solutions depend on crates their own `.meta/Cargo-example.toml` declares, so nothing shows those five passable offline, although an implementer may pass them with the standard library alone.
+The refusals fall under five causes. The first two are properties of the exercises and hold on any host: aider's leaderboard counts those three exercises, which pass there for any model that leaves them building. The third is a property of this host. The last two come from the cell being offline: three Rust exercises declare a crates.io dependency their tests cannot build without, and five Rust reference solutions depend on crates their own `.meta/Cargo-example.toml` declares, so nothing shows those five passable offline, although an implementer may pass them with the standard library alone.
 
 | Cause | Refused |
 | --- | --- |
@@ -64,7 +64,7 @@ The refusals fall under five causes. The first two are properties of the exercis
 | [`polyglot-smoke-sonnet`](plans/polyglot-smoke-sonnet.json) | 8 | the first two open exercises of each track in rank order |
 | [`polyglot-core-sonnet`](plans/polyglot-core-sonnet.json) | 40 | the first ten open exercises of each track in rank order |
 
-Both run the Claude Code route's `sonnet` once per exercise, seed 1, district `bench-polyglot`, and every smoke exercise is also a core exercise. [`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) adds the in-house bench's OpenRouter route under this fixture's evaluation-only terms, and [`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) is the keyless registry view `environments` boots.
+Both run the Claude Code route's `sonnet` once per exercise, seed 1, district `bench-polyglot`, and every smoke exercise is also a core exercise. Their recorded runs are rows of the [Proving Ground's run table](../../../../../data/proving-ground/README.md#runs), each with a paragraph stating its certificates per track. [`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) adds the in-house bench's OpenRouter route under this fixture's evaluation-only terms, and [`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) is the keyless registry view `environments` boots.
 
 ## Reading a number beside aider's
 
@@ -78,5 +78,5 @@ A certification rate here and a pass rate on aider's leaderboard are two measure
 
 - **A file the implementer adds reaches the checks.** The runner restores only the immutable paths, so a `conftest.py`, or a Go `TestMain` in a new test file, can change what the command runs. Nothing here defends against an implementer that games the harness; the session log is where such a run shows.
 - **The cells keep the network.** The sandbox governs file effects only. Admission shows that no admitted test needs the network and the commands fetch nothing, but an implementer's own command could.
-- **Admission is a property of the host.** The record names the toolchains it ran under; a host with Boost headers or a crates.io mirror would admit exercises this one refuses, and records its own outcome.
+- **Admission is a property of the host.** The record names the toolchains it ran under; a host with Boost headers or a crates.io mirror would admit some exercises this one refuses, and records its own outcome.
 - **The registrar needs `git`.** It reads the checkout's revision and changes through `git rev-parse` and `git status`.

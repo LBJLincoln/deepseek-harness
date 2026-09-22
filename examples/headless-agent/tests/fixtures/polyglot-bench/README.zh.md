@@ -47,7 +47,7 @@ implementer 修改的是该轨道的解答文件，即 `.meta/config.json` 所�
 | Python | 34 | 34 | 7 | 0 |
 | Rust | 30 | 22 | 4 | 8 |
 
-被拒绝的练习分属五种原因。前两种是练习本身的属性，在任何主机上都成立：aider 的排行榜计入了这三个练习，只要模型不去动那些可运行的代码，重构练习就能通过。第三种是本主机的属性。后两种源于 cell 处于离线状态：三个 Rust 练习声明了 crates.io 依赖，没有它测试就无法构建；另有五个 Rust 参考解依赖其自带的 `.meta/Cargo-example.toml` 所声明的 crate，所以没有任何东西能证明这五个练习可以离线通过，尽管 implementer 也许只用标准库就能通过它们。
+被拒绝的练习分属五种原因。前两种是练习本身的属性，在任何主机上都成立：aider 的排行榜计入了这三个练习，只要模型没有让它们无法构建，它们在那里就能通过。第三种是本主机的属性。后两种源于 cell 处于离线状态：三个 Rust 练习声明了 crates.io 依赖，没有它测试就无法构建；另有五个 Rust 参考解依赖其自带的 `.meta/Cargo-example.toml` 所声明的 crate，所以没有任何东西能证明这五个练习可以离线通过，尽管 implementer 也许只用标准库就能通过它们。
 
 | 原因 | 被拒绝 |
 | --- | --- |
@@ -64,7 +64,7 @@ implementer 修改的是该轨道的解答文件，即 `.meta/config.json` 所�
 | [`polyglot-smoke-sonnet`](plans/polyglot-smoke-sonnet.json) | 8 | 每个轨道按名次排在最前面的两个未留出练习 |
 | [`polyglot-core-sonnet`](plans/polyglot-core-sonnet.json) | 40 | 每个轨道按名次排在最前面的十个未留出练习 |
 
-两个计划都让 Claude Code 路由的 `sonnet` 对每个练习跑一次，种子为 1，district 为 `bench-polyglot`，冒烟计划的每个练习也都在核心计划之中。[`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) 在本 fixture 仅限评估的条款下加入自研 bench 的 OpenRouter 路由，[`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) 是 `environments` 所启动的无密钥注册表视图。
+两个计划都让 Claude Code 路由的 `sonnet` 对每个练习跑一次，种子为 1，district 为 `bench-polyglot`，冒烟计划的每个练习也都在核心计划之中。它们的已记录运行是 [Proving Ground 运行表](../../../../../data/proving-ground/README.md#runs)中的行，每份记录都有一段按轨道陈述其证书的段落。[`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) 在本 fixture 仅限评估的条款下加入自研 bench 的 OpenRouter 路由，[`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) 是 `environments` 所启动的无密钥注册表视图。
 
 ## 把一个数字放在 aider 的数字旁边读
 
@@ -78,5 +78,5 @@ implementer 修改的是该轨道的解答文件，即 `.meta/config.json` 所�
 
 - **implementer 新增的文件会进入检查。** runner 只恢复不可变路径，所以一个 `conftest.py`，或者新测试文件中的一个 Go `TestMain`，都可能改变命令实际运行的内容。这里没有任何东西能防范一个钻 harness 空子的 implementer；这样的运行会在会话日志中显现出来。
 - **cell 保留了网络。** 沙箱只管文件效果。准入表明没有哪个被准入的测试需要网络，这些命令也不下载任何东西，但 implementer 自己运行的命令可能会。
-- **准入是主机的属性。** 记录写明了它所用的工具链；装有 Boost 头文件或 crates.io 镜像的主机会准入本主机拒绝的练习，并记录它自己的结果。
+- **准入是主机的属性。** 记录写明了它所用的工具链；装有 Boost 头文件或 crates.io 镜像的主机会准入本主机拒绝的部分练习，并记录它自己的结果。
 - **注册器需要 `git`。** 它通过 `git rev-parse` 与 `git status` 读取检出的修订与改动。
