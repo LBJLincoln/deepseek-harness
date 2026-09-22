@@ -2,8 +2,8 @@
 /**
  * Mirrors the local harness feed into the hosted relay.
  *
- * Every JSON_EVERY_MS the pusher reads GET /runs, GET /roster and, for each
- * code-safety run, GET /safety/:id from the local feed and pushes each to the
+ * Every JSON_EVERY_MS the pusher reads GET /runs, GET /roster, GET /programs
+ * and, for each code-safety run, GET /safety/:id from the local feed and pushes each to the
  * relay's `ingest` function when its content changed. Every run on the local
  * feed is followed on its Server-Sent Events stream and the folded events are
  * forwarded in batches from one queue per run: running runs first, then
@@ -101,6 +101,7 @@ async function syncJson() {
   const runs = await (await local('/runs')).json()
   if (await pushIfChanged('/runs', runs)) stats.snapshots += 1
   if (await pushIfChanged('/roster', await (await local('/roster')).json())) stats.snapshots += 1
+  if (await pushIfChanged('/programs', await (await local('/programs')).json())) stats.snapshots += 1
   for (const run of runs) {
     follow(run)
     if (run.kind !== 'code-safety') continue

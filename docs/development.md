@@ -164,7 +164,7 @@ pnpm run demo:acp
 
 ### Enterprise roster and harness feed
 
-`pnpm run roster` regenerates [`data/enterprise/roster.json`](../data/enterprise/README.md), the 147-agent enterprise proof-of-concept roster, deterministically from real repository sources; commit the regenerated file whenever a cited source moves. `pnpm run feed` serves that roster with live status overlaid, plus discovered proving-ground and code-safety run data, over HTTP and Server-Sent Events on port 4711 (`--port <n>` to override, `--fixtures <dir>` to serve a fixed directory instead of live discovery). Neither command needs `DEEPSEEK_API_KEY`. See [`data/enterprise/README.md`](../data/enterprise/README.md) for the roster's derivation and honesty rule, and [`scripts/harness-feed.ts`](../scripts/harness-feed.ts) for the endpoint contract.
+`pnpm run roster` regenerates [`data/enterprise/roster.json`](../data/enterprise/README.md), the enterprise proof of concept's 147 seat definitions, deterministically from real repository sources, with each seat's evidence from the committed session records; commit the regenerated file whenever a cited source moves or a record is committed. `pnpm run feed` serves that roster with live status and evidence recomputed, the organisation of record on `GET /programs`, and discovered proving-ground and code-safety run data, over HTTP and Server-Sent Events on port 4711 (`--port <n>` to override, `--fixtures <dir>` to serve a fixed directory instead of live discovery). Neither command needs `DEEPSEEK_API_KEY`. See [`data/enterprise/README.md`](../data/enterprise/README.md) for the roster's derivation and honesty rule, and [`scripts/harness-feed.ts`](../scripts/harness-feed.ts) for the endpoint contract.
 
 ### TODO markers
 

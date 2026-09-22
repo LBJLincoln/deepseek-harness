@@ -5,9 +5,8 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createHarnessFeedServer, foldSessionEvent, mapSessionToAgentId, sessionFilesForRun } from './harness-feed.ts'
-import type { FeedEvent, LiveRoster, RunSummary, SafetyDetail } from './harness-feed.ts'
-import type { Roster } from './enterprise-roster.ts'
+import { createHarnessFeedServer, foldSessionEvent, sessionFilesForRun } from './harness-feed.ts'
+import type { FeedEvent, LiveRoster, ProgramRecord, RunSummary, SafetyDetail } from './harness-feed.ts'
 
 const root = resolve(import.meta.dirname, '..')
 
@@ -17,6 +16,9 @@ const root = resolve(import.meta.dirname, '..')
 // reused here rather than inventing a new one.
 const REAL_ROUTE = { provider: 'deepseek-official', model: 'deepseek-v4-flash' }
 const REAL_SYSTEM_PROMPT = 'You are headless-agent, a coding assistant powered by the deepseek-v4-flash model.'
+
+/** The bench operator seat of the environment session A runs; its configured route is not `REAL_ROUTE`. */
+const BENCH_SEAT = 'proving-ground-bitset-bloom-bench-operator'
 
 /** One line of a synthesized `session.jsonl`, matching the real envelope `packages/core/session` writes. */
 function line(type: string, seq: number, time: number, data: Record<string, unknown>): string {
@@ -48,11 +50,16 @@ function requestHeader(seq: number, time: number): string {
   return line('request/header', seq, time, { header: { config: REAL_ROUTE, system: REAL_SYSTEM_PROMPT } })
 }
 
-/** Builds `session-a/session.jsonl`: a turn with a plain tool call, a delegation, and a queued directive. */
+/**
+ * Builds `session-a/session.jsonl`: a bench environment run (the evidence that
+ * places it on {@link BENCH_SEAT}), then a turn with a plain tool call, a
+ * delegation, and a queued directive.
+ */
 function buildSessionA(): string {
   const t = 1_800_000_001_000
   return [
     sessionHeader('11111111-1111-4111-8111-111111111111'),
+    line('environment/run', 0, t - 1, { kind: 'environment/run', version: 1, environmentId: 'code:bitset-bloom', environmentKind: 'bench' }),
     line('turn/start', 1, t, { turn: 1 }),
     requestHeader(2, t + 1),
     line('step/start', 3, t + 2, { turn: 1, step: 1 }),
@@ -70,7 +77,7 @@ function buildSessionA(): string {
   ].join('')
 }
 
-/** Builds `session-b/session.jsonl`: a shorter second session on the same route. */
+/** Builds `session-b/session.jsonl`: a shorter second session on the same route that names no environment, program, or parent. */
 function buildSessionB(): string {
   const t = 1_800_000_002_000
   return [
@@ -305,7 +312,10 @@ describe('GET /runs/:id/events', () => {
     expect(delegationEvents.some(e => e.detail === 'CHILD_OK')).toBe(true)
     const directive = sessionAEvents.find(e => e.kind === 'directive')
     expect(directive?.detail).toBe('follow up instruction')
-    expect(events.every(e => e.agentId.length > 0)).toBe(true)
+    // Session A ran a seated bench environment; session B names nothing a rule
+    // places, so its frames carry no seat at all rather than a fallback one.
+    expect(sessionAEvents.every(e => e.agentId === BENCH_SEAT)).toBe(true)
+    expect(sessionBEvents.every(e => e.agentId === undefined)).toBe(true)
   })
 
   it('tails an appended line within one poll interval', async () => {
@@ -360,7 +370,8 @@ describe('GET /runs/:id/events for a recorded data/proving-ground run', () => {
     const events = await sse.waitForCount(5, 2_000)
     expect(Date.now() - startedAt).toBeLessThan(1_000)
     expect(events.length).toBeGreaterThanOrEqual(5)
-    expect(events.every(event => event.agentId.length > 0)).toBe(true)
+    // Neither session names a program, an environment run, or a parent.
+    expect(events.every(event => event.agentId === undefined)).toBe(true)
     // The real session's own event vocabulary (turn/step/request-header/etc.)
     // folds to a mix of recognized kinds, not one repeated placeholder.
     expect(new Set(events.map(event => event.kind)).size).toBeGreaterThan(1)
@@ -402,44 +413,10 @@ describe('the fold and mapping functions directly', () => {
     expect(foldSessionEvent({ type: 42, seq: 1, time: 1 }, state)).toBeUndefined()
   })
 
-  it('maps a session to the first agent sharing its stamped provider and model', () => {
-    const roster: Roster = {
-      generatedAt: '2026-01-01T00:00:00Z',
-      counts: { defined: 2, active: 0 },
-      divisions: [],
-      agents: [
-        {
-          id: 'a', name: 'A', role: 'steward', division: 'harness-core', route: REAL_ROUTE, preset: 'coding',
-          skills: [], tools: [], source: 'package.json', status: 'defined',
-        },
-        {
-          id: 'b', name: 'B', role: 'verifier', division: 'verification', route: { provider: 'codex', model: 'codex' },
-          preset: 'reviewing', skills: [], tools: [], source: 'package.json', status: 'defined',
-        },
-      ],
-      edges: [],
-    }
-    const lines = [{ type: 'request/header', data: { header: { config: REAL_ROUTE, system: REAL_SYSTEM_PROMPT } } }]
-    expect(mapSessionToAgentId(lines, roster, 'fallback')).toBe('a')
-    expect(mapSessionToAgentId([], roster, 'fallback')).toBe('fallback')
-  })
-
-  it('maps a program session to the code-safety seat its id names, ahead of any route match', () => {
-    const roster = JSON.parse(readFileSync(resolve(root, 'data/enterprise/roster.json'), 'utf8')) as Roster
-    const digest = 'a'.repeat(64)
-    const session = (id: string) => [{ type: 'session', id }, { type: 'request/header', data: { header: { config: REAL_ROUTE, system: REAL_SYSTEM_PROMPT } } }]
-    expect(mapSessionToAgentId(session(`program-${digest}-secrets`), roster, 'fallback')).toBe('code-safety-secrets-integrator')
-    expect(mapSessionToAgentId(session(`program-${digest}-~0040integration`), roster, 'fallback')).toBe('code-safety-lead')
-    expect(mapSessionToAgentId(session(`program-${digest}`), roster, 'fallback')).toBe('code-safety-lead')
-    // The id may also be handed in by a caller that has it without the session line.
-    expect(mapSessionToAgentId([], roster, 'fallback', `program-${digest}-injection`)).toBe('code-safety-injection-integrator')
-    // A department the roster does not seat falls through to the route match.
-    expect(mapSessionToAgentId(session(`program-${digest}-unknown`), roster, 'fallback')).not.toMatch(/^code-safety-/)
-  })
 })
 
 describe('GET /roster', () => {
-  it('reports the fixture session as active and counts it', async () => {
+  it('lights only the seat a running session occupies, and counts the session no rule places as unattributed', async () => {
     const fixture = makeFixture()
     cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
     const { port } = await startServer(fixture.dir)
@@ -447,11 +424,24 @@ describe('GET /roster', () => {
     const { status, body: rawBody } = await getJson(port, '/roster')
     const body = rawBody as LiveRoster
     expect(status).toBe(200)
-    expect(body.counts.defined).toBe(147)
-    expect(body.counts.active).toBe(1)
+    expect(body.counts).toEqual({ defined: 147, occupied: 1, active: 1 })
     const active = body.agents.filter(agent => agent.status === 'active')
-    expect(active).toHaveLength(1)
-    expect(active[0]?.route).toEqual(REAL_ROUTE)
+    expect(active.map(agent => agent.id)).toEqual([BENCH_SEAT])
+    // The seat keeps the route it is defined for; its evidence names the route its session ran on.
+    expect(active[0]?.route.provider).toBe('claude-code')
+    expect(active[0]?.evidence).toEqual({ sessions: 1, lastSeen: new Date(1_800_000_001_009).toISOString(), routesSeen: ['deepseek-official'] })
+    expect(body.agents.filter(agent => agent.evidence.sessions === 0).every(agent => agent.status === 'defined')).toBe(true)
+    expect(body.evidence).toEqual({ records: ['.proving-ground/runs/bench-e3'], sessions: 2, routes: { 'deepseek-official': 2 } })
+    expect(body.unattributed).toEqual({
+      sessions: 1,
+      reasons: {
+        'environment-not-seated': 0,
+        'program-not-code-safety': 0,
+        'program-member-not-seated': 0,
+        'parent-not-recorded': 0,
+        'no-seat-evidence': 1,
+      },
+    })
   })
 
   it('re-reads a session file that grew since the last request, so a new certificate shows on the next roster', async () => {
@@ -459,25 +449,25 @@ describe('GET /roster', () => {
     cleanups.push(() => { rmSync(fixture.dir, { recursive: true, force: true }) })
     const { port } = await startServer(fixture.dir)
 
-    // Session B shares session A's agent and would keep it active; only A is under test here.
-    rmSync(join(fixture.runDir, '.sessions/session-b'), { recursive: true, force: true })
     const first = (await getJson(port, '/roster')).body as LiveRoster
     expect(first.counts.active).toBe(1)
     appendFileSync(fixture.sessionAFile, line('verification/certificate', 99, 99, { verifier: 'oxlint' }))
     const second = (await getJson(port, '/roster')).body as LiveRoster
     expect(second.counts.active).toBe(0)
-    expect(second.agents.filter(agent => agent.status === 'certified')).toHaveLength(1)
+    expect(second.agents.filter(agent => agent.status === 'certified').map(agent => agent.id)).toEqual([BENCH_SEAT])
   })
 
-  it('reports zero active agents with no discoverable runs', async () => {
+  it('reports every seat defined, none occupied, with no discoverable runs', async () => {
     const empty = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-empty-'))
     cleanups.push(() => { rmSync(empty, { recursive: true, force: true }) })
     const { port } = await startServer(empty)
 
     const { body: rawBody } = await getJson(port, '/roster')
     const body = rawBody as LiveRoster
-    expect(body.counts).toEqual({ defined: 147, active: 0 })
-    expect(body.agents.every(agent => agent.status === 'defined')).toBe(true)
+    expect(body.counts).toEqual({ defined: 147, occupied: 0, active: 0 })
+    expect(body.agents.every(agent => agent.status === 'defined' && agent.evidence.sessions === 0)).toBe(true)
+    expect(body.evidence).toEqual({ records: [], sessions: 0, routes: {} })
+    expect(body.unattributed.sessions).toBe(0)
   })
 })
 
@@ -597,6 +587,152 @@ describe('code-safety runs', () => {
     const detail = rawBody as SafetyDetail
     expect(detail.findings).toEqual([])
     expect(detail.departments.every(department => department.status === 'pending' && !department.certified)).toBe(true)
+  })
+})
+
+/** A program id as `@deepseek-ai/dsh-program` mints it: `program-` and the frozen spec's digest. */
+const PROGRAM_ID = `program-${'b'.repeat(64)}`
+
+/**
+ * Writes one program record under `<tree>/<id>`: the program's own ledger
+ * session (two signatures, the spec, goal and integration statuses, the
+ * outcome), a certified department, an uncertified one, and the integration,
+ * with the event shapes a real `data/code-safety/2026-09-19-nodegoat` record
+ * carries.
+ * @param dir - The discovery root.
+ * @param tree - `data/code-safety` or `data/proving-ground`.
+ * @param id - The record's directory name.
+ */
+function writeProgramRecord(dir: string, tree: string, id: string): void {
+  const recordDir = join(dir, tree, id)
+  const sessions = join(recordDir, 'sessions')
+  mkdirSync(sessions, { recursive: true })
+  const t = 1_800_000_100_000
+  const principal = { kind: 'human', id: 'code-safety-client', displayName: 'code-safety client' }
+  const signed = '5afe'.repeat(16)
+  writeFileSync(join(sessions, `${PROGRAM_ID}.jsonl`), [
+    sessionHeader(PROGRAM_ID),
+    line('signoff/recorded', 0, t, { transition: 'spec-freeze', principal, artefactSha256: signed, evidence: [] }),
+    line('signoff/recorded', 1, t + 1, { transition: 'release', principal, artefactSha256: signed, evidence: [] }),
+    line('program/start', 2, t + 10, {
+      programId: PROGRAM_ID,
+      specSha256: 'b'.repeat(64),
+      spec: { objective: 'review the fixture target', goals: [{ key: 'secrets' }, { key: 'access' }] },
+    }),
+    line('program/goal', 3, t + 11, { programId: PROGRAM_ID, key: 'secrets', status: 'running', sessionId: `${PROGRAM_ID}-secrets` }),
+    line('program/goal', 4, t + 12, { programId: PROGRAM_ID, key: 'access', status: 'running', sessionId: `${PROGRAM_ID}-access` }),
+    line('program/goal', 5, t + 50, { programId: PROGRAM_ID, key: 'secrets', status: 'merged', sessionId: `${PROGRAM_ID}-secrets` }),
+    line('program/goal', 6, t + 60, { programId: PROGRAM_ID, key: 'access', status: 'failed', sessionId: `${PROGRAM_ID}-access` }),
+    line('program/integration', 7, t + 70, { programId: PROGRAM_ID, status: 'running' }),
+    line('program/integration', 8, t + 100, {
+      programId: PROGRAM_ID, status: 'certified', mergedRevision: 'c0ffee', sessionId: `${PROGRAM_ID}-@integration`,
+    }),
+    line('program/end', 9, t + 110, { programId: PROGRAM_ID, outcome: 'released', mergedRevision: 'c0ffee' }),
+  ].join(''))
+  writeFileSync(join(sessions, `${PROGRAM_ID}-secrets.jsonl`), [
+    sessionHeader(`${PROGRAM_ID}-secrets`),
+    line('step/start', 1, t + 20, { turn: 1, step: 1 }),
+    toolCall(2, t + 21, 'call-1', 'read', { file_path: 'app/config.js' }),
+    toolCall(3, t + 22, 'call-2', 'bash', { command: 'grep -rn key app' }),
+    line('step/start', 4, t + 23, { turn: 1, step: 2 }),
+    toolCall(5, t + 24, 'call-3', 'write', { file_path: 'findings/secrets.json' }),
+    line('verification/certificate', 6, t + 30, { verifier: 'runner' }),
+  ].join(''))
+  writeFileSync(join(sessions, `${PROGRAM_ID}-access.jsonl`), [
+    sessionHeader(`${PROGRAM_ID}-access`),
+    line('step/start', 1, t + 20, { turn: 1, step: 1 }),
+    toolCall(2, t + 21, 'call-4', 'read', { file_path: 'app/routes.js' }),
+  ].join(''))
+  writeFileSync(join(sessions, `${PROGRAM_ID}-~0040integration.jsonl`), [
+    sessionHeader(`${PROGRAM_ID}-@integration`),
+    line('step/start', 1, t + 80, { turn: 1, step: 1 }),
+    line('verification/certificate', 2, t + 95, { verifier: 'runner' }),
+  ].join(''))
+  writeFileSync(join(recordDir, 'manifest.json'), JSON.stringify({
+    run: id,
+    ranAt: new Date(t).toISOString(),
+    endedAt: new Date(t + 110).toISOString(),
+    target: { root: '/targets/fixture' },
+  }))
+}
+
+describe('GET /programs', () => {
+  it('lists a recorded code-safety review with its departments, integration verdict, and signatures', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-programs-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    writeProgramRecord(dir, 'data/code-safety', '2026-09-19-fixture-review')
+    const { port } = await startServer(dir)
+
+    const { status, body: rawBody } = await getJson(port, '/programs')
+    expect(status).toBe(200)
+    const sessions = 'data/code-safety/2026-09-19-fixture-review/sessions'
+    const signedBy = { kind: 'human', id: 'code-safety-client', displayName: 'code-safety client' }
+    expect(rawBody as ProgramRecord[]).toEqual([{
+      programId: PROGRAM_ID,
+      runId: '2026-09-19-fixture-review',
+      kind: 'code-safety',
+      path: 'data/code-safety/2026-09-19-fixture-review',
+      target: '/targets/fixture',
+      spec: { sha256: 'b'.repeat(64), objective: 'review the fixture target' },
+      startedAt: new Date(1_800_000_100_010).toISOString(),
+      endedAt: new Date(1_800_000_100_110).toISOString(),
+      outcome: 'released',
+      departments: [
+        {
+          key: 'secrets',
+          sessionId: `${PROGRAM_ID}-secrets`,
+          status: 'merged',
+          sessionPath: `${sessions}/${PROGRAM_ID}-secrets.jsonl`,
+          certified: true,
+          steps: 2,
+          toolCalls: 3,
+          seatId: 'code-safety-secrets-integrator',
+        },
+        {
+          key: 'access',
+          sessionId: `${PROGRAM_ID}-access`,
+          status: 'failed',
+          sessionPath: `${sessions}/${PROGRAM_ID}-access.jsonl`,
+          certified: false,
+          steps: 1,
+          toolCalls: 1,
+          seatId: 'code-safety-access-integrator',
+        },
+      ],
+      integration: {
+        sessionId: `${PROGRAM_ID}-@integration`,
+        status: 'certified',
+        sessionPath: `${sessions}/${PROGRAM_ID}-~0040integration.jsonl`,
+        certified: true,
+        steps: 1,
+        toolCalls: 0,
+        seatId: 'code-safety-lead',
+        certifiedAt: new Date(1_800_000_100_100).toISOString(),
+        mergedRevision: 'c0ffee',
+      },
+      signoffs: [
+        { transition: 'spec-freeze', at: new Date(1_800_000_100_000).toISOString(), decidedBy: signedBy, artefactSha256: '5afe'.repeat(16) },
+        { transition: 'release', at: new Date(1_800_000_100_001).toISOString(), decidedBy: signedBy, artefactSha256: '5afe'.repeat(16) },
+      ],
+    }])
+  })
+
+  it('lists a Proving Ground program without seating it, and counts its sessions as unattributed on the roster', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-harness-feed-program-'))
+    cleanups.push(() => { rmSync(dir, { recursive: true, force: true }) })
+    writeProgramRecord(dir, 'data/proving-ground', '2026-09-19-fixture-program')
+    const { port } = await startServer(dir)
+
+    const programs = (await getJson(port, '/programs')).body as ProgramRecord[]
+    expect(programs).toHaveLength(1)
+    expect(programs[0]).toMatchObject({ kind: 'program', outcome: 'released' })
+    expect(programs[0]?.target).toBeUndefined()
+    expect(programs[0]?.departments.map(department => department.seatId)).toEqual([undefined, undefined])
+    expect(programs[0]?.integration?.seatId).toBeUndefined()
+
+    const roster = (await getJson(port, '/roster')).body as LiveRoster
+    expect(roster.counts.occupied).toBe(0)
+    expect(roster.unattributed.reasons['program-not-code-safety']).toBe(4)
   })
 })
 

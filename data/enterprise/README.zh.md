@@ -2,13 +2,27 @@
 
 [English](README.md) | 中文
 
-本目录下的 `roster.json` 是为企业概念验证生成的、包含 147 个智能体的花名册：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在其上叠加实时状态后提供服务（`pnpm run feed`）。
+本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时状态与证据后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是 feed 在 `GET /programs` 上提供的项目运行台账，每次已记录的项目运行一条，列出其各部门、各部门的证书、整合的结论以及各项签署。
 
 ## 诚实原则
 
-147 是本仓库**已定义**的智能体数量——每条记录的 `source` 字段都指向一个真实存在的仓库路径（一个包 README、一个 `verify-*.ts` 脚本、一个 CI 关卡名称、一份 Agent Note、一个技能目录、一个 Proving Ground 基准测试的任务环境，或一个代码安全审查知识包），并在生成花名册时对照磁盘做过校验。每个事业部的数量都是固定配额（总和为 147）；由可变来源池构建的事业部会从该池中按排序精确取出其配额，若代码树定义的来源少于配额所需，生成器会抛出异常，指明该事业部与缺口数量。它绝不是当前正在运行的智能体数量。已提交文件中的 `counts.active` 始终为 `0`，且每个智能体的 `status` 始终为 `"defined"`。
+147 是本仓库**已定义**的席位数量——每条记录的 `source` 字段都指向一个真实存在的仓库路径（一个包 README、一个 `verify-*.ts` 脚本、一个 CI 关卡名称、一份 Agent Note、一个技能目录、一个 Proving Ground 基准测试的任务环境，或一个代码安全审查知识包），并在生成花名册时对照磁盘做过校验。每个事业部的数量都是固定配额（总和为 147）；由可变来源池构建的事业部会从该池中按排序精确取出其配额，若代码树定义的来源少于配额所需，生成器会抛出异常，指明该事业部与缺口数量。一个定义既不是正在运行的智能体，也不是曾有智能体运行过的证据：每个席位都由两个测试夹具预设（`coding`、`reviewing`）之一组合而成，并写明它为之定义的路由，无论是否有会话在该路由上运行过。
 
-实时状态只来自正在运行的 feed 上的 `GET /roster`（`pnpm run feed`），它会用磁盘上真实会话数据当下反映的情况,叠加到已提交的花名册上：当某次已发现的运行中存在一个映射到该智能体、且仍在运行的会话时，状态为 `active`；一旦该会话记录了一个证书形状的事件，状态变为 `certified`；若其所属运行已结束但未记录该事件，则为 `failed`。没有匹配会话的智能体保持 `"defined"`。一次全新检出、尚无 `.proving-ground/`、`data/proving-ground/` 或 `.code-safety/` 运行时数据时，全部 147 个智能体都会报告 `active: 0`——这是正确、诚实的答案，而不是缺陷。
+## 证据
+
+每个席位都带有 `evidence: { sessions, lastSeen?, routesSeen }`，由 [`scripts/roster-evidence.ts`](../../scripts/roster-evidence.ts) 中的归属规则，从 `data/proving-ground/*/sessions` 与 `data/code-safety/*/sessions` 下已提交的记录计算得出；feed 也使用这个模块，因此在相同的记录上，该文件与 feed 的结果一致：
+
+- 代码安全审查中的项目会话占据其 id 所指的代码安全席位：某个部门的会话占据该部门的整合员席位，项目自身的会话与其整合会话占据项目负责人席位；
+- `environment/run` 指明某个基准测试环境的会话，占据专精于该环境的 Proving Ground 基准测试操作员席位；
+- 被委派的会话占据其委派方会话所占据的席位。
+
+会话与某个席位共用的路由不算证据。`counts.occupied` 统计至少被一个会话占据的席位。`routesSeen` 在席位为之定义的 `route` 旁列出其会话实际运行所在的提供方路由，因此一个为 `deepseek-official` 定义、其会话却全部运行在 `claude-code` 上的席位会如实说明这一点。顶层的 `evidence` 列出所读取的记录（`records`）、这些记录的会话数（`sessions`），以及所有会话（无论是否归属）按路由的数量（`routes`）。`unattributed` 按原因统计没有任何规则将其放到席位上的会话：`environment-not-seated`、`program-not-code-safety`、`program-member-not-seated`、`parent-not-recorded`、`no-seat-evidence`。没有任何会话会被默认放到某个席位上。
+
+已提交文件的证据恰好覆盖 `evidence.records` 所列的记录，因此在提交更多记录之后，它仍能由这些记录复现；`pnpm run roster` 会把它扩展到每一条已提交的记录。文件中的 `status` 始终为 `"defined"`，`counts.active` 始终为 `0`。[花名册证据 Agent Note](../../.agents/notes/proposed/architecture/2026-09-22-roster-evidence-and-org-of-record.md) 记录了这一决策及其背后的审计。
+
+## 实时状态
+
+正在运行的 feed（`pnpm run feed`）上的 `GET /roster` 会在它发现的每次运行（包括实时运行）上重新计算每个席位的证据、计数、`evidence` 与 `unattributed`，并设置每个席位的 `status`：当归属于它的某个会话属于仍在运行的运行时为 `active`；一旦它的某个会话记录了证书事件，变为 `certified`；若它的会话都已结束但未记录证书，则为 `failed`。没有任何会话占据的席位保持 `"defined"`。一次全新检出、尚无运行时数据时，会报告已提交记录的证据与 `active: 0`，这是正确的答案。
 
 ## 事业部
 
@@ -35,4 +49,4 @@
 pnpm run roster
 ```
 
-该生成器是幂等的：在未变更的代码树上运行，会逐字节复现相同的 `roster.json`。一次干净的重新生成后出现差异，意味着某个被引用的来源发生了移动；生成器会在写入任何内容之前抛出错误，并指明是哪一个。
+该生成器是幂等的：在未变更的代码树与未变更的记录上运行，会逐字节复现相同的 `roster.json`。一次干净的重新生成后出现差异，意味着某个被引用的来源发生了移动，或有新的记录被提交；来源移动时，生成器会在写入任何内容之前失败，并在错误中指明是哪一个。

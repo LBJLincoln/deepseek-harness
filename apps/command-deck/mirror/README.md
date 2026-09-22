@@ -8,11 +8,11 @@ The mirror publishes the harness feed from a machine that accepts no inbound con
 
 | Path | Role |
 | --- | --- |
-| `schema.sql` | Four tables: `feed_config` (the pusher token's digest), `feed_json` (one row per feed path: `/roster`, `/runs`, `/safety/<id>`), `feed_events` (one row per folded event, unique on run, session and `seq`), `feed_requests` (reviews the hosted deck asked for); row level security with no policies; the public `deck` storage bucket. |
+| `schema.sql` | Four tables: `feed_config` (the pusher token's digest), `feed_json` (one row per feed path: `/roster`, `/runs`, `/programs`, `/safety/<id>`), `feed_events` (one row per folded event, unique on run, session and `seq`), `feed_requests` (reviews the hosted deck asked for); row level security with no policies; the public `deck` storage bucket. |
 | `functions/ingest/index.ts` | Token-protected writes. `POST /bootstrap` fixes the token on first use and stores its SHA-256; then `POST /json`, `POST /events`, `GET /requests`, `POST /requests/:id`, `POST /upload` and `POST /reset`, each carrying `x-daliesk-token`. Every write body is `{ "gz": base64(gzip(JSON)) }`. |
-| `functions/feed/index.ts` | The feed contract for viewers: `GET /roster`, `GET /runs`, `GET /safety/:id`, Server-Sent Events on `GET /runs/:id/events` (at most 140 s per connection, resumed from `Last-Event-ID`), and `POST /safety`, which waits up to 25 s for the pusher to start the review and answers with its run id. CORS allows every origin. |
+| `functions/feed/index.ts` | The feed contract for viewers: `GET /roster`, `GET /runs`, `GET /programs`, `GET /safety/:id`, Server-Sent Events on `GET /runs/:id/events` (at most 140 s per connection, resumed from `Last-Event-ID`), and `POST /safety`, which waits up to 25 s for the pusher to start the review and answers with its run id. CORS allows every origin. |
 | `functions/deck/index.ts` | Serves the deck's static export from the `deck` bucket under `/functions/v1/deck/`. A browser does not receive it as a page: the platform answers a navigation with `text/plain` and a sandboxing policy, so host the export elsewhere and point it at the relay. |
-| `pusher.mjs` | Runs beside the feed. Pushes `/runs`, `/roster` and each code-safety `/safety/:id` when they change, follows every run's event stream and forwards events in batches (running runs first, then code-safety reviews, then the rest newest first), and claims review requests whose target is under `TARGET_ROOT`. |
+| `pusher.mjs` | Runs beside the feed. Pushes `/runs`, `/roster`, `/programs` and each code-safety `/safety/:id` when they change, follows every run's event stream and forwards events in batches (running runs first, then code-safety reviews, then the rest newest first), and claims review requests whose target is under `TARGET_ROOT`. |
 | `upload-deck.mjs` | Uploads a static export directory to the bucket through `POST /upload`. |
 
 ## Deploy

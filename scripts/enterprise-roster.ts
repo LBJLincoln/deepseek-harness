@@ -1,6 +1,6 @@
 /**
- * Generates the customer proof-of-concept's 147-agent enterprise roster from
- * sources this repository actually defines: package READMEs, `verify-*`
+ * Generates the customer proof-of-concept's roster of 147 seat definitions
+ * from sources this repository actually defines: package READMEs, `verify-*`
  * scripts, CI gate names, Agent Notes, skill directories, the Proving Ground
  * bench's real task environments, and the code-safety review knowledge packs
  * under `data/knowledge/code-safety`. Every {@link RosterAgentDefinition.source}
@@ -22,10 +22,16 @@
  * `Array#sort` on the pool's own keys, which is what makes the output
  * byte-identical for the same tree.
  *
- * `status` here is always `"defined"` and `counts.active` is always `0`: this
- * module describes what the repository defines, never what is running. Live
- * status and active counts are computed by `scripts/harness-feed.ts` from real
- * session data and are never written back into this file.
+ * Each seat also carries {@link RosterAgentDefinition.evidence}: what the
+ * committed records under `data/proving-ground` and `data/code-safety` show of
+ * it, attributed by the rules `scripts/roster-evidence.ts` states, with the
+ * sessions no rule places on a seat counted in {@link Roster.unattributed}.
+ * {@link Roster.evidence} names the records the evidence was computed over, so
+ * the file reproduces from exactly those records even after more are
+ * committed. `status` here is always `"defined"` and `counts.active` is always
+ * `0`: this file describes definitions and recorded evidence, never what is
+ * running. Live status is computed by `scripts/harness-feed.ts`, which applies
+ * the same attribution rules to every run it discovers.
  *
  * @module enterprise-roster
  */
@@ -33,6 +39,18 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import {
+  attributeRun,
+  committedRecords,
+  evidenceFor,
+  readRecordedSessions,
+  summarizeEvidence,
+  type RosterEvidence,
+  type RunSessions,
+  type SeatEvidence,
+  type UnattributedSessions,
+} from './roster-evidence.ts'
 
 /** One LLM route: the provider a Service Definition registers plus the model id it accepts. */
 export interface RosterRoute {
@@ -56,9 +74,12 @@ export interface RosterAgentDefinition {
   department?: string
   /** The role x division axis this agent covers within its division (a language, a package, a gate name). */
   specialization?: string
-  /** The LLM route this agent's session would run under. */
+  /** The LLM route this seat is defined for; {@link SeatEvidence.routesSeen} names the routes its recorded sessions actually ran on. */
   route: RosterRoute
-  /** The preset id (`coding` or `reviewing`, the two presets this repository ships as fixtures) this agent composes from. */
+  /**
+   * The preset id this seat composes from: `coding` or `reviewing`, the two
+   * test-fixture presets under `packages/subagent/subagent-in-process-driver/tests/fixtures/presets/`.
+   */
   preset: string
   /**
    * Skill ids this agent draws on; empty when none applies. A bare id names
@@ -72,7 +93,12 @@ export interface RosterAgentDefinition {
   source: string
   /** Always `"defined"` in the generated file; live status is computed by `harness-feed.ts`, never written here. */
   status: 'defined'
+  /** What the records named by {@link Roster.evidence} show of this seat; zero sessions for a seat no recorded session occupied. */
+  evidence: SeatEvidence
 }
+
+/** A seat as a division builder composes it, before {@link buildRoster} attaches its evidence. */
+type SeatDefinition = Omit<RosterAgentDefinition, 'evidence'>
 
 /**
  * One relationship between two roster agents. `from` performs the relationship
@@ -105,14 +131,22 @@ export interface RosterDivisionSummary {
 export interface Roster {
   /** ISO timestamp of the moment the roster's content last changed; {@link generateRoster} keeps it while the content is unchanged. */
   generatedAt: string
-  /** Aggregate counts; `active` is always 0 here because this file never observes running sessions. */
-  counts: { defined: number; active: number }
+  /**
+   * Aggregate counts: `defined` seats, `occupied` seats (at least one recorded
+   * session attributed), and `active` seats, always 0 here because this file
+   * never observes running sessions.
+   */
+  counts: { defined: number; occupied: number; active: number }
   /** Every division this roster composes agents from, in a fixed presentation order. */
   divisions: RosterDivisionSummary[]
-  /** The 147 defined agents. */
+  /** The 147 defined seats. */
   agents: RosterAgentDefinition[]
   /** Relationships between agents, derived from role/division adjacency. */
   edges: RosterEdge[]
+  /** The records every seat's evidence was computed over, their session count, and sessions per route. */
+  evidence: RosterEvidence
+  /** The sessions in those records no attribution rule places on a seat, by reason. */
+  unattributed: UnattributedSessions
 }
 
 /** The roster's fixed size: role x division x specialization composed over this repository's real sources. */
@@ -276,6 +310,8 @@ const EPOCH = '1970-01-01T00:00:00Z'
 export interface BuildRosterOptions {
   /** The `generatedAt` to stamp; {@link generateRoster} chooses the value that keeps an unchanged file byte-identical. */
   generatedAt: string
+  /** The recorded sessions to attribute to the seats, from `readRecordedSessions` in `scripts/roster-evidence.ts`. */
+  recorded: readonly RunSessions[]
   /** Repository-relative path to this feature's Agent Note, cited as the code-safety program lead's source. */
   notePath?: string
 }
@@ -304,19 +340,21 @@ function readRosterFile(file: string): { content: string; generatedAt: string } 
  * stamp, and when that reproduces the file byte for byte the file is left as
  * it is; otherwise the roster is rebuilt under `now()` and written.
  * @param root - repository root.
+ * @param recorded - the recorded sessions the seats' evidence is computed from; the CLI passes every committed record.
  * @param now - the stamp a changed roster receives; the wall clock unless a test injects a fixed value.
  * @param file - the roster file to read and write; {@link ROSTER_PATH} under `root` unless overridden.
  * @returns the roster the file holds afterwards and whether the file changed.
  */
 export function generateRoster(
   root: string,
+  recorded: readonly RunSessions[],
   now: () => string = () => new Date().toISOString(),
   file = join(root, ROSTER_PATH),
 ): { roster: Roster; changed: boolean } {
   const previous = readRosterFile(file)
-  const rebuilt = buildRoster(root, { generatedAt: previous?.generatedAt ?? EPOCH })
+  const rebuilt = buildRoster(root, { generatedAt: previous?.generatedAt ?? EPOCH, recorded })
   if (previous !== undefined && serializeRoster(rebuilt) === previous.content) return { roster: rebuilt, changed: false }
-  const roster = buildRoster(root, { generatedAt: now() })
+  const roster = buildRoster(root, { generatedAt: now(), recorded })
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, serializeRoster(roster))
   return { roster, changed: true }
@@ -433,8 +471,8 @@ function codeSafetyKnowledgeSkill(root: string, id: string): string {
  * @param openRouterModels - the bench's real free OpenRouter model ids, cycled across reviewers.
  * @returns the division's agent definitions.
  */
-function buildCodeSafety(root: string, notePath: string, openRouterModels: readonly string[]): RosterAgentDefinition[] {
-  const agents: RosterAgentDefinition[] = []
+function buildCodeSafety(root: string, notePath: string, openRouterModels: readonly string[]): SeatDefinition[] {
+  const agents: SeatDefinition[] = []
   let index = 0
   for (const department of CODE_SAFETY_DEPARTMENTS) {
     const source = cite(root, `data/knowledge/code-safety/${department.id}/SKILL.md`)
@@ -494,7 +532,7 @@ function buildCodeSafety(root: string, notePath: string, openRouterModels: reado
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildHarnessCore(root: string): RosterAgentDefinition[] {
+function buildHarnessCore(root: string): SeatDefinition[] {
   const groups = ['core', 'llm', 'subagent'] as const
   const pool = groups.flatMap(group => packageLeaves(root, group).map(leaf => ({ group, leaf })))
   return takeQuota('harness-core', pool, DIVISION_QUOTAS['harness-core']).map(({ group, leaf }) => {
@@ -523,7 +561,7 @@ function buildHarnessCore(root: string): RosterAgentDefinition[] {
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildProvingGround(root: string): RosterAgentDefinition[] {
+function buildProvingGround(root: string): SeatDefinition[] {
   const scenarios = takeQuota('proving-ground', provingGroundEnvironments(root), DIVISION_QUOTAS['proving-ground'])
   return scenarios.map((scenario, index) => {
     const name = scenario.split('/').at(-1) ?? scenario
@@ -549,7 +587,7 @@ function buildProvingGround(root: string): RosterAgentDefinition[] {
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildVerification(root: string): RosterAgentDefinition[] {
+function buildVerification(root: string): SeatDefinition[] {
   const scripts = takeQuota('verification', verifyScripts(root), DIVISION_QUOTAS.verification)
   return scripts.map((file) => {
     const slug = file.replace(/\.ts$/, '')
@@ -595,7 +633,7 @@ const CI_GATE_IDS = [
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildJudging(root: string): RosterAgentDefinition[] {
+function buildJudging(root: string): SeatDefinition[] {
   const source = cite(root, 'scripts/run-gates.ts')
   const gates = takeQuota('judging', CI_GATE_IDS, DIVISION_QUOTAS.judging)
   return gates.map(gate => ({
@@ -622,8 +660,8 @@ const NOTE_KINDS = ['architecture', 'bug-fix', 'feature', 'process', 'simplifica
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildCurationData(root: string): RosterAgentDefinition[] {
-  const agents: RosterAgentDefinition[] = NOTE_KINDS.map(kind => ({
+function buildCurationData(root: string): SeatDefinition[] {
+  const agents: SeatDefinition[] = NOTE_KINDS.map(kind => ({
     id: `curation-data-${kind}-curator`,
     name: `${titleCase(kind)} Note Curator`,
     role: 'curator',
@@ -673,7 +711,7 @@ const PROGRAM_DEPARTMENT_GROUPS = [
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildProgramDepartments(root: string): RosterAgentDefinition[] {
+function buildProgramDepartments(root: string): SeatDefinition[] {
   return PROGRAM_DEPARTMENT_GROUPS.map(group => ({
     id: `program-departments-${group}-coordinator`,
     name: `${titleCase(group)} Department Coordinator`,
@@ -696,7 +734,7 @@ function buildProgramDepartments(root: string): RosterAgentDefinition[] {
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildKnowledge(root: string): RosterAgentDefinition[] {
+function buildKnowledge(root: string): SeatDefinition[] {
   const ids = takeQuota('knowledge', skillDirectories(root), DIVISION_QUOTAS.knowledge)
   return ids.map(id => ({
     id: `knowledge-${id}-skill-keeper`,
@@ -762,7 +800,7 @@ const GOVERNANCE_STANDARDS: readonly GovernanceStandard[] = [
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildGovernance(root: string): RosterAgentDefinition[] {
+function buildGovernance(root: string): SeatDefinition[] {
   return GOVERNANCE_STANDARDS.map(standard => ({
     id: `governance-${standard.id}-standard-author`,
     name: `${standard.name} Standard Author`,
@@ -801,7 +839,7 @@ const OBSERVATORY_SOURCES: readonly { id: string; name: string; source: string }
  * @param root - repository root.
  * @returns the division's agent definitions.
  */
-function buildObservatory(root: string): RosterAgentDefinition[] {
+function buildObservatory(root: string): SeatDefinition[] {
   return OBSERVATORY_SOURCES.map(entry => ({
     id: `observatory-${entry.id}-observer`,
     name: `${entry.name} Observer`,
@@ -827,9 +865,9 @@ function buildObservatory(root: string): RosterAgentDefinition[] {
  * @param agents - the complete agent list to derive adjacency from.
  * @returns the roster's edges.
  */
-function buildEdges(agents: readonly RosterAgentDefinition[]): RosterEdge[] {
-  const byDivision = (division: string): RosterAgentDefinition[] => agents.filter(a => a.division === division)
-  const byRole = (role: string): RosterAgentDefinition[] => agents.filter(a => a.role === role)
+function buildEdges(agents: readonly SeatDefinition[]): RosterEdge[] {
+  const byDivision = (division: string): SeatDefinition[] => agents.filter(a => a.division === division)
+  const byRole = (role: string): SeatDefinition[] => agents.filter(a => a.role === role)
   const edges: RosterEdge[] = []
 
   const implementers = [...byDivision('harness-core'), ...byDivision('program-departments'), ...byDivision('proving-ground')]
@@ -873,11 +911,13 @@ function buildEdges(agents: readonly RosterAgentDefinition[]): RosterEdge[] {
 }
 
 /**
- * Build the complete 147-agent enterprise roster from this repository's real
- * sources. Pure and deterministic: given the same tree, produces the same
- * value (see {@link serializeRoster} for the byte-identical guarantee).
+ * Build the complete roster of 147 seat definitions from this repository's
+ * real sources, each seat carrying the evidence the recorded sessions give it.
+ * Pure and deterministic: given the same tree and the same recorded sessions,
+ * produces the same value (see {@link serializeRoster} for the byte-identical
+ * guarantee).
  * @param root - repository root to read sources from.
- * @param options - the stamp to carry and, optionally, the Agent Note path to cite.
+ * @param options - the stamp to carry, the recorded sessions to attribute, and optionally the Agent Note path to cite.
  * @returns the assembled roster.
  */
 export function buildRoster(root: string, options: BuildRosterOptions): Roster {
@@ -887,7 +927,7 @@ export function buildRoster(root: string, options: BuildRosterOptions): Roster {
     throw new Error(`enterprise-roster: division quotas sum to ${quotaSum}, expected ${ROSTER_AGENT_COUNT}`)
   }
   const openRouterModels = openRouterFreeModels(root)
-  const agents: RosterAgentDefinition[] = [
+  const seats: SeatDefinition[] = [
     ...buildHarnessCore(root),
     ...buildProvingGround(root),
     ...buildVerification(root),
@@ -899,20 +939,24 @@ export function buildRoster(root: string, options: BuildRosterOptions): Roster {
     ...buildGovernance(root),
     ...buildObservatory(root),
   ]
-  if (agents.length !== ROSTER_AGENT_COUNT) {
-    throw new Error(`enterprise-roster: composed ${agents.length} agents, expected ${ROSTER_AGENT_COUNT}`)
+  if (seats.length !== ROSTER_AGENT_COUNT) {
+    throw new Error(`enterprise-roster: composed ${seats.length} agents, expected ${ROSTER_AGENT_COUNT}`)
   }
   const seen = new Set<string>()
-  for (const agent of agents) {
-    if (seen.has(agent.id)) throw new Error(`enterprise-roster: duplicate agent id "${agent.id}"`)
-    seen.add(agent.id)
+  for (const seat of seats) {
+    if (seen.has(seat.id)) throw new Error(`enterprise-roster: duplicate agent id "${seat.id}"`)
+    seen.add(seat.id)
   }
+  const summary = summarizeEvidence(options.recorded.map(run => ({ path: run.path, sessions: attributeRun(run, seats) })))
+  const agents: RosterAgentDefinition[] = seats.map(seat => ({ ...seat, evidence: evidenceFor(summary, seat.id) }))
   return {
     generatedAt: options.generatedAt,
-    counts: { defined: ROSTER_AGENT_COUNT, active: 0 },
+    counts: { defined: ROSTER_AGENT_COUNT, occupied: summary.bySeat.size, active: 0 },
     divisions: DIVISIONS,
     agents,
-    edges: buildEdges(agents),
+    edges: buildEdges(seats),
+    evidence: summary.evidence,
+    unattributed: summary.unattributed,
   }
 }
 
@@ -930,6 +974,10 @@ export function serializeRoster(roster: Roster): string {
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-  const { roster, changed } = generateRoster(root)
-  console.log(`enterprise-roster: ${changed ? 'wrote' : 'kept'} ${roster.agents.length} agents in ${ROSTER_PATH} (generatedAt ${roster.generatedAt})`)
+  const { roster, changed } = generateRoster(root, readRecordedSessions(root, committedRecords(root)))
+  console.log([
+    `enterprise-roster: ${changed ? 'wrote' : 'kept'} ${roster.agents.length} seats in ${ROSTER_PATH} (generatedAt ${roster.generatedAt});`,
+    `${roster.counts.occupied} occupied by ${roster.evidence.sessions - roster.unattributed.sessions} of ${roster.evidence.sessions} sessions`,
+    `in ${roster.evidence.records.length} records, ${roster.unattributed.sessions} unattributed`,
+  ].join(' '))
 }

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
  * Zero-dependency HTTP + Server-Sent Events feed for the enterprise proof of
- * concept's front end. Serves the generated roster with live status overlaid
- * from real session data, discovers proving-ground and code-safety runs on
- * disk, folds a run's session logs into a normalized event stream, and starts
- * a code-safety scan as a detached child process.
+ * concept's front end. Serves the generated roster with live status and
+ * evidence overlaid from real session data, discovers proving-ground and
+ * code-safety runs on disk, folds a run's session logs into a normalized event
+ * stream, lists every program run as the organisation of record, and starts a
+ * code-safety scan as a detached child process.
  *
  * Four independent discovery paths feed `discoverRuns`: `.proving-ground/runs`
  * and `.code-safety` are gitignored runtime output a fresh checkout does not
@@ -13,7 +14,11 @@
  * until one is recorded into it. Every handler tolerates all four being
  * absent, never treats a malformed log line as fatal, and never assumes a
  * decoded line matches this module's expected shape — see
- * {@link readJsonlLines}, {@link streamJsonlLines}, and {@link foldSessionEvent}.
+ * `scripts/session-records.ts`, {@link streamJsonlLines}, and {@link foldSessionEvent}.
+ * A session is placed on a roster seat only by the rules
+ * `scripts/roster-evidence.ts` states, the same rules the committed roster's
+ * evidence is computed with; a session no rule places is counted as
+ * unattributed and its events carry no `agentId`.
  * `--fixtures <dir>` substitutes a self-contained directory (mirroring the
  * same four-path layout) for the real discovery roots, which is what lets the
  * front end's own tests run against fixed data; it never substitutes for
@@ -33,6 +38,28 @@ import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
 import { CODE_SAFETY_DEPARTMENTS, type Roster, type RosterAgentDefinition } from './enterprise-roster.ts'
+import {
+  attributeRun,
+  evidenceFor,
+  parseProgramSession,
+  summarizeEvidence,
+  type AttributedRun,
+  type AttributedSession,
+  type EvidenceSeat,
+} from './roster-evidence.ts'
+import {
+  CODE_SAFETY_RECORDS,
+  foldSessionFacts,
+  listDirSafe,
+  PROVING_GROUND_RECORDS,
+  readJsonlLines,
+  recordIds,
+  sessionFilesIn,
+  statSafeIsDirectory,
+  typeOf,
+  type SessionFacts,
+  type SessionLine,
+} from './session-records.ts'
 
 /** Default TCP port; overridden with `--port <n>`. */
 export const DEFAULT_PORT = 4711
@@ -126,8 +153,11 @@ export interface FeedEvent {
   ts: number
   /** The source event's sequence number within its session; used for SSE `id:` framing. */
   seq: number
-  /** The roster agent this session maps to; see {@link mapSessionToAgentId}. */
-  agentId: string
+  /**
+   * The roster seat the event's session is attributed to (`scripts/roster-evidence.ts`);
+   * absent when no rule places the session on a seat.
+   */
+  agentId?: string
   sessionId: string
   kind: FeedEventKind
   label: string
@@ -139,8 +169,9 @@ export interface FeedEvent {
 
 /**
  * What {@link foldSessionEvent} can determine from one log line alone: every
- * {@link FeedEvent} field except `agentId`, which requires the whole session
- * (see {@link mapSessionToAgentId}) and is merged in by the caller.
+ * {@link FeedEvent} field except `agentId`, which requires the session's whole
+ * run (see `attributeRun` in `scripts/roster-evidence.ts`) and is merged in by
+ * the caller.
  */
 export type FoldedEvent = Omit<FeedEvent, 'agentId'>
 
@@ -213,12 +244,20 @@ export interface SafetyDetail {
   report: { markdown: string }
 }
 
-/** A roster agent with live status computed from real session data, replacing the generated file's static `"defined"`. */
+/**
+ * A roster seat with live status computed from real session data, replacing
+ * the generated file's static `"defined"`: a seat stays `"defined"` exactly
+ * when no discovered session is attributed to it.
+ */
 export type LiveRosterAgent = Omit<RosterAgentDefinition, 'status'> & {
   status: RosterAgentDefinition['status'] | 'active' | 'certified' | 'failed'
 }
 
-/** The `/roster` response: the generated roster with live status and `counts.active` overlaid. */
+/**
+ * The `/roster` response: the generated roster with every seat's status and
+ * evidence, `counts.occupied`, `counts.active`, the roster's `evidence` and its
+ * `unattributed` bucket recomputed over the runs the feed discovers.
+ */
 export type LiveRoster = Omit<Roster, 'agents'> & { agents: LiveRosterAgent[] }
 
 /** Tool names that register the subagent delegation capability; a call/result for one of these folds to `delegation`, not `tool`. */
@@ -264,18 +303,6 @@ function readJsonSafe(path: string): unknown {
   }
 }
 
-/** @returns directory entry names, or `[]` for a missing or unreadable directory. */
-function listDirSafe(path: string): string[] {
-  if (!existsSync(path)) return []
-  try {
-    return readdirSync(path)
-  } catch {
-    // Unreadable directory (permissions, or removed between existsSync and
-    // readdirSync) — treated as empty rather than failing discovery.
-    return []
-  }
-}
-
 /**
  * Read one field from an untrusted `data` record as a string, falling back
  * when it is absent or not a string/number. Session-log `data` fields are
@@ -291,11 +318,6 @@ function listDirSafe(path: string): string[] {
 function stringField(data: Record<string, unknown>, key: string, fallback: string): string {
   const value = data[key]
   return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : fallback
-}
-
-/** @returns a session's header `id` when it decoded as a string, else `fallback` (typically its file path). */
-function sessionIdOf(header: SessionLine | undefined, fallback: string): string {
-  return typeof header?.id === 'string' ? header.id : fallback
 }
 
 /** @returns the entry's mtime as an ISO string, or `undefined` if it cannot be stat'd. */
@@ -336,29 +358,6 @@ function walkFiles(root: string): string[] {
     }
   }
   return out
-}
-
-/** @returns every `*.jsonl` file under `dir` (recursively, unbounded depth), sorted for stable ordering. */
-function findJsonlFiles(dir: string): string[] {
-  if (!existsSync(dir)) return []
-  const out: string[] = []
-  const stack = [dir]
-  while (stack.length > 0) {
-    const current = stack.pop()
-    if (current === undefined) break
-    for (const name of listDirSafe(current)) {
-      const full = join(current, name)
-      let isDir = false
-      try {
-        isDir = statSync(full).isDirectory()
-      } catch {
-        continue
-      }
-      if (isDir) stack.push(full)
-      else if (name.endsWith('.jsonl')) out.push(full)
-    }
-  }
-  return out.sort()
 }
 
 // ---------------------------------------------------------------------------
@@ -447,11 +446,9 @@ function discoverRecordedRuns(
   subdir: string,
   kindOf: (id: string, dir: string, manifest: RecordedRunManifest | undefined) => RunKind,
 ): RunSummary[] {
-  const base = join(discoveryRoot, subdir)
   const runs: RunSummary[] = []
-  for (const id of listDirSafe(base).sort()) {
-    const dir = join(base, id)
-    if (!statSafeIsDirectory(dir) || !statSafeIsDirectory(join(dir, 'sessions'))) continue
+  for (const id of recordIds(discoveryRoot, subdir)) {
+    const dir = join(discoveryRoot, subdir, id)
     const manifest = readJsonSafe(join(dir, 'manifest.json')) as RecordedRunManifest | undefined
     const endedAt = manifest?.endedAt ?? mtimeIso(dir)
     runs.push({
@@ -473,7 +470,7 @@ function discoverRecordedRuns(
  * @returns The recorded Proving Ground runs.
  */
 function discoverRecordedProvingGroundRuns(discoveryRoot: string): RunSummary[] {
-  return discoverRecordedRuns(discoveryRoot, 'data/proving-ground', (id, dir, manifest) => {
+  return discoverRecordedRuns(discoveryRoot, PROVING_GROUND_RECORDS, (id, dir, manifest) => {
     const result = readJsonSafe(join(dir, 'result.json')) as RecordedRunResult | undefined
     return classifyRecordedRun(id, result, manifest)
   })
@@ -544,7 +541,7 @@ function resolveCodeSafetyStdoutStatus(dir: string): { status: RunStatus; endedA
  * One live `.code-safety/<id>` scan run (`scripts/code-safety.ts`'s output
  * directory): status and `endedAt` come from `stdout.jsonl` (see
  * {@link resolveCodeSafetyStdoutStatus}); member and integration session logs
- * live under `.sessions`, matching {@link SESSION_SUBDIRS}.
+ * live under `.sessions`, which `sessionFilesIn` in `scripts/session-records.ts` reads.
  */
 function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
   const base = join(discoveryRoot, '.code-safety')
@@ -573,16 +570,7 @@ function discoverCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
  * @returns The recorded code-safety reviews.
  */
 function discoverRecordedCodeSafetyRuns(discoveryRoot: string): RunSummary[] {
-  return discoverRecordedRuns(discoveryRoot, 'data/code-safety', () => 'code-safety')
-}
-
-/** @returns whether `path` is a directory, tolerating a missing or unreadable path. */
-function statSafeIsDirectory(path: string): boolean {
-  try {
-    return statSync(path).isDirectory()
-  } catch {
-    return false
-  }
+  return discoverRecordedRuns(discoveryRoot, CODE_SAFETY_RECORDS, () => 'code-safety')
 }
 
 /** One JSON line this module recognizes at the tail of a driver's `run.log`; every other field is data this module does not read. */
@@ -712,88 +700,17 @@ export function discoverRuns(discoveryRoot: string): RunSummary[] {
 }
 
 /**
- * Known session-log subdirectory names: a recorded `data/proving-ground/<id>`
- * or `data/code-safety/<id>` run uses `sessions`; a live
- * `.proving-ground/runs/<id>` or `.code-safety/<id>` entry uses the
- * dot-prefixed `.sessions` — recorded and live are symmetric within
- * themselves, never mixed within one run. A run directory also holds
- * non-session JSONL records at its top level (`facts.jsonl`,
- * `trajectories.jsonl`), which carry none of this fold's fields and
- * previously reached it by an unscoped recursive walk — scoping to the known
- * subdirectory is what keeps them out.
- */
-const SESSION_SUBDIRS = ['sessions', '.sessions'] as const
-
-/**
- * @returns every `*.jsonl`-shaped file under one run's session subdirectory
- *   (see {@link SESSION_SUBDIRS}), or under the run's own directory when
- *   neither known subdirectory exists (a layout this module does not yet
- *   recognize, tolerated rather than reporting no sessions at all).
+ * @param discoveryRoot - the directory the run was discovered under.
+ * @param run - the run.
+ * @returns every session file of the run, read through `sessionFilesIn` in `scripts/session-records.ts`.
  */
 export function sessionFilesForRun(discoveryRoot: string, run: RunSummary): string[] {
-  const runDir = join(discoveryRoot, run.path)
-  for (const subdir of SESSION_SUBDIRS) {
-    const candidate = join(runDir, subdir)
-    if (statSafeIsDirectory(candidate)) return findJsonlFiles(candidate)
-  }
-  return findJsonlFiles(runDir)
+  return sessionFilesIn(join(discoveryRoot, run.path))
 }
 
 // ---------------------------------------------------------------------------
-// Session log parsing and event folding
+// Session log event folding
 // ---------------------------------------------------------------------------
-
-/**
- * One decoded `session.jsonl` line. `type` is read as `unknown`, not `string`:
- * this is JSON parsed from a durable file, one of this repository's named
- * validation boundaries, and a real run directory's JSONL files include
- * shapes this fold does not own (a header line, and a stray non-session
- * record such as `facts.jsonl`'s rows when a layout this module does not
- * recognize falls back to scanning a whole run directory — see
- * {@link sessionFilesForRun}) whose `type` is absent or not a string. Every
- * reader in this module goes through {@link typeOf} rather than assuming the
- * field, so such a line is skipped, never thrown on.
- */
-interface SessionLine {
-  type?: unknown
-  seq?: number
-  time?: number
-  data?: Record<string, unknown>
-  [key: string]: unknown
-}
-
-/** @returns `line.type` when it decoded as a string, else `undefined` — see {@link SessionLine}. */
-function typeOf(line: SessionLine): string | undefined {
-  return typeof line.type === 'string' ? line.type : undefined
-}
-
-/**
- * Parse a `session.jsonl` file line by line. A line that fails to parse is
- * skipped, never thrown — the file may be mid-write by a live process.
- * @param file - absolute path to the JSONL file.
- * @returns the successfully parsed lines, in file order.
- */
-export function readJsonlLines(file: string): SessionLine[] {
-  let text: string
-  try {
-    text = readFileSync(file, 'utf8')
-  } catch {
-    return []
-  }
-  const lines: SessionLine[] = []
-  for (const raw of text.split('\n')) {
-    const trimmed = raw.trim()
-    if (trimmed.length === 0) continue
-    try {
-      lines.push(JSON.parse(trimmed) as SessionLine)
-    } catch {
-      // One malformed row (a torn write at the tail of a live file) does not
-      // invalidate the rest of the log.
-      continue
-    }
-  }
-  return lines
-}
 
 /** Mutable state threaded through one session file's fold, so a `tool/result` can recover its call's name. */
 interface FoldState {
@@ -907,145 +824,121 @@ export function foldSessionEvent(line: SessionLine, state: FoldState): FoldedEve
   return undefined
 }
 
-/**
- * Best-effort mapping from one session's stamped request headers to a roster
- * agent: prefer an agent whose route matches the session's provider/model and
- * whose id or role appears in the system prompt text, then any agent on that
- * provider, then the division-level fallback named in `fallbackAgentId`.
- * @param lines - the session's decoded lines.
- * @param roster - the generated roster to map against.
- * @param fallbackAgentId - agent id to use when nothing else matches.
- * @returns a roster agent id.
- */
-export function mapSessionToAgentId(lines: readonly SessionLine[], roster: Roster, fallbackAgentId: string, sessionId?: string): string {
-  const programSeat = programSeatFor(sessionId ?? sessionIdOf(lines.find(line => typeOf(line) === 'session'), ''), roster)
-  if (programSeat !== undefined) return programSeat
-  const header = lines.find(line => typeOf(line) === 'request/header')
-  const config = (header?.data?.header as { config?: { provider?: string; model?: string }; system?: string } | undefined)
-  const provider = config?.config?.provider
-  const model = config?.config?.model
-  const system = (config?.system ?? '').toLowerCase()
-  const byProvider = provider === undefined ? [] : roster.agents.filter(agent => agent.route.provider === provider)
-  const byModel = model === undefined ? byProvider : byProvider.filter(agent => agent.route.model === model)
-  const pool = byModel.length > 0 ? byModel : byProvider
-  const keywordMatch = pool.find(agent => system.includes(agent.role) || system.includes(agent.division))
-  return keywordMatch?.id ?? pool[0]?.id ?? fallbackAgentId
-}
-
-/**
- * The code-safety seat a program session belongs to, read from the session id
- * `@deepseek-ai/dsh-program` mints: `program-<digest>` is the program lead's own
- * session, `program-<digest>-<department>` a department's, and
- * `program-<digest>-~0040integration` the integration's (`~xxxx` encodes the
- * code point, here `@`). A department session is the department's whole review,
- * so it maps to the department's integrator seat; the lead's and the
- * integration's sessions map to the program lead. The roster's own
- * provider/model matching never reaches these seats, because a review runs on
- * the operator's Claude Code route while the seats name their default routes.
- * @param sessionId - the session id, or `''` when unknown.
- * @param roster - the generated roster.
- * @returns the seat's agent id, or `undefined` when the id is not a program session's or the seat is absent.
- */
-function programSeatFor(sessionId: string, roster: Roster): string | undefined {
-  const match = /^program-[0-9a-f]{16,}(?:-(.+))?$/.exec(sessionId)
-  if (match === null) return undefined
-  const key = match[1]?.replaceAll(/~([0-9a-f]{4})/g, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)))
-  const seats = roster.agents.filter(agent => agent.division === 'code-safety')
-  if (key === undefined || key === '@integration') return seats.find(agent => agent.role === 'lead')?.id
-  return (seats.find(agent => agent.department === key && agent.role === 'integrator') ?? seats.find(agent => agent.department === key))?.id
-}
-
 // ---------------------------------------------------------------------------
-// Roster liveness
+// Roster liveness and evidence
 // ---------------------------------------------------------------------------
 
-/** What {@link computeLiveRoster} needs from one session file, kept while the file's size, mtime and roster are unchanged. */
-interface SessionFileFold {
+/** One session file's facts, kept while the file's size and mtime are unchanged. */
+interface CachedFacts {
   size: number
   mtimeMs: number
-  rosterGeneratedAt: string
-  agentId: string
-  certified: boolean
+  facts: SessionFacts
 }
 
 /**
- * Session files already folded for the roster overlay, by path. Recorded runs
- * never change and a live session file only grows, so the size and mtime a
- * fold was made at decide whether it is still current; this keeps `GET /roster`
- * at the cost of one `stat` per session file after the first request instead
- * of re-reading every record on the tree (about 1.5 s on fifty runs), which is
- * what the deck's probe measures.
+ * Session files already folded, by path. Recorded runs never change and a live
+ * session file only grows, so the size and mtime a fold was made at decide
+ * whether it is still current; this answers `GET /roster`, `GET /programs` and
+ * a stream's attribution at the cost of one `stat` per session file after the
+ * first read, instead of re-reading every record on the tree (about 2.5 s over
+ * the committed records), which is what the deck's probe measures.
  */
-const sessionFileFolds = new Map<string, SessionFileFold>()
+const sessionFactsCache = new Map<string, CachedFacts>()
 
 /**
- * Fold one session file to the agent it maps to and whether it certified,
- * reusing the previous fold while the file and the roster are unchanged.
+ * Fold one session file to its facts, reusing the previous fold while the file is unchanged.
  * @param file - absolute path of the session file.
- * @param roster - the generated roster to map against.
- * @param fallbackAgentId - agent id to use when nothing else matches.
- * @returns the fold, or `undefined` when the file is unreadable or empty.
+ * @returns the facts, or `undefined` when the file is unreadable or empty.
  */
-function foldSessionFile(file: string, roster: Roster, fallbackAgentId: string): SessionFileFold | undefined {
+function factsOf(file: string): SessionFacts | undefined {
   let size: number
   let mtimeMs: number
   try {
     ({ size, mtimeMs } = statSync(file))
   } catch {
-    // Removed between discovery and this read: nothing to overlay.
+    // Removed between discovery and this read: the run no longer holds it.
     return undefined
   }
-  const cached = sessionFileFolds.get(file)
-  if (cached !== undefined && cached.size === size && cached.mtimeMs === mtimeMs && cached.rosterGeneratedAt === roster.generatedAt) {
-    return cached
-  }
+  const cached = sessionFactsCache.get(file)
+  if (cached !== undefined && cached.size === size && cached.mtimeMs === mtimeMs) return cached.facts
   const lines = readJsonlLines(file)
   if (lines.length === 0) return undefined
-  const header = lines.find(line => typeOf(line) === 'session')
-  const state: FoldState = { sessionId: sessionIdOf(header, file), callNameById: new Map() }
-  const fold: SessionFileFold = {
-    size,
-    mtimeMs,
-    rosterGeneratedAt: roster.generatedAt,
-    agentId: mapSessionToAgentId(lines, roster, fallbackAgentId),
-    certified: lines.some(line => foldSessionEvent(line, state)?.kind === 'certificate'),
-  }
-  sessionFileFolds.set(file, fold)
-  return fold
+  const facts = foldSessionFacts(lines, file)
+  sessionFactsCache.set(file, { size, mtimeMs, facts })
+  return facts
 }
 
 /**
- * Overlay live status onto the generated roster: an agent is `active` when a
- * currently-running session maps to it, `certified` when a session that maps
- * to it logged a certificate event, and `failed` when a session mapped to it
- * ended without one. An agent with no matching session keeps `"defined"`.
+ * Attribute every readable session file of one run by the rules in `scripts/roster-evidence.ts`.
+ * @param discoveryRoot - where the run was discovered.
+ * @param run - the run.
+ * @param seats - the roster seats.
+ * @returns the attributed run, and each readable session file's entry by path.
+ */
+function attributeRunFiles(
+  discoveryRoot: string,
+  run: RunSummary,
+  seats: readonly EvidenceSeat[],
+): { run: AttributedRun; byFile: ReadonlyMap<string, AttributedSession> } {
+  const read = sessionFilesForRun(discoveryRoot, run)
+    .map(file => ({ file, facts: factsOf(file) }))
+    .filter((entry): entry is { file: string; facts: SessionFacts } => entry.facts !== undefined)
+  const sessions = attributeRun({ path: run.path, codeSafety: run.kind === 'code-safety', sessions: read.map(entry => entry.facts) }, seats)
+  const byFacts = new Map(sessions.map(session => [session.facts, session]))
+  const byFile = new Map<string, AttributedSession>()
+  for (const { file, facts } of read) {
+    const session = byFacts.get(facts)
+    if (session !== undefined) byFile.set(file, session)
+  }
+  return { run: { path: run.path, sessions }, byFile }
+}
+
+/**
+ * Overlay live status and evidence onto the generated roster. Every discovered
+ * run's sessions are attributed by the rules `scripts/roster-evidence.ts`
+ * states: a seat is `active` when a session attributed to it belongs to a run
+ * still running, `certified` when one of its sessions logged a certificate
+ * event, and `failed` when its sessions ended without one. A seat no session
+ * is attributed to keeps `"defined"`, and a session no rule places is counted
+ * in `unattributed`, never lit on a seat.
  * @param roster - the generated static roster.
  * @param discoveryRoot - where to look for real or fixture run data.
- * @returns the roster with live status and `counts.active` overlaid.
+ * @returns the roster with every seat's status and evidence, the counts, the
+ *   evidence scope and the unattributed bucket recomputed over the discovered runs.
  */
 export function computeLiveRoster(roster: Roster, discoveryRoot: string): LiveRoster {
   const statusByAgent = new Map<string, 'active' | 'certified' | 'failed'>()
-  const fallbackAgentId = roster.agents[0]?.id ?? ''
-  for (const run of discoverRuns(discoveryRoot)) {
-    for (const file of sessionFilesForRun(discoveryRoot, run)) {
-      const folded = foldSessionFile(file, roster, fallbackAgentId)
-      if (folded === undefined) continue
-      const { agentId, certified } = folded
-      const next: 'active' | 'certified' | 'failed' = certified
-        ? 'certified'
-        : run.endedAt === undefined && run.status === 'running' ? 'active' : 'failed'
-      // Precedence when several sessions map to the same agent: active (still
+  const runs: AttributedRun[] = []
+  for (const discovered of discoverRuns(discoveryRoot)) {
+    const { run } = attributeRunFiles(discoveryRoot, discovered, roster.agents)
+    runs.push(run)
+    const running = discovered.endedAt === undefined && discovered.status === 'running'
+    for (const { facts, attribution } of run.sessions) {
+      if (attribution.kind !== 'seat') continue
+      const next: 'active' | 'certified' | 'failed' = facts.certified ? 'certified' : running ? 'active' : 'failed'
+      // Precedence when several sessions occupy the same seat: active (still
       // running right now) beats certified, which beats failed — the most
       // "alive" observation wins rather than the last one seen.
-      const current = statusByAgent.get(agentId)
+      const current = statusByAgent.get(attribution.seatId)
       if (current === 'active') continue
       if (current === 'certified' && next === 'failed') continue
-      statusByAgent.set(agentId, next)
+      statusByAgent.set(attribution.seatId, next)
     }
   }
-  const agents: LiveRosterAgent[] = roster.agents.map(agent => ({ ...agent, status: statusByAgent.get(agent.id) ?? agent.status }))
+  const summary = summarizeEvidence(runs)
+  const agents: LiveRosterAgent[] = roster.agents.map(agent => ({
+    ...agent,
+    status: statusByAgent.get(agent.id) ?? agent.status,
+    evidence: evidenceFor(summary, agent.id),
+  }))
   const active = agents.filter(agent => agent.status === 'active').length
-  return { ...roster, agents, counts: { ...roster.counts, active } }
+  return {
+    ...roster,
+    counts: { defined: roster.counts.defined, occupied: summary.bySeat.size, active },
+    agents,
+    evidence: summary.evidence,
+    unattributed: summary.unattributed,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1175,6 +1068,304 @@ export function buildSafetyDetail(discoveryRoot: string, id: string): SafetyDeta
 }
 
 // ---------------------------------------------------------------------------
+// The organisation of record: recorded program runs
+// ---------------------------------------------------------------------------
+
+/** One department of a program run, as `GET /programs` reports it. */
+export interface ProgramDepartment {
+  /** The goal key the program spec names (`secrets`, `stats`, …). */
+  key: string
+  sessionId: string
+  /** The department's session log, relative to the discovery root; absent when the run holds no file for it. */
+  sessionPath?: string
+  /** The last status the ledger's `program/goal` events gave the department (`merged`, …); `unknown` with none. */
+  status: string
+  /** Whether the department's session logged a `verification/certificate` event. */
+  certified: boolean
+  /** `step/start` events in the department's session. */
+  steps: number
+  /** `tool/call` events in the department's session. */
+  toolCalls: number
+  /** The roster seat the attribution rules place the session on; absent when no rule places it. */
+  seatId?: string
+}
+
+/** The integration step of a program run: the session that merges the departments and its verdict. */
+export interface ProgramIntegration {
+  sessionId: string
+  /** The integration's session log, relative to the discovery root; absent when the run holds no file for it. */
+  sessionPath?: string
+  /** The last status the ledger's `program/integration` events reported (`running`, `certified`, …); `unknown` with none. */
+  status: string
+  /** Whether the integration's session logged a `verification/certificate` event. */
+  certified: boolean
+  /** ISO time of the `program/integration` event that reported `certified`. */
+  certifiedAt?: string
+  /** The merged revision the integration reported. */
+  mergedRevision?: string
+  steps: number
+  toolCalls: number
+  seatId?: string
+}
+
+/** One `signoff/recorded` event of the program's ledger: a signature on one transition. */
+export interface ProgramSignoff {
+  /** The transition signed (`spec-freeze`, `release`, …). */
+  transition: string
+  /** ISO time the signature was recorded. */
+  at?: string
+  /** The principal the deployment recorded as having decided; `@deepseek-ai/dsh-signoff` records it and never authenticates it. */
+  decidedBy?: { kind: string; id: string; displayName?: string }
+  /** Digest of the artefact the signature covers. */
+  artefactSha256?: string
+}
+
+/**
+ * One program run: an entry of `GET /programs`, the organisation of record.
+ * Everything here is read from the run's own records: the program's ledger
+ * session (`program/start`, `program/goal`, `program/integration`,
+ * `program/end`, `signoff/recorded`) and each member session's facts.
+ */
+export interface ProgramRecord {
+  /** `program-<digest>`, the id `@deepseek-ai/dsh-program` mints from the frozen spec. */
+  programId: string
+  /** The run directory's name. */
+  runId: string
+  kind: 'code-safety' | 'program'
+  /** The run directory, relative to the discovery root. */
+  path: string
+  /** The reviewed repository's root, for a code-safety review. */
+  target?: string
+  /** The frozen spec's digest and objective, from `program/start`. */
+  spec?: { sha256: string; objective: string }
+  /** ISO time of `program/start`, else the run's own start. */
+  startedAt: string
+  /** ISO time of `program/end`, else the run's own end; absent while it runs. */
+  endedAt?: string
+  /** `program/end`'s outcome (`released`, …); absent while the program has not ended. */
+  outcome?: string
+  departments: ProgramDepartment[]
+  integration?: ProgramIntegration
+  /** Every signature the ledger recorded, in log order. */
+  signoffs: ProgramSignoff[]
+}
+
+/** What a program's own session (the ledger `@deepseek-ai/dsh-program` writes) states about its run. */
+interface ProgramLedger {
+  spec?: { sha256: string; objective: string; keys: string[] }
+  startedAtMs?: number
+  endedAtMs?: number
+  outcome?: string
+  goals: Map<string, { status: string; sessionId?: string }>
+  integration?: { status: string; sessionId?: string; mergedRevision?: string; certifiedAtMs?: number }
+  signoffs: ProgramSignoff[]
+}
+
+/**
+ * @param value - a decoded JSON value.
+ * @returns the value when it is a string, else `undefined`.
+ */
+function stringOf(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined
+}
+
+/**
+ * @param ms - epoch milliseconds, when known.
+ * @returns the ISO string, or `undefined`.
+ */
+function isoAt(ms: number | undefined): string | undefined {
+  return ms === undefined ? undefined : new Date(ms).toISOString()
+}
+
+/**
+ * Read one `signoff/recorded` payload.
+ * @param data - the event's `data`.
+ * @param at - the event's time, when logged.
+ * @returns the signature, or `undefined` when the payload names no transition.
+ */
+function readSignoff(data: Record<string, unknown>, at: number | undefined): ProgramSignoff | undefined {
+  const transition = stringOf(data.transition)
+  if (transition === undefined) return undefined
+  const principal = data.principal as { kind?: unknown; id?: unknown; displayName?: unknown } | undefined
+  const kind = stringOf(principal?.kind)
+  const id = stringOf(principal?.id)
+  const displayName = stringOf(principal?.displayName)
+  const artefactSha256 = stringOf(data.artefactSha256)
+  const when = isoAt(at)
+  return {
+    transition,
+    ...when === undefined ? {} : { at: when },
+    ...kind === undefined || id === undefined ? {} : { decidedBy: { kind, id, ...displayName === undefined ? {} : { displayName } } },
+    ...artefactSha256 === undefined ? {} : { artefactSha256 },
+  }
+}
+
+/**
+ * Fold a program's own session into what it states about the run: the frozen
+ * spec, each department's last goal status, the integration's last status,
+ * the outcome, and the signatures.
+ * @param lines - the program session's decoded lines.
+ * @returns the ledger.
+ */
+function foldProgramLedger(lines: readonly SessionLine[]): ProgramLedger {
+  const ledger: ProgramLedger = { goals: new Map(), signoffs: [] }
+  for (const line of lines) {
+    const data = line.data ?? {}
+    const at = typeof line.time === 'number' ? line.time : undefined
+    switch (typeOf(line)) {
+      case 'program/start': {
+        const spec = data.spec as { objective?: unknown; goals?: unknown } | undefined
+        const goals: unknown[] = Array.isArray(spec?.goals) ? spec.goals : []
+        const keys = goals.map(goal => stringOf((goal as { key?: unknown } | null)?.key)).filter((key): key is string => key !== undefined)
+        ledger.spec = { sha256: stringOf(data.specSha256) ?? '', objective: stringOf(spec?.objective) ?? '', keys }
+        if (at !== undefined) ledger.startedAtMs = at
+        break
+      }
+      case 'program/goal': {
+        const key = stringOf(data.key)
+        const status = stringOf(data.status)
+        if (key === undefined || status === undefined) break
+        const sessionId = stringOf(data.sessionId) ?? ledger.goals.get(key)?.sessionId
+        ledger.goals.set(key, sessionId === undefined ? { status } : { status, sessionId })
+        break
+      }
+      case 'program/integration': {
+        const status = stringOf(data.status)
+        if (status === undefined) break
+        const previous = ledger.integration
+        const sessionId = stringOf(data.sessionId) ?? previous?.sessionId
+        const mergedRevision = stringOf(data.mergedRevision) ?? previous?.mergedRevision
+        const certifiedAtMs = status === 'certified' ? at : previous?.certifiedAtMs
+        ledger.integration = {
+          status,
+          ...sessionId === undefined ? {} : { sessionId },
+          ...mergedRevision === undefined ? {} : { mergedRevision },
+          ...certifiedAtMs === undefined ? {} : { certifiedAtMs },
+        }
+        break
+      }
+      case 'program/end': {
+        const outcome = stringOf(data.outcome)
+        if (outcome !== undefined) ledger.outcome = outcome
+        if (at !== undefined) ledger.endedAtMs = at
+        break
+      }
+      case 'signoff/recorded': {
+        const signoff = readSignoff(data, at)
+        if (signoff !== undefined) ledger.signoffs.push(signoff)
+        break
+      }
+      default:
+        // Every other ledger line (the header, resumes, end seeds) states nothing a program record reports.
+        break
+    }
+  }
+  return ledger
+}
+
+/**
+ * @param session - an attributed session, when the run holds one.
+ * @returns `{ seatId }` when the rules place the session on a seat, else nothing to spread.
+ */
+function seatOf(session: AttributedSession | undefined): { seatId?: string } {
+  return session?.attribution.kind === 'seat' ? { seatId: session.attribution.seatId } : {}
+}
+
+/**
+ * Build one program run's record from its sessions.
+ * @param discoveryRoot - where the run was discovered.
+ * @param run - a `code-safety` or `program` run.
+ * @param seats - the roster seats the member sessions are attributed to.
+ * @returns the record, or `undefined` when the run holds no program session.
+ */
+function buildProgram(discoveryRoot: string, run: RunSummary, seats: readonly EvidenceSeat[]): ProgramRecord | undefined {
+  const { byFile } = attributeRunFiles(discoveryRoot, run, seats)
+  const programSessions = [...byFile].flatMap(([file, session]) => {
+    const parsed = parseProgramSession(session.facts.sessionId)
+    return parsed === undefined ? [] : [{ file, session, parsed }]
+  })
+  const programId = (programSessions.find(entry => entry.parsed.member === undefined) ?? programSessions[0])?.parsed.programId
+  if (programId === undefined) return undefined
+  const members = new Map(programSessions
+    .filter(entry => entry.parsed.programId === programId)
+    .map(entry => [entry.session.facts.sessionId, entry]))
+  const ledgerFile = members.get(programId)?.file
+  const ledger: ProgramLedger = ledgerFile === undefined
+    ? { goals: new Map(), signoffs: [] }
+    : foldProgramLedger(readJsonlLines(ledgerFile))
+  const memberFields = (sessionId: string): Pick<ProgramDepartment, 'sessionPath' | 'certified' | 'steps' | 'toolCalls' | 'seatId'> => {
+    const member = members.get(sessionId)
+    if (member === undefined) return { certified: false, steps: 0, toolCalls: 0 }
+    const { facts } = member.session
+    return {
+      sessionPath: relative(discoveryRoot, member.file),
+      certified: facts.certified,
+      steps: facts.steps,
+      toolCalls: facts.toolCalls,
+      ...seatOf(member.session),
+    }
+  }
+
+  const memberKeys = [...members.values()]
+    .map(entry => entry.parsed.member)
+    .filter((member): member is string => member !== undefined && member !== '@integration')
+  const keys = [...new Set([...ledger.spec?.keys ?? [], ...ledger.goals.keys(), ...memberKeys])]
+  const departments: ProgramDepartment[] = keys.map((key) => {
+    const goal = ledger.goals.get(key)
+    const sessionId = goal?.sessionId ?? `${programId}-${key}`
+    return { key, sessionId, status: goal?.status ?? 'unknown', ...memberFields(sessionId) }
+  })
+
+  const integrationId = ledger.integration?.sessionId ?? `${programId}-@integration`
+  const certifiedAt = isoAt(ledger.integration?.certifiedAtMs)
+  const mergedRevision = ledger.integration?.mergedRevision
+  const integration: ProgramIntegration | undefined = ledger.integration === undefined && !members.has(integrationId) ? undefined : {
+    sessionId: integrationId,
+    status: ledger.integration?.status ?? 'unknown',
+    ...memberFields(integrationId),
+    ...certifiedAt === undefined ? {} : { certifiedAt },
+    ...mergedRevision === undefined ? {} : { mergedRevision },
+  }
+
+  const target = run.kind === 'code-safety' ? resolveCodeSafetyTargetRoot(join(discoveryRoot, run.path)) : undefined
+  const endedAt = isoAt(ledger.endedAtMs) ?? run.endedAt
+  return {
+    programId,
+    runId: run.id,
+    kind: run.kind === 'code-safety' ? 'code-safety' : 'program',
+    path: run.path,
+    ...target === undefined ? {} : { target },
+    ...ledger.spec === undefined ? {} : { spec: { sha256: ledger.spec.sha256, objective: ledger.spec.objective } },
+    startedAt: isoAt(ledger.startedAtMs) ?? run.startedAt,
+    ...endedAt === undefined ? {} : { endedAt },
+    ...ledger.outcome === undefined ? {} : { outcome: ledger.outcome },
+    departments,
+    ...integration === undefined ? {} : { integration },
+    signoffs: ledger.signoffs,
+  }
+}
+
+/**
+ * The organisation of record: one entry per program run the feed discovers — a
+ * code-safety review, or a Proving Ground program — newest first. Each entry
+ * names the departments with their sessions, certificates, steps and tool
+ * calls, the integration's verdict, and every signature with its time and the
+ * principal recorded as having decided, all read from the run's own session
+ * logs.
+ * @param discoveryRoot - where to look for real or fixture run data.
+ * @param roster - the roster whose seats the member sessions are attributed to.
+ * @returns the program records.
+ */
+export function buildPrograms(discoveryRoot: string, roster: Roster): ProgramRecord[] {
+  return discoverRuns(discoveryRoot)
+    .filter(run => run.kind === 'code-safety' || run.kind === 'program')
+    .flatMap((run) => {
+      const program = buildProgram(discoveryRoot, run, roster.agents)
+      return program === undefined ? [] : [program]
+    })
+}
+
+// ---------------------------------------------------------------------------
 // HTTP plumbing
 // ---------------------------------------------------------------------------
 
@@ -1247,43 +1438,19 @@ async function* streamJsonlLines(file: string): AsyncGenerator<SessionLine> {
 }
 
 /**
- * Resolve one session file's id and roster agent without holding its lines:
- * scans for the `session` header and the first `request/header` line — the
- * only two {@link mapSessionToAgentId} reads — and stops as soon as both are
- * found (or the file ends). A file this small few-hundred-line-scale
- * discovery root produces is scanned in well under the time its own replay
- * takes, so this adds no perceptible latency ahead of the first event sent.
- * @param file - absolute path to the JSONL file.
- * @param roster - the generated roster to map against.
- * @param fallbackAgentId - agent id to use when nothing else matches.
- * @returns the file's session id (falling back to its path) and resolved agent id.
- */
-async function resolveFileIdentity(file: string, roster: Roster, fallbackAgentId: string): Promise<{ sessionId: string; agentId: string }> {
-  let sessionId: string | undefined
-  let headerLine: SessionLine | undefined
-  for await (const line of streamJsonlLines(file)) {
-    const type = typeOf(line)
-    if (sessionId === undefined && type === 'session') sessionId = sessionIdOf(line, file)
-    if (headerLine === undefined && type === 'request/header') headerLine = line
-    if (sessionId !== undefined && headerLine !== undefined) break
-  }
-  const agentId = mapSessionToAgentId(headerLine === undefined ? [] : [headerLine], roster, fallbackAgentId, sessionId)
-  return { sessionId: sessionId ?? file, agentId }
-}
-
-/**
  * Stream one run's folded events over Server-Sent Events: replay every event
  * currently on disk file by file and event by event, then poll each session
- * file every 500ms for appended lines until the client disconnects. Each
- * file is scanned once for identity ({@link resolveFileIdentity}) and once
- * to fold and send its events ({@link streamJsonlLines}); neither pass
- * materializes the file's lines into an array, so the replay's first event
- * reaches the client as soon as the first file's identity scan completes,
- * not after every session file on disk has been read.
+ * file every 500ms for appended lines until the client disconnects. A frame's
+ * `agentId` is the seat the run's attribution ({@link attributeRunFiles})
+ * places its session on, and is absent for a session no rule places. The
+ * attribution reads each file's facts from the per-file cache the roster
+ * overlay also fills, so a warm feed pays one `stat` per file before the first
+ * frame; the replay pass then streams each file ({@link streamJsonlLines})
+ * rather than materializing its lines.
  * @param res - the open response to write SSE frames to.
  * @param discoveryRoot - where the run's session files live.
  * @param run - the run to stream.
- * @param roster - used to map each session to a roster agent.
+ * @param roster - the seats each session is attributed to.
  */
 async function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: RunSummary, roster: Roster): Promise<void> {
   res.writeHead(200, {
@@ -1292,24 +1459,26 @@ async function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: 
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive',
   })
-  const fallbackAgentId = roster.agents[0]?.id ?? ''
   const files = sessionFilesForRun(discoveryRoot, run)
+  const { byFile } = attributeRunFiles(discoveryRoot, run, roster.agents)
   const offsetByFile = new Map<string, number>()
   const stateByFile = new Map<string, FoldState>()
-  const agentIdByFile = new Map<string, string>()
+  const seatByFile = new Map<string, string>()
 
-  const send = (event: FoldedEvent, agentId: string): void => {
-    res.write(`id: ${event.seq}\ndata: ${JSON.stringify({ ...event, agentId })}\n\n`)
+  const send = (event: FoldedEvent, seatId: string | undefined): void => {
+    const frame: FeedEvent = seatId === undefined ? event : { ...event, agentId: seatId }
+    res.write(`id: ${event.seq}\ndata: ${JSON.stringify(frame)}\n\n`)
   }
 
   for (const file of files) {
-    const { sessionId, agentId } = await resolveFileIdentity(file, roster, fallbackAgentId)
-    const state: FoldState = { sessionId, callNameById: new Map() }
+    const placed = byFile.get(file)
+    const seatId = placed?.attribution.kind === 'seat' ? placed.attribution.seatId : undefined
+    const state: FoldState = { sessionId: placed?.facts.sessionId ?? file, callNameById: new Map() }
     stateByFile.set(file, state)
-    agentIdByFile.set(file, agentId)
+    if (seatId !== undefined) seatByFile.set(file, seatId)
     for await (const line of streamJsonlLines(file)) {
       const event = foldSessionEvent(line, state)
-      if (event !== undefined) send(event, agentId)
+      if (event !== undefined) send(event, seatId)
     }
     try {
       offsetByFile.set(file, statSync(file).size)
@@ -1336,7 +1505,7 @@ async function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: 
       }
       offsetByFile.set(file, size)
       const state = stateByFile.get(file) ?? { sessionId: file, callNameById: new Map() }
-      const agentId = agentIdByFile.get(file) ?? fallbackAgentId
+      const seatId = seatByFile.get(file)
       for (const raw of appended.split('\n')) {
         const trimmed = raw.trim()
         if (trimmed.length === 0) continue
@@ -1347,7 +1516,7 @@ async function streamRunEvents(res: ServerResponse, discoveryRoot: string, run: 
           continue
         }
         const event = foldSessionEvent(parsed, state)
-        if (event !== undefined) send(event, agentId)
+        if (event !== undefined) send(event, seatId)
       }
     }
   }, 500)
@@ -1411,6 +1580,10 @@ export function createHarnessFeedServer(options: HarnessFeedOptions): Server {
     }
     if (req.method === 'GET' && pathname === '/runs') {
       sendJson(res, 200, discoverRuns(discoveryRoot))
+      return
+    }
+    if (req.method === 'GET' && pathname === '/programs') {
+      sendJson(res, 200, buildPrograms(discoveryRoot, loadRoster()))
       return
     }
     const eventsMatch = /^\/runs\/([^/]+)\/events$/.exec(pathname)

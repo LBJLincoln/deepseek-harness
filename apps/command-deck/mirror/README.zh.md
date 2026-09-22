@@ -8,11 +8,11 @@
 
 | 路径 | 职责 |
 | --- | --- |
-| `schema.sql` | 四张表：`feed_config`（pusher 令牌的摘要）、`feed_json`（每个 feed 路径一行：`/roster`、`/runs`、`/safety/<id>`）、`feed_events`（每个折叠事件一行，在运行、会话与 `seq` 上唯一）、`feed_requests`（托管 deck 请求的审查）；启用行级安全且不设策略；公开的 `deck` 存储桶。 |
+| `schema.sql` | 四张表：`feed_config`（pusher 令牌的摘要）、`feed_json`（每个 feed 路径一行：`/roster`、`/runs`、`/programs`、`/safety/<id>`）、`feed_events`（每个折叠事件一行，在运行、会话与 `seq` 上唯一）、`feed_requests`（托管 deck 请求的审查）；启用行级安全且不设策略；公开的 `deck` 存储桶。 |
 | `functions/ingest/index.ts` | 受令牌保护的写入。`POST /bootstrap` 在首次使用时固定令牌并存储其 SHA-256；之后是 `POST /json`、`POST /events`、`GET /requests`、`POST /requests/:id`、`POST /upload` 与 `POST /reset`，每个都携带 `x-daliesk-token`。每个写入体都是 `{ "gz": base64(gzip(JSON)) }`。 |
-| `functions/feed/index.ts` | 面向观看者的 feed 契约：`GET /roster`、`GET /runs`、`GET /safety/:id`、`GET /runs/:id/events` 上的 Server-Sent Events（每个连接至多 140 秒，从 `Last-Event-ID` 续传），以及 `POST /safety`，它最多等待 25 秒让 pusher 启动审查并以运行 id 应答。CORS 允许所有来源。 |
+| `functions/feed/index.ts` | 面向观看者的 feed 契约：`GET /roster`、`GET /runs`、`GET /programs`、`GET /safety/:id`、`GET /runs/:id/events` 上的 Server-Sent Events（每个连接至多 140 秒，从 `Last-Event-ID` 续传），以及 `POST /safety`，它最多等待 25 秒让 pusher 启动审查并以运行 id 应答。CORS 允许所有来源。 |
 | `functions/deck/index.ts` | 从 `deck` 存储桶在 `/functions/v1/deck/` 下提供 deck 的静态导出。浏览器不会把它当作页面接收：平台以 `text/plain` 和沙箱策略应答导航，所以把导出托管在别处并指向中继。 |
-| `pusher.mjs` | 与 feed 并行运行。在 `/runs`、`/roster` 与每个代码安全 `/safety/:id` 变化时推送它们，跟随每个运行的事件流并分批转发事件（先运行中的运行，再代码安全审查，然后其余按最新优先），并认领目标位于 `TARGET_ROOT` 之下的审查请求。 |
+| `pusher.mjs` | 与 feed 并行运行。在 `/runs`、`/roster`、`/programs` 与每个代码安全 `/safety/:id` 变化时推送它们，跟随每个运行的事件流并分批转发事件（先运行中的运行，再代码安全审查，然后其余按最新优先），并认领目标位于 `TARGET_ROOT` 之下的审查请求。 |
 | `upload-deck.mjs` | 通过 `POST /upload` 把静态导出目录上传到存储桶。 |
 
 ## 部署

@@ -2,7 +2,7 @@
  * Daliesk command-deck mirror: the public read side of the feed.
  *
  * Serves the feed contract the deck reads — `GET /roster`, `GET /runs`,
- * `GET /safety/:id`, and the Server-Sent Events stream `GET /runs/:id/events` —
+ * `GET /programs`, `GET /safety/:id`, and the Server-Sent Events stream `GET /runs/:id/events` —
  * from the rows the `ingest` function stores, and turns `POST /safety` into a
  * request the pushing container claims and answers with the run id it
  * started. One event stream stays open for at most STREAM_MS, under the
@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
   const url = new URL(req.url)
   const route = routeOf(url)
   try {
-    if (req.method === 'GET' && (route === '/roster' || route === '/runs')) {
+    if (req.method === 'GET' && (route === '/roster' || route === '/runs' || route === '/programs')) {
       const body = await snapshot(route)
       return body === undefined ? json(503, { error: 'the mirror has not received this snapshot yet' }) : json(200, body)
     }
