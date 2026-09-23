@@ -43,15 +43,20 @@ const MAX_PART_BYTES = 40 * 1024 * 1024
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 
 /** Credential-shaped text. Every match must be reviewed and accepted by digest before a snapshot is written. */
+// A distinctive prefix (`sk-or-v1-`, `ghp_`, `AKIA`, `xox`, `Bearer `) carries no
+// leading `\b`: a secret often follows a JSON-escaped newline, whose trailing
+// `n` is a word character, so a leading `\b` would defeat both the redaction and
+// the re-scan. `openai-style-key` keeps its `\b` because the bare `sk-` prefix
+// would otherwise match inside words like `task` or `risk`.
 const SECRET_PATTERNS = [
   { name: 'anthropic-key', re: /sk-ant-[A-Za-z0-9_-]{20,}/g },
-  { name: 'openrouter-key', re: /\bsk-or-v1-[A-Za-z0-9]{20,}/g },
+  { name: 'openrouter-key', re: /sk-or-v1-[A-Za-z0-9]{20,}/g },
   { name: 'openai-style-key', re: /\bsk-(?:proj-)?[A-Za-z0-9]{20,}/g },
-  { name: 'github-token', re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|\bgithub_pat_[A-Za-z0-9_]{20,}/g },
-  { name: 'aws-access-key', re: /\bAKIA[0-9A-Z]{16}\b/g },
-  { name: 'slack-token', re: /\bxox[abprs]-[A-Za-z0-9-]{10,}/g },
+  { name: 'github-token', re: /(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}/g },
+  { name: 'aws-access-key', re: /AKIA[0-9A-Z]{16}/g },
+  { name: 'slack-token', re: /xox[abprs]-[A-Za-z0-9-]{10,}/g },
   { name: 'private-key', re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g },
-  { name: 'bearer-token', re: /\bBearer [A-Za-z0-9._~+/=-]{20,}/g },
+  { name: 'bearer-token', re: /Bearer [A-Za-z0-9._~+/=-]{20,}/g },
 ]
 
 /** SECRET_PATTERNS entry names, for validating --redact. */
@@ -90,6 +95,14 @@ function parseArgs(argv) {
 /** The marker one redacted match becomes; distinct from every SECRET_PATTERNS shape. */
 const redactionMarker = (pattern) => `[REDACTED-${pattern.toUpperCase()}]`
 
+// The `private-key` SECRET_PATTERNS entry matches only the BEGIN marker, which
+// detects a key but would leave its body when redacting. The whole BEGIN…END
+// block (the body may not cross a JSON string boundary or another PEM marker,
+// so a BEGIN line quoted on its own does not extend it) collapses to one marker
+// so no marker or body line survives the re-scan.
+const PRIVATE_KEY_BLOCK = /-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----(?:(?!-----)[^"])*?-----END (?:[A-Z]+ )*PRIVATE KEY-----/g
+const PRIVATE_KEY_MARKER_LINE = /-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----/g
+
 /**
  * Replaces the matches of the named patterns with their marker.
  * @param {string} text file content
@@ -99,8 +112,21 @@ const redactionMarker = (pattern) => `[REDACTED-${pattern.toUpperCase()}]`
 function redactText(text, redact) {
   const counts = {}
   let redacted = text
+  if (redact.has('private-key')) {
+    const marker = redactionMarker('private-key')
+    const replace = pattern => {
+      redacted = redacted.replace(pattern, () => {
+        counts['private-key'] = (counts['private-key'] ?? 0) + 1
+        return marker
+      })
+    }
+    // The whole block first, then any BEGIN marker left with no END in range (a
+    // key a tool cut off, or a search hit that quotes only the marker line).
+    replace(PRIVATE_KEY_BLOCK)
+    replace(PRIVATE_KEY_MARKER_LINE)
+  }
   for (const { name, re } of SECRET_PATTERNS) {
-    if (!redact.has(name)) continue
+    if (!redact.has(name) || name === 'private-key') continue
     const marker = redactionMarker(name)
     redacted = redacted.replace(new RegExp(re.source, re.flags), () => {
       counts[name] = (counts[name] ?? 0) + 1
