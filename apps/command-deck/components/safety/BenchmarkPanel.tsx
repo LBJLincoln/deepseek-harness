@@ -47,6 +47,31 @@ function Mark({ on }: { on: boolean }): ReactNode {
 }
 
 /**
+ * The read a client needs beside the bars. Recall alone can favour a single
+ * unverified pass, so this names which approach out-recalls on this target and
+ * why the enterprise's verified, repeatable result is the number that can be
+ * acted on. A pure function of the two model-run tiers; renders nothing when
+ * either is absent from the record.
+ * @param props.comparison - The target's comparison record.
+ * @returns The callout, or null.
+ */
+function ReadTheBars({ comparison }: { comparison: Comparison }): ReactNode {
+  const enterprise = comparison.tiers.find(tier => tier.id === 'enterprise')
+  const model = comparison.tiers.find(tier => tier.id === 'single-model')
+  if (enterprise === undefined || model === undefined) return null
+  const pct = (tier: ComparisonTier): number => Math.round((tier.found / comparison.knownIssues) * 100)
+  return (
+    <div style={{ fontSize: 12.5, lineHeight: 1.55, padding: '10px 12px', margin: '2px 0 6px', borderLeft: '2px solid #4fd1c5', background: 'rgba(79,209,197,0.06)' }}>
+      <b>Read the bars with the verification label.</b>{' '}
+      {model.found > enterprise.found
+        ? `The single pass reads higher on recall here — ${pct(model)}% to ${pct(enterprise)}%, and we say so.`
+        : `The enterprise reads at least level on recall here — ${pct(enterprise)}% to ${pct(model)}%.`}{' '}
+      A single pass is <span style={{ color: '#f0b429' }}>unverified</span> and non-deterministic: a second run returns a different set, with no transcript and no certificate. Only the enterprise <span style={{ color: '#4fd1c5' }}>verifies every finding at its line</span> and leaves a repeatable, auditable result. On a small application the harness&rsquo;s worth is auditability, not a higher count.
+    </div>
+  )
+}
+
+/**
  * The benchmark tab: how the enterprise scores against a scanner and a single
  * model on the same target and ground truth, with the issue matrix and the
  * gaps the comparison hands the improvement loop.
@@ -62,6 +87,7 @@ export function BenchmarkPanel({ comparison }: { comparison: Comparison }): Reac
         The single model and the enterprise run the same model; only the harness differs.
       </p>
       {comparison.tiers.map(tier => <TierRow key={tier.id} tier={tier} known={comparison.knownIssues} />)}
+      <ReadTheBars comparison={comparison} />
 
       <h4 style={{ margin: '18px 0 8px' }}>Issue by issue</h4>
       <table className="mono" style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
