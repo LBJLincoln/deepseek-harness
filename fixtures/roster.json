@@ -1,0 +1,4365 @@
+{
+  "generatedAt": "2026-09-22T19:59:30.728Z",
+  "counts": {
+    "defined": 147,
+    "occupied": 19,
+    "active": 0
+  },
+  "divisions": [
+    {
+      "id": "harness-core",
+      "name": "Harness Core",
+      "purpose": "Stewards the product API spine: session, prompt assembly, tools, agent, the agent loop, LLM routing, and subagent delegation."
+    },
+    {
+      "id": "proving-ground",
+      "name": "Proving Ground",
+      "purpose": "Operates the harness against real bench scenarios recorded under examples/headless-agent/tests."
+    },
+    {
+      "id": "verification",
+      "name": "Verification",
+      "purpose": "Runs the verify-* scripts that gate changed source before it ships."
+    },
+    {
+      "id": "judging",
+      "name": "Judging",
+      "purpose": "Decides pass or fail at each named CI gate."
+    },
+    {
+      "id": "curation-data",
+      "name": "Curation & Data",
+      "purpose": "Curates the Agent Note corpus and fixture datasets, and keeps score of usage for the observatory."
+    },
+    {
+      "id": "program-departments",
+      "name": "Program Departments",
+      "purpose": "Coordinates cross-cutting package groups as departments of one program."
+    },
+    {
+      "id": "code-safety",
+      "name": "Code Safety",
+      "purpose": "Reviews target repositories for secrets, injection, access, data, dependency, and platform risk, per language."
+    },
+    {
+      "id": "knowledge",
+      "name": "Knowledge",
+      "purpose": "Keeps the repository's reusable skills current and discoverable."
+    },
+    {
+      "id": "governance",
+      "name": "Governance",
+      "purpose": "Owns process standards: labels, stacking, dependencies, vendoring, licensing, and translation pairing."
+    },
+    {
+      "id": "observatory",
+      "name": "Observatory",
+      "purpose": "Watches session telemetry, token spend, and query surfaces across runs."
+    }
+  ],
+  "agents": [
+    {
+      "id": "harness-core-agent-steward",
+      "name": "Agent Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "agent",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/agent/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-agent-default-model-steward",
+      "name": "Agent Default Model Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "agent-default-model",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/agent-default-model/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-agent-loop-steward",
+      "name": "Agent Loop Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "agent-loop",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/agent-loop/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-agent-tool-presentation-steward",
+      "name": "Agent Tool Presentation Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "agent-tool-presentation",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/agent-tool-presentation/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-scope-steward",
+      "name": "Scope Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "scope",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/scope/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-session-steward",
+      "name": "Session Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "session",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/session/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-system-prompt-steward",
+      "name": "System Prompt Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "system-prompt",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/system-prompt/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-tools-steward",
+      "name": "Tools Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "tools",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/core/tools/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-llm-steward",
+      "name": "Llm Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "llm",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/llm/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-llm-claude-code-steward",
+      "name": "Llm Claude Code Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "llm-claude-code",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/llm-claude-code/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-llm-deepseek-steward",
+      "name": "Llm Deepseek Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "llm-deepseek",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/llm-deepseek/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-llm-pi-ai-steward",
+      "name": "Llm Pi Ai Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "llm-pi-ai",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/llm-pi-ai/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-llm-retry-steward",
+      "name": "Llm Retry Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "llm-retry",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/llm-retry/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-token-meter-steward",
+      "name": "Token Meter Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "token-meter",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/llm/token-meter/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-steward",
+      "name": "Subagent Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-acp-steward",
+      "name": "Subagent Acp Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-acp",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-acp/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-claude-code-steward",
+      "name": "Subagent Claude Code Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-claude-code",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-claude-code/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-codex-steward",
+      "name": "Subagent Codex Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-codex",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-codex/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-dsh-sdk-steward",
+      "name": "Subagent Dsh Sdk Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-dsh-sdk",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-dsh-sdk/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-fork-in-process-steward",
+      "name": "Subagent Fork In Process Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-fork-in-process",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-fork-in-process/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-in-process-driver-steward",
+      "name": "Subagent In Process Driver Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-in-process-driver",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-in-process-driver/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-subagent-spawn-in-process-steward",
+      "name": "Subagent Spawn In Process Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "subagent-spawn-in-process",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/subagent-spawn-in-process/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-tool-subagent-steward",
+      "name": "Tool Subagent Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "tool-subagent",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/tool-subagent/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "harness-core-tool-subagent-control-steward",
+      "name": "Tool Subagent Control Steward",
+      "role": "steward",
+      "division": "harness-core",
+      "specialization": "tool-subagent-control",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "packages/subagent/tool-subagent-control/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "proving-ground-bitset-bloom-bench-operator",
+      "name": "Bitset Bloom Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "bitset-bloom",
+      "route": {
+        "provider": "claude-code",
+        "model": "sonnet"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/bitset-bloom",
+      "status": "certified",
+      "evidence": {
+        "sessions": 4,
+        "lastSeen": "2026-09-07T23:02:13.605Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-build-schedule-bench-operator",
+      "name": "Build Schedule Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "build-schedule",
+      "route": {
+        "provider": "claude-code",
+        "model": "opus"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/build-schedule",
+      "status": "certified",
+      "evidence": {
+        "sessions": 81,
+        "lastSeen": "2026-09-22T01:15:05.357Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-conf-canon-bench-operator",
+      "name": "Conf Canon Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "conf-canon",
+      "route": {
+        "provider": "claude-code",
+        "model": "haiku"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/conf-canon",
+      "status": "certified",
+      "evidence": {
+        "sessions": 80,
+        "lastSeen": "2026-09-22T01:25:05.387Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-config-layers-bench-operator",
+      "name": "Config Layers Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "config-layers",
+      "route": {
+        "provider": "claude-code",
+        "model": "sonnet"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/config-layers",
+      "status": "certified",
+      "evidence": {
+        "sessions": 4,
+        "lastSeen": "2026-09-19T11:16:04.793Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-cron-next-bench-operator",
+      "name": "Cron Next Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "cron-next",
+      "route": {
+        "provider": "claude-code",
+        "model": "opus"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next",
+      "status": "certified",
+      "evidence": {
+        "sessions": 4,
+        "lastSeen": "2026-09-07T23:04:15.769Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-csv-codec-bench-operator",
+      "name": "Csv Codec Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "csv-codec",
+      "route": {
+        "provider": "claude-code",
+        "model": "haiku"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec",
+      "status": "certified",
+      "evidence": {
+        "sessions": 11,
+        "lastSeen": "2026-09-19T11:48:01.878Z",
+        "routesSeen": [
+          "claude-code",
+          "openrouter"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-dep-resolver-bench-operator",
+      "name": "Dep Resolver Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "dep-resolver",
+      "route": {
+        "provider": "claude-code",
+        "model": "sonnet"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/dep-resolver",
+      "status": "certified",
+      "evidence": {
+        "sessions": 20,
+        "lastSeen": "2026-09-08T02:44:13.789Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-diff3-merge-bench-operator",
+      "name": "Diff3 Merge Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "diff3-merge",
+      "route": {
+        "provider": "claude-code",
+        "model": "opus"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/diff3-merge",
+      "status": "certified",
+      "evidence": {
+        "sessions": 83,
+        "lastSeen": "2026-09-22T01:29:37.694Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-double-entry-ledger-bench-operator",
+      "name": "Double Entry Ledger Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "double-entry-ledger",
+      "route": {
+        "provider": "claude-code",
+        "model": "haiku"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/double-entry-ledger",
+      "status": "certified",
+      "evidence": {
+        "sessions": 20,
+        "lastSeen": "2026-09-08T02:42:58.636Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-expr-eval-bench-operator",
+      "name": "Expr Eval Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "expr-eval",
+      "route": {
+        "provider": "claude-code",
+        "model": "sonnet"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval",
+      "status": "certified",
+      "evidence": {
+        "sessions": 20,
+        "lastSeen": "2026-09-08T02:50:37.895Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-glob-brace-bench-operator",
+      "name": "Glob Brace Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "glob-brace",
+      "route": {
+        "provider": "claude-code",
+        "model": "opus"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-brace",
+      "status": "certified",
+      "evidence": {
+        "sessions": 2,
+        "lastSeen": "2026-09-08T17:07:44.640Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "proving-ground-glob-match-bench-operator",
+      "name": "Glob Match Bench Operator",
+      "role": "bench-operator",
+      "division": "proving-ground",
+      "specialization": "glob-match",
+      "route": {
+        "provider": "claude-code",
+        "model": "haiku"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent",
+        "bash"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match",
+      "status": "certified",
+      "evidence": {
+        "sessions": 11,
+        "lastSeen": "2026-09-19T12:16:21.588Z",
+        "routesSeen": [
+          "claude-code",
+          "openrouter"
+        ]
+      }
+    },
+    {
+      "id": "verification-verify-agent-note-classification",
+      "name": "Agent Note Classification Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-agent-note-classification",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-agent-note-classification.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-agent-note-format",
+      "name": "Agent Note Format Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-agent-note-format",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-agent-note-format.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-archived-agent-notes",
+      "name": "Archived Agent Notes Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-archived-agent-notes",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-archived-agent-notes.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-client-domain-graph",
+      "name": "Client Domain Graph Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-client-domain-graph",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-client-domain-graph.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-config-source-ownership",
+      "name": "Config Source Ownership Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-config-source-ownership",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-config-source-ownership.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-cordis-config",
+      "name": "Cordis Config Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-cordis-config",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-cordis-config.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-doc-budgets",
+      "name": "Doc Budgets Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-doc-budgets",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-doc-budgets.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-doc-refs",
+      "name": "Doc Refs Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-doc-refs",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-doc-refs.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-doc-site-fragments",
+      "name": "Doc Site Fragments Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-doc-site-fragments",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-doc-site-fragments.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-dsh-package-licenses",
+      "name": "Dsh Package Licenses Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-dsh-package-licenses",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-dsh-package-licenses.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-export-jsdoc",
+      "name": "Export Jsdoc Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-export-jsdoc",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-export-jsdoc.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-md-links",
+      "name": "Md Links Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-md-links",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-md-links.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-md-wrap",
+      "name": "Md Wrap Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-md-wrap",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-md-wrap.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "verification-verify-mermaid",
+      "name": "Mermaid Verifier",
+      "role": "verifier",
+      "division": "verification",
+      "specialization": "verify-mermaid",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "bash",
+        "read"
+      ],
+      "source": "scripts/verify-mermaid.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-primary",
+      "name": "Ci Primary Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-primary",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-linux-primary",
+      "name": "Ci Linux Primary Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-linux-primary",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-static",
+      "name": "Ci Static Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-static",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-lint-contracts-ready",
+      "name": "Ci Lint Contracts Ready Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-lint-contracts-ready",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-coverage",
+      "name": "Ci Coverage Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-coverage",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-snapshot",
+      "name": "Ci Snapshot Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-snapshot",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-artifacts",
+      "name": "Ci Artifacts Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-artifacts",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-consumers",
+      "name": "Ci Consumers Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-consumers",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-windows-blocking",
+      "name": "Ci Windows Blocking Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-windows-blocking",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-windows-complete",
+      "name": "Ci Windows Complete Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-windows-complete",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "judging-ci-windows-observational",
+      "name": "Ci Windows Observational Judge",
+      "role": "judge",
+      "division": "judging",
+      "specialization": "ci-windows-observational",
+      "route": {
+        "provider": "codex",
+        "model": "codex"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "session_query"
+      ],
+      "source": "scripts/run-gates.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-architecture-curator",
+      "name": "Architecture Note Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "specialization": "architecture",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/architecture",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-bug-fix-curator",
+      "name": "Bug Fix Note Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "specialization": "bug-fix",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/bug-fix",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-feature-curator",
+      "name": "Feature Note Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "specialization": "feature",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/feature",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-process-curator",
+      "name": "Process Note Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "specialization": "process",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/process",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-simplification-curator",
+      "name": "Simplification Note Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "specialization": "simplification",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/simplification",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-testing-curator",
+      "name": "Testing Note Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "specialization": "testing",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/testing",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-fixture-curator",
+      "name": "Fixture Dataset Curator",
+      "role": "curator",
+      "division": "curation-data",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "examples/headless-agent/tests/fixtures",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "curation-data-scorekeeper",
+      "name": "Usage Scorekeeper",
+      "role": "scorekeeper",
+      "division": "curation-data",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-pro"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "packages/llm/token-meter/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-jobs-coordinator",
+      "name": "Jobs Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "jobs",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/jobs/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-workflow-coordinator",
+      "name": "Workflow Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "workflow",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/workflow/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-goal-coordinator",
+      "name": "Goal Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "goal",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/goal/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-schedule-coordinator",
+      "name": "Schedule Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "schedule",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/schedule/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-feedback-coordinator",
+      "name": "Feedback Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "feedback",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/feedback/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-storage-coordinator",
+      "name": "Storage Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "storage",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/storage/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-workspace-coordinator",
+      "name": "Workspace Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "workspace",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/workspace/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-host-coordinator",
+      "name": "Host Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "host",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/host/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-client-coordinator",
+      "name": "Client Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "client",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/client/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "program-departments-boot-coordinator",
+      "name": "Boot Department Coordinator",
+      "role": "coordinator",
+      "division": "program-departments",
+      "specialization": "boot",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "coding",
+      "skills": [],
+      "tools": [
+        "subagent"
+      ],
+      "source": "packages/boot/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-javascript-typescript-reviewer",
+      "name": "Secrets × JavaScript/TypeScript Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "secrets",
+      "specialization": "javascript-typescript",
+      "route": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-python-reviewer",
+      "name": "Secrets × Python Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "secrets",
+      "specialization": "python",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-java-reviewer",
+      "name": "Secrets × Java Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "secrets",
+      "specialization": "java",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-go-reviewer",
+      "name": "Secrets × Go Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "secrets",
+      "specialization": "go",
+      "route": {
+        "provider": "openrouter",
+        "model": "qwen/qwen3.8-27b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-php-reviewer",
+      "name": "Secrets × PHP Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "secrets",
+      "specialization": "php",
+      "route": {
+        "provider": "openrouter",
+        "model": "google/gemma-4-31b-it:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-mobile-reviewer",
+      "name": "Secrets × Mobile (Swift/Kotlin) Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "secrets",
+      "specialization": "mobile",
+      "route": {
+        "provider": "openrouter",
+        "model": "poolside/laguna-s-2.1:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-secrets-integrator",
+      "name": "Secrets Integrator",
+      "role": "integrator",
+      "division": "code-safety",
+      "department": "secrets",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "code-safety/secrets"
+      ],
+      "tools": [
+        "read",
+        "session_query"
+      ],
+      "source": "data/knowledge/code-safety/secrets/SKILL.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 5,
+        "lastSeen": "2026-09-22T18:42:24.742Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "code-safety-injection-javascript-typescript-reviewer",
+      "name": "Injection × JavaScript/TypeScript Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "injection",
+      "specialization": "javascript-typescript",
+      "route": {
+        "provider": "openrouter",
+        "model": "nex-agi/nex-n2.5-pro:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-injection-python-reviewer",
+      "name": "Injection × Python Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "injection",
+      "specialization": "python",
+      "route": {
+        "provider": "openrouter",
+        "model": "thinkingmachines/inkling:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-injection-java-reviewer",
+      "name": "Injection × Java Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "injection",
+      "specialization": "java",
+      "route": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-injection-go-reviewer",
+      "name": "Injection × Go Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "injection",
+      "specialization": "go",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-injection-php-reviewer",
+      "name": "Injection × PHP Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "injection",
+      "specialization": "php",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-injection-mobile-reviewer",
+      "name": "Injection × Mobile (Swift/Kotlin) Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "injection",
+      "specialization": "mobile",
+      "route": {
+        "provider": "openrouter",
+        "model": "qwen/qwen3.8-27b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-injection-integrator",
+      "name": "Injection Integrator",
+      "role": "integrator",
+      "division": "code-safety",
+      "department": "injection",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "code-safety/injection"
+      ],
+      "tools": [
+        "read",
+        "session_query"
+      ],
+      "source": "data/knowledge/code-safety/injection/SKILL.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 5,
+        "lastSeen": "2026-09-22T18:41:08.457Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "code-safety-access-javascript-typescript-reviewer",
+      "name": "Access × JavaScript/TypeScript Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "access",
+      "specialization": "javascript-typescript",
+      "route": {
+        "provider": "openrouter",
+        "model": "google/gemma-4-31b-it:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-access-python-reviewer",
+      "name": "Access × Python Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "access",
+      "specialization": "python",
+      "route": {
+        "provider": "openrouter",
+        "model": "poolside/laguna-s-2.1:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-access-java-reviewer",
+      "name": "Access × Java Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "access",
+      "specialization": "java",
+      "route": {
+        "provider": "openrouter",
+        "model": "nex-agi/nex-n2.5-pro:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-access-go-reviewer",
+      "name": "Access × Go Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "access",
+      "specialization": "go",
+      "route": {
+        "provider": "openrouter",
+        "model": "thinkingmachines/inkling:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-access-php-reviewer",
+      "name": "Access × PHP Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "access",
+      "specialization": "php",
+      "route": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-access-mobile-reviewer",
+      "name": "Access × Mobile (Swift/Kotlin) Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "access",
+      "specialization": "mobile",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-access-integrator",
+      "name": "Access Integrator",
+      "role": "integrator",
+      "division": "code-safety",
+      "department": "access",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "code-safety/access"
+      ],
+      "tools": [
+        "read",
+        "session_query"
+      ],
+      "source": "data/knowledge/code-safety/access/SKILL.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 5,
+        "lastSeen": "2026-09-22T18:40:19.557Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "code-safety-data-javascript-typescript-reviewer",
+      "name": "Data × JavaScript/TypeScript Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "data",
+      "specialization": "javascript-typescript",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-data-python-reviewer",
+      "name": "Data × Python Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "data",
+      "specialization": "python",
+      "route": {
+        "provider": "openrouter",
+        "model": "qwen/qwen3.8-27b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-data-java-reviewer",
+      "name": "Data × Java Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "data",
+      "specialization": "java",
+      "route": {
+        "provider": "openrouter",
+        "model": "google/gemma-4-31b-it:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-data-go-reviewer",
+      "name": "Data × Go Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "data",
+      "specialization": "go",
+      "route": {
+        "provider": "openrouter",
+        "model": "poolside/laguna-s-2.1:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-data-php-reviewer",
+      "name": "Data × PHP Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "data",
+      "specialization": "php",
+      "route": {
+        "provider": "openrouter",
+        "model": "nex-agi/nex-n2.5-pro:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-data-mobile-reviewer",
+      "name": "Data × Mobile (Swift/Kotlin) Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "data",
+      "specialization": "mobile",
+      "route": {
+        "provider": "openrouter",
+        "model": "thinkingmachines/inkling:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-data-integrator",
+      "name": "Data Integrator",
+      "role": "integrator",
+      "division": "code-safety",
+      "department": "data",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "code-safety/data"
+      ],
+      "tools": [
+        "read",
+        "session_query"
+      ],
+      "source": "data/knowledge/code-safety/data/SKILL.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 5,
+        "lastSeen": "2026-09-22T18:47:26.028Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "code-safety-dependencies-javascript-typescript-reviewer",
+      "name": "Dependencies × JavaScript/TypeScript Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "dependencies",
+      "specialization": "javascript-typescript",
+      "route": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-dependencies-python-reviewer",
+      "name": "Dependencies × Python Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "dependencies",
+      "specialization": "python",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-dependencies-java-reviewer",
+      "name": "Dependencies × Java Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "dependencies",
+      "specialization": "java",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-dependencies-go-reviewer",
+      "name": "Dependencies × Go Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "dependencies",
+      "specialization": "go",
+      "route": {
+        "provider": "openrouter",
+        "model": "qwen/qwen3.8-27b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-dependencies-php-reviewer",
+      "name": "Dependencies × PHP Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "dependencies",
+      "specialization": "php",
+      "route": {
+        "provider": "openrouter",
+        "model": "google/gemma-4-31b-it:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-dependencies-mobile-reviewer",
+      "name": "Dependencies × Mobile (Swift/Kotlin) Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "dependencies",
+      "specialization": "mobile",
+      "route": {
+        "provider": "openrouter",
+        "model": "poolside/laguna-s-2.1:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-dependencies-integrator",
+      "name": "Dependencies Integrator",
+      "role": "integrator",
+      "division": "code-safety",
+      "department": "dependencies",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "code-safety/dependencies"
+      ],
+      "tools": [
+        "read",
+        "session_query"
+      ],
+      "source": "data/knowledge/code-safety/dependencies/SKILL.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 5,
+        "lastSeen": "2026-09-22T18:49:42.135Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "code-safety-platform-javascript-typescript-reviewer",
+      "name": "Platform × JavaScript/TypeScript Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "platform",
+      "specialization": "javascript-typescript",
+      "route": {
+        "provider": "openrouter",
+        "model": "nex-agi/nex-n2.5-pro:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-platform-python-reviewer",
+      "name": "Platform × Python Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "platform",
+      "specialization": "python",
+      "route": {
+        "provider": "openrouter",
+        "model": "thinkingmachines/inkling:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-platform-java-reviewer",
+      "name": "Platform × Java Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "platform",
+      "specialization": "java",
+      "route": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-platform-go-reviewer",
+      "name": "Platform × Go Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "platform",
+      "specialization": "go",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-super-120b-a12b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-platform-php-reviewer",
+      "name": "Platform × PHP Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "platform",
+      "specialization": "php",
+      "route": {
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-platform-mobile-reviewer",
+      "name": "Platform × Mobile (Swift/Kotlin) Reviewer",
+      "role": "reviewer",
+      "division": "code-safety",
+      "department": "platform",
+      "specialization": "mobile",
+      "route": {
+        "provider": "openrouter",
+        "model": "qwen/qwen3.8-27b:free"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review",
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "bash"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "code-safety-platform-integrator",
+      "name": "Platform Integrator",
+      "role": "integrator",
+      "division": "code-safety",
+      "department": "platform",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "code-safety/platform"
+      ],
+      "tools": [
+        "read",
+        "session_query"
+      ],
+      "source": "data/knowledge/code-safety/platform/SKILL.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 5,
+        "lastSeen": "2026-09-22T18:48:21.289Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "code-safety-lead",
+      "name": "Code Safety Program Lead",
+      "role": "lead",
+      "division": "code-safety",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-pro"
+      },
+      "preset": "coding",
+      "skills": [
+        "code-safety/review-method",
+        "code-safety/severity-and-evidence"
+      ],
+      "tools": [
+        "subagent",
+        "session_query"
+      ],
+      "source": ".agents/notes/implemented/architecture/2026-09-19-enterprise-roster-and-harness-feed.md",
+      "status": "certified",
+      "evidence": {
+        "sessions": 10,
+        "lastSeen": "2026-09-22T18:59:07.301Z",
+        "routesSeen": [
+          "claude-code"
+        ]
+      }
+    },
+    {
+      "id": "knowledge-dsh-archive-agent-notes-skill-keeper",
+      "name": "Dsh Archive Agent Notes Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-archive-agent-notes",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-archive-agent-notes"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-archive-agent-notes/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-code-review-skill-keeper",
+      "name": "Dsh Code Review Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-code-review",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-code-review"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-code-review/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-doc-site-sync-skill-keeper",
+      "name": "Dsh Doc Site Sync Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-doc-site-sync",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-doc-site-sync"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-doc-site-sync/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-doc-standards-skill-keeper",
+      "name": "Dsh Doc Standards Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-doc-standards",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-doc-standards"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-doc-standards/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-find-simplifications-skill-keeper",
+      "name": "Dsh Find Simplifications Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-find-simplifications",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-find-simplifications/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-merging-stacked-prs-skill-keeper",
+      "name": "Dsh Merging Stacked Prs Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-merging-stacked-prs",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-merging-stacked-prs"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-merging-stacked-prs/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-pre-push-checks-skill-keeper",
+      "name": "Dsh Pre Push Checks Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-pre-push-checks",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-pre-push-checks"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-pre-push-checks/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-prose-standard-skill-keeper",
+      "name": "Dsh Prose Standard Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-prose-standard",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-prose-standard"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-prose-standard/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-translate-docs-skill-keeper",
+      "name": "Dsh Translate Docs Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-translate-docs",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-translate-docs"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-translate-docs/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-dsh-trim-cot-leakage-skill-keeper",
+      "name": "Dsh Trim Cot Leakage Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "dsh-trim-cot-leakage",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-trim-cot-leakage"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/dsh-trim-cot-leakage/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "knowledge-record-browser-gif-skill-keeper",
+      "name": "Record Browser Gif Skill Keeper",
+      "role": "skill-keeper",
+      "division": "knowledge",
+      "specialization": "record-browser-gif",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "record-browser-gif"
+      ],
+      "tools": [
+        "skill"
+      ],
+      "source": ".agents/skills/record-browser-gif/SKILL.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-label-taxonomy-standard-author",
+      "name": "Label Taxonomy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "label-taxonomy",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/process/2026-08-08-unified-github-label-taxonomy.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-stacked-prs-standard-author",
+      "name": "Stacked PR Policy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "stacked-prs",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-merging-stacked-prs"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/process/2026-08-02-native-github-stacks-and-optional-rebases.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-dependency-policy-standard-author",
+      "name": "Dependency Policy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "dependency-policy",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-find-simplifications"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": ".agents/notes/implemented/process/2026-07-26-dependencies-over-hand-rolling.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-vendoring-policy-standard-author",
+      "name": "Vendoring Policy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "vendoring-policy",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "vendor/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-license-policy-standard-author",
+      "name": "License Policy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "license-policy",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "scripts/verify-dsh-package-licenses.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-third-party-notices-standard-author",
+      "name": "Third-Party Notices Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "third-party-notices",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "read"
+      ],
+      "source": "scripts/gen-third-party-notices.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-doc-budgets-standard-author",
+      "name": "Doc Budget Policy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "doc-budgets",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-doc-standards"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": "scripts/doc-budgets.manifest.json",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "governance-translation-pairing-standard-author",
+      "name": "Translation Pairing Policy Standard Author",
+      "role": "standard-author",
+      "division": "governance",
+      "specialization": "translation-pairing",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [
+        "dsh-translate-docs"
+      ],
+      "tools": [
+        "read"
+      ],
+      "source": "scripts/verify-translation-pairing.ts",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "observatory-session-telemetry-observer",
+      "name": "Session Telemetry Observer",
+      "role": "observer",
+      "division": "observatory",
+      "specialization": "session-telemetry",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "packages/session/session-telemetry/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "observatory-session-telemetry-otel-observer",
+      "name": "OpenTelemetry Export Observer",
+      "role": "observer",
+      "division": "observatory",
+      "specialization": "session-telemetry-otel",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "packages/session/session-telemetry-otel/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "observatory-session-stats-observer",
+      "name": "Session Stats Observer",
+      "role": "observer",
+      "division": "observatory",
+      "specialization": "session-stats",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "packages/session/session-stats/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "observatory-session-projection-observer",
+      "name": "Session Projection Observer",
+      "role": "observer",
+      "division": "observatory",
+      "specialization": "session-projection",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "packages/session/session-projection/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "observatory-session-query-observer",
+      "name": "Session Query Observer",
+      "role": "observer",
+      "division": "observatory",
+      "specialization": "session-query",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "packages/session-query/README.md",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    },
+    {
+      "id": "observatory-otel-bench-fixture-observer",
+      "name": "OpenTelemetry Bench Fixture Observer",
+      "role": "observer",
+      "division": "observatory",
+      "specialization": "otel-bench-fixture",
+      "route": {
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash"
+      },
+      "preset": "reviewing",
+      "skills": [],
+      "tools": [
+        "session_query"
+      ],
+      "source": "examples/headless-agent/tests/fixtures/session-telemetry-otel.cordis.yml",
+      "status": "defined",
+      "evidence": {
+        "sessions": 0,
+        "routesSeen": []
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "harness-core-agent-steward",
+      "to": "verification-verify-agent-note-classification",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-agent-default-model-steward",
+      "to": "verification-verify-agent-note-format",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-agent-loop-steward",
+      "to": "verification-verify-archived-agent-notes",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-agent-tool-presentation-steward",
+      "to": "verification-verify-client-domain-graph",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-scope-steward",
+      "to": "verification-verify-config-source-ownership",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-session-steward",
+      "to": "verification-verify-cordis-config",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-system-prompt-steward",
+      "to": "verification-verify-doc-budgets",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-tools-steward",
+      "to": "verification-verify-doc-refs",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-llm-steward",
+      "to": "verification-verify-doc-site-fragments",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-llm-claude-code-steward",
+      "to": "verification-verify-dsh-package-licenses",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-llm-deepseek-steward",
+      "to": "verification-verify-export-jsdoc",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-llm-pi-ai-steward",
+      "to": "verification-verify-md-links",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-llm-retry-steward",
+      "to": "verification-verify-md-wrap",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-token-meter-steward",
+      "to": "verification-verify-mermaid",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-steward",
+      "to": "verification-verify-agent-note-classification",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-acp-steward",
+      "to": "verification-verify-agent-note-format",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-claude-code-steward",
+      "to": "verification-verify-archived-agent-notes",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-codex-steward",
+      "to": "verification-verify-client-domain-graph",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-dsh-sdk-steward",
+      "to": "verification-verify-config-source-ownership",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-fork-in-process-steward",
+      "to": "verification-verify-cordis-config",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-in-process-driver-steward",
+      "to": "verification-verify-doc-budgets",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-subagent-spawn-in-process-steward",
+      "to": "verification-verify-doc-refs",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-tool-subagent-steward",
+      "to": "verification-verify-doc-site-fragments",
+      "kind": "verifies"
+    },
+    {
+      "from": "harness-core-tool-subagent-control-steward",
+      "to": "verification-verify-dsh-package-licenses",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-jobs-coordinator",
+      "to": "verification-verify-export-jsdoc",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-workflow-coordinator",
+      "to": "verification-verify-md-links",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-goal-coordinator",
+      "to": "verification-verify-md-wrap",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-schedule-coordinator",
+      "to": "verification-verify-mermaid",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-feedback-coordinator",
+      "to": "verification-verify-agent-note-classification",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-storage-coordinator",
+      "to": "verification-verify-agent-note-format",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-workspace-coordinator",
+      "to": "verification-verify-archived-agent-notes",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-host-coordinator",
+      "to": "verification-verify-client-domain-graph",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-client-coordinator",
+      "to": "verification-verify-config-source-ownership",
+      "kind": "verifies"
+    },
+    {
+      "from": "program-departments-boot-coordinator",
+      "to": "verification-verify-cordis-config",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-bitset-bloom-bench-operator",
+      "to": "verification-verify-doc-budgets",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-build-schedule-bench-operator",
+      "to": "verification-verify-doc-refs",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-conf-canon-bench-operator",
+      "to": "verification-verify-doc-site-fragments",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-config-layers-bench-operator",
+      "to": "verification-verify-dsh-package-licenses",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-cron-next-bench-operator",
+      "to": "verification-verify-export-jsdoc",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-csv-codec-bench-operator",
+      "to": "verification-verify-md-links",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-dep-resolver-bench-operator",
+      "to": "verification-verify-md-wrap",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-diff3-merge-bench-operator",
+      "to": "verification-verify-mermaid",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-double-entry-ledger-bench-operator",
+      "to": "verification-verify-agent-note-classification",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-expr-eval-bench-operator",
+      "to": "verification-verify-agent-note-format",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-glob-brace-bench-operator",
+      "to": "verification-verify-archived-agent-notes",
+      "kind": "verifies"
+    },
+    {
+      "from": "proving-ground-glob-match-bench-operator",
+      "to": "verification-verify-client-domain-graph",
+      "kind": "verifies"
+    },
+    {
+      "from": "verification-verify-agent-note-classification",
+      "to": "judging-ci-primary",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-agent-note-format",
+      "to": "judging-ci-linux-primary",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-archived-agent-notes",
+      "to": "judging-ci-static",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-client-domain-graph",
+      "to": "judging-ci-lint-contracts-ready",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-config-source-ownership",
+      "to": "judging-ci-coverage",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-cordis-config",
+      "to": "judging-ci-snapshot",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-doc-budgets",
+      "to": "judging-ci-artifacts",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-doc-refs",
+      "to": "judging-ci-consumers",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-doc-site-fragments",
+      "to": "judging-ci-windows-blocking",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-dsh-package-licenses",
+      "to": "judging-ci-windows-complete",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-export-jsdoc",
+      "to": "judging-ci-windows-observational",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-md-links",
+      "to": "judging-ci-primary",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-md-wrap",
+      "to": "judging-ci-linux-primary",
+      "kind": "judges"
+    },
+    {
+      "from": "verification-verify-mermaid",
+      "to": "judging-ci-static",
+      "kind": "judges"
+    },
+    {
+      "from": "code-safety-secrets-javascript-typescript-reviewer",
+      "to": "code-safety-secrets-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-secrets-python-reviewer",
+      "to": "code-safety-secrets-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-secrets-java-reviewer",
+      "to": "code-safety-secrets-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-secrets-go-reviewer",
+      "to": "code-safety-secrets-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-secrets-php-reviewer",
+      "to": "code-safety-secrets-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-secrets-mobile-reviewer",
+      "to": "code-safety-secrets-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-injection-javascript-typescript-reviewer",
+      "to": "code-safety-injection-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-injection-python-reviewer",
+      "to": "code-safety-injection-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-injection-java-reviewer",
+      "to": "code-safety-injection-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-injection-go-reviewer",
+      "to": "code-safety-injection-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-injection-php-reviewer",
+      "to": "code-safety-injection-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-injection-mobile-reviewer",
+      "to": "code-safety-injection-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-access-javascript-typescript-reviewer",
+      "to": "code-safety-access-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-access-python-reviewer",
+      "to": "code-safety-access-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-access-java-reviewer",
+      "to": "code-safety-access-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-access-go-reviewer",
+      "to": "code-safety-access-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-access-php-reviewer",
+      "to": "code-safety-access-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-access-mobile-reviewer",
+      "to": "code-safety-access-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-data-javascript-typescript-reviewer",
+      "to": "code-safety-data-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-data-python-reviewer",
+      "to": "code-safety-data-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-data-java-reviewer",
+      "to": "code-safety-data-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-data-go-reviewer",
+      "to": "code-safety-data-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-data-php-reviewer",
+      "to": "code-safety-data-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-data-mobile-reviewer",
+      "to": "code-safety-data-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-dependencies-javascript-typescript-reviewer",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-dependencies-python-reviewer",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-dependencies-java-reviewer",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-dependencies-go-reviewer",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-dependencies-php-reviewer",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-dependencies-mobile-reviewer",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-platform-javascript-typescript-reviewer",
+      "to": "code-safety-platform-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-platform-python-reviewer",
+      "to": "code-safety-platform-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-platform-java-reviewer",
+      "to": "code-safety-platform-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-platform-go-reviewer",
+      "to": "code-safety-platform-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-platform-php-reviewer",
+      "to": "code-safety-platform-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "code-safety-platform-mobile-reviewer",
+      "to": "code-safety-platform-integrator",
+      "kind": "merges"
+    },
+    {
+      "from": "curation-data-architecture-curator",
+      "to": "curation-data-fixture-curator",
+      "kind": "reads"
+    },
+    {
+      "from": "curation-data-bug-fix-curator",
+      "to": "curation-data-fixture-curator",
+      "kind": "reads"
+    },
+    {
+      "from": "curation-data-feature-curator",
+      "to": "curation-data-fixture-curator",
+      "kind": "reads"
+    },
+    {
+      "from": "curation-data-process-curator",
+      "to": "curation-data-fixture-curator",
+      "kind": "reads"
+    },
+    {
+      "from": "curation-data-simplification-curator",
+      "to": "curation-data-fixture-curator",
+      "kind": "reads"
+    },
+    {
+      "from": "curation-data-testing-curator",
+      "to": "curation-data-fixture-curator",
+      "kind": "reads"
+    },
+    {
+      "from": "curation-data-scorekeeper",
+      "to": "observatory-session-telemetry-observer",
+      "kind": "reports"
+    },
+    {
+      "from": "curation-data-scorekeeper",
+      "to": "observatory-session-telemetry-otel-observer",
+      "kind": "reports"
+    },
+    {
+      "from": "curation-data-scorekeeper",
+      "to": "observatory-session-stats-observer",
+      "kind": "reports"
+    },
+    {
+      "from": "curation-data-scorekeeper",
+      "to": "observatory-session-projection-observer",
+      "kind": "reports"
+    },
+    {
+      "from": "curation-data-scorekeeper",
+      "to": "observatory-session-query-observer",
+      "kind": "reports"
+    },
+    {
+      "from": "curation-data-scorekeeper",
+      "to": "observatory-otel-bench-fixture-observer",
+      "kind": "reports"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-jobs-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-workflow-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-goal-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-schedule-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-feedback-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-storage-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-workspace-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-host-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-client-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "program-departments-boot-coordinator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "code-safety-secrets-integrator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "code-safety-injection-integrator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "code-safety-access-integrator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "code-safety-data-integrator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "code-safety-dependencies-integrator",
+      "kind": "delegates"
+    },
+    {
+      "from": "code-safety-lead",
+      "to": "code-safety-platform-integrator",
+      "kind": "delegates"
+    }
+  ],
+  "evidence": {
+    "records": [
+      "data/code-safety/2026-09-19-dvja",
+      "data/code-safety/2026-09-19-nodegoat",
+      "data/code-safety/2026-09-19-nodegoat-2",
+      "data/code-safety/2026-09-21-nodegoat-3",
+      "data/code-safety/2026-09-22-nodegoat-4-improved",
+      "data/proving-ground/2026-09-06-claude-code-run-1",
+      "data/proving-ground/2026-09-06-claude-code-run-2",
+      "data/proving-ground/2026-09-07-bench-e2-harness-vs-product-t3",
+      "data/proving-ground/2026-09-07-bench-h1-harness-loop-t2",
+      "data/proving-ground/2026-09-07-bench-h1-harness-loop-t4",
+      "data/proving-ground/2026-09-07-bench-h1-product-loop-t2",
+      "data/proving-ground/2026-09-07-bench-h1-product-loop-t3",
+      "data/proving-ground/2026-09-07-bench-h1-product-loop-t4",
+      "data/proving-ground/2026-09-07-bench-smoke-harness-loop",
+      "data/proving-ground/2026-09-07-claude-code-live-night",
+      "data/proving-ground/2026-09-08-bench-e1-haiku-vs-sonnet-t3",
+      "data/proving-ground/2026-09-08-bench-e1-haiku-vs-sonnet-t5",
+      "data/proving-ground/2026-09-08-bench-e1-sonnet-vs-opus-t3",
+      "data/proving-ground/2026-09-08-bench-e1-sonnet-vs-opus-t5",
+      "data/proving-ground/2026-09-08-bench-e2-harness-vs-product-t5",
+      "data/proving-ground/2026-09-08-bench-e2-harness-vs-product-t5-sealed",
+      "data/proving-ground/2026-09-08-bench-e3-attempts-t5",
+      "data/proving-ground/2026-09-08-bench-e3-attempts1-t3",
+      "data/proving-ground/2026-09-08-bench-e3-baseline-t3",
+      "data/proving-ground/2026-09-08-bench-e4-knowledge-pack-t3",
+      "data/proving-ground/2026-09-08-bench-e5-downshift-t5",
+      "data/proving-ground/2026-09-08-bench-e5-drop-candidate-t5",
+      "data/proving-ground/2026-09-08-bench-e5-handoff-drop-t5",
+      "data/proving-ground/2026-09-08-bench-e5-handoff-tax-t5",
+      "data/proving-ground/2026-09-08-bench-h1-harness-loop-t5",
+      "data/proving-ground/2026-09-08-bench-h1-product-loop-t5",
+      "data/proving-ground/2026-09-08-bench-h4-craft-skills-t5",
+      "data/proving-ground/2026-09-08-bench-held-out-sonnet-all",
+      "data/proving-ground/2026-09-08-district-village-live",
+      "data/proving-ground/2026-09-08-self-assessment-program",
+      "data/proving-ground/2026-09-18-bench-e5-drop-frozen-t5",
+      "data/proving-ground/2026-09-18-bench-e6-cascade-share-t5",
+      "data/proving-ground/2026-09-19-bench-e3-attempts-t5",
+      "data/proving-ground/2026-09-19-bench-e7-attempts-5-t5",
+      "data/proving-ground/2026-09-19-bench-e7-attempts-5-t5-2",
+      "data/proving-ground/2026-09-19-bench-e8-sonnet-vs-opus-t6",
+      "data/proving-ground/2026-09-19-bench-e9-preset-craft-vs-plain-t5",
+      "data/proving-ground/2026-09-19-bench-h1-fleet-openrouter-nex-smoke-t2",
+      "data/proving-ground/2026-09-19-bench-h1-openrouter-deepseek-t2-partial",
+      "data/proving-ground/2026-09-19-bench-h1-openrouter-smoke-t2",
+      "data/proving-ground/2026-09-19-bench-h2-openrouter-agentic-t2",
+      "data/proving-ground/2026-09-19-bench-h2-openrouter-free-t2-partial",
+      "data/proving-ground/2026-09-19-bench-h3-baseline-sonnet-t5",
+      "data/proving-ground/2026-09-19-csv-tools-program",
+      "data/proving-ground/2026-09-21-bench-e3-attempts-t5",
+      "data/proving-ground/2026-09-21-bench-e7-attempts-5-t5",
+      "data/proving-ground/2026-09-22-bench-h3-baseline-sonnet-t5"
+    ],
+    "sessions": 1380,
+    "routes": {
+      "claude-code": 801,
+      "openrouter": 29
+    }
+  },
+  "unattributed": {
+    "sessions": 1000,
+    "reasons": {
+      "environment-not-seated": 892,
+      "program-not-code-safety": 8,
+      "program-member-not-seated": 0,
+      "parent-not-recorded": 0,
+      "no-seat-evidence": 100
+    }
+  }
+}

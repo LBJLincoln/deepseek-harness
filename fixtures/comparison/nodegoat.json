@@ -1,0 +1,336 @@
+{
+  "target": "OWASP NodeGoat",
+  "revision": "c5cb68a7084e4ae7dcc60e6a98768720a81841e8",
+  "knownIssues": 18,
+  "date": "2026-09-22",
+  "note": "Same target, same revision, same 18-issue ground truth, scored by the same rule (a finding within three lines of a known issue). The single-model and enterprise tiers run the same model (sonnet); the only difference between them is the harness. The issue count and locations were never disclosed to any tier.",
+  "tiers": [
+    {
+      "id": "semgrep",
+      "name": "Semgrep, community rules",
+      "kind": "commodity static analysis, no model",
+      "found": 4,
+      "recall": 0.222,
+      "findings": 16,
+      "onKnown": 11,
+      "verified": false,
+      "wall": "seconds",
+      "cost": "$0",
+      "detail": "96 rules over 44 files"
+    },
+    {
+      "id": "single-model",
+      "name": "One frontier model, one pass",
+      "kind": "a single sonnet session, no departments, no verifier",
+      "found": 15,
+      "recall": 0.833,
+      "findings": 23,
+      "onKnown": 15,
+      "verified": false,
+      "wall": "113 s",
+      "cost": "$0.36",
+      "detail": "29 turns"
+    },
+    {
+      "id": "enterprise",
+      "name": "Daliesk enterprise",
+      "kind": "six departments, a verifier, and integration; same sonnet",
+      "found": 13,
+      "recall": 0.722,
+      "findings": 47,
+      "onKnown": 32,
+      "verified": true,
+      "wall": "1356 s",
+      "cost": "subscription",
+      "detail": "7 certified; record 2026-09-21-nodegoat-3"
+    }
+  ],
+  "matrix": [
+    {
+      "id": "NG-A1-1",
+      "category": "A1 Injection (server-side JavaScript)",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A1-2",
+      "category": "A1 Injection (NoSQL)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A1-3",
+      "category": "A1 Injection (log)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": false
+    },
+    {
+      "id": "NG-A2-1",
+      "category": "A2 Broken authentication (password storage)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A2-2a",
+      "category": "A2 Broken authentication (user enumeration)",
+      "semgrep": false,
+      "singleModel": false,
+      "enterprise": false
+    },
+    {
+      "id": "NG-A2-2b",
+      "category": "A2 Broken authentication (password policy)",
+      "semgrep": false,
+      "singleModel": false,
+      "enterprise": false
+    },
+    {
+      "id": "NG-A2-3",
+      "category": "A2 Session management (cookie flags)",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A3",
+      "category": "A3 Cross-site scripting",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A4",
+      "category": "A4 Insecure direct object reference",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A5",
+      "category": "A5 Security misconfiguration (headers)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A6-1",
+      "category": "A6 Sensitive data exposure (at rest)",
+      "semgrep": false,
+      "singleModel": false,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A6-2",
+      "category": "A6 Sensitive data exposure (in transit)",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A7",
+      "category": "A7 Missing function-level access control",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A8",
+      "category": "A8 Cross-site request forgery",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A9",
+      "category": "A9 Components with known vulnerabilities",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-A10",
+      "category": "A10 Unvalidated redirect",
+      "semgrep": true,
+      "singleModel": true,
+      "enterprise": true
+    },
+    {
+      "id": "NG-SSRF",
+      "category": "Server-side request forgery",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": false
+    },
+    {
+      "id": "NG-REDOS",
+      "category": "Regular expression denial of service",
+      "semgrep": false,
+      "singleModel": true,
+      "enterprise": false
+    }
+  ],
+  "bothModelsMiss": [
+    "NG-A2-2a",
+    "NG-A2-2b"
+  ],
+  "singleModelOnly": [
+    "NG-A1-3",
+    "NG-SSRF",
+    "NG-REDOS"
+  ],
+  "enterpriseOnly": [
+    "NG-A6-1"
+  ],
+  "iterations": [
+    {
+      "id": "1",
+      "ran": "2026-09-22",
+      "record": "data/code-safety/2026-09-22-nodegoat-4-improved",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "knowledge pack: data/knowledge/code-safety/injection/SKILL.md",
+      "change": "The injection department's skill gained an enumeration directive for server-side request forgery (every server-side request call site is listed and its destination validation checked) and two defect classes it did not hold at all: log injection (CWE-117) and regular-expression denial of service (CWE-1333). The change names no NodeGoat file, route, or line.",
+      "targets": [
+        "NG-SSRF",
+        "NG-REDOS",
+        "NG-A1-3"
+      ],
+      "decision": "keep-knowledge",
+      "reading": "One run each side; the four NodeGoat enterprise runs on record read 14, 14, 13, 13 of 18, so a one-issue move is inside the program's own run-to-run variation. The knowledge stays because it is general and costs nothing measurable; the effect is not established.",
+      "found": 13,
+      "recall": 0.722,
+      "findings": 44,
+      "onKnown": 29,
+      "verified": true,
+      "wall": "1426 s",
+      "gained": [
+        "NG-SSRF"
+      ],
+      "lost": [
+        "NG-A5"
+      ],
+      "targetsCaught": [
+        "NG-SSRF"
+      ]
+    },
+    {
+      "id": "2",
+      "ran": "2026-09-22",
+      "record": "data/code-safety/2026-09-22-nodegoat-5-generalist-a",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "code-safety composition: the with-generalist overlay adds a seventh, unscoped department",
+      "change": "A seventh department, the generalist, runs beside the six fixed-scope specialists (secrets, injection, access, data, dependencies, platform). It has no scope of its own; it reads the whole tree for anything the specialists' scopes leave uncovered, and its findings are verified by the same examiner. The pair runs the with-generalist overlay against the specialists-only overlay, interleaved on the same target, revision, model, and knowledge pack, twice each; nothing else differs.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b"
+      ],
+      "decision": "not-adopted",
+      "pair": "2",
+      "arm": "with",
+      "reading": "With-generalist, first run: 15 of 18. The pair's honest reading is per arm across both runs, in the comparison README.",
+      "found": 15,
+      "recall": 0.833,
+      "findings": 49,
+      "onKnown": 34,
+      "verified": true,
+      "wall": "1533 s",
+      "gained": [
+        "NG-SSRF",
+        "NG-REDOS"
+      ],
+      "lost": [],
+      "targetsCaught": []
+    },
+    {
+      "id": "3",
+      "ran": "2026-09-22",
+      "record": "data/code-safety/2026-09-22-nodegoat-6-base-a",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "code-safety composition: the specialists-only overlay, the pair's control arm",
+      "change": "The six fixed-scope specialists alone (secrets, injection, access, data, dependencies, platform), the control arm of the generalist pair, run right after the first with-generalist arm on the same target, revision, model, and knowledge pack.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b"
+      ],
+      "decision": "not-adopted",
+      "pair": "2",
+      "arm": "without",
+      "reading": "Specialists only, first run: 14 of 18.",
+      "found": 14,
+      "recall": 0.778,
+      "findings": 57,
+      "onKnown": 41,
+      "verified": true,
+      "wall": "1383 s",
+      "gained": [
+        "NG-SSRF"
+      ],
+      "lost": [],
+      "targetsCaught": []
+    },
+    {
+      "id": "4",
+      "ran": "2026-09-22",
+      "record": "data/code-safety/2026-09-22-nodegoat-7-generalist-b",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "code-safety composition: the with-generalist overlay adds a seventh, unscoped department",
+      "change": "The second with-generalist run of the pair: the seven departments on the same target, revision, model, and knowledge pack.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b"
+      ],
+      "decision": "not-adopted",
+      "pair": "2",
+      "arm": "with",
+      "reading": "With-generalist, second run: 13 of 18.",
+      "found": 13,
+      "recall": 0.722,
+      "findings": 44,
+      "onKnown": 27,
+      "verified": true,
+      "wall": "1556 s",
+      "gained": [
+        "NG-SSRF"
+      ],
+      "lost": [
+        "NG-A5"
+      ],
+      "targetsCaught": []
+    },
+    {
+      "id": "5",
+      "ran": "2026-09-22",
+      "record": "data/code-safety/2026-09-22-nodegoat-8-base-b",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "code-safety composition: the specialists-only overlay, the pair's control arm",
+      "change": "The second specialists-only run of the pair: the six departments on the same target, revision, model, and knowledge pack.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b"
+      ],
+      "decision": "not-adopted",
+      "pair": "2",
+      "arm": "without",
+      "reading": "Specialists only, second run: 15 of 18. Across the pair the with-generalist arm means 14.0 of 18 (15, 13), the specialists-only arm 14.5 (14, 15): the generalist adds no recall, inside the 12-to-15 band the enterprise reads on this target, and it caught none of the three broken-authentication and log-injection targets any arm still misses.",
+      "found": 15,
+      "recall": 0.833,
+      "findings": 46,
+      "onKnown": 33,
+      "verified": true,
+      "wall": "1347 s",
+      "gained": [
+        "NG-SSRF",
+        "NG-REDOS"
+      ],
+      "lost": [],
+      "targetsCaught": []
+    }
+  ]
+}
