@@ -1,0 +1,802 @@
+=== last line of stdout.jsonl (pretty) ===
+{
+  "type": "result",
+  "report": {
+    "programId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3",
+    "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3",
+    "outcome": "failed",
+    "goals": [
+      {
+        "key": "secrets",
+        "status": "failed",
+        "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3-secrets",
+        "reason": "no certificate after 4 rounds"
+      },
+      {
+        "key": "injection",
+        "status": "failed",
+        "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3-injection",
+        "reason": "no certificate after 4 rounds"
+      },
+      {
+        "key": "access",
+        "status": "failed",
+        "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3-access",
+        "reason": "no certificate after 4 rounds"
+      },
+      {
+        "key": "data",
+        "status": "failed",
+        "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3-data",
+        "reason": "no certificate after 4 rounds"
+      },
+      {
+        "key": "dependencies",
+        "status": "failed",
+        "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3-dependencies",
+        "reason": "no certificate after 4 rounds"
+      },
+      {
+        "key": "platform",
+        "status": "failed",
+        "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3-platform",
+        "reason": "no certificate after 4 rounds"
+      }
+    ]
+  },
+  "target": {
+    "root": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/packages/util",
+    "files": 143,
+    "sha256": "ec87ffa7c78c3dc04852a4a6431a5c9bd10505a445d5e9843ad09e9d2dacd14c"
+  },
+  "elapsedSeconds": 5,
+  "denials": [],
+  "deliverable": [],
+  "safetyReport": "",
+  "findings": "",
+  "verifier": {
+    "exitCode": -1,
+    "output": "no integration worktree"
+  },
+  "ledgers": [
+    {
+      "sessionId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3",
+      "events": [
+        {
+          "type": "program/start",
+          "data": {
+            "programId": "program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3",
+            "specSha256": "526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3",
+            "spec": {
+              "objective": "review /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/packages/util for code-safety defects and deliver one verified report",
+              "baseRevision": "base",
+              "goals": [
+                {
+                  "key": "secrets",
+                  "objective": "code-safety department: secrets — hard-coded credentials and leaked configuration. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/packages/util; it holds 143 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for credentials, tokens, private keys, connection strings and API keys written as literals in source or configuration, for secrets committed in `.env`, config or deployment files, and for secrets reaching logs or client-side bundles. Name the exact literal line; do not report a placeholder a reader can see is one without saying so. Deliver `findings/secrets.json` and `report/secrets.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/secrets.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "secrets",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 4000000,
+                    "maxWallMs": 2400000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "secrets-findings",
+                      "outcome": "every finding secrets reported exists at the line it cites",
+                      "run": "node verify-safety-report.mjs --findings findings/secrets.json"
+                    },
+                    {
+                      "id": "secrets-section",
+                      "outcome": "secrets wrote its own section of the report",
+                      "run": "test -s report/secrets.md"
+                    }
+                  ]
+                },
+                {
+                  "key": "injection",
+                  "objective": "code-safety department: injection — injection and traversal. Read `REPORTING.md` at the root of this worktree first: it states the finding format, the evidence rule and what you deliver. The tree under review is /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/packages/util; it holds 143 files, and `target.json` beside `REPORTING.md` lists every one of them. It is read-only: read it, grep it, scan it, and write nothing into it. Before reading, run `semgrep --version`; if it prints a version, run `semgrep --config /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/examples/headless-agent/tests/fixtures/program-code-safety/semgrep --config p/owasp-top-ten --metrics off --json <path>` over the target (drop the registry pack and keep the local rules if the registry is unreachable) and treat every hit as a place to read, never as a finding; if semgrep is absent, say so in your report and read without it. Look for SQL and NoSQL queries built by concatenation or interpolation, for `$where` and other server-side evaluation, for `eval`, `new Function` and string-bodied timers, for shell commands built from request data, for template injection, for unescaped HTML sinks, and for filesystem paths built from request data. Name the sink line, and say in `evidence` what reaches it. Deliver `findings/injection.json` and `report/injection.md`, then commit. Your work is measured by `node verify-safety-report.mjs --findings findings/injection.json` over a clean worktree, so run it and commit before you stop.",
+                  "preset": "injection",
+                  "isolation": "none",
+
+=== does a secrets report/findings file exist, and what's in it ===
+--- /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3/secrets/target.json ---
+{
+  "root": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/fresh/packages/util",
+  "exclude": [
+    ".git"
+  ],
+  "sha256": "ec87ffa7c78c3dc04852a4a6431a5c9bd10505a445d5e9843ad09e9d2dacd14c",
+  "files": {
+    "README.i18n.yaml": "e33efc0d8b46f538828b644076170cc14f98a63275f48ac86c71badc318f9779",
+    "README.md": "e695932261afbeb8b8f42dbe5f5f508d6d2d6386462d8e499736dcdb1405bcf1",
+    "README.zh.md": "f4ff4da86cce45075662a87b793ecbcfce2055f5563099c84a73fa1d80dabd67",
+    "atomic-write/README.i18n.yaml": "9b614e52d130cc3a17413dcf519aef03e5cf2731f24082730a1f37552a61073f",
+    "atomic-write/README.md": "d01c1f1e2be9a8fa77f22b623101508b70efce6ec86008ab9d80b0831fc77c74",
+    "atomic-write/README.zh.md": "facd3a9a78161af12f8211dd52bac139f7d3e36fe0ec892bc14373fa8cf2ef88",
+    "atomic-write/lib/index.js": "d4d36159abbbf4f30af01ded1ee1f854a16d5a637ed65785478846071b445a8a",
+    "atomic-write/lib/invariant.js": "4e35afd9fec1b1e0a3bfb0e7d555214c4edcc097bedd5f32b93e29b75fcd945b",
+    "atomic-write/lib/tsconfig.tsbuildinfo": "1ec4d14b36637fe73cfa357996066d43ef328b68f3ff7f3c80999ccc8f32ce97",
+    "atomic-write/lib/types/index.d.ts": "bad1394f19fb35a1b0a2a57667eef7b0cf988dc6b041146b0a98259106027849",
+    "atomic-write/lib/types/index.d.ts.map": "c18cb11fdddecd1858205f10616eb908a4b2af1d6d6141f53dbdae8505279631",
+    "atomic-write/lib/types/index.js": "b4b8caf8bfbcf7e561eefe3a49ff8089e4933957d21b86858794e7c0f15150ef",
+    "atomic-write/lib/types/index.js.map": "f2e7cf54c57b953163c5575f267d8e0182f057be612660403ad209f9a0bce15d",
+    "atomic-write/lib/types/invariant.d.ts": "d0d491a188b97a58cdda3966745d65fb36b0622babb13599c1fc245d3bd11011",
+    "atomic-write/lib/types/invariant.d.ts.map": "730f1e37c8b403007e912c26453e6e9873b8c968df21a69239d7ed0a0f51fa38",
+    "atomic-write/lib/types/invariant.js": "2074939c6fb6776577cc4dbb5d31ef4327abb552f88915874c3ac3bf6744af79",
+    "atomic-write/lib/types/invariant.js.map": "cd26cade2f114aae7a67cda2cfe96691c2d8c13cc2173334cdd0de7e63f1922b",
+    "atomic-write/node_modules/.bin/cordis": "7cbc041d8a67fd7da299f0ef0ef9aae671cb16e922856b36b94174e3da5464b7",
+    "atomic-write/package.json": "62e6244d5129c2ebe3be222c904a8763298d960cafd68b3abddc87a600569f81",
+    "atomic-write/src/index.ts": "7744b73cd12ddfc4c2f1aad8e508c56fda8c5a3b44d967e52cdc1b47c75484d9",
+    "atomic-write/src/invariant.ts": "aebb904f5231dfc379671aa1b408dd011176d130f1f0e54032aaf580d84ec05d",
+    "atomic-write/tests/atomic-write.spec.ts": "67ad7a63c475c29d0caa7f3a985efd1a7abc243e0369e6dfbbd6c6c1c4a617cc",
+    "atomic-write/tests/invariant.spec.ts": "4c70477cf539721bbf777e94b12cf2235f2606a486751ba4fefb2c7858b0df6e",
+    "atomic-write/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a",
+    "brand/README.i18n.yaml": "e527cffbc73b7c2aafafcdf0070970ee7bac28d7649913aab6f78979a08168f2",
+    "brand/README.md": "53f217ef1466dc1da399445a181e73f50ab732f565e146e708851f51785e8d03",
+    "brand/README.zh.md": "4ab4b441e7e28d3ce2753ed45ddb5066e24416381210ecdba074a1e61ea08344",
+    "brand/lib/index.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+    "brand/lib/invariant.js": "599a584f29c227c32ad7acd589712db292c0e49bb235da9c444d60e9680740db",
+    "brand/lib/tsconfig.tsbuildinfo": "256b6c0565738b8203589d4fb475a9215fbdc4865103a5d8a31c936b6c0da825",
+    "brand/lib/types/index.d.ts": "af2ec42475e639eb133d794b814d569dca35dcaa3acba8eefde7bad366f63aaf",
+    "brand/lib/types/index.d.ts.map": "11f5a72cca0d95b5d697681fe8028f613350a64aeba0f6430281569d61ba7e42",
+    "brand/lib/types/index.js": "3f96189c46667faa114097f3fa4f4fb41f307bc5eb042ecd158b6c784d54fd89",
+    "brand/lib/types/index.js.map": "d26096269e6dc231cdbd057c8551c76985f34ac62bf90d7cbe091c6c7d384d3a",
+    "brand/lib/types/invariant.d.ts": "0914a3acfc65ec47e33a7c8b6d0e034842391d2d6a025cbf9032dfddb3319ad3",
+    "brand/lib/types/invariant.d.ts.map": "8dba3ab024108d025fdcbd64095b22ed4a90add72a86701d08eec25aa09ed3b2",
+    "brand/lib/types/invariant.js": "2cf44492b4c7ffc223f2cb6d9cbb7694d541002639d0989884732dc18f4d6b2a",
+    "brand/lib/types/invariant.js.map": "241c1cacbe276a9b809be125dde2c890ef2bb5b2f261ff89a6a77b83f68e3751",
+    "brand/node_modules/.bin/cordis": "de7e8ffc5d44256d145e21120fbbc7050a6b9946544a62c024e96d88df6308e0",
+    "brand/package.json": "706b7cac73af46d5764654e80a00b454d4f722d8e96eaf5694a658f6eaf52ef1",
+    "brand/src/index.ts": "91827ac0326d6e20bb0419306bf62a3f19caba43694de066c3536ef1d80b0cab",
+    "brand/src/invariant.ts": "9c68b583e2c0f0c82de9fb68a171d9dc6ed9deacb6495bbe313f9aada4e04e0d",
+    "brand/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a",
+    "home-paths/README.i18n.yaml": "9f7fcbb5c6c667a5efac46bde04eeb14f30b0d1acd4000ef01e28ff08fe60ffb",
+    "home-paths/README.md": "f8184e607b8c825ef54d5f17e35b5861e8050ac6810ec5b46dd6eeaf5316ab1f",
+    "home-paths/README.zh.md": "5b021e1c432491b0666dda7e6ddb9dca7fe289574ba0569d75b599df773c01af",
+    "home-paths/lib/index.js": "b82aa631aa4bfdd5b02c67d48fce455b2ca73cbf66d2b7096a336b3800914340",
+    "home-paths/lib/invariant.js": "126ac01a2d95cdfd7b4ec18882d769da4d60760cc7dc9ab86fb7d869a66dd7c6",
+    "home-paths/lib/tsconfig.tsbuildinfo": "bced95e6130635738730f98acbf55a13bb51e786e22c455959e143cc926f1535",
+    "home-paths/lib/types/index.d.ts": "e3f290bc8741ff24ae479c6c9155dee6c0ee84de8b2c61cb66f507ab931912f4",
+    "home-paths/lib/types/index.d.ts.map": "84581e9e873c5f86c99b71c58c7b618bf135ea04c939ee5d91405bd7daa9dbc5",
+    "home-paths/lib/types/index.js": "38deec03e07617f98fee36617660bff323ac212582dd777f3489ce95f4c7d78b",
+    "home-paths/lib/types/index.js.map": "2ae6111c9022e2ea63f5d30372aa31e2f72a4d59bd3cecae6437bea2953a92ca",
+    "home-paths/lib/types/invariant.d.ts": "5f46b76696f9bae620b186d2f9cfab526c231b6263fcc8f9a7c1650ecec2d2e7",
+    "home-paths/lib/types/invariant.d.ts.map": "65e3321a099a7975c8ca85525dbbaa948f249f13ecd1b4068c02617c43943fbe",
+    "home-paths/lib/types/invariant.js": "3621ed935cb5a724b9b17dfecc5d73d3443de14d3f1b9d7820b8567e8a191436",
+    "home-paths/lib/types/invariant.js.map": "6579354a5fcdfc0943b5c7844dd7e9092ebccf5ad74067377cfbd5371841664a",
+    "home-paths/node_modules/.bin/cordis": "774b92290c3650ec9a64e30ff32fa1ae410dde921f7efd54de07d4dcd7e40e63",
+    "home-paths/package.json": "e6ffbd87912546120dc6f8b6033cbb0c2a0da144a05536bd63e743529b8ad4d0",
+    "home-paths/src/index.ts": "fbd60dc409419465de5d80c70ee86f066a3458d52c6e80bba719b0b0026f8f05",
+    "home-paths/src/invariant.ts": "01651bb438bc84eaf28aa83a9c89f6a1b7ae2b0942d2ad070952e7fa6727eccf",
+    "home-paths/tests/home-paths.spec.ts": "c78ef9aed4d3e12d2807150be0fab536786eba91bda2b673c991ed70222edcbf",
+    "home-paths/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a",
+    "launch-environment/README.i18n.yaml": "c7c063bda240c4f8c2f9e2dd2816f86d0426e9eb34ff0a092078456c6302e4c0",
+    "launch-environment/README.md": "0cd58b7a910b969de978e0f53e3fd260bdca0c6a7924997028b1e8ec61c941b0",
+    "launch-environment/README.zh.md": "aec9c16ba53cb35c0aff4547ffcf07481d47f0b1e0e703b434b3dfa409916f86",
+    "launch-environment/lib/index.js": "b1c54dba56ffb8327b8d7e5f3408fe986152741e80eee37b182ca69ba8f2537e",
+    "launch-environment/lib/invariant.js": "910cfdae412d61bc383126f4d4869378fee6759741615150b3033f15d48623ac",
+    "launch-environment/lib/tsconfig.tsbuildinfo": "e607911b747c2cca130c95db90b93cffd75075e8348be46f7701ee8609bd8dc8",
+    "launch-environment/lib/types/index.d.ts": "8ca2332cd0c86837a4819ea5bcef5fe05be26fc3649f74ab63299d500875d865",
+    "launch-environment/lib/types/index.d.ts.map": "c62d2d69f4ce6b9da06acd62c502ba49d62ce5f0183dab7484317a5d0d1da8a3",
+    "launch-environment/lib/types/index.js": "a9a30ae2a34aae76f7fae23eb0df769cb2b5c1bbd606289824070971264dfae4",
+    "launch-environment/lib/types/index.js.map": "85aedbf152d49349660a3d0cfa057e0f94954613a1489124c9335aeb7100927e",
+    "launch-environment/lib/types/invariant.d.ts": "eda59200c6792b4a6f56a39d0187231a736f95b82f1d7956c5bb260b54001a7a",
+    "launch-environment/lib/types/invariant.d.ts.map": "405ea58be6889b3c440060a241190fee832a928991ebc4b968432bb23f693d8c",
+    "launch-environment/lib/types/invariant.js": "cb76036b69c0c98b87d788c735688f701245bf9f5de9c8acffa5e1fbf3e00a05",
+    "launch-environment/lib/types/invariant.js.map": "7a72009d5bc95bf266db2a960ba161763516b70ebb69beff132df94b7e180d0b",
+    "launch-environment/node_modules/.bin/cordis": "1c2bf37c68e6c0e7540872d079e43c8794cf5483bc40c1a966caa0f33f2d7375",
+    "launch-environment/package.json": "4d62109e82ed5eda44b27651980a04fed4eb0c43d24b62b3e6ff2ed7d0b30475",
+    "launch-environment/src/index.ts": "ba49f3bf82ec8d48711a500d313956d8fe76588d85f708e815e93779841b4126",
+    "launch-environment/src/invariant.ts": "15e0e7ed68e817b0ffb6754bdaf3314083212e7f9aa4ad7b687a9a3c878e896b",
+    "launch-environment/tests/launch-environment.spec.ts": "fd083d8d4e6c9037c04d3a56ce44c9426f68155e3fd0291d964940060396eaeb",
+    "launch-environment/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a",
+    "native-command/README.i18n.yaml": "baff4a1731773138bbffba03e3952e6b3c63312689fdb38c471280fc8625aebb",
+    "native-command/README.md": "2634b066f26fd3ffeceb384a8b37f2fa9e1b5ddb9f2968901822e6302f003039",
+    "native-command/README.zh.md": "59a21cb729882d9194516de73763d39aab556046f8b1e1078d86f4b9b20fb36d",
+    "native-command/lib/index.js": "132e9188328a03cbb2baa6f3b597db53d82448974c1755713be2ddb41449e318",
+    "native-command/lib/invariant.js": "d8e97ed27a5f0bec130e340f459f01fc37e3b13f1ac53396917386d6308aa147",
+    "native-command/lib/tsconfig.tsbuildinfo": "d6ec71f504318624149a847ebed616dca95623b602f96e45fb5e4f2d9947e144",
+    "native-command/lib/types/index.d.ts": "25e951151140d9a92487a33e8c2f3058d84185c88baa8b95ec2555ead52f8de0",
+    "native-command/lib/types/index.d.ts.map": "c74f35cd8598821e56aaa8d71a89ae244bd4e86ed9dfe5e2a8f4e64065dc81c6",
+    "native-command/lib/types/index.js": "17075322aa0bd3fdf5332ceb038e33fec5b53f88a7d0f56f58f7ac8d57b47e48",
+    "native-command/lib/types/index.js.map": "586fb7fcbdc432fc160b02a1ed505c07b53a83cd405529e826f235477d61bbc4",
+    "native-command/lib/types/invariant.d.ts": "0564a582199f093056c1060791eba16ad9ba34f1727ec907efa6563391d2d476",
+    "native-command/lib/types/invariant.d.ts.map": "5b5813f243b3e08dad2b8870ede97a60a74d17395e35288f1a2ecceb35f36d3e",
+    "native-command/lib/types/invariant.js": "04f4c2f01c061096589c3e2902836039debb1c22a3ab4b2809e929cf69a2631e",
+    "native-command/lib/types/invariant.js.map": "f7b9969781aa579a45802ee7a3523b7c59ced2f4973178bc00fba3c5ef930718",
+    "native-command/node_modules/.bin/cordis": "50b36ee7685beb1d7d462959fd94e7486e459de58eca63068bad376972d89de3",
+    "native-command/package.json": "5695fe1e2e3d97801b61c69a13177fbceb11e14c9943238f7b58264c917ef71a",
+    "native-command/src/index.ts": "89a4e9491d1734ff90efb8a0d00f095218860c623cc9d8ff925f9a08186154ce",
+    "native-command/src/invariant.ts": "9d6010da38e1867ad2e01be5837d7e83805cd2fa6c54f79e15e33d5799547b74",
+    "native-command/tests/native-command.spec.ts": "b22972ac911fc1139daf4e7b22bdf82781eb8188647b8bc64644b86ba966894d",
+    "native-command/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a",
+    "output-retention/README.i18n.yaml": "ac33f5ed65ebcd914e0d0ff48337f9cc35cea78a480818f147184d94f9d4ecea",
+    "output-retention/README.md": "9a13f74f60d785e4aa2f194137e6e852aa78071f53b3557e52fb698045609837",
+    "output-retention/README.zh.md": "c1b720f1a24153313c76e4fde542cbafb9ee85ceb1ecc3d8e15fa9052f21f061",
+    "output-retention/lib/index.js": "aa75d6431ebaf952344509be490c1d96fdfd0df1a603eab8bd5846bcfe58e443",
+    "output-retention/lib/invariant.js": "6fc36fd367216c7b81db97624a4bb8ea4b19879e999278f25d71ef113d5de686",
+    "output-retention/lib/tsconfig.tsbuildinfo": "77b920ebc23d47e4c6902a6de64e2b19a6b484064e14f10e5388c4d3879430a9",
+    "output-retention/lib/types/index.d.ts": "b3a0bae372a203bbd836adbb25628cc68c5e4eabc222de07339290b12bb4ff6e",
+    "output-retention/lib/types/index.d.ts.map": "a3786597cb7c96768adac14d7f8a71e14c28ffbb42587806d10f751d9b3a97cf",
+    "output-retention/lib/types/index.js": "481bfa0d28c9e871ab74df3926085796381cccb0993585d01d5f2808d0c16eda",
+    "output-retention/lib/types/index.js.map": "4814a615a1d1924836281ad1127986fc4629c0e152171a8deb4c04fd007da9d2",
+    "output-retention/lib/types/invariant.d.ts": "c63a530e5b3d87264ee47a9999a07a98d5945b7d5358f79132fb83006497bb55",
+    "output-retention/lib/types/invariant.d.ts.map": "4326963a708cffac8256cc16ef3bb80f109dd7703f2ee816f34145fc37987a1a",
+    "output-retention/lib/types/invariant.js": "328b4e2e5c679da69818b98d3a7c3177f984bb5402f69be35ee41d4e4ca60b9f",
+    "output-retention/lib/types/invariant.js.map": "fa22898aebbcd9e52d4321623a83c209c6c32afbdfca10e5229f0bbe6845969a",
+    "output-retention/node_modules/.bin/cordis": "ff3385e38e2aaf04a8c93024afebe6b56fabf2f98dd2596222ddf3eec0228e49",
+    "output-retention/package.json": "4dfac6276891b440d05954086ebb26bfe9a1d717802358acb9fdfa8e697f1205",
+    "output-retention/src/index.ts": "3a11646c883fd7317c2e35526d17e570c5c6ec7b7362111668e34f83c4649403",
+    "output-retention/src/invariant.ts": "546b18ccdf7a0d30fdbcaf9992dfcf61c3e87f5e072fdb8881a204440d4fafea",
+    "output-retention/tests/output-retention.spec.ts": "03714c598546ae13189d3b90a4ab26b18d969c39013afda81cb1cf7f2dc5311d",
+    "output-retention/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a",
+    "timeout/README.i18n.yaml": "d57a74f1206cce2a89048576444d8c0da17dd5b6012718e9473ed69efb8ef417",
+    "timeout/README.md": "489293d75cd75235a8521ff324053f80c07c45c56061d3517ffddff2f6dd88fb",
+    "timeout/README.zh.md": "b83c2722211c4ec298edf9a0d7234833198f682ba267773d259fddfd2510cb79",
+    "timeout/lib/index.js": "744fdb4f79c8d513c6d4014a018949cfb2f02f4dde4621167302c5467c3994ec",
+    "timeout/lib/invariant.js": "1d1b209dfe7d0f4a8626aa96764b209971f66ef58c958f5d2da3f13b59266a58",
+    "timeout/lib/tsconfig.tsbuildinfo": "76197c5651bb3649fd253158c12f3d766c65e3e530944069e2e5ac2e4f5d458e",
+    "timeout/lib/types/index.d.ts": "5850f831ae4b3e50af729af37ad4f99f4644ad48ddfc020e699decf4f8c1f29b",
+    "timeout/lib/types/index.d.ts.map": "f5ee19b5c01e087c49661272059b54ab96ea2c831652f908ee112a95995f5a79",
+    "timeout/lib/types/index.js": "9854be797ac9921437ca0fdd93572a4165ce0cdc4b3a8a9da6bf135450845f78",
+    "timeout/lib/types/index.js.map": "8d71379e22fc81a7742c223b0648fa199cae1f33492f9d0912a22d3ffc3ddde0",
+    "timeout/lib/types/invariant.d.ts": "3fdfa1a0f5766a57df9b77f5e96a92e7d9b30c9bd1467a7e31656dd243aebf5c",
+    "timeout/lib/types/invariant.d.ts.map": "826b1fe0f334da9f6310e74e955a64786f4a4c2fc54f60d1fc8b3f2b0f6dc365",
+    "timeout/lib/types/invariant.js": "359b99085a9dad2abb83020ee6308164a547c41646cd7a0b3c0c707b92e16599",
+    "timeout/lib/types/invariant.js.map": "e8a3213af5661d53b59dc3caca6edd7997c003507e4ea2559d53a8e4ca557ea2",
+    "timeout/node_modules/.bin/cordis": "ab4b6f09ee4a2db8d6e19760a89f0de9e28b40f8d1fac287c3fa43e4944d96f6",
+    "timeout/package.json": "d8fe1ba673862d959e9757b6cdc5d93ba27fa22329bd5c9e475c1e3a08dd5a9a",
+    "timeout/src/index.ts": "fdfd67e7d9c0a09668a4101880439f28446a8bf038f060a0bc4d27d941be562c",
+    "timeout/src/invariant.ts": "0063d34adbfac54e66d959b4492962e10a795843bb7258fc71c74b59e87efb60",
+    "timeout/tests/timeout.spec.ts": "38c4f6a1eec5d446126e29b631d270ff85114fca8bfa531a5befd738cffc4ee7",
+    "timeout/tsconfig.json": "98f7b9a33dc7c1ff57cc930e4d51ceeb10af3bfa22b77d3b91bed1b8d117aa8a"
+  }
+}
+--- /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3/secrets/report/.gitkeep ---
+One report/<department>.md per department; the integration reads them all.
+--- /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3/secrets/.git ---
+gitdir: /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/.git/worktrees/secrets
+--- /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3/secrets/REPORTING.md ---
+# How this program reports what it found
+
+This worktree is the **report repository**. The code under review is the **target tree**, which is somewhere else on this host: `target.json` beside this file states its absolute path, the files it covers, and the SHA-256 the whole tree locks to.
+
+The target is read-only for every session of this program. `verify-safety-report.mjs` re-hashes every locked file on every run, so a target a department edited fails the program instead of releasing a report about a tree that no longer exists.
+
+## This file and the skills
+
+When the deployment mounts the code-safety knowledge pack, its `review-method`, `severity-and-evidence` and `report-template` skills own the craft: how to read a codebase, how to score a severity, what evidence has to name, and how the report reads. Follow them.
+
+This file owns what `verify-safety-report.mjs` mechanically decides, and it is binding wherever the two differ in form. There is one such place and it is stated below: the counts each summary carries are written as `- <severity>: <count>` lines so the examiner can compare them with the union, which is the machine-readable form of the skill's "counts per severity".
+
+## What a department delivers
+
+Two files, both committed on the department's own branch:
+
+- `findings/<department>.json` — a JSON array of findings, `[]` when the department found nothing.
+- `report/<department>.md` — the department's own prose: what it looked at, what it found, and what it did not reach.
+
+Nothing else. Do not write `SAFETY-REPORT.md`, `findings.json`, `target.json` or `verify-safety-report.mjs`: the first two are the integration's, and the last two are the examiner.
+
+## The evidence rule
+
+A finding without a file and a line is not a finding. Quote the exact line you cite; `verify-safety-report.mjs` compares your `snippet` with the target's own text at that line, ignoring only whitespace, and refuses the whole file when they differ.
+
+Prefer three findings you have read the code for over twelve a pattern matched. `confidence` is what you actually know: `confirmed` when you read the sink, the source and the path between them; `likely` when the sink is dangerous and the source is plausibly attacker-controlled; `possible` when the pattern is there and the reachability is not established.
+
+## The finding
+
+```json
+{
+  "id": "secrets-cookie-secret",
+  "cwe": "CWE-798",
+  "owasp": "A07:2021 Identification and Authentication Failures",
+  "severity": "high",
+  "confidence": "confirmed",
+  "title": "Session cookie secret is hard-coded in the committed configuration",
+  "file": "config/env/all.js",
+  "line": 8,
+  "snippet": "cookieSecret: \"session_cookie_secret_key_here\",",
+  "evidence": "The value is a literal in a committed file and is the secret express-session is configured with.",
+  "impact": "Anyone with the repository can forge a session cookie and authenticate as any user.",
+  "fix": "Read the secret from the environment and rotate the committed value.",
+  "references": ["https://cwe.mitre.org/data/definitions/798.html"]
+}
+```
+
+| Field | Rule |
+| --- | --- |
+| `id` | letters, digits, dots, dashes or underscores, unique across the whole program; prefix it with your department or use the pack's `SEC-<n>` numbering. |
+| `cwe` | `CWE-<number>`. |
+| `owasp` | the OWASP Top 10 category, named. |
+| `severity` | `critical`, `high`, `medium`, `low` or `info`. |
+| `confidence` | `confirmed`, `likely` or `possible`. |
+| `title` | one line a reader can act on. |
+| `file` | path relative to the target root, exactly as `target.json` lists it. |
+| `line` | 1-based line in that file. |
+| `endLine` | optional last line when the finding spans several; `snippet` then quotes all of them. |
+| `snippet` | the target's own text at those lines, verbatim. |
+| `evidence` | why this line is the vulnerability, naming what you read. |
+| `impact` | what an attacker gets. |
+| `fix` | what to change. |
+| `references` | array of URLs or identifiers; may be empty. |
+
+## Checking your own work before you commit
+
+```sh
+node verify-safety-report.mjs --findings findings/<department>.json
+```
+
+That is the same command your goal is measured by. Run it, fix what it names, then commit everything — work left uncommitted is not delivered and is not measured.
+
+## What the integration delivers
+
+The integration merges every department branch and then writes two files of its own.
+
+`findings.json` is the union of every `findings/<department>.json`, deduplicated by `file` + `line` + `cwe`, keeping the entry with the higher `confidence`. Before writing it, ask the examiner which findings do not hold:
+
+```sh
+for f in findings/*.json; do node verify-safety-report.mjs --findings "$f" --list-invalid; done
+```
+
+Every id that command prints is dropped from `findings.json` and named under `## What was not covered`, with the reason the examiner gave. Dropping one silently fails the report: `--report` refuses a union that omits an id no section discloses.
+
+`SAFETY-REPORT.md` carries exactly these sections, in this order:
+
+```markdown
+## Résumé exécutif
+
+<deux paragraphes en français : ce qui a été examiné, ce qui a été trouvé, ce que cela implique>
+
+- critical: 0
+- high: 0
+- medium: 0
+- low: 0
+- info: 0
+
+## Executive summary
+
+<the same in English>
+
+- critical: 0
+- high: 0
+- medium: 0
+- low: 0
+- info: 0
+
+## Scope and method
+
+<the target, its locked file count, which departments ran, which tools ran — the scanner, the advisory source — and which files were actually read>
+
+## Findings
+
+### critical
+
+- `<id>` — <title> (`<file>:<line>`, <cwe>, <confidence>) — <impact, then fix>
+
+### high
+
+...
+
+## What was not covered
+
+- <a department, a file kind, a class of vulnerability, or a check that did not run, and why>
+- <every dropped finding id, with the examiner's reason>
+
+## Certificate
+
+Verified findings: <count>
+Target tree: <the sha256 from target.json>
+
+<one sentence on what was checked mechanically: that every finding resolves to a real file and line in the locked tree, that every id is unique, and that no two findings share file, line and CWE>
+
+This review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in "Scope and method".
+```
+
+Both summary sections state a `- <severity>: <count>` line for all five severities, and the five counts must be the counts `findings.json` actually holds. Every finding id in `findings.json` is cited in `## Findings`. Every `<file>:<line>` written anywhere in the report must resolve in the target, so write a path you did not read as prose rather than as a citation.
+
+The report is a review by a language model, grounded by a static scanner and by this examiner. Say so in `## Scope and method`. Never write that the target is secure, safe, or free of vulnerabilities: `verify-safety-report.mjs` refuses those claims, because nothing this program did could support one.
+
+Check it before you commit:
+
+```sh
+node verify-safety-report.mjs --report
+```
+--- /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3/secrets/findings/.gitkeep ---
+One findings/<department>.json per department; the integration reads them all.
+--- /tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/wave2-rehearsal/keyless-run/repo/program-526655e7df361cef6cf5803cad17f74ee7f5bbca43c95af9741886248d14efc3/secrets/verify-safety-report.mjs ---
+#!/usr/bin/env node
+// Mechanical examiner of a code-safety report. It is in the report
+// repository's base commit, so no department can change what measures it.
+//
+//   node verify-safety-report.mjs --findings <path>  one department's findings
+//   node verify-safety-report.mjs --findings <path> --list-invalid
+//   node verify-safety-report.mjs --report           the merged report
+//
+// `--findings` decides one findings file against the target tree. Adding
+// `--list-invalid` turns the same decision into a report: the failing ids go to
+// stdout, one per line, and the exit code is 0, which is how the integration
+// learns which findings to drop and disclose.
+//
+// `--report` decides SAFETY-REPORT.md and findings.json together, including the
+// disclosure rule: every id any `findings/<department>.json` carries and
+// findings.json does not must be named under `## What was not covered`.
+//
+// Exit 0 only when every rule holds; otherwise every failure is printed to
+// stderr, one per line, and the exit code is 1. Node built-ins only, because
+// this runs in a worktree that installs nothing.
+import { createHash } from 'node:crypto'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { basename, join, relative, resolve } from 'node:path'
+
+/** Severities a finding may claim, most severe first. */
+const SEVERITIES = ['critical', 'high', 'medium', 'low', 'info']
+
+/** How sure a finding's author is that the cited code is exploitable as described. */
+const CONFIDENCES = ['confirmed', 'likely', 'possible']
+
+/** Sections SAFETY-REPORT.md carries, in this order. */
+const SECTIONS = [
+  '## Résumé exécutif',
+  '## Executive summary',
+  '## Scope and method',
+  '## Findings',
+  '## What was not covered',
+  '## Certificate',
+]
+
+/** The claim the certificate must make verbatim, and the only claim this review supports. */
+const HONESTY = 'This review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in "Scope and method".'
+
+/** Claims no coverage this review can state would support. */
+const OVERCLAIMS = /\bno vulnerabilities\b|\bfree of vulnerabilities\b|\b(?:is|are|was|were) secure\b|\bsafe to deploy\b|\bproven secure\b|\bfully audited\b/i
+
+/** Text a report still carrying its template is refused for. */
+const PLACEHOLDER = /\bTODO\b|\bTBD\b|\bFIXME\b|lorem ipsum|<placeholder>|PLACEHOLDER/i
+
+/** String fields every finding states in prose. */
+const PROSE_FIELDS = ['title', 'evidence', 'impact', 'fix']
+
+/** How a file's text is compared with a finding's quoted snippet. */
+const normalize = (text) => text.replace(/\s+/g, ' ').trim()
+
+/** Lowercase hex SHA-256 of one buffer or string. */
+const sha256 = (content) => createHash('sha256').update(content).digest('hex')
+
+/**
+ * Every file under one directory, relative and sorted, skipping the excluded names.
+ * @param {string} root directory to walk
+ * @param {string[]} exclude directory basenames never descended into
+ * @returns {string[]} relative POSIX-ish paths, sorted
+ */
+function walk(root, exclude) {
+  const found = []
+  const descend = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const path = join(directory, entry.name)
+      if (entry.isDirectory()) {
+        if (!exclude.includes(entry.name)) descend(path)
+      } else if (entry.isFile()) found.push(relative(root, path))
+    }
+  }
+  descend(root)
+  return found.sort()
+}
+
+/** One target tree as the lock and the verifier both read it: the files, their digests, and their text. */
+class Target {
+  /**
+   * @param {string} reportRoot the report repository the lock is committed in
+   * @param {string[]} failures collector every rule appends to
+   */
+  constructor(reportRoot, failures) {
+    this.failures = failures
+    this.root = undefined
+    this.files = new Map()
+    this.lines = new Map()
+    const lockPath = join(reportRoot, 'target.json')
+    if (!existsSync(lockPath)) {
+      failures.push('target.json is missing from this worktree; the base commit carries the lock of the tree under review')
+      return
+    }
+    const lock = JSON.parse(readFileSync(lockPath, 'utf8'))
+    this.root = lock.root
+    this.exclude = lock.exclude ?? []
+    this.digest = lock.sha256
+    for (const [path, hash] of Object.entries(lock.files)) this.files.set(path, hash)
+    this.checkTree()
+  }
+
+  /**
+   * Refuse a target that changed since the base commit locked it: a finding
+   * cites a line of the tree this program was asked to review, and a tree a
+   * department edited is no longer that tree.
+   */
+  checkTree() {
+    if (!existsSync(this.root)) {
+      this.failures.push(`the target tree ${this.root} is not on this host, so no citation can be resolved`)
+      this.root = undefined
+      return
+    }
+    const present = walk(this.root, this.exclude)
+    for (const path of present) {
+      if (!this.files.has(path)) this.failures.push(`the target tree gained ${path} since the base commit locked it`)
+    }
+    for (const [path, hash] of this.files) {
+      if (!present.includes(path)) {
+        this.failures.push(`the target tree lost ${path} since the base commit locked it`)
+        continue
+      }
+      if (sha256(readFileSync(join(this.root, path))) !== hash) {
+        this.failures.push(`the target tree's ${path} changed since the base commit locked it; the target is read-only for this program`)
+      }
+    }
+  }
+
+  /**
+   * The lines of one target file.
+   * @param {string} path path relative to the target root
+   * @returns {string[] | undefined} the file's lines, or undefined when it is not in the locked tree
+   */
+  linesOf(path) {
+    if (this.root === undefined || !this.files.has(path)) return undefined
+    if (!this.lines.has(path)) this.lines.set(path, readFileSync(join(this.root, path), 'utf8').split('\n'))
+    return this.lines.get(path)
+  }
+
+  /**
+   * Whether one `file:line` citation resolves in the locked tree.
+   * @param {string} path path relative to the target root
+   * @param {number} line 1-based line number
+   * @returns {boolean} whether the file is under review and holds that line
+   */
+  resolves(path, line) {
+    const lines = this.linesOf(path)
+    return lines !== undefined && Number.isInteger(line) && line >= 1 && line <= lines.length
+  }
+}
+
+/**
+ * Decide one finding against the target tree.
+ * @param {unknown} finding one entry of a findings file
+ * @param {number} index its position, named when the entry has no usable id
+ * @param {Target} target the locked tree the finding cites
+ * @param {Set<string>} seen ids already used in this file
+ * @returns {string[]} every rule this finding broke, empty when it holds
+ */
+function checkFinding(finding, index, target, seen) {
+  const failures = []
+  if (finding === null || typeof finding !== 'object' || Array.isArray(finding)) {
+    return [`finding #${index + 1} is not a JSON object`]
+  }
+  const id = finding.id
+  const name = typeof id === 'string' && id !== '' ? id : `#${index + 1}`
+  const fail = (rule) => void failures.push(`${name}: ${rule}`)
+  // Letters, digits, `-`, `_` and `.`: wide enough for both the `SEC-001`
+  // numbering the knowledge pack's schema uses and a department-prefixed name.
+  if (typeof id !== 'string' || !/^[A-Za-z0-9][\w.-]*$/.test(id)) fail('id must be letters, digits, dots, dashes or underscores')
+  else if (seen.has(id)) fail('id is used twice in this file')
+  else seen.add(id)
+  if (typeof finding.cwe !== 'string' || !/^CWE-\d+$/.test(finding.cwe)) fail('cwe must match CWE-<number>')
+  if (typeof finding.owasp !== 'string' || finding.owasp.trim() === '') fail('owasp must name the category')
+  if (!SEVERITIES.includes(finding.severity)) fail(`severity must be one of ${SEVERITIES.join(', ')}`)
+  if (!CONFIDENCES.includes(finding.confidence)) fail(`confidence must be one of ${CONFIDENCES.join(', ')}`)
+  for (const field of PROSE_FIELDS) {
+    if (typeof finding[field] !== 'string' || finding[field].trim() === '') fail(`${field} must be a non-empty string`)
+  }
+  if (!Array.isArray(finding.references) || finding.references.some(reference => typeof reference !== 'string')) {
+    fail('references must be an array of strings')
+  }
+  const { file, line, endLine, snippet } = finding
+  if (typeof file !== 'string' || file === '' || file.startsWith('/') || file.split('/').includes('..')) {
+    fail('file must be a path relative to the target root')
+    return failures
+  }
+  const lines = target.linesOf(file)
+  if (lines === undefined) {
+    fail(`file ${file} is not in the tree under review`)
+    return failures
+  }
+  if (!Number.isInteger(line) || line < 1 || line > lines.length) {
+    fail(`line ${JSON.stringify(line)} is outside ${file}, which has ${lines.length} lines`)
+    return failures
+  }
+  const last = endLine === undefined ? line : endLine
+  if (!Number.isInteger(last) || last < line || last > lines.length) {
+    fail(`endLine ${JSON.stringify(endLine)} is outside ${file}, which has ${lines.length} lines`)
+    return failures
+  }
+  if (typeof snippet !== 'string' || snippet.trim() === '') {
+    fail('snippet must quote the cited line')
+    return failures
+  }
+  const quoted = normalize(lines.slice(line - 1, last).join('\n'))
+  if (normalize(snippet) !== quoted) {
+    fail(`snippet does not match ${file}:${line}, which reads ${JSON.stringify(quoted.slice(0, 160))}`)
+  }
+  return failures
+}
+
+/**
+ * Read one findings file.
+ * @param {string} path the file to read
+ * @param {string[]} failures collector a malformed file is reported on
+ * @returns {unknown[]} the entries, empty when the file is missing or malformed
+ */
+function readFindings(path, failures) {
+  if (!existsSync(path)) {
+    failures.push(`${path} is missing`)
+    return []
+  }
+  let parsed
+  try {
+    parsed = JSON.parse(readFileSync(path, 'utf8'))
+  } catch (error) {
+    failures.push(`${path} is not JSON: ${error.message}`)
+    return []
+  }
+  if (!Array.isArray(parsed)) {
+    failures.push(`${path} must be a JSON array of findings`)
+    return []
+  }
+  return parsed
+}
+
+/**
+ * Decide one findings file on its own.
+ * @param {string} path the findings file
+ * @param {Target} target the locked tree it cites
+ * @returns {{ failures: string[], invalid: string[], findings: unknown[] }} the broken rules, the ids that broke them, and the entries
+ */
+function checkFindingsFile(path, target) {
+  const failures = []
+  const findings = readFindings(path, failures)
+  const invalid = []
+  const seen = new Set()
+  findings.forEach((finding, index) => {
+    const broken = checkFinding(finding, index, target, seen)
+    if (broken.length === 0) return
+    failures.push(...broken.map(rule => `${basename(path)}: ${rule}`))
+    invalid.push(typeof finding?.id === 'string' ? finding.id : `#${index + 1}`)
+  })
+  return { failures, invalid, findings }
+}
+
+/**
+ * The body of one section of the report.
+ * @param {string} text the whole report
+ * @param {string} heading the section heading, including its `##`
+ * @returns {string} the text between this heading and the next one, empty when absent
+ */
+function section(text, heading) {
+  const start = text.indexOf(`${heading}\n`)
+  if (start === -1) return ''
+  const body = text.slice(start + heading.length + 1)
+  const next = body.search(/^## /m)
+  return next === -1 ? body : body.slice(0, next)
+}
+
+/**
+ * Decide SAFETY-REPORT.md, findings.json and the disclosure of what was dropped.
+ * @param {string} root the report repository
+ * @param {Target} target the locked tree the report cites
+ * @returns {string[]} every rule the report broke
+ */
+function checkReport(root, target) {
+  const reportPath = join(root, 'SAFETY-REPORT.md')
+  if (!existsSync(reportPath)) {
+    return [`SAFETY-REPORT.md is missing; REPORTING.md in this worktree states the sections it carries: ${SECTIONS.join(', ')}`]
+  }
+  const text = readFileSync(reportPath, 'utf8')
+  const failures = []
+  let previous = -1
+  for (const heading of SECTIONS) {
+    const at = text.indexOf(`${heading}\n`)
+    if (at === -1) failures.push(`SAFETY-REPORT.md has no section ${JSON.stringify(heading)}`)
+    else if (at < previous) failures.push(`SAFETY-REPORT.md has ${JSON.stringify(heading)} out of order; the order is ${SECTIONS.join(' then ')}`)
+    else previous = at
+  }
+  const placeholder = PLACEHOLDER.exec(text)
+  if (placeholder !== null) failures.push(`SAFETY-REPORT.md still carries placeholder text: ${JSON.stringify(placeholder[0])}`)
+  const overclaim = OVERCLAIMS.exec(text)
+  if (overclaim !== null) failures.push(`SAFETY-REPORT.md claims more than this review supports: ${JSON.stringify(overclaim[0])}`)
+
+  const union = checkFindingsFile(join(root, 'findings.json'), target)
+  failures.push(...union.failures)
+  const findings = union.findings.filter(finding => typeof finding?.id === 'string')
+
+  const keys = new Set()
+  for (const finding of findings) {
+    const key = `${finding.file}:${finding.line}:${finding.cwe}`
+    if (keys.has(key)) failures.push(`findings.json states ${key} twice; the union is deduplicated by file, line and cwe`)
+    keys.add(key)
+  }
+
+  const listed = section(text, '## Findings')
+  for (const finding of findings) {
+    if (!listed.includes(finding.id)) failures.push(`the Findings section does not cite ${finding.id}`)
+  }
+  // The lookbehind keeps a URL's `host:port` out of the citation vocabulary:
+  // the host is preceded by a slash, so no citation ever starts there.
+  for (const [, path, line] of text.matchAll(/(?<![\w/.\-])([\w.-]+(?:\/[\w.-]+)*\.\w+):(\d+)\b/g)) {
+    if (!target.resolves(path, Number(line))) failures.push(`the citation ${path}:${line} does not resolve in the tree under review`)
+  }
+
+  const counts = Object.fromEntries(SEVERITIES.map(severity => [severity, findings.filter(finding => finding.severity === severity).length]))
+  for (const heading of ['## Résumé exécutif', '## Executive summary']) {
+    const body = section(text, heading)
+    for (const severity of SEVERITIES) {
+      const stated = new RegExp(`^- ${severity}: (\\d+)$`, 'm').exec(body)
+      if (stated === null) failures.push(`${heading} does not state a "- ${severity}: <count>" line`)
+      else if (Number(stated[1]) !== counts[severity]) {
+        failures.push(`${heading} states ${severity}: ${stated[1]}, and findings.json holds ${counts[severity]}`)
+      }
+    }
+  }
+
+  const uncovered = section(text, '## What was not covered')
+  const department = join(root, 'findings')
+  const dropped = []
+  if (existsSync(department)) {
+    for (const entry of readdirSync(department).sort()) {
+      if (!entry.endsWith('.json')) continue
+      for (const finding of readFindings(join(department, entry), failures)) {
+        if (typeof finding?.id !== 'string') continue
+        if (!findings.some(kept => kept.id === finding.id)) dropped.push(finding.id)
+      }
+    }
+  }
+  for (const id of dropped) {
+    if (!uncovered.includes(id)) {
+      failures.push(`${id} was dropped from findings.json and is not disclosed under "## What was not covered"`)
+    }
+  }
+
+  const certificate = section(text, '## Certificate')
+  if (!certificate.includes(HONESTY)) failures.push(`the Certificate must state, verbatim: ${JSON.stringify(HONESTY)}`)
+  const stated = /^Verified findings: (\d+)$/m.exec(certificate)
+  if (stated === null) failures.push('the Certificate does not state a "Verified findings: <count>" line')
+  else if (Number(stated[1]) !== findings.length) failures.push(`the Certificate states ${stated[1]} verified findings, and findings.json holds ${findings.length}`)
+  const tree = /^Target tree: ([0-9a-f]{64})$/m.exec(certificate)
+  if (tree === null) failures.push('the Certificate does not state a "Target tree: <sha256>" line')
+  else if (tree[1] !== target.digest) failures.push(`the Certificate states target tree ${tree[1]}, and target.json locks ${target.digest}`)
+  return failures
+}
+
+const argv = process.argv.slice(2)
+const root = resolve(process.cwd())
+const listInvalid = argv.includes('--list-invalid')
+const findingsAt = argv.indexOf('--findings')
+const failures = []
+const target = new Target(root, failures)
+
+if (findingsAt !== -1) {
+  const path = argv[findingsAt + 1]
+  if (path === undefined) {
+    console.error('FAIL --findings needs a path')
+    process.exit(1)
+  }
+  const checked = checkFindingsFile(resolve(root, path), target)
+  if (listInvalid) {
+    for (const id of checked.invalid) console.log(id)
+    process.exit(0)
+  }
+  failures.push(...checked.failures)
+  // A department that found nothing states `[]` and says so in its report
+  // section: requiring a finding would buy one by inventing it.
+  if (failures.length === 0) console.log(`ok: ${checked.findings.length} findings verified against ${target.root}`)
+} else if (argv.includes('--report')) {
+  failures.push(...checkReport(root, target))
+  if (failures.length === 0) console.log(`ok: SAFETY-REPORT.md and findings.json verified against ${target.root}`)
+} else {
+  console.error('usage: verify-safety-report.mjs --findings <path> [--list-invalid] | --report')
+  process.exit(1)
+}
+
+if (failures.length > 0) {
+  for (const failure of failures) console.error(`FAIL ${failure}`)
+  process.exit(1)
+}
+process.exit(0)

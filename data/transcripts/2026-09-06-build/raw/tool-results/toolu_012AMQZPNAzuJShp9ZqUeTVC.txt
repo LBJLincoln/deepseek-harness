@@ -1,0 +1,102 @@
+.agents/notes/implemented/architecture/2026-09-19-trajectories-carry-data-use-terms.zh.md:13:`foldTrajectory` 通过 curator 所用的同一个 [`termsOf`](../../../../packages/governance/data-use/README.md) 折叠读取会话的条款，并把它们作为 `terms` 写到记录上：只有 `agreementId` 与 `purposes`，别无其他。"日志中最新一条 `dataUse/terms` 才算数"这条规则由一个折叠独占，于是消费方据以过滤的字段与 curator 执行的那道关卡不会彼此矛盾。
+.agents/notes/implemented/architecture/2026-09-19-trajectories-carry-data-use-terms.md:13:`foldTrajectory` reads the session's terms through the same [`termsOf`](../../../../packages/governance/data-use/README.md) fold the curator uses and writes them onto the record as `terms`: `agreementId` and `purposes`, and nothing else. One fold owns the rule "the newest `dataUse/terms` in the log is the one that counts", so the field a consumer filters on and the gate the curator enforces cannot disagree.
+.agents/notes/implemented/process/2026-09-19-re-exporting-a-record.md:9:[Omitted long matching line]
+.agents/notes/implemented/process/2026-09-19-re-exporting-a-record.md:15:[Omitted long matching line]
+.agents/notes/implemented/process/2026-09-19-re-exporting-a-record.md:17:**It applies no redaction.** [`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) redacts under a profile and attaches a `curation` block, but no record under `data/proving-ground/` was written through `ctx.curator.export()`: the fleet and experiment drivers call the exporter directly, and their lines carry no `curation` block. Redacting on re-export would write a record no run ever produced.
+.agents/notes/implemented/process/2026-09-19-re-exporting-a-record.zh.md:9:[Omitted long matching line]
+.agents/notes/implemented/process/2026-09-19-re-exporting-a-record.zh.md:15:**折叠就是导出器的折叠。** 该工具用 `scanLog` 读取每一份 `sessions/<id>.jsonl`，那正是 [`JsonlSessionPersistence`](../../../../packages/session/session-persistence-jsonl/README.md) 自身使用的解码器，然后把头部与事件交给 `foldTrajectory`。这些日志中含有打包的 chunk 行，因此为这个工具另写一个逐行解析器会读出与导出器不同的会话。它复现的是 `ctx.trajectories.export({ sink })` 且不带其他选项——这正是每个 Proving Ground 驱动所发出的请求：戳记为保留的会话会被扣下，而不适用任何区的过滤，因为 bench 组合没有配置任何一个。对一份由当前构建导出的记录运行该工具，它会逐字节复现那个文件；这个相等正是两次折叠为同一次折叠的证明。
+.agents/notes/implemented/process/2026-09-19-re-exporting-a-record.zh.md:17:**它不做任何脱敏。** [`@deepseek-ai/dsh-curator`](../../../../packages/governance/curator/README.md) 会按配置脱敏并附上一个 `curation` 块，但 `data/proving-ground/` 下没有任何一份记录是经 `ctx.curator.export()` 写出的：fleet 与 experiment 驱动直接调用导出器，它们的行不带 `curation` 块。在重新导出时脱敏，会写出任何一次运行都不曾产生过的记录。
+packages/governance/curator/README.zh.md:52:`ctx.curator.export({ purpose, profile?, sessions?, sink, manifestPath?, rewardedOnly?, includeHeldOut?, districts? })` 运行一次导出。它读取每个候选会话的日志，用 `termsOf` 折叠其条款，只把被接纳的会话交给 `ctx.trajectories.export`，由后者施加它本就拥有的留出与区扣留。`rewardedOnly`、`includeHeldOut` 与 `districts` 原样透传。
+packages/governance/curator/README.zh.md:107:- **未经脱敏的导出器依然可调用** —— `ctx.trajectories.export()` 仍是进程内任何插件都能调用的服务，因此本包是那条会拒绝的导出路径，而不是围绕数据的屏障。一条拒绝"组合了导出器却没有 curator 的区"的组合规则，要等到出现需要它的区时再落地。
+packages/governance/curator/tests/curator.spec.ts:136:    await expect(ctx.curator.export({ purpose: 'evaluation', sink }))
+packages/governance/curator/tests/curator.spec.ts:138:    await expect(ctx.curator.export({ purpose: 'evaluation', sink }))
+packages/governance/curator/tests/curator.spec.ts:146:    await expect(ctx.curator.export({ purpose: 'evaluation', profile: 'client-v3', sink: memorySink() }))
+packages/governance/curator/tests/curator.spec.ts:148:    await expect(ctx.curator.export({ purpose: 'evaluation', profile: 'client-v3', sink: memorySink() }))
+packages/governance/curator/tests/curator.spec.ts:168:    const report = await ctx.curator.export({ purpose: 'evaluation', profile: 'marker-only', sink })
+packages/governance/curator/tests/curator.spec.ts:182:    const withheld = await ctx.curator.export({ purpose: 'training', sink: training })
+packages/governance/curator/tests/curator.spec.ts:195:    const exported = await ctx.curator.export({ purpose: 'evaluation', sink: evaluation })
+packages/governance/curator/tests/curator.spec.ts:205:    const report = await ctx.curator.export({ purpose: 'evaluation', sink })
+packages/governance/curator/tests/curator.spec.ts:213:    const report = await ctx.curator.export({ purpose: 'evaluation', sessions: [SessionId('missing'), known], sink })
+packages/governance/curator/tests/curator.spec.ts:242:    const report = await ctx.curator.export({ purpose: 'evaluation', sink: memorySink() })
+packages/governance/curator/tests/curator.spec.ts:253:    const report = await ctx.curator.export({ purpose: 'evaluation', sink })
+packages/governance/curator/tests/curator.spec.ts:283:    await ctx.curator.export({ purpose: 'evaluation', sink })
+packages/governance/curator/tests/curator.spec.ts:297:    const report = await ctx.curator.export({ purpose: 'evaluation', sink, districts: ['proving-ground'], rewardedOnly: false, includeHeldOut: false })
+packages/governance/curator/tests/curator.spec.ts:323:    const first = await ctx.curator.export({ purpose: 'evaluation', sink: memorySink() })
+packages/governance/curator/tests/curator.spec.ts:324:    const second = await ctx.curator.export({ purpose: 'evaluation', sink: memorySink() })
+packages/governance/curator/tests/curator.spec.ts:333:    const report = await ctx.curator.export({ purpose: 'evaluation', sink: memorySink(), manifestPath })
+packages/governance/curator/README.md:52:`ctx.curator.export({ purpose, profile?, sessions?, sink, manifestPath?, rewardedOnly?, includeHeldOut?, districts? })` runs one export. It reads each candidate session's log, folds its terms with `termsOf`, and hands only the admitted sessions to `ctx.trajectories.export`, which applies the held-out and district withholding it already owns. `rewardedOnly`, `includeHeldOut`, and `districts` are passed through unchanged.
+packages/governance/curator/README.md:107:- **The unredacted exporter is still callable** — `ctx.trajectories.export()` remains a service any plugin in the process can call, so this package is the export path that refuses rather than a barrier around the data. A composition rule that rejects a district composing the exporter without the curator waits for a district that needs it.
+packages/governance/curator/src/index.ts:142:    const report = await this.ctx.trajectories.export({
+packages/governance/data-use/README.zh.md:70:- **有一条导出路径执行这些条款** —— [`@deepseek-ai/dsh-curator`](../curator/README.md) 扣留其条款不接纳该次导出用途的每一个会话，而完全不携带条款的会话对任何用途都被扣留。`ctx.trajectories.export()` 仍可被直接调用且不读取任何条款，因此钉定约束的是策展路径，而不是数据本身。
+packages/governance/data-use/README.md:70:- **One export path enforces the terms** — [`@deepseek-ai/dsh-curator`](../curator/README.md) withholds every session whose terms do not admit its export's purpose, and a session carrying no terms at all is withheld for every purpose. `ctx.trajectories.export()` remains callable directly and reads no terms, so the pin binds the curated path rather than the data.
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md:19:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md:21:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md:45:- `foldTrajectory` over the verification-domain fixture's log yields `outcome: 1` with basis `certificate` and the certificate's check ids; over a log whose standard has no covering certificate, `outcome: 0` with basis `certificate`; over a log whose goal completes with no standard, `outcome: null` with basis `uncertified-completion`; over a log with no goal, basis `none`.
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.md:47:- `ctx.trajectories.export()` over a JSONL persistence store writes one line per persisted session, counts the rewarded ones, reports a session it cannot read by id and reason without aborting the rest, and returns zero counts over an empty store.
+.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.md:65:- **Terms pinned at creation, enforced on the curated export path.** The curator reads them and withholds by them; `ctx.trajectories.export()` is still callable directly, and a composition that omits `dsh-data-use` produces sessions with no terms at all, which the curator withholds for every purpose.
+.agents/notes/proposed/architecture/2026-09-06-curator.zh.md:11:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-06-curator.zh.md:53:**重新实现折叠而不包裹导出器。** curator 本可以自己调用 `foldTrajectory` 并完全跳过导出器。否决：留出与区扣留、跳过记账与 sink 关闭都属于导出器，会被重复实现；而 manifest 的 `withheld` 三元组恰好是导出器自身的报告加上 curator 自己的条款计数。
+.agents/notes/proposed/architecture/2026-09-06-curator.zh.md:82:- **未经脱敏的原语依然可调用。** `ctx.trajectories.export()` 仍是进程内任何插件都能调用的服务，因此 curator 是那条会拒绝的路径，而不是围绕数据的屏障。要封住它需要推进项 4 的组合规则；在此之前 README 写明哪一个调用是安全的那个。
+.agents/notes/proposed/architecture/2026-09-19-rlvr-recipe-and-base-model.zh.md:109:1. **让 bench 的导出走 curator。** [fleet-driver.ts](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/fleet-driver.ts) 与 [experiment-driver.ts](../../../../examples/headless-agent/tests/fixtures/proving-ground-bench/experiment-driver.ts) 调用的是 `ctx.trajectories.export()`，那个不做脱敏、不读条款的导出器。训练语料需要改为 `ctx.curator.export({ purpose: 'training', … })`，正如 [curator 的 e2e 驱动](../../../../examples/headless-agent/tests/fixtures/curator/driver.ts)已经在调用的那样。没有这一步，条款门在语料真正的来源路径上什么都约束不了。
+.agents/notes/proposed/architecture/2026-09-19-rlvr-recipe-and-base-model.zh.md:135:- 两个 bench 驱动都调用 `ctx.curator.export`，此后记录的一次运行在每一条导出行上都带有 `redactionApplied: true` 的 `curation` 块。
+.agents/notes/proposed/architecture/2026-09-06-attributable-decisions.zh.md:65:- **条款在创建时被钉定，并在策展导出路径上被执行。** curator 读取它们并据其扣留；`ctx.trajectories.export()` 仍可被直接调用，而省略 `dsh-data-use` 的组合产出的会话根本没有条款，curator 对任何用途都会扣留它们。
+.agents/notes/proposed/architecture/2026-09-06-curator.md:11:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-06-curator.md:53:**Reimplementing the fold instead of wrapping the exporter.** The curator could call `foldTrajectory` itself and skip the exporter entirely. Rejected: held-out and district withholding, skip accounting, and sink closure are the exporter's and would be duplicated, and the manifest's `withheld` triple is exactly the exporter's own report beside the curator's own terms count.
+.agents/notes/proposed/architecture/2026-09-06-curator.md:82:- **The unredacted primitive is still callable.** `ctx.trajectories.export()` remains a service any plugin in the process can call, so the curator is the path that refuses rather than a barrier around the data. Closing that needs the composition rule in rollout item 4; until then the README says which call is the safe one.
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.zh.md:19:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.zh.md:21:`TrajectoryService.export(request)` 通过 `ctx.sessionPersistence.inspect()` 读取已持久化的会话，逐个折叠，并经调用方提供的 sink 每条轨迹写一行 JSON；`jsonlFileSink(path)` 是随包提供的文件 sink。请求可指定会话 id，默认为全部已持久化会话，并可只保留有奖励的轨迹。返回的报告统计已读会话数、已写轨迹数、有奖励轨迹数，以及被跳过的会话及其原因。该服务不写任何会话事件：导出是一次读取，向源日志写入会改变下一次导出读到的内容。
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.zh.md:45:- 对 verification-domain 夹具日志运行 `foldTrajectory`，得到 `outcome: 1`、依据 `certificate` 以及证书的检查 id；对标准没有覆盖证书的日志，得到 `outcome: 0`、依据 `certificate`；对 goal 在没有标准的情况下完成的日志，得到 `outcome: null`、依据 `uncertified-completion`；对没有 goal 的日志，依据为 `none`。
+.agents/notes/proposed/architecture/2026-09-05-trajectory-export-and-environment-registry.zh.md:47:- `ctx.trajectories.export()` 在 JSONL 持久化存储上为每个已持久化会话写一行，统计有奖励的轨迹，对无法读取的会话按 id 与原因报告而不中止其余会话，在空存储上返回零计数。
+.agents/notes/proposed/architecture/2026-09-19-rlvr-recipe-and-base-model.md:109:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-19-rlvr-recipe-and-base-model.md:135:- Both bench drivers call `ctx.curator.export`, and a run recorded afterwards carries a `curation` block with `redactionApplied: true` on every exported line.
+.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md:23:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-05-scorekeeper.md:39:**Duplicate the reward rules.** The outcome group could restate the trajectory fold's reward decision instead of extracting `foldTrajectoryReward`. It is rejected because two copies of "what counts as certified" is exactly the drift a leaderboard cannot survive; the extraction is behavior-preserving and the invariant companion checks the two folds still agree on every certificate.
+.agents/notes/proposed/architecture/2026-09-05-read-barrier.md:93:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-05-read-barrier.zh.md:93:[Omitted long matching line]
+.agents/notes/proposed/architecture/2026-09-05-scorekeeper.zh.md:23:**一个折叠，两副面孔。** `applySessionFacts` 是增量转移，`foldSessionFacts(meta, events)` 是整日志入口；`sessionFacts` 投影单元在 `ctx.inject` 下把前者注册到 `ctx.sessionProjections`，服务则在已持久化日志上运行后者。二者因此产生相同的值，活动载体与离线记分板不可能发生漂移。结果分组由已经拥有这些事件流的折叠决定——`foldTrajectoryReward`（为此从轨迹折叠中抽取）、`foldVerification` 与 `foldGoal`——因此记分板行报告的奖励与轨迹行报告的奖励一致，是构造使然而非评审使然。累加器保留 goal、验证与预算事件，并在其中任一到达时重新折叠；投影单元包裹严格折叠，使被拒绝的变更保持所服务的值不变，而不是撕裂读取侧。
+.agents/notes/proposed/architecture/2026-09-05-scorekeeper.zh.md:39:**复制奖励规则。** 结果分组本可以重述轨迹折叠的奖励判定，而不是抽取 `foldTrajectoryReward`。被拒绝，因为"什么算已认证"存在两份副本，恰是排行榜无法承受的漂移；该抽取保持行为不变，且不变量伴随物会检查两个折叠在每张证书上仍然一致。
+packages/improvement/trajectories/README.zh.md:29:`ctx.trajectories.export({ sessions?, sink, rewardedOnly?, includeHeldOut?, districts? })` 通过 `ctx.sessionPersistence.inspect()` 折叠每个指定会话（`sessions` 缺省时为全部已持久化会话），并把 `JSON.stringify(trajectory) + '\n'` 写入 `sink.write()`；无法读取或折叠的会话连同原因加入 `skipped`，导出继续。
+packages/improvement/trajectories/README.zh.md:33:sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带 `sessions`、`exported`、`rewarded`、`filtered`、`heldOut`、`withheld` 与 `skipped`。`jsonlFileSink(path)` 是随包提供的文件 sink；首次使用时截断文件。
+packages/improvement/trajectories/README.zh.md:35:`foldTrajectory(meta, events)` 是服务背后的纯投影，导出供测试与离线工具使用。相同输入下结果确定。
+packages/improvement/trajectories/README.zh.md:37:`foldTrajectoryReward(events)` 由日志中的 goal 与验证事件决定奖励。最后一条记录的 [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) 携带 `verdict: 'tampered'` 的会话，无论日志里还有什么，都以 `tamper` 依据记为 `outcome: 0`：一次发现用于度量该任务的文件已被改动的运行，说明这次度量作废——检查失败只说明工作尚未完成，把两者合并会让检查已不再描述任务的工作区拿到部分学分。其余情形下，只要存在标准就由验证者决定，未认证的完成属于未决，没有 goal 的日志则未被度量。
+packages/improvement/trajectories/tests/fold.spec.ts:9:import { TRAJECTORY_FORMAT, foldTrajectory } from '@deepseek-ai/dsh-trajectories'
+packages/improvement/trajectories/tests/fold.spec.ts:176:describe('foldTrajectory', () => {
+packages/improvement/trajectories/tests/fold.spec.ts:179:    const trajectory = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:223:    const trajectory = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:253:    const trajectory = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:272:    const trajectory = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:277:    expect(foldTrajectory(header, certifiedLog().events)).not.toHaveProperty('parity')
+packages/improvement/trajectories/tests/fold.spec.ts:283:    const trajectory = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:301:    expect(foldTrajectory(header, completed.events).reward).toEqual({
+packages/improvement/trajectories/tests/fold.spec.ts:314:    expect(foldTrajectory(header, cleared.events).reward).toMatchObject({ outcome: null, basis: 'none', goal: { phase: 'active' } })
+packages/improvement/trajectories/tests/fold.spec.ts:316:    const empty = foldTrajectory({ version: SESSION_FORMAT_VERSION, id: SessionId('bare'), createdAt: 1 }, [])
+packages/improvement/trajectories/tests/fold.spec.ts:349:    const trajectory = foldTrajectory(parented, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:377:    const trajectory = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/fold.spec.ts:383:    expect(() => foldTrajectory(header, malformed.events)).toThrow('environment/run heldOut must be a boolean')
+packages/improvement/trajectories/tests/fold.spec.ts:401:    expect(foldTrajectory(header, log.events).terms).toEqual({
+packages/improvement/trajectories/tests/fold.spec.ts:410:    expect(foldTrajectory(header, log.events)).not.toHaveProperty('terms')
+packages/improvement/trajectories/tests/fold.spec.ts:417:    const { messages } = foldTrajectory(header, log.events)
+packages/improvement/trajectories/tests/service.spec.ts:11:import TrajectoryService, { jsonlFileSink, resolveConfig } from '@deepseek-ai/dsh-trajectories'
+packages/improvement/trajectories/tests/service.spec.ts:118:    const report = await ctx.trajectories.export({ sink })
+packages/improvement/trajectories/tests/service.spec.ts:135:    const report = await ctx.trajectories.export({
+packages/improvement/trajectories/tests/service.spec.ts:156:    expect(await ctx.trajectories.export({ sink: withheld, rewardedOnly: true }))
+packages/improvement/trajectories/tests/service.spec.ts:161:    expect(await ctx.trajectories.export({ sink: included, includeHeldOut: true }))
+packages/improvement/trajectories/tests/service.spec.ts:176:    expect(await ctx.trajectories.export({ sink: byDefault }))
+packages/improvement/trajectories/tests/service.spec.ts:182:    expect(await ctx.trajectories.export({ sink: named, districts: ['workshop'] }))
+packages/improvement/trajectories/tests/service.spec.ts:193:    expect(await ctx.trajectories.export({ sink }))
+packages/improvement/trajectories/tests/service.spec.ts:205:    await expect(ctx.trajectories.export({ sink: idle }))
+packages/improvement/trajectories/tests/service.spec.ts:215:    await expect(ctx.trajectories.export({ sink: failing })).rejects.toThrow('disk full')
+packages/improvement/trajectories/tests/service.spec.ts:239:    const report = await ctx.trajectories.export({ sink })
+packages/improvement/trajectories/tests/service.spec.ts:252:  it('writes lines to a file through jsonlFileSink', async () => {
+packages/improvement/trajectories/tests/service.spec.ts:256:    await ctx.trajectories.export({ sink: jsonlFileSink(path) })
+packages/improvement/trajectories/README.md:29:`ctx.trajectories.export({ sessions?, sink, rewardedOnly?, includeHeldOut?, districts? })` folds each named session (or every persisted session when `sessions` is absent) through `ctx.sessionPersistence.inspect()` and writes `JSON.stringify(trajectory) + '\n'` to `sink.write()`; a session that cannot be read or folded is added to `skipped` with its reason and the export continues.
+packages/improvement/trajectories/README.md:33:The sink is closed exactly once, after the last write or after a failure. The report carries `sessions`, `exported`, `rewarded`, `filtered`, `heldOut`, `withheld`, and `skipped`. `jsonlFileSink(path)` is the shipped file sink; it truncates the file on first use.
+packages/improvement/trajectories/README.md:35:`foldTrajectory(meta, events)` is the pure projection behind the service and is exported for tests and offline tools. It is deterministic for the same inputs.
+packages/improvement/trajectories/README.md:37:[Omitted long matching line]
+packages/improvement/trajectories/src/fold.ts:182:export function foldTrajectoryReward(events: readonly SessionEvent[]): TrajectoryReward {
+packages/improvement/trajectories/src/fold.ts:233:export function foldTrajectory(meta: SessionHeader, events: readonly SessionEvent[]): Trajectory {
+packages/improvement/trajectories/src/fold.ts:244:  const reward = foldTrajectoryReward(events)
+packages/improvement/trajectories/src/index.ts:16:import { foldTrajectory } from './fold.ts'
+packages/improvement/trajectories/src/index.ts:25:export { foldTrajectory, foldTrajectoryReward, TRAJECTORY_FORMAT } from './fold.ts'
+
+[Showing results with pagination = limit: 100]

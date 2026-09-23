@@ -1,0 +1,250 @@
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ranked-choice/reference/src/election.js:    const words = line.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/reference/src/markdown-inline.js:const ASCII_PUNCTUATION = /[!"#$%&'()*+,\-./:;<=>?@[\]\\^_`{|}~]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/reference/src/markdown-inline.js:const WHITESPACE = /\s/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/reference/src/markdown-inline.js:const ALPHANUMERIC = /[A-Za-z0-9]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/reference/src/markdown-inline.js:const HEX_PAIR = /^[0-9A-Fa-f]{2}$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/reference/src/markdown-inline.js:const AUTOLINK_URI = /<([A-Za-z][A-Za-z0-9+.-]{1,31}:[^\s<>]*)>/y;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/test/markdown-inline.test.js:    ['[a [b](/c) d](/e)', '<a href="/e">a [b](/c) d</a>'],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/test/markdown-inline.test.js:    ['[x](/a b)', '[x](/a b)'],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/test/markdown-inline.test.js:  assert.equal(renderInline('`[a](/b)`'), '<code>[a](/b)</code>');
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/src/markdown-inline.js:const ASCII_PUNCTUATION = /[!"#$%&'()*+,\-./:;<=>?@[\]\\^_`{|}~]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/src/markdown-inline.js:const WHITESPACE = /\s/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/src/markdown-inline.js:const ALPHANUMERIC = /[A-Za-z0-9]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/src/markdown-inline.js:const HEX_PAIR = /^[0-9A-Fa-f]{2}$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/markdown-inline/src/markdown-inline.js:const AUTOLINK_URI = /<([A-Za-z][A-Za-z0-9+.-]{1,31}:[^\s<>]*)>/y;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/md-render/reference/src/block.js:      out.push({ kind: 'fence', info: fence[2].trim().split(/\s+/u)[0], content })
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/md-render/reference/src/refs.js:  return label.trim().replace(/\s+/gu, ' ').toLowerCase()
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/md-render/test/mdlite.test.js:  assert.match(failed.err, /^error: usage: cli\.js /u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/table-format/test/table-format.test.js:      text.replace(/[ \n]/g, ''),
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/text-diff/test/diff.test.js:    const lines = oldText === '' ? [] : oldText.replace(/\n$/, '').split('\n');
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/reference/src/version.js:const NUMERIC = /^[0-9]+$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/reference/src/range.js:const OPERATOR = /^(\^|~|<=|>=|<|>|=)?(.+)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/reference/src/range.js:  const normalised = text.replace(/(<=|>=|<|>|=|\^|~)\s+/g, '$1').trim();
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/reference/src/range.js:  const tokens = normalised.split(/\s+/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['name', /pointer must be empty or start with '\/'/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['#/name', /pointer must be empty or start with '\/'/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/~2', /invalid escape in pointer token: ~2/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/~', /invalid escape in pointer token: ~/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/a~b', /invalid escape in pointer token: ~b/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => parsePointer(null), /pointer must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => formatPointer('x'), /tokens must be an array/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => formatPointer([1]), /reference token must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/missing', /missing property: missing at \/missing/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/missing/x', /missing property: missing at \/nested\/missing/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/list/3', /index out of range: 3 at \/nested\/list\/3/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/list/-', /invalid array index: - at \/nested\/list\/-/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/list/01', /invalid array index: 01 at \/nested\/list\/01/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/list/ 1', /invalid array index:  1 at/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/name/0', /cannot index into string at \/name\/0/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/flag/x', /cannot index into boolean at/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['/nested/deep/value/x', /cannot index into null at/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ a: 1 }, { op: 'remove', path: '/b' }, /missing property: b/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [[1], { op: 'remove', path: '/1' }, /index out of range: 1/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [[1], { op: 'remove', path: '/-' }, /invalid array index: -/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ a: 1 }, { op: 'remove', path: '' }, /cannot remove the whole document/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ a: 1 }, { op: 'replace', path: '/b', value: 1 }, /missing property: b/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [[1], { op: 'replace', path: '/1', value: 1 }, /index out of range: 1/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [[1], { op: 'add', path: '/2', value: 1 }, /index out of range: 2/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ a: 'text' }, { op: 'add', path: '/a/0', value: 1 }, /cannot index into string/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.match(moveInside.message, /cannot move a value into its own child/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'test', path: '/a/y', value: [2, 1] }, /test failed at \/a\/y/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'test', path: '/a/x', value: '1' }, /test failed at \/a\/x/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'test', path: '/b', value: false }, /test failed at \/b/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'test', path: '/a', value: { x: 1 } }, /test failed at \/a/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'frob', path: '/a' }, /unknown operation: frob/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ path: '/a' }, /unknown operation: undefined/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'add', value: 1 }, /add requires a path/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'add', path: '/a' }, /add requires a value/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'test', path: '/a' }, /test requires a value/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'move', path: '/a' }, /move requires a from/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'copy', path: '/a' }, /copy requires a from/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    [{ op: 'add', path: 'a', value: 1 }, /pointer must be empty or start with/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:    ['nonsense', /operation must be an object/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => applyPatch({}, 'nope'), /patch must be an array/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => applyPatch({ a: () => 1 }, []), /document is not JSON data/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => applyPatch({}, [{ op: 'add', path: '/a', value: undefined }]), /value is not JSON data/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/json-patch/test/patch.test.js:  assert.throws(() => resolve({}, '/toString'), /missing property: toString/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/test/semver.test.js:  assert.throws(() => parse(null), /version must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/test/semver.test.js:  assert.throws(() => parseRange(null), /range must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/test/semver.test.js:  assert.throws(() => maxSatisfying('1.0.0', '*'), /versions must be an array/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/build-schedule/reference/src/graph.js:    const words = line.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/template-engine/reference/src/index.js:const NAME_PATTERN = /^(\.|[A-Za-z0-9_$]+(\.[A-Za-z0-9_$]+)*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/semver-ranges/src/version.js:const SIMPLE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/template-engine/src/index.js:const NAME_PATTERN = /^(\.|[A-Za-z0-9_$]+(\.[A-Za-z0-9_$]+)*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.match(error.message, /unterminated quoted field/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.match(first.message, /unexpected character after closing quote: b/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => parse('a', { delimiter: ',,' }), /delimiter must be a single character/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => parse('a', { delimiter: '' }), /delimiter must be a single character/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => parse('a', { quote: 'ab' }), /quote must be a single character/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => parse('a', { delimiter: ',', quote: ',' }), /delimiter and quote must differ/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => parse('a', { delimiter: '\n' }), /must not be line terminators/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => parse(42), /input must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.match(error.message, /expected 2 fields, got 1/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => escapeField(Number.NaN), /unsupported field value: NaN/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => escapeField({}), /unsupported field type: object/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => escapeField([1]), /unsupported field type: object/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => stringify('a,b'), /rows must be an array/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => stringify([['a'], 'b']), /record 1 is not an array/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => stringify([[]]), /record 0 has no fields/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/csv-codec/test/csv.test.js:  assert.throws(() => stringify([['a']], { newline: '\n\n' }), /newline must be a line terminator/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/reference/src/ini.js:const VALUE_NEEDS_QUOTE = /["\\\n\r\t\0;#=]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/reference/src/ini.js:const KEY_NEEDS_QUOTE = /["\\\n\r\t\0;#=[\]]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/reference/src/ini.js:const SECTION_NEEDS_QUOTE = /["\\\n\r\t\0[\]]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/reference/src/ini.js:  const lines = text.split(/\r\n|\n|\r/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.match(error.message, /duplicate key: k/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['a=1\n[unclosed\n', /unterminated section header/, 2],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['\n\nk\n', /missing '=' in entry/, 3],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['  =1\n', /empty key/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['[]\n', /empty section name/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['[  ]\n', /empty section name/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['a="oops\n', /unterminated quoted string/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['a="x\\\n', /unterminated quoted string/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['a="x\\q"\n', /unknown escape sequence: \\q/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['a="\\u12g4"\n', /invalid unicode escape/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['a="x" trailing\n', /unexpected text after quoted value/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['"k" oops = 1\n', /unexpected text after quoted key/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['"k"\n', /missing '=' in entry/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:    ['["s" oops]\n', /unexpected text after quoted section name/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.throws(() => parse('a=1', { duplicates: 'merge' }), /unknown duplicates policy: merge/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.throws(() => stringify({ global: { '': 'x' } }), /empty key/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.throws(() => stringify({ sections: { '': {} } }), /empty section name/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.throws(() => stringify({ global: { a: 1 } }), /value must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.throws(() => stringify({ global: { a: null } }), /value must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/ini-parse/test/ini.test.js:  assert.throws(() => stringify(null), /document must be an object/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/task-runner/reference/src/plan.js:    const words = text.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/task-runner/reference/src/parse.js:    const words = text.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/task-runner/src/parse.js:    const words = text.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/dep-resolver/reference/src/semver.js:const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/dep-resolver/reference/src/semver.js:  const parts = text.trim().split(/\s+/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/job-queue/reference/src/policy.js:    const words = text.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/dep-resolver/src/semver.js:const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/job-queue/reference/src/parse.js:    const words = text.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/job-queue/test/jobq.test.js:  assert.match(failed.err, /^error: usage: cli\.js /u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/config-layers/test/conflayers.test.js:  assert.match(failed.err, /^error: usage: cli\.js /u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/job-queue/src/parse.js:    const words = text.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/reference/src/glob.js:const REGEXP_SPECIAL = /[.*+?^${}()|[\]\\]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/reference/src/glob.js:const CLASS_SPECIAL = /[\\\]^-]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/reference/src/glob.js:      if (i === 0) source += last ? `(?:${guard}[^/]+(?:/${guard}[^/]+)*)?` : `(?:${guard}[^/]+/)*`;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/reference/src/glob.js:      else source += `(?:/${guard}[^/]+)*`;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/sheet-eval/reference/src/cli.js:  const line = raw.replace(/^[ \t]+/u, '')
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:    ['a[bc', /unterminated character class/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:    ['x/[a-', /unterminated character class/, 2],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:    ['a\\', /trailing backslash/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:    ['[a\\', /trailing backslash/, 2],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:    ['[a/b]', /path separator in character class/, 2],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:  assert.throws(() => compile(''), /pattern must not be empty/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:  assert.throws(() => compile(null), /pattern must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:  assert.throws(() => isMatch(7, '*'), /path must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:  assert.throws(() => filter('a', '*'), /paths must be an array/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/glob-match/test/glob.test.js:  const escapeGlob = (text) => text.replace(/[\\*?[\]]/g, (match) => `\\${match}`);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/rate-limit-sim/reference/src/replay.js:    const words = line.split(/\s+/u)
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/reference/src/parse.js:const NAME = /^(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:\.?(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2}))*$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/reference/src/parse.js:const MAX_LENGTH = /^[1-9][0-9]{0,3}$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/reference/src/expand.js:const UNRESERVED = /[A-Za-z0-9\-._~]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/reference/src/expand.js:const RESERVED = /[:/?#[\]@!$&'()*+,;=]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/reference/src/expand.js:const HEX_PAIR = /^[0-9A-Fa-f]{2}$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['x{a', /unterminated expression at 1/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['a}', /unexpected '}' at 1/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{}', /empty expression at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['a{+}', /empty variable specification at 1/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a,}', /empty variable specification at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{=a}', /reserved operator '=' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{,a}', /reserved operator ',' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a-b}', /invalid variable name 'a-b' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{ a}', /invalid variable name ' a' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a:0}', /invalid prefix modifier ':0' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a:10000}', /invalid prefix modifier ':10000' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a:}', /invalid prefix modifier ':' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a*:3}', /invalid variable name 'a\*' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:    ['{a:3*}', /invalid variable name 'a:3' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.throws(() => parse(null), /template must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.match(error.message, /prefix modifier applied to a composite value: 'dom'/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.throws(() => expand('{opts:2}', VARS), /prefix modifier applied to a composite value: 'opts'/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.throws(() => expand('{a}', { a: () => 1 }), /value for 'a' is not a string, number or boolean/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.throws(() => expand('{a}', { a: Number.NaN }), /value for 'a' is not a string, number or boolean/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.throws(() => expand('{a*}', { a: [1, {}] }), /value for 'a' is not a string, number or boolean/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/url-template/test/template.test.js:  assert.throws(() => expand('{a}', null), /variables must be an object/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/reference/src/cron.js:  const parts = expression.trim().split(/\s+/).filter((part) => part !== '');
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['* * * *', /expected 5 fields, got 4/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['', /expected 5 fields, got 0/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['* * * * * *', /expected 5 fields, got 6/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['60 * * * *', /value 60 is out of range 0-59 in minute/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['* 24 * * *', /value 24 is out of range 0-23 in hour/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['0 0 0 * *', /value 0 is out of range 1-31 in dayOfMonth/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['0 0 * 13 *', /value 13 is out of range 1-12 in month/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['0 0 * * 8', /value 8 is out of range 0-7 in dayOfWeek/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['0 0 * FOO *', /unknown name FOO in month/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['0 0 * * FUN', /unknown name FUN in dayOfWeek/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['*/0 * * * *', /invalid step 0 in minute/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['5-1 * * * *', /range 5-1 is reversed in minute/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['a * * * *', /invalid value a in minute/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['0 0 * * MON-', /empty value in dayOfWeek/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['1-2-3 * * * *', /invalid range 1-2-3 in minute/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:    ['1/2/3 * * * *', /invalid term 1\/2\/3 in minute/],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:  assert.throws(() => parse(null), /expression must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:  assert.throws(() => matches('* * * * *', 'today'), /date must be a valid Date/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:  assert.throws(() => matches('* * * * *', new Date('nonsense')), /date must be a valid Date/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:  assert.throws(() => next('0 0 30 2 *', new Date('2024-01-01T00:00:00Z')), /no occurrence within 5 years/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:  assert.throws(() => next('0 0 29 2 *', new Date('2097-01-01T00:00:00Z')), /no occurrence within 5 years/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/test/cron.test.js:  assert.throws(() => next('* * * * *', 'now'), /from must be a valid Date/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/cron-next/src/cron.js:  const parts = expression.trim().split(/\s+/).filter((part) => part !== '');
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/wrap-justify/reference/src/layout.js:    const words = line.split(/[ \t]+/u).filter(word => word !== '')
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/reference/src/query-string.js:const INTEGER = /^(?:0|[1-9][0-9]*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/reference/src/query-string.js:const EXTRA_ENCODED = /[!'()*]/g;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/test/query-string.test.js:  assert.throws(() => parse(['a=1']), /input must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/test/query-string.test.js:  assert.throws(() => stringify('a=1'), /input must be an object/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/test/query-string.test.js:  assert.throws(() => stringify(['a']), /input must be an object/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/test/query-string.test.js:  assert.throws(() => stringify({}, { arrayFormat: 'comma' }), /unknown arrayFormat: comma/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/test/query-string.test.js:  assert.throws(() => stringify({}, { space: 'tab' }), /unknown space: tab/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/test/query-string.test.js:  assert.throws(() => extract(null), /url must be a string/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/src/query-string.js:const INTEGER = /^(?:0|[1-9][0-9]*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/query-string/src/query-string.js:const EXTRA_ENCODED = /[!'()*]/g;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/reference/src/tokenize.js:const NUMBER = /(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?/y;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/reference/src/tokenize.js:const NAME = /[A-Za-z_][A-Za-z0-9_]*/y;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/reference/src/tokenize.js:const NUMBER_TAIL = /[.\dA-Za-z_]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 + $', /unexpected character '\$' at 4/, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 + \u{1f600}', /unexpected character '\u{1f600}' at 4/u, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1.2.3', /malformed number at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1e', /malformed number at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1e+', /malformed number at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['2abc', /malformed number at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 + 4.', /malformed number at 4/, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['', /unexpected end of input at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['2 +', /unexpected end of input at 3/, 3],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['(1+2', /missing closing parenthesis at 4/, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['(1 2)', /missing closing parenthesis at 3/, 3],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 + )', /unexpected token '\)' at 4/, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 2', /unexpected token '2' at 2/, 2],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['max(1,)', /unexpected token '\)' at 6/, 6],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['max(1 2)', /unexpected token '2' at 6/, 6],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['*3', /unexpected token '\*' at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['(1))', /unexpected token '\)' at 3/, 3],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1/0', {}, /division by zero at 1/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 % 0', {}, /division by zero at 2/, 2],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1/(3-3)', {}, /division by zero at 1/, 1],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['sqrt(-1)', {}, /non-finite result at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1e308*10', {}, /non-finite result at 5/, 5],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['x', {}, /unknown variable: x at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 + y*2', {}, /unknown variable: y at 4/, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['x', { x: 'no' }, /variable x is not a finite number at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['x', { x: Number.POSITIVE_INFINITY }, /variable x is not a finite number at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['foo(1)', {}, /unknown function: foo at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['abs(1,2)', {}, /function abs expects 1 argument, got 2 at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['abs()', {}, /function abs expects 1 argument, got 0 at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['pow(2)', {}, /function pow expects 2 arguments, got 1 at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['max()', {}, /function max expects at least 1 argument, got 0 at 0/, 0],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:    ['1 + max()', {}, /function max expects at least 1 argument, got 0 at 4/, 4],
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:  assert.throws(() => evaluate('toString'), /unknown variable: toString at 0/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/test/expr.test.js:  assert.throws(() => evaluate('constructor', { x: 1 }), /unknown variable: constructor at 0/);
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/expr-eval/src/index.js:const BARE_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/md-render/src/block.js:      out.push({ kind: 'fence', info: fence[2].trim().split(/\s+/u)[0], content })
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/reference/src/index.js:const NAME_START = /[A-Za-z_]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/reference/src/index.js:const NAME_CHAR = /[A-Za-z0-9_]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/reference/src/index.js:const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/reference/src/index.js:const SAFE_WORD = /^[A-Za-z0-9_@%+=:,./-]+$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/reference/src/index.js:const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)=([\s\S]*)$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/src/index.js:const NAME_START = /[A-Za-z_]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/src/index.js:const NAME_CHAR = /[A-Za-z0-9_]/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/src/index.js:const NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/src/index.js:const SAFE_WORD = /^[A-Za-z0-9_@%+=:,./-]+$/;
+examples/headless-agent/tests/fixtures/proving-ground-bench/environments/shell-words/src/index.js:const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)=([\s\S]*)$/;

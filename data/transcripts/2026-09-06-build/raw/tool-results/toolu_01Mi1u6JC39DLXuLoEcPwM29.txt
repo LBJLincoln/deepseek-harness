@@ -1,0 +1,134 @@
+packages/improvement/environment-runner/tests/environment-runner.spec.ts:1310:    // An in-process provider keeps the deployment's own isolation, so the same
+packages/improvement/environment-runner/tests/environment-runner.spec.ts:1340:    // composed, so a deployment composing none has chosen no budgets.
+packages/improvement/environment-runner/README.md:32:| `isolation` (required) | `none`, `process`, or `host`: the isolation the deployment can defend for its check runs. A local composition that shares the filesystem between implementer and validator is `none`; a run whose checks and fixtures live on another account or host is `host`. Written into every certificate and stamp; nothing in-process can verify it. |
+packages/improvement/environment-runner/README.md:34:| `maxLadderRungs` (default `8`) | Rungs one request's attempt ladder may name. A ladder is the attempt bound of the run that carries it, so this is how far a plan file may push a deployment; a longer ladder fails the run with `ENVIRONMENT_RUN_INVALID_LADDER`. |
+packages/improvement/environment-runner/README.md:39:| `topP` (optional) | Nucleus-sampling mass between 0 and 1 every request of every run asks for. It is a deployment choice rather than a per-run one: a suite compares cells only while every cell samples the same way. Absent leaves the composition's own sampling in place. |
+packages/improvement/environment-runner/README.md:78:[Omitted long matching line]
+packages/improvement/environment-runner/README.md:86:- `ENVIRONMENT_RUN_PRESET_UNAVAILABLE` — the request names a preset and the composition holds no roster at all. Never a silent skip: a cell that ran the deployment's own rows under an arm labelled with a preset would publish a measurement of a composition it never ran.
+packages/improvement/environment-runner/README.md:97:[Omitted long matching line]
+packages/improvement/environment-runner/README.md:105:[Omitted long matching line]
+packages/improvement/environment-runner/README.md:111:[Omitted long matching line]
+packages/improvement/environment-runner/README.md:113:`ctx.environmentRuns.cellCaps(implementer)` answers what one cell of an arm runs under, and every report states it as `caps`. A route cell runs under every configured cap; a delegated cell runs under the same list minus a `maxCostEur` the deployment states no `foreignCostEurPerUsd` for, because a ceiling in one currency cannot bound a price in another. [Experiments](../experiments/README.md) refuse a plan whose two arms resolve to different lists.
+packages/improvement/environment-runner/README.md:117:[Omitted long matching line]
+packages/improvement/environment-runner/README.md:211:- **A reserved check runs by being sourced** — the command line is `. <script>`, which a POSIX shell executor runs exactly as it would the inline instruction; a composed PowerShell executor cannot source an extensionless file, so such a deployment runs without a barrier.
+packages/improvement/environment-runner/src/types.ts:173:   * than the deployment's configured rung ceiling, and one whose shares are
+packages/improvement/environment-runner/src/types.ts:203:   * Checkpoint or policy the implementer route serves, as the deployment names
+packages/improvement/environment-runner/src/types.ts:204:   * it, written into the stamp verbatim; absent for a route the deployment did
+packages/improvement/environment-runner/src/types.ts:269:   * Empty when the deployment composes no budget policy, which only a run on
+packages/improvement/environment-runner/src/index.ts:119:/** Deployment choices of the runner, validated from `cordis.yml`. */
+packages/improvement/environment-runner/src/index.ts:121:  /** Isolation the deployment can defend for its check runs; written into every certificate and stamp. */
+packages/improvement/environment-runner/src/index.ts:128:   * an unbounded run; this is the ceiling a deployment lets a plan reach.
+packages/improvement/environment-runner/src/index.ts:141:   * It is a deployment choice rather than a per-run one: a suite compares runs
+packages/improvement/environment-runner/src/index.ts:161: * Rungs a ladder may reach where the deployment states no ceiling. The routing
+packages/improvement/environment-runner/src/index.ts:170: * @param config - validated deployment config.
+packages/improvement/environment-runner/src/index.ts:256: * deployment's ceiling a run the deployment never allowed; a ladder whose
+packages/improvement/environment-runner/src/index.ts:262: * @param maxRungs - rungs this deployment lets one ladder reach.
+packages/improvement/environment-runner/src/index.ts:359: * the instrument agree on, not a deployment choice.
+packages/improvement/environment-runner/src/index.ts:943: * cap and records no breach. Fixed by that comparison, not a deployment choice.
+packages/improvement/environment-runner/src/index.ts:1160:    // The seed is per cell and topP is the deployment's; both are pinned for
+packages/improvement/environment-runner/src/index.ts:1187:      // session running the deployment's rows under the preset's name.
+packages/improvement/environment-runner/src/index.ts:1274:   * deployment that composes none has simply chosen no budgets; a delegated
+packages/improvement/environment-runner/src/index.ts:1326:   * A cell on the session's own route runs under every cap the deployment
+packages/improvement/environment-runner/src/index.ts:1329:   * except a cost cap the deployment states no foreign exchange rate for.
+packages/improvement/fleet/README.md:34:| `workspaceRetention` (required) | `keep`, `remove-certified`, or `remove-all`: what happens to each cell's `cell-*` directory once its outcome is recorded. The session log, not the checkout, is the record, so a long-running deployment states how much of the checkout it keeps for inspection. |
+packages/improvement/fleet/src/types.ts:75:   * verbatim; absent for routes the deployment did not version.
+packages/improvement/fleet/src/index.ts:87:/** Deployment choices of the fleet, validated from `cordis.yml`. */
+packages/improvement/fleet/src/index.ts:111: * @param config - validated deployment config.
+packages/improvement/fleet/src/index.ts:400:    // whose missing `consecutiveErrors` would reject every breakerless deployment.
+packages/improvement/environments/README.md:53:[Omitted long matching line]
+packages/improvement/environments/README.md:57:Producers register environments from curated suites or from synthesis; consumers are the environment runner that mounts a task as a session and writes the run stamp, the trajectory exporter that reads the stamp to attribute sessions and withhold held-out ones and the districts a deployment withholds, and the component registry adapter that lists environments as components.
+packages/improvement/environments/src/types.ts:158:  /** District the run belongs to; exports withhold the districts a deployment configures by it, absent for a run outside every district. */
+packages/improvement/environments/src/types.ts:161:   * Checkpoint or policy the implementer route served, as the deployment names
+packages/improvement/environments/src/types.ts:164:   * route the deployment did not version.
+packages/improvement/environments/src/types.ts:185:  /** Isolation the deployment declared for the run's checks. */
+packages/improvement/environments/src/index.ts:236:/** Deployment choices of the registry, validated from `cordis.yml`. */
+packages/improvement/environments/src/index.ts:423:    // whose missing threshold would reject every deployment that admits freely.
+packages/improvement/shifts/tests/shifts.spec.ts:235:  it('refuses a deployment it cannot run, at load', async () => {
+packages/improvement/shifts/README.md:44:| `workspaceRoot` (required) | Existing absolute directory the fleet mints each cell's `cell-*` workspace under. Checked when the plugin loads, so a deployment whose disk is not mounted fails before a slot opens. |
+packages/improvement/shifts/README.md:63:[Omitted long matching line]
+packages/improvement/shifts/README.md:112:A container deployment uses its own restart policy instead — `docker run --restart=always --volume dsh-sessions:/var/lib/dsh/sessions --volume dsh-workspaces:/var/lib/dsh/workspaces <image>` — with both the persistence root and the workspace root on volumes that outlive the container, since the ledger is the recovery record. `TimeoutStopSec` must exceed the longest cell, because disposal cancels the run and waits for the cells that are settling; a shorter timeout turns a clean stop into orphans.
+packages/improvement/shifts/README.md:136:- **Session logs have no retention policy** — workspace retention bounds the checkouts, but a deployment running for months grows its persistence root without limit, and the resume scan reads every session in it once per slot with a spend window.
+packages/improvement/trajectories/tests/service.spec.ts:189:  it('writes every district when the deployment withholds none', async () => {
+packages/improvement/trajectories/README.md:23:| `withheldDistricts` (default `[]`) | Districts an export that names none withholds, counted as `withheld`. The package ships no district name: a deployment states which of its districts may not leave by default, the way a client-facing district does. |
+packages/improvement/trajectories/README.md:31:[Omitted long matching line]
+packages/improvement/trajectories/README.md:70:- **This service redacts nothing** — tool results may carry credentials or private data, and `export()` writes them as folded. [`@deepseek-ai/dsh-curator`](../../governance/curator/README.md) is the export path that applies a redaction profile and the session's data-use terms; a deployment calling this service directly gets the unredacted lines.
+packages/improvement/trajectories/src/types.ts:191:   * of these, so a named list reaches a district the deployment otherwise
+packages/improvement/trajectories/src/index.ts:33:/** Deployment choices of the exporter, validated from `cordis.yml`. */
+packages/improvement/trajectories/src/index.ts:37:   * package ships no district name: a deployment states the districts whose
+packages/improvement/trajectories/src/index.ts:50: * @param config - validated deployment config.
+packages/improvement/shifts/src/types.ts:3: * one shift session carries, and the deployment records the config validates
+packages/improvement/shifts/src/types.ts:72:   * cell's run stamp verbatim; absent for routes the deployment did not version.
+packages/improvement/shifts/src/types.ts:209:  /** District name, unique in the deployment; every cell's run stamp carries it. */
+packages/improvement/shifts/src/plan.ts:31: * deployment choices and stay out: they decide what a deployment pays for, not
+packages/improvement/shifts/src/plan.ts:99: * when the deployment asked to start immediately, and one interval out
+packages/improvement/shifts/src/index.ts:71:/** Stable error codes of a refused deployment or a slot that cannot be frozen. */
+packages/improvement/shifts/src/index.ts:74:/** Error returned by the shift boundary for a deployment or slot that cannot run. */
+packages/improvement/shifts/src/index.ts:87:/** Deployment choices of the shift driver, validated from `cordis.yml`. */
+packages/improvement/shifts/src/index.ts:514:    // deployment named no usable workspace root.
+packages/improvement/scorekeeper/tests/fold.spec.ts:22:/** The rates one deployment priced the mock route at, and the ten-times-higher rates that replaced them. */
+packages/improvement/scorekeeper/tests/fold.spec.ts:340:  it('leaves a session whose route the deployment does not price without a cost at all', () => {
+packages/improvement/scorekeeper/tests/fold.spec.ts:356:    // A resumed session priced its second step after the deployment re-rated the route.
+packages/improvement/scorekeeper/tests/fold.spec.ts:365:  it('states the cost the log recorded however the deployment is rated when it is folded', () => {
+packages/improvement/experiments/tests/experiments.spec.ts:591:    // Two delegated arms agree again, so the same deployment still compares them.
+packages/improvement/scorekeeper/tests/scoreboard.spec.ts:17:/** The rates one deployment priced the mock route at, and the rates that replaced them. */
+packages/improvement/scorekeeper/README.md:80:[Omitted long matching line]
+packages/improvement/scorekeeper/README.md:117:- **Cost covers priced routes only** — a route the deployment's pricing table did not name records no `usage/priced`, so a session that touched one states no `costEur` and every row holding it states no `costEurPerCertified`. A deployment that wants a cost for every session prices every route it runs.
+packages/improvement/experiments/README.md:38:The service requires `environments` and `fleet`. `resolveConfig(config)` is the exported defaulting step; it returns the four `thresholds` the plan digest freezes beside the `tokenBudget`, which stays outside the digest because it bounds what a deployment pays for rather than what the comparison measures.
+packages/improvement/experiments/README.md:70:[Omitted long matching line]
+packages/improvement/scorekeeper/src/types.ts:54:  /** Isolation the deployment declared for the run's checks. */
+packages/improvement/scorekeeper/src/types.ts:183: * deployment's current pricing table, so a table edited after the fact cannot
+packages/improvement/scorekeeper/src/fold.ts:11: * themselves state, so a deployment that re-rates its routes cannot change what
+packages/improvement/experiments/src/types.ts:87:   * run stamp verbatim; absent for routes the deployment did not version.
+packages/improvement/experiments/src/types.ts:221:   * it. Empty for a comparison whose deployment caps nothing.
+packages/improvement/experiments/src/plan.ts:101: * are digested for the same reason one rung down. The deployment's
+packages/improvement/experiments/src/plan.ts:102: * token budget stays absent: it bounds what a deployment pays for across plans,
+packages/improvement/scorekeeper/src/index.ts:160:/** Deployment choices of the scorekeeper, validated from `cordis.yml`. */
+packages/improvement/scorekeeper/src/index.ts:174: * @param config - validated deployment config.
+packages/improvement/experiments/src/fold.ts:139: * The verdict rule. `promote` is tested first, so a deployment configuring a
+packages/improvement/program/tests/harness.ts:245:   * deployment whose integration records an empty denied list.
+packages/improvement/experiments/src/index.ts:90:/** Deployment choices of the experiment service, validated from `cordis.yml`. */
+packages/improvement/experiments/src/index.ts:108:  /** Tokens one plan's projection may reach; a deployment ceiling, outside the digest. */
+packages/improvement/experiments/src/index.ts:114: * @param config - validated deployment config; the two token fields carry no default.
+packages/improvement/experiments/src/index.ts:115: * @returns the frozen thresholds and the deployment's token budget.
+packages/improvement/observatory/README.md:28:| `withhold.districts` | none | Districts whose rows never reach the public page. The package ships no district name: a deployment states the districts whose sessions may not leave it. |
+packages/improvement/observatory/README.md:33:Every key is required. What a deployment withholds, how old is too old, and how often it refolds are statements the page makes to its readers, and none has a value this package could pick on a deployment's behalf. The service requires the scorekeeper and a session persistence backend.
+packages/improvement/observatory/README.md:35:`costRequiresDigest` is fixed at `true` and is deliberately not a config key: a row priced under two pricing tables states a sum across tables rather than a price, so publishing that sum as a cost would misstate it however the deployment feels about it. The same holds for the two rules beside it — `resolved` and `parity` are two columns and neither is ever computed from the other, and no ranking appears without an `ExperimentResult` verdict.
+packages/improvement/observatory/README.md:94:- **The page is a batch, not a live projection** — every fold reads every persisted session, and the page states the refresh interval its deployment configured rather than one it can verify. The live leaderboard is [Village rollout item 7](../../../.agents/notes/proposed/architecture/2026-09-05-daliesk-village.md); a fold across sessions has no projection seam yet, because `ProjectionDefinition` and the projection cache are both keyed by one session.
+packages/improvement/observatory/README.md:95:- **The service hosts nothing** — it returns the page and the document to its caller. A deployment that wants the status page on the public web writes both to its own web root or object store on its own schedule; this package opens no port and writes no file.
+packages/improvement/observatory/README.md:98:- **Withheld counts are themselves a disclosure** — the number of withheld Workshop rows is a fact about a client engagement. A deployment that cannot publish that count publishes no page.
+packages/improvement/program/tests/program.spec.ts:167:      'this deployment requires a "spec-freeze" signoff/recorded on the program session before a program may start',
+packages/improvement/program/tests/program.spec.ts:201:      'this deployment requires a "release" signoff/recorded on the program session before a program may release',
+packages/improvement/program/tests/program.spec.ts:724:  it('refuses to release a program a later deployment requires a signoff for', async () => {
+packages/improvement/program/tests/program.spec.ts:735:      'this deployment requires a signoff record before a program may release, and the spec names no artefact for one to attest',
+packages/improvement/program/tests/program.spec.ts:924:  it('never runs more departments at once than the deployment allows', async () => {
+packages/improvement/program/tests/delegation.spec.ts:194:describe('staffing a department the deployment cannot supply', () => {
+packages/improvement/program/tests/delegation.spec.ts:195:  it('refuses a program whose deployment composes no subagent seam at all', async () => {
+packages/improvement/program/tests/delegation.spec.ts:200:    expect(report.goals[0]?.reason).toContain('the subagent provider "spawn", which this deployment does not compose')
+packages/improvement/program/tests/delegation.spec.ts:208:    expect(report.goals[0]?.reason).toContain('the subagent provider "codex", which this deployment does not compose')
+packages/improvement/program/tests/delegation.spec.ts:219:    // An in-process child joins the parent's composition, so the deployment's
+packages/improvement/observatory/tests/render.spec.ts:97:  it('flags the held-out split of a row a deployment chose to publish', () => {
+packages/improvement/observatory/src/types.ts:24:  /** Districts the deployment withholds, as configured. */
+packages/improvement/observatory/tests/publish.spec.ts:41:  it('publishes the held-out split when the deployment does not withhold it', () => {
+packages/improvement/program/tests/program.e2e.ts:153:    // Both signatures the deployment requires live in the program's own log.
+packages/improvement/observatory/src/index.ts:37:/** What a deployment never publishes. */
+packages/improvement/observatory/src/index.ts:41:   * district name: a deployment states the districts whose sessions may not
+packages/improvement/observatory/src/index.ts:50: * Deployment choices of the observatory, validated from `cordis.yml`. Every
+packages/improvement/observatory/src/index.ts:51: * field is required: what a deployment withholds, how old is too old, and how
+packages/improvement/observatory/src/index.ts:53: * of them has a value this package could pick on a deployment's behalf.
+packages/improvement/observatory/src/publish.ts:6: * Every rule here is fixed rather than configured. A deployment states which
+packages/improvement/observatory/src/publish.ts:210: * @param staleAfterMs - the staleness threshold this deployment configured.
+packages/improvement/program/README.md:23:| `workspaceRoot` (required) | The git repository the program delivers into. Every worktree is minted under it at `<workspaceRoot>/<programId>/<key>`, so the deployment points it at a checkout whose `baseRevision` the program's branches start from. It must be an absolute path the composed shell can carry unquoted, which the plugin checks at load. |
+packages/improvement/program/README.md:72:[Omitted long matching line]
+packages/improvement/program/README.md:109:- **A signature is recorded, not authenticated** — `requireSignoff` gates on a `signoff/recorded` whose principal the deployment's identity provider supplied; nothing here or in `@deepseek-ai/dsh-signoff` verifies that the id names the person who signed.
+packages/improvement/program/README.md:118:[Omitted long matching line]
+packages/improvement/program/src/types.ts:21: * department: token and wall-clock spend bound every deployment, and cost binds
+packages/improvement/program/src/types.ts:163:  /** The artefact the program's signatures attest, absent when the deployment does not require one. */
+packages/improvement/program/src/types.ts:275:     * attested artefact when the deployment required one. Appended once, before
+packages/improvement/program/src/spec.ts:45:/** Branch prefixes a deployment may configure; each component is one git ref segment. */
+packages/improvement/program/src/spec.ts:127:  // missing field would reject every program a deployment does not gate on one.
+packages/improvement/program/src/index.ts:126:/** Deployment choices of the program service, validated from `cordis.yml`. */
+packages/improvement/program/src/index.ts:521:   * Reject a transition this deployment gates on a signature the program
+packages/improvement/program/src/index.ts:540:        `this deployment requires a signoff record before a program may ${transitioning}, and the spec names no artefact for one to attest`,
+packages/improvement/program/src/index.ts:547:        `this deployment requires a "${transition}" signoff/recorded on the program session before a program may ${transitioning}`,
+packages/improvement/program/src/index.ts:980:      // implementer this deployment cannot supply costs no branch and no session.
+packages/improvement/program/src/index.ts:1016:            `this program delegates its departments to the subagent provider "${implementer.provider}", which this deployment does not compose`,
