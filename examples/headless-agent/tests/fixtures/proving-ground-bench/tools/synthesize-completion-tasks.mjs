@@ -12,10 +12,14 @@
  * unchanged, and whose prompt is the parent's prompt plus a paragraph naming
  * the file and function to complete and forbidding edits elsewhere.
  *
- * A completion child's checks drop every check the parent judges by hidden
- * cases: it is judged on the visible suite alone, so its certificate says the
- * function passes the tests an implementer can read, never that it matches a
- * validator's held-back corpus.
+ * A completion child carries every one of its parent's checks, hidden cases
+ * included, so it is judged the way its parent's tier is judged: a child of
+ * a visible-test parent certifies when the suite under `test/` passes, and a
+ * child of a tier that holds back cases also answers to those cases (the
+ * parent's `reference/cases.json` is copied through), which is what lets the
+ * family separate one model or one harness from another. `admit.mjs` refuses
+ * a child whose stub passes every hidden case, since such a check could not
+ * fail for that function.
  *
  * Deterministic: parents, the files within a parent's `reference/src/`, and
  * the functions within a file are all processed in a fixed, sorted-or-source
@@ -45,9 +49,9 @@ import { fileURLToPath } from 'node:url'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const BENCH_ROOT = join(HERE, '..')
 
-/** A completion child carries the parent's checks minus any hidden-case one. */
-function visibleChecks(parentChecks) {
-  return parentChecks.filter(check => check.cases === undefined)
+/** Whether any of a parent's checks is judged by held-back cases. */
+function hasHiddenCases(checks) {
+  return checks.some(check => check.cases !== undefined)
 }
 
 /**
@@ -270,13 +274,20 @@ function applyStub(source, fn) {
 
 // --- Task authoring ----------------------------------------------------------
 
-/** The paragraph a completion child's prompt adds to its parent's, naming the one function it must complete. */
-function completionParagraph(relativeFile, functionName) {
+/**
+ * The paragraph a completion child's prompt adds to its parent's, naming the
+ * one function it must complete. A visible-test child also says where its
+ * certificate comes from; a hidden-case child says nothing here, because the
+ * hidden-case rule its registration appends states that judging.
+ */
+function completionParagraph(relativeFile, functionName, hidden) {
+  const judging = hidden
+    ? ''
+    : ' This is a visible-test tier: your certificate comes from the suite under test/, not from a held-back corpus.'
   return 'This task is a completion exercise: every file and function in this workspace already holds its final '
     + `implementation except \`${functionName}\` in \`src/${relativeFile}\`, whose body currently throws `
     + '\'not implemented\'. Implement only that function\'s body so it fulfills the specification above; keep its '
-    + 'signature exactly as given, and do not edit any other file, export, or function. This is a visible-test '
-    + 'tier: your certificate comes from the suite under test/, not from a held-back corpus.'
+    + `signature exactly as given, and do not edit any other file, export, or function.${judging}`
 }
 
 /**
@@ -292,8 +303,10 @@ function completionParagraph(relativeFile, functionName) {
  * function name; see `discoverCandidates`) carries a suffix the bare
  * function name does not, and the id must carry the same suffix or the
  * directory/id consistency check `admit.mjs` runs rejects the child.
+ * `checks` are the parent's own, hidden cases included.
  */
 function childTaskJson(parentTask, functionName, relativeFile, childId) {
+  const hidden = hasHiddenCases(parentTask.checks)
   return {
     id: `code:${childId.replace('--', '--complete-')}`,
     tier: parentTask.tier,
@@ -301,10 +314,10 @@ function childTaskJson(parentTask, functionName, relativeFile, childId) {
     family: parentTask.id,
     completion: { file: `src/${relativeFile}`, function: functionName },
     title: `Complete ${functionName} in ${parentTask.title}`,
-    prompt: `${parentTask.prompt}\n\n${completionParagraph(relativeFile, functionName)}`,
+    prompt: `${parentTask.prompt}\n\n${completionParagraph(relativeFile, functionName, hidden)}`,
     heldOut: parentTask.heldOut,
     immutable: parentTask.immutable,
-    checks: visibleChecks(parentTask.checks),
+    checks: parentTask.checks,
   }
 }
 

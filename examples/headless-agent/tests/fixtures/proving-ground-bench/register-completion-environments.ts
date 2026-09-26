@@ -11,9 +11,11 @@
  * distinguished by `detail.family` (the parent's environment id, so a family
  * never straddles the held-out split: every child inherits its parent's
  * `heldOut`) and `detail.completion` (the stubbed file and function). Its
- * `checks` never carry a hidden case: the certificate it earns says the
- * function passes the suite an implementer can read, nothing about a
- * validator's held-back corpus.
+ * `checks` are its parent's, hidden cases included, so a child is judged the
+ * way its parent's tier is judged: a child of a visible-test parent certifies
+ * on the visible suite, and a child of a tier that holds back cases also
+ * answers to those cases and carries the same hidden-case rule its parent's
+ * prompt does.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -23,8 +25,9 @@ import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition } from '@deepseek-ai/dsh-environments'
-import { CheckId } from '@deepseek-ai/dsh-verification'
-import type { AuthoredCheck } from '@deepseek-ai/dsh-verification'
+import { authoredCheck } from './bench-cases.ts'
+import type { CheckFile } from './bench-cases.ts'
+import { HIDDEN_CASE_RULE } from './register-environments.ts'
 
 export const name = 'register-completion-environments'
 export const inject = ['environments']
@@ -38,13 +41,6 @@ export interface Config {
 export const Config: z<Config> = z.object({
   directory: z.string().default('./environments-completion'),
 })
-
-/** One check as a completion child's `task.json` declares it. Never carries `cases`: see the module doc. */
-interface CheckFile {
-  readonly id: string
-  readonly outcome: string
-  readonly run: string
-}
 
 /** The fields a completion child's `task.json` carries, as the synthesizer writes them. */
 interface TaskFile {
@@ -70,14 +66,15 @@ function definition(root: string, directory: string): EnvironmentDefinition<'ben
   if (task.id !== expectedId) {
     throw new Error(`register-completion-environments: ${directory}/task.json declares id ${task.id}, expected ${expectedId}`)
   }
-  const checks: AuthoredCheck[] = task.checks.map(check => ({ id: CheckId(check.id), outcome: check.outcome, run: check.run }))
+  const checks = task.checks.map(declared => authoredCheck(fixture, directory, declared))
+  const hidden = checks.some(one => one.cases !== undefined)
   return {
     id: EnvironmentId(task.id),
     kind: 'bench',
     name: task.title,
-    description: `${task.domain}, tier ${task.tier}: ${task.title} — visible-test tier, no hidden cases`,
+    description: `${task.domain}, tier ${task.tier}: ${task.title}`,
     task: {
-      prompt: task.prompt,
+      prompt: hidden ? `${task.prompt} ${HIDDEN_CASE_RULE}` : task.prompt,
       fixture,
       immutable: task.immutable,
       ...(existsSync(join(fixture, 'reference')) ? { reference: 'reference' } : {}),
