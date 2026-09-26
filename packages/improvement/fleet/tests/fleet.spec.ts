@@ -153,6 +153,7 @@ function ladderOf(request: EnvironmentRunRequest, model: EnvironmentRunModel): E
   return request.ladder?.map(rung => ({
     ...rung.model ?? model,
     ...rung.share === undefined ? {} : { share: rung.share },
+    ...rung.selfReview === true ? { selfReview: true } : {},
   }))
 }
 
@@ -326,19 +327,20 @@ describe('FleetService', () => {
   it('forwards the plan\'s attempt ladder to every cell and folds the rungs onto the row', async () => {
     const { ctx, plan } = await harness()
     StubRuns.current.script = request => report(request, { certified: true, attempts: 2 })
-    const ladder = [{ share: 0.25 }, { model: MODEL_B }]
+    const ladder = [{ share: 0.25, selfReview: true }, { model: MODEL_B }]
     const result = await ctx.fleet.run(plan({ ladder, models: [MODEL_A], repetitions: 1 }))
 
     expect(StubRuns.current.requests.map(request => request.ladder)).toEqual([ladder, ladder])
-    // The row states the escalation and the budget each rung was given, so a
-    // laddered row never reads as a single-model one and two arms that divided
-    // one cell budget differently never read alike; the route column stays the
+    // The row states the escalation, the budget each rung was given, and the
+    // rung that reviewed its work, so a laddered row never reads as a
+    // single-model one and two arms that divided one cell budget differently or
+    // reviewed on different rungs never read alike; the route column stays the
     // first rung.
     expect(result.leaderboard.map(entry => [entry.model, entry.ladder])).toEqual([
-      ['a', [{ ...MODEL_A, share: 0.25 }, MODEL_B]],
-      ['a', [{ ...MODEL_A, share: 0.25 }, MODEL_B]],
+      ['a', [{ ...MODEL_A, share: 0.25, selfReview: true }, MODEL_B]],
+      ['a', [{ ...MODEL_A, share: 0.25, selfReview: true }, MODEL_B]],
     ])
-    expect(leaderboardMarkdown(result)).toContain('| mock/a | - | mock/a @0.25 > mock/b | route | smoke:round-trip |')
+    expect(leaderboardMarkdown(result)).toContain('| mock/a | - | mock/a @0.25 +review > mock/b | route | smoke:round-trip |')
 
     // A plan that names none leaves the column off the row entirely.
     const plain = await harness()

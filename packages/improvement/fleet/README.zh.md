@@ -49,7 +49,7 @@ cell 以环境为主序、其次模型条目、再次从 `0` 起的重复序号�
 
 有两种情况在 cell 启动之前拒绝它，因此每个计划都为每个 cell 保留一行，runs 与 errors 两列也保持诚实。一条模型路由连续产生 `routeBreaker.consecutiveErrors` 个错误结果之后，它余下的 cell 被记录为 `FLEET_ROUTE_BREAKER_OPEN` 错误，消息点名该路由与该计数；有报告的 cell 会重置该路由的计数，且熔断器按计划生效。已在手的报告的输入加输出 token 之和越过 `tokenCeiling` 之后，每个尚未启动的 cell 被记录为 `FLEET_TOKEN_CEILING_REACHED` 错误，而已经在途的 cell 照常完成。被拒绝的 cell 不铸造工作区，也既不折叠进熔断器也不折叠进 spend。
 
-`ladder` 被原样转发给每个 cell，因此一个计划就是一条阶梯：每个 cell 的第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该 cell 自己的路由上，而阶梯的长度就是每个 cell 的尝试上界。档位数上限属于运行器的配置，因此超过它的阶梯让每个 cell 失败而非让计划失败；只有完全没有档位的阶梯在这里被拒绝一次，因为那是任何 cell 都无法完成的算术。[运行器 README](../environment-runner/README.md#the-attempt-ladder) 拥有一个档位意味着什么，以及每种实现者如何切换路由。
+`ladder` 被原样转发给每个 cell，因此一个计划就是一条阶梯：每个 cell 的第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该 cell 自己的路由上，而阶梯的长度就是每个 cell 的尝试上界。档位的 `share` 与 `selfReview` 原样传过，排行榜的阶梯列把自审的档位渲染为 `route @share +review`。档位数上限属于运行器的配置，因此超过它的阶梯让每个 cell 失败而非让计划失败；只有完全没有档位的阶梯在这里被拒绝一次，因为那是任何 cell 都无法完成的算术。[运行器 README](../environment-runner/README.md#the-attempt-ladder) 拥有一个档位意味着什么，以及每种实现者如何切换路由。
 
 条目的 `preset` 只转发给该条目自己的 cell，因此一份计划可以比较同一条路由上的两种 agent 组合：点名同一条路由、两个不同 preset 的两个条目是两条 arm，cell 键、排行榜行与运行 stamp 都把它们分开。每个互不相同的 preset 在第一个 cell 之前经 `ctx.environmentRuns.checkPreset` 预检一次——名册在每次解析时都会重读它的根目录，因此逐 cell 询问会给每个 cell 都压上一次目录扫描——运行器的 `EnvironmentRunError` 原样向上传递。[运行器 README](../environment-runner/README.md#the-agent-preset-a-cell-composes-from) 拥有挂载做了什么以及每个 cell 如何记录它。
 

@@ -383,11 +383,14 @@ export function leaderboardMarkdown(report: FleetRunReport): string {
 
 /**
  * One row's ladder as its Markdown cell: the rungs in attempt order, each with
- * the share of the cell's caps it claimed, or the dash of a row that ran none.
+ * the share of the cell's caps it claimed and `+review` when it ended with a
+ * self-review turn, or the dash of a row that ran none.
  */
 function ladderCell(ladder: readonly EnvironmentRunStampRung[] | undefined): string {
   if (ladder === undefined) return '-'
-  return ladder.map(rung => `${routeName(rung)}${rung.share === undefined ? '' : ` @${rung.share}`}`).join(' > ')
+  return ladder
+    .map(rung => `${routeName(rung)}${rung.share === undefined ? '' : ` @${rung.share}`}${rung.selfReview === true ? ' +review' : ''}`)
+    .join(' > ')
 }
 
 /** Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard. */

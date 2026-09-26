@@ -439,6 +439,9 @@ async function applied(ctx: Context): Promise<Record<string, string | undefined>
 
 const MARKER = 'test -f MARKER'
 
+/** The self-review turn a rung asking for one ends its attempt with; the text is pinned by the runner README. */
+const SELF_REVIEW = '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>'
+
 /** The budget records one cell session carries, in log order. */
 function budgetEvents(type: 'budget/breach' | 'usage/foreign'): unknown[] {
   return StubAgents.current.agent.session.events.filter(event => event.type === type).map(event => event.data)
@@ -799,6 +802,44 @@ describe('EnvironmentRunner', () => {
     await expect(applied(ctx)).resolves.toMatchObject(large)
   })
 
+  it('ends a self-review rung with the review turn before its validation, and sends none after any other rung', async () => {
+    let workspace = ''
+    const built = await harness({
+      config: { maxAttempts: 1 },
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        // What the review turn fixes is what the validation measures.
+        if (turn === 2) writeFileSync(join(workspace, 'MARKER'), 'done\n')
+      },
+    })
+    workspace = built.workspace
+    StubShell.current.script(MARKER, shellResult())
+    const report = await built.run({ ladder: [{ selfReview: true }, {}] })
+
+    expect(report.certified).toBe(true)
+    expect(report.attempts).toHaveLength(1)
+    // The review is one more user turn of the same cell session, alone: the
+    // task and the work are already in the transcript above it.
+    expect(StubAgents.current.agent.turns).toEqual(['Create a file named MARKER in the workspace.', SELF_REVIEW])
+    expect(report.stamp.ladder).toEqual([
+      { provider: 'mock', model: 'mock-default', selfReview: true },
+      { provider: 'mock', model: 'mock-default' },
+    ])
+    // The review turn's messages are the run's own spend.
+    expect(report.usage).toEqual({ inputTokens: 18, outputTokens: 8, cacheReadTokens: 2, reasoningTokens: 1 })
+
+    // A rung asking no review sends the directive follow-up alone, and a
+    // reviewing rung's follow-up on the next attempt is not reviewed again.
+    const plain = await harness({ config: { maxAttempts: 1 } })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1, stderr: 'no MARKER\n' }), shellResult({ exitCode: 1, stderr: 'no MARKER\n' }))
+    await plain.run({ ladder: [{ selfReview: true }, {}] })
+    expect(StubAgents.current.agent.turns).toEqual([
+      'Create a file named MARKER in the workspace.',
+      SELF_REVIEW,
+      "<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nstderr: no MARKER\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>",
+    ])
+  })
+
   it('leaves an unladdered run on its stamped route for every attempt', async () => {
     const { ctx, run } = await harness({ config: { maxAttempts: 2 } })
     StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
@@ -1078,6 +1119,13 @@ describe('EnvironmentRunner', () => {
     ))
   })
 
+  it('stamps a rung that asks for a self-review, and stamps none for a rung that declines or omits it, at the boundary', () => {
+    const stamped = { provider: 'mock', model: 'small' }
+    const large = { provider: 'mock', model: 'large' }
+    expect(resolveLadder([{ selfReview: true, share: 0.5 }, { model: large, selfReview: false }, {}], stamped, 8))
+      .toEqual([{ ...stamped, share: 0.5, selfReview: true }, large, stamped])
+  })
+
   it('resolves defaults once, at the boundary', () => {
     expect(resolveConfig({ isolation: 'host' })).toEqual({
       isolation: 'host', maxAttempts: 1, maxLadderRungs: 8, maxGoalRounds: undefined, checkTimeoutMs: undefined, evidenceMaxChars: 2000, maxFailedCases: 20, topP: undefined,
@@ -1239,6 +1287,110 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
       .filter(event => event.type === 'environment/delegation')
       .map(event => [event.data.attempt, event.data.restatedTask]))
       .toEqual([[1, false], [2, true]])
+  })
+
+  it('starts one review child after the implementing child of a self-review rung, restating the task ahead of the block', async () => {
+    const { run } = await harness({ config: { maxAttempts: 1 }, providers: { spawn: IN_PROCESS_CAPABILITIES } })
+    StubSubagents.current.children = [
+      { childUsage: { inputTokens: 21, outputTokens: 4 } },
+      { childUsage: { inputTokens: 9, outputTokens: 2 }, work: (directory) => { writeFileSync(join(directory, 'MARKER'), 'done\n') } },
+    ]
+    StubShell.current.script(MARKER, shellResult())
+    const report = await run({ implementer: SPAWN, ladder: [{ selfReview: true }] })
+
+    expect(report.certified).toBe(true)
+    expect(report.attempts).toHaveLength(1)
+    // A fresh child holds neither the task nor the work, so the review restates
+    // the task ahead of the block and runs on the same rung.
+    expect(StubSubagents.current.started.map(start => start.request.prompt)).toEqual([
+      [{ type: 'text', text: 'Create a file named MARKER in the workspace.' }],
+      [{ type: 'text', text: `Create a file named MARKER in the workspace.\n\n${SELF_REVIEW}` }],
+    ])
+    expect(StubSubagents.current.started.map(start => start.request.model)).toEqual(['mock-default', 'mock-default'])
+    // Two records of one attempt, which the review flag tells apart.
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data)).toEqual([
+      { attempt: 1, restatedTask: false, provider: 'spawn', runId: 'child-1', stopReason: 'completed', usage: { inputTokens: 21, outputTokens: 4 } },
+      { attempt: 1, restatedTask: true, selfReview: true, provider: 'spawn', runId: 'child-2', stopReason: 'completed', usage: { inputTokens: 9, outputTokens: 2 } },
+    ])
+    expect(budgetEvents('usage/foreign')).toHaveLength(2)
+    expect(report.usage).toEqual({ inputTokens: 30, outputTokens: 6 })
+  })
+
+  it('skips the review child of an attempt the cell\'s wall deadline cut short', async () => {
+    const { run } = await harness({
+      config: { isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxWallMs: 0 },
+    })
+    StubSubagents.current.children = [{ untilAborted: true, result: { output: [], stopReason: 'aborted' } }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    const report = await run({ implementer: { kind: 'subagent', provider: 'claude-code' }, ladder: [{ selfReview: true }] })
+
+    // The work the deadline ended is still validated; nothing reviews it.
+    expect(StubSubagents.current.started).toHaveLength(1)
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
+      .toEqual([{ attempt: 1, restatedTask: false, provider: 'claude-code', runId: 'child-1', stopReason: 'budget-deadline' }])
+    expect(budgetEvents('budget/breach')).toEqual([expect.objectContaining({ cap: 'maxWallMs', limit: 0 })])
+    expect(report.attempts).toHaveLength(1)
+    expect(report.certified).toBe(false)
+  })
+
+  it('skips the review child when the work spent the rung\'s share, records that breach once, and runs the next rung', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 1, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 100 },
+    })
+    StubSubagents.current.children = [
+      { result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 30, outputTokens: 10 } } },
+      {
+        result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 5, outputTokens: 5 } },
+        work: (directory) => { writeFileSync(join(directory, 'MARKER'), 'done\n') },
+      },
+    ]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
+    const report = await run({
+      implementer: { kind: 'subagent', provider: 'claude-code' },
+      ladder: [{ share: 0.25, selfReview: true }, {}],
+    })
+
+    // The measurement before the review found the share spent, so that
+    // measurement is the attempt's one breach and the second rung starts its
+    // own child on what the cell kept.
+    expect(budgetEvents('budget/breach'))
+      .toEqual([{ cap: 'maxTotalTokens', measured: 40, limit: 25, scope: 'attempt' }])
+    expect(StubGoals.current.blocked).toEqual([])
+    expect(StubSubagents.current.started).toHaveLength(2)
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/delegation').map(event => event.data))
+      .toEqual([
+        { attempt: 1, restatedTask: false, provider: 'claude-code', runId: 'child-1', stopReason: 'completed', reportedUsage: { inputTokens: 30, outputTokens: 10 } },
+        { attempt: 2, restatedTask: true, provider: 'claude-code', runId: 'child-2', stopReason: 'completed', reportedUsage: { inputTokens: 5, outputTokens: 5 } },
+      ])
+    expect(report.attempts).toHaveLength(2)
+    expect(report.certified).toBe(true)
+  })
+
+  it('skips the review child when the work spent the cell\'s caps, validates the work, and ends the run', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+      budget: { maxTotalTokens: 30 },
+    })
+    StubSubagents.current.children = [{
+      result: { output: [], stopReason: 'completed', reportedUsage: { inputTokens: 25, outputTokens: 6 } },
+    }]
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    const report = await run({ implementer: { kind: 'subagent', provider: 'claude-code' }, ladder: [{ selfReview: true }, {}] })
+
+    // The cell's own cap, found spent before the review, blocks the goal and
+    // ends the run after the one validation the work earned; the second rung
+    // never measures the cell again.
+    expect(budgetEvents('budget/breach')).toEqual([{ cap: 'maxTotalTokens', measured: 31, limit: 30 }])
+    expect(StubGoals.current.blocked).toHaveLength(1)
+    expect(StubSubagents.current.started).toHaveLength(1)
+    expect(StubStandards.current.runs).toHaveLength(1)
+    expect(report.attempts).toHaveLength(1)
+    expect(report.certified).toBe(false)
   })
 
   it('forwards the composition default when the request names no model', async () => {

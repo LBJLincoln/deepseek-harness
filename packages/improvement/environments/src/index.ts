@@ -136,11 +136,17 @@ function stampShare(value: unknown): number {
   return value
 }
 
+/** Require one stamped rung's self-review flag to be a boolean. */
+function stampSelfReview(value: unknown): boolean {
+  if (typeof value !== 'boolean') throw new Error('environment/run ladder rung selfReview must be a boolean')
+  return value
+}
+
 /**
  * Require a durable stamp's attempt ladder to be a non-empty list of rungs,
- * each a model route with the budget share its attempt was allowed. A stamp
- * carrying an empty one would claim a laddered run that no attempt could belong
- * to.
+ * each a model route with the budget share its attempt was allowed and
+ * whether it ended with a self-review turn. A stamp carrying an empty one
+ * would claim a laddered run that no attempt could belong to.
  */
 function stampLadder(value: unknown): readonly EnvironmentRunStampRung[] {
   if (!Array.isArray(value) || value.length === 0) {
@@ -149,8 +155,12 @@ function stampLadder(value: unknown): readonly EnvironmentRunStampRung[] {
   return value.map((rung: unknown) => {
     const route = stampModel(rung, 'ladder rung')
     // stampModel already refused everything but a record.
-    const share = (rung as Record<string, unknown>)['share']
-    return share === undefined ? route : { ...route, share: stampShare(share) }
+    const { share, selfReview } = rung as Record<string, unknown>
+    return {
+      ...route,
+      ...share === undefined ? {} : { share: stampShare(share) },
+      ...selfReview === undefined ? {} : { selfReview: stampSelfReview(selfReview) },
+    }
   })
 }
 

@@ -71,7 +71,7 @@
 
 `planDigest(plan, thresholds, caps)` 是对一个格式版本、按角色顺序排列的两个 arm——各自的模型路由、implementer、尝试阶梯与 agent preset——**排序后的**环境 id、重复次数、`policyVersion` 与基准 `seed`、五个阈值，以及两个 arm 达成一致的上限取 SHA-256 得到的十六进制摘要。排序使摘要与调用方列出 id 的顺序无关；工作区根目录、中止信号与 sink 不进入摘要，因为它们不改变这场比较度量的任何东西。策略版本与种子进入摘要，是因为两条 arm 的会话正是靠该摘要铸出的 group 在日志里被找到的，所以两次在这两者上不同的比较绝不能撞进同一个 group。上限进入摘要，是因为它们决定 cell 何时停止；部署的 `tokenBudget` 仍在摘要之外，因为它约束的是一个部署跨多份计划要付多少，而不是一场比较度量什么。
 
-一个 arm 不指名 agent preset 时，进入摘要的是 `null`，因此同一条路由上使用两个 preset 的两条 arm 是两场实验、铸出两个 group。一个 arm 不指名 implementer 时，进入摘要的是默认的 `{ kind: 'route' }`，因此省略该字段的计划与把它写出来的计划是同一场实验；被委派的 arm 把它的 subagent provider 与 label 也纳入摘要，且各占固定位置，调用方写下的键顺序改不了它。哪一个 arm 被委派、哪一个 arm 使用哪个 preset，也都是身份的一部分，因为角色是按顺序进入摘要的。一个 arm 的阶梯每个档位进入摘要一项，未命名模型的档位为 `null`，因此升级方式不同的两个 arm 是两场实验，而不使用阶梯的计划其摘要一如既往。
+一个 arm 不指名 agent preset 时，进入摘要的是 `null`，因此同一条路由上使用两个 preset 的两条 arm 是两场实验、铸出两个 group。一个 arm 不指名 implementer 时，进入摘要的是默认的 `{ kind: 'route' }`，因此省略该字段的计划与把它写出来的计划是同一场实验；被委派的 arm 把它的 subagent provider 与 label 也纳入摘要，且各占固定位置，调用方写下的键顺序改不了它。哪一个 arm 被委派、哪一个 arm 使用哪个 preset，也都是身份的一部分，因为角色是按顺序进入摘要的。一个 arm 的阶梯每个档位进入摘要一项——其模型，未命名模型的档位为 `null`；其预算份额，未声明份额的档位为 `null`；以及其自审，拒绝或省略自审的档位为 `false`——因此升级方式不同、划分同一预算的方式不同、或在不同档位上自审的两个 arm 是两场实验，而不使用阶梯的计划其摘要一如既往。
 
 每个 arm 在 stamp `group` `experiment-<digest>-baseline` 或 `experiment-<digest>-candidate` 之下运行，环境运行器会在每个会话的第一个轮次之前把它写进该会话的 `environment/run` 事件。那个 group 是结果回溯到其会话的持久链接：`ctx.scorekeeper.leaderboard({ group })` 能从每一份已持久化日志中挑出一个 arm，轨迹导出携带同一个字符串。`experiment-` 前缀是这个包保留的命名空间，包不变量会拒绝声称占用它、却没有 64 位十六进制摘要与已知 arm 角色的 stamp。
 

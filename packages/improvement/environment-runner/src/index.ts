@@ -6,13 +6,15 @@
  * the run, has each attempt implemented either by the session's own model route
  * or by an out-of-band coding agent started through the subagent seam, moves
  * each attempt to its own rung of the request's attempt ladder and bounds it to
- * that rung's share of the cell's budget caps, restores
+ * that rung's share of the cell's budget caps, ends a rung's attempt with a
+ * self-review turn when the rung asks for one, restores
  * the fixture's immutable paths and executes the checks through the shell
  * executor after each attempt, records the run, and completes the goal only
  * under a certificate. The
  * [environment-runner](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md),
  * [external-implementer](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md),
- * and [attempt-ladder](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md)
+ * [attempt-ladder](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md),
+ * and [self-review-rung](../../../.agents/notes/implemented/architecture/2026-09-26-self-review-rung.md)
  * Agent Notes own the design rationale.
  * @module @deepseek-ai/dsh-environment-runner
  */
@@ -28,7 +30,7 @@ import type {} from '@deepseek-ai/dsh-agent-default-model'
 // Type-only: resolves the optional `ctx.agentPresets` roster a cell composes from.
 import type {} from '@deepseek-ai/dsh-agent-presets'
 // Also resolves the `usage/foreign` SessionEventMap merge the delegated caps write through.
-import type { AttemptBudget, BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
+import type { AttemptBudget, BudgetBreach, BudgetCap, SessionBudgets } from '@deepseek-ai/dsh-budget-policy'
 import { ENVIRONMENT_RUN_VERSION, environmentContentHashes, isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import type {
   EnvironmentDefinition,
@@ -250,8 +252,9 @@ function claimedShare(ladder: readonly EnvironmentRunRung[]): number {
 
 /**
  * Resolve one request's attempt ladder against the run's stamped model: the
- * route and budget share of each attempt, in attempt order, as the stamp
- * records them. It is the run's attempt bound as well as its routing, so an
+ * route, budget share, and self-review of each attempt, in attempt order, as
+ * the stamp records them; a rung asking no review stamps none, so `false` and
+ * absent are one rung. It is the run's attempt bound as well as its routing, so an
  * empty ladder would be a run with no attempt and a ladder past the
  * deployment's ceiling a run the deployment never allowed; a ladder whose
  * shares sum above the whole of the cell's caps would promise a rung a budget
@@ -282,6 +285,7 @@ export function resolveLadder(
   return ladder.map(rung => ({
     ...rung.model ?? model,
     ...rung.share === undefined ? {} : { share: rung.share },
+    ...rung.selfReview === true ? { selfReview: true } : {},
   }))
 }
 
@@ -306,14 +310,27 @@ type RunImplementer =
     readonly budgets: SessionBudgets
   }
 
+/** One text an implementer receives inside an attempt, with what the record of that turn states about it. */
+interface ImplementerTurn {
+  /**
+   * The text the implementer receives: the task statement, a validation
+   * follow-up, or the self-review block, alone or behind the restated task.
+   */
+  readonly text: string
+  /** Whether {@link text} restated the task ahead of a validation directive or the self-review block. */
+  readonly restatedTask: boolean
+  /** Whether this turn is the attempt's self-review rather than its work. */
+  readonly selfReview: boolean
+}
+
 /** What one attempt hands its implementer, whichever implementer that is. */
 interface AttemptDelivery {
   /** One-based attempt number. */
   readonly attempt: number
-  /** The text the implementer receives: the task statement, the validation follow-up, or both. */
-  readonly text: string
-  /** Whether {@link text} restated the task ahead of a validation directive. */
-  readonly restatedTask: boolean
+  /** The turn that does the attempt's work. */
+  readonly work: ImplementerTurn
+  /** The self-review turn that follows the work once it ends normally, present for a rung that asked for one. */
+  readonly review?: ImplementerTurn
   /** The attempt's ladder rung, which is the run's stamped model where it named no ladder. */
   readonly model: EnvironmentRunModel
   /** The share of the cell's caps this attempt may consume, absent for a rung that claims none. */
@@ -887,44 +904,63 @@ function followupText(directive: DirectiveRequest): string {
 }
 
 /**
- * The whole text one attempt of a fresh child receives: the task statement
- * again, then the validator's follow-up. A child holds none of the earlier
- * attempts' transcript, so the follow-up alone would ask it to continue work it
- * has no statement of. Pinned by the runner README and its e2e.
+ * The self-review turn a rung asking for one ends its attempt with, delivered
+ * after the implementer's work and before the validation. It names no check,
+ * no case, and no expected output — the hidden-case wall the clustered
+ * directive keeps holds here too — so it is a protocol constant rather than a
+ * deployment choice. Pinned verbatim by the runner README, its e2e, and the
+ * `self-review-rung` snapshot.
  */
-function restatedFollowupText(prompt: string, directive: DirectiveRequest): string {
-  return `${prompt}\n\n${followupText(directive)}`
-}
+const SELF_REVIEW = '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>'
 
 /**
- * The text one attempt hands its implementer, and whether that text restated
- * the task ahead of a validation directive. The first attempt of either
- * implementer receives the task statement alone. A later attempt receives what
- * its transcript interface leaves it needing: a route implementer continues the
- * session that already holds the task and the work, so the directive alone; a
- * delegated one starts a child that holds neither, so the task statement again
- * ahead of the directive. One decision answers both, because the record of what
- * a child was asked must not be able to disagree with what it was asked.
- * @param implementer - who does the work of this attempt.
+ * One block shaped for the implementer that receives it: a route implementer
+ * continues the session that already holds the task and the work, so the
+ * block alone; a delegated one starts a child that holds neither, so the task
+ * statement again, a blank line, and the block. One decision answers both
+ * blocks and both implementers, because the record of what a child was asked
+ * must not be able to disagree with what it was asked. Pinned by the runner
+ * README and its e2e.
+ * @param implementer - who receives the turn.
  * @param prompt - the environment's task statement.
- * @param directive - the last failed validation's directive, absent on the first attempt.
- * @returns the text the implementer receives and whether it restated the task.
+ * @param block - the validation follow-up or the self-review block.
+ * @param selfReview - whether the turn is the attempt's self-review.
+ * @returns the turn, stating whether its text restated the task.
  */
-function attemptText(
-  implementer: RunImplementer,
-  prompt: string,
-  directive: DirectiveRequest | undefined,
-): Pick<AttemptDelivery, 'text' | 'restatedTask'> {
-  if (directive === undefined) return { text: prompt, restatedTask: false }
+function shapedTurn(implementer: RunImplementer, prompt: string, block: string, selfReview: boolean): ImplementerTurn {
   switch (implementer.kind) {
     case 'route':
-      return { text: followupText(directive), restatedTask: false }
+      return { text: block, restatedTask: false, selfReview }
     case 'subagent':
-      return { text: restatedFollowupText(prompt, directive), restatedTask: true }
+      return { text: `${prompt}\n\n${block}`, restatedTask: true, selfReview }
     /* v8 ignore next 2 -- RunImplementer is closed and every member is handled above */
     default:
       return assertNever(implementer, 'run implementer')
   }
+}
+
+/**
+ * The turn that does one attempt's work. The first attempt of either
+ * implementer receives the task statement alone; a later attempt receives the
+ * last failed validation's directive, shaped for its transcript interface.
+ * @param implementer - who does the work of this attempt.
+ * @param prompt - the environment's task statement.
+ * @param directive - the last failed validation's directive, absent on the first attempt.
+ * @returns the turn the implementer receives.
+ */
+function workTurn(implementer: RunImplementer, prompt: string, directive: DirectiveRequest | undefined): ImplementerTurn {
+  if (directive === undefined) return { text: prompt, restatedTask: false, selfReview: false }
+  return shapedTurn(implementer, prompt, followupText(directive), false)
+}
+
+/**
+ * The self-review turn one attempt ends with, shaped for its implementer.
+ * @param implementer - who reviews the work it just did.
+ * @param prompt - the environment's task statement, restated for a fresh child.
+ * @returns the turn the implementer receives.
+ */
+function reviewTurn(implementer: RunImplementer, prompt: string): ImplementerTurn {
+  return shapedTurn(implementer, prompt, SELF_REVIEW, true)
 }
 
 /** The sampling one run pins on its agent, absent when the run pins neither scalar. */
@@ -997,10 +1033,11 @@ class DelegationDeadline {
  * `blocked` is the delegated counterpart of the stopped step a route cell gets:
  * no implementer ran, so the workspace is exactly what the previous attempt's
  * validation already measured and the run ends without measuring it again.
- * `cut-short` ran an implementer the cell's own wall deadline then cancelled,
- * so the tree it left is validated before the run ends. An implementer stopped
- * at its rung's share of that deadline is `ran`, because the cell still holds
- * the rest of its budget for the next rung.
+ * `cut-short` ran an implementer the cell's own caps then ended — the wall
+ * deadline cancelled it, or the measurement before its self-review turn found
+ * the cell's caps spent — so the tree it left is validated before the run
+ * ends. An implementer stopped at its rung's share of those caps is `ran`,
+ * because the cell still holds the rest of its budget for the next rung.
  */
 type AttemptOutcome = 'ran' | 'cut-short' | 'blocked'
 
@@ -1350,9 +1387,10 @@ export class EnvironmentRunner extends Service {
   /**
    * Stamp, goal, standard, then the attempt loop; the session is flushed on
    * every path. The stamp is the authority on the run's routing: its `ladder`
-   * gives the attempt bound, the route of each attempt, and the share of the
-   * cell's caps each attempt may spend, and a run without one gives every
-   * attempt the stamped model and the whole of those caps under the configured
+   * gives the attempt bound, the route of each attempt, the share of the
+   * cell's caps each attempt may spend, and which attempts end with a
+   * self-review turn, and a run without one gives every attempt the stamped
+   * model, the whole of those caps, and no review under the configured
    * `maxAttempts`.
    */
   private async drive(
@@ -1398,9 +1436,13 @@ export class EnvironmentRunner extends Service {
         // assembly, so the rung is applied before the attempt's first step and
         // the step's own request header records what it was asked for.
         selection.current = { provider: model.provider, model: model.model }
+        // A rung asking for a self-review ends its attempt with one more turn
+        // of the same implementer before the tree is measured; the attempt
+        // count is unchanged.
         const delivery: AttemptDelivery = {
           attempt,
-          ...attemptText(implementer, definition.task.prompt, directive),
+          work: workTurn(implementer, definition.task.prompt, directive),
+          ...rung?.selfReview === true ? { review: reviewTurn(implementer, definition.task.prompt) } : {},
           model,
           ...rung?.share === undefined ? {} : { share: rung.share },
           ...request.signal === undefined ? {} : { signal: request.signal },
@@ -1461,14 +1503,16 @@ export class EnvironmentRunner extends Service {
   }
 
   /**
-   * Hand one attempt's text to the implementer and wait for its work to end:
-   * one user turn on the cell agent for a route run, one child run on the
-   * named provider for a delegated one. A rung that claims a share of the
-   * cell's caps is bounded to it for exactly that work, whichever implementer
-   * does it, and the bound is released before the validation that follows.
+   * Hand one attempt's turns to the implementer and wait for its work to end:
+   * user turns on the cell agent for a route run, child runs on the named
+   * provider for a delegated one. The self-review turn a rung asks for follows
+   * the work once it ends normally. A rung that claims a share of the cell's
+   * caps is bounded to it for exactly that work, both turns under one bound,
+   * whichever implementer does it, and the bound is released before the
+   * validation that follows.
    * @param agent - the cell agent, which drives a route attempt and parents a delegated one.
    * @param implementer - who does the work of this attempt.
-   * @param delivery - the attempt number, its text, its route, its budget share, and the run's cancellation.
+   * @param delivery - the attempt number, its turns, its route, its budget share, and the run's cancellation.
    * @returns how the attempt ended, which decides whether the run continues.
    */
   private async implement(
@@ -1486,8 +1530,10 @@ export class EnvironmentRunner extends Service {
         case 'route':
           // A route attempt proposes steps, so the policy's own pre-step check
           // measures and stops it — at the cell's caps, and at the attempt's
-          // share of them while this bound stands — without the runner asking.
-          await this.deliver(agent, delivery.text)
+          // share of them while this bound stands — without the runner asking;
+          // the review turn's steps are measured the same way.
+          await this.deliver(agent, delivery.work.text)
+          if (delivery.review !== undefined) await this.deliver(agent, delivery.review.text)
           return 'ran'
         case 'subagent':
           return await this.delegate(agent, implementer, delivery, budget)
@@ -1537,9 +1583,15 @@ export class EnvironmentRunner extends Service {
    * share leaves the cell's caps unspent, so the run validates its tree and
    * moves to the next rung; only the cell's own caps end the cell.
    *
+   * The self-review turn a rung asks for is one more child of the same
+   * attempt, under the same deadline, measured before it starts exactly as the
+   * implementing child was: the rung's share or the cell's caps the work
+   * already spent leave nothing for a review, so none starts, and the breach
+   * that measurement recorded ends the attempt or the cell as its scope says.
+   *
    * @param agent - the cell agent, which is the delegating parent and holds the durable record.
    * @param implementer - the provider, its optional label, and the resolved services.
-   * @param delivery - the attempt number, its text, its rung, whether that text restated the task, and the run's cancellation.
+   * @param delivery - the attempt number, its turns, its rung, and the run's cancellation.
    * @param budget - the ceilings this attempt's share armed, absent for a rung claiming none.
    * @returns how the attempt ended, which decides whether the run continues.
    */
@@ -1554,8 +1606,13 @@ export class EnvironmentRunner extends Service {
     if (before.breach !== undefined) return 'blocked'
     const wallMs = tighterWall(before.remainingWallMs, budget?.wallMs)
     const deadline = new DelegationDeadline(wallMs, delivery.signal)
+    let spent: BudgetBreach | undefined
     try {
-      await this.startAndRecord(agent, implementer, delivery, deadline)
+      await this.startAndRecord(agent, implementer, delivery, delivery.work, deadline)
+      if (delivery.review !== undefined && !deadline.expired) {
+        spent = budgets.enforce(agent).breach
+        if (spent === undefined) await this.startAndRecord(agent, implementer, delivery, delivery.review, deadline)
+      }
     } catch (error: unknown) {
       // A provider rejects a start its signal already aborted. When the cell's
       // own deadline is what aborted it, the attempt ended at the wall cap with
@@ -1566,29 +1623,32 @@ export class EnvironmentRunner extends Service {
     }
     // The deadline, and the spend a bounded child has now been charged with,
     // are what the next measurement would otherwise see only after the run
-    // moved on, so the breach either causes is recorded here.
-    if (budget !== undefined || deadline.expired) budgets.enforce(agent)
-    if (!deadline.expired) return 'ran'
-    // The attempt's own share of the wall cap ends the attempt; what the cell
-    // had left of that cap ends the cell.
-    return wallMs === budget?.wallMs ? 'ran' : 'cut-short'
+    // moved on, so the breach either causes is recorded here — unless the
+    // measurement before the review turn already recorded it.
+    if (deadline.expired || (budget !== undefined && spent === undefined)) budgets.enforce(agent)
+    // The attempt's own share of a cap ends the attempt; what the cell had
+    // left of that cap ends the cell.
+    if (deadline.expired) return wallMs === budget?.wallMs ? 'ran' : 'cut-short'
+    return spent === undefined || spent.scope === 'attempt' ? 'ran' : 'cut-short'
   }
 
   /**
-   * Start one child run, wait for it, and record what it did and what it spent.
-   * The provider is told the rung's model id alone: a provider names its own
-   * models, so the rung's harness provider is what the stamp records and not
-   * what the child is started with.
+   * Start one child run for one turn of an attempt, wait for it, and record
+   * what it did and what it spent. The provider is told the rung's model id
+   * alone: a provider names its own models, so the rung's harness provider is
+   * what the stamp records and not what the child is started with.
    */
   private async startAndRecord(
     agent: Agent,
     implementer: Extract<RunImplementer, { kind: 'subagent' }>,
     delivery: AttemptDelivery,
+    turn: ImplementerTurn,
     deadline: DelegationDeadline,
   ): Promise<void> {
-    const { attempt, restatedTask } = delivery
+    const { attempt } = delivery
+    const { restatedTask, selfReview } = turn
     const run = await implementer.subagents.start(implementer.provider, {
-      prompt: [{ type: 'text', text: delivery.text }],
+      prompt: [{ type: 'text', text: turn.text }],
       parent: agent,
       signal: deadline.signal,
       model: delivery.model.model,
@@ -1602,6 +1662,7 @@ export class EnvironmentRunner extends Service {
       agent.session.append('environment/delegation', {
         attempt,
         restatedTask,
+        ...selfReview ? { selfReview } : {},
         provider: implementer.provider,
         runId: run.id,
         stopReason: deadline.expired ? 'budget-deadline' : result.stopReason,

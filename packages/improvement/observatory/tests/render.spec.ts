@@ -87,6 +87,11 @@ describe('renderHtml', () => {
     // divided one budget differently do not read alike either.
     const shared = [{ provider: 'cli-mock', model: 'small', share: 0.25 }, { provider: 'cli-mock', model: 'large' }]
     expect(page({ rows: [row({ ladder: shared })] })).toContain('<td>cli-mock/small @0.25 → cli-mock/large</td>')
+
+    // A rung that reviewed its work names that too, after its share, so an arm
+    // that verifies more per attempt does not read as the plain one.
+    const reviewed = [{ provider: 'cli-mock', model: 'small', share: 0.25, selfReview: true }, { provider: 'cli-mock', model: 'large' }]
+    expect(page({ rows: [row({ ladder: reviewed })] })).toContain('<td>cli-mock/small @0.25 +review → cli-mock/large</td>')
   })
 
   it('prints pending where no composition digest covers the row and the digest where one does', () => {

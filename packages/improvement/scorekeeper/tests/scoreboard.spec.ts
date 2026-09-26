@@ -9,6 +9,7 @@
 import { describe, expect, it } from 'vitest'
 import { pricingTableDigest } from '@deepseek-ai/dsh-budget-policy'
 import type { BudgetRoutePricing } from '@deepseek-ai/dsh-budget-policy'
+import type { EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import { foldScoreboard, foldSessionFacts, unbiasedPassAtK } from '@deepseek-ai/dsh-scorekeeper'
 import type { SessionFactsRecord } from '@deepseek-ai/dsh-scorekeeper'
 import type { RunExecutor, RunVerdict } from '@deepseek-ai/dsh-verification/types'
@@ -38,7 +39,7 @@ function cell(id: string, options: {
   readonly isolation?: string
   readonly implementer?: string
   readonly preset?: string
-  readonly ladder?: readonly { readonly provider: string; readonly model: string }[]
+  readonly ladder?: readonly EnvironmentRunStampRung[]
   readonly district?: string
   readonly verdict?: RunVerdict
   readonly weightPassed?: number
@@ -156,15 +157,19 @@ describe('foldScoreboard', () => {
 
   it('splits rows by attempt ladder, so a laddered cell never averages with a plain one on its first rung', () => {
     const escalating = [{ ...MOCK_ROUTE }, { provider: 'mock', model: 'large' }]
+    // The same routes with the first rung reviewing its work verify differently, so they are one more row.
+    const reviewed = [{ ...MOCK_ROUTE, selfReview: true }, { provider: 'mock', model: 'large' }]
     const fold = foldScoreboard([
       cell('plain', { certified: true, runs: 1 }),
       cell('escalated', { certified: false, runs: 1, ladder: escalating }),
       cell('downshifted', { certified: false, runs: 1, ladder: [{ ...MOCK_ROUTE }, { ...MOCK_ROUTE }] }),
+      cell('reviewed', { certified: true, runs: 1, ladder: reviewed }),
     ], {}, [1])
     expect(fold.rows.map(row => [row.model, row.ladder, row.certified])).toEqual([
       [MOCK_ROUTE.model, undefined, 1],
       [MOCK_ROUTE.model, escalating, 0],
       [MOCK_ROUTE.model, [MOCK_ROUTE, MOCK_ROUTE], 0],
+      [MOCK_ROUTE.model, reviewed, 1],
     ])
     expect(fold.rows[0]).not.toHaveProperty('ladder')
   })

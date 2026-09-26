@@ -111,12 +111,15 @@ function costCell(row: ObservatoryPublishedRow): string {
 
 /**
  * The ladder cell: the rungs in attempt order, each with the share of the
- * cell's caps it claimed, or the phrase for a row that laddered none.
+ * cell's caps it claimed and `+review` when it ended with a self-review turn,
+ * or the phrase for a row that laddered none.
  */
 function ladderCell(row: ObservatoryPublishedRow): string {
   const ladder = row.ladder
   if (ladder === undefined) return 'none'
-  return ladder.map(rung => `${rung.provider}/${rung.model}${rung.share === undefined ? '' : ` @${rung.share}`}`).join(' → ')
+  return ladder
+    .map(rung => `${rung.provider}/${rung.model}${rung.share === undefined ? '' : ` @${rung.share}`}${rung.selfReview === true ? ' +review' : ''}`)
+    .join(' → ')
 }
 
 /** The fifteen cells of one published row, in column order. */

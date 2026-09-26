@@ -63,6 +63,12 @@ const recreationScenarioDir = join(snapshotsDir, 'recreation-instrument')
 // replay counterpart.
 const recreationConfigPath = fileURLToPath(new URL('./fixtures/recreation-instrument/cordis.yml', import.meta.url))
 const recreationBinScript = fileURLToPath(new URL('./fixtures/recreation-instrument/driver.ts', import.meta.url))
+const reviewScenarioDir = join(snapshotsDir, 'self-review-rung')
+// The scenario's model route is a committed scripted adapter rather than a
+// recorded script, so the fixture composition IS the keyless one and needs no
+// replay counterpart.
+const reviewConfigPath = fileURLToPath(new URL('./fixtures/self-review-rung/cordis.yml', import.meta.url))
+const reviewBinScript = fileURLToPath(new URL('./fixtures/self-review-rung/driver.ts', import.meta.url))
 const ralphScenarioDir = join(snapshotsDir, 'ralph-loop')
 const ralphConfigPath = fileURLToPath(new URL('../ralph.cordis.snapshot.yml', import.meta.url))
 const settlementScenarioDir = join(snapshotsDir, 'subagent-settlement')
@@ -944,6 +950,56 @@ describe('headless stream-json snapshots', () => {
     expect(normalized).toContain(
       'Froze 1 check(s) carrying 3 case(s) of total weight 11.',
     )
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins the self-review turn an implementer receives between its work and the validation', async () => {
+    const streamExpected = join(reviewScenarioDir, 'stream-json.expected.jsonl')
+    let runCwd = ''
+    const result = await runLoaderSmoke({
+      label: 'self-review rung headless stream-json snapshot',
+      tempDirPrefix: 'headless-snapshot-self-review-rung-',
+      binScript: reviewBinScript,
+      libBinScript: reviewBinScript,
+      configPath: reviewConfigPath,
+      binArgs: [reviewConfigPath],
+      tsconfigPath,
+      env: {
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
+      },
+      prepare: (cwd) => { runCwd = cwd },
+      inspect: async (cwd) => {
+        const logs = await persistedLogs(cwd)
+        expect(logs).toHaveLength(1)
+        const records = parseJsonl(logs[0]?.content ?? '')
+        // The rung the cell asked for is stamped, and the one attempt it ran
+        // certified the line the review turn corrected: the review is a turn
+        // of the attempt, not a second attempt.
+        const stamp = records.find(record => record.type === 'environment/run')?.data as { ladder?: unknown } | undefined
+        expect(stamp?.ladder).toEqual([{ provider: 'review-mock', model: 'review-mock', selfReview: true }])
+        const runs = records.filter(record => record.type === 'verification/run')
+        expect(runs).toHaveLength(1)
+        expect(runs[0]?.data).toMatchObject({ verdict: 'passed', executor: 'runner' })
+        expect(records.filter(record => record.type === 'verification/certificate')).toHaveLength(1)
+        expect(await readFile(join(cwd, 'workspace', 'MARKER'), 'utf8')).toBe('ready\n')
+      },
+    })
+
+    expect(result.stderr).toBe('')
+    const normalized = normalizeRunnerStream(result.stdout, runCwd)
+    if (refreshing) await writeFile(streamExpected, normalized)
+    expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
+    // The cell received exactly two user turns: the task statement, then the
+    // review block alone — the one model-visible text this rung adds, which
+    // names the specification and the visible tests and no check or case.
+    expect(parseJsonl(normalized).at(-1)).toMatchObject({
+      type: 'result',
+      certified: true,
+      attempts: 1,
+      turns: [
+        'Create a file named MARKER in the workspace whose only line is the word ready. The check reads the file back exactly.',
+        '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>',
+      ],
+    })
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('replays two fresh Ralph rounds through the one-shot app', async () => {

@@ -78,16 +78,25 @@ export type EnvironmentDelegationStopReason = SubagentStopReason | 'budget-deadl
  * about an implementer that produced no model-visible history of its own.
  */
 export interface EnvironmentDelegation {
-  /** One-based attempt this child run implemented. */
+  /** One-based attempt this child run implemented or reviewed. */
   readonly attempt: number
   /**
-   * Whether this attempt's prompt restated the task statement ahead of the
-   * validation directive. A child holds no transcript of the earlier attempts,
-   * so every attempt after the first restates the task; `false` on the first
-   * attempt, whose prompt is the task statement alone. It is what tells a
-   * reader that a later child was given the work and not only the complaint.
+   * Whether this child's prompt restated the task statement ahead of the
+   * validation directive or the self-review block. A child holds no transcript
+   * of the earlier turns, so every child after the first restates the task;
+   * `false` on the first attempt's implementing child, whose prompt is the
+   * task statement alone. It is what tells a reader that a later child was
+   * given the work and not only the complaint.
    */
   readonly restatedTask: boolean
+  /**
+   * Whether this child was the attempt's self-review turn: started on a rung
+   * that asked for one after the implementing child returned, with the fixed
+   * `<self_review>` block behind the restated task. Absent for the child that
+   * implemented the attempt, so an attempt on such a rung leaves two records
+   * and a reader tells them apart without the prompt text.
+   */
+  readonly selfReview?: boolean
   /** Subagent provider that ran the child. */
   readonly provider: string
   /** Parent-scoped id of the child run; the child's session id for an in-process provider. */
@@ -129,8 +138,9 @@ export interface EnvironmentDelegation {
 }
 
 /**
- * One rung of an attempt ladder: what the attempt at that index runs on, and
- * how much of the run's budget it may spend getting there.
+ * One rung of an attempt ladder: what the attempt at that index runs on, how
+ * much of the run's budget it may spend getting there, and whether it reviews
+ * its own work before the validation.
  */
 export interface EnvironmentRunRung {
   /**
@@ -153,6 +163,21 @@ export interface EnvironmentRunRung {
    * share of.
    */
   readonly share?: number
+  /**
+   * Whether the attempt ends with one self-review turn before its validation.
+   * Once the implementer's work ends normally — not after an attempt the
+   * cell's caps blocked or cut short — the runner hands the same implementer
+   * the fixed `<self_review>` block, alone for a route implementer and behind
+   * the restated task statement for a fresh child, waits for that turn to
+   * end, and only then digests the check-owned set, restores the fixture, and
+   * validates. The review turn runs on this rung's route under the bound its
+   * `share` armed, and it is part of the attempt: the attempt count and the
+   * ladder's length are unchanged. Its text is a protocol constant that names
+   * no check, no case, and no expected output, so the hidden-case wall holds.
+   * Absent or `false` sends no review turn; the stamped rung carries `true`
+   * for a rung that asked for one.
+   */
+  readonly selfReview?: boolean
 }
 
 /** One request to run a registered environment as one fresh session. */
@@ -165,8 +190,9 @@ export interface EnvironmentRunRequest {
   readonly model?: EnvironmentRunModel
   /**
    * One rung per attempt, in attempt order: attempt `i` runs on
-   * `ladder[i - 1].model`, or on {@link model} for a rung that names none, and
-   * spends at most `ladder[i - 1].share` of the cell's caps. Present, the
+   * `ladder[i - 1].model`, or on {@link model} for a rung that names none,
+   * spends at most `ladder[i - 1].share` of the cell's caps, and ends with a
+   * self-review turn when `ladder[i - 1].selfReview` asks for one. Present, the
    * ladder's length is this run's attempt bound and overrides the composition's
    * `maxAttempts`, because the caller that chose a model per attempt is the
    * caller that chose how many attempts there are. An empty ladder, one longer

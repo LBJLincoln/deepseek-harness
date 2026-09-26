@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)、[预算对等](../../../.agents/notes/proposed/architecture/2026-09-08-budget-parity-for-delegated-cells.md)与[尝试阶梯](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md) Agent Note 承载设计理由。
+环境运行器：把一个已注册环境作为一个全新的、经过验证的会话来运行。运行器为会话盖上所运行环境的 stamp，创建 goal，由环境的检查编写完成标准，每次尝试或由会话自身的模型路由实现、或由[外部 coding agent](#the-two-implementers) 实现，在每次尝试之后通过 shell 执行器执行检查，记录运行，并且只在有证书时才完成 goal。[环境运行器](../../../.agents/notes/proposed/architecture/2026-09-05-environment-runner.md)、[外部实现者](../../../.agents/notes/proposed/architecture/2026-09-06-external-implementer.md)、[预算对等](../../../.agents/notes/proposed/architecture/2026-09-08-budget-parity-for-delegated-cells.md)、[尝试阶梯](../../../.agents/notes/proposed/architecture/2026-09-08-attempt-ladder.md)与[自审档位](../../../.agents/notes/implemented/architecture/2026-09-26-self-review-rung.md) Agent Note 承载设计理由。
 
 ## Config
 
@@ -48,7 +48,7 @@
 
 组合了屏障时，本次运行在写入 stamp 之前预留 `<barrier root>/runs/<sessionId>/`，把留出环境的夹具复制到其中的 `fixture/`、把任何[已声明的参考程序](#the-staged-reference)复制到其中的 `reference/`，并把每次尝试的检查命令改写为 source 该预留目录中的一个脚本。预留目录在实现者的第一个轮次之前以及每次尝试时都会被写入 `standard.json` 以及每个活动检查一个 `checks/<checkId>/` 目录，其中存放该检查的 `run` 脚本，若该检查携带用例，还存放这些用例所在的 `cases.jsonl`——因此实现者看到的命令行指向一个屏障拒绝它读取内容的文件。检查 id 不是单个路径段，或预留路径无法被检查命令行以不加引号的方式承载时，本次运行都会以 `ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT` 失败。
 
-每次尝试把提示词交给实现者并等待其工作结束，随后[对检查方拥有的集合求摘要](#tamper-on-check-owned-paths)，再次把 `task.immutable` 所列的每个路径从 fixture 复制到工作区，使实现者对验证者所有文件的改动绝不会到达检查，而其他文件保持实现者留下的样子，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查。不带用例的检查只运行一次：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。带用例的检查[每个用例运行一次](#weighted-cases-and-the-reservation)。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件，任一检查带用例时携带 `parity`——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 [directive](#the-clustered-directive)，在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带它。
+每次尝试把提示词交给实现者并等待其工作结束——在要求[自审](#the-attempt-ladder)的档位上，再把自审块交给它并再等待一次——随后[对检查方拥有的集合求摘要](#tamper-on-check-owned-paths)，再次把 `task.immutable` 所列的每个路径从 fixture 复制到工作区，使实现者对验证者所有文件的改动绝不会到达检查，而其他文件保持实现者留下的样子，随后对工作区文件求摘要，并以 `workdir: workspace` 通过 `ctx.shell` 执行当前标准的每个活动检查。不带用例的检查只运行一次：退出码为 `0` 且未超时、未中止即为 `pass`，其余皆为 `fail`；证据是退出事实加上 stdout 与 stderr 的有界尾部。带用例的检查[每个用例运行一次](#weighted-cases-and-the-reservation)。`recordRun` 以 `{ executor: 'runner', treeHash }` 记录该次运行——无论通过还是失败，每次尝试一条持久 `verification/run` 事件，任一检查带用例时携带 `parity`——并提交一张证书或返回失败子集。已认证：完成 goal，验证守卫予以准许。未认证：记录一条 [directive](#the-clustered-directive)，在仍有尝试余额时，下一轮以 `<validation_failed>` 块携带它。
 
 报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其路由、其记录稿接口、其检查结果与工作区摘要、`certified`、某次运行通过时的证书、该次运行的模型用量（route 运行对会话全部 assistant 消息求和，被委派的运行则对每个子进程按其 `environment/delegation` 记录的花费求和），以及 `escapesDenied`——该 cell 自身日志中的 `read-barrier/denied` 记录条数；对停留在自己工作区内的 cell，以及所有没有屏障的运行，它为 `0`。scorekeeper（记分员）从持久化日志中折叠出同样的记录，因此报告与其计分板列不会产生分歧。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
 
@@ -64,7 +64,11 @@
 
 受界定的尝试在自己的上限处被停止，该上限是 cell 已经花掉的量加上每项上限的份额：运行器通过 [`ctx.sessionBudgets.boundAttempt`](../../guard/budget-policy/README.md#ctxsessionbudgets) 恰好为该次尝试设置它，并在验证之前释放。这一停止会记录携带 `scope: 'attempt'` 的 `budget/breach`，它驳回该 step 或取消子进程，而不阻塞 cell 的 goal；随后运行器像在任何一次尝试之后那样验证这次尝试留下的树，并转入下一档位。cell 自身的上限仍然结束该 cell，其越限不携带作用域并会阻塞 goal，因此耗尽预算的 cell 仍是失败的 cell，而不是耗时更久的 cell。
 
-stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠仍能看到该次运行从哪里开始，按 arm 分组的折叠则能看到整条升级路径。每个被盖章的档位携带其尝试所运行的路由，以及它获准使用的 `share`，因此两条以不同方式划分同一 cell 预算的阶梯是两个 arm。每条 `EnvironmentRunAttempt` 都陈述它所运行的 `model` 与它所处的 `transcript`。route 实现者通过运行器安装在 cell agent 上的模型选择切换路由，并在该次尝试的第一步之前生效；委派实现者则以该档位的模型 id 启动子进程，因为 provider 命名的是它自己的模型，档位中的 harness `provider` 是关于路由的事实，而不是交给 provider 的参数。
+档位还可以设置 `selfReview: true`，让它的尝试在验证之前以同一实现者的又一轮次结束。一旦实现者的工作正常结束——而不是在被 cell 上限阻塞或截断的尝试之后——运行器把固定的 `<self_review>` 块交给它，[对 route 实现者单独发送，对全新的子进程则放在重述的任务陈述之后](#self-review-turn)，等待该轮次结束，然后才对检查方拥有的集合求摘要、恢复夹具并执行检查。该块是协议常量而非配置字段：它既不指名检查，也不指名用例或期望输出，因此[隐藏用例之墙](#the-clustered-directive)得以保持，而实验的 arm 逐档位设置它。
+
+自审轮次属于该次尝试，而不是第二次尝试：它运行在该档位的路由上，处于该档位 `share` 所设置的同一个界定之下，尝试计数与阶梯长度都不变。route 实现者的自审步骤由策略的 pre-step 检查像其工作一样度量；被委派的自审子进程在启动之前被度量，与实现子进程完全一样，因此工作已经花掉的档位份额或 cell 上限不给自审留下任何余额，自审便不会启动——作用域为 attempt 的越限让运行转入下一档位，cell 自身上限的越限则在工作所赢得的那次验证之后结束运行。被盖章的档位携带 `selfReview: true`，被委派的自审子进程的 `environment/delegation` 在 `restatedTask: true` 之旁携带 `selfReview: true`；route cell 的自审就是其会话日志所持有的那条用户消息，这正是让它保持模型可见且已记录的东西。
+
+stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠仍能看到该次运行从哪里开始，按 arm 分组的折叠则能看到整条升级路径。每个被盖章的档位携带其尝试所运行的路由、它获准使用的 `share`，以及它是否自审，因此两条以不同方式划分同一 cell 预算、或在不同档位上自审的阶梯是两个 arm。每条 `EnvironmentRunAttempt` 都陈述它所运行的 `model` 与它所处的 `transcript`。route 实现者通过运行器安装在 cell agent 上的模型选择切换路由，并在该次尝试的第一步之前生效；委派实现者则以该档位的模型 id 启动子进程，因为 provider 命名的是它自己的模型，档位中的 harness `provider` 是关于路由的事实，而不是交给 provider 的参数。
 
 模型可见与已记录仍然等价：模型被要求成为什么，写在每一步的请求头里，而 cell 会话本就记录它；尝试记录与 stamp 陈述的是所要求的内容，而非 provider 实际运行的内容。委派尝试的 `environment/delegation` 携带子进程的 `reportedModel`，正是出于同一原因。
 
@@ -72,8 +76,8 @@ stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由�
 
 两种实现者的差别不止于工作发生在哪里：route 实现者保留其早先尝试的记录稿，委派实现者则丢弃它，因此同一条阶梯是两台不同的仪器。
 
-- **`kept`——route 实现者。** 每次尝试都是同一个 cell 会话的又一轮用户消息，因此模型按顺序看到任务、它自己此前的工作与每一条 directive。跟进轮次只有 `<validation_failed>` 块：任务陈述已经在它上方的记录稿里。
-- **`dropped`——subagent 实现者。** 每次尝试都是一个全新的子进程，不持有此前尝试的任何内容。它的第一条提示词是任务陈述；此后每条提示词都是任务陈述、一个空行，再加上 `<validation_failed>` 块。`environment/delegation` 事件记录 `attempt` 与 `restatedTask`，后者恰在这些后续尝试上为 `true`，因此日志的读者无需提示词原文就能把重述过的提示词与第一条区分开。
+- **`kept`——route 实现者。** 每次尝试都是同一个 cell 会话的又一轮用户消息，因此模型按顺序看到任务、它自己此前的工作与每一条 directive。跟进轮次只有 `<validation_failed>` 块，自审轮次只有 `<self_review>` 块：任务陈述已经在它们上方的记录稿里。
+- **`dropped`——subagent 实现者。** 每次尝试都是一个全新的子进程，不持有此前尝试的任何内容。它的第一条提示词是任务陈述；此后每条提示词都是任务陈述、一个空行，再加上 `<validation_failed>` 块，而自审子进程的提示词是任务陈述、一个空行，再加上 `<self_review>` 块。`environment/delegation` 事件记录 `attempt` 与 `restatedTask`，后者恰在这些后续子进程上为 `true`，并在自审子进程上记录 `selfReview: true`，因此日志的读者无需提示词原文就能把重述过的提示词与自审同第一条区分开。
 
 报告中的每次尝试都陈述它属于两者中的哪一种，因此比较同一条阶梯两个 arm 的读者，不必知道哪一行由哪个实现者产生。`implementerTranscript(implementer)` 是导出的答案。
 
@@ -94,7 +98,7 @@ preset 被记录两次，因为这两份记录回答的是不同的问题。cell
 
 ## The two implementers
 
-`implementer` 说明每次尝试的工作由谁完成，`resolveImplementer(request)` 是导出的定默认步骤：请求未命名时答 `{ kind: 'route' }`。`route` 把该次尝试的提示词作为一轮用户消息发给 cell agent 并等待整个 agent 空闲，这就是 harness 对自身所测量的那种运行。`{ kind: 'subagent', provider, label? }` 改为在该已注册的 [`ctx.subagents`](../../subagent/subagent/README.md) provider 上每次尝试启动一次子运行——`ctx.subagents.start(provider, { prompt, parent: cellAgent, signal, model, label })`——等待其结果，并在校验之前向 cell 会话追加一条 `environment/delegation { attempt, restatedTask, provider, runId, stopReason, structured?, usage?, reportedModel?, reportedUsage?, reportedCostUsd? }`。每次尝试的提示词携带什么，由[记录稿接口](#the-transcript-interface)决定；子进程的工作目录就是 cell 工作区，因为每个 provider 都从委派父会话的 `cwd` 推导它。
+`implementer` 说明每次尝试的工作由谁完成，`resolveImplementer(request)` 是导出的定默认步骤：请求未命名时答 `{ kind: 'route' }`。`route` 把该次尝试的提示词作为一轮用户消息发给 cell agent 并等待整个 agent 空闲，这就是 harness 对自身所测量的那种运行。`{ kind: 'subagent', provider, label? }` 改为在该已注册的 [`ctx.subagents`](../../subagent/subagent/README.md) provider 上每次尝试启动一次子运行——`ctx.subagents.start(provider, { prompt, parent: cellAgent, signal, model, label })`，对要求[自审轮次](#the-attempt-ladder)的档位再多启动一次——等待其结果，并在校验之前按每个子进程向 cell 会话追加一条 `environment/delegation { attempt, restatedTask, selfReview?, provider, runId, stopReason, structured?, usage?, reportedModel?, reportedUsage?, reportedCostUsd? }`。每次尝试的提示词携带什么，由[记录稿接口](#the-transcript-interface)决定；子进程的工作目录就是 cell 工作区，因为每个 provider 都从委派父会话的 `cwd` 推导它。
 
 `model` 就是该次尝试自己的档位——没有阶梯的运行则是本次运行盖章的模型——因此 cell 被发布到哪个臂之下，干活的就是哪个臂。于是点名了 subagent 实现者的 fleet 或 shift，必须逐字点名该 **provider** 接受的模型：对 [`claude-code`](../../subagent/subagent-claude-code/README.md) 而言就是产品自己的 id 与别名（`opus`、`sonnet`、`haiku`），而这恰好已经是 bench 组合中 `llm-claude-code` 目录所用的 `productModel` 值，于是同一份计划可以在相同的模型名下比较 harness 循环与产品循环。`ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED` 在 agent 存在之前就拒绝一个无法被告知该跑哪个模型的 provider，因为一个盖了章、声称某个臂而子进程从未跑过它的会话，是被贴错标签的测量而非失败的运行。
 
@@ -158,7 +162,7 @@ route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/REA
 
 #### What the model sees
 
-对 route 实现的运行，环境的 `task.prompt` 作为新会话的第一条用户消息到达，伴随组合的普通系统提示与工具；检查从不出现。被委派的运行改为把同样的文本发给子进程，由它在自己产品的提示与工具之下读取。验证失败后，在仍有尝试余额时，下一条用户消息携带下面的块，其中 `<rootCause>` 为 `N of the standard's checks failed`，`<detail>` 为带用例检查的每个失败聚类编号一行——该检查撰写的 outcome、该聚类的数量与权重、不符的通道，以及候选程序如何结束——并为每个失败的不带用例检查给出一行证据（退出事实、stdout 与 stderr 尾部），以 `evidenceMaxChars` 为界。被篡改的尝试发送同一个块，携带下面这段固定的篡改 directive，然后终止本次运行；那段文本既不指名路径也不指名检查，因为摘要比较只知道检查方拥有的集合变了，不知道别的。route 实现者只收到跟进块，因为它上方的会话已经持有任务与它自己的工作；委派实现者收到 `task.prompt`、一个空行，然后才是该块，因为它的子进程两者都没有，这正是每种实现者所处的记录稿接口。
+对 route 实现的运行，环境的 `task.prompt` 作为新会话的第一条用户消息到达，伴随组合的普通系统提示与工具；检查从不出现。被委派的运行改为把同样的文本发给子进程，由它在自己产品的提示与工具之下读取。验证失败后，在仍有尝试余额时，下一条用户消息携带下面的块，其中 `<rootCause>` 为 `N of the standard's checks failed`，`<detail>` 为带用例检查的每个失败聚类编号一行——该检查撰写的 outcome、该聚类的数量与权重、不符的通道，以及候选程序如何结束——并为每个失败的不带用例检查给出一行证据（退出事实、stdout 与 stderr 尾部），以 `evidenceMaxChars` 为界。被篡改的尝试发送同一个块，携带下面这段固定的篡改 directive，然后终止本次运行；那段文本既不指名路径也不指名检查，因为摘要比较只知道检查方拥有的集合变了，不知道别的。route 实现者只收到跟进块，因为它上方的会话已经持有任务与它自己的工作；委派实现者收到 `task.prompt`、一个空行，然后才是该块，因为它的子进程两者都没有，这正是每种实现者所处的记录稿接口。在要求自审的档位上，还有一条用户消息在该次尝试的工作与其验证之间携带下面这段固定的 `<self_review>` 块，按同样的方式为实现者定形；验证跟进消息若随后出现，则排在它之后。
 
 ##### Validation follow-up
 
@@ -192,17 +196,36 @@ Continue working on the task; the validator runs again when you stop.
 </validation_failed>
 ```
 
+##### Self-review turn
+
+```markdown
+<self_review>
+Before your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.
+</self_review>
+```
+
+##### Restated self-review turn, to a fresh child
+
+```markdown
+<task.prompt>
+
+<self_review>
+Before your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.
+</self_review>
+```
+
 #### Token effect
 
-每次尝试一条用户消息：先是提示词，然后每次验证失败一个后续块，其大小以 `evidenceMaxChars` 为界。被委派的后续尝试会在该块之前重复 `task.prompt`，因此它的第一条消息要再付一次任务陈述的代价——这是记录稿接口所增加的全部提示词 token，而 route 尝试携带的是整份记录稿。篡改跟进消息是固定文本。不向系统提示或工具 schema 添加任何内容。
+每次尝试一条用户消息：先是提示词，然后每次验证失败一个后续块，其大小以 `evidenceMaxChars` 为界。被委派的后续尝试会在该块之前重复 `task.prompt`，因此它的第一条消息要再付一次任务陈述的代价——这是记录稿接口所增加的全部提示词 token，而 route 尝试携带的是整份记录稿。要求自审的档位在该档位的每次尝试上多加一个固定块——对被委派的子进程像跟进消息一样放在 `task.prompt` 之后——外加实现者回应它所花的步骤。篡改跟进消息是固定文本。不向系统提示或工具 schema 添加任何内容。
 
 #### KV Cache effect
 
-对 route 实现者仅追加：每个后续块在可复用前缀之后延续同一会话，因此对话前缀在多次尝试间保持可缓存，而在多次尝试之间改换路由的阶梯会把该前缀挪到另一个模型的缓存上。委派实现者每次尝试都新起一个子进程，因此无论阶梯做什么，早先尝试的内容对它都没有缓存。
+对 route 实现者仅追加：每个后续块与每个自审轮次都在可复用前缀之后延续同一会话，因此对话前缀在多次尝试间保持可缓存，而在多次尝试之间改换路由的阶梯会把该前缀挪到另一个模型的缓存上。委派实现者每次尝试与每次自审都新起一个子进程，因此无论阶梯做什么，早先尝试的内容对它都没有缓存。
 
 ## Known Limitations and Deferred Work
 
 - **进程外子进程上的 `keep` 记录稿不可用**——被委派的 arm 总是丢弃记录稿，因为在多次尝试之间恢复同一个外部会话，需要一项[subagent 缝](../../subagent/subagent/README.md)未宣告的 provider 恢复能力。在有这样的能力之前，进程内的 `spawn` provider 充当 route 的 `drop` 对照。
+- **自审轮次不与其尝试分开度量**——尝试记录、运行的 `usage` 与每一行记分板都把自审轮次计入它所属的尝试之内；只有会话日志能把它的花费与工作的花费分开：route cell 靠它所持有的那条用户消息，被委派的 cell 靠它所持有的 `selfReview` 委派记录。
 
 - **屏障只覆盖文件系统读取**——组合了日志读取工具的实现者 preset，或运行检查的 bash 执行器，仍能通过屏障未设围栏的 seam 触及标准；本运行器的证书强度等于配置的 `isolation` 声明，而此处没有任何环节去验证它。
 - **外部实现者只被点名，不被刻画**——stamp 记录 provider，不记录产品版本、设置或其背后的账户，因此跑着同一 provider 的两台主机并不是同一个实现者，哪怕它们的行读起来一样。它自己的工具栈与权限仍在本 harness 所强制的每一项限额之外；只有它的[花费受到约束](#the-budget-a-delegated-attempt-runs-under)，而且只约束到它自己的后端所上报的程度。

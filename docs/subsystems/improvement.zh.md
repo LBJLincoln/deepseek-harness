@@ -109,12 +109,13 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
 }
 ```
 
-盖章阶梯的每个档位携带其尝试所运行的路由；当调用方划分了 cell 的预算时，还携带该次尝试获准消耗的每项上限的份额。
+盖章阶梯的每个档位携带其尝试所运行的路由；当调用方划分了 cell 的预算时，还携带该次尝试获准消耗的每项上限的份额。以固定的自审轮次结束其尝试的档位还携带 `selfReview: true`。
 
 ```ts type-equiv
 /**
  * One rung of an attempt ladder as the stamp records it: the route that
- * attempt ran on, and the share of the run's budget caps it was allowed.
+ * attempt ran on, the share of the run's budget caps it was allowed, and
+ * whether it ended with a self-review turn.
  */
 interface EnvironmentRunStampRung extends EnvironmentRunModel {
   /**
@@ -125,6 +126,14 @@ interface EnvironmentRunStampRung extends EnvironmentRunModel {
    * that groups by the routes alone would count them together.
    */
   readonly share?: number
+  /**
+   * Whether the attempt was asked to end with the fixed self-review turn
+   * before its validation, absent for an attempt that was asked none. It is
+   * part of the arm's identity for the same reason `share` is: a rung that
+   * reviews and one that does not verify differently on one route, so a fold
+   * that groups by the routes alone would count them together.
+   */
+  readonly selfReview?: boolean
 }
 ```
 
@@ -132,7 +141,7 @@ interface EnvironmentRunStampRung extends EnvironmentRunModel {
 
 一次运行请求可以为每次尝试命名一个档位。第 `i` 次尝试运行在 `ladder[i - 1].model` 上，该档位未命名模型时则运行在该次运行自己的 `model` 上；阶梯的长度就是该次运行的尝试上界，并覆盖组合的 `maxAttempts`。stamp 在 `model` 旁记录解析后的档位，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠看到该次运行从哪里开始，按 arm 分组的折叠看到整条升级路径；fleet 计划、实验 arm、记分员的事实与行，以及天文台的列都携带它，于是使用阶梯的 cell 绝不会被当作朴素的单模型 cell 计数。报告中的每次尝试都陈述它所运行的路由。
 
-档位还可以声明 `share`，即其尝试在被结束、运行转入下一档位之前，可以消耗的该 cell 所受每项上限的比例。该份额以 cell 的各项上限为基准度量，而不是以上限剩余量为基准，因此廉价的首个档位无法花掉后续档位获得的预算；同一条阶梯的各份额之和不得超过这些上限的全部。在自己份额处被停止的尝试会记录一条作用域为 attempt 的 `budget/breach`，它让 cell 的目标保持活跃；只有 cell 自身的上限才会结束 cell。[运行器 README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) 拥有各项拒绝，以及每种实现者如何被界定。
+档位还可以声明 `share`，即其尝试在被结束、运行转入下一档位之前，可以消耗的该 cell 所受每项上限的比例。该份额以 cell 的各项上限为基准度量，而不是以上限剩余量为基准，因此廉价的首个档位无法花掉后续档位获得的预算；同一条阶梯的各份额之和不得超过这些上限的全部。在自己份额处被停止的尝试会记录一条作用域为 attempt 的 `budget/breach`，它让 cell 的目标保持活跃；只有 cell 自身的上限才会结束 cell。档位还可以要求自审：其尝试在验证之前以同一实现者的一个固定 `<self_review>` 轮次结束，被盖章的档位记录这一点，记分板、天文台与实验摘要都能把自审的 arm 与普通的 arm 区分开。[运行器 README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) 拥有各项拒绝，以及每种实现者如何被界定。
 
 两种实现者在阶梯上的行为不同，而这一差别以 `transcript` 记在每次尝试上。route 实现者保留其记录稿：每次尝试都是同一个 cell 会话的又一轮用户消息，因此模型读到自己此前的工作，并只收到 `<validation_failed>` 指令。subagent 实现者丢弃它：每次尝试都是一个全新的子进程，因此后续尝试的提示词会在指令之前重述任务陈述，其 `environment/delegation` 记录 `restatedTask`。进程外子进程上的 `keep` arm 需要 subagent 缝并未宣告的 provider 恢复能力，因此进程内的 `spawn` provider 充当 route 的 `drop` 对照。[运行器 README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) 拥有档位数上限、各项拒绝，以及每种实现者如何切换路由。
 
@@ -704,7 +713,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:1047`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:1084`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -752,7 +761,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:420`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:430`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -852,7 +861,7 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:394`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:397`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 

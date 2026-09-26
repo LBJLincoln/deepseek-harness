@@ -586,6 +586,16 @@ describe('ExperimentService', () => {
     expect(planDigest(longer, thresholds, CAPS)).not.toBe(planDigest(laddered, thresholds, CAPS))
     expect(planDigest(plan({ baseline: { ...BASELINE, ladder: [{}, { model: CANDIDATE }] } }), thresholds, CAPS))
       .not.toBe(planDigest(laddered, thresholds, CAPS))
+
+    // A rung that reviews its work verifies differently from one that does
+    // not, so two arms differing in nothing else are two experiments; a rung
+    // that declines the review and one that omits it are one rung.
+    const reviewed = plan({ candidate: { ...CANDIDATE, ladder: [{ selfReview: true }, { model: BASELINE }] } })
+    expect(planDigest(reviewed, thresholds, CAPS)).not.toBe(planDigest(laddered, thresholds, CAPS))
+    expect(planDigest(plan({ candidate: { ...CANDIDATE, ladder: [{}, { model: BASELINE, selfReview: true }] } }), thresholds, CAPS))
+      .not.toBe(planDigest(reviewed, thresholds, CAPS))
+    expect(planDigest(plan({ candidate: { ...CANDIDATE, ladder: [{ selfReview: false }, { model: BASELINE }] } }), thresholds, CAPS))
+      .toBe(planDigest(laddered, thresholds, CAPS))
   })
 
   it('freezes each arm implementer in role order, taking an omitted one as the route', async () => {

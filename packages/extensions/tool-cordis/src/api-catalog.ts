@@ -3829,7 +3829,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunRung',
-    declaration: 'export interface EnvironmentRunRung {\n    readonly model?: EnvironmentRunModel;\n    readonly share?: number;\n}',
+    declaration: 'export interface EnvironmentRunRung {\n    readonly model?: EnvironmentRunModel;\n    readonly share?: number;\n    readonly selfReview?: boolean;\n}',
   },
   {
     name: 'EnvironmentRunStamp',
@@ -3837,7 +3837,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'EnvironmentRunStampRung',
-    declaration: 'export interface EnvironmentRunStampRung extends EnvironmentRunModel {\n    readonly share?: number;\n}',
+    declaration: 'export interface EnvironmentRunStampRung extends EnvironmentRunModel {\n    readonly share?: number;\n    readonly selfReview?: boolean;\n}',
   },
   {
     name: 'EnvironmentRunTranscript',

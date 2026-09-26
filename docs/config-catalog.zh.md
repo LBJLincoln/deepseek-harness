@@ -745,7 +745,7 @@ export interface Config {
 
 依赖：`CertificateIsolation`（`@deepseek-ai/dsh-verification/types`）
 
-来源：[`packages/improvement/environment-runner/src/index.ts:120`](../packages/improvement/environment-runner/src/index.ts)
+来源：[`packages/improvement/environment-runner/src/index.ts:122`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -768,7 +768,7 @@ export interface NearDuplicateConfig {
 }
 ```
 
-来源：[`packages/improvement/environments/src/index.ts:237`](../packages/improvement/environments/src/index.ts)
+来源：[`packages/improvement/environments/src/index.ts:247`](../packages/improvement/environments/src/index.ts)
 
 <a id="deepseek-aidsh-experiments"></a>
 

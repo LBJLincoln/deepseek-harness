@@ -41,10 +41,12 @@ export interface FleetPlan {
   /**
    * One rung per attempt, handed to every cell of the plan: attempt `i` runs on
    * `ladder[i - 1].model`, or on the cell's own route for a rung that names
-   * none, and spends at most `ladder[i - 1].share` of that cell's budget caps.
+   * none, spends at most `ladder[i - 1].share` of that cell's budget caps, and
+   * ends with a self-review turn when `ladder[i - 1].selfReview` asks for one.
    * The ladder's length is each cell's attempt bound. One plan runs one ladder,
    * so every cell of a row escalated the same way; absent runs every attempt of
-   * every cell on the cell's own route under the whole of its caps.
+   * every cell on the cell's own route under the whole of its caps, reviewing
+   * nothing.
    */
   readonly ladder?: readonly EnvironmentRunRung[]
   /**

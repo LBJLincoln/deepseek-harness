@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * Test driver: run one unsatisfiable environment three times over the same
+ * Test driver: run one unsatisfiable environment four times over the same
  * two-rung attempt ladder — once on the session's own model route, once
- * delegated to one fresh in-process child per attempt, and once on the route
- * again with the first rung holding a share of the cell's caps — and print each
+ * delegated to one fresh in-process child per attempt, once on the route
+ * again with the first rung holding a share of the cell's caps, and once on
+ * the route with the first rung ending in a self-review turn — and print each
  * report beside the models its cell asked its provider for, the user messages
  * each attempt carried, and the budget records its log holds, for the e2e's
  * assertions.
@@ -36,6 +37,9 @@ const LADDER: readonly EnvironmentRunRung[] = [{}, { model: LARGE }]
  * is stopped at its own share while the second rung runs on what the cell kept.
  */
 const SHARED_LADDER: readonly EnvironmentRunRung[] = [{ share: 0.005 }, { model: LARGE }]
+
+/** The same ladder with the first rung reviewing its own work before the validation. */
+const REVIEWED_LADDER: readonly EnvironmentRunRung[] = [{ selfReview: true }, { model: LARGE }]
 
 /** One cell as the driver reports it: the run, the routes it asked for, and the texts each attempt carried. */
 interface Cell {
@@ -112,6 +116,7 @@ try {
   const route = await cell(LADDER)
   const delegated = await cell(LADDER, { kind: 'subagent', provider: 'spawn' })
   const shared = await cell(SHARED_LADDER)
+  const reviewed = await cell(REVIEWED_LADDER)
 
   // Each delegated attempt ran as a child session of its own, so what the
   // second child was actually asked to do is only in that child's log. An
@@ -122,7 +127,7 @@ try {
     const { events } = await persistence.inspect(delegation.runId as SessionId)
     childPrompts.push(promptsOf(events))
   }
-  process.stdout.write(`${JSON.stringify({ type: 'result', route, delegated, shared, childPrompts })}\n`)
+  process.stdout.write(`${JSON.stringify({ type: 'result', route, delegated, shared, reviewed, childPrompts })}\n`)
 } finally {
   await ctx.fiber.dispose()
 }

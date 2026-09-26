@@ -23,12 +23,14 @@ interface DriverResult {
   route: Cell
   delegated: Cell
   shared: Cell
+  reviewed: Cell
   /** The runner's own messages in each delegated child's session, in attempt order. */
   childPrompts: string[][]
 }
 
 const TASK = 'Prove the CLI tool round trip.'
 const DIRECTIVE = "<validation_failed>\n1 of the standard's checks failed\n1. exit 1\nContinue working on the task; the validator runs again when you stop.\n</validation_failed>"
+const SELF_REVIEW = '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>'
 
 describe('an attempt ladder through a real cordis.yml and headless process', () => {
   it('runs each attempt on its own rung and restates the task for a fresh child', async () => {
@@ -115,5 +117,34 @@ describe('an attempt ladder through a real cordis.yml and headless process', () 
       { provider: 'cli-mock', model: 'cli-mock-small', share: 0.005 },
       { provider: 'cli-mock', model: 'cli-mock-large' },
     ])
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('ends the first rung with the self-review turn before its validation and reviews nothing on the second', async () => {
+    const { stdout, stderr } = await runLoaderSmoke({
+      label: 'attempt-ladder-review',
+      tempDirPrefix: 'attempt-ladder-review-e2e-',
+      binScript,
+      libBinScript: binScript,
+      configPath,
+      binArgs: [configPath],
+      tsconfigPath: repoTsconfig,
+    })
+    expect(stderr).toBe('')
+    const { reviewed } = JSON.parse(stdout.trimEnd().split('\n').at(-1) ?? '') as DriverResult
+
+    // The review is a logged user turn of the cell session between the task
+    // and the directive its validation then earned, and every step of the work
+    // and the review ran on the first rung before the second rung took over.
+    expect(reviewed.prompts).toEqual([TASK, SELF_REVIEW, DIRECTIVE])
+    expect(reviewed.requestedModels).toEqual([
+      'cli-mock-small', 'cli-mock-small', 'cli-mock-small', 'cli-mock-small', 'cli-mock-large', 'cli-mock-large',
+    ])
+    expect(reviewed.report.attempts.map(attempt => attempt.model.model)).toEqual(['cli-mock-small', 'cli-mock-large'])
+    expect(reviewed.report.stamp.ladder).toEqual([
+      { provider: 'cli-mock', model: 'cli-mock-small', selfReview: true },
+      { provider: 'cli-mock', model: 'cli-mock-large' },
+    ])
+    expect(reviewed.report.certified).toBe(false)
+    expect(reviewed.breaches).toEqual([])
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 })

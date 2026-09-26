@@ -103,7 +103,8 @@ export interface EnvironmentRunModel {
 
 /**
  * One rung of an attempt ladder as the stamp records it: the route that
- * attempt ran on, and the share of the run's budget caps it was allowed.
+ * attempt ran on, the share of the run's budget caps it was allowed, and
+ * whether it ended with a self-review turn.
  */
 export interface EnvironmentRunStampRung extends EnvironmentRunModel {
   /**
@@ -114,6 +115,14 @@ export interface EnvironmentRunStampRung extends EnvironmentRunModel {
    * that groups by the routes alone would count them together.
    */
   readonly share?: number
+  /**
+   * Whether the attempt was asked to end with the fixed self-review turn
+   * before its validation, absent for an attempt that was asked none. It is
+   * part of the arm's identity for the same reason `share` is: a rung that
+   * reviews and one that does not verify differently on one route, so a fold
+   * that groups by the routes alone would count them together.
+   */
+  readonly selfReview?: boolean
 }
 
 /** Content hashes of one environment as it was run; `fixtureSha256` is absent for a task without a fixture. */
