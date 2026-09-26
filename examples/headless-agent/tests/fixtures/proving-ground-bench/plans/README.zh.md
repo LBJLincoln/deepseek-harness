@@ -11,6 +11,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `completion-openrouter-free-t2` | 环境工厂产出的第 2 层补全子环境，跑在免费开放权重路由上 | 2 | 舰队三个免费 OpenRouter 模型，district `bench-completion-openrouter` | 1 | with-completion-openrouter | not recorded |
 | `completion-smoke-haiku` | 环境工厂产出的补全子环境，每层各取一个，跑在小模型上 | 2-6 | 舰队 `haiku`，district `bench-completion` | 1 | with-completion | `2026-09-23-bench-completion-smoke-haiku` |
 | `completion-smoke-sonnet` | 环境工厂产出的补全子环境，每层各取一个 | 2-6 | 舰队 `sonnet`，district `bench-completion` | 1 | with-completion | `2026-09-23-bench-completion-smoke-sonnet` |
+| `completion-t6-haiku` | 全部第 6 层补全子环境在小模型上、隐藏用例生效：该任务族在其最难层级是否还有任何余量 | 6 | 舰队 `haiku`，district `bench-completion` | 1 | with-completion | not recorded |
 | `e0-calibration-sonnet-t2` | `sonnet` 对自身（噪声基线） | 2 | 基线 `sonnet` 对候选 `sonnet` | 1 | base | not recorded |
 | `e1-haiku-vs-sonnet-t3` | 模型层级：sonnet 对 haiku | 3 | 基线 `sonnet` 对候选 `haiku` | 1 | base | `2026-09-08-bench-e1-haiku-vs-sonnet-t3` |
 | `e1-sonnet-vs-opus-t3` | 模型层级：sonnet 对 opus | 3 | 基线 `sonnet` 对候选 `opus` | 1 | base | `2026-09-08-bench-e1-sonnet-vs-opus-t3` |
@@ -30,6 +31,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e9-preset-craft-vs-plain-t5` | Agent 组合：同一路由上工艺技能 preset 对普通 preset | 5 | 基线 `sonnet` preset `bench` 对候选 `sonnet` preset `bench-craft` | 2 | with-presets | `2026-09-19-bench-e9-preset-craft-vs-plain-t5` |
 | `e10-openrouter-nex-vs-laguna-t2` | 两个免费开放权重 agentic 模型组成的冻结配对，第一对没有订阅臂的配对 | 2 | 基线 `openrouter`/`nex-agi/nex-n2.5-pro:free` 对候选 `openrouter`/`poolside/laguna-s-2.1:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `e11-openrouter-nemotron-vs-qwen-t2` | 基座模型决定所权衡的两个 120B 级开放权重模型，在 harness 循环上正面对比，使用操作者的 OpenRouter 额度，评估条款 | 2 | 基线 `openrouter`/`nvidia/nemotron-3-super-120b-a12b` 对候选 `openrouter`/`qwen/qwen3.5-122b-a10b`，district `bench-openrouter` | 1 | with-openrouter-paid | not recorded：密钥所属账户在 2026-09-22 没有额度（两个模型都返回 402），配对等待购买额度后运行 |
+| `e12-self-review-sonnet-t5t6` | 不靠第二次尝试提高验证密度：以自审回合收尾的单次尝试对没有自审的单次尝试，在中间模型上，覆盖八个密封的第 5 层与四个第 6 层环境 | 5-6 | 基线 `sonnet` ladder×1 对候选 `sonnet` ladder×1 `+review` | 2 | base | not recorded |
 | `h1-fleet-deepseek-t2` | 跑在开放权重路由上的 harness 循环 fleet | 2 | fleet `deepseek-official`/`deepseek-v4-flash`，district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
