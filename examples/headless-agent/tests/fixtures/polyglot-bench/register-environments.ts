@@ -37,7 +37,13 @@ declare module '@deepseek-ai/dsh-environments/types' {
      * workspace stubs out. `repository` and `completion` are present on a child
      * `register-repository-environments.ts` registers from one of this
      * repository's own packages: the package, module, and spec the child was
-     * derived from, and the one function its workspace stubs out. The
+     * derived from, and the one function its workspace stubs out. `public`,
+     * `terms`, and `completion` are present on a child
+     * `register-public-environments.ts` registers from a permissively licensed
+     * public repository: the source, its pinned commit, licence, and licence
+     * digest, the module and tests the child was derived from, the data-use
+     * purposes that licence admits with the attribution file that must travel
+     * with the task, and the one function its workspace stubs out. The
      * declaration is repeated verbatim from the in-house bench's registrar, as
      * declaration merging requires.
      */
@@ -48,6 +54,18 @@ declare module '@deepseek-ai/dsh-environments/types' {
       readonly family?: string
       readonly completion?: { readonly file: string; readonly function: string }
       readonly repository?: { readonly package: string; readonly module: string; readonly spec: string }
+      readonly public?: {
+        readonly source: string
+        readonly url: string
+        readonly commit: string
+        readonly license: string
+        readonly licenseFile: string
+        readonly licenseSha256: string
+        readonly copyright?: string
+        readonly module: string
+        readonly tests: readonly string[]
+      }
+      readonly terms?: { readonly purposes: readonly ('delivery' | 'training' | 'evaluation')[]; readonly attribution: string }
     }
   }
 }

@@ -30,15 +30,27 @@ export const MATCHER_SUBSET: ReadonlySet<string> = new Set([
   'toEqual',
   'toStrictEqual',
   'toBeUndefined',
+  'toBeDefined',
   'toBeNull',
+  'toBeNaN',
   'toBeTruthy',
   'toBeFalsy',
+  'toBeTypeOf',
+  'toBeInstanceOf',
   'toHaveLength',
+  'toHaveProperty',
   'toContain',
+  'toContainEqual',
+  'toMatchObject',
   'toThrow',
+  'toThrowError',
+  'toThrowErrorMatchingInlineSnapshot',
   'toMatch',
   'toBeGreaterThan',
+  'toBeGreaterThanOrEqual',
   'toBeLessThan',
+  'toBeLessThanOrEqual',
+  'toBeCloseTo',
 ])
 
 /** The vitest bindings a spec may import: the structure calls and the assertion entry point. */
@@ -78,13 +90,40 @@ export function transpile(source: string, fileName: string): string {
   return result.outputText
 }
 
-function parse(text: string, fileName: string): ts.SourceFile {
-  const kind = fileName.endsWith('.ts') ? ts.ScriptKind.TS : ts.ScriptKind.JS
+/**
+ * Parses one TypeScript or JavaScript text, with parent pointers set, so the
+ * factories' analyses walk one tree form.
+ * @param text - the source text.
+ * @param fileName - the source's name; a `.ts`/`.mts`/`.tsx` name parses as TypeScript, any other as JavaScript.
+ * @returns the source file.
+ */
+export function parseSource(text: string, fileName: string): ts.SourceFile {
+  const kind = /\.[mc]?tsx?$/u.test(fileName) ? ts.ScriptKind.TS : ts.ScriptKind.JS
   return ts.createSourceFile(fileName, text, ts.ScriptTarget.ES2022, true, kind)
 }
 
 function isExported(node: ts.Node): boolean {
   return ts.canHaveModifiers(node) && (ts.getModifiers(node) ?? []).some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)
+}
+
+/**
+ * The local names a module exports by a statement other than the
+ * declaration's own `export` modifier: `export default name` and
+ * `export { name, other as alias }` without a module specifier.
+ */
+function namesExportedByStatement(file: ts.SourceFile): Set<string> {
+  const names = new Set<string>()
+  for (const statement of file.statements) {
+    if (ts.isExportAssignment(statement) && !statement.isExportEquals && ts.isIdentifier(statement.expression)) {
+      names.add(statement.expression.text)
+      continue
+    }
+    if (ts.isExportDeclaration(statement) && statement.moduleSpecifier === undefined && statement.exportClause !== undefined
+      && ts.isNamedExports(statement.exportClause)) {
+      for (const element of statement.exportClause.elements) names.add((element.propertyName ?? element.name).text)
+    }
+  }
+  return names
 }
 
 /**
@@ -118,23 +157,42 @@ interface LocatedFunction {
   readonly name: string
   readonly node: ts.Node
   readonly body: ts.Block
+  /** The bodiless overload signatures of the same name directly above the implementation, first one first. */
+  readonly overloads: readonly ts.FunctionDeclaration[]
 }
 
+/**
+ * Every function a module exports with a block body: a declaration or a
+ * block-bodied arrow or function expression carrying the `export` modifier, or
+ * one a later `export default name` or `export { name }` statement exports. An
+ * implementation preceded by bodiless overload signatures of its name carries
+ * them, so a caller can read the documentation a source keeps on the first
+ * overload.
+ */
 function locateFunctions(file: ts.SourceFile): LocatedFunction[] {
   const found: LocatedFunction[] = []
+  const byStatement = namesExportedByStatement(file)
+  let overloads: ts.FunctionDeclaration[] = []
   for (const statement of file.statements) {
-    if (!isExported(statement)) continue
-    if (ts.isFunctionDeclaration(statement)) {
-      if (statement.name !== undefined && statement.body !== undefined) {
-        found.push({ name: statement.name.text, node: statement, body: statement.body })
+    if (ts.isFunctionDeclaration(statement) && statement.name !== undefined) {
+      const name = statement.name.text
+      const exported = isExported(statement) || byStatement.has(name)
+      if (statement.body === undefined) {
+        overloads = overloads[0]?.name?.text === name ? [...overloads, statement] : [statement]
+        continue
       }
+      const own = overloads[0]?.name?.text === name ? overloads : []
+      overloads = []
+      if (exported) found.push({ name, node: statement, body: statement.body, overloads: own })
       continue
     }
+    overloads = []
     if (!ts.isVariableStatement(statement)) continue
     for (const declaration of statement.declarationList.declarations) {
       if (!ts.isIdentifier(declaration.name) || declaration.initializer === undefined) continue
+      if (!isExported(statement) && !byStatement.has(declaration.name.text)) continue
       const body = blockBodyOf(declaration.initializer)
-      if (body !== undefined) found.push({ name: declaration.name.text, node: statement, body })
+      if (body !== undefined) found.push({ name: declaration.name.text, node: statement, body, overloads: [] })
     }
   }
   return found
@@ -143,7 +201,11 @@ function locateFunctions(file: ts.SourceFile): LocatedFunction[] {
 /** One exported function of a module, as the factory hands it to an implementer. */
 export interface ModuleFunction {
   readonly name: string
-  /** The `/** … *​/` block immediately above the declaration, verbatim; empty when the function has none. */
+  /**
+   * The `/** … *​/` block immediately above the declaration, verbatim, or the
+   * one above the first of its overload signatures when the implementation
+   * itself carries none; empty when neither does.
+   */
   readonly jsDoc: string
   /** The declaration from its first token to its body, such as `export function f(a: A): B`. */
   readonly signature: string
@@ -171,12 +233,15 @@ export interface ModuleAnalysis {
  * @returns the functions and the types.
  */
 export function analyzeModule(source: string, fileName: string): ModuleAnalysis {
-  const file = parse(source, fileName)
-  const functions = locateFunctions(file).map(({ name, node, body }) => {
+  const file = parseSource(source, fileName)
+  const docOf = (node: ts.Node): string => source.slice(ownDocStart(source, file, node), node.getStart(file)).trim()
+  const functions = locateFunctions(file).map(({ name, node, body, overloads }) => {
     const inner = source.slice(body.getStart(file) + 1, body.end - 1).trim()
+    const own = docOf(node)
+    const [firstOverload] = overloads
     return {
       name,
-      jsDoc: source.slice(ownDocStart(source, file, node), node.getStart(file)).trim(),
+      jsDoc: own === '' && firstOverload !== undefined ? docOf(firstOverload) : own,
       signature: source.slice(node.getStart(file), body.getStart(file)).trim(),
       bodyLines: inner === '' ? 0 : inner.split('\n').length,
     }
@@ -200,7 +265,7 @@ export function analyzeModule(source: string, fileName: string): ModuleAnalysis 
  * @throws when `js` exports no block-bodied function of that name.
  */
 export function stubFunction(js: string, name: string, fileName: string): string {
-  const file = parse(js, fileName)
+  const file = parseSource(js, fileName)
   const target = locateFunctions(file).find(one => one.name === name)
   if (target === undefined) throw new Error(`${fileName}: no exported function ${name} with a block body`)
   return `${js.slice(0, target.body.getStart(file))}${STUB_BODY}${js.slice(target.body.end)}`
@@ -230,7 +295,7 @@ function specifierOf(declaration: ts.ImportDeclaration): string {
  * @returns the runtime specifiers, or the first rejection.
  */
 export function analyzeSpecImports(source: string, fileName: string): SpecImports {
-  const file = parse(source, fileName)
+  const file = parseSource(source, fileName)
   const runtime: string[] = []
   let rejection: string | undefined
   const reject = (reason: string): void => {
@@ -306,7 +371,13 @@ export interface SpecOptions {
 /** A rejection raised while walking a spec, carried to {@link analyzeSpec}'s result. */
 class SpecRejection extends Error {}
 
-function literalText(node: ts.Node): string | undefined {
+/**
+ * The text of a string literal or a substitution-free template literal, which
+ * are the forms a suite title may take.
+ * @param node - the title node.
+ * @returns the text, or `undefined` for any other node.
+ */
+export function literalText(node: ts.Node): string | undefined {
   return ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) ? node.text : undefined
 }
 
@@ -464,7 +535,7 @@ function assemble(collected: CollectedCase, imports: readonly string[], options:
  * @returns the cases in source order, or the rejection.
  */
 export function analyzeSpec(js: string, fileName: string, options: SpecOptions): SpecAnalysis {
-  const file = parse(js, fileName)
+  const file = parseSource(js, fileName)
   try {
     const imports = importLines(file, options)
     const walker = new SuiteWalker(file, js)

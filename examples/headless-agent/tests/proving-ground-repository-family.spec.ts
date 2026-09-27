@@ -173,8 +173,8 @@ describe('analyzeModule', () => {
     expect(undocumented?.jsDoc).toBe('')
     expect(idle?.jsDoc).toBe('/** Documented, and reached by no spec block. */')
     expect(wrapped?.signature).toBe('export const wrapped = function (text: string): string')
-    // The JSDoc sits on the first overload signature, which has no body; the implementation carries none of its own.
-    expect(pick?.jsDoc).toBe('')
+    // The implementation carries no JSDoc of its own, so it inherits the block above its first overload signature.
+    expect(pick?.jsDoc).toBe('/** An overload signature has no body; only the implementation is located. */')
     expect(pick?.signature).toBe('export function pick(value: unknown): unknown')
     expect(noop?.bodyLines).toBe(0)
   })
@@ -313,7 +313,7 @@ describe('analyzeSpec', () => {
     ["it('n', 5)", 'it callback is not a function'],
     ["describe('d', () => { for (const n of [1]) it('n', () => {}) })", 'calls it outside a suite body'],
     ["const run = it\nrun('n', () => {})", 'references it outside a suite call'],
-    ["test('n', () => { expect(greet('a')).toMatchObject({}) })", 'matcher toMatchObject is outside the subset'],
+    ["test('n', () => { expect(greet('a')).toHaveBeenCalled() })", 'matcher toHaveBeenCalled is outside the subset'],
     ["it('n', () => { expect(1).toEqual(expect.any(Number)) })", 'uses expect.any'],
     ["it('n', async () => { await expect(Promise.reject(new Error('x'))).rejects.toThrow() })", 'uses expect(...).rejects'],
     ["it('n', () => { expect(1) })", 'calls expect without a matcher'],
@@ -489,8 +489,8 @@ describe('tiers, ids, task files, READMEs, and case entries', () => {
   })
 
   it('names every matcher the shim implements and nothing else', () => {
-    for (const name of MATCHER_SUBSET) expect(shim).toContain(`${name}:`)
-    expect(shim).not.toContain('toMatchObject')
+    for (const name of MATCHER_SUBSET) expect(shim).toMatch(new RegExp(`\\b${name}(?::| =)`, 'u'))
+    expect(shim).not.toContain('toHaveBeenCalled')
   })
 })
 
@@ -556,9 +556,10 @@ describe('the factory over a synthetic packages directory', () => {
     expect(result.stdout).toContain('would consider greet--shout (spec cases: 3)')
     expect(result.stdout).toContain('would consider greet--idle (spec cases: 3)')
     expect(result.stdout).toContain('would consider greet--wrapped (spec cases: 3)')
+    expect(result.stdout).toContain('would consider greet--pick (spec cases: 3)')
     expect(result.stdout).not.toContain('greet--noop')
     expect(result.stdout).toContain('packages: 2, modules: 2, modules with a spec to derive from: 1')
-    expect(result.stdout).toContain('candidate functions: 4')
+    expect(result.stdout).toContain('candidate functions: 5')
     expect(existsSync(join(root, 'out'))).toBe(false)
   }, 60_000)
 
@@ -569,7 +570,8 @@ describe('the factory over a synthetic packages directory', () => {
     expect(result.status, result.stderr).toBe(0)
     expect(result.stderr).toContain('skip greet--idle: no case exercises idle')
     expect(result.stderr).toContain('skip greet--wrapped: no case exercises wrapped')
-    expect(result.stdout).toContain('candidates: 4, skipped (no JSDoc): 2, skipped (too short): 1, skipped (no case exercises it): 2, dropped (stub did not parse): 0')
+    expect(result.stderr).toContain('skip greet--pick: no case exercises pick')
+    expect(result.stdout).toContain('candidates: 5, skipped (no JSDoc): 1, skipped (too short): 1, skipped (no case exercises it): 3, dropped (stub did not parse): 0')
     expect(result.stdout).toContain('written: 2')
     expect(result.stdout).toContain('admitted: 2')
     expect(result.stdout).toContain('refused: 0')

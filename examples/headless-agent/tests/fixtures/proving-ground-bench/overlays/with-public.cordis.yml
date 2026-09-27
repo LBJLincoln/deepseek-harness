@@ -1,0 +1,23 @@
+# The bench with the public-repository family mounted as a second, independent
+# producer beside the curated one: `register-public-environments` reads
+# `environments-public/`, the environment factory's output
+# (`tools/synthesize-public-tasks.ts` writes it from the sources
+# `tools/public-sources.json` pins; `admit.mjs` and the factory's own `--admit`
+# step decide what survives there), and registers each `<source>--<function>/`
+# child under the same `bench` kind the curated tasks use, in domain `public`.
+# `config.directory` is restated at its default only to show the field a
+# different factory output would set; the base composition is otherwise
+# unchanged, so a plan that selects by tier or domain sees curated and public
+# cells side by side. The base's data-use terms still govern every session:
+# a child's own terms say what its licence admits, and a trajectory is
+# training material only where both admit it.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      - insert:
+          - id: register-public-environments
+            name: './register-public-environments.ts'
+            config:
+              directory: './environments-public'

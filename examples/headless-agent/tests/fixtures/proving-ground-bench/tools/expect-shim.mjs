@@ -1,20 +1,29 @@
 /**
- * The `expect` a repository-derived environment's hidden cases run under: a
- * vitest matcher subset small enough to inline into every case program, so a
- * case runs under plain `node` with no test runner installed. The factory
+ * The `expect` a synthesized environment's hidden cases run under: a vitest
+ * matcher subset small enough to ship without a test runner, so a case runs
+ * under plain `node` with nothing installed. The repository factory
  * (`synthesize-repository-tasks.ts`) inlines this file's text verbatim ahead
- * of each case; the factory's spec analysis admits a spec only when every
- * matcher it uses is one of these, so a case never reaches a matcher this
- * shim lacks.
+ * of each case; the public factory (`synthesize-public-tasks.ts`) writes it
+ * into each child's workspace as `test/expect-shim.mjs`, immutable, and each
+ * case imports it. Both factories admit a spec block only when every matcher
+ * it uses is one of these, so a case never reaches a matcher this shim lacks.
  *
  * A failed assertion throws {@link AssertionError}, which an ESM program
  * leaves uncaught: node prints the message and exits non-zero, which is the
  * case's verdict. Semantics follow vitest's for the subset: `toEqual` ignores
  * `undefined`-valued properties and prototypes, `toStrictEqual` checks both,
- * `toContain` uses SameValueZero on arrays and substring on strings, and
- * `toThrow` accepts no argument, a message substring, a RegExp over the
- * message, an Error whose message must match exactly, or an Error class the
- * thrown value must be an instance of.
+ * `toMatchObject` requires every expected property recursively and nothing
+ * more, `toContain` uses SameValueZero on arrays and substring on strings,
+ * `toContainEqual` structural equality on any element, `toBeCloseTo` the
+ * vitest bound of half a unit in the last requested decimal, `toHaveProperty`
+ * a dotted or array key path with an optional structural value, and `toThrow`
+ * (alias `toThrowError`) accepts no argument, a message substring, a RegExp
+ * over the message, an Error whose message must match exactly, or an Error
+ * class the thrown value must be an instance of;
+ * `toThrowErrorMatchingInlineSnapshot` compares the thrown error against
+ * vitest's `[Name: message]` rendering. `expectTypeOf` and `assertType` are
+ * the runtime no-ops vitest also ships, so a block that checks types beside
+ * values runs unchanged.
  */
 
 /** A failed matcher, carrying the message a case reports on stderr. */
@@ -108,6 +117,30 @@ function throwMatches(thrown, expected) {
   throw new TypeError(`toThrow does not accept ${format(expected)}`)
 }
 
+/** vitest's inline-snapshot rendering of a thrown value: `[Name: message]` for an Error, the quoted string otherwise. */
+function snapshotOf(thrown) {
+  return thrown instanceof Error ? `[${thrown.name}: ${thrown.message}]` : JSON.stringify(String(thrown))
+}
+
+/** Whether `actual` carries every property of `expected`, recursively, with anything else allowed beside them. */
+function matchesObject(actual, expected, seen = []) {
+  if (typeof expected !== 'object' || expected === null || typeof actual !== 'object' || actual === null) return equals(actual, expected, false)
+  if (seen.some(([a, b]) => a === actual && b === expected)) return true
+  const pairs = [...seen, [actual, expected]]
+  if (Array.isArray(expected)) {
+    return Array.isArray(actual) && actual.length === expected.length && expected.every((item, index) => matchesObject(actual[index], item, pairs))
+  }
+  if (expected instanceof Date || expected instanceof RegExp || expected instanceof Error || expected instanceof Map || expected instanceof Set) {
+    return equals(actual, expected, false)
+  }
+  return Object.keys(expected).every(key => key in actual && matchesObject(actual[key], expected[key], pairs))
+}
+
+/** The segments of a `toHaveProperty` key path: an array as given, a string split on dots. */
+function keyPath(path) {
+  return Array.isArray(path) ? path : String(path).split('.')
+}
+
 /**
  * The matcher set over one value, negated or not. Each matcher decides a pass
  * and a description; `verdict` throws when the pass disagrees with the
@@ -128,32 +161,64 @@ function matchers(actual, negated) {
     }
     return undefined
   }
+  const toThrow = (expected) => {
+    const outcome = throws()
+    const description = expected === undefined ? 'to throw' : `to throw ${format(expected)}`
+    verdict(outcome !== undefined && throwMatches(outcome.thrown, expected), outcome === undefined ? description : `${description}, got ${format(outcome.thrown)}`)
+  }
+  const iterableHas = predicate => actual !== null && actual !== undefined && typeof actual[Symbol.iterator] === 'function' && Array.from(actual).some(predicate)
   return {
     toBe: expected => verdict(Object.is(actual, expected), `to be ${format(expected)}`),
     toEqual: expected => verdict(equals(actual, expected, false), `to equal ${format(expected)}`),
     toStrictEqual: expected => verdict(equals(actual, expected, true), `to strictly equal ${format(expected)}`),
+    toMatchObject: expected => verdict(matchesObject(actual, expected), `to match object ${format(expected)}`),
     toBeUndefined: () => verdict(actual === undefined, 'to be undefined'),
+    toBeDefined: () => verdict(actual !== undefined, 'to be defined'),
     toBeNull: () => verdict(actual === null, 'to be null'),
+    toBeNaN: () => verdict(Number.isNaN(actual), 'to be NaN'),
     toBeTruthy: () => verdict(Boolean(actual), 'to be truthy'),
     toBeFalsy: () => verdict(!actual, 'to be falsy'),
+    toBeTypeOf: expected => verdict(typeof actual === expected, `to be of type ${format(expected)}`),
+    toBeInstanceOf: expected => verdict(actual instanceof expected, `to be an instance of ${format(expected)}`),
     toHaveLength: expected => verdict(lengthOf() === expected, `to have length ${format(expected)}`),
+    toHaveProperty: (path, ...value) => {
+      let cursor = actual
+      let present = true
+      for (const key of keyPath(path)) {
+        if (cursor === null || cursor === undefined || !(key in Object(cursor))) {
+          present = false
+          break
+        }
+        cursor = cursor[key]
+      }
+      const holds = present && (value.length === 0 || equals(cursor, value[0], false))
+      verdict(holds, `to have property ${format(path)}${value.length === 0 ? '' : ` equal to ${format(value[0])}`}`)
+    },
     toContain: (expected) => {
-      const holds = typeof actual === 'string'
-        ? actual.includes(expected)
-        : actual !== null && actual !== undefined && typeof actual[Symbol.iterator] === 'function' && Array.from(actual).includes(expected)
+      const holds = typeof actual === 'string' ? actual.includes(expected) : iterableHas(item => Object.is(item, expected) || item === expected)
       verdict(holds, `to contain ${format(expected)}`)
     },
-    toThrow: (expected) => {
+    toContainEqual: expected => verdict(iterableHas(item => equals(item, expected, false)), `to contain an item equal to ${format(expected)}`),
+    toThrow,
+    toThrowError: toThrow,
+    toThrowErrorMatchingInlineSnapshot: (snapshot) => {
       const outcome = throws()
-      const description = expected === undefined ? 'to throw' : `to throw ${format(expected)}`
-      verdict(outcome !== undefined && throwMatches(outcome.thrown, expected), outcome === undefined ? description : `${description}, got ${format(outcome.thrown)}`)
+      const rendered = outcome === undefined ? undefined : snapshotOf(outcome.thrown)
+      verdict(rendered !== undefined && rendered === String(snapshot).trim(), `to throw an error rendering as ${format(String(snapshot).trim())}${rendered === undefined ? '' : `, got ${format(rendered)}`}`)
     },
     toMatch: (expected) => {
       if (typeof actual !== 'string') throw new TypeError(`toMatch needs a string, got ${format(actual)}`)
       verdict(expected instanceof RegExp ? expected.test(actual) : actual.includes(expected), `to match ${format(expected)}`)
     },
     toBeGreaterThan: expected => verdict(actual > expected, `to be greater than ${format(expected)}`),
+    toBeGreaterThanOrEqual: expected => verdict(actual >= expected, `to be at least ${format(expected)}`),
     toBeLessThan: expected => verdict(actual < expected, `to be less than ${format(expected)}`),
+    toBeLessThanOrEqual: expected => verdict(actual <= expected, `to be at most ${format(expected)}`),
+    toBeCloseTo: (expected, digits = 2) => {
+      const holds = actual === Infinity && expected === Infinity || actual === -Infinity && expected === -Infinity
+        || Math.abs(expected - actual) < 10 ** -digits / 2
+      verdict(holds, `to be close to ${format(expected)} within ${digits} decimal places`)
+    },
   }
 }
 
@@ -165,3 +230,23 @@ function matchers(actual, negated) {
 export function expect(actual) {
   return { ...matchers(actual, false), not: matchers(actual, true) }
 }
+
+/** A callable whose every property is itself, so any chain of type-assertion calls returns without effect. */
+const inert = new Proxy(function inert() {}, {
+  get: (_target, key) => (key === Symbol.toPrimitive ? () => '' : inert),
+  apply: () => inert,
+})
+
+/**
+ * vitest's `expectTypeOf`, which asserts nothing at runtime: the type check
+ * lives in the compiler, and the JavaScript build of a spec keeps the call.
+ * @returns an inert chain accepting any matcher.
+ */
+export function expectTypeOf() {
+  return inert
+}
+
+/**
+ * vitest's `assertType`, a runtime no-op that types its argument.
+ */
+export function assertType() {}
