@@ -144,7 +144,11 @@ describe('resolveFixture', () => {
 describe('listPlanNames / resolvePlanPath', () => {
   it('lists every checked-in plan fixture', () => {
     const names = listPlanNames()
-    expect(names).toHaveLength(37)
+    // Every `*.json` under the plans directory, and nothing else: a plan added
+    // to the fixture is listed without this test learning a new count.
+    const checkedIn = readdirSync(PLANS_DIR).filter(file => file.endsWith('.json')).map(file => file.slice(0, -'.json'.length)).sort()
+    expect(names).toEqual(checkedIn)
+    expect(names.length).toBeGreaterThanOrEqual(37)
     expect(names).toContain('e3-attempts-t5')
     expect(names).toContain('e9-preset-craft-vs-plain-t5')
     expect(names).toContain('e7-attempts-5-t5')
