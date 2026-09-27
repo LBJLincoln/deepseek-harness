@@ -346,7 +346,7 @@ describe.skipIf(!pwshAvailable())('what the executor registers with a composed r
     // claim rests on the confinement a real call would get, not on a promise.
     expect(calls).toContainEqual({
       argv: ['pwsh'],
-      policy: { mode: 'read-only', workspaceRoot: spillDir, deniedReadRoots: [root] },
+      policy: { mode: 'workspace-write', workspaceRoot: spillDir, deniedReadRoots: [root] },
     })
     expect(entry).toEqual({ capability: 'shell', state: 'denied-at-executor' })
   })
