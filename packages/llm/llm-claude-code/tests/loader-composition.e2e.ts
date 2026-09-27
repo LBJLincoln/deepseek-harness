@@ -1,8 +1,9 @@
 /**
  * Real-composition guard: the plugin boots from a `cordis.yml` through the
  * actual Loader and Include path, registers the route its config names, and a
- * request placed on `ctx.llm` reaches the query and comes back as seam chunks.
- * The query itself is mocked, so this runs without an installation or a key.
+ * request placed on `ctx.llm` from a harness session reaches the query, in that
+ * session's working directory, and comes back as seam chunks. The query itself
+ * is mocked, so this runs without an installation or a key.
  */
 
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
@@ -16,6 +17,7 @@ import Loader from '@deepseek-ai/cordis-plugin-loader'
 import Include from '@deepseek-ai/cordis-plugin-include'
 import LlmRuntime, { BlockAssembler } from '@deepseek-ai/dsh-llm'
 import type { StreamChunk } from '@deepseek-ai/dsh-llm'
+import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SubprocessRuntime from '@deepseek-ai/dsh-subprocess'
 import type {
   SubprocessHandle,
@@ -64,6 +66,7 @@ class FixtureSubprocess extends SubprocessRuntime {
 let root: string | undefined
 let context: Context | undefined
 let offeredTools: string[] = []
+let queryDirectory: string | undefined
 
 afterEach(async () => {
   await context?.fiber.dispose()
@@ -74,15 +77,16 @@ afterEach(async () => {
 })
 
 describe('llm-claude-code real Loader composition', () => {
-  it('registers the configured route and answers a request through ctx.llm', async () => {
+  it('registers the configured route and answers a session\'s request through ctx.llm in its directory', async () => {
     queryMock.mockImplementation(({ options }) => {
       options.spawnClaudeCodeProcess?.({
         command: '/fixture/bin/claude',
         args: [],
-        cwd: process.cwd(),
+        cwd: options.cwd ?? process.cwd(),
         env: { PATH: '/usr/bin' },
       } as never)
       offeredTools = [...options.allowedTools ?? []]
+      queryDirectory = options.cwd
       const messages: SDKMessage[] = [
         assistantMessage(textBlock('composed')),
         assistantMessage(toolUseBlock('mcp__dsh__bash', { command: 'ls' })),
@@ -104,6 +108,8 @@ describe('llm-claude-code real Loader composition', () => {
       "  name: 'test-llm-service'",
       '- id: subprocess',
       "  name: 'test-subprocess-service'",
+      '- id: sessions',
+      "  name: 'test-session-service'",
       '- id: llm-claude-code',
       "  name: '@deepseek-ai/dsh-llm-claude-code'",
       '  config:',
@@ -122,6 +128,7 @@ describe('llm-claude-code real Loader composition', () => {
     const modules = new Map<string, unknown>([
       ['test-llm-service', LlmRuntime],
       ['test-subprocess-service', FixtureSubprocess],
+      ['test-session-service', SessionStore],
       ['@deepseek-ai/dsh-llm-claude-code', LlmClaudeCode],
     ])
     ctx.loader.internal = {
@@ -141,9 +148,13 @@ describe('llm-claude-code real Loader composition', () => {
     expect(await ctx.llm.resolveModelInfo('claude-code', 'default'))
       .toMatchObject({ context: { contextWindow: 200_000 } })
 
+    // The requesting session works in its own directory, distinct from the
+    // one this process runs in; the route reads it from the mounted store.
+    const workspace = join(root, 'workspace')
+    const session = ctx.sessions.create(SessionId('composed-session'), { meta: { cwd: workspace } })
     const assembler = new BlockAssembler()
     const chunks: StreamChunk[] = []
-    for await (const chunk of ctx.llm.stream(request({ tools: [BASH_TOOL] }))) {
+    for await (const chunk of ctx.llm.stream(request({ sessionId: session.id, tools: [BASH_TOOL] }))) {
       chunks.push(chunk)
       assembler.push(chunk)
     }
@@ -154,8 +165,11 @@ describe('llm-claude-code real Loader composition', () => {
     ])
     expect(assembler.finish).toEqual({ kind: 'tool-calls' })
     expect(offeredTools).toEqual(['mcp__dsh__bash'])
-    // The CLI the SDK asked to spawn went through the mounted subprocess seam.
+    expect(queryDirectory).toBe(workspace)
+    // The CLI the SDK asked to spawn went through the mounted subprocess seam,
+    // in the session's directory.
     expect(spawned).toHaveLength(1)
     expect(spawned[0]?.argv[0]).toBe('/fixture/bin/claude')
+    expect(spawned[0]?.cwd).toBe(workspace)
   })
 })

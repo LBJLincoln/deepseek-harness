@@ -66,7 +66,7 @@ TSX_TSCONFIG_PATH="$REPO/tsconfig.json" \
     > "$RUN/stdout.jsonl" 2> "$RUN/stderr.txt" &
 ```
 
-It needs the `claude` CLI installed and logged in, and no `DEEPSEEK_API_KEY`. While it runs, `$RUN/.sessions/` fills with one log per session — the ledger, the department and the integration — and the driver writes its single result line to `stdout.jsonl` when the program ends. On this route the product query runs in the driver's working directory and the product tells its model so, while the harness names no directory to it; a department may take that directory for its worktree, which is what the first run's department did ([the route's limitation](../../../../../packages/llm/llm-claude-code/README.md#known-limitations-and-deferred-work)).
+It needs the `claude` CLI installed and logged in, and no `DEEPSEEK_API_KEY`. While it runs, `$RUN/.sessions/` fills with one log per session — the ledger, the department and the integration — and the driver writes its single result line to `stdout.jsonl` when the program ends. On this route the product query runs in the department's own worktree, the directory its session was created with, and the product states that directory to its model; the harness names none in this composition's prompt ([the route's README](../../../../../packages/llm/llm-claude-code/README.md#how-a-request-is-rendered)).
 
 What the run leaves behind, with every session log at `$RUN/.sessions/<workspace-slug>/<session id>/session.jsonl` and the integration's key percent-escaped in its id:
 

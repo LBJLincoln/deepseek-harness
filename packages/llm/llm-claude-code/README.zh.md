@@ -61,17 +61,19 @@
 
 该服务器不执行任何东西。它的处理器用一句固定文本回应每次调用，因为产品会在查询结束前运行它刚请求的那次调用；真正的调用随后由 harness 执行，与其他每一个 provider 完全一致。产品自身的工具保持关闭（`tools: []`），文件系统设置同样关闭（`strictMcpConfig: true`、`settingSources: []`），权限模式从不提问且拒绝未预先批准的一切。harness 的取消信号驱动 SDK 的 abort controller，SDK 拉起的 CLI 交由 `ctx.subprocess` 接管，由它拥有该进程树与终止阶梯。
 
+查询运行在发起请求的 harness 会话的工作目录里：`session.header.cwd`，即会话创建时的 `meta.cwd`，插件通过请求的 `sessionId` 从会话存储读取它（插件在 `llm` 与 `subprocess` 之外还注入 `sessions`）。安装自己的外壳会把该目录作为工作目录告诉模型，因此在自己 worktree 里的项目部门被告知的就是那个 worktree，而查询创建的产品会话也归档在该目录之下。不指名任何会话的请求——手工构造的一次性请求——以及未记录目录的会话，在 harness 进程自己的目录里运行。指名了存储所不持有的会话的请求，在任何查询之前就以 `UNKNOWN_SESSION` 失败：缝从存活的会话盖上会话身份，因此未知的 id 是调用方的错误，而不是一个没有目录的会话。
+
 查询的轮次上限是一条助手消息，这正是“一次 `generate()` 等于一次模型响应”的保证。发起工具调用的回复会触及该上限——产品作答、运行所提供的调用，就再没有剩余轮次——SDK 将其报告为携带该回复的 `error_max_turns`。对本路由而言，这是发起工具调用的答案的正常终止，而非失败。
 
 ## 一步如何抵达安装
 
 `per-query` 下的一步把上面那整段 prompt 发给一次不持久化任何东西的查询。`per-session` 下的一步只在尚无产品会话持有该会话时才这么发送；否则它 resume 持有该会话的那一个，并发送产品自身答案之后的那些带框元素——标签相同，但不带阅读指引、也不带 `<{ns}-conversation>` 外层，因为它们所属的会话已经在那个产品会话里打开着。
 
-只有当产品会话所持有的正是 harness 日志所持有的那段会话时，resume 才是正确的，而路由逐步证明这一点。它随每个产品会话记录：该会话被发送过请求中的多少条消息，以及对为这些消息所发送的一切取的 SHA-256 摘要——system prompt、所提供的工具定义、模型 id，以及这些消息的带框元素。下一步从自己的请求重算该摘要，并且只有在请求已超出该记录、把产品的答案作为紧随其后的那条消息携带、不携带产品未曾写下的更多助手消息，且摘要相符时才 resume。压缩、被插入的消息、变更的 system prompt 或工具集，以及回退的重试，各自都会让其中一项不成立，于是以新的产品会话跑一次全新查询。不带 `sessionId` 的请求——手工构造的一次性请求——没有可续的会话，始终是全新的。
+只有当产品会话所持有的正是 harness 日志所持有的那段会话时，resume 才是正确的，而路由逐步证明这一点。它随每个产品会话记录：该会话创建于哪个目录、被发送过请求中的多少条消息，以及对为这些消息所发送的一切取的 SHA-256 摘要——system prompt、所提供的工具定义、模型 id，以及这些消息的带框元素。下一步从自己的请求重算该摘要，并且只有在其查询运行在记录所指的目录里、请求已超出该记录、把产品的答案作为紧随其后的那条消息携带、不携带产品未曾写下的更多助手消息，且摘要相符时才 resume。移动了的目录、压缩、被插入的消息、变更的 system prompt 或工具集，以及回退的重试，各自都会让其中一项不成立，于是以新的产品会话跑一次全新查询。不带 `sessionId` 的请求——手工构造的一次性请求——没有可续的会话，始终是全新的。
 
-一步走了哪条路径记录在答案上：finish chunk 以适配器 replay state 的形式携带 `{ continuity, productSessionId, fallback? }`，缝将其原样记入 `assistant/chunk`，并在组装后的 `assistant/message` 上再记一次。`fallback` 说明 `per-session` 路由为何仍跑了全新查询——`no-session-id`、`no-record`、`history-rewound`、`answer-missing` 或 `prefix-changed`。
+一步走了哪条路径记录在答案上：finish chunk 以适配器 replay state 的形式携带 `{ continuity, productSessionId, fallback? }`，缝将其原样记入 `assistant/chunk`，并在组装后的 `assistant/message` 上再记一次。`fallback` 说明 `per-session` 路由为何仍跑了全新查询——`no-session-id`、`no-record`、`cwd-changed`、`history-rewound`、`answer-missing` 或 `prefix-changed`。
 
-resume 需要 `persistSession: true`，因此安装会在运维方自己的配置目录下写入该产品会话的转录。路由在某条记录离开表时删除它所创建的对应转录：不匹配后被替换、超出 `resumableSessionLimit` 被驱逐、某一步未交付答案后被丢弃，或插件卸载时被释放。路由未曾创建的转录绝不触碰，而存储拒绝删除时只会留下一个文件，不会让该步骤失败。
+resume 需要 `persistSession: true`，因此安装会在运维方自己的配置目录下写入该产品会话的转录，按查询运行的目录归档。路由在某条记录离开表时，从该记录所指的目录删除它所创建的对应转录：不匹配后被替换、超出 `resumableSessionLimit` 被驱逐、某一步未交付答案后被丢弃，或插件卸载时被释放。路由未曾创建的转录绝不触碰，而存储拒绝删除时只会留下一个文件，不会让该步骤失败。
 
 ## 返回什么
 
@@ -81,7 +83,7 @@ resume 需要 `persistSession: true`，因此安装会在运维方自己的配�
 
 ## 错误
 
-目录未声明的模型为 `UNKNOWN_MODEL`，图像内容为 `UNSUPPORTED_CONTENT`，二者都发生在任何查询之前。主机在 subprocess 缝的 PATH 上没有 `claude` 时为 `MISSING_EXECUTABLE`。空闲到期与调用方取消分别为 `TIMEOUT` 与 `ABORTED`。回复不可用为 `MALFORMED_RESPONSE` 与 `EMPTY_RESPONSE`，查询结束却未发布结果为 `STREAM_CLOSED`。不携带答案的结果依据它上报的全部 code、terminal reason、stop reason 与消息分类：先经缝的共享分类器给出 `CONTEXT_WINDOW_EXCEEDED` 与 `QUOTA`，再按结果子类型给出——没有工具调用却触及轮次上限为 `MAX_TURNS`，预算上限为 `QUOTA`，结构化输出重试耗尽为 `MALFORMED_RESPONSE`，执行期间失败为 `PRODUCT_ERROR`，而产品自己标记为失败的成功结果为 `TRANSPORT`，它携带的是产品自身请求的 API 失败，值得重试。SDK 以抛出而非发布结果的方式报告的失败成为 `TRANSPORT`，其消息中带有渲染后的 cause 链；结果发布之后的抛出会被丢弃，因为结果才是该次查询对自身的交代——除非是 harness 停止了该查询，此时 `TIMEOUT` 与 `ABORTED` 优先于产品已发布的任何内容。
+目录未声明的模型为 `UNKNOWN_MODEL`，指名了会话存储所不持有的 harness 会话的请求为 `UNKNOWN_SESSION`，图像内容为 `UNSUPPORTED_CONTENT`，三者都发生在任何查询之前。主机在 subprocess 缝的 PATH 上没有 `claude` 时为 `MISSING_EXECUTABLE`。空闲到期与调用方取消分别为 `TIMEOUT` 与 `ABORTED`。回复不可用为 `MALFORMED_RESPONSE` 与 `EMPTY_RESPONSE`，查询结束却未发布结果为 `STREAM_CLOSED`。不携带答案的结果依据它上报的全部 code、terminal reason、stop reason 与消息分类：先经缝的共享分类器给出 `CONTEXT_WINDOW_EXCEEDED` 与 `QUOTA`，再按结果子类型给出——没有工具调用却触及轮次上限为 `MAX_TURNS`，预算上限为 `QUOTA`，结构化输出重试耗尽为 `MALFORMED_RESPONSE`，执行期间失败为 `PRODUCT_ERROR`，而产品自己标记为失败的成功结果为 `TRANSPORT`，它携带的是产品自身请求的 API 失败，值得重试。SDK 以抛出而非发布结果的方式报告的失败成为 `TRANSPORT`，其消息中带有渲染后的 cause 链；结果发布之后的抛出会被丢弃，因为结果才是该次查询对自身的交代——除非是 harness 停止了该查询，此时 `TIMEOUT` 与 `ABORTED` 优先于产品已发布的任何内容。
 
 ## Model Experience
 
@@ -89,7 +91,7 @@ resume 需要 `persistSession: true`，因此安装会在运维方自己的配�
 
 #### What the model sees
 
-该安装的模型把 harness 的 system prompt 原样读作自己的 system prompt——外面套着产品自己的一层外壳，本包既不撰写也无法查看它，这是此处唯一一项会话日志无法重建的模型可见输入——然后读到会话本身，其中下面的 `{ns}` 是标签前缀（内容未与之冲突时为 `dsh`），消息文本、调用 id 与参数来自会话。全新的一步以携带阅读指引与全部元素的一段 prompt 文本交付它；被 resume 的一步只把最新的元素交付进产品会话已经持有的转录中，另有该会话记作上一次调用工具结果的那句固定文本，它早于 harness 运行真正的调用——那是本包的常量，放在日志自身的工具调用所决定的位置上，并被随后作为本步骤 `<{ns}-tool-result>` 出现的真实结果取代。在会话之外，模型把本次请求的 harness 工具看作名为 `mcp__dsh__<tool>` 的原生工具，各自携带未经改动的 harness 描述与 JSON Schema，并像请求任何工具那样请求一次调用：每一步一个 API 轮次，无需遵守 prompt 协议，也无需把参数编码成 JSON 字符串。
+该安装的模型把 harness 的 system prompt 原样读作自己的 system prompt——外面套着产品自己的一层外壳，本包既不撰写也无法查看它，这是此处唯一一项会话日志无法重建的模型可见输入，不过它所陈述的工作目录正是 harness 会话自己的、记录在会话头部里的那一个——然后读到会话本身，其中下面的 `{ns}` 是标签前缀（内容未与之冲突时为 `dsh`），消息文本、调用 id 与参数来自会话。全新的一步以携带阅读指引与全部元素的一段 prompt 文本交付它；被 resume 的一步只把最新的元素交付进产品会话已经持有的转录中，另有该会话记作上一次调用工具结果的那句固定文本，它早于 harness 运行真正的调用——那是本包的常量，放在日志自身的工具调用所决定的位置上，并被随后作为本步骤 `<{ns}-tool-result>` 出现的真实结果取代。在会话之外，模型把本次请求的 harness 工具看作名为 `mcp__dsh__<tool>` 的原生工具，各自携带未经改动的 harness 描述与 JSON Schema，并像请求任何工具那样请求一次调用：每一步一个 API 轮次，无需遵守 prompt 协议，也无需把参数编码成 JSON 字符串。
 
 ##### 指引原文
 
@@ -129,4 +131,3 @@ Answer the last turn of the conversation below. Elements tagged `<{ns}-…>` are
 - **不发布任何推理档位** —— `effort` 与 `thinking` 是路由级配置，因此 `agent/request` 无法像在带密钥路由上那样逐步改变推理档位。
 - **产品会在轮次上限终止查询前运行一次所提供的调用** —— 其处理器不执行任何东西、只返回一句固定文本，但产品仍要花掉这次往返；请求了多次调用的回复，其全部调用都会在查询结束前以同样方式被回应。
 - **没有 settings 缝热更新** —— 路由事实在加载时解析一次，不同于按请求重读 `ctx.settings` 区块的带密钥适配器。补上它需要一个 settings 命名空间以及带密钥适配器所用的原子路由替换。
-- **产品查询运行在本进程的工作目录里** —— 交给 SDK 的是 `process.cwd()`，而产品的信封会把该目录作为工作目录告诉它的模型。`cwd` 与之不同的 harness 会话——比如在自己 worktree 里的项目部门——不会从 harness 得到关于其目录的任何其他说明，因此信任该信封的模型会在会话工作区之外读写；[readme-rows 记录](../../../data/proving-ground/README.md)展示了一个把每一步都做在克隆主检出、而不是自己 worktree 里的部门。要传入会话的 `cwd`，需要缝交出的请求带上它。

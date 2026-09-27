@@ -9,7 +9,10 @@
  *
  * The product runs no harness tool and reads no workspace, so tool calls
  * return to the harness agent loop and run under the harness's own tools,
- * session log, read barrier, budget policy, and approvals.
+ * session log, read barrier, budget policy, and approvals. The query runs in
+ * the requesting harness session's working directory, read from the session
+ * store through the request's session id, so the installation's own envelope
+ * states that session's workspace to the model as its working directory.
  *
  * By default a harness session's steps share one product session, resumed with
  * the newest turn alone so the installation reads the conversation prefix from
@@ -32,6 +35,9 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import { LlmError } from '@deepseek-ai/dsh-llm'
+import type { GenerateOptions } from '@deepseek-ai/dsh-llm'
+import type { SessionStore } from '@deepseek-ai/dsh-session'
 import { CLAUDE_CODE_COMMAND, ClaudeCodeAdapter } from './adapter.ts'
 import { Config, resolveAdapterOptions } from './config.ts'
 
@@ -89,11 +95,43 @@ export {
 export type * from './types.ts'
 
 export const name = 'llm-claude-code'
-export const inject = ['llm', 'subprocess']
+export const inject = ['llm', 'subprocess', 'sessions']
+
+/** Code for a request naming a harness session the session store does not hold. */
+export const UNKNOWN_SESSION_CODE = 'UNKNOWN_SESSION'
+
+/**
+ * Resolve the directory one request's query runs in, which is also where the
+ * installation files the product session that query creates.
+ *
+ * A request from a harness session runs in that session's working directory,
+ * the `meta.cwd` it was created with. A request that names no session — a
+ * hand-built one-shot — and a session that recorded no directory run in the
+ * harness process's own. A request naming a session the store does not hold is
+ * refused rather than defaulted: the seam stamps session identity from a live
+ * session, so an unknown id is a caller error, not a session without a
+ * directory, and a query silently run elsewhere is the failure this resolution
+ * exists to prevent.
+ * @param sessions - the live session store.
+ * @param sessionId - the request's session identity, absent for a one-shot.
+ * @returns the absolute directory the query runs in.
+ * @throws {LlmError} `UNKNOWN_SESSION` when the store holds no session with that id.
+ */
+export function queryDirectory(sessions: Pick<SessionStore, 'get'>, sessionId: GenerateOptions['sessionId']): string {
+  if (sessionId === undefined) return process.cwd()
+  const session = sessions.get(sessionId)
+  if (session === undefined) {
+    throw new LlmError(
+      `llm-claude-code: the request names harness session "${String(sessionId)}", which the session store does not hold`,
+      UNKNOWN_SESSION_CODE,
+    )
+  }
+  return session.header.cwd ?? process.cwd()
+}
 
 /**
  * Register one Claude Code provider route on `ctx.llm`.
- * @param ctx - context carrying the LLM registry and the subprocess seam.
+ * @param ctx - context carrying the LLM registry, the subprocess seam, and the session store.
  * @param config - the route name, model catalog, and query policy.
  */
 export function apply(ctx: Context, config: Config): void {
@@ -102,10 +140,7 @@ export function apply(ctx: Context, config: Config): void {
     resolveExecutable: (env, signal) =>
       ctx.subprocess.resolveExecutable(CLAUDE_CODE_COMMAND, env, signal),
     spawn: spec => ctx.subprocess.spawn(spec),
-    // The query reads no workspace; the directory only anchors the CLI process
-    // to the one the harness itself was launched in, and locates the product
-    // sessions a resumable route creates there.
-    cwd: () => process.cwd(),
+    cwd: sessionId => queryDirectory(ctx.sessions, sessionId),
   })
   ctx.llm.registerAdapter([options.provider], adapter)
   // Unloading the route releases every product session it created, so a

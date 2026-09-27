@@ -7,13 +7,15 @@
  * this package's e2e suites.
  */
 
+import { tmpdir } from 'node:os'
+import { resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Options, Query, SDKMessage } from '@anthropic-ai/claude-agent-sdk'
 import { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import LlmRuntime, { BlockAssembler, createAssistantMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions, Message, StreamChunk } from '@deepseek-ai/dsh-llm'
-import { SessionId } from '@deepseek-ai/dsh-session'
+import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SubprocessRuntime from '@deepseek-ai/dsh-subprocess'
 import type {
   SubprocessHandle,
@@ -134,6 +136,9 @@ class StubSubprocess extends SubprocessRuntime {
 }
 
 const spawnCalls: SubprocessSpawnSpec[] = []
+
+/** An absolute directory a harness session may record; nothing here opens it. */
+const WORKSPACE = resolve(tmpdir(), 'dsh-llm-claude-code-workspace')
 
 function deps(overrides: Partial<ClaudeCodeAdapterDependencies> = {}): ClaudeCodeAdapterDependencies {
   return {
@@ -284,6 +289,79 @@ describe('one query per request', () => {
   })
 })
 
+describe('the directory a query runs in', () => {
+  const SESSION = SessionId('sess-cwd')
+
+  it('runs the query in the directory resolved for the request\'s session', async () => {
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    const resolved: GenerateOptions['sessionId'][] = []
+    const instance = adapter(BASE_CONFIG, {
+      cwd: (sessionId) => {
+        resolved.push(sessionId)
+        return WORKSPACE
+      },
+    })
+
+    await collect(instance.stream(request({ sessionId: SESSION })))
+
+    expect(resolved).toEqual([SESSION])
+    expect(capturedOptions?.cwd).toBe(WORKSPACE)
+  })
+
+  it('refuses the request before any query when the directory cannot be resolved', async () => {
+    const instance = adapter(BASE_CONFIG, {
+      cwd: () => { throw new Error('no such session') },
+    })
+    expect(await failureOf(request({ sessionId: SESSION }), instance)).toMatchObject({ message: 'no such session' })
+    expect(queryMock).not.toHaveBeenCalled()
+  })
+
+  it('deletes a product session from the directory it was created in', async () => {
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    const instance = adapter(BASE_CONFIG, { cwd: () => WORKSPACE })
+    await collect(instance.stream(request({ sessionId: SESSION })))
+    const productSessionId = capturedOptions?.sessionId
+
+    instance.dispose()
+
+    expect(deleteSessionMock).toHaveBeenCalledWith(productSessionId, { dir: WORKSPACE })
+  })
+
+  it('runs fresh and releases the old product session when the conversation\'s directory moved', async () => {
+    const directories = [WORKSPACE, resolve(WORKSPACE, 'moved')]
+    const instance = adapter(BASE_CONFIG, { cwd: () => directories.shift() ?? '' })
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    await collect(instance.stream(request({ sessionId: SESSION, messages: history(0) })))
+    const first = capturedOptions
+
+    script({ messages: [assistantMessage(textBlock('ok')), successResult()] })
+    const chunks = await collect(instance.stream(request({ sessionId: SESSION, messages: history(1) })))
+
+    expect(capturedOptions).not.toHaveProperty('resume')
+    expect(capturedOptions?.cwd).toBe(resolve(WORKSPACE, 'moved'))
+    expect(chunks.at(-1)).toMatchObject({ replayState: { continuity: 'fresh', fallback: 'cwd-changed' } })
+    expect(deleteSessionMock).toHaveBeenCalledWith(first?.sessionId, { dir: WORKSPACE })
+  })
+})
+
+/** The conversation after `rounds` completed steps, newest turn last. */
+function history(rounds: number): Message[] {
+  const messages: Message[] = [
+    createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'start' }] }),
+  ]
+  for (let round = 0; round < rounds; round += 1) {
+    messages.push(createAssistantMessage({
+      source: { provider: 'claude-code', model: 'default' },
+      content: [{ type: 'text', text: `answer ${round}` }],
+    }))
+    messages.push(createUserMessage({
+      source: { kind: 'user' },
+      content: [{ type: 'text', text: `next ${round}` }],
+    }))
+  }
+  return messages
+}
+
 describe('failure classification', () => {
   it('refuses a model the operator did not declare, before any query', async () => {
     expect(await failureOf(request({ model: 'other' })))
@@ -412,24 +490,6 @@ describe('session continuity', () => {
     const call = queryMock.mock.calls.at(-1)?.[0]
     if (call === undefined) throw new Error('the fixture ran no query')
     return { prompt: call.prompt, options: call.options, chunks }
-  }
-
-  /** The conversation after `rounds` completed steps, newest turn last. */
-  function history(rounds: number): Message[] {
-    const messages: Message[] = [
-      createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'start' }] }),
-    ]
-    for (let round = 0; round < rounds; round += 1) {
-      messages.push(createAssistantMessage({
-        source: { provider: 'claude-code', model: 'default' },
-        content: [{ type: 'text', text: `answer ${round}` }],
-      }))
-      messages.push(createUserMessage({
-        source: { kind: 'user' },
-        content: [{ type: 'text', text: `next ${round}` }],
-      }))
-    }
-    return messages
   }
 
   it('resumes the product session it created and sends only the newest turn', async () => {
@@ -613,10 +673,9 @@ describe('claudeQueryOptions', () => {
     const options = claudeQueryOptions({
       options: resolveAdapterOptions(BASE_CONFIG),
       model: { id: 'default' },
-      plan: { kind: 'fresh', productSessionId: 'p1', fallback: undefined, continuable: false, rendered },
+      plan: { kind: 'fresh', productSessionId: 'p1', cwd: '/workspace', fallback: undefined, continuable: false, rendered },
       offer: undefined,
       executable: '/usr/bin/claude',
-      cwd: '/workspace',
       controller: new AbortController(),
       spawn: (spec) => {
         spawnCalls.push(spec)
@@ -633,6 +692,7 @@ describe('claudeQueryOptions', () => {
     } as never)
     expect(managed?.stdout).toBe(child.stdout)
     expect(spawnCalls[0]?.argv).toEqual(['/usr/bin/claude', '--print'])
+    expect(options.cwd).toBe('/workspace')
   })
 })
 
@@ -677,29 +737,76 @@ describe('disposeQuery', () => {
 })
 
 describe('the plugin on a real context', () => {
-  it('registers the configured route and serves a request through ctx.llm', async () => {
+  /** The route mounted beside the real seam, subprocess stub, and session store, with one scripted reply. */
+  async function mounted(): Promise<{ ctx: Context; dispose: () => Promise<void> }> {
     const child = fakeChild()
     StubSubprocess.child = child.handle
     script({ messages: [assistantMessage(textBlock('through the seam')), successResult()], child })
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(StubSubprocess)
+    await ctx.plugin(SessionStore)
     const fiber = await ctx.plugin(LlmClaudeCode, BASE_CONFIG)
+    return {
+      ctx,
+      dispose: async () => {
+        await fiber.dispose()
+        expect(ctx.llm.listProviders()).toEqual([])
+        await ctx.fiber.dispose()
+      },
+    }
+  }
+
+  it('registers the configured route and serves a request through ctx.llm', async () => {
+    const { ctx, dispose } = await mounted()
 
     expect(ctx.llm.listProviders()).toEqual([{ id: 'claude-code', name: 'claude-code' }])
     const chunks = await collect(ctx.llm.stream(request()))
     expect(chunks).toContainEqual({ type: 'text-delta', index: 0, text: 'through the seam' })
     expect(StubSubprocess.spawned).toHaveLength(1)
+    // A request that names no session runs where the harness process does.
+    expect(capturedOptions?.cwd).toBe(process.cwd())
 
-    await fiber.dispose()
-    expect(ctx.llm.listProviders()).toEqual([])
-    await ctx.fiber.dispose()
+    await dispose()
+  })
+
+  it('runs a session\'s query in the working directory its header records', async () => {
+    const { ctx, dispose } = await mounted()
+    const session = ctx.sessions.create(SessionId('with-cwd'), { meta: { cwd: WORKSPACE } })
+
+    await collect(ctx.llm.stream(request({ sessionId: session.id })))
+    expect(capturedOptions?.cwd).toBe(WORKSPACE)
+
+    await dispose()
+  })
+
+  it('runs a session that records no directory where the harness process does', async () => {
+    const { ctx, dispose } = await mounted()
+    const session = ctx.sessions.create(SessionId('without-cwd'))
+
+    await collect(ctx.llm.stream(request({ sessionId: session.id })))
+    expect(capturedOptions?.cwd).toBe(process.cwd())
+
+    await dispose()
+  })
+
+  it('refuses a request naming a session the store does not hold, before any query', async () => {
+    const { ctx, dispose } = await mounted()
+
+    const chunks = await collect(ctx.llm.stream(request({ sessionId: SessionId('ghost') })))
+    expect(chunks.at(-1)).toMatchObject({
+      type: 'finish',
+      reason: { kind: 'error', failure: { code: LlmClaudeCode.UNKNOWN_SESSION_CODE } },
+    })
+    expect(queryMock).not.toHaveBeenCalled()
+
+    await dispose()
   })
 
   it('keeps the Loader namespace and the package-owned empty invariant', async () => {
     expect('default' in LlmClaudeCode).toBe(false)
     expect(LlmClaudeCode.name).toBe('llm-claude-code')
-    expect(LlmClaudeCode.inject).toEqual(['llm', 'subprocess'])
+    expect(LlmClaudeCode.inject).toEqual(['llm', 'subprocess', 'sessions'])
 
     const dispose = vi.fn()
     const register = vi.fn((_packageName: string, _installer: InvariantInstaller) => dispose)

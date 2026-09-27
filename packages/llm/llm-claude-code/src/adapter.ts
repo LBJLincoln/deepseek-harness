@@ -10,7 +10,9 @@
  *
  * Whether the query carries the whole conversation or resumes the product
  * session that already holds it is this route's own choice, made per request
- * under the configured `sessionContinuity` and recorded on the answer.
+ * under the configured `sessionContinuity` and recorded on the answer. Every
+ * query runs in the requesting harness session's working directory, which the
+ * installation states to the model and files the product session under.
  *
  * @module @deepseek-ai/dsh-llm-claude-code/adapter
  */
@@ -95,8 +97,15 @@ export interface ClaudeCodeAdapterDependencies {
   ) => Promise<string>
   /** Start the CLI under the shared process-tree owner. */
   spawn: (spec: SubprocessSpawnSpec) => SubprocessHandle
-  /** Directory the CLI process runs in; the query itself reads nothing from it. */
-  cwd: () => string
+  /**
+   * Directory the query of one request runs in, given the request's session
+   * identity: the requesting harness session's working directory, or the
+   * harness process's own for a request that names no session or whose session
+   * records none. The installation states this directory to the model as its
+   * working directory and files the product session under it. Throws for a
+   * session the store does not hold.
+   */
+  cwd: (sessionId: GenerateOptions['sessionId']) => string
 }
 
 /** Everything one query needs after the request has been resolved and rendered. */
@@ -105,14 +114,12 @@ export interface ClaudeCodeQuerySpec {
   readonly options: ResolvedClaudeCodeOptions
   /** Catalog entry the request selected. */
   readonly model: ClaudeCodeModel
-  /** Which product session this step runs in, whether it resumes one, and what it sends. */
+  /** Which product session this step runs in and where, whether it resumes one, and what it sends. */
   readonly plan: ContinuityPlan
   /** The request's tools as an in-process MCP server, absent when it offers none. */
   readonly offer: ToolOffer | undefined
   /** Exact CLI path resolved through the subprocess seam. */
   readonly executable: string
-  /** Directory the CLI process runs in. */
-  readonly cwd: string
   /** Cancellation owner handed to the SDK. */
   readonly controller: AbortController
   /** Start the CLI under the shared process-tree owner. */
@@ -172,7 +179,7 @@ export function replayState(plan: ContinuityPlan): ClaudeCodeReplayState {
 export function claudeQueryOptions(spec: ClaudeCodeQuerySpec): Options {
   return {
     abortController: spec.controller,
-    cwd: spec.cwd,
+    cwd: spec.plan.cwd,
     pathToClaudeCodeExecutable: spec.executable,
     env: { ...scrubbedParentEnv(), ...spec.options.env },
     // The harness prompt is the prompt: a custom string replaces the product's
@@ -267,7 +274,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     super()
     this.sessions = new ProductSessionTable(
       this.options.resumableSessionLimit,
-      (productSessionId) => { this.releaseTranscript(productSessionId) },
+      (productSessionId, cwd) => { this.releaseTranscript(productSessionId, cwd) },
     )
   }
 
@@ -280,19 +287,20 @@ export class ClaudeCodeAdapter extends LlmAdapter {
   }
 
   /**
-   * Delete one product session's transcript from the installation's store.
+   * Delete one product session's transcript from the installation's store,
+   * where it is filed under the directory the session was created in.
    *
    * The deletion runs against the operator's own directory and outlives the
    * request that triggered it, so a store that refuses — a transcript the
    * operator already removed, a directory gone read-only — leaves the route
    * with one file it did not clean up rather than a failed harness step.
    */
-  private releaseTranscript(productSessionId: string): void {
+  private releaseTranscript(productSessionId: string, cwd: string): void {
     // Swallows every rejection the installation's store can raise for one
     // delete — a transcript the operator already removed, a directory gone
     // read-only — because the deletion outlives the request that triggered it
     // and nothing downstream is waiting on it.
-    void deleteSession(productSessionId, { dir: this.deps.cwd() }).catch(() => {})
+    void deleteSession(productSessionId, { dir: cwd }).catch(() => {})
   }
 
   /** Select the catalog entry a request named, or refuse the request. */
@@ -351,16 +359,18 @@ export class ClaudeCodeAdapter extends LlmAdapter {
   }
 
   /**
-   * Plan one step's continuity, run its query, and keep the route's record of
-   * the product session in step with what that query left behind.
+   * Resolve the directory one step runs in, plan its continuity, run its query,
+   * and keep the route's record of the product session in step with what that
+   * query left behind.
    *
    * A step that does not deliver an answer may still have written its prompt
    * into the product session, so what that session holds is no longer what any
    * record describes: the record goes, and with it the transcript.
    */
   private async runQuery(options: GenerateOptions): Promise<StreamChunk[]> {
+    const cwd = this.deps.cwd(options.sessionId)
     const rendering = renderConversation(options)
-    const plan = planContinuity(this.options.sessionContinuity, options, rendering, this.sessions)
+    const plan = planContinuity(this.options.sessionContinuity, options, rendering, cwd, this.sessions)
     const key = continuityKey(options)
     try {
       const chunks = await this.runPlannedQuery(options, plan)
@@ -368,7 +378,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
       return chunks
     } catch (error: unknown) {
       if (key !== undefined) this.sessions.retire(key)
-      if (plan.kind === 'fresh' && plan.continuable) this.releaseTranscript(plan.productSessionId)
+      if (plan.kind === 'fresh' && plan.continuable) this.releaseTranscript(plan.productSessionId, plan.cwd)
       throw error
     }
   }
@@ -388,6 +398,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     const heldMessages = options.messages.length
     this.sessions.set(key, {
       productSessionId: plan.productSessionId,
+      cwd: plan.cwd,
       heldMessages,
       digest: conversationDigest(options, rendering, heldMessages),
     })
@@ -427,7 +438,6 @@ export class ClaudeCodeAdapter extends LlmAdapter {
           plan,
           offer,
           executable,
-          cwd: this.deps.cwd(),
           controller,
           spawn: spec => this.deps.spawn(spec),
           capture: (captured) => { child = captured },

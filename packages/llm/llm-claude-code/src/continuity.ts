@@ -65,23 +65,27 @@ export function conversationDigest(
 /**
  * Decide whether a record still describes the request's own conversation.
  *
- * The record names how many messages' prompt the product session holds; the
- * product's answer to that prompt is the message at exactly that index, and
- * everything after it is the turn this step must send. A request that is
- * shorter than the record, that does not carry the product's answer where the
- * record puts it, that carries a further assistant message the product did not
- * write, or whose prefix digest moved is a conversation the product session
- * does not hold.
+ * The record names the directory the product session was created in and how
+ * many messages' prompt it holds; the product's answer to that prompt is the
+ * message at exactly that index, and everything after it is the turn this step
+ * must send. A request whose query runs in another directory, that is shorter
+ * than the record, that does not carry the product's answer where the record
+ * puts it, that carries a further assistant message the product did not write,
+ * or whose prefix digest moved is a conversation the product session does not
+ * hold.
  * @param options - the harness request.
  * @param rendering - that request rendered under its chosen tag prefix.
+ * @param cwd - the directory this request's query runs in.
  * @param record - what the product session held when this route last sent to it.
  * @returns the reason the record does not apply, or `undefined` when it does.
  */
 export function resumeRefusal(
   options: GenerateOptions,
   rendering: ConversationRendering,
+  cwd: string,
   record: ProductSessionRecord,
 ): ContinuityFallback | undefined {
+  if (record.cwd !== cwd) return 'cwd-changed'
   if (options.messages.length <= record.heldMessages) return 'history-rewound'
   const answer = options.messages[record.heldMessages]
   if (answer?.role !== 'assistant') return 'answer-missing'
@@ -92,8 +96,11 @@ export function resumeRefusal(
   return undefined
 }
 
-/** Release one product session's transcript from the installation's store. */
-export type TranscriptRelease = (productSessionId: string) => void
+/**
+ * Release one product session's transcript from the installation's store,
+ * which files it under the directory the session was created in.
+ */
+export type TranscriptRelease = (productSessionId: string, cwd: string) => void
 
 /**
  * The product sessions this route keeps resumable, newest use last.
@@ -135,7 +142,7 @@ export class ProductSessionTable {
   set(key: string, record: ProductSessionRecord): void {
     const previous = this.entries.get(key)
     if (previous !== undefined && previous.productSessionId !== record.productSessionId) {
-      this.release(previous.productSessionId)
+      this.release(previous.productSessionId, previous.cwd)
     }
     // Re-inserting moves the key to the end, which is what makes the first
     // key of the iteration the least recently used one.
@@ -157,7 +164,7 @@ export class ProductSessionTable {
     const record = this.entries.get(key)
     if (record === undefined) return
     this.entries.delete(key)
-    this.release(record.productSessionId)
+    this.release(record.productSessionId, record.cwd)
   }
 
   /** Drop every record and release every transcript the route created. */
@@ -177,18 +184,20 @@ export class ProductSessionTable {
  * @param mode - the route's configured continuity.
  * @param options - the harness request.
  * @param rendering - that request rendered under its chosen tag prefix.
+ * @param cwd - the directory this request's query runs in.
  * @param table - the product sessions this route keeps resumable.
- * @returns the query's product session, prompt, and persistence for this step.
+ * @returns the query's product session, directory, prompt, and persistence for this step.
  */
 export function planContinuity(
   mode: SessionContinuity,
   options: GenerateOptions,
   rendering: ConversationRendering,
+  cwd: string,
   table: ProductSessionTable,
 ): ContinuityPlan {
   const whole = { systemPrompt: rendering.systemPrompt, prompt: rendering.whole }
   if (mode === 'per-query') {
-    return { kind: 'fresh', productSessionId: randomUUID(), fallback: undefined, continuable: false, rendered: whole }
+    return { kind: 'fresh', productSessionId: randomUUID(), cwd, fallback: undefined, continuable: false, rendered: whole }
   }
   const key = continuityKey(options)
   const fresh = (fallback: ContinuityFallback): ContinuityPlan => {
@@ -196,6 +205,7 @@ export function planContinuity(
     return {
       kind: 'fresh',
       productSessionId: randomUUID(),
+      cwd,
       fallback,
       continuable: key !== undefined,
       rendered: whole,
@@ -204,11 +214,12 @@ export function planContinuity(
   if (key === undefined) return fresh('no-session-id')
   const record = table.get(key)
   if (record === undefined) return fresh('no-record')
-  const refusal = resumeRefusal(options, rendering, record)
+  const refusal = resumeRefusal(options, rendering, cwd, record)
   if (refusal !== undefined) return fresh(refusal)
   return {
     kind: 'resumed',
     productSessionId: record.productSessionId,
+    cwd: record.cwd,
     rendered: {
       systemPrompt: rendering.systemPrompt,
       // The product session holds the prompt for `heldMessages` messages and

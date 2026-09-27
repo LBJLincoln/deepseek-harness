@@ -96,6 +96,12 @@ export interface ProductSessionRecord {
   /** Product session id the route created for this harness conversation. */
   readonly productSessionId: string
   /**
+   * Directory the product session was created in. The installation files a
+   * session under its directory's project entry, so a step resuming the
+   * session runs there and its transcript is deleted from there.
+   */
+  readonly cwd: string
+  /**
    * Messages of the request whose prompt the product session now holds. The
    * product's own answer to that prompt is the message at this index of the
    * next request.
@@ -109,6 +115,7 @@ export interface ProductSessionRecord {
 export type ContinuityFallback =
   | 'no-session-id'
   | 'no-record'
+  | 'cwd-changed'
   | 'history-rewound'
   | 'answer-missing'
   | 'prefix-changed'
@@ -133,6 +140,8 @@ export type ContinuityPlan =
     readonly kind: 'fresh'
     /** Product session id the query is asked to use. */
     readonly productSessionId: string
+    /** Directory the query runs in, which is where the installation creates the product session. */
+    readonly cwd: string
     /** Set when a `per-session` route could not resume; drives the logged reason. */
     readonly fallback: ContinuityFallback | undefined
     /** Whether the route will resume this session later, requiring persistence. */
@@ -145,6 +154,8 @@ export type ContinuityPlan =
     readonly kind: 'resumed'
     /** Product session the query resumes. */
     readonly productSessionId: string
+    /** Directory the product session was created in, where the resuming query runs. */
+    readonly cwd: string
     /** The rendered system prompt and continuation prompt text. */
     readonly rendered: RenderedRequest
   }

@@ -24,7 +24,7 @@ import LlmRuntime, {
 } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { runLoaderSmoke } from '@deepseek-ai/dsh-loader-smoke'
-import { SessionId } from '@deepseek-ai/dsh-session'
+import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
 import * as LlmClaudeCode from '../src/index.ts'
@@ -56,6 +56,7 @@ describe.skipIf(!enabled)('one query on the operator\'s Claude Code installation
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(LocalSubprocessRuntime)
+    await ctx.plugin(SessionStore)
     await ctx.plugin(LlmClaudeCode, { provider: 'claude-code', models: [{ id: 'default' }] })
 
     const assembler = new BlockAssembler()
@@ -86,9 +87,13 @@ describe.skipIf(!enabled)('two steps of one harness session on the operator\'s i
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(LocalSubprocessRuntime)
+    await ctx.plugin(SessionStore)
     await ctx.plugin(LlmClaudeCode, { provider: 'claude-code', models: [{ id: 'default' }] })
 
-    const sessionId = SessionId(`e2e-continuity-${Date.now()}`)
+    // The two steps belong to one live harness session, which records no
+    // directory of its own, so the product session is filed under this
+    // process's directory and `stored()` looks for it there.
+    const sessionId = ctx.sessions.create(SessionId(`e2e-continuity-${Date.now()}`)).id
     const system = 'You are a coding agent driven by a harness. Use the tools you have; never answer from memory.'
     // Long enough that the installation's prompt cache has a prefix worth
     // reading: below its minimum, a resumed step reports no cache read at all.

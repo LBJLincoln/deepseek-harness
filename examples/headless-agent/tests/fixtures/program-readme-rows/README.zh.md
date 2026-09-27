@@ -66,7 +66,7 @@ TSX_TSCONFIG_PATH="$REPO/tsconfig.json" \
     > "$RUN/stdout.jsonl" 2> "$RUN/stderr.txt" &
 ```
 
-它需要已安装并已登录的 `claude` CLI，不需要 `DEEPSEEK_API_KEY`。运行期间 `$RUN/.sessions/` 会逐渐填满每个会话一份日志——账本、部门和整合——而 driver 会在程序结束时把它唯一的结果行写入 `stdout.jsonl`。在这条路由上，产品查询运行在 driver 的工作目录里，产品会把这一点告诉它的模型，而 harness 不向它点明任何目录；部门可能把那个目录当成自己的 worktree，第一次运行的部门正是这样做的（[该路由的限制](../../../../../packages/llm/llm-claude-code/README.md#known-limitations-and-deferred-work)）。
+它需要已安装并已登录的 `claude` CLI，不需要 `DEEPSEEK_API_KEY`。运行期间 `$RUN/.sessions/` 会逐渐填满每个会话一份日志——账本、部门和整合——而 driver 会在程序结束时把它唯一的结果行写入 `stdout.jsonl`。在这条路由上，产品查询运行在部门自己的 worktree 里，即其会话创建时的目录，产品会把该目录告诉它的模型；本组合的 prompt 里 harness 不点明任何目录（[该路由的 README](../../../../../packages/llm/llm-claude-code/README.md#how-a-request-is-rendered)）。
 
 这次运行留下什么——每份会话日志都位于 `$RUN/.sessions/<workspace-slug>/<session id>/session.jsonl`，整合的 key 在其 id 中被百分号转义：
 

@@ -43,19 +43,28 @@ function sessioned(overrides: Partial<GenerateOptions> = {}): GenerateOptions {
   return request({ sessionId: SessionId('sess-1'), ...overrides })
 }
 
-/** The record a route holds after sending a request of `held` messages. */
+/** The directory every request here runs in unless a case moves it. */
+const WORKSPACE = '/workspace'
+
+/** The record a route holds after sending a request of `held` messages from {@link WORKSPACE}. */
 function record(options: GenerateOptions, held: number, productSessionId = 'p1'): ProductSessionRecord {
   return {
     productSessionId,
+    cwd: WORKSPACE,
     heldMessages: held,
     digest: conversationDigest(options, renderConversation(options), held),
   }
 }
 
 /** A table with a release spy, so eviction and retirement are observable. */
-function table(limit = 4): { instance: ProductSessionTable; released: string[] } {
+function table(limit = 4): { instance: ProductSessionTable; released: string[]; releasedFrom: string[] } {
   const released: string[] = []
-  return { instance: new ProductSessionTable(limit, (id) => { released.push(id) }), released }
+  const releasedFrom: string[] = []
+  const instance = new ProductSessionTable(limit, (id, cwd) => {
+    released.push(id)
+    releasedFrom.push(cwd)
+  })
+  return { instance, released, releasedFrom }
 }
 
 describe('continuityKey', () => {
@@ -94,22 +103,29 @@ describe('resumeRefusal', () => {
     const first = sessioned({ messages: history(0) })
     const second = sessioned({ messages: history(1) })
 
-    expect(resumeRefusal(second, renderConversation(second), record(first, 1))).toBeUndefined()
+    expect(resumeRefusal(second, renderConversation(second), WORKSPACE, record(first, 1))).toBeUndefined()
+  })
+
+  it('refuses a product session created in another directory', () => {
+    const first = sessioned({ messages: history(0) })
+    const second = sessioned({ messages: history(1) })
+
+    expect(resumeRefusal(second, renderConversation(second), '/elsewhere', record(first, 1))).toBe('cwd-changed')
   })
 
   it('refuses a history that no longer reaches past the record', () => {
     const first = sessioned({ messages: history(1) })
-    expect(resumeRefusal(first, renderConversation(first), record(first, 3))).toBe('history-rewound')
+    expect(resumeRefusal(first, renderConversation(first), WORKSPACE, record(first, 3))).toBe('history-rewound')
   })
 
   it('refuses a history whose next message is not the product\'s own answer', () => {
     const options = sessioned({ messages: [...history(0), ...history(0)] })
-    expect(resumeRefusal(options, renderConversation(options), record(options, 1))).toBe('answer-missing')
+    expect(resumeRefusal(options, renderConversation(options), WORKSPACE, record(options, 1))).toBe('answer-missing')
   })
 
   it('refuses a tail carrying an assistant message the product session never wrote', () => {
     const options = sessioned({ messages: history(2) })
-    expect(resumeRefusal(options, renderConversation(options), record(options, 1))).toBe('answer-missing')
+    expect(resumeRefusal(options, renderConversation(options), WORKSPACE, record(options, 1))).toBe('answer-missing')
   })
 
   it('refuses a prefix whose content moved', () => {
@@ -121,7 +137,7 @@ describe('resumeRefusal', () => {
       ],
     })
 
-    expect(resumeRefusal(edited, renderConversation(edited), record(sent, 1))).toBe('prefix-changed')
+    expect(resumeRefusal(edited, renderConversation(edited), WORKSPACE, record(sent, 1))).toBe('prefix-changed')
   })
 })
 
@@ -136,13 +152,14 @@ describe('ProductSessionTable', () => {
     expect(instance.size).toBe(1)
   })
 
-  it('releases the transcript of a session a conversation replaced', () => {
-    const { instance, released } = table()
+  it('releases the transcript of a session a conversation replaced, from the directory it was filed under', () => {
+    const { instance, released, releasedFrom } = table()
     const entry = record(sessioned({ messages: history(0) }), 1)
     instance.set('a', entry)
-    instance.set('a', { ...entry, productSessionId: 'p2' })
+    instance.set('a', { ...entry, productSessionId: 'p2', cwd: '/elsewhere' })
 
     expect(released).toEqual(['p1'])
+    expect(releasedFrom).toEqual([WORKSPACE])
     expect(instance.get('a')?.productSessionId).toBe('p2')
   })
 
@@ -169,10 +186,10 @@ describe('ProductSessionTable', () => {
   })
 
   it('retires one conversation and clears every one', () => {
-    const { instance, released } = table()
+    const { instance, released, releasedFrom } = table()
     const entry = record(sessioned({ messages: history(0) }), 1)
     instance.set('a', { ...entry, productSessionId: 'pa' })
-    instance.set('b', { ...entry, productSessionId: 'pb' })
+    instance.set('b', { ...entry, productSessionId: 'pb', cwd: '/elsewhere' })
 
     instance.retire('missing')
     instance.retire('a')
@@ -180,6 +197,7 @@ describe('ProductSessionTable', () => {
 
     instance.clear()
     expect(released).toEqual(['pa', 'pb'])
+    expect(releasedFrom).toEqual([WORKSPACE, '/elsewhere'])
     expect(instance.size).toBe(0)
   })
 })
@@ -188,9 +206,9 @@ describe('planContinuity', () => {
   it('sends the whole conversation and persists nothing under per-query', () => {
     const { instance } = table()
     const options = sessioned({ messages: history(1) })
-    const plan = planContinuity('per-query', options, renderConversation(options), instance)
+    const plan = planContinuity('per-query', options, renderConversation(options), WORKSPACE, instance)
 
-    expect(plan).toMatchObject({ kind: 'fresh', fallback: undefined, continuable: false })
+    expect(plan).toMatchObject({ kind: 'fresh', cwd: WORKSPACE, fallback: undefined, continuable: false })
     expect(plan.rendered.prompt).toContain('Answer the last turn of the conversation below.')
     expect(instance.size).toBe(0)
   })
@@ -198,27 +216,27 @@ describe('planContinuity', () => {
   it('starts a continuable session for a conversation it holds nothing for', () => {
     const { instance } = table()
     const options = sessioned({ messages: history(0) })
-    const plan = planContinuity('per-session', options, renderConversation(options), instance)
+    const plan = planContinuity('per-session', options, renderConversation(options), WORKSPACE, instance)
 
-    expect(plan).toMatchObject({ kind: 'fresh', fallback: 'no-record', continuable: true })
+    expect(plan).toMatchObject({ kind: 'fresh', cwd: WORKSPACE, fallback: 'no-record', continuable: true })
   })
 
   it('refuses to continue a request with no session identity', () => {
     const { instance } = table()
     const options = request({ messages: history(0) })
-    const plan = planContinuity('per-session', options, renderConversation(options), instance)
+    const plan = planContinuity('per-session', options, renderConversation(options), WORKSPACE, instance)
 
     expect(plan).toMatchObject({ kind: 'fresh', fallback: 'no-session-id', continuable: false })
   })
 
-  it('resumes with the tail that follows the product\'s own answer', () => {
+  it('resumes in the directory of the product session, with the tail that follows the product\'s own answer', () => {
     const { instance } = table()
     const first = sessioned({ messages: history(0) })
     instance.set(continuityKey(first) ?? '', record(first, 1))
     const second = sessioned({ messages: history(1) })
-    const plan = planContinuity('per-session', second, renderConversation(second), instance)
+    const plan = planContinuity('per-session', second, renderConversation(second), WORKSPACE, instance)
 
-    expect(plan).toMatchObject({ kind: 'resumed', productSessionId: 'p1' })
+    expect(plan).toMatchObject({ kind: 'resumed', productSessionId: 'p1', cwd: WORKSPACE })
     expect(plan.rendered.prompt).toBe('<dsh-user>\nnext 0\n</dsh-user>\n')
   })
 
@@ -232,19 +250,31 @@ describe('planContinuity', () => {
         ...history(1).slice(1),
       ],
     })
-    const plan = planContinuity('per-session', edited, renderConversation(edited), instance)
+    const plan = planContinuity('per-session', edited, renderConversation(edited), WORKSPACE, instance)
 
     expect(plan).toMatchObject({ kind: 'fresh', fallback: 'prefix-changed', continuable: true })
     expect(released).toEqual(['p1'])
     expect(instance.size).toBe(0)
   })
 
+  it('retires the record and its transcript when the conversation moved to another directory', () => {
+    const { instance, released, releasedFrom } = table()
+    const sent = sessioned({ messages: history(0) })
+    instance.set(continuityKey(sent) ?? '', record(sent, 1))
+    const second = sessioned({ messages: history(1) })
+    const plan = planContinuity('per-session', second, renderConversation(second), '/elsewhere', instance)
+
+    expect(plan).toMatchObject({ kind: 'fresh', cwd: '/elsewhere', fallback: 'cwd-changed', continuable: true })
+    expect(released).toEqual(['p1'])
+    expect(releasedFrom).toEqual([WORKSPACE])
+  })
+
   it('mints a distinct product session for every fresh plan', () => {
     const { instance } = table()
     const options = sessioned({ messages: history(0) })
     const rendering = renderConversation(options)
-    const first = planContinuity('per-query', options, rendering, instance)
-    const second = planContinuity('per-query', options, rendering, instance)
+    const first = planContinuity('per-query', options, rendering, WORKSPACE, instance)
+    const second = planContinuity('per-query', options, rendering, WORKSPACE, instance)
 
     expect(first.productSessionId).not.toBe(second.productSessionId)
   })
