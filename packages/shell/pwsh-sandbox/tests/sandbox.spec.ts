@@ -7,11 +7,13 @@
  */
 
 import { spawnSync } from 'node:child_process'
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
+import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
+import ReadBarrierService from '@deepseek-ai/dsh-read-barrier'
 import { SandboxProvider, SandboxUnavailableError } from '@deepseek-ai/dsh-sandbox'
 import type { ConfinedArgv, RunnerFailureRule, SandboxExecutionPolicy, SandboxPolicy } from '@deepseek-ai/dsh-sandbox'
 import { resolvePwshPath } from '@deepseek-ai/dsh-pwsh-local'
@@ -55,7 +57,7 @@ function throwingSubprocessRuntime(error: unknown): new (ctx: Context) => Servic
 async function setup(
   behavior: (argv: readonly string[], policy: SandboxPolicy) => ConfinedArgv = passthrough,
   subprocess: new (ctx: Context) => Service = LocalSubprocessRuntime,
-): Promise<{ executor: SandboxPwshExecutor; calls: ConfineCall[] }> {
+): Promise<{ ctx: Context; executor: SandboxPwshExecutor; calls: ConfineCall[] }> {
   const calls: ConfineCall[] = []
   class FakeSandboxProvider extends SandboxProvider {
     confine(argv: readonly string[], policy: SandboxPolicy): ConfinedArgv {
@@ -71,7 +73,7 @@ async function setup(
     ctx.subprocess.internals = { spillDir }
   }
   await ctx.plugin(SandboxPwshExecutor, { graceMs: 200 })
-  return { executor: ctx.shell as SandboxPwshExecutor, calls }
+  return { ctx, executor: ctx.shell as SandboxPwshExecutor, calls }
 }
 
 describe('helpers (pure)', () => {
@@ -323,4 +325,38 @@ describe.skipIf(!pwshAvailable())('SandboxPwshExecutor', () => {
     expect(calls).toHaveLength(0)
     expect(proc.sandbox).toBeUndefined()
   }, 30_000)
+})
+
+describe.skipIf(!pwshAvailable())('what the executor registers with a composed read barrier', () => {
+  /** Mount a barrier over the fake provider and settle the executor's enforcement registration. */
+  async function withBarrier(behavior?: (argv: readonly string[], policy: SandboxPolicy) => ConfinedArgv) {
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'dsh-pwsh-sandbox-barrier-')))
+    const { ctx, calls } = await setup(behavior)
+    await ctx.plugin(LocalFileSystem, { cwd: tmpdir() })
+    await ctx.plugin(ReadBarrierService, { root })
+    await ctx.fiber.await()
+    const entry = ctx.readBarrier.enforcementCensus().find(item => item.capability === 'shell')
+    rmSync(root, { recursive: true, force: true })
+    return { entry, calls, root }
+  }
+
+  it('claims denied-at-executor after probing the wrap it would really run', async () => {
+    const { entry, calls, root } = await withBarrier()
+    // The probe wraps the executor's own program under the barrier's root: the
+    // claim rests on the confinement a real call would get, not on a promise.
+    expect(calls).toContainEqual({
+      argv: ['pwsh'],
+      policy: { mode: 'read-only', workspaceRoot: spillDir, deniedReadRoots: [root] },
+    })
+    expect(entry).toEqual({ capability: 'shell', state: 'denied-at-executor' })
+  })
+
+  it('records the backend reason when the provider refuses to express the denial', async () => {
+    const { entry } = await withBarrier((argv, policy) => {
+      if (policy.deniedReadRoots.length > 0) throw new SandboxUnavailableError('read-only', 'no read denial here')
+      return passthrough(argv)
+    })
+    expect(entry?.state).toBe('unenforced')
+    expect(entry?.reason).toContain('no sandbox backend is usable on this host')
+  })
 })

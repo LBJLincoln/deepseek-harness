@@ -124,7 +124,9 @@ jobs:
     name: node 24 / snapshots and artifacts
     timeout-minutes: 150
     env:
-      DSH_GATE_CONCURRENCY: '2'
+      # One gate at a time: the browser suites in this group time out when a
+      # second gate's build shares the four cores.
+      DSH_GATE_CONCURRENCY: '1'
       DSH_NODE_COMPAT_SKIP_TYPECHECK: '1'
       DSH_OXLINT_THREADS: '2'
       DSH_PUBLINT_CONCURRENCY: '2'

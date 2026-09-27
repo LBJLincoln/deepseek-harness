@@ -82,6 +82,19 @@ describe('startInProcessRun', () => {
     await run.dispose()
   })
 
+  it('runs the model the start named, over the parent\'s route and its own options', async () => {
+    const { ctx, parent } = await setup([textResponse('driver answer')])
+    const run = await startInProcessRun({
+      ...request(parent),
+      agentOptions: { provider: 'mock', model: 'inherited' },
+      model: 'named',
+    }, {})
+    // The seam's `model` is binding: it wins over the inherited route and over `agentOptions`.
+    expect(ctx.agents.get(run.id)!.options).toMatchObject({ provider: 'mock', model: 'named' })
+    await expect(run.result).resolves.toMatchObject({ stopReason: 'completed' })
+    await run.dispose()
+  })
+
   it('reports a prompt a pre-step rejection discarded as refusal, not completion', async () => {
     const { ctx, parent } = await setup([])
     // A UserPromptSubmit deny or a policy plugin: the child claims its prompt,

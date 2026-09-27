@@ -40,6 +40,7 @@ describe('Codex provider public Loader composition', () => {
           toolFilter: false,
           persona: false,
           harnessTools: false,
+          model: false,
         },
         inheritsParentContext: false,
       },
