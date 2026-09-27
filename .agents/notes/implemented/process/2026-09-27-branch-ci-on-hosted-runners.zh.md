@@ -24,8 +24,8 @@ Status: implemented
 
 ## Consequences
 
-开发分支的每次推送都在托管 runner 上得到判定；分支的第一次全绿运行是 `master` 之后这些工作的第一份 CI 证据。pwsh 沙箱 spec 的读屏障探测测试只在装有 `pwsh` 的地方运行，托管 runner 装有它，所以覆盖率门禁在 CI 上和装有 PowerShell 的开发者主机上都成立。bubblewrap 版本钉会随下一次 `noble-updates` 发布再次腐坏，安装步骤会点名它。第四次运行中的两个 web e2e 超时（`agent-preset-selection`、`workspace-management`，都是预设切换或悬停之后的十五秒轮询）在 consumers 作业改为一次一个门禁的运行给出相反结论之前，按负载解读。开发容器完全无法运行 web e2e lane：仓库的 Playwright 需要 headless-shell r1228，而容器自带 r1194，所以这些 lane 的判定只能来自 CI。
+开发分支的每次推送都在托管 runner 上得到判定；分支的第一次全绿运行是 `master` 之后这些工作的第一份 CI 证据。pwsh 沙箱 spec 的读屏障探测测试只在装有 `pwsh` 的地方运行，托管 runner 装有它，所以覆盖率门禁在 CI 上和装有 PowerShell 的开发者主机上都成立。bubblewrap 版本钉会随下一次 `noble-updates` 发布再次腐坏，安装步骤会点名它。第四次运行中的两个 web e2e 超时里，`workspace-management`（一次悬停轮询）确属负载：consumers 作业改为一次一个门禁后，它在第五次运行中通过。`agent-preset-selection` 则不是：2026-09-06 加入的 judge 与 validator 两个预设没有英文显示名，英文预设菜单于是用中文列出它们，菜单快照之后的每条断言都连锁失败；第五次运行把这一点清楚地暴露了出来。开发容器完全无法运行 web e2e lane：仓库的 Playwright 需要 headless-shell r1228，而容器自带 r1194，所以这些 lane 的判定只能来自 CI。
 
 ## Verification
 
-分支上的第一到第四次运行各自发现了 Problem 中列出的缺陷，并且每一项都在随后的提交中修复；本条笔记所在提交触发的运行是第一次所有已知缺陷都已修复的运行。在该提交之前的本地验证：`npx tsc --noEmit -p tsconfig.host.json` 通过；oxlint 在变更的包上通过；`pnpm run verify-module-graph` 报告图是最新的；进程内驱动的测试使其源码保持 100% 覆盖；两条加载器组合测试对着构建出的 `lib/` 通过（`DSH_EXAMPLE_MODE=lib`）；翻译提示快照已从当前黄金配对重新记录并通过；`pnpm run migrate:packed-session-fixtures` 重写了 28 个 fixture 且布局快照通过；ACP 场景 `subagent-continuable-inheritance` 在本地负载下整组 consumers 运行中超时，单独运行则通过。
+分支上的第一到第四次运行各自发现了 Problem 中列出的缺陷，并且每一项都在随后的提交中修复。第五次运行又发现了两项：pwsh 探测测试期望的是 bash spec 的 `read-only` 默认值，而它自己的组合解析为 `workspace-write`（在 `038e8f019` 中修复）；以及上文的预设名缺陷（为两个预设补上英文名，并对着构建出的应用重新记录了两份 web 快照）。在该提交之前的本地验证：`npx tsc --noEmit -p tsconfig.host.json` 通过；oxlint 在变更的包上通过；`pnpm run verify-module-graph` 报告图是最新的；进程内驱动的测试使其源码保持 100% 覆盖；两条加载器组合测试对着构建出的 `lib/` 通过（`DSH_EXAMPLE_MODE=lib`）；翻译提示快照已从当前黄金配对重新记录并通过；`pnpm run migrate:packed-session-fixtures` 重写了 28 个 fixture 且布局快照通过；ACP 场景 `subagent-continuable-inheritance` 在本地负载下整组 consumers 运行中超时，单独运行则通过。

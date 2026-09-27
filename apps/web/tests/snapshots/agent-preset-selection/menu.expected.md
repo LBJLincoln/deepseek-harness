@@ -5,3 +5,5 @@
   - menuitem "Code mode All Standard mode capabilities, with tools exposed through the Code Mode SDK so the model can combine multi-step operations in one TypeScript program."
   - menuitem "Minimal mode Two-tool coding agent with persistent bash and str_replace_editor."
   - menuitem "Creator mode Built for creating custom agent presets, with all Standard mode capabilities plus runtime inspection, plugin experiments, and preset-authoring guidance."
+  - 'menuitem "Judge mode Blind review: judges one attempt from the evidence handed to it alone, without access to the implementer''s session, workspace, or acceptance standard."'
+  - menuitem "Validator mode Writes a task's acceptance standard as weighted cases from its reference program, without access to the implementer's session or workspace."

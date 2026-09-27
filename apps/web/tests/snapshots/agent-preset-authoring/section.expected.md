@@ -61,6 +61,26 @@
       - 'button "复制: 创造模式"':
         - img
         - text: 复制
+    - listitem:
+      - 'button "设为默认: 评审模式"':
+        - text: 评审模式 内置 盲审模式：仅凭交给它的证据评审一次尝试，不接触实现者的会话、工作区与校验标准。
+        - code: judge
+      - 'button "查看: 评审模式"':
+        - img
+        - text: 查看
+      - 'button "复制: 评审模式"':
+        - img
+        - text: 复制
+    - listitem:
+      - 'button "设为默认: 校验模式"':
+        - text: 校验模式 内置 校验模式：依据参考程序为任务编写带权重用例的完成标准，不接触实现者的会话与工作区。
+        - code: validator
+      - 'button "查看: 校验模式"':
+        - img
+        - text: 查看
+      - 'button "复制: 校验模式"':
+        - img
+        - text: 复制
   - heading "自定义" [level=3]
   - button "用「创造模式」创作自定义预设":
     - img

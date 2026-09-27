@@ -8,6 +8,8 @@ export type AgentPresetSettingsKey =
   | 'presetCodeName' | 'presetCodeDescription'
   | 'presetMinimalName' | 'presetMinimalDescription'
   | 'presetCordisName' | 'presetCordisDescription'
+  | 'presetJudgeName' | 'presetJudgeDescription'
+  | 'presetValidatorName' | 'presetValidatorDescription'
   | 'duplicate' | 'duplicateUnavailable' | 'delete' | 'presetId' | 'presetIdPlaceholder' | 'copyOf'
   | 'displayName' | 'displayNamePlaceholder'
   | 'inUse' | 'noDescription' | 'builtInGroup' | 'customGroup'
@@ -46,6 +48,12 @@ export const en: Record<AgentPresetSettingsKey, string> = {
   presetCordisName: 'Creator mode',
   presetCordisDescription:
     'Built for creating custom agent presets, with all Standard mode capabilities plus runtime inspection, plugin experiments, and preset-authoring guidance.',
+  presetJudgeName: 'Judge mode',
+  presetJudgeDescription:
+    'Blind review: judges one attempt from the evidence handed to it alone, without access to the implementer\'s session, workspace, or acceptance standard.',
+  presetValidatorName: 'Validator mode',
+  presetValidatorDescription:
+    'Writes a task\'s acceptance standard as weighted cases from its reference program, without access to the implementer\'s session or workspace.',
   duplicate: 'Duplicate',
   duplicateUnavailable: 'This deployment has no writable preset directory',
   delete: 'Delete',
@@ -106,6 +114,10 @@ export const zh: Record<AgentPresetSettingsKey, string> = {
   presetMinimalDescription: '仅提供持久 bash 与 str_replace_editor 的双工具编码 Agent。',
   presetCordisName: '创造模式',
   presetCordisDescription: '用于创建自定义 Agent preset：具备标准模式的全部能力，并提供运行时检查、插件实验和 preset 创作指导。',
+  presetJudgeName: '评审模式',
+  presetJudgeDescription: '盲审模式：仅凭交给它的证据评审一次尝试，不接触实现者的会话、工作区与校验标准。',
+  presetValidatorName: '校验模式',
+  presetValidatorDescription: '校验模式：依据参考程序为任务编写带权重用例的完成标准，不接触实现者的会话与工作区。',
   duplicate: '复制',
   duplicateUnavailable: '此部署未配置可写的预设目录',
   delete: '删除',
@@ -171,6 +183,8 @@ const BUILT_IN_PRESET_KEYS: Readonly<Partial<Record<string, PresetLocaleKeys>>> 
   code: { name: 'presetCodeName', description: 'presetCodeDescription' },
   minimal: { name: 'presetMinimalName', description: 'presetMinimalDescription' },
   cordis: { name: 'presetCordisName', description: 'presetCordisDescription' },
+  judge: { name: 'presetJudgeName', description: 'presetJudgeDescription' },
+  validator: { name: 'presetValidatorName', description: 'presetValidatorDescription' },
 }
 
 /**
