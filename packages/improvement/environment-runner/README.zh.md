@@ -64,11 +64,11 @@
 
 受界定的尝试在自己的上限处被停止，该上限是 cell 已经花掉的量加上每项上限的份额：运行器通过 [`ctx.sessionBudgets.boundAttempt`](../../guard/budget-policy/README.md#ctxsessionbudgets) 恰好为该次尝试设置它，并在验证之前释放。这一停止会记录携带 `scope: 'attempt'` 的 `budget/breach`，它驳回该 step 或取消子进程，而不阻塞 cell 的 goal；随后运行器像在任何一次尝试之后那样验证这次尝试留下的树，并转入下一档位。cell 自身的上限仍然结束该 cell，其越限不携带作用域并会阻塞 goal，因此耗尽预算的 cell 仍是失败的 cell，而不是耗时更久的 cell。
 
-档位还可以设置 `selfReview: true`，让它的尝试在验证之前以同一实现者的又一轮次结束。一旦实现者的工作正常结束——而不是在被 cell 上限阻塞或截断的尝试之后——运行器把固定的 `<self_review>` 块交给它，[对 route 实现者单独发送，对全新的子进程则放在重述的任务陈述之后](#self-review-turn)，等待该轮次结束，然后才对检查方拥有的集合求摘要、恢复夹具并执行检查。该块是协议常量而非配置字段：它既不指名检查，也不指名用例或期望输出，因此[隐藏用例之墙](#the-clustered-directive)得以保持，而实验的 arm 逐档位设置它。
+档位还可以设置 `selfReview`，让它的尝试在验证之前以同一实现者的又一轮次结束：`true` 要求规格自审，`'probe'` 要求探针自审。一旦实现者的工作正常结束——而不是在被 cell 上限阻塞或截断的尝试之后——运行器把对应的固定 `<self_review>` 块交给它，[对 route 实现者单独发送，对全新的子进程则放在重述的任务陈述之后](#self-review-turn)，等待该轮次结束，然后才对检查方拥有的集合求摘要、恢复夹具并执行检查。规格自审要求实现者重读任务陈述、对照它检查实现并重跑可见测试；探针自审要求实现者逐句审计任务陈述，先写下每一句单独要求什么，再用恰好触发该句的最小输入运行程序，并逐字节比较退出码、stdout 与 stderr（[理由](../../../.agents/notes/proposed/architecture/2026-09-27-loop-iteration-by-agent.md)）。两个块都是协议常量而非配置字段：都不指名检查、用例或期望输出，因此[隐藏用例之墙](#the-clustered-directive)得以保持，而实验的 arm 逐档位设置自审。
 
-自审轮次属于该次尝试，而不是第二次尝试：它运行在该档位的路由上，处于该档位 `share` 所设置的同一个界定之下，尝试计数与阶梯长度都不变。route 实现者的自审步骤由策略的 pre-step 检查像其工作一样度量；被委派的自审子进程在启动之前被度量，与实现子进程完全一样，因此工作已经花掉的档位份额或 cell 上限不给自审留下任何余额，自审便不会启动——作用域为 attempt 的越限让运行转入下一档位，cell 自身上限的越限则在工作所赢得的那次验证之后结束运行。被盖章的档位携带 `selfReview: true`，被委派的自审子进程的 `environment/delegation` 在 `restatedTask: true` 之旁携带 `selfReview: true`；route cell 的自审就是其会话日志所持有的那条用户消息，这正是让它保持模型可见且已记录的东西。
+自审轮次属于该次尝试，而不是第二次尝试：它运行在该档位的路由上，处于该档位 `share` 所设置的同一个界定之下，尝试计数与阶梯长度都不变。route 实现者的自审步骤由策略的 pre-step 检查像其工作一样度量；被委派的自审子进程在启动之前被度量，与实现子进程完全一样，因此工作已经花掉的档位份额或 cell 上限不给自审留下任何余额，自审便不会启动——作用域为 attempt 的越限让运行转入下一档位，cell 自身上限的越限则在工作所赢得的那次验证之后结束运行。被盖章的档位携带该档位所要求的 `selfReview` 值，被委派的自审子进程的 `environment/delegation` 在 `restatedTask: true` 之旁携带 `selfReview: true`；route cell 的自审就是其会话日志所持有的那条用户消息，这正是让它保持模型可见且已记录的东西。
 
-stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠仍能看到该次运行从哪里开始，按 arm 分组的折叠则能看到整条升级路径。每个被盖章的档位携带其尝试所运行的路由、它获准使用的 `share`，以及它是否自审，因此两条以不同方式划分同一 cell 预算、或在不同档位上自审的阶梯是两个 arm。每条 `EnvironmentRunAttempt` 都陈述它所运行的 `model` 与它所处的 `transcript`。route 实现者通过运行器安装在 cell agent 上的模型选择切换路由，并在该次尝试的第一步之前生效；委派实现者则以该档位的模型 id 启动子进程，因为 provider 命名的是它自己的模型，档位中的 harness `provider` 是关于路由的事实，而不是交给 provider 的参数。
+stamp 在 `model` 旁记录阶梯，而 `model` 仍是第一次尝试的路由，因此按路由分组的折叠仍能看到该次运行从哪里开始，按 arm 分组的折叠则能看到整条升级路径。每个被盖章的档位携带其尝试所运行的路由、它获准使用的 `share`，以及它以哪种自审结束，因此两条以不同方式划分同一 cell 预算、在不同档位上自审、或以不同方式自审的阶梯是两个 arm。每条 `EnvironmentRunAttempt` 都陈述它所运行的 `model` 与它所处的 `transcript`。route 实现者通过运行器安装在 cell agent 上的模型选择切换路由，并在该次尝试的第一步之前生效；委派实现者则以该档位的模型 id 启动子进程，因为 provider 命名的是它自己的模型，档位中的 harness `provider` 是关于路由的事实，而不是交给 provider 的参数。
 
 模型可见与已记录仍然等价：模型被要求成为什么，写在每一步的请求头里，而 cell 会话本就记录它；尝试记录与 stamp 陈述的是所要求的内容，而非 provider 实际运行的内容。委派尝试的 `environment/delegation` 携带子进程的 `reportedModel`，正是出于同一原因。
 
@@ -162,7 +162,7 @@ route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/REA
 
 #### What the model sees
 
-对 route 实现的运行，环境的 `task.prompt` 作为新会话的第一条用户消息到达，伴随组合的普通系统提示与工具；检查从不出现。被委派的运行改为把同样的文本发给子进程，由它在自己产品的提示与工具之下读取。验证失败后，在仍有尝试余额时，下一条用户消息携带下面的块，其中 `<rootCause>` 为 `N of the standard's checks failed`，`<detail>` 为带用例检查的每个失败聚类编号一行——该检查撰写的 outcome、该聚类的数量与权重、不符的通道，以及候选程序如何结束——并为每个失败的不带用例检查给出一行证据（退出事实、stdout 与 stderr 尾部），以 `evidenceMaxChars` 为界。被篡改的尝试发送同一个块，携带下面这段固定的篡改 directive，然后终止本次运行；那段文本既不指名路径也不指名检查，因为摘要比较只知道检查方拥有的集合变了，不知道别的。route 实现者只收到跟进块，因为它上方的会话已经持有任务与它自己的工作；委派实现者收到 `task.prompt`、一个空行，然后才是该块，因为它的子进程两者都没有，这正是每种实现者所处的记录稿接口。在要求自审的档位上，还有一条用户消息在该次尝试的工作与其验证之间携带下面这段固定的 `<self_review>` 块，按同样的方式为实现者定形；验证跟进消息若随后出现，则排在它之后。
+对 route 实现的运行，环境的 `task.prompt` 作为新会话的第一条用户消息到达，伴随组合的普通系统提示与工具；检查从不出现。被委派的运行改为把同样的文本发给子进程，由它在自己产品的提示与工具之下读取。验证失败后，在仍有尝试余额时，下一条用户消息携带下面的块，其中 `<rootCause>` 为 `N of the standard's checks failed`，`<detail>` 为带用例检查的每个失败聚类编号一行——该检查撰写的 outcome、该聚类的数量与权重、不符的通道，以及候选程序如何结束——并为每个失败的不带用例检查给出一行证据（退出事实、stdout 与 stderr 尾部），以 `evidenceMaxChars` 为界。被篡改的尝试发送同一个块，携带下面这段固定的篡改 directive，然后终止本次运行；那段文本既不指名路径也不指名检查，因为摘要比较只知道检查方拥有的集合变了，不知道别的。route 实现者只收到跟进块，因为它上方的会话已经持有任务与它自己的工作；委派实现者收到 `task.prompt`、一个空行，然后才是该块，因为它的子进程两者都没有，这正是每种实现者所处的记录稿接口。在要求自审的档位上，还有一条用户消息在该次尝试的工作与其验证之间携带该档位所要求的固定 `<self_review>` 块——下面的规格自审或探针自审——按同样的方式为实现者定形；验证跟进消息若随后出现，则排在它之后。
 
 ##### Validation follow-up
 
@@ -214,9 +214,27 @@ Before your work is validated: re-read the specification at the top of this task
 </self_review>
 ```
 
+##### Probe review turn
+
+```markdown
+<self_review>
+Before your work is validated, audit the implementation against the specification at the top of this task one sentence at a time, without trusting what you remember of it or what the visible tests already cover. For every sentence that says what the program accepts, what it refuses and with which message and exit code, or what it prints and in what order, first write down what that sentence alone requires, then run the program on the smallest input that exercises exactly it and compare the exit code, standard output and standard error byte for byte. Fix every difference, run the visible tests once more, then stop.
+</self_review>
+```
+
+##### Restated probe review turn, to a fresh child
+
+```markdown
+<task.prompt>
+
+<self_review>
+Before your work is validated, audit the implementation against the specification at the top of this task one sentence at a time, without trusting what you remember of it or what the visible tests already cover. For every sentence that says what the program accepts, what it refuses and with which message and exit code, or what it prints and in what order, first write down what that sentence alone requires, then run the program on the smallest input that exercises exactly it and compare the exit code, standard output and standard error byte for byte. Fix every difference, run the visible tests once more, then stop.
+</self_review>
+```
+
 #### Token effect
 
-每次尝试一条用户消息：先是提示词，然后每次验证失败一个后续块，其大小以 `evidenceMaxChars` 为界。被委派的后续尝试会在该块之前重复 `task.prompt`，因此它的第一条消息要再付一次任务陈述的代价——这是记录稿接口所增加的全部提示词 token，而 route 尝试携带的是整份记录稿。要求自审的档位在该档位的每次尝试上多加一个固定块——对被委派的子进程像跟进消息一样放在 `task.prompt` 之后——外加实现者回应它所花的步骤。篡改跟进消息是固定文本。不向系统提示或工具 schema 添加任何内容。
+每次尝试一条用户消息：先是提示词，然后每次验证失败一个后续块，其大小以 `evidenceMaxChars` 为界。被委派的后续尝试会在该块之前重复 `task.prompt`，因此它的第一条消息要再付一次任务陈述的代价——这是记录稿接口所增加的全部提示词 token，而 route 尝试携带的是整份记录稿。要求自审的档位在该档位的每次尝试上多加一个固定块——探针自审的块是两者中较长的一个——对被委派的子进程像跟进消息一样放在 `task.prompt` 之后，外加实现者回应它所花的步骤，对探针自审而言即它所审计的每一句一次程序运行。篡改跟进消息是固定文本。不向系统提示或工具 schema 添加任何内容。
 
 #### KV Cache effect
 

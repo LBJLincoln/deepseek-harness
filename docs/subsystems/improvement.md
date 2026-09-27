@@ -109,13 +109,13 @@ interface EnvironmentRunStamp extends EnvironmentContentHashes {
 }
 ```
 
-Each rung of the stamped ladder carries the route its attempt ran on and, when the caller divided the cell's budget, the share of every cap that attempt was allowed. A rung that ended its attempt with the fixed self-review turn carries `selfReview: true` as well.
+Each rung of the stamped ladder carries the route its attempt ran on and, when the caller divided the cell's budget, the share of every cap that attempt was allowed. A rung that ended its attempt with a self-review turn carries which one as `selfReview`: `true` for the specification review, `'probe'` for the probe review (`EnvironmentRunSelfReview`).
 
 ```ts type-equiv
 /**
  * One rung of an attempt ladder as the stamp records it: the route that
  * attempt ran on, the share of the run's budget caps it was allowed, and
- * whether it ended with a self-review turn.
+ * which self-review turn it ended with.
  */
 interface EnvironmentRunStampRung extends EnvironmentRunModel {
   /**
@@ -127,13 +127,14 @@ interface EnvironmentRunStampRung extends EnvironmentRunModel {
    */
   readonly share?: number
   /**
-   * Whether the attempt was asked to end with the fixed self-review turn
-   * before its validation, absent for an attempt that was asked none. It is
-   * part of the arm's identity for the same reason `share` is: a rung that
-   * reviews and one that does not verify differently on one route, so a fold
-   * that groups by the routes alone would count them together.
+   * The self-review turn the attempt was asked to end with before its
+   * validation, absent for an attempt that was asked none. It is part of the
+   * arm's identity for the same reason `share` is: a rung that reviews and
+   * one that does not, or two that review differently, verify differently on
+   * one route, so a fold that groups by the routes alone would count them
+   * together.
    */
-  readonly selfReview?: boolean
+  readonly selfReview?: EnvironmentRunSelfReview
 }
 ```
 
@@ -141,7 +142,7 @@ interface EnvironmentRunStampRung extends EnvironmentRunModel {
 
 A run request may name one rung per attempt. Attempt `i` runs on `ladder[i - 1].model`, or on the run's own `model` when that rung names none, and the ladder's length is the run's attempt bound, overriding the composition's `maxAttempts`. The stamp records the resolved rungs beside `model`, which stays the first attempt's route, so a fold grouping by route sees where a run started and a fold grouping by arm sees the whole escalation; a fleet plan, an experiment arm, the scorekeeper's facts and rows, and the observatory's columns all carry it, so a laddered cell is never counted as a plain single-model one. Every attempt of the report states the route it ran on.
 
-A rung may also claim `share`, the fraction of every cap the cell runs under that its attempt may consume before it is ended and the run moves to the next rung. The share is measured from the cell's caps rather than from what is left of them, so a cheap first rung cannot spend the budget a later rung was given, and the shares of one ladder may not sum above the whole of those caps. An attempt stopped at its share records a `budget/breach` scoped to the attempt, which leaves the cell's goal active; only the cell's own caps end the cell. A rung may also ask for a self-review: its attempt ends with one fixed `<self_review>` turn of the same implementer before the validation, the stamped rung records it, and the scoreboard, the observatory, and an experiment digest tell a reviewing arm from a plain one. The [runner README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) owns the refusals and how each implementer is bounded.
+A rung may also claim `share`, the fraction of every cap the cell runs under that its attempt may consume before it is ended and the run moves to the next rung. The share is measured from the cell's caps rather than from what is left of them, so a cheap first rung cannot spend the budget a later rung was given, and the shares of one ladder may not sum above the whole of those caps. An attempt stopped at its share records a `budget/breach` scoped to the attempt, which leaves the cell's goal active; only the cell's own caps end the cell. A rung may also ask for a self-review: its attempt ends with one of the two fixed `<self_review>` turns of the same implementer before the validation, the specification review or the probe review, the stamped rung records which, and the scoreboard, the observatory, and an experiment digest tell a reviewing arm from a plain one and the two reviews from each other. The [runner README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) owns the refusals and how each implementer is bounded.
 
 The two implementers ladder differently, and the difference is named on every attempt as `transcript`. A route implementer keeps its transcript: each attempt is another user turn of the one cell session, so the model reads its own earlier work and receives the `<validation_failed>` directive alone. A subagent implementer drops it: each attempt is one fresh child, so a later attempt's prompt restates the task statement ahead of the directive and its `environment/delegation` records `restatedTask`. A `keep` arm on an out-of-process child would need provider resume support the subagent seam does not advertise, so the in-process `spawn` provider is the route's `drop` counterpart. The [runner README](../../packages/improvement/environment-runner/README.md#the-attempt-ladder) owns the rung ceiling, the refusals, and how each implementer changes route.
 
@@ -713,7 +714,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:1084`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:1129`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -761,7 +762,7 @@ get(id: EnvironmentIdType): EnvironmentDefinition | undefined
 list(filter: EnvironmentFilter = {}): EnvironmentDefinition[]
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:430`](../../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:431`](../../packages/improvement/environments/src/index.ts)
 
 <a id="ctxexperiments--experimentservice"></a>
 
@@ -861,7 +862,7 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:397`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:404`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 

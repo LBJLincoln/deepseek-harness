@@ -568,7 +568,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'environment/run': EnvironmentRunStamp
 ```
 
-来源：[`packages/improvement/environments/src/index.ts:41`](../packages/improvement/environments/src/index.ts)
+来源：[`packages/improvement/environments/src/index.ts:42`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 

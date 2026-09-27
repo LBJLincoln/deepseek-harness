@@ -566,7 +566,7 @@ Source: [`packages/improvement/environment-runner/src/types.ts:33`](../packages/
 'environment/run': EnvironmentRunStamp
 ```
 
-Source: [`packages/improvement/environments/src/index.ts:41`](../packages/improvement/environments/src/index.ts)
+Source: [`packages/improvement/environments/src/index.ts:42`](../packages/improvement/environments/src/index.ts)
 
 ### `feedback/*`
 
