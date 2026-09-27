@@ -3,5 +3,10 @@
     "plan": "h3-baseline-sonnet-t5",
     "overlay": null,
     "note": "A fleet of the middle model on the sealed tier, one per night, so the untouched baseline's run-to-run range keeps growing: the noise floor every pair reads against. The free-route pair e10-openrouter-nex-vs-laguna-t2 was removed from this queue on 2026-09-22: the OpenRouter route hangs before its first step (see .agents/notes/proposed/architecture/2026-09-22-openrouter-route-prefirststep-hang.md), which escapes both the route breaker and the wall cap, so an unattended nightly cannot recover from it. It stays in openrouter-pairs for a supervised run once the hang is root-caused."
+  },
+  {
+    "plan": "e12-self-review-sonnet-t5t6",
+    "overlay": null,
+    "note": "The self-review pair, replicated nightly after its first reading on 2026-09-27 (15 of 24 vs 19 of 24, 0.167 [-0.042, 0.375], inconclusive): one attempt that ends with the fixed <self_review> block against one attempt without it, on the middle model over the eight sealed tier-5 and the four tier-6 environments, two repetitions, interleaved arms. About two and a half hours of the route per night beside the baseline fleet; the replications pool before any default rung asks for the review (see .agents/notes/implemented/architecture/2026-09-26-self-review-rung.md)."
   }
 ]
