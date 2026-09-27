@@ -4,8 +4,10 @@
 # operator's Claude Code subscription through the harness's own agent loop.
 # The cell stack, the caps, the attempts, and the route are the proving-ground
 # bench's own, so one model's readings on the two suites come from one
-# composition. The product-loop implementer is not composed: its tool allowlist
-# names only the in-house bench's test command.
+# composition. The product-loop implementer is not composed here, because the
+# in-house bench's tool allowlist names only its own test command;
+# `overlays/with-product-loop.cordis.yml` composes it with the four tracks'
+# toolchains allowed.
 - id: llm-claude-code
   name: '@deepseek-ai/dsh-llm-claude-code'
   config:

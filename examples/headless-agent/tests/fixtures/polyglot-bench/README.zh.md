@@ -12,6 +12,7 @@ git -C ~/polyglot-benchmark checkout 7e0611e77b54e2dea774cdc0aa00cf9f7ed6144f
 export POLYGLOT_BENCH_DIR=~/polyglot-benchmark
 pnpm run bench -- environments --fixture polyglot-bench
 pnpm run bench -- fleet polyglot-smoke-sonnet --fixture polyglot-bench
+pnpm run bench -- experiment polyglot-harness-vs-product-sonnet --fixture polyglot-bench --overlay with-product-loop --out /tmp/polyglot-pair
 pnpm run bench -- admit --fixture polyglot-bench
 ```
 
@@ -63,8 +64,10 @@ implementer 修改的是该轨道的解答文件，即 `.meta/config.json` 所�
 | --- | --- | --- |
 | [`polyglot-smoke-sonnet`](plans/polyglot-smoke-sonnet.json) | 8 | 每个轨道按名次排在最前面的两个未留出练习 |
 | [`polyglot-core-sonnet`](plans/polyglot-core-sonnet.json) | 40 | 每个轨道按名次排在最前面的十个未留出练习 |
+| [`polyglot-all-sonnet`](plans/polyglot-all-sonnet.json) | 116 | 每个轨道按名次排列的全部被准入练习，留出的五分之一排在最前 |
+| [`polyglot-harness-vs-product-sonnet`](plans/polyglot-harness-vs-product-sonnet.json) | 40 + 40 | 核心计划的四十个练习作为一对冻结配对：路由对以产品自身循环作为候选臂 implementer 的同一模型 |
 
-两个计划都让 Claude Code 路由的 `sonnet` 对每个练习跑一次，种子为 1，district 为 `bench-polyglot`，冒烟计划的每个练习也都在核心计划之中。它们的已记录运行是 [Proving Ground 运行表](../../../../../data/proving-ground/README.md#runs)中的行，每份记录都有一段按轨道陈述其证书的段落。[`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) 在本 fixture 仅限评估的条款下加入自研 bench 的 OpenRouter 路由，[`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) 是 `environments` 所启动的无密钥注册表视图。
+三个 fleet 计划都让 Claude Code 路由的 `sonnet` 对每个练习跑一次，种子为 1，district 为 `bench-polyglot`；冒烟计划的每个练习都在核心计划之中，核心计划的每个练习都在全量计划之中，而全量计划还会运行留出的练习，因此它把整个被准入的套件读了一遍。配对计划让核心练习在每个臂各跑一次，种子为 1，两臂交错，处于两臂共享的上限之下；它需要 [`overlays/with-product-loop.cordis.yml`](overlays/with-product-loop.cordis.yml)，该叠加层组合自研 bench 所组合的 `claude-code` subagent provider，只允许无人值守的编辑与四个轨道的工具链，别无其他。它们的已记录运行是 [Proving Ground 运行表](../../../../../data/proving-ground/README.md#runs)中的行，每份记录都有一段按轨道陈述其证书的段落。[`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) 在本 fixture 仅限评估的条款下加入自研 bench 的 OpenRouter 路由，[`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) 是 `environments` 所启动的无密钥注册表视图。
 
 ## 把一个数字放在 aider 的数字旁边读
 
@@ -73,10 +76,12 @@ implementer 修改的是该轨道的解答文件，即 `.meta/config.json` 所�
 - **脚手架。** aider 发送说明与存根文件，给模型两次机会，第二次附上测试输出。这里 agent（智能体）用 harness 自己的工具在工作区中工作，会读测试文件，在上限允许的范围内任意次地运行命令，并有三次尝试，每次都以一次验证结束；记录中的尝试次数说明了有多少个在两次之内获得认证。
 - **样本。** aider 的数字覆盖六种语言的 225 个练习。这里注册四个轨道，去掉被拒绝的练习，计划也只从未留出的练习中抽取。Exercism 的重构练习交付的是可运行的代码，在 aider 的排行榜上，任何没有把它们改坏的模型都能拿到这一分，而这里会拒绝它们。
 - **模型。** 路由向 Claude Code 安装请求它的 `sonnet` 别名，会话日志记录的是这个别名，而不是安装在该别名下实际提供的模型。
+- **暴露。** 每个练习、它的测试与它的参考解都是公开的，模型可能在训练中就见过它们；这里的一张证书既说明脚手架加了什么，也同样说明模型本来就会什么，在本套件上与在 aider 的套件上都是如此，而它上面的通过率不能推及任何未见的工作。在它上面比较两种脚手架，比较的是脚手架在模型可能记得的任务上的表现，这正是 `polyglot-harness-vs-product-sonnet` 所度量的。
 
 ## 已知限制
 
 - **implementer 新增的文件会进入检查。** runner 只恢复不可变路径，所以一个 `conftest.py`，或者新测试文件中的一个 Go `TestMain`，都可能改变命令实际运行的内容。这里没有任何东西能防范一个钻 harness 空子的 implementer；这样的运行会在会话日志中显现出来。
 - **cell 保留了网络。** 沙箱只管文件效果。准入表明没有哪个被准入的测试需要网络，这些命令也不下载任何东西，但 implementer 自己运行的命令可能会。
+- **产品循环臂跑在 cell 之外。** `claude-code` subagent provider 把产品作为它自己的进程启动，不受约束，且处于主机自己的设置之下，产品还会读取其工作目录之上的每一个 `CLAUDE.md`；因此配对要用 `--out` 从本仓库之外的目录驱动，否则它的候选臂会读到本仓库的指令。路由臂不受影响：它的查询带着 harness 自己的系统提示词，不带任何设置来源。
 - **准入是主机的属性。** 记录写明了它所用的工具链；装有 Boost 头文件或 crates.io 镜像的主机会准入本主机拒绝的部分练习，并记录它自己的结果。
 - **注册器需要 `git`。** 它通过 `git rev-parse` 与 `git status` 读取检出的修订与改动。

@@ -1,0 +1,51 @@
+# The polyglot bench with the product's own loop composed as an implementer:
+# the subagent service and the `claude-code` provider the proving-ground bench
+# composes, for the arm of `polyglot-harness-vs-product-sonnet` that measures
+# the vendor's scaffold against the harness loop on the same exercises and the
+# same model. The base leaves both out because the in-house allowlist names
+# only its own test command; here unattended edits, the four tracks'
+# toolchains, and the `rm -rf build` the C++ command begins with are allowed,
+# nothing else. The product matches each subcommand of a compound command
+# against a rule on its own, and an allow rule does not reach past the cache
+# and proxy assignments the Go command starts with, so that command is
+# allowed with them spelled out. Its spend is outside every limit this
+# harness enforces; the cell's caps bound a delegated attempt through the
+# runner, which is what keeps the two arms under one budget.
+- id: base
+  name: '@deepseek-ai/cordis-plugin-include'
+  config:
+    path: ../cordis.yml
+    patches:
+      # The base has no entry under these ids, so both are inserted: a
+      # non-insert patch only overrides an entry the base already names.
+      - insert:
+          - id: subagents
+            name: '@deepseek-ai/dsh-subagent'
+          - id: subagent-claude-code
+            name: '@deepseek-ai/dsh-subagent-claude-code'
+            config:
+              permissionMode: acceptEdits
+              allowedTools:
+                - 'Bash(rm -rf build)'
+                - 'Bash(cmake:*)'
+                - 'Bash(g++:*)'
+                - 'Bash(GOCACHE=/tmp/go-build GOPROXY=off GOTOOLCHAIN=local go test:*)'
+                - 'Bash(go:*)'
+                - 'Bash(python3:*)'
+                - 'Bash(pytest:*)'
+                - 'Bash(cargo:*)'
+      # The village rule reads this file on its own: a composition that names the
+      # runner must also name the session budget, the persistence backend, and
+      # the checkpoint policy, so the base's three are restated unchanged.
+      - id: budget-policy
+        name: '@deepseek-ai/dsh-budget-policy'
+        config:
+          maxTotalTokens: 1500000
+          maxWallMs: 1200000
+      - id: persistence
+        name: '@deepseek-ai/dsh-session-persistence-jsonl'
+        config:
+          root: './.sessions'
+          compression: none
+      - id: checkpoint-policy
+        name: '@deepseek-ai/dsh-session-checkpoint-policy'

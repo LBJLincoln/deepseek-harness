@@ -128,11 +128,12 @@ describe('resolveFixture', () => {
     for (const path of [fixture.plansDir, fixture.overlaysDir, fixture.baseComposition, fixture.admission]) {
       expect(existsSync(path)).toBe(true)
     }
-    expect(listPlanNames(fixture.plansDir)).toEqual(['polyglot-core-sonnet', 'polyglot-smoke-sonnet'])
-    expect(listOverlayNames(fixture.overlaysDir)).toEqual(['registry-only', 'with-openrouter'])
+    const plans = ['polyglot-all-sonnet', 'polyglot-core-sonnet', 'polyglot-harness-vs-product-sonnet', 'polyglot-smoke-sonnet']
+    expect(listPlanNames(fixture.plansDir)).toEqual(plans)
+    expect(listOverlayNames(fixture.overlaysDir)).toEqual(['registry-only', 'with-openrouter', 'with-product-loop'])
     expect(resolvePlanPath('polyglot-smoke-sonnet', fixture.plansDir)).toBe(join(fixture.plansDir, 'polyglot-smoke-sonnet.json'))
     expect(() => resolvePlanPath('e3-attempts-t5', fixture.plansDir, fixture.dir)).toThrow(/unknown plan 'e3-attempts-t5'/)
-    expect(formatPlansListing(fixture.plansDir).map(line => line.split(':')[0])).toEqual(['polyglot-core-sonnet', 'polyglot-smoke-sonnet'])
+    expect(formatPlansListing(fixture.plansDir).map(line => line.split(':')[0])).toEqual(plans)
   })
 
   it('refuses an unknown fixture, listing the known ones', () => {

@@ -230,4 +230,40 @@ describe('polyglot bench admission record and plans', () => {
     const expected = POLYGLOT_LANGUAGES.flatMap(language => splitTrack(record.admitted, language).open.slice(0, perTrack))
     expect(parsed.environments).toEqual(expected)
   })
+
+  it('polyglot-all-sonnet takes every admitted exercise of every track in rank order, the held-out fifth first', () => {
+    const parsed = JSON.parse(readFileSync(join(fixtureDir, 'plans', 'polyglot-all-sonnet.json'), 'utf8')) as { name: string; environments: string[]; repetitions: number }
+    expect(parsed.name).toBe('polyglot-all-sonnet')
+    expect(parsed.repetitions).toBe(1)
+    const expected = POLYGLOT_LANGUAGES.flatMap((language) => {
+      const split = splitTrack(record.admitted, language)
+      return [...split.heldOut, ...split.open]
+    })
+    expect(parsed.environments).toEqual(expected)
+    expect([...parsed.environments].sort()).toEqual(record.admitted)
+  })
+
+  it('polyglot-harness-vs-product-sonnet pairs the product loop against the route on the core exercises', () => {
+    const core = JSON.parse(readFileSync(join(fixtureDir, 'plans', 'polyglot-core-sonnet.json'), 'utf8')) as { environments: string[]; seed: number; policyVersion: string }
+    const parsed = JSON.parse(readFileSync(join(fixtureDir, 'plans', 'polyglot-harness-vs-product-sonnet.json'), 'utf8')) as {
+      name: string
+      environments: string[]
+      repetitions: number
+      seed: number
+      policyVersion: string
+      baseline: { provider: string; model: string; implementer?: unknown }
+      candidate: { provider: string; model: string; implementer?: unknown }
+    }
+    expect(parsed.name).toBe('polyglot-harness-vs-product-sonnet')
+    expect(parsed.environments).toEqual(core.environments)
+    expect(parsed.repetitions).toBe(1)
+    expect(parsed.seed).toBe(core.seed)
+    expect(parsed.policyVersion).toBe(core.policyVersion)
+    expect(parsed.baseline).toEqual({ provider: 'claude-code', model: 'sonnet' })
+    expect(parsed.candidate).toEqual({
+      provider: 'claude-code',
+      model: 'sonnet',
+      implementer: { kind: 'subagent', provider: 'claude-code', label: 'product-loop' },
+    })
+  })
 })

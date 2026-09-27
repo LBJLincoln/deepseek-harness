@@ -12,6 +12,7 @@ git -C ~/polyglot-benchmark checkout 7e0611e77b54e2dea774cdc0aa00cf9f7ed6144f
 export POLYGLOT_BENCH_DIR=~/polyglot-benchmark
 pnpm run bench -- environments --fixture polyglot-bench
 pnpm run bench -- fleet polyglot-smoke-sonnet --fixture polyglot-bench
+pnpm run bench -- experiment polyglot-harness-vs-product-sonnet --fixture polyglot-bench --overlay with-product-loop --out /tmp/polyglot-pair
 pnpm run bench -- admit --fixture polyglot-bench
 ```
 
@@ -63,8 +64,10 @@ The refusals fall under five causes. The first two are properties of the exercis
 | --- | --- | --- |
 | [`polyglot-smoke-sonnet`](plans/polyglot-smoke-sonnet.json) | 8 | the first two open exercises of each track in rank order |
 | [`polyglot-core-sonnet`](plans/polyglot-core-sonnet.json) | 40 | the first ten open exercises of each track in rank order |
+| [`polyglot-all-sonnet`](plans/polyglot-all-sonnet.json) | 116 | every admitted exercise of each track in rank order, the held-out fifth first |
+| [`polyglot-harness-vs-product-sonnet`](plans/polyglot-harness-vs-product-sonnet.json) | 40 + 40 | the core plan's forty exercises as a frozen pair: the route against the product's own loop as the candidate arm's implementer |
 
-Both run the Claude Code route's `sonnet` once per exercise, seed 1, district `bench-polyglot`, and every smoke exercise is also a core exercise. Their recorded runs are rows of the [Proving Ground's run table](../../../../../data/proving-ground/README.md#runs), each with a paragraph stating its certificates per track. [`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) adds the in-house bench's OpenRouter route under this fixture's evaluation-only terms, and [`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) is the keyless registry view `environments` boots.
+The three fleets run the Claude Code route's `sonnet` once per exercise, seed 1, district `bench-polyglot`; every smoke exercise is a core exercise and every core exercise is in the all plan, which also runs the held-out exercises and so reads the whole admitted suite once. The pair runs the core exercises once per arm, seed 1, interleaved, under the caps both arms share; it needs [`overlays/with-product-loop.cordis.yml`](overlays/with-product-loop.cordis.yml), which composes the `claude-code` subagent provider the in-house bench composes, with unattended edits and the four tracks' toolchains allowed and nothing else. Their recorded runs are rows of the [Proving Ground's run table](../../../../../data/proving-ground/README.md#runs), each with a paragraph stating its certificates per track. [`overlays/with-openrouter.cordis.yml`](overlays/with-openrouter.cordis.yml) adds the in-house bench's OpenRouter route under this fixture's evaluation-only terms, and [`overlays/registry-only.cordis.yml`](overlays/registry-only.cordis.yml) is the keyless registry view `environments` boots.
 
 ## Reading a number beside aider's
 
@@ -73,10 +76,12 @@ A certification rate here and a pass rate on aider's leaderboard are two measure
 - **Scaffold.** Aider sends the instructions and the stub files and gives the model two tries, the second with the test output. Here the agent works in the workspace with the harness's own tools, reads the test files, runs the command as often as its caps allow, and has three attempts, each ended by a validation; a record's attempt counts show how many certified within two.
 - **Population.** Aider's figure covers 225 exercises in six languages. Here four tracks register, less the refused exercises, and a plan draws only open ones. Exercism's refactoring exercises ship working code: on aider's leaderboard any model that leaves them working scores them, and here they are refused.
 - **Model.** The route asks the Claude Code installation for its `sonnet` alias, and the session logs record that alias, not the model the installation serves under it.
+- **Exposure.** Every exercise, its tests, and its reference solution are public, so a model may hold them from training; a certificate here shows what the model already holds as much as what a scaffold adds, on this suite as on aider's, and a rate on it transfers to no unseen work. A pair of scaffolds on it compares the scaffolds on tasks the model may remember, which is what `polyglot-harness-vs-product-sonnet` measures.
 
 ## Known Limitations
 
 - **A file the implementer adds reaches the checks.** The runner restores only the immutable paths, so a `conftest.py`, or a Go `TestMain` in a new test file, can change what the command runs. Nothing here defends against an implementer that games the harness; the session log is where such a run shows.
 - **The cells keep the network.** The sandbox governs file effects only. Admission shows that no admitted test needs the network and the commands fetch nothing, but an implementer's own command could.
+- **The product-loop arm runs outside the cell.** The `claude-code` subagent provider starts the product as its own process, unconfined and under the host's own settings, and the product reads every `CLAUDE.md` above its working directory; a pair is therefore driven with `--out` in a directory outside this repository, or its candidate arm reads this repository's instructions. The route arm is unaffected: its queries carry the harness's own system prompt and no settings source.
 - **Admission is a property of the host.** The record names the toolchains it ran under; a host with Boost headers or a crates.io mirror would admit some exercises this one refuses, and records its own outcome.
 - **The registrar needs `git`.** It reads the checkout's revision and changes through `git rev-parse` and `git status`.
