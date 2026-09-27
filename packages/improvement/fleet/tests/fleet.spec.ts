@@ -153,7 +153,7 @@ function ladderOf(request: EnvironmentRunRequest, model: EnvironmentRunModel): E
   return request.ladder?.map(rung => ({
     ...rung.model ?? model,
     ...rung.share === undefined ? {} : { share: rung.share },
-    ...rung.selfReview === true ? { selfReview: true } : {},
+    ...rung.selfReview === undefined || rung.selfReview === false ? {} : { selfReview: rung.selfReview },
   }))
 }
 
@@ -341,6 +341,13 @@ describe('FleetService', () => {
       ['a', [{ ...MODEL_A, share: 0.25, selfReview: true }, MODEL_B]],
     ])
     expect(leaderboardMarkdown(result)).toContain('| mock/a | - | mock/a @0.25 +review > mock/b | route | smoke:round-trip |')
+
+    // The probe review is its own label, so an arm that probes never reads as one that re-reads.
+    const probed = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    const probing = await probed.ctx.fleet.run(probed.plan({ ladder: [{ selfReview: 'probe' }], models: [MODEL_A], repetitions: 1 }))
+    expect(probing.leaderboard[0]?.ladder).toEqual([{ ...MODEL_A, selfReview: 'probe' }])
+    expect(leaderboardMarkdown(probing)).toContain('| mock/a | - | mock/a +probe | route | smoke:round-trip |')
 
     // A plan that names none leaves the column off the row entirely.
     const plain = await harness()

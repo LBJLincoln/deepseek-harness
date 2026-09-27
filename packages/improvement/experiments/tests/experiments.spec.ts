@@ -596,6 +596,10 @@ describe('ExperimentService', () => {
       .not.toBe(planDigest(reviewed, thresholds, CAPS))
     expect(planDigest(plan({ candidate: { ...CANDIDATE, ladder: [{ selfReview: false }, { model: BASELINE }] } }), thresholds, CAPS))
       .toBe(planDigest(laddered, thresholds, CAPS))
+    // The two fixed reviews verify differently too, so a probing rung is a third arm.
+    const probed = plan({ candidate: { ...CANDIDATE, ladder: [{ selfReview: 'probe' }, { model: BASELINE }] } })
+    expect(planDigest(probed, thresholds, CAPS)).not.toBe(planDigest(reviewed, thresholds, CAPS))
+    expect(planDigest(probed, thresholds, CAPS)).not.toBe(planDigest(laddered, thresholds, CAPS))
   })
 
   it('freezes each arm implementer in role order, taking an omitted one as the route', async () => {

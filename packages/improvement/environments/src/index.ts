@@ -24,6 +24,7 @@ import type {
   EnvironmentFilter,
   EnvironmentId as EnvironmentIdType,
   EnvironmentRunModel,
+  EnvironmentRunSelfReview,
   EnvironmentRunStamp,
   EnvironmentRunStampRung,
 } from './types.ts'
@@ -136,17 +137,17 @@ function stampShare(value: unknown): number {
   return value
 }
 
-/** Require one stamped rung's self-review flag to be a boolean. */
-function stampSelfReview(value: unknown): boolean {
-  if (typeof value !== 'boolean') throw new Error('environment/run ladder rung selfReview must be a boolean')
+/** Require one stamped rung's self-review to name one of the runner's fixed review turns. */
+function stampSelfReview(value: unknown): EnvironmentRunSelfReview {
+  if (value !== true && value !== 'probe') throw new Error('environment/run ladder rung selfReview must be true or "probe"')
   return value
 }
 
 /**
  * Require a durable stamp's attempt ladder to be a non-empty list of rungs,
- * each a model route with the budget share its attempt was allowed and
- * whether it ended with a self-review turn. A stamp carrying an empty one
- * would claim a laddered run that no attempt could belong to.
+ * each a model route with the budget share its attempt was allowed and the
+ * self-review turn it ended with. A stamp carrying an empty one would claim a
+ * laddered run that no attempt could belong to.
  */
 function stampLadder(value: unknown): readonly EnvironmentRunStampRung[] {
   if (!Array.isArray(value) || value.length === 0) {

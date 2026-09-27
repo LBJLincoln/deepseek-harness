@@ -158,18 +158,22 @@ describe('foldScoreboard', () => {
   it('splits rows by attempt ladder, so a laddered cell never averages with a plain one on its first rung', () => {
     const escalating = [{ ...MOCK_ROUTE }, { provider: 'mock', model: 'large' }]
     // The same routes with the first rung reviewing its work verify differently, so they are one more row.
-    const reviewed = [{ ...MOCK_ROUTE, selfReview: true }, { provider: 'mock', model: 'large' }]
+    const reviewed = [{ ...MOCK_ROUTE, selfReview: true as const }, { provider: 'mock', model: 'large' }]
+    // The same rungs with the first probing instead of re-reading verify differently again, so they are another.
+    const probed = [{ ...MOCK_ROUTE, selfReview: 'probe' as const }, { provider: 'mock', model: 'large' }]
     const fold = foldScoreboard([
       cell('plain', { certified: true, runs: 1 }),
       cell('escalated', { certified: false, runs: 1, ladder: escalating }),
       cell('downshifted', { certified: false, runs: 1, ladder: [{ ...MOCK_ROUTE }, { ...MOCK_ROUTE }] }),
       cell('reviewed', { certified: true, runs: 1, ladder: reviewed }),
+      cell('probed', { certified: false, runs: 1, ladder: probed }),
     ], {}, [1])
     expect(fold.rows.map(row => [row.model, row.ladder, row.certified])).toEqual([
       [MOCK_ROUTE.model, undefined, 1],
       [MOCK_ROUTE.model, escalating, 0],
       [MOCK_ROUTE.model, [MOCK_ROUTE, MOCK_ROUTE], 0],
       [MOCK_ROUTE.model, reviewed, 1],
+      [MOCK_ROUTE.model, probed, 0],
     ])
     expect(fold.rows[0]).not.toHaveProperty('ladder')
   })

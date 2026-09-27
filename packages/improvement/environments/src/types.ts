@@ -102,9 +102,19 @@ export interface EnvironmentRunModel {
 }
 
 /**
+ * The self-review turn a rung ends its attempt with, one of the fixed
+ * `<self_review>` blocks the environment runner owns: `true` is the
+ * specification review, which re-reads the task statement and reruns the
+ * visible tests, and `'probe'` is the probe review, which audits the statement
+ * one sentence at a time by running the program on an input each sentence
+ * governs. Neither names a check, a case, or an expected output.
+ */
+export type EnvironmentRunSelfReview = true | 'probe'
+
+/**
  * One rung of an attempt ladder as the stamp records it: the route that
  * attempt ran on, the share of the run's budget caps it was allowed, and
- * whether it ended with a self-review turn.
+ * which self-review turn it ended with.
  */
 export interface EnvironmentRunStampRung extends EnvironmentRunModel {
   /**
@@ -116,13 +126,14 @@ export interface EnvironmentRunStampRung extends EnvironmentRunModel {
    */
   readonly share?: number
   /**
-   * Whether the attempt was asked to end with the fixed self-review turn
-   * before its validation, absent for an attempt that was asked none. It is
-   * part of the arm's identity for the same reason `share` is: a rung that
-   * reviews and one that does not verify differently on one route, so a fold
-   * that groups by the routes alone would count them together.
+   * The self-review turn the attempt was asked to end with before its
+   * validation, absent for an attempt that was asked none. It is part of the
+   * arm's identity for the same reason `share` is: a rung that reviews and
+   * one that does not, or two that review differently, verify differently on
+   * one route, so a fold that groups by the routes alone would count them
+   * together.
    */
-  readonly selfReview?: boolean
+  readonly selfReview?: EnvironmentRunSelfReview
 }
 
 /** Content hashes of one environment as it was run; `fixtureSha256` is absent for a task without a fixture. */

@@ -405,7 +405,7 @@ describe('environment run stamps', () => {
     const decoded = decodeEnvironmentRun(stamp({
       fixtureSha256: HEX, group: 'batch-7', district: 'workshop', heldOut: true, repetition: 3,
       policyVersion: 'policy-2026-09', seed: 0, implementer: 'claude-code',
-      ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0.25, selfReview: true }, { provider: 'cli-mock', model: 'cli-mock-large' }],
+      ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0.25, selfReview: true }, { provider: 'cli-mock', model: 'cli-mock-large', selfReview: 'probe' }],
     }))
     expect(decoded).toEqual<EnvironmentRunStamp>({
       kind: 'environment/run',
@@ -424,9 +424,9 @@ describe('environment run stamps', () => {
       seed: 0,
       model: { provider: 'cli-mock', model: 'cli-mock' },
       // A rung carries the share of the run's caps its attempt was allowed and
-      // whether it ended with a self-review turn; one that claims neither ran
-      // until those caps ended it and was validated as its work stood.
-      ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0.25, selfReview: true }, { provider: 'cli-mock', model: 'cli-mock-large' }],
+      // the self-review turn it ended with; one that claims neither ran until
+      // those caps ended it and was validated as its work stood.
+      ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0.25, selfReview: true }, { provider: 'cli-mock', model: 'cli-mock-large', selfReview: 'probe' }],
       isolation: 'none',
       implementer: 'claude-code',
     })
@@ -477,7 +477,8 @@ describe('environment run stamps', () => {
       [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 0 }] }), 'ladder rung share must be greater than 0 and at most 1'],
       [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: 1.5 }] }), 'ladder rung share must be greater than 0 and at most 1'],
       [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', share: '0.5' }] }), 'ladder rung share must be greater than 0 and at most 1'],
-      [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', selfReview: 'yes' }] }), 'ladder rung selfReview must be a boolean'],
+      [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', selfReview: 'yes' }] }), 'ladder rung selfReview must be true or "probe"'],
+      [stamp({ ladder: [{ provider: 'cli-mock', model: 'cli-mock', selfReview: false }] }), 'ladder rung selfReview must be true or "probe"'],
     ]
     for (const [value, message] of cases) {
       expect(() => decodeEnvironmentRun(value), message).toThrow(message)

@@ -73,10 +73,10 @@ export interface ScoreboardFold {
  * Key of the row one stamped session belongs to. Serialized rather than
  * concatenated so no field value can spell a separator and merge two cells —
  * two districts above all — into one row. The attempt ladder is part of the key,
- * each rung with the budget share it claimed and whether it ended with a
- * self-review turn, because a laddered cell and a plain single-model cell on
- * the same first rung measure different arms, and so do two ladders that divide
- * one budget differently or review on different rungs. The agent preset is part
+ * each rung with the budget share it claimed and the self-review turn it ended
+ * with, because a laddered cell and a plain single-model cell on the same first
+ * rung measure different arms, and so do two ladders that divide one budget
+ * differently or review on different rungs or with different reviews. The agent preset is part
  * of it for the same reason one layer up: two compositions over one route saw
  * different tool schemas and prompt sections.
  */
@@ -84,7 +84,7 @@ function rowKey(environment: SessionFactsEnvironment): string {
   return JSON.stringify([
     environment.provider,
     environment.model,
-    environment.ladder?.map(rung => [rung.provider, rung.model, rung.share ?? null, rung.selfReview === true]) ?? null,
+    environment.ladder?.map(rung => [rung.provider, rung.model, rung.share ?? null, rung.selfReview ?? false]) ?? null,
     environment.environmentId,
     environment.isolation,
     environment.implementer,

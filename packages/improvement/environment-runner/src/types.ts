@@ -7,7 +7,7 @@
  */
 
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
-import type { EnvironmentId, EnvironmentRunModel, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
+import type { EnvironmentId, EnvironmentRunModel, EnvironmentRunSelfReview, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
 import type { TokenUsage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type { SubagentStopReason } from '@deepseek-ai/dsh-subagent'
@@ -164,20 +164,21 @@ export interface EnvironmentRunRung {
    */
   readonly share?: number
   /**
-   * Whether the attempt ends with one self-review turn before its validation.
-   * Once the implementer's work ends normally — not after an attempt the
-   * cell's caps blocked or cut short — the runner hands the same implementer
-   * the fixed `<self_review>` block, alone for a route implementer and behind
-   * the restated task statement for a fresh child, waits for that turn to
-   * end, and only then digests the check-owned set, restores the fixture, and
+   * The self-review turn the attempt ends with before its validation: `true`
+   * for the specification review, `'probe'` for the probe review. Once the
+   * implementer's work ends normally — not after an attempt the cell's caps
+   * blocked or cut short — the runner hands the same implementer that fixed
+   * `<self_review>` block, alone for a route implementer and behind the
+   * restated task statement for a fresh child, waits for that turn to end,
+   * and only then digests the check-owned set, restores the fixture, and
    * validates. The review turn runs on this rung's route under the bound its
    * `share` armed, and it is part of the attempt: the attempt count and the
-   * ladder's length are unchanged. Its text is a protocol constant that names
-   * no check, no case, and no expected output, so the hidden-case wall holds.
-   * Absent or `false` sends no review turn; the stamped rung carries `true`
-   * for a rung that asked for one.
+   * ladder's length are unchanged. Both texts are protocol constants that
+   * name no check, no case, and no expected output, so the hidden-case wall
+   * holds. Absent or `false` sends no review turn; the stamped rung carries
+   * the value a rung asked for.
    */
-  readonly selfReview?: boolean
+  readonly selfReview?: EnvironmentRunSelfReview | false
 }
 
 /** One request to run a registered environment as one fresh session. */

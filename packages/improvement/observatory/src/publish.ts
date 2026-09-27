@@ -84,7 +84,7 @@ function sortKey(row: ScoreboardRow): string {
   return JSON.stringify([
     row.provider,
     row.model,
-    row.ladder?.map(rung => [rung.provider, rung.model, rung.share ?? null, rung.selfReview === true]) ?? null,
+    row.ladder?.map(rung => [rung.provider, rung.model, rung.share ?? null, rung.selfReview ?? false]) ?? null,
     row.environmentId,
     row.isolation,
     row.implementer,

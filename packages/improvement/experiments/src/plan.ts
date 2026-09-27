@@ -53,16 +53,17 @@ function digestedImplementer(implementer: EnvironmentRunImplementer): readonly (
 }
 
 /** One rung as the digest takes it: its model route, its budget share, then its self-review, each in a fixed position. */
-type DigestedRung = readonly (readonly string[] | number | boolean | null)[]
+type DigestedRung = readonly (readonly string[] | number | boolean | string | null)[]
 
 /**
  * One arm's attempt ladder as the digest takes it: the model, budget share,
  * and self-review of each rung in attempt order, with `null` for a rung that
  * names no model and therefore runs the arm's own route, `null` for a rung
  * claiming no share and therefore running until the cell's own caps end it,
- * and `false` for a rung that reviews nothing, whether it declines or omits
- * it. Two arms that ladder differently, that divide one cell budget
- * differently, or that review on different rungs measure different
+ * `false` for a rung that reviews nothing, whether it declines or omits it,
+ * and otherwise the review it asked for (`true` or `'probe'`). Two arms that
+ * ladder differently, that divide one cell budget differently, or that review
+ * on different rungs or with different reviews measure different
  * verification, so all three are part of what the digest freezes.
  */
 function digestedLadder(ladder: readonly EnvironmentRunRung[] | undefined): readonly DigestedRung[] | null {

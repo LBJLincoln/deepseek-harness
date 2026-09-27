@@ -36,6 +36,7 @@ import type {
   EnvironmentDefinition,
   EnvironmentId,
   EnvironmentRunModel,
+  EnvironmentRunSelfReview,
   EnvironmentRunStamp,
   EnvironmentRunStampRung,
   EnvironmentTask,
@@ -282,11 +283,26 @@ export function resolveLadder(
   if (claimed > 1) {
     throw new EnvironmentRunError(`an attempt ladder's rung shares claim ${claimed} of the cell's caps, which is more than the whole of them`, 'ENVIRONMENT_RUN_INVALID_LADDER')
   }
-  return ladder.map(rung => ({
-    ...rung.model ?? model,
-    ...rung.share === undefined ? {} : { share: rung.share },
-    ...rung.selfReview === true ? { selfReview: true } : {},
-  }))
+  return ladder.map((rung) => {
+    const review = askedReview(rung)
+    return {
+      ...rung.model ?? model,
+      ...rung.share === undefined ? {} : { share: rung.share },
+      ...review === undefined ? {} : { selfReview: review },
+    }
+  })
+}
+
+/**
+ * The self-review turn one rung asked for, `undefined` for a rung that declined
+ * or omitted it. One reading serves the request rung, which may decline with
+ * `false`, and the stamped rung, which carries only what was asked.
+ * @param rung - the rung as requested or as stamped, absent for an unladdered attempt.
+ * @returns the review to end the rung's attempt with, or none.
+ */
+function askedReview(rung: { readonly selfReview?: EnvironmentRunSelfReview | false } | undefined): EnvironmentRunSelfReview | undefined {
+  const review = rung?.selfReview
+  return review === undefined || review === false ? undefined : review
 }
 
 /** The model route one stamped rung names, without the budget share recorded beside it. */
@@ -904,14 +920,42 @@ function followupText(directive: DirectiveRequest): string {
 }
 
 /**
- * The self-review turn a rung asking for one ends its attempt with, delivered
- * after the implementer's work and before the validation. It names no check,
- * no case, and no expected output — the hidden-case wall the clustered
- * directive keeps holds here too — so it is a protocol constant rather than a
- * deployment choice. Pinned verbatim by the runner README, its e2e, and the
- * `self-review-rung` snapshot.
+ * The specification review, the self-review turn a rung asking `selfReview:
+ * true` ends its attempt with, delivered after the implementer's work and
+ * before the validation. It names no check, no case, and no expected output —
+ * the hidden-case wall the clustered directive keeps holds here too — so it is
+ * a protocol constant rather than a deployment choice. Pinned verbatim by the
+ * runner README, its e2e, and the `self-review-rung` snapshot.
  */
 const SELF_REVIEW = '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>'
+
+/**
+ * The probe review, the self-review turn a rung asking `selfReview: 'probe'`
+ * ends its attempt with: an audit of the task statement one sentence at a
+ * time, each sentence's requirement written down before the program is run on
+ * an input that sentence governs, against the corner an implementer's own
+ * re-reading skips because it already believes its reading. Names no check,
+ * no case, and no expected output, like the specification review, and is
+ * pinned the same way ([rationale](../../../../.agents/notes/proposed/architecture/2026-09-27-loop-iteration-by-agent.md)).
+ */
+const SELF_REVIEW_PROBE = '<self_review>\nBefore your work is validated, audit the implementation against the specification at the top of this task one sentence at a time, without trusting what you remember of it or what the visible tests already cover. For every sentence that says what the program accepts, what it refuses and with which message and exit code, or what it prints and in what order, first write down what that sentence alone requires, then run the program on the smallest input that exercises exactly it and compare the exit code, standard output and standard error byte for byte. Fix every difference, run the visible tests once more, then stop.\n</self_review>'
+
+/**
+ * The fixed block one self-review turn carries.
+ * @param review - the review the rung asked for.
+ * @returns the block's text.
+ */
+function reviewBlock(review: EnvironmentRunSelfReview): string {
+  switch (review) {
+    case true:
+      return SELF_REVIEW
+    case 'probe':
+      return SELF_REVIEW_PROBE
+    /* v8 ignore next 2 -- EnvironmentRunSelfReview is closed and every member is handled above */
+    default:
+      return assertNever(review, 'self-review')
+  }
+}
 
 /**
  * One block shaped for the implementer that receives it: a route implementer
@@ -957,10 +1001,11 @@ function workTurn(implementer: RunImplementer, prompt: string, directive: Direct
  * The self-review turn one attempt ends with, shaped for its implementer.
  * @param implementer - who reviews the work it just did.
  * @param prompt - the environment's task statement, restated for a fresh child.
+ * @param review - which fixed review block the rung asked for.
  * @returns the turn the implementer receives.
  */
-function reviewTurn(implementer: RunImplementer, prompt: string): ImplementerTurn {
-  return shapedTurn(implementer, prompt, SELF_REVIEW, true)
+function reviewTurn(implementer: RunImplementer, prompt: string, review: EnvironmentRunSelfReview): ImplementerTurn {
+  return shapedTurn(implementer, prompt, reviewBlock(review), true)
 }
 
 /** The sampling one run pins on its agent, absent when the run pins neither scalar. */
@@ -1439,10 +1484,11 @@ export class EnvironmentRunner extends Service {
         // A rung asking for a self-review ends its attempt with one more turn
         // of the same implementer before the tree is measured; the attempt
         // count is unchanged.
+        const review = askedReview(rung)
         const delivery: AttemptDelivery = {
           attempt,
           work: workTurn(implementer, definition.task.prompt, directive),
-          ...rung?.selfReview === true ? { review: reviewTurn(implementer, definition.task.prompt) } : {},
+          ...review === undefined ? {} : { review: reviewTurn(implementer, definition.task.prompt, review) },
           model,
           ...rung?.share === undefined ? {} : { share: rung.share },
           ...request.signal === undefined ? {} : { signal: request.signal },

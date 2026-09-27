@@ -1,0 +1,23 @@
+{
+  "name": "e13-probe-review-sonnet-t5t6",
+  "environments": [
+    "code:build-schedule",
+    "code:conf-canon",
+    "code:diff3-merge",
+    "code:lex-states",
+    "code:ranked-choice",
+    "code:rate-limit-sim",
+    "code:sheet-eval",
+    "code:uri-resolve",
+    "code:config-layers",
+    "code:job-queue",
+    "code:md-render",
+    "code:task-runner"
+  ],
+  "heldOut": false,
+  "repetitions": 2,
+  "seed": 2,
+  "policyVersion": "bench-2026-09-27-probe-review",
+  "baseline": { "provider": "claude-code", "model": "sonnet", "ladder": [{}] },
+  "candidate": { "provider": "claude-code", "model": "sonnet", "ladder": [{ "selfReview": "probe" }] }
+}

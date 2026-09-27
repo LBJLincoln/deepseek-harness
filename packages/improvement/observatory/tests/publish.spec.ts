@@ -49,7 +49,7 @@ describe('orderRows', () => {
   it('orders by route, attempt ladder, environment, isolation, implementer, agent preset, held-out split, and district whatever order the fold produced', () => {
     const escalating = [{ provider: 'cli-mock', model: 'a' }, { provider: 'cli-mock', model: 'b' }]
     // The same rungs with the first reviewing its work are their own row, ordered after the plain escalation.
-    const reviewed = [{ provider: 'cli-mock', model: 'a', selfReview: true }, { provider: 'cli-mock', model: 'b' }]
+    const reviewed = [{ provider: 'cli-mock', model: 'a', selfReview: true as const }, { provider: 'cli-mock', model: 'b' }]
     const ordered = orderRows([
       row({ model: 'b', environmentId: 'smoke:round-trip' }),
       row({ model: 'a', environmentId: 'smoke:unsatisfiable', district: 'proving-ground' }),

@@ -383,14 +383,21 @@ export function leaderboardMarkdown(report: FleetRunReport): string {
 
 /**
  * One row's ladder as its Markdown cell: the rungs in attempt order, each with
- * the share of the cell's caps it claimed and `+review` when it ended with a
- * self-review turn, or the dash of a row that ran none.
+ * the share of the cell's caps it claimed and `+review` or `+probe` when it
+ * ended with the specification or the probe review, or the dash of a row that
+ * ran none.
  */
 function ladderCell(ladder: readonly EnvironmentRunStampRung[] | undefined): string {
   if (ladder === undefined) return '-'
   return ladder
-    .map(rung => `${routeName(rung)}${rung.share === undefined ? '' : ` @${rung.share}`}${rung.selfReview === true ? ' +review' : ''}`)
+    .map(rung => `${routeName(rung)}${rung.share === undefined ? '' : ` @${rung.share}`}${reviewSuffix(rung)}`)
     .join(' > ')
+}
+
+/** The label suffix of one rung's self-review: `+review` for the specification review, `+probe` for the probe review, nothing for none. */
+function reviewSuffix(rung: Pick<EnvironmentRunStampRung, 'selfReview'>): string {
+  if (rung.selfReview === undefined) return ''
+  return rung.selfReview === true ? ' +review' : ' +probe'
 }
 
 /** Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a leaderboard. */

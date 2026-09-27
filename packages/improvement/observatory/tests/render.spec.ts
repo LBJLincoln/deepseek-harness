@@ -90,8 +90,10 @@ describe('renderHtml', () => {
 
     // A rung that reviewed its work names that too, after its share, so an arm
     // that verifies more per attempt does not read as the plain one.
-    const reviewed = [{ provider: 'cli-mock', model: 'small', share: 0.25, selfReview: true }, { provider: 'cli-mock', model: 'large' }]
+    const reviewed = [{ provider: 'cli-mock', model: 'small', share: 0.25, selfReview: true as const }, { provider: 'cli-mock', model: 'large' }]
     expect(page({ rows: [row({ ladder: reviewed })] })).toContain('<td>cli-mock/small @0.25 +review → cli-mock/large</td>')
+    const probed = [{ provider: 'cli-mock', model: 'small', selfReview: 'probe' as const }, { provider: 'cli-mock', model: 'large' }]
+    expect(page({ rows: [row({ ladder: probed })] })).toContain('<td>cli-mock/small +probe → cli-mock/large</td>')
   })
 
   it('prints pending where no composition digest covers the row and the digest where one does', () => {

@@ -442,6 +442,8 @@ const MARKER = 'test -f MARKER'
 /** The self-review turn a rung asking for one ends its attempt with; the text is pinned by the runner README. */
 const SELF_REVIEW = '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>'
 
+const SELF_REVIEW_PROBE = '<self_review>\nBefore your work is validated, audit the implementation against the specification at the top of this task one sentence at a time, without trusting what you remember of it or what the visible tests already cover. For every sentence that says what the program accepts, what it refuses and with which message and exit code, or what it prints and in what order, first write down what that sentence alone requires, then run the program on the smallest input that exercises exactly it and compare the exit code, standard output and standard error byte for byte. Fix every difference, run the visible tests once more, then stop.\n</self_review>'
+
 /** The budget records one cell session carries, in log order. */
 function budgetEvents(type: 'budget/breach' | 'usage/foreign'): unknown[] {
   return StubAgents.current.agent.session.events.filter(event => event.type === type).map(event => event.data)
@@ -840,6 +842,27 @@ describe('EnvironmentRunner', () => {
     ])
   })
 
+  it('ends a probe rung with the probe review, stamped as the review it asked for', async () => {
+    let workspace = ''
+    const built = await harness({
+      config: { maxAttempts: 1 },
+      onTurn: (turn, session) => {
+        assistantTurns(turn, session)
+        if (turn === 2) writeFileSync(join(workspace, 'MARKER'), 'done\n')
+      },
+    })
+    workspace = built.workspace
+    StubShell.current.script(MARKER, shellResult())
+    const report = await built.run({ ladder: [{ selfReview: 'probe' }] })
+
+    expect(report.certified).toBe(true)
+    expect(report.attempts).toHaveLength(1)
+    // The probe review is the other fixed block, alone for the route
+    // implementer like the specification review, and the stamp says which.
+    expect(StubAgents.current.agent.turns).toEqual(['Create a file named MARKER in the workspace.', SELF_REVIEW_PROBE])
+    expect(report.stamp.ladder).toEqual([{ provider: 'mock', model: 'mock-default', selfReview: 'probe' }])
+  })
+
   it('leaves an unladdered run on its stamped route for every attempt', async () => {
     const { ctx, run } = await harness({ config: { maxAttempts: 2 } })
     StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult())
@@ -1119,11 +1142,11 @@ describe('EnvironmentRunner', () => {
     ))
   })
 
-  it('stamps a rung that asks for a self-review, and stamps none for a rung that declines or omits it, at the boundary', () => {
+  it('stamps the self-review a rung asks for, and stamps none for a rung that declines or omits it, at the boundary', () => {
     const stamped = { provider: 'mock', model: 'small' }
     const large = { provider: 'mock', model: 'large' }
-    expect(resolveLadder([{ selfReview: true, share: 0.5 }, { model: large, selfReview: false }, {}], stamped, 8))
-      .toEqual([{ ...stamped, share: 0.5, selfReview: true }, large, stamped])
+    expect(resolveLadder([{ selfReview: true, share: 0.5 }, { model: large, selfReview: false }, {}, { selfReview: 'probe' }], stamped, 8))
+      .toEqual([{ ...stamped, share: 0.5, selfReview: true }, large, stamped, { ...stamped, selfReview: 'probe' }])
   })
 
   it('resolves defaults once, at the boundary', () => {

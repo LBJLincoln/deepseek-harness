@@ -2,11 +2,12 @@
 /**
  * Test driver: boot the self-review-rung composition, run the registered
  * environment through the runner in a fixed `workspace/` directory over a
- * one-rung ladder whose rung asks for a self-review, and stream the run
- * session's canonical events as JSONL so a snapshot can pin the review turn the
- * implementer sees between its work and the validation. It ends with one
- * `result` record naming the session, its outcome, and the user turns the cell
- * received.
+ * one-rung ladder whose rung asks for a self-review — the specification review
+ * by default, the probe review when the second argument is `probe` — and
+ * stream the run session's canonical events as JSONL so a snapshot can pin the
+ * review turn the implementer sees between its work and the validation. It
+ * ends with one `result` record naming the session, its outcome, and the user
+ * turns the cell received.
  */
 
 import { mkdir } from 'node:fs/promises'
@@ -16,8 +17,12 @@ import type {} from '@deepseek-ai/cordis-plugin-loader'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 
-const configPath = process.argv[2]
+const [configPath, reviewArg] = process.argv.slice(2)
 if (configPath === undefined) throw new Error('self-review-rung driver requires a config path')
+if (reviewArg !== undefined && reviewArg !== 'probe') {
+  throw new Error(`self-review-rung driver takes an optional review kind of 'probe', got ${JSON.stringify(reviewArg)}`)
+}
+const selfReview = reviewArg === undefined ? true : 'probe'
 
 const ctx = await boot('self-review-rung-e2e', resolveConfigPath(configPath, undefined))
 try {
@@ -37,7 +42,7 @@ try {
   }, { global: true })
   const workspace = join(process.cwd(), 'workspace')
   await mkdir(workspace)
-  const report = await runner.run({ environment: EnvironmentId('smoke:ready-marker'), workspace, ladder: [{ selfReview: true }] })
+  const report = await runner.run({ environment: EnvironmentId('smoke:ready-marker'), workspace, ladder: [{ selfReview }] })
   stopStreaming()
   process.stdout.write(`${JSON.stringify({
     type: 'result',

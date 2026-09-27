@@ -952,16 +952,22 @@ describe('headless stream-json snapshots', () => {
     )
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
-  it('pins the self-review turn an implementer receives between its work and the validation', async () => {
-    const streamExpected = join(reviewScenarioDir, 'stream-json.expected.jsonl')
+  /**
+   * One review rung's snapshot: the cell's transcript from its stamp to its
+   * certificate, and the two user turns it received — the task statement, then
+   * the review block alone, the one model-visible text the rung adds, which
+   * names the specification and the visible tests and no check or case.
+   */
+  async function pinReviewTurn(review: true | 'probe', expectedName: string, block: string): Promise<void> {
+    const streamExpected = join(reviewScenarioDir, expectedName)
     let runCwd = ''
     const result = await runLoaderSmoke({
-      label: 'self-review rung headless stream-json snapshot',
-      tempDirPrefix: 'headless-snapshot-self-review-rung-',
+      label: `self-review rung (${review === true ? 'specification' : review}) headless stream-json snapshot`,
+      tempDirPrefix: `headless-snapshot-self-review-${review === true ? 'rung' : review}-`,
       binScript: reviewBinScript,
       libBinScript: reviewBinScript,
       configPath: reviewConfigPath,
-      binArgs: [reviewConfigPath],
+      binArgs: review === true ? [reviewConfigPath] : [reviewConfigPath, review],
       tsconfigPath,
       env: {
         NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
@@ -975,7 +981,7 @@ describe('headless stream-json snapshots', () => {
         // certified the line the review turn corrected: the review is a turn
         // of the attempt, not a second attempt.
         const stamp = records.find(record => record.type === 'environment/run')?.data as { ladder?: unknown } | undefined
-        expect(stamp?.ladder).toEqual([{ provider: 'review-mock', model: 'review-mock', selfReview: true }])
+        expect(stamp?.ladder).toEqual([{ provider: 'review-mock', model: 'review-mock', selfReview: review }])
         const runs = records.filter(record => record.type === 'verification/run')
         expect(runs).toHaveLength(1)
         expect(runs[0]?.data).toMatchObject({ verdict: 'passed', executor: 'runner' })
@@ -988,18 +994,31 @@ describe('headless stream-json snapshots', () => {
     const normalized = normalizeRunnerStream(result.stdout, runCwd)
     if (refreshing) await writeFile(streamExpected, normalized)
     expect(normalized).toBe(await readFile(streamExpected, 'utf8'))
-    // The cell received exactly two user turns: the task statement, then the
-    // review block alone — the one model-visible text this rung adds, which
-    // names the specification and the visible tests and no check or case.
     expect(parseJsonl(normalized).at(-1)).toMatchObject({
       type: 'result',
       certified: true,
       attempts: 1,
       turns: [
         'Create a file named MARKER in the workspace whose only line is the word ready. The check reads the file back exactly.',
-        '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>',
+        block,
       ],
     })
+  }
+
+  it('pins the self-review turn an implementer receives between its work and the validation', async () => {
+    await pinReviewTurn(
+      true,
+      'stream-json.expected.jsonl',
+      '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>',
+    )
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+
+  it('pins the probe review turn a probing rung ends its attempt with', async () => {
+    await pinReviewTurn(
+      'probe',
+      'stream-json.probe.expected.jsonl',
+      '<self_review>\nBefore your work is validated, audit the implementation against the specification at the top of this task one sentence at a time, without trusting what you remember of it or what the visible tests already cover. For every sentence that says what the program accepts, what it refuses and with which message and exit code, or what it prints and in what order, first write down what that sentence alone requires, then run the program on the smallest input that exercises exactly it and compare the exit code, standard output and standard error byte for byte. Fix every difference, run the visible tests once more, then stop.\n</self_review>',
+    )
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('replays two fresh Ralph rounds through the one-shot app', async () => {
