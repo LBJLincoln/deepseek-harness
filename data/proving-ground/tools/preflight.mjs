@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // Runs the nightly Routine's preflight and leaves one line of evidence per run:
-// the install, the build, the Claude Code CLI and its login, and the queue's
-// dry run, in that order, stopping at the first step that fails or runs past
-// its timeout. Every run appends one JSON line to
+// the install, the build, the sandbox, the Claude Code CLI and its login, and
+// the queue's dry run, in that order, stopping at the first step that fails or
+// runs past its timeout. The sandbox step asks the provider the bench composes
+// (the freshly built @deepseek-ai/dsh-sandbox-local) to wrap `true` under a
+// sealed cell's policy and runs the wrap, so a host with no usable backend
+// stops here instead of failing every cell with SANDBOX_UNAVAILABLE. Every run appends one JSON line to
 // data/proving-ground/loop/preflight.jsonl — passed or stopped, with each
 // step's exit status and seconds and the stopping step's last output — so a
 // night that never reached the loop is still on file once the line is
@@ -11,8 +14,8 @@
 // Usage: node preflight.mjs [--queue <name>] [--steps <step,step,...>] [--timeout <seconds>]
 //
 //   --queue    the checked-in queue the dry run resolves (default nightly-tier5)
-//   --steps    the steps to run, always in the fixed order install, build, cli,
-//              login, dry-run (default all five)
+//   --steps    the steps to run, always in the fixed order install, build,
+//              sandbox, cli, login, dry-run (default all six)
 //   --timeout  seconds one step may run before it is killed and recorded as
 //              `timedOut` (default 900), so a hanging install or build still
 //              leaves a line
@@ -26,7 +29,42 @@ import { execFileSync, spawnSync } from 'node:child_process'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const PREFLIGHT_PATH = resolve(import.meta.dirname, '..', 'loop', 'preflight.jsonl')
-const STEP_ORDER = ['install', 'build', 'cli', 'login', 'dry-run']
+const STEP_ORDER = ['install', 'build', 'sandbox', 'cli', 'login', 'dry-run']
+// The probe runs in the provider's package directory, so `@deepseek-ai/cordis`
+// resolves through the provider's own dependencies and `./lib/index.js` is the
+// provider the build step emitted.
+const SANDBOX_PROVIDER_DIR = join(REPO_DIR, 'packages', 'sandbox', 'sandbox-local')
+// A sealed cell writes its workspace and is denied its parent's other entries;
+// the probe asks for exactly that policy, then runs the wrapped `true`.
+const SANDBOX_PROBE = `
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { basename, join } from 'node:path'
+import { Context } from '@deepseek-ai/cordis'
+import LocalSandboxProvider from './lib/index.js'
+const scratch = mkdtempSync(join(tmpdir(), 'dsh-preflight-sandbox-'))
+const workspaceRoot = join(scratch, 'cell')
+const deniedRoot = join(scratch, 'sealed')
+mkdirSync(workspaceRoot)
+mkdirSync(deniedRoot)
+const ctx = new Context()
+let report
+try {
+  await ctx.plugin(LocalSandboxProvider)
+  const wrapped = ctx.sandbox.confine(['true'], { mode: 'workspace-write', workspaceRoot, deniedReadRoots: [deniedRoot] })
+  const ran = spawnSync(wrapped.argv[0], wrapped.argv.slice(1), { encoding: 'utf8', timeout: 30000 })
+  report = ran.status === 0
+    ? { usable: true, runner: basename(wrapped.argv[0]), enforcement: wrapped.enforcement }
+    : { usable: false, runner: basename(wrapped.argv[0]), error: String(ran.stderr || ran.error?.message || 'exit ' + ran.status).trim() }
+} catch (error) {
+  report = { usable: false, code: typeof error?.code === 'string' ? error.code : null, error: error instanceof Error ? error.message : String(error) }
+}
+await ctx.fiber.dispose()
+rmSync(scratch, { recursive: true, force: true })
+process.stdout.write(JSON.stringify(report) + '\\n')
+process.exitCode = report.usable ? 0 : 1
+`
 const DEFAULT_QUEUE = 'nightly-tier5'
 const DEFAULT_TIMEOUT_SECONDS = 900
 const TAIL_CHARS = 400
@@ -61,16 +99,17 @@ function parseArgs(argv) {
 class UsageError extends Error {}
 
 /**
- * Runs one command in the repository root and captures its outcome.
+ * Runs one command and captures its outcome.
  * @param {string} command executable name
  * @param {string[]} args its arguments
  * @param {number} timeoutSeconds seconds before the command is killed and reported as timed out
+ * @param {string} [cwd] the directory it runs in, the repository root unless named
  * @returns {{ ok: boolean, status: number | null, seconds: number, timedOut?: true, output: string }} `output` is stdout then stderr, or the spawn error's message
  */
-function run(command, args, timeoutSeconds) {
+function run(command, args, timeoutSeconds, cwd = REPO_DIR) {
   const started = Date.now()
   const result = spawnSync(command, args, {
-    cwd: REPO_DIR, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: timeoutSeconds * 1000, killSignal: 'SIGKILL',
+    cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: timeoutSeconds * 1000, killSignal: 'SIGKILL',
   })
   const seconds = Number(((Date.now() - started) / 1000).toFixed(1))
   const output = `${result.stdout ?? ''}${result.stderr ?? ''}`
@@ -112,6 +151,16 @@ function tail(output) {
 const STEPS = {
   install: (queue, timeoutSeconds) => run('pnpm', ['install', '--frozen-lockfile'], timeoutSeconds),
   build: (queue, timeoutSeconds) => run('pnpm', ['run', 'build:lib:host'], timeoutSeconds),
+  sandbox: (queue, timeoutSeconds) => {
+    const result = run(process.execPath, ['--input-type=module', '-e', SANDBOX_PROBE], timeoutSeconds, SANDBOX_PROVIDER_DIR)
+    const report = parseJsonObject(result.output)
+    return {
+      ...result,
+      ok: result.ok && report?.usable === true,
+      runner: typeof report?.runner === 'string' ? report.runner : null,
+      enforcement: typeof report?.enforcement === 'string' ? report.enforcement : null,
+    }
+  },
   cli: (queue, timeoutSeconds) => {
     const result = run('claude', ['--version'], timeoutSeconds)
     const version = result.output.trim()
@@ -193,7 +242,7 @@ function main(argv) {
  * @returns {string} a leading-space suffix, or an empty string
  */
 function describe(entry) {
-  const shown = ['version', 'loggedIn', 'authMethod', 'entries', 'status', 'timedOut']
+  const shown = ['runner', 'enforcement', 'version', 'loggedIn', 'authMethod', 'entries', 'status', 'timedOut']
     .filter(key => entry[key] !== undefined && entry[key] !== null && !(key === 'status' && entry.status === 0))
     .map(key => `${key}=${String(entry[key])}`)
   return shown.length === 0 ? '' : ` ${shown.join(' ')}`
