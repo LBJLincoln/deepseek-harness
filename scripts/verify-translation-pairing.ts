@@ -28,6 +28,7 @@ import {
   requiresSourceLanguageSwitcher,
   isTranslationScopeFile,
   TRANSLATION_SCOPE_GLOB_EXCLUDES,
+  translationExclusion,
   translationStructureDiff,
   translationStructureSignature,
 } from './translation-pairing.ts'
@@ -75,14 +76,9 @@ if (manifestContent === undefined) {
 }
 const manifest = parseTranslationPairingManifest(manifestContent.toString('utf8'))
 
-/**
- * An excluded entry ending in `/` excludes the whole directory. The trailing
- * slash IS the path boundary — `docs/tool-catalog/` cannot prefix-match a
- * sibling like `docs/tool-catalog-notes/x.md` — so directory entries in the
- * manifest must keep their trailing slash.
- */
+/** Whether the manifest excludes a path, as one single-language file or as a directory outside the corpus. */
 function isExcluded(file: string): boolean {
-  return manifest.excluded.some(entry => (entry.endsWith('/') ? file.startsWith(entry) : file === entry))
+  return translationExclusion(manifest, file) !== undefined
 }
 
 // Enumerate the scope once: the whole corpus, or exactly the named pairs'
@@ -104,7 +100,9 @@ if (request.scope === 'pairs') {
   for (const pattern of SCOPE_PATTERNS) {
     for (const match of globSync(pattern, { cwd: root, exclude: TRANSLATION_SCOPE_GLOB_EXCLUDES })) {
       const normalized = match.split(sep).join('/')
-      if (isTranslationScopeFile(normalized)) files.add(normalized)
+      // A directory exclusion is a corpus boundary: nothing beneath it is a
+      // document, a translation or a remnant, so nothing beneath it is read.
+      if (isTranslationScopeFile(normalized) && translationExclusion(manifest, normalized) !== 'directory') files.add(normalized)
     }
   }
 }

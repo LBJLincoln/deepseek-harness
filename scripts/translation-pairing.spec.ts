@@ -22,6 +22,7 @@ import {
   parseTranslationPairingManifest,
   partitionGeneratedRegions,
   requiresSourceLanguageSwitcher,
+  translationExclusion,
   translationStructureDiff,
   translationStructureSignature,
 } from './translation-pairing.ts'
@@ -142,6 +143,22 @@ describe('translation pairing manifest', () => {
     expect(() => parseTranslationPairingManifest(JSON.stringify({
       excluded: [42],
     }))).toThrow('excluded must be an array of strings')
+  })
+
+  it('excludes a directory entry as a corpus boundary and a file entry as one single-language document', () => {
+    const manifest = parseTranslationPairingManifest(JSON.stringify({
+      excluded: ['docs/generated/', 'docs/i18n/terminology.md'],
+    }))
+    // Everything beneath a directory entry, translations and records included, is outside the corpus.
+    expect(translationExclusion(manifest, 'docs/generated/README.md')).toBe('directory')
+    expect(translationExclusion(manifest, 'docs/generated/deep/README.zh.md')).toBe('directory')
+    expect(translationExclusion(manifest, 'docs/generated/deep/README.i18n.yaml')).toBe('directory')
+    // The trailing slash is the boundary: a sibling sharing the prefix stays in scope.
+    expect(translationExclusion(manifest, 'docs/generated-notes/README.md')).toBeUndefined()
+    // A file entry names that one document; its would-be counterpart is not excluded, so it is a remnant.
+    expect(translationExclusion(manifest, 'docs/i18n/terminology.md')).toBe('file')
+    expect(translationExclusion(manifest, 'docs/i18n/terminology.zh.md')).toBeUndefined()
+    expect(translationExclusion(manifest, 'docs/architecture.md')).toBeUndefined()
   })
 })
 

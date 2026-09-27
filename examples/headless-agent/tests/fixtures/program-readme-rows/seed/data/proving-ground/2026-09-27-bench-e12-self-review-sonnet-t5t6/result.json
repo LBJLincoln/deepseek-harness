@@ -1,0 +1,953 @@
+{
+  "type": "result",
+  "plan": "e12-self-review-sonnet-t5t6",
+  "environments": [
+    "code:build-schedule",
+    "code:conf-canon",
+    "code:diff3-merge",
+    "code:lex-states",
+    "code:ranked-choice",
+    "code:rate-limit-sim",
+    "code:sheet-eval",
+    "code:uri-resolve",
+    "code:config-layers",
+    "code:job-queue",
+    "code:md-render",
+    "code:task-runner"
+  ],
+  "startedAt": "2026-09-27T00:00:05.088Z",
+  "endedAt": "2026-09-27T02:33:39.042Z",
+  "result": {
+    "digest": "e95e77613e2c53f926f72d5cfd9fb3a1211061aecebfc41fdc7d54dee4f30aa4",
+    "arms": {
+      "baseline": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "ladder": [
+          {}
+        ],
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "experiment-e95e77613e2c53f926f72d5cfd9fb3a1211061aecebfc41fdc7d54dee4f30aa4-baseline"
+      },
+      "candidate": {
+        "model": {
+          "provider": "claude-code",
+          "model": "sonnet"
+        },
+        "ladder": [
+          {
+            "selfReview": true
+          }
+        ],
+        "implementer": {
+          "kind": "route"
+        },
+        "group": "experiment-e95e77613e2c53f926f72d5cfd9fb3a1211061aecebfc41fdc7d54dee4f30aa4-candidate"
+      }
+    },
+    "cells": [
+      {
+        "environment": "code:build-schedule",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 16,
+        "outputTokenDelta": 26677
+      },
+      {
+        "environment": "code:conf-canon",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0.5,
+        "candidateRate": 1,
+        "delta": 0.5,
+        "interval": {
+          "lower": 0,
+          "upper": 1
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 2,
+        "outputTokenDelta": 17390
+      },
+      {
+        "environment": "code:diff3-merge",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 6,
+        "outputTokenDelta": 2813
+      },
+      {
+        "environment": "code:lex-states",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0.5,
+        "candidateRate": 1,
+        "delta": 0.5,
+        "interval": {
+          "lower": 0,
+          "upper": 1
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 26,
+        "outputTokenDelta": 16705
+      },
+      {
+        "environment": "code:ranked-choice",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0.5,
+        "candidateRate": 1,
+        "delta": 0.5,
+        "interval": {
+          "lower": 0,
+          "upper": 1
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 22,
+        "outputTokenDelta": 27888
+      },
+      {
+        "environment": "code:rate-limit-sim",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -12,
+        "outputTokenDelta": 25673
+      },
+      {
+        "environment": "code:sheet-eval",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0,
+        "candidateRate": 0,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 8,
+        "outputTokenDelta": 38053
+      },
+      {
+        "environment": "code:uri-resolve",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 6,
+        "outputTokenDelta": 16437
+      },
+      {
+        "environment": "code:config-layers",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0.5,
+        "candidateRate": 1,
+        "delta": 0.5,
+        "interval": {
+          "lower": 0,
+          "upper": 1
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 34,
+        "outputTokenDelta": 26712
+      },
+      {
+        "environment": "code:job-queue",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 1,
+        "candidateRate": 1,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -14,
+        "outputTokenDelta": 5849
+      },
+      {
+        "environment": "code:md-render",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0.5,
+        "candidateRate": 0.5,
+        "delta": 0,
+        "interval": {
+          "lower": -1,
+          "upper": 1
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": -8,
+        "outputTokenDelta": 9170
+      },
+      {
+        "environment": "code:task-runner",
+        "pairs": 2,
+        "unpaired": 0,
+        "baselineRate": 0,
+        "candidateRate": 0,
+        "delta": 0,
+        "interval": {
+          "lower": 0,
+          "upper": 0
+        },
+        "attemptsDelta": 0,
+        "inputTokenDelta": 12,
+        "outputTokenDelta": 21764
+      }
+    ],
+    "errors": [],
+    "seedsPaired": 24,
+    "discordantPairs": 6,
+    "delta": 0.16666666666666666,
+    "interval": {
+      "lower": -0.041666666666666664,
+      "upper": 0.375
+    },
+    "statistic": "paired-cluster-bootstrap/1",
+    "spend": {
+      "inputTokens": 1758,
+      "outputTokens": 1580125
+    },
+    "thresholds": {
+      "bootstrapResamples": 2000,
+      "confidenceLevel": 0.95,
+      "minimumDelta": 0.05,
+      "minimumDiscordantPairs": 2,
+      "cellTokenCap": 600000
+    },
+    "caps": [
+      [
+        "maxTotalTokens",
+        1500000
+      ],
+      [
+        "maxWallMs",
+        1200000
+      ]
+    ],
+    "verdict": "inconclusive",
+    "verdictBasis": "interval"
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:build-schedule",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:conf-canon",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 0.5,
+      "parity": 0.994718309859155
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:config-layers",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "tampered",
+      "tampered": 1,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 0.5,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:diff3-merge",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:job-queue",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:lex-states",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 0.5,
+      "parity": 0.9950980392156863
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:md-render",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "tampered",
+      "tampered": 1,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 0.5,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:ranked-choice",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 0.5,
+      "parity": 0.9959016393442623
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:rate-limit-sim",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:sheet-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 0,
+      "resolved": 0,
+      "parity": 0.9891304347826086
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:task-runner",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 0,
+      "resolved": 0,
+      "parity": 0.9833333333333333
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet"
+        }
+      ],
+      "environmentId": "code:uri-resolve",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:build-schedule",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:conf-canon",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:config-layers",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:diff3-merge",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:job-queue",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:lex-states",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:md-render",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 0.5,
+      "parity": 0.9911242603550297
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:ranked-choice",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:rate-limit-sim",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:sheet-eval",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 0,
+      "resolved": 0,
+      "parity": 0.9891304347826086
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:task-runner",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 0,
+      "resolved": 0,
+      "parity": 0.9833333333333333
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "ladder": [
+        {
+          "provider": "claude-code",
+          "model": "sonnet",
+          "selfReview": true
+        }
+      ],
+      "environmentId": "code:uri-resolve",
+      "environmentKind": "bench",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 2,
+      "errors": 0,
+      "certified": 2,
+      "resolved": 1,
+      "parity": 1
+    }
+  ],
+  "facts": {
+    "sessions": 48,
+    "exported": 48,
+    "skipped": []
+  },
+  "exported": {
+    "manifest": {
+      "version": "dsh-export-manifest/2",
+      "exportedAt": 1790476419041,
+      "purpose": "evaluation",
+      "profile": "village-v1",
+      "profileSha256": "b2c86201b5feac7e63e8260793faffbbf09a2d4a61c48483edd4ee4150258a7b",
+      "records": 48,
+      "withheld": {
+        "heldOut": 0,
+        "districts": 0,
+        "terms": 0
+      },
+      "ruleHits": {
+        "shipped:private-key": 0,
+        "shipped:jwt": 0,
+        "shipped:aws-access-key": 0,
+        "shipped:aws-secret-key": 0,
+        "shipped:github-token": 0,
+        "shipped:slack-token": 0,
+        "shipped:email": 9,
+        "shipped:bearer-token": 0,
+        "shipped:api-key": 0,
+        "shipped:ipv4": 0,
+        "shipped:e164-phone": 0
+      },
+      "ruleRecords": {
+        "shipped:private-key": 0,
+        "shipped:jwt": 0,
+        "shipped:aws-access-key": 0,
+        "shipped:aws-secret-key": 0,
+        "shipped:github-token": 0,
+        "shipped:slack-token": 0,
+        "shipped:email": 2,
+        "shipped:bearer-token": 0,
+        "shipped:api-key": 0,
+        "shipped:ipv4": 0,
+        "shipped:e164-phone": 0
+      },
+      "recordsSha256": "b885dd23989e0f369b80af2f14603944cc1640f6d23e43459a975a090d4b4cd3",
+      "trajectoryFormat": "dsh-trajectory/3"
+    },
+    "sessions": 48,
+    "exported": 48,
+    "rewarded": 34,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheldByDistrict": 0,
+    "withheldByTerms": 0,
+    "skipped": []
+  }
+}

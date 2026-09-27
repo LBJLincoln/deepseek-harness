@@ -221,6 +221,30 @@ export function parseTranslationPairingManifest(content: string): TranslationPai
 }
 
 /**
+ * How the manifest excludes one repository path. A directory entry, with its
+ * trailing `/`, puts everything beneath it outside the corpus: what it holds is
+ * fixture or task content rather than documentation, whatever its files are
+ * named. The trailing slash is the path boundary, so `docs/tool-catalog/` never
+ * matches a sibling like `docs/tool-catalog-notes/x.md`. A file entry keeps that
+ * one document single-language because it is generated or bilingual by
+ * construction, so a `.zh.md` or `.i18n.yaml` beside it is a remnant to reject.
+ *
+ * @param manifest - The parsed manifest.
+ * @param file - Repository-relative path with `/` separators.
+ * @returns `'directory'` or `'file'` for an excluded path, `undefined` for one the corpus keeps.
+ */
+export function translationExclusion(manifest: TranslationPairingManifest, file: string): 'directory' | 'file' | undefined {
+  for (const entry of manifest.excluded) {
+    if (entry.endsWith('/')) {
+      if (file.startsWith(entry)) return 'directory'
+    } else if (file === entry) {
+      return 'file'
+    }
+  }
+  return undefined
+}
+
+/**
  * Normalize one CLI pair argument to its English anchor path: any of the
  * pair's three files (`foo.md`, `foo.zh.md`, `foo.i18n.yaml`) or the bare
  * `foo` stem names the same pair, and platform separators are accepted.

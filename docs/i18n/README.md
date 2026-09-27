@@ -27,7 +27,7 @@ This repo's documentation is read by people and agents both inside and outside t
 
 1. Every document in scope has a complete pair. README discovery is case-insensitive on the basename, so `missions/readme.md` is in scope alongside the other documentation roots.
 2. Every pair artifact that exists at all is complete and consistent: all three files present, each side's current blob hash equals the recorded one (editing either side without re-confirming the pair goes red), the Chinese side and every authored English source carry their language switchers (listed generated English sources are exempt), and the structural signatures match in order — heading depths, verbatim code blocks (info string and content), table row and column counts, list kinds, ordered-list starts, item counts, and every link target apart from the switcher.
-3. Files listed as `excluded` have no `.zh.md` and no `.i18n.yaml` at all. Frozen Agent Notes under `.agents/notes/archived/` are outside this evolving gate; their dedicated verifier requires and seals the complete existing triplet instead.
+3. A file listed as `excluded` has no `.zh.md` and no `.i18n.yaml` at all. A directory listed as excluded, with its trailing `/`, is outside the corpus: nothing beneath it is read, because what it holds is fixture or task content rather than documentation, whatever its files are named. Frozen Agent Notes under `.agents/notes/archived/` are outside this evolving gate; their dedicated verifier requires and seals the complete existing triplet instead.
 
 Source-oriented code gates consume an exact `.zh.md` fence sequence as a derivative of its unsuffixed sibling instead of compiling or manifesting the same code twice. The sequence must match in length, order, fence kind, and byte-exact body; otherwise both copies remain independently checked and the pairing gate reports the structural mismatch.
 
@@ -45,7 +45,7 @@ The gate's limit, stated plainly: **a green gate means the pair was confirmed co
 
 Generated English references and graphs participate in pairing when a reviewed Chinese counterpart is available. Their generators remain the English source of truth, and freshness and pairing gates enforce their respective invariants independently; regeneration that changes English leaves the pair out of sync until the reviewed Chinese counterpart is updated and re-recorded. Generated English sources omit the language switcher that ordinary authored sources carry, because adding it would make the generator stale; their Chinese counterparts still link back to the English source. A generated page's Chinese counterpart may rewrite only self-referential generation and maintenance statements that would otherwise be false for the reviewed translation; all technical content remains subject to the ordinary faithfulness rules.
 
-**Excluded** (never paired, and the gate rejects a `.zh.md` or `.i18n.yaml` for them):
+**Excluded** (never paired; the gate rejects a `.zh.md` or `.i18n.yaml` beside an excluded file, and reads nothing beneath an excluded directory):
 
 - [cordis-api/inherited.md](../cordis-api/inherited.md) — generated without a reviewed Chinese counterpart, so both website locales project the English source.
 - `docs/AGENTS.md`, `.agents/notes/**/AGENTS.md`, and their `CLAUDE.md` instruction symlinks — agent instructions, maintained in English only like the root `AGENTS.md`.
@@ -55,6 +55,7 @@ Generated English references and graphs participate in pairing when a reviewed C
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments/` — bench task content, not repository documentation. A tier-6 environment's README is one of the files the measured implementer reads, beside that task's English `prompt` in `task.json`; translating it would change what the bench measures.
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments-completion/` — the completion family the factory synthesizes from those environments; a child copies its parent's task files, README included, so the same rule applies.
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments-repository/` — the repository-derived family the factory synthesizes from this repository's own packages; a child's README is task content the measured implementer reads, so the same rule applies.
+- `examples/headless-agent/tests/fixtures/program-readme-rows/seed/` — the repository the readme-rows program delivers into. Its `data/proving-ground/README.md` and `README.zh.md` hold only the committed rows of three records, copied verbatim from the real pair: they are the examiner's expected output, which the delivered tool must reproduce byte for byte, not documentation.
 
 **Universal requirement**: every current or future document in scope must merge as a complete bilingual pair. [scripts/translation-pairing.manifest.json](../../scripts/translation-pairing.manifest.json) contains only explicit exclusions; there is no per-file rollout list, date cutoff, or README-specific policy class.
 
