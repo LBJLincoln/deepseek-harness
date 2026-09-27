@@ -18,13 +18,13 @@ Status: implemented
 
 Implementer 列是每份记录手写的文字——`sealed, completion family`、`+review (a self-review turn before the validation)`——因此作为 `--implementer` 传入，其中的 `{model}` 代表该行的模型，这就是多模型的 fleet 用一段列文本得到每个模型与环境各一行的方式。这个占位符是检查所钉住的命令行约定的一部分，因此 `TASK.md` 陈述了它。
 
-seed 镜像仓库的布局。`seed/` 装着 `TASK.md`、`data/proving-ground/tools/summarize-run.mjs`、三份只保留 `manifest.json`、`result.json`、`facts.jsonl` 与 `observatory.json` 的记录，以及只装着这些记录的已提交行、逐字复制而来的 `data/proving-ground/README.md` 与 `README.zh.md`。因为路径就是仓库自己的路径，同一份规格可以不加改动地跑在铸出的 seed 上和本仓库的克隆上，无密钥运行与真实运行是同一个程序 id，与 csv-tools 一样。配对门禁本会把 seed 的 README 对读成文档；现在对 `seed/` 的目录排除是一条语料库边界——它下面的任何东西都不被读取——而文件排除仍会拒绝其旁边的 `.zh.md`（[该门禁](../../../../docs/i18n/README.md#the-gate-verify-translation-pairing)）。
+seed 镜像仓库的布局。`seed/` 装着 `TASK.md`、`data/proving-ground/tools/summarize-run.mjs`、三份只保留 `manifest.json`、`result.json`、`facts.jsonl` 与 `observatory.json` 的记录，以及只装着这些记录的已提交行、逐字复制而来的 `data/proving-ground/README.md` 与 `README.zh.md`。因为路径就是仓库自己的路径，同一份规格可以不加改动地跑在铸出的 seed 上和本仓库的克隆上；无密钥运行与真实运行只在部门的上限上不同，叠加层提高了它，而摘要覆盖它。配对门禁本会把 seed 的 README 对读成文档；现在对 `seed/` 的目录排除是一条语料库边界——它下面的任何东西都不被读取——而文件排除仍会拒绝其旁边的 `.zh.md`（[该门禁](../../../../docs/i18n/README.md#the-gate-verify-translation-pairing)）。
 
 任务陈述是部门要读的一个文件，如同 csv-tools 的 `SPEC.md`，而不只是作为用户回合送达的目标段落：它带着检查命令本身，因此部门可以自己运行它被测量的那些东西。对真实运行，操作者按 driver 准备 seed 的方式准备克隆——把 `seed/TASK.md` 复制到克隆的根目录、提交、给那次提交打上 `base` 标签——而 driver 会拒绝在 `base` 上没有 `TASK.md` 的克隆。当一次已发布运行的合并修订版并入分支时，仓库根目录再次去掉 `TASK.md`：这份陈述活在 fixture 的 seed 与账本里冻结的规格中，一个已发布程序的根目录任务文件两者都不是。
 
 真实运行是同一个 driver 跑在 `overlays/claude-code.cordis.yml` 上——禁用脚本路由、插入操作者的 Claude Code 安装、以 `sonnet` 作为部门的模型——作用于本仓库分支的一个克隆，而一次已发布运行的合并修订版会从克隆中 fetch 出来并以 `git merge --no-ff` 合并，因此部门的提交与整合的合并都以它们自己的身份落地。第一次运行 [`2026-09-27-readme-rows-program`](../../../../data/proving-ground/README.md) 没有发布：部门在第一次验证运行之前因 `budget-exhausted` 阻塞，什么都没有合并，工具尚未落地。记录持有账本与部门日志，操作者没有启动第二次运行。
 
-这里验证域的 `maxTextChars` 与程序的 `evidenceMaxChars` 都是 4096，而 csv-tools 是 2048 与 512：一项失败金标的证据是对一百多字符长的行做的 `diff`，而这份证据是部门在两次尝试之间得到的唯一指令，因此界限要能完整装下它的好几行。预算与轮次上限沿用 csv-tools：每个部门会话 2,000,000 个 token 与 1,500 s，三轮。第一次运行花光的正是这个 token 上限。
+这里验证域的 `maxTextChars` 与程序的 `evidenceMaxChars` 都是 4096，而 csv-tools 是 2048 与 512：一项失败金标的证据是对一百多字符长的行做的 `diff`，而这份证据是部门在两次尝试之间得到的唯一指令，因此界限要能完整装下它的好几行。部门的上限就是组合的 `budget-policy` 上限，由 driver 读进目标的预算：无密钥组合里每个部门会话 2,000,000 个 token 与 1,500 s，即 csv-tools 的数字；叠加层里则是 8,000,000 个 token、同样的 1,500 s，因为第一次真实运行在第一次尝试之前就用 29 步阅读花光了较小的上限。轮次上限为三。
 
 ## Alternatives considered
 

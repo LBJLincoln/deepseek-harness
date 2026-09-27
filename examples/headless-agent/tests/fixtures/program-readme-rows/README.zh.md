@@ -33,7 +33,7 @@ fleet 记录为每个模型与环境各打印一行；冻结配对记录为每�
 
 [`cordis.yml`](cordis.yml) 是无密钥的那一半：部门跑在由 [`readme-rows-llm.ts`](readme-rows-llm.ts) 注册的 `cli-mock` 路由上，它读任务陈述、写出提交在 [`scripted/`](scripted/data/proving-ground/tools) 下的工具与测试，并带着目标要求的两行 trailer 提交。它证明的是接线——规格被冻结、部门被配备并在已提交的树上被认证、分支被合并、已提交的行决定发布——而完全不证明模型能构建出什么。脚本化的文件同时也是参考解：它们通过规格的每一项检查，这正是规格可被满足的证明。
 
-[`overlays/claude-code.cordis.yml`](overlays/claude-code.cordis.yml) 是真实的那一份：同一份文件，禁用脚本路由、插入操作者的 Claude Code 安装，并以 `sonnet` 作为部门的模型。`implementer` 仍是 `route`，因此程序逐轮驱动部门，而部门自己的会话持有它所走的每一步。路由不属于规格摘要，因此两次运行是同一个目标上的同一个程序 id。
+[`overlays/claude-code.cordis.yml`](overlays/claude-code.cordis.yml) 是真实的那一份：同一份文件，禁用脚本路由、插入操作者的 Claude Code 安装、以 `sonnet` 作为部门的模型，并把部门的上限提高到 8,000,000 个 token，墙钟仍为 1,500 s。`implementer` 仍是 `route`，因此程序逐轮驱动部门，而部门自己的会话持有它所走的每一步。部门的上限就是组合的 `budget-policy` 上限——driver 把它们读进目标的预算，因此它们是配置而不是 driver 里的一个数字——规格摘要覆盖它们但不覆盖路由，因此真实运行是与无密钥运行同一个目标上、有自己 id 的一个程序。
 
 ## 无密钥运行
 

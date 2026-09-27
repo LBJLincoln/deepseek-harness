@@ -22,8 +22,9 @@ import { boot, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 import type {} from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
+import type {} from '@deepseek-ai/dsh-budget-policy'
 import { programIdFor, programSpecDigest, resolveProgramSpec } from '@deepseek-ai/dsh-program'
-import type { ProgramReport, ProgramSpec } from '@deepseek-ai/dsh-program'
+import type { ProgramGoalBudget, ProgramReport, ProgramSpec } from '@deepseek-ai/dsh-program'
 import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
@@ -36,9 +37,6 @@ const TASK = 'TASK.md'
 
 /** The artefact both of the program's signatures attest: the task statement the seed carries. */
 const ARTEFACT = createHash('sha256').update(readFileSync(new URL(`seed/${TASK}`, import.meta.url))).digest('hex')
-
-/** Caps the department session runs under. */
-const BUDGET = { maxTotalTokens: 2_000_000, maxWallMs: 1_500_000 }
 
 /** The check every department carries: a department installs nothing. */
 const NO_DEPENDENCIES = 'test ! -e node_modules'
@@ -208,12 +206,35 @@ function testCheck(prefix: string): StandardCheck {
 }
 
 /**
+ * The caps the department session runs under: the composition's own session
+ * caps, read from its budget policy, so the caps are configuration the overlay
+ * patches for a real run rather than a figure this file states. The three caps
+ * a program can state about a department are the ones carried over.
+ * @param ctx - the booted application.
+ * @returns the goal budget the spec records and the department's `budget/caps` carries.
+ */
+function departmentBudget(ctx: Awaited<ReturnType<typeof boot>>): ProgramGoalBudget {
+  const budgets = ctx.get('sessionBudgets')
+  if (budgets === undefined) throw new Error('readme-rows driver requires the session budget policy')
+  const caps = new Map(budgets.configuredCaps())
+  const maxTotalTokens = caps.get('maxTotalTokens')
+  const maxWallMs = caps.get('maxWallMs')
+  const maxCostEur = caps.get('maxCostEur')
+  return {
+    ...maxTotalTokens === undefined ? {} : { maxTotalTokens },
+    ...maxWallMs === undefined ? {} : { maxWallMs },
+    ...maxCostEur === undefined ? {} : { maxCostEur },
+  }
+}
+
+/**
  * The program the fixture runs: one department that writes the tool and its
  * test against the committed rows, then one integration over the merged head
  * that repeats the goldens and gates the clean tree.
+ * @param budget - the caps the department session runs under.
  * @returns the spec, which is frozen and digested before anything runs.
  */
-function programSpec(): ProgramSpec {
+function programSpec(budget: ProgramGoalBudget): ProgramSpec {
   return {
     objective: 'deliver readme-rows: the tool that prints the README rows of one recorded Proving Ground run',
     baseRevision: 'base',
@@ -228,7 +249,7 @@ function programSpec(): ProgramSpec {
       ].join(' '),
       preset: 'implementing',
       isolation: 'none',
-      budget: BUDGET,
+      budget,
       dependsOn: [],
       checks: [
         testCheck('readme-rows'),
@@ -351,7 +372,7 @@ try {
       denials.push({ sessionId: session.id, capability: event.data.capability, displayPath: event.data.displayPath })
     }
   }, { global: true })
-  const spec = programSpec()
+  const spec = programSpec(departmentBudget(ctx))
   await sign(ctx, spec, repository)
   const report = await programs.start(spec)
   const observed = await readRoot(persistence)

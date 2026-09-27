@@ -152,7 +152,8 @@ describe('a program that builds readme-rows through a real cordis.yml', () => {
     expect(opened.specSha256).toBe(observed.report.programId.replace('program-', ''))
     expect(opened.baseRevision).toBe('base')
     // The spec is frozen before anything runs, and the route the department is
-    // driven on is not part of it: the overlay's real run is this same program.
+    // driven on is not part of it: the overlay's real run is this same goal
+    // under the caps its composition states.
     expect(opened.implementer).toEqual({ kind: 'route' })
     expect(ledger?.signoffs).toEqual(['spec-freeze', 'release'])
 

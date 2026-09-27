@@ -4,8 +4,8 @@
 #
 # `implementer` stays `route`, so the program drives the department turn by turn
 # through the LLM seam and the department's own session holds every step it
-# took. The spec digest covers the implementer but not the route, so the keyless
-# and the real run are the same program id over the same goal.
+# took. The spec digest covers the implementer and the department's caps but not
+# the route, so a real run is the keyless program's goal under a larger budget.
 - id: base
   name: '@deepseek-ai/cordis-plugin-include'
   config:
@@ -15,6 +15,16 @@
       # run composes no mock route at all.
       - id: readme-rows-llm
         disabled: true
+      # The department's caps, which the driver reads into the goal's budget. The
+      # first real run spent the keyless 2,000,000 tokens in 29 steps of reading
+      # this repository before its first attempt, because the cap counts billed
+      # input and every step reads the whole conversation back from cache; the
+      # wall cap stays. An id-targeted patch replaces the whole config, so both
+      # fields are restated.
+      - id: budget-policy
+        config:
+          maxTotalTokens: 8000000
+          maxWallMs: 1500000
       - insert:
           - id: llm-claude-code
             name: '@deepseek-ai/dsh-llm-claude-code'

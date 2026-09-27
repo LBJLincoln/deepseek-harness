@@ -73,13 +73,16 @@
     model: cli-mock
 
 # Village rule: a composition that runs unattended sessions carries a session
-# budget. The caps are far out of reach of the scripted route, so the department
-# never breaches them before its own `budget/caps` record tightens them.
+# budget. These caps are also the department's own: the driver reads them into
+# the goal's budget, so the spec records them and the overlay's patch of this
+# row is what raises them for a real run. The figures are csv-tools': far out of
+# reach of the scripted route, and what the first real run spent before its
+# first attempt.
 - id: budget-policy
   name: '@deepseek-ai/dsh-budget-policy'
   config:
-    maxTotalTokens: 3000000
-    maxWallMs: 1800000
+    maxTotalTokens: 2000000
+    maxWallMs: 1500000
 
 - id: agent-spine
   name: '@deepseek-ai/dsh-agent-spine-demo'
