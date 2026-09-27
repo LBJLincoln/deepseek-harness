@@ -177,6 +177,14 @@ describe('files and resolution', () => {
   })
 })
 
+describe('transpile', () => {
+  it('removes the trailing whitespace the emitter leaves at a kept line break, and keeps template literal text', () => {
+    expect(transpile('export const a = 1 // note \nexport const t = `x \n  y  \n`\n', 'f.ts')).toBe('export const a = 1; // note\nexport const t = `x \n  y  \n`;\n')
+    expect(transpile('export function f(a: number, // first \n  b: string): string {\n  return `${a} \n  ${b}  \n`\n}\n', 'g.ts'))
+      .toBe('export function f(a, // first\nb) {\n    return `${a} \n  ${b}  \n`;\n}\n')
+  })
+})
+
 describe('module imports, exports, and specifier rewriting', () => {
   const module = `import type { T } from './types'
 import { helper } from './helper.js'

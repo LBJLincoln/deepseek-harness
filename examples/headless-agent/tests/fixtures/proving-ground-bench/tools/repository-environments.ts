@@ -76,8 +76,31 @@ const COMPILER_OPTIONS: ts.CompilerOptions = {
 }
 
 /**
+ * The emitter's trailing whitespace removed: where it erased a type before a
+ * line break it kept (`f(a: A,\n b: B)` emits `f(a, \n b)`), the separator's
+ * space ends the line, and a committed child must end no line with
+ * whitespace. Template literal text is content and keeps its own.
+ */
+function withoutEmittedTrailingWhitespace(js: string, fileName: string): string {
+  const file = parseSource(js, fileName)
+  const templates: { start: number; end: number }[] = []
+  const visit = (node: ts.Node): void => {
+    if (ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
+      templates.push({ start: node.getStart(file), end: node.end })
+      return
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(file)
+  return js.replace(/[ \t]+$/gmu, (match: string, offset: number) =>
+    (templates.some(span => offset > span.start && offset < span.end) ? match : ''))
+}
+
+/**
  * The plain ESM JavaScript of one TypeScript source, comments kept and
- * type-only imports elided, as `tsc` would emit it for one file.
+ * type-only imports elided, as `tsc` would emit it for one file, less the
+ * trailing whitespace the emitter leaves at a line break where it erased a
+ * type.
  * @param source - the TypeScript text.
  * @param fileName - the source's name, for the diagnostic a syntax error carries.
  * @returns the JavaScript text.
@@ -87,7 +110,7 @@ export function transpile(source: string, fileName: string): string {
   const result = ts.transpileModule(source, { fileName, reportDiagnostics: true, compilerOptions: COMPILER_OPTIONS })
   const problem = result.diagnostics?.[0]
   if (problem !== undefined) throw new Error(`${fileName}: ${ts.flattenDiagnosticMessageText(problem.messageText, '\n')}`)
-  return result.outputText
+  return withoutEmittedTrailingWhitespace(result.outputText, fileName)
 }
 
 /**
