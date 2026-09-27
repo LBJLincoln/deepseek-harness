@@ -19,7 +19,7 @@ export interface Department {
 }
 
 /** The six specialist departments a run includes when none are named explicitly. */
-export const SPECIALIST_DEPARTMENTS: readonly Department[] = [
+const SPECIALIST_DEPARTMENTS: readonly Department[] = [
   {
     key: 'secrets',
     subject: 'hard-coded credentials and leaked configuration',
@@ -60,14 +60,14 @@ export const SPECIALIST_DEPARTMENTS: readonly Department[] = [
  * pass catching issues the six specialists missed, on a small application
  * where one reviewer can hold the whole tree in context.
  */
-export const GENERALIST_DEPARTMENT: Department = {
+const GENERALIST_DEPARTMENT: Department = {
   key: 'generalist',
   subject: 'the whole application, end to end, across every defect class',
   instruction: 'Read the whole application end to end — every route, every data access path, every configuration file, and the client-side code — rather than one subject at a time. Report a defect of any class: injection, broken access control, exposed secrets, weak cryptography or logging, a vulnerable dependency, a platform misconfiguration, or anything none of those name. Name the exact file and line for each one, and say in `evidence` what you traced from source to sink. A defect a specialist department would already name from its own subject is not worth a second report; spend your reading on what a single subject would not have surfaced.',
 }
 
 /** Every department this fixture can run, specialists first. */
-export const ALL_DEPARTMENTS: readonly Department[] = [...SPECIALIST_DEPARTMENTS, GENERALIST_DEPARTMENT]
+const ALL_DEPARTMENTS: readonly Department[] = [...SPECIALIST_DEPARTMENTS, GENERALIST_DEPARTMENT]
 
 /** Department keys a run includes when `DSH_CODE_SAFETY_DEPARTMENTS` is unset. */
 export const DEFAULT_DEPARTMENT_KEYS: readonly string[] = SPECIALIST_DEPARTMENTS.map(department => department.key)
