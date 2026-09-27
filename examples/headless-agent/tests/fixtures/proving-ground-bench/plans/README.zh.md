@@ -7,11 +7,11 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | 计划 | 比较对象 | 层 | Arms / 模型 | 种子 | 叠加层 | 已记录运行 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `completion-hard-pair` | 六个最难的补全子环境（三个第 6 层、三个第 5 层）在两个模型上、只依可见套件评判：正是这次读数表明该任务族无法区分任何东西 | 5-6 | 舰队 `sonnet`、`haiku`，district `bench-completion` | 1 | with-completion | `2026-09-23-bench-completion-hard-pair`（两个模型均 6 of 6，发生在子环境继承其父环境隐藏用例之前） |
-| `completion-hidden-pair` | 同样六个子环境、同样两个模型，现在还依其父环境的隐藏用例评判：区分性检查 | 5-6 | 舰队 `sonnet`、`haiku`，district `bench-completion` | 1 | with-completion | not recorded |
+| `completion-hidden-pair` | 同样六个子环境、同样两个模型，现在还依其父环境的隐藏用例评判：区分性检查 | 5-6 | 舰队 `sonnet`、`haiku`，district `bench-completion` | 1 | with-completion | `2026-09-26-bench-completion-hidden-pair`（两个模型再次均 6 of 6，每条隐藏用例都通过） |
 | `completion-openrouter-free-t2` | 环境工厂产出的第 2 层补全子环境，跑在免费开放权重路由上 | 2 | 舰队三个免费 OpenRouter 模型，district `bench-completion-openrouter` | 1 | with-completion-openrouter | not recorded |
 | `completion-smoke-haiku` | 环境工厂产出的补全子环境，每层各取一个，跑在小模型上 | 2-6 | 舰队 `haiku`，district `bench-completion` | 1 | with-completion | `2026-09-23-bench-completion-smoke-haiku` |
 | `completion-smoke-sonnet` | 环境工厂产出的补全子环境，每层各取一个 | 2-6 | 舰队 `sonnet`，district `bench-completion` | 1 | with-completion | `2026-09-23-bench-completion-smoke-sonnet` |
-| `completion-t6-haiku` | 全部第 6 层补全子环境在小模型上、隐藏用例生效：该任务族在其最难层级是否还有任何余量 | 6 | 舰队 `haiku`，district `bench-completion` | 1 | with-completion | not recorded |
+| `completion-t6-haiku` | 全部第 6 层补全子环境在小模型上、隐藏用例生效：该任务族在其最难层级是否还有任何余量 | 6 | 舰队 `haiku`，district `bench-completion` | 1 | with-completion | `2026-09-26-bench-completion-t6-haiku`（26 之 24，两个解析器被隐藏用例判负） |
 | `e0-calibration-sonnet-t2` | `sonnet` 对自身（噪声基线） | 2 | 基线 `sonnet` 对候选 `sonnet` | 1 | base | not recorded |
 | `e1-haiku-vs-sonnet-t3` | 模型层级：sonnet 对 haiku | 3 | 基线 `sonnet` 对候选 `haiku` | 1 | base | `2026-09-08-bench-e1-haiku-vs-sonnet-t3` |
 | `e1-sonnet-vs-opus-t3` | 模型层级：sonnet 对 opus | 3 | 基线 `sonnet` 对候选 `opus` | 1 | base | `2026-09-08-bench-e1-sonnet-vs-opus-t3` |
