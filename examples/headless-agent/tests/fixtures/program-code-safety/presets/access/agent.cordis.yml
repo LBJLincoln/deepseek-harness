@@ -7,7 +7,7 @@
 
       Build the route table first: every path the application registers, the method, and the middleware chain in front of it. Then decide, route by route, what an unauthenticated caller and an authenticated caller of the wrong identity would get. The finding is the route that is missing the check, and its line is the route's registration.
 
-      Look for a handler that reads an identifier out of the request and trusts it, a privilege or role a caller can set for themselves, an administrative route with no role check, a session that is not regenerated at login or not expired at logout, a password comparison that is not constant time, authentication with no rate limit or lockout, and state-changing routes with no CSRF token — including the case where a CSRF middleware is present but mounted after the routes it should cover.
+      Look for a handler that reads an identifier out of the request and trusts it, a privilege or role a caller can set for themselves, an administrative route with no role check, a session that is not regenerated at login or not expired at logout, an authentication failure branch that renders a different message, status or redirect depending on whether the account exists, a signup or password-change validator whose rule accepts a trivially weak password, a password comparison that is not constant time, authentication with no rate limit or lockout, and state-changing routes with no CSRF token — including the case where a CSRF middleware is present but mounted after the routes it should cover.
 
       Every finding quotes the exact line it cites. No finding without a file and a line. Prefer three findings you have read the code for over twelve a pattern matched, and set `confidence` to what you actually know.
 

@@ -11,8 +11,8 @@
 | 部门 | 主题 | 预设 |
 | --- | --- | --- |
 | `secrets` | 硬编码凭据、令牌与密钥，泄漏的 `.env` 与配置 | [`presets/secrets`](presets/secrets/agent.cordis.yml) |
-| `injection` | SQL、NoSQL、命令、模板与代码注入，XSS，路径穿越 | [`presets/injection`](presets/injection/agent.cordis.yml) |
-| `access` | 认证、会话处理、授权、IDOR、CSRF | [`presets/access`](presets/access/agent.cordis.yml) |
+| `injection` | SQL、NoSQL、命令、模板与代码注入，XSS，路径穿越，SSRF，日志注入，ReDoS | [`presets/injection`](presets/injection/agent.cordis.yml) |
+| `access` | 认证（含账户枚举与口令策略）、会话处理、授权、IDOR、CSRF | [`presets/access`](presets/access/agent.cordis.yml) |
 | `data` | 敏感数据暴露、日志中的个人数据、明文传输、弱密码学、口令存储 | [`presets/data`](presets/data/agent.cordis.yml) |
 | `dependencies` | 存在漏洞与过时的依赖，来自 `npm audit --json` 或清单文件 | [`presets/dependencies`](presets/dependencies/agent.cordis.yml) |
 | `platform` | 响应头、CORS、Cookie、错误处理、限流、安全配置错误、客户端代码 | [`presets/platform`](presets/platform/agent.cordis.yml) |

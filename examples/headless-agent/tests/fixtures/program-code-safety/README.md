@@ -11,8 +11,8 @@ A run has a **target tree** — the customer's application, passed as a path and
 | Department | Subject | Preset |
 | --- | --- | --- |
 | `secrets` | hard-coded credentials, tokens and keys, leaked `.env` and configuration | [`presets/secrets`](presets/secrets/agent.cordis.yml) |
-| `injection` | SQL, NoSQL, command, template and code injection, XSS, path traversal | [`presets/injection`](presets/injection/agent.cordis.yml) |
-| `access` | authentication, session handling, authorization, IDOR, CSRF | [`presets/access`](presets/access/agent.cordis.yml) |
+| `injection` | SQL, NoSQL, command, template and code injection, XSS, path traversal, SSRF, log injection, ReDoS | [`presets/injection`](presets/injection/agent.cordis.yml) |
+| `access` | authentication (including account enumeration and password policy), session handling, authorization, IDOR, CSRF | [`presets/access`](presets/access/agent.cordis.yml) |
 | `data` | sensitive-data exposure, PII in logs, cleartext transport, weak crypto, password storage | [`presets/data`](presets/data/agent.cordis.yml) |
 | `dependencies` | vulnerable and outdated packages, from `npm audit --json` or the manifest | [`presets/dependencies`](presets/dependencies/agent.cordis.yml) |
 | `platform` | headers, CORS, cookies, error handling, rate limiting, misconfiguration, client-side code | [`presets/platform`](presets/platform/agent.cordis.yml) |

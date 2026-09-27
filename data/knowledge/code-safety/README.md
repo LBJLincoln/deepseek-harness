@@ -12,8 +12,8 @@ Skills a security review department reads before analysing a customer's applicat
 | [owasp-top-10](owasp-top-10/SKILL.md) | The OWASP Top 10 2021 and 2025 categories mapped to CWE ids and code patterns per language and framework. |
 | [cwe-top-25](cwe-top-25/SKILL.md) | The CWE Top 25: a one-paragraph recognition cue and the expected fix for each. |
 | [secrets](secrets/SKILL.md) | Credential and key patterns, their false positives, and remediation (rotation, vaulting). |
-| [injection](injection/SKILL.md) | SQL/NoSQL, command, template/eval, XSS, path traversal, SSRF, and deserialization, with safe alternatives per framework. |
-| [access](access/SKILL.md) | Authentication, session management, authorization (including IDOR), CSRF, and JWT pitfalls. |
+| [injection](injection/SKILL.md) | SQL/NoSQL, command, template/eval, XSS, path traversal, SSRF, log injection, ReDoS, and deserialization, with safe alternatives per framework. |
+| [access](access/SKILL.md) | Authentication (including account enumeration and password policy), session management, authorization (including IDOR), CSRF, and JWT pitfalls. |
 | [data](data/SKILL.md) | Sensitive data exposure, logging of PII and secrets, transport, crypto misuse, password-storage parameters, and backups. |
 | [dependencies](dependencies/SKILL.md) | Reading manifests and lockfiles, running audit tools, typosquatting, abandoned packages, and advisory findings. |
 | [platform](platform/SKILL.md) | Security headers, CORS, cookies, error handling, rate limiting, uploads, debug endpoints, and Docker/nginx misconfiguration. |

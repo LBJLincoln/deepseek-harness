@@ -12,8 +12,8 @@
 | [owasp-top-10](owasp-top-10/SKILL.md) | OWASP Top 10 2021 版与 2025 版分类,对应的 CWE 编号以及各语言、各框架下的代码模式。 |
 | [cwe-top-25](cwe-top-25/SKILL.md) | CWE Top 25:每一项的一段式识别线索及其预期修复方式。 |
 | [secrets](secrets/SKILL.md) | 凭证与密钥的特征模式、常见误报,以及修复方式(轮换、纳入密钥管理)。 |
-| [injection](injection/SKILL.md) | SQL/NoSQL 注入、命令注入、模板与 eval 注入、XSS、路径穿越、SSRF 与反序列化,以及各框架下的安全替代方案。 |
-| [access](access/SKILL.md) | 身份认证、会话管理、授权(含 IDOR)、CSRF 以及 JWT 相关陷阱。 |
+| [injection](injection/SKILL.md) | SQL/NoSQL 注入、命令注入、模板与 eval 注入、XSS、路径穿越、SSRF、日志注入、ReDoS 与反序列化,以及各框架下的安全替代方案。 |
+| [access](access/SKILL.md) | 身份认证(含账户枚举与口令策略)、会话管理、授权(含 IDOR)、CSRF 以及 JWT 相关陷阱。 |
 | [data](data/SKILL.md) | 敏感数据暴露、日志中的 PII 与密钥、传输安全、密码学误用、密码存储参数以及备份。 |
 | [dependencies](dependencies/SKILL.md) | 阅读各生态的清单与锁定文件、运行审计工具、识别抢注包与废弃包,以及撰写漏洞结论。 |
 | [platform](platform/SKILL.md) | 安全响应头、CORS、Cookie、错误处理、限流、文件上传、调试端点以及 Docker/nginx 配置错误。 |

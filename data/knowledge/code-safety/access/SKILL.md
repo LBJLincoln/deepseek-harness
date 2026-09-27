@@ -1,13 +1,15 @@
 ---
 name: access
-description: Authentication (password handling, brute force, MFA), session management (cookie flags, fixation, expiry), authorization (IDOR, missing per-route checks, role checks), CSRF, and JWT pitfalls — the code patterns and the CWE id for each.
+description: Authentication (password handling, account enumeration, password-policy acceptance rules, brute force, MFA), session management (cookie flags, fixation, expiry), authorization (IDOR, missing per-route checks, role checks), CSRF, and JWT pitfalls — the code patterns and the CWE id for each.
 ---
 
 # Authentication, sessions, and authorization
 
 ## Authentication
 
-- **Password handling** (CWE-916, CWE-521) — hashing with `bcrypt`/`argon2` at an adequate cost factor is correct; MD5/SHA1/SHA256 with no salt, or a home-rolled scheme, is not (full parameters in [data](../data/SKILL.md)). Flag password comparison with `==`/`.equals()` instead of the hashing library's own constant-time verify.
+- **Password handling** (CWE-916) — hashing with `bcrypt`/`argon2` at an adequate cost factor is correct; MD5/SHA1/SHA256 with no salt, or a home-rolled scheme, is not (full parameters in [data](../data/SKILL.md)). Flag password comparison with `==`/`.equals()` instead of the hashing library's own constant-time verify.
+- **Account enumeration** (CWE-204, CWE-203) — an authentication response that differs by whether the account exists: a login handler whose unknown-user branch renders one message and whose wrong-password branch renders another, a signup or password-reset route that answers "already registered" or "no such account", a different status code or redirect per branch, or a measurably slower path when the account exists. Read every failure branch of the login, signup and reset handlers and compare what each renders; the finding is the branch that renders the account-specific message, and the fix is one identical message and one code path for both outcomes.
+- **Password policy** (CWE-521) — the acceptance rule a signup, password-change or reset handler applies before storing a password: a length-only pattern such as `/^.{1,64}$/`, a minimum below eight characters, a check on presence alone, or a stronger rule left commented out beside the live one. Read the validator's own line rather than the hashing code that follows it: a one-character password the validator accepts is the finding, and its line is the validator's, not the store's.
 - **Brute force** (CWE-307) — a login, password-reset, or OTP-verification route with no attempt limit, no lockout, and no delay. Look for the limiter being applied per-IP only (bypassed by rotating IPs) rather than per-account, and for a reset-token or OTP endpoint with a short numeric code and no rate limit, which is brute-forceable directly.
 - **MFA** (CWE-308) — an MFA step that can be skipped by calling the post-login endpoint directly, a "remember this device" cookie with no expiry or signature, or a backup-code path with weaker entropy than the primary factor.
 

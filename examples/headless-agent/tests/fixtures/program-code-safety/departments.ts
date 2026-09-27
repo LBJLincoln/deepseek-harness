@@ -28,12 +28,12 @@ const SPECIALIST_DEPARTMENTS: readonly Department[] = [
   {
     key: 'injection',
     subject: 'injection and traversal',
-    instruction: 'Look for SQL and NoSQL queries built by concatenation or interpolation, for `$where` and other server-side evaluation, for `eval`, `new Function` and string-bodied timers, for shell commands built from request data, for template injection, for unescaped HTML sinks, and for filesystem paths built from request data. Name the sink line, and say in `evidence` what reaches it.',
+    instruction: 'Look for SQL and NoSQL queries built by concatenation or interpolation, for `$where` and other server-side evaluation, for `eval`, `new Function` and string-bodied timers, for shell commands built from request data, for template injection, for unescaped HTML sinks, for filesystem paths built from request data, for server-side HTTP requests whose URL or host comes from the request, for log calls that write a request value without encoding it, and for regular expressions with nested or overlapping quantifiers applied to request data. Name the sink line, and say in `evidence` what reaches it.',
   },
   {
     key: 'access',
     subject: 'authentication, session handling and authorization',
-    instruction: 'Look for routes that change or read data without an authentication or authorization check, for direct object references taken from the request, for session configuration that does not regenerate or expire, for missing CSRF protection on state-changing routes, and for privilege changes a user can request for themselves. Name the route line that is missing the check.',
+    instruction: 'Look for routes that change or read data without an authentication or authorization check, for direct object references taken from the request, for session configuration that does not regenerate or expire, for missing CSRF protection on state-changing routes, for authentication responses that differ by whether an account exists, for a signup or password-change validator that accepts a trivially weak password, and for privilege changes a user can request for themselves. Name the route line that is missing the check, or the failure-branch or validator line for an enumeration or password-policy finding.',
   },
   {
     key: 'data',
