@@ -2,11 +2,11 @@
 
 English | [中文](README.zh.md)
 
-A [program](../../../../../packages/improvement/program/README.md) whose deliverable is a change to this repository: one department, on its own branch and session, writes `data/proving-ground/tools/readme-rows.mjs` — the tool that prints the `## Runs` rows of [`data/proving-ground/README.md`](../../../../../data/proving-ground/README.md) for one recorded run — and an integration certifies the merged head against rows committed before the department started. The [csv-tools program](../program-csv-tools/README.md) builds a standalone command line from a specification; this one is the first change to the repository that the harness itself built, and the [Agent Note](../../../../../.agents/notes/implemented/process/2026-09-27-program-builds-readme-rows.md) records what its run proves and does not.
+A [program](../../../../../packages/improvement/program/README.md) whose deliverable is a change to this repository: one department, on its own branch and session, writes `data/proving-ground/tools/readme-rows.mjs` — the tool that prints the `## Runs` rows of [`data/proving-ground/README.md`](../../../../../data/proving-ground/README.md) for one recorded run — and an integration certifies the merged head against rows committed before the department started. The [csv-tools program](../program-csv-tools/README.md) builds a standalone command line from a specification; this one points the workflow at the repository itself; its first real run is recorded under [`data/proving-ground/`](../../../../../data/proving-ground/README.md), and the [Agent Note](../../../../../.agents/notes/implemented/process/2026-09-27-program-builds-readme-rows.md) records what it proved and exposed.
 
 ## What it delivers
 
-The `## Runs` table of `data/proving-ground/README.md` and its Chinese counterpart carries one row per environment of every recorded run — 12 to 62 rows per record, hand-written until this program ran. `readme-rows.mjs` prints them from the record's own durable files (`manifest.json`, `result.json`, `facts.jsonl`):
+The `## Runs` table of `data/proving-ground/README.md` and its Chinese counterpart carries one row per environment of every recorded run — 12 to 62 rows per record, written by hand. `readme-rows.mjs` prints them from the record's own durable files (`manifest.json`, `result.json`, `facts.jsonl`):
 
 ```sh
 node data/proving-ground/tools/readme-rows.mjs <record dir> --lang en|zh --implementer "<implementer column text>"
@@ -66,7 +66,7 @@ TSX_TSCONFIG_PATH="$REPO/tsconfig.json" \
     > "$RUN/stdout.jsonl" 2> "$RUN/stderr.txt" &
 ```
 
-It needs the `claude` CLI installed and logged in, and no `DEEPSEEK_API_KEY`. While it runs, `$RUN/.sessions/` fills with one log per session — the ledger, the department and the integration — and the driver writes its single result line to `stdout.jsonl` when the program ends.
+It needs the `claude` CLI installed and logged in, and no `DEEPSEEK_API_KEY`. While it runs, `$RUN/.sessions/` fills with one log per session — the ledger, the department and the integration — and the driver writes its single result line to `stdout.jsonl` when the program ends. On this route the product query runs in the driver's working directory and the product tells its model so, while the harness names no directory to it; a department may take that directory for its worktree, which is what the first run's department did ([the route's limitation](../../../../../packages/llm/llm-claude-code/README.md#known-limitations-and-deferred-work)).
 
 What the run leaves behind, with every session log at `$RUN/.sessions/<workspace-slug>/<session id>/session.jsonl` and the integration's key percent-escaped in its id:
 

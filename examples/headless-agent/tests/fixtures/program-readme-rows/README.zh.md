@@ -2,11 +2,11 @@
 
 [English](README.md) | 中文
 
-一个交付物是对本仓库的一次修改的[程序](../../../../../packages/improvement/program/README.md)：一个部门在自己的分支与会话上写出 `data/proving-ground/tools/readme-rows.mjs`——为一次已记录的运行打印 [`data/proving-ground/README.md`](../../../../../data/proving-ground/README.md) 中 `## Runs` 表格各行的工具——再由整合针对在部门启动之前就已提交的行为合并后的 head 签发证书。[csv-tools 程序](../program-csv-tools/README.md)依据一份规格构建一个独立的命令行；本程序则是 harness 自己构建出的对本仓库的第一次修改，而这次运行证明了什么、没有证明什么，由这篇 [Agent Note](../../../../../.agents/notes/implemented/process/2026-09-27-program-builds-readme-rows.md) 记录。
+一个交付物是对本仓库的一次修改的[程序](../../../../../packages/improvement/program/README.md)：一个部门在自己的分支与会话上写出 `data/proving-ground/tools/readme-rows.mjs`——为一次已记录的运行打印 [`data/proving-ground/README.md`](../../../../../data/proving-ground/README.md) 中 `## Runs` 表格各行的工具——再由整合针对在部门启动之前就已提交的行为合并后的 head 签发证书。[csv-tools 程序](../program-csv-tools/README.md)依据一份规格构建一个独立的命令行；本程序则把工作流指向仓库自身，而它记录在 [`data/proving-ground/`](../../../../../data/proving-ground/README.md) 下的第一次真实运行证明并暴露了什么，由这篇 [Agent Note](../../../../../.agents/notes/implemented/process/2026-09-27-program-builds-readme-rows.md) 记录。
 
 ## 它交付什么
 
-`data/proving-ground/README.md` 及其中文对侧的 `## Runs` 表格为每次已记录运行的每个环境各留一行——每份记录 12 到 62 行，在本程序运行之前都是手写的。`readme-rows.mjs` 从记录自身的持久文件（`manifest.json`、`result.json`、`facts.jsonl`）打印这些行：
+`data/proving-ground/README.md` 及其中文对侧的 `## Runs` 表格为每次已记录运行的每个环境各留一行——每份记录 12 到 62 行，都是手写的。`readme-rows.mjs` 从记录自身的持久文件（`manifest.json`、`result.json`、`facts.jsonl`）打印这些行：
 
 ```sh
 node data/proving-ground/tools/readme-rows.mjs <record dir> --lang en|zh --implementer "<implementer column text>"
@@ -66,7 +66,7 @@ TSX_TSCONFIG_PATH="$REPO/tsconfig.json" \
     > "$RUN/stdout.jsonl" 2> "$RUN/stderr.txt" &
 ```
 
-它需要已安装并已登录的 `claude` CLI，不需要 `DEEPSEEK_API_KEY`。运行期间 `$RUN/.sessions/` 会逐渐填满每个会话一份日志——账本、部门和整合——而 driver 会在程序结束时把它唯一的结果行写入 `stdout.jsonl`。
+它需要已安装并已登录的 `claude` CLI，不需要 `DEEPSEEK_API_KEY`。运行期间 `$RUN/.sessions/` 会逐渐填满每个会话一份日志——账本、部门和整合——而 driver 会在程序结束时把它唯一的结果行写入 `stdout.jsonl`。在这条路由上，产品查询运行在 driver 的工作目录里，产品会把这一点告诉它的模型，而 harness 不向它点明任何目录；部门可能把那个目录当成自己的 worktree，第一次运行的部门正是这样做的（[该路由的限制](../../../../../packages/llm/llm-claude-code/README.md#known-limitations-and-deferred-work)）。
 
 这次运行留下什么——每份会话日志都位于 `$RUN/.sessions/<workspace-slug>/<session id>/session.jsonl`，整合的 key 在其 id 中被百分号转义：
 

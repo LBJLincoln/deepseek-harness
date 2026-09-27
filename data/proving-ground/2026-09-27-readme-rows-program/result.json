@@ -1,0 +1,191 @@
+{
+  "type": "result",
+  "report": {
+    "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+    "sessionId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+    "outcome": "failed",
+    "goals": [
+      {
+        "key": "readme-rows",
+        "status": "blocked",
+        "sessionId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+        "reason": "budget-exhausted"
+      }
+    ]
+  },
+  "denials": [],
+  "deliverable": [],
+  "ledgers": [
+    {
+      "sessionId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+      "events": [
+        {
+          "type": "program/start",
+          "data": {
+            "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+            "specSha256": "43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+            "spec": {
+              "objective": "deliver readme-rows: the tool that prints the README rows of one recorded Proving Ground run",
+              "baseRevision": "base",
+              "goals": [
+                {
+                  "key": "readme-rows",
+                  "objective": "readme-rows department. Read `TASK.md` at the root of this worktree first: it states the whole task and every check you are measured by. Deliver `data/proving-ground/tools/readme-rows.mjs` and `data/proving-ground/tools/readme-rows.test.mjs` exactly as `TASK.md` states them, install nothing, change nothing else, and commit before you stop: your work is measured over a clean worktree. End every commit message with exactly these two trailer lines: `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>` and `Claude-Session: https://claude.ai/code/session_01HEXjzxR7CyMizem5kFAB4C`.",
+                  "preset": "implementing",
+                  "isolation": "none",
+                  "budget": {
+                    "maxTotalTokens": 2000000,
+                    "maxWallMs": 1500000
+                  },
+                  "dependsOn": [],
+                  "checks": [
+                    {
+                      "id": "readme-rows-test",
+                      "outcome": "the tool's own test passes",
+                      "run": "node --test data/proving-ground/tools/readme-rows.test.mjs"
+                    },
+                    {
+                      "id": "readme-rows-hidden-pair-en",
+                      "outcome": "the en rows of 2026-09-26-bench-completion-hidden-pair are the committed ones, byte for byte",
+                      "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-26-bench-completion-hidden-pair --lang en --implementer '`route` (harness loop on `claude-code`/`{model}`), sealed, completion family') <(grep -F '| [2026-09-26-bench-completion-hidden-pair]' data/proving-ground/README.md)"
+                    },
+                    {
+                      "id": "readme-rows-hidden-pair-zh",
+                      "outcome": "the zh rows of 2026-09-26-bench-completion-hidden-pair are the committed ones, byte for byte",
+                      "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-26-bench-completion-hidden-pair --lang zh --implementer '`route`（harness 循环，走 `claude-code`/`{model}`），密封，补全任务族') <(grep -F '| [2026-09-26-bench-completion-hidden-pair]' data/proving-ground/README.zh.md)"
+                    },
+                    {
+                      "id": "readme-rows-t6-haiku-en",
+                      "outcome": "the en rows of 2026-09-26-bench-completion-t6-haiku are the committed ones, byte for byte",
+                      "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-26-bench-completion-t6-haiku --lang en --implementer '`route` (harness loop on `claude-code`/`{model}`), sealed, completion family') <(grep -F '| [2026-09-26-bench-completion-t6-haiku]' data/proving-ground/README.md)"
+                    },
+                    {
+                      "id": "readme-rows-e12-en",
+                      "outcome": "the en rows of 2026-09-27-bench-e12-self-review-sonnet-t5t6 are the committed ones, byte for byte",
+                      "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-27-bench-e12-self-review-sonnet-t5t6 --lang en --implementer '`route`, `sonnet` on one rung vs `sonnet` on one rung `+review` (a self-review turn before the validation), sealed') <(grep -F '| [2026-09-27-bench-e12-self-review-sonnet-t5t6]' data/proving-ground/README.md)"
+                    },
+                    {
+                      "id": "readme-rows-e12-zh",
+                      "outcome": "the zh rows of 2026-09-27-bench-e12-self-review-sonnet-t5t6 are the committed ones, byte for byte",
+                      "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-27-bench-e12-self-review-sonnet-t5t6 --lang zh --implementer '`route`，`sonnet` 单级梯 对 `sonnet` 单级梯 `+review`（验证前的一个自审回合），密封') <(grep -F '| [2026-09-27-bench-e12-self-review-sonnet-t5t6]' data/proving-ground/README.zh.md)"
+                    },
+                    {
+                      "id": "readme-rows-no-dependencies",
+                      "outcome": "nothing was installed",
+                      "run": "test ! -e node_modules"
+                    }
+                  ]
+                }
+              ],
+              "integration": {
+                "checks": [
+                  {
+                    "id": "merged-test",
+                    "outcome": "the tool's own test passes",
+                    "run": "node --test data/proving-ground/tools/readme-rows.test.mjs"
+                  },
+                  {
+                    "id": "merged-hidden-pair-en",
+                    "outcome": "the en rows of 2026-09-26-bench-completion-hidden-pair are the committed ones, byte for byte",
+                    "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-26-bench-completion-hidden-pair --lang en --implementer '`route` (harness loop on `claude-code`/`{model}`), sealed, completion family') <(grep -F '| [2026-09-26-bench-completion-hidden-pair]' data/proving-ground/README.md)"
+                  },
+                  {
+                    "id": "merged-hidden-pair-zh",
+                    "outcome": "the zh rows of 2026-09-26-bench-completion-hidden-pair are the committed ones, byte for byte",
+                    "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-26-bench-completion-hidden-pair --lang zh --implementer '`route`（harness 循环，走 `claude-code`/`{model}`），密封，补全任务族') <(grep -F '| [2026-09-26-bench-completion-hidden-pair]' data/proving-ground/README.zh.md)"
+                  },
+                  {
+                    "id": "merged-t6-haiku-en",
+                    "outcome": "the en rows of 2026-09-26-bench-completion-t6-haiku are the committed ones, byte for byte",
+                    "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-26-bench-completion-t6-haiku --lang en --implementer '`route` (harness loop on `claude-code`/`{model}`), sealed, completion family') <(grep -F '| [2026-09-26-bench-completion-t6-haiku]' data/proving-ground/README.md)"
+                  },
+                  {
+                    "id": "merged-e12-en",
+                    "outcome": "the en rows of 2026-09-27-bench-e12-self-review-sonnet-t5t6 are the committed ones, byte for byte",
+                    "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-27-bench-e12-self-review-sonnet-t5t6 --lang en --implementer '`route`, `sonnet` on one rung vs `sonnet` on one rung `+review` (a self-review turn before the validation), sealed') <(grep -F '| [2026-09-27-bench-e12-self-review-sonnet-t5t6]' data/proving-ground/README.md)"
+                  },
+                  {
+                    "id": "merged-e12-zh",
+                    "outcome": "the zh rows of 2026-09-27-bench-e12-self-review-sonnet-t5t6 are the committed ones, byte for byte",
+                    "run": "diff <(node data/proving-ground/tools/readme-rows.mjs data/proving-ground/2026-09-27-bench-e12-self-review-sonnet-t5t6 --lang zh --implementer '`route`，`sonnet` 单级梯 对 `sonnet` 单级梯 `+review`（验证前的一个自审回合），密封') <(grep -F '| [2026-09-27-bench-e12-self-review-sonnet-t5t6]' data/proving-ground/README.zh.md)"
+                  }
+                ],
+                "gates": [
+                  "test -z \"$(git status --porcelain)\"",
+                  "test ! -e node_modules"
+                ]
+              },
+              "signoff": {
+                "artefactSha256": "bdba0e66546c2bb69070529c058e785f6151fc9d7ed1e0fe71b64905b2533f37"
+              },
+              "implementer": {
+                "kind": "route"
+              }
+            },
+            "baseRevision": "base",
+            "implementer": {
+              "kind": "route"
+            },
+            "signoff": {
+              "artefactSha256": "bdba0e66546c2bb69070529c058e785f6151fc9d7ed1e0fe71b64905b2533f37"
+            }
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+            "key": "readme-rows",
+            "status": "pending"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+            "key": "readme-rows",
+            "status": "running",
+            "sessionId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/dogfood/2026-09-27-readme-rows-program/repo/program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f/readme-rows"
+          }
+        },
+        {
+          "type": "program/goal",
+          "data": {
+            "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+            "key": "readme-rows",
+            "status": "blocked",
+            "sessionId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+            "workspace": "/tmp/claude-0/-home-user-deepseek-harness/f53f80cc-1f77-5d02-a862-99d59ffabdce/scratchpad/dogfood/2026-09-27-readme-rows-program/repo/program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f/readme-rows",
+            "reason": "budget-exhausted"
+          }
+        },
+        {
+          "type": "program/end",
+          "data": {
+            "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+            "outcome": "failed"
+          }
+        }
+      ],
+      "signoffs": [
+        "spec-freeze",
+        "release"
+      ]
+    }
+  ],
+  "members": [
+    {
+      "sessionId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f-readme-rows",
+      "programId": "program-43bc855519f2bd12101b0b6073dabe31dba83c2e32b6eba89a1f03b0463f4e7f",
+      "key": "readme-rows",
+      "certified": false,
+      "caps": {
+        "maxTotalTokens": 2000000,
+        "maxWallMs": 1500000
+      },
+      "runs": [],
+      "directives": []
+    }
+  ]
+}

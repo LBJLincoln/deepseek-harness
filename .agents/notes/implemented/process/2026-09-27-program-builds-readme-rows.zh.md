@@ -1,4 +1,4 @@
-# Agent Note: 程序工作流构建 readme-rows——一个属于本仓库的工具
+# Agent Note: 程序工作流指向本仓库：readme-rows
 
 Status: implemented
 
@@ -20,11 +20,11 @@ Implementer 列是每份记录手写的文字——`sealed, completion family`�
 
 seed 镜像仓库的布局。`seed/` 装着 `TASK.md`、`data/proving-ground/tools/summarize-run.mjs`、三份只保留 `manifest.json`、`result.json`、`facts.jsonl` 与 `observatory.json` 的记录，以及只装着这些记录的已提交行、逐字复制而来的 `data/proving-ground/README.md` 与 `README.zh.md`。因为路径就是仓库自己的路径，同一份规格可以不加改动地跑在铸出的 seed 上和本仓库的克隆上，无密钥运行与真实运行是同一个程序 id，与 csv-tools 一样。配对门禁本会把 seed 的 README 对读成文档；现在对 `seed/` 的目录排除是一条语料库边界——它下面的任何东西都不被读取——而文件排除仍会拒绝其旁边的 `.zh.md`（[该门禁](../../../../docs/i18n/README.md#the-gate-verify-translation-pairing)）。
 
-任务陈述是部门要读的一个文件，如同 csv-tools 的 `SPEC.md`，而不只是作为用户回合送达的目标段落：它带着检查命令本身，因此部门可以自己运行它被测量的那些东西。对真实运行，操作者按 driver 准备 seed 的方式准备克隆——把 `seed/TASK.md` 复制到克隆的根目录、提交、给那次提交打上 `base` 标签——而 driver 会拒绝在 `base` 上没有 `TASK.md` 的克隆。合并后的修订版并入分支之后，仓库根目录再次去掉 `TASK.md`：这份陈述活在 fixture 的 seed 与账本里冻结的规格中，一个已发布程序的根目录任务文件两者都不是。
+任务陈述是部门要读的一个文件，如同 csv-tools 的 `SPEC.md`，而不只是作为用户回合送达的目标段落：它带着检查命令本身，因此部门可以自己运行它被测量的那些东西。对真实运行，操作者按 driver 准备 seed 的方式准备克隆——把 `seed/TASK.md` 复制到克隆的根目录、提交、给那次提交打上 `base` 标签——而 driver 会拒绝在 `base` 上没有 `TASK.md` 的克隆。当一次已发布运行的合并修订版并入分支时，仓库根目录再次去掉 `TASK.md`：这份陈述活在 fixture 的 seed 与账本里冻结的规格中，一个已发布程序的根目录任务文件两者都不是。
 
-真实运行是同一个 driver 跑在 `overlays/claude-code.cordis.yml` 上——禁用脚本路由、插入操作者的 Claude Code 安装、以 `sonnet` 作为部门的模型——作用于本仓库分支的一个克隆。它合并后的修订版从克隆中 fetch 出来并以 `git merge --no-ff` 合并，因此部门的提交与整合的合并都以它们自己的身份落地，而这次运行连同账本、部门日志与整合日志一起记录在 [`data/proving-ground/2026-09-27-readme-rows-program/`](../../../../data/proving-ground/README.md) 下。
+真实运行是同一个 driver 跑在 `overlays/claude-code.cordis.yml` 上——禁用脚本路由、插入操作者的 Claude Code 安装、以 `sonnet` 作为部门的模型——作用于本仓库分支的一个克隆，而一次已发布运行的合并修订版会从克隆中 fetch 出来并以 `git merge --no-ff` 合并，因此部门的提交与整合的合并都以它们自己的身份落地。第一次运行 [`2026-09-27-readme-rows-program`](../../../../data/proving-ground/README.md) 没有发布：部门在第一次验证运行之前因 `budget-exhausted` 阻塞，什么都没有合并，工具尚未落地。记录持有账本与部门日志，操作者没有启动第二次运行。
 
-这里验证域的 `maxTextChars` 与程序的 `evidenceMaxChars` 都是 4096，而 csv-tools 是 2048 与 512：一项失败金标的证据是对一百多字符长的行做的 `diff`，而这份证据是部门在两次尝试之间得到的唯一指令，因此界限要能完整装下它的好几行。预算与轮次上限沿用 csv-tools：每个部门会话 2,000,000 个 token 与 1,500 s，三轮。
+这里验证域的 `maxTextChars` 与程序的 `evidenceMaxChars` 都是 4096，而 csv-tools 是 2048 与 512：一项失败金标的证据是对一百多字符长的行做的 `diff`，而这份证据是部门在两次尝试之间得到的唯一指令，因此界限要能完整装下它的好几行。预算与轮次上限沿用 csv-tools：每个部门会话 2,000,000 个 token 与 1,500 s，三轮。第一次运行花光的正是这个 token 上限。
 
 ## Alternatives considered
 
@@ -42,15 +42,21 @@ seed 镜像仓库的布局。`seed/` 装着 `TASK.md`、`data/proving-ground/too
 
 **让部门跑在最大的产品模型上。** csv-tools 跑在 `opus` 上；本程序问的是工作流能否向仓库交付，而不是模型的上限在哪里，而中间模型是 bench 的参考模型。
 
+**恢复被阻塞的部门，或以更大的上限启动第二个程序。** 操作者给这次运行定的规则是只启动一次。被恢复的部门保留它已花掉的预算，因此需要一位操作者与一个更大的上限；预算更大的规格是另一个程序 id。这两件事都是下一次运行的决定，要拿着这份记录去做，而不是反复重跑直到某次看起来干净。
+
+**在本次修改里修好路由的工作目录。** 修法是对 `@deepseek-ai/dsh-llm-claude-code` 的一次修改——产品查询得运行在会话的 `cwd` 里，而缝交出的请求并不带它——它属于路由，不属于这个 fixture。它被记录为该路由的限制，也是这条路由上任何程序在下一次运行之前需要的东西。
+
 **增加一个快照场景。** 这套工作流写给模型看的文本只有目标与验证器的指令；e2e 从持久日志与合并树中断言证书、trailer 行与交付的行，而 driver 打印的是一份 JSON 报告而不是会话事件流（[csv-tools note](2026-09-19-program-workflow-builds-software.md#alternatives-considered)）。
 
 ## Consequences
 
 无密钥 e2e 大约十秒钟就证明了接线：规格被冻结，部门被配备、被限额并在一棵已提交的树上被认证——其提交以那两行 trailer 结尾——分支被合并，seed 的每个文件在合并树中都未改动，合并树恰为 seed 加上两个交付文件，交付的工具从整合 worktree 中打印出那 50 行已提交的行。脚本路由回放提交在 `scripted/` 下的参考解，这正是在向模型提问之前证明规格可被满足的方式。
 
-真实运行证明的是一份 route 证书所证明的东西（[program README](../../../../packages/improvement/program/README.md#the-two-implementers)）：程序通过 shell 执行器、在部门 worktree 中、在部门提交的树上运行了各项检查，并把这次运行与证书记录在部门自己的会话里，而在 `route` implementer 上这份会话还持有模型走的每一步。部门的记录稿就在记录里。操作者写了规格与任务陈述、准备了克隆、合并了分支、写了记录的段落，并在合并后运行了仓库的门禁；部门一项都没有运行，因为它的标准是金标、它的测试与零依赖规则。
+第一次真实运行证明的是，工作流的各项拒绝在这条路由上、在这个仓库上成立：部门在规格给定的上限之下、在自己的 worktree 里被配备，预算策略在上限处停下了它，目标阻塞，程序以 `failed` 结束，没有任何东西在无证书的情况下抵达分支。没有 route 证书可读，因为没有发生验证运行；一份证书本会证明什么，[program README](../../../../packages/improvement/program/README.md#the-two-implementers) 里有陈述。部门的记录稿就在记录里。操作者写了规格与任务陈述、准备了克隆、运行了仓库的门禁，什么都没有合并。
 
-它没有证明的：关于模型能力的任何东西。已提交的行就在模型被指向的仓库里，任务很小，而且只有一次运行。一个读过 `summarize-run.mjs` 与那些行的部门已拥有它需要的一切；这里的主张是，工作流可以拿到一份任务陈述与已提交的期望输出，然后在本仓库的一个克隆里、在它自己的证书之下，交回一次复现该输出的提交。
+这次运行暴露的是关于 harness 的两件事，都与任务本身无关。规格从 csv-tools 沿用的上限——2,000,000 个 token，`opus` 每个部门 9 到 12 步就通过了——被中间模型用 29 步阅读本仓库花光了：在一次 `write` 之前是 24 条 shell 命令与 5 次读取，因为上限计的是计费输入，而每一步都要把整段对话从缓存里读回来（计费 2,004,416 中有 1,839,397 是缓存读 token）。而部门的每一步都做在克隆的主检出里，而不是其下的程序 worktree 里：Claude Code 路由把产品查询启动在 harness 进程的工作目录里，产品的信封把该目录告诉它的模型，而 harness 为模型记录的任何东西都没有提到任何目录，因此它在最后一步写出的工具——运行后读回来看，通过五项金标中的三项，两项 E12 金标都失败在基线臂秒数之后缺了一个 ` s`——从未出现在证书所测量的分支上，一次提交也只会落在克隆自己的分支上。该路由的限制记录在[它的 README](../../../../packages/llm/llm-claude-code/README.md#known-limitations-and-deferred-work) 里。
+
+它没有证明的：关于模型能力的任何东西。操作者读回来的一个未提交文件通过三项金标是一次观察，不是证书；已提交的行就在模型被指向的仓库里，任务很小，而且只有一次运行。这个 fixture 为之而建的主张——工作流可以拿到一份任务陈述与已提交的期望输出，然后在本仓库的一个克隆里、在它自己的证书之下，交回一次复现该输出的提交——在某次运行发布之前仍然悬而未决。
 
 这个工具只打印 bench 记录：从 facts 得到的 fleet 或冻结配对。像这次运行自己这样的程序记录没有 facts，它的行仍然手写；某个臂从未运行的配对会被拒绝而不是猜测。
 
@@ -61,4 +67,4 @@ seed 镜像仓库的布局。`seed/` 装着 `TASK.md`、`data/proving-ground/too
 - `pnpm exec vitest run --config vitest.e2e.config.ts examples/headless-agent/tests/program-readme-rows.e2e.ts` 在脚本路由上发布程序，并从合并树检查证书、trailer、未改动的 seed、交付物与五项金标。
 - `pnpm exec vitest run scripts/translation-pairing.spec.ts` 证明目录排除覆盖其下的一切、文件排除只覆盖一篇文档；`pnpm run verify-translation-pairing` 在排除 seed 的语料库上运行该门禁。
 - `npx tsc --noEmit -p tsconfig.host.json`、`pnpm run lint`、`pnpm run verify-agent-note-format` 与 `pnpm run doc-sync` 覆盖 fixture、e2e 与本 note。
-- 真实运行的证书、尝试次数、步数、秒数与合并后的修订版陈述在 [`data/proving-ground/README.md`](../../../../data/proving-ground/README.md) 中这份记录的段落里，并可从 `data/proving-ground/2026-09-27-readme-rows-program/` 读回。
+- 第一次真实运行的数字——29 步、464 s 的部门时间、相对 2,000,000 上限的 2,004,416 个计费 token、于 16:27:06 UTC 阻塞、程序在启动 481 s 后以 `failed` 结束——从 `data/proving-ground/2026-09-27-readme-rows-program/`（`result.json`、`sessions/` 下的账本与部门日志）读出，并陈述在 [`data/proving-ground/README.md`](../../../../data/proving-ground/README.md) 中这份记录的段落里。

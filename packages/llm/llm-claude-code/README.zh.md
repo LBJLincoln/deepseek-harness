@@ -129,3 +129,4 @@ Answer the last turn of the conversation below. Elements tagged `<{ns}-…>` are
 - **不发布任何推理档位** —— `effort` 与 `thinking` 是路由级配置，因此 `agent/request` 无法像在带密钥路由上那样逐步改变推理档位。
 - **产品会在轮次上限终止查询前运行一次所提供的调用** —— 其处理器不执行任何东西、只返回一句固定文本，但产品仍要花掉这次往返；请求了多次调用的回复，其全部调用都会在查询结束前以同样方式被回应。
 - **没有 settings 缝热更新** —— 路由事实在加载时解析一次，不同于按请求重读 `ctx.settings` 区块的带密钥适配器。补上它需要一个 settings 命名空间以及带密钥适配器所用的原子路由替换。
+- **产品查询运行在本进程的工作目录里** —— 交给 SDK 的是 `process.cwd()`，而产品的信封会把该目录作为工作目录告诉它的模型。`cwd` 与之不同的 harness 会话——比如在自己 worktree 里的项目部门——不会从 harness 得到关于其目录的任何其他说明，因此信任该信封的模型会在会话工作区之外读写；[readme-rows 记录](../../../data/proving-ground/README.md)展示了一个把每一步都做在克隆主检出、而不是自己 worktree 里的部门。要传入会话的 `cwd`，需要缝交出的请求带上它。
