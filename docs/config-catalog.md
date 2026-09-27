@@ -1122,7 +1122,7 @@ Source: [`packages/verification/judge/src/index.ts:133`](../packages/verificatio
 
 ## `@deepseek-ai/dsh-llm-claude-code`
 
-Requires: `llm` · `subprocess`
+Requires: `llm` · `subprocess` · `sessions`
 
 ```ts config-catalog
 /**

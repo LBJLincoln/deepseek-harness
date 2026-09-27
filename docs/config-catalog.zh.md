@@ -1124,7 +1124,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-llm-claude-code`
 
-需要：`llm` · `subprocess`
+需要：`llm` · `subprocess` · `sessions`
 
 ```ts config-catalog
 /**
