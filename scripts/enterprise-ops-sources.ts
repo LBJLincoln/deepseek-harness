@@ -372,7 +372,7 @@ export function readFrom(file: string, offset: number): string | undefined {
 // Enterprise cycle logs
 // ---------------------------------------------------------------------------
 
-/** One `enterprise-cycle: <cycle> <step> exit=<n> at <HH:MM:SSZ>` line. */
+/** One `enterprise-cycle: <cycle> <step> exit=<n> at <time>` line; the time is an ISO instant, or a clock time in older logs. */
 interface CycleStep {
   step: string
   exit: number
@@ -398,9 +398,9 @@ export interface CycleLog {
 }
 
 /** The cycle's steps in the order `scripts/enterprise-cycle.sh` runs them. */
-const CYCLE_STEPS = ['pull', 'intake', 'intake-push', 'shift', 'pull-after-shift', 'functions', 'roster', 'publish', 'push'] as const
+const CYCLE_STEPS = ['pull', 'intake', 'intake-push', 'shift', 'pull-after-shift', 'functions', 'roster', 'publish', 'record', 'push'] as const
 
-const STEP_LINE = /^enterprise-cycle: (cycle-\d{8}T\d{6}Z) ([\w-]+) exit=(\d+) at (\d{2}):(\d{2}):(\d{2})Z/
+const STEP_LINE = /^enterprise-cycle: (cycle-\d{8}T\d{6}Z) ([\w-]+) exit=(\d+) at (?:(\d{4}-\d{2}-\d{2})T)?(\d{2}):(\d{2}):(\d{2})Z/
 const DONE_LINE = /^enterprise-cycle: (cycle-\d{8}T\d{6}Z) done, first failure exit=(\d+)/
 const SHIFT_LINE = /^enterprise: shift (\d{6}-[0-9a-f]{4})\b/
 const REFUSAL_LINE = /^enterprise-cycle: (another cycle holds the lock|the checkout has uncommitted changes)/
@@ -419,8 +419,9 @@ function stampTime(stamp: string): string | undefined {
 }
 
 /**
- * Parse one cycle log. A step line carries only a clock time, so it is dated
- * by the log's start and rolls to the next day when the clock goes backwards.
+ * Parse one cycle log. A step line carries an ISO instant; one from an older
+ * log carries only a clock time, which is dated by the log's start and rolls
+ * to the next day when the clock goes backwards.
  * @param file - The log's file name, `cycle-<YYYYMMDDTHHMMSSZ>.log`.
  * @param text - Its content.
  * @returns The log, or `undefined` when the file name carries no stamp.
@@ -435,11 +436,13 @@ export function parseCycleLog(file: string, text: string): CycleLog | undefined 
     const line = raw.replaceAll(/\u001b\[[0-9;]*m/g, '').trim()
     const step = STEP_LINE.exec(line)
     if (step !== null) {
-      const [, cycle, name, exit, hour, minute, second] = step
+      const [, cycle, name, exit, date, hour, minute, second] = step
       if (cycle !== undefined) log.cycle = cycle
       const day = new Date(clock)
-      let at = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), Number(hour), Number(minute), Number(second))
-      if (at < clock - 60_000) at += 24 * 60 * 60 * 1000
+      let at = date === undefined
+        ? Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), Number(hour), Number(minute), Number(second))
+        : Date.parse(`${date}T${hour}:${minute}:${second}Z`)
+      if (date === undefined && at < clock - 60_000) at += 24 * 60 * 60 * 1000
       clock = at
       log.steps.push({ step: name ?? '', exit: Number(exit), at: new Date(at).toISOString() })
       continue

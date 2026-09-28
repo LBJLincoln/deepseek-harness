@@ -81,13 +81,19 @@ describe('cycle logs', () => {
     expect(parsed?.done).toBeUndefined()
   })
 
+  it('reads a step line stamped with a full ISO instant as the cycle writes it', () => {
+    const parsed = parseCycleLog('cycle-20260928T231300Z.log', 'enterprise-cycle: cycle-20260928T231301Z publish exit=0 at 2026-09-29T00:40:02Z')
+    expect(parsed?.steps).toEqual([{ step: 'publish', exit: 0, at: '2026-09-29T00:40:02.000Z' }])
+    expect(parsed === undefined ? undefined : currentCycleStep(parsed)).toBe('record')
+  })
+
   it('names the running step, skipping the shift after an intake the usage limit stopped', () => {
     const parsed = parseCycleLog('cycle-20260928T235900Z.log', log)
     expect(parsed === undefined ? undefined : currentCycleStep(parsed)).toBe('pull-after-shift')
     const fresh = parseCycleLog('cycle-20260928T235900Z.log', '')
     expect(fresh === undefined ? undefined : currentCycleStep(fresh)).toBe('pull')
-    const unknown = parseCycleLog('cycle-20260928T235900Z.log', 'enterprise-cycle: cycle-20260928T235901Z record exit=0 at 23:59:30Z')
-    expect(unknown === undefined ? undefined : currentCycleStep(unknown)).toBe('after record')
+    const unknown = parseCycleLog('cycle-20260928T235900Z.log', 'enterprise-cycle: cycle-20260928T235901Z finish exit=0 at 23:59:30Z')
+    expect(unknown === undefined ? undefined : currentCycleStep(unknown)).toBe('after finish')
   })
 
   it('reads the closing line and a refusal, and refuses a file name without a stamp', () => {
@@ -249,6 +255,20 @@ describe('collectOps', () => {
       ticketLine('T-0003', '2026-09-28T19:06:00.000Z', { reason: 'halted: limit (resets at 2026-09-29T01:00:00Z)' }),
       { type: 'function', at: '2026-09-28T22:35:00.000Z', shift: 's', seat: 'harness-core-session-steward', division: 'harness-core', function: 'verify-md-links', target: { commit: TIP }, outcome: 'fail', evidence: { path: 'x.log' }, seconds: 60 },
     ]) + 'not json\n')
+    write(join(root, 'data/enterprise/cycles/cycle-20260928T201148Z.json'), JSON.stringify({
+      cycle: 'cycle-20260928T201148Z',
+      startedAt: '2026-09-28T20:11:48.000Z',
+      endedAt: '2026-09-28T20:40:00.000Z',
+      commits: { start: TIP, pulled: TIP, end: TIP },
+      steps: [{ name: 'pull', exit: 0, at: '2026-09-28T20:11:50Z' }, { name: 'functions', exit: 1, at: '2026-09-28T20:35:00Z' }],
+      shifts: [],
+      tickets: { shipped: 0, rejected: 0, halted: 0 },
+      functions: { pass: 0, fail: 0, error: 0 },
+      unreadable: 0,
+      firstFailure: { step: 'functions', exit: 1 },
+      previous: null,
+    }))
+    write(join(root, 'data/enterprise/requests/dark-deck.md'), '# Show the deck in dark mode\n\nPlease.\n')
     for (const id of ['T-0001', 'T-0002', 'T-0003', 'T-0004', 'T-0005']) {
       write(join(root, `data/enterprise/tickets/${id}.json`), JSON.stringify({ id, title: `Ticket ${id}`, seat: 'harness-core-agent-steward', division: 'harness-core' }))
     }
@@ -343,9 +363,13 @@ describe('collectOps', () => {
       ['high', 'ci-red'],
       ['high', 'agent-stuck'],
       ['high', 'cycle-step-failed'],
+      ['medium', 'owner-request'],
       ['medium', 'ticket-halted'],
       ['low', 'ticket-rejected'],
     ])
+    const request = snapshot.attention.find(item => item.kind === 'owner-request')
+    expect(request?.title).toBe('Owner request waiting: Show the deck in dark mode')
+    expect(request?.evidence[0]?.url).toBe('https://github.com/LBJLincoln/deepseek-harness/blob/claude/coding-agent-harness-u9l4gt/data/enterprise/requests/dark-deck.md')
     const red = snapshot.attention.find(item => item.kind === 'ci-red')
     expect(red?.detail).toBe('Failing job: static.')
     expect(red?.evidence.map(link => link.url)).toContain('https://github.com/job/9')
@@ -359,12 +383,16 @@ describe('collectOps', () => {
     const snapshot = await collectOps(machine())
     expect(snapshot.big.seats).toMatchObject({ defined: 3, occupied: 2, activeToday: 1, workingNow: 1 })
     expect(snapshot.big.tickets).toEqual({ queued: 2, halted: 1, shipped: 1, rejected: 1 })
-    expect(snapshot.big.cycles).toEqual({ last24h: 1, lastStartedAt: '2026-09-28T22:13:00.000Z', running: 'cycle-20260928T221301Z', nextAt: '2026-09-29T00:13:00.000Z' })
+    expect(snapshot.big.cycles).toEqual({ last24h: 2, lastStartedAt: '2026-09-28T22:13:00.000Z', running: 'cycle-20260928T221301Z', nextAt: '2026-09-29T00:13:00.000Z' })
+    // The older cycle's log is gone; its record still places its steps, and its failure is not the newest word.
+    expect(snapshot.runs.find(run => run.id === 'cycle:cycle-20260928T201148Z:functions')).toMatchObject({ outcome: 'failed', startedAt: '2026-09-28T20:11:50.000Z', endedAt: '2026-09-28T20:35:00Z' })
+    expect(snapshot.attention.some(item => item.id === 'cycle-step:cycle-20260928T201148Z:functions')).toBe(false)
     expect(snapshot.big.shipped).toEqual([{ commit: SHIPPED, at: '2026-09-28T19:04:29.582Z', tickets: ['T-0001'], ci: 'fail', ciCommit: TIP, url: 'https://github.com/run/2' }])
     expect(snapshot.big.ci?.latest).toMatchObject({ commit: TIP, conclusion: 'failure', failingJobs: [{ name: 'static', url: 'https://github.com/job/9' }] })
     expect(snapshot.big.throughput?.hours).toHaveLength(24)
     expect(snapshot.big.throughput?.shippedPerHour).toBe(0.04)
     expect(snapshot.sources.find(source => source.id === 'ledger')?.detail).toBe('4 lines, 1 unreadable and skipped')
+    expect(snapshot.sources.find(source => source.id === 'requests')?.detail).toBe('1 owner request, 1 open')
     expect(snapshot.runs.map(run => run.id)).toEqual(expect.arrayContaining(['cycle:cycle-20260928T221301Z:intake-push', `session:${PROGRAM}-t-0004`, 'operator:abc123']))
   })
 

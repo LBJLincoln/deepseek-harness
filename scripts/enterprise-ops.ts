@@ -49,6 +49,7 @@ import {
   type RunEvent,
   type Severity,
 } from '../apps/command-deck/deck/contract.ts'
+import { readCycleRecords, type CycleRecord } from './enterprise-cycle-record.ts'
 import { parseLedgerLine, ticketStatus, type LedgerLine, type TicketLine } from './enterprise-ledger.ts'
 import {
   claudeProjectName,
@@ -77,6 +78,7 @@ import {
   type ProcessInfo,
   type TranscriptState,
 } from './enterprise-ops-sources.ts'
+import { readRequestStatuses, type RequestState } from './enterprise-requests.ts'
 import { sessionFilesIn } from './session-records.ts'
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -547,8 +549,13 @@ function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): Cyc
 
   const history = c.inputs.git(['log', `--since=${iso(c.since)}`, '--format=%H%x09%cI%x09%s', 'HEAD'])
   const committed = history === undefined ? undefined : cyclesFromHistory(history)
+  const { records, unreadable } = readCycleRecords(c.inputs.root)
+  const recorded = records.filter(record => Date.parse(record.endedAt) >= c.since)
   if (committed === undefined) c.unknown('cycle-history', 'git log could not be read in the checkout')
-  else c.ok('cycle-history', `${committed.size} cycles committed to the branch in the window`)
+  else {
+    const skipped = unreadable.length === 0 ? '' : `, ${unreadable.length} unreadable ${unreadable.length === 1 ? 'record' : 'records'} skipped`
+    c.ok('cycle-history', `${committed.size} cycles committed to the branch and ${recorded.length} cycle records in the window${skipped}`)
+  }
 
   const cycleProcess = processes?.find(entry => runs(entry, 'scripts/enterprise-cycle.sh'))
   const schedulerProcess = processes?.find(entry => runs(entry, 'scripts/enterprise-scheduler.sh'))
@@ -558,6 +565,7 @@ function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): Cyc
 
   const starts = new Map<string, number>()
   for (const log of logs) if (log.cycle !== undefined) starts.set(log.cycle, Date.parse(log.startedAt))
+  for (const record of recorded) if (!starts.has(record.cycle)) starts.set(record.cycle, Date.parse(record.startedAt))
   for (const [cycle, times] of committed ?? []) if (!starts.has(cycle)) starts.set(cycle, Date.parse(times.first))
 
   const newest = logs.at(-1)
@@ -642,8 +650,13 @@ function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): Cyc
       })
     }
   }
+  const newestStart = Math.max(...logs.map(log => Date.parse(log.startedAt)), Number.NEGATIVE_INFINITY)
+  for (const record of recorded) {
+    if (logs.some(log => log.cycle === record.cycle)) continue
+    recordRuns(c, record, committed?.get(record.cycle)?.commit, Date.parse(record.startedAt) > newestStart && record === recorded.at(-1))
+  }
   for (const [cycle, times] of committed ?? []) {
-    if (logs.some(log => log.cycle === cycle)) continue
+    if (logs.some(log => log.cycle === cycle) || recorded.some(record => record.cycle === cycle)) continue
     c.run({ id: `cycle:${cycle}`, kind: 'cycle-step', label: `${cycle.replace('cycle-', '')} (log erased)`, startedAt: times.first, endedAt: times.last, outcome: 'unknown' })
   }
 
@@ -686,6 +699,41 @@ function collectCycles(c: Collection, processes: ProcessInfo[] | undefined): Cyc
   }
 }
 
+/**
+ * A committed cycle record's steps as timeline runs, for a cycle whose log is
+ * gone; its failed steps are flagged when it is the newest cycle known.
+ * @param c - The collection.
+ * @param record - The record.
+ * @param commit - The cycle's newest commit on the branch, when the history names one.
+ * @param newest - Whether no later cycle is known.
+ */
+function recordRuns(c: Collection, record: CycleRecord, commit: string | undefined, newest: boolean): void {
+  let from = Date.parse(record.startedAt)
+  const evidence = [blobLink(c.inputs.branch, `data/enterprise/cycles/${record.cycle}.json`), ...commit === undefined ? [] : [commitLink(commit)]]
+  for (const step of record.steps) {
+    c.run({
+      id: `cycle:${record.cycle}:${step.name}`,
+      kind: 'cycle-step',
+      label: `${record.cycle.replace('cycle-', '')} ${step.name}`,
+      startedAt: iso(from),
+      endedAt: step.at,
+      outcome: step.exit === 0 ? 'ok' : 'failed',
+    })
+    from = Date.parse(step.at)
+    if (!newest || step.exit === 0) continue
+    c.flag({
+      id: `cycle-step:${record.cycle}:${step.name}`,
+      kind: 'cycle-step-failed',
+      severity: 'high',
+      title: `${record.cycle}: ${step.name} exited ${step.exit}`,
+      detail: 'The cycle record states the failure; the cycle log that held its output is gone.',
+      at: step.at,
+      evidence,
+      next: NEXT_FOR_STEP[step.name] ?? `Rerun the ${step.name} step by hand from the cycle's checkout if its work must land before the next cycle.`,
+    })
+  }
+}
+
 /** How to start the scheduler, as the attention queue states it. */
 const SCHEDULER_START = 'Start it detached from the cycle checkout: setsid nohup bash scripts/enterprise-scheduler.sh >> /home/user/enterprise-cycles/scheduler.log 2>&1 < /dev/null &'
 
@@ -699,6 +747,7 @@ const NEXT_FOR_STEP: Record<string, string> = {
   functions: 'Read the failing gate\'s log under data/enterprise/functions/<cycle>/; a failed gate is recorded, not retried.',
   roster: 'Run pnpm run roster in the cycle checkout and read the error it names.',
   publish: 'Run pnpm run enterprise:publish in the cycle checkout and read the error it names.',
+  record: 'Run pnpm run enterprise:cycle-record in the cycle checkout and read the problem it names; the cycle\'s commit still carries its data.',
   push: 'The cycle\'s commit is local only: push it by hand from the cycle checkout.',
 }
 
@@ -1347,37 +1396,46 @@ function collectHost(c: Collection): OpsBigPicture['host'] {
 // Owner requests
 // ---------------------------------------------------------------------------
 
-/** Request states that need nothing more from the enterprise. */
-const CLOSED_REQUEST = /^(done|closed|shipped|rejected|declined|withdrawn|ticketed|filed|answered|resolved)$/i
+/** What an owner request in each open state needs next, and how urgent it is; shipped and rejected requests need nothing. */
+const REQUEST_ATTENTION: Partial<Record<RequestState, { severity: Severity; next: string }>> = {
+  waiting: { severity: 'medium', next: 'The next intake answers it with a priority-0 ticket; run pnpm run enterprise:intake if it must not wait for the cycle.' },
+  refused: { severity: 'medium', next: 'Read the intake\'s reason and rewrite the request so a ticket can answer it.' },
+  queued: { severity: 'low', next: 'Its ticket carries priority 0, so the next shift takes it first.' },
+  halted: { severity: 'medium', next: 'Its ticket stays open and a later shift works it again; read the shift record for why it halted.' },
+}
 
 function collectRequests(c: Collection): void {
-  const dir = join(c.inputs.root, 'data/enterprise/requests')
-  const names = listDir(dir)
-  if (names === undefined) {
+  if (listDir(join(c.inputs.root, 'data/enterprise/requests')) === undefined) {
     c.unknown('requests', 'data/enterprise/requests/ is absent in this checkout')
     return
   }
+  let statuses: ReturnType<typeof readRequestStatuses>
+  try {
+    statuses = readRequestStatuses(c.inputs.root)
+  } catch (error) {
+    // The requests module reads committed files; a checkout without them, or an unreadable one, leaves requests unknown.
+    c.unknown('requests', `the owner's requests could not be read: ${publicLine(error instanceof Error ? error.message : String(error), 100)}`)
+    return
+  }
   let open = 0
-  for (const name of names.filter(entry => entry.endsWith('.json')).sort()) {
-    const raw = readJson(join(dir, name))
-    if (!isRecord(raw)) continue
-    const status = typeof raw.status === 'string' ? raw.status : undefined
-    if (status !== undefined && CLOSED_REQUEST.test(status)) continue
+  for (const status of statuses) {
+    const attention = REQUEST_ATTENTION[status.state]
+    if (attention === undefined) continue
     open += 1
-    const id = typeof raw.id === 'string' ? raw.id : basename(name, '.json')
-    const title = typeof raw.title === 'string' ? raw.title : typeof raw.request === 'string' ? raw.request : id
     c.flag({
-      id: `request:${id}`,
+      id: `request:${status.file}`,
       kind: 'owner-request',
-      severity: 'medium',
-      title: `Owner request ${id}${status === undefined ? '' : ` (${status})`}`,
-      detail: publicLine(title, 140),
-      ...typeof raw.at === 'string' ? { at: raw.at } : typeof raw.createdAt === 'string' ? { at: raw.createdAt } : {},
-      evidence: [blobLink(c.inputs.branch, `data/enterprise/requests/${name}`)],
-      next: 'Turn it into tickets at the next intake, or answer it in the request file.',
+      severity: attention.severity,
+      title: `Owner request ${status.state}: ${publicLine(status.title ?? basename(status.file), 90)}`,
+      detail: publicLine(status.reason ?? (status.ticket === undefined ? 'No ticket answers it yet.' : `Answered by ${status.ticket}.`), 160),
+      evidence: [
+        blobLink(c.inputs.branch, status.file),
+        ...status.ticket === undefined ? [] : [blobLink(c.inputs.branch, `data/enterprise/tickets/${status.ticket}.json`)],
+      ],
+      next: attention.next,
     })
   }
-  c.ok('requests', `${open} open ${open === 1 ? 'request' : 'requests'}`)
+  c.ok('requests', `${statuses.length} owner ${statuses.length === 1 ? 'request' : 'requests'}, ${open} open`)
 }
 
 // ---------------------------------------------------------------------------
