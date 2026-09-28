@@ -438,3 +438,233 @@ export interface ProgramRecord {
 
 /** Severity order used for sorting and for the legend, worst first. */
 export const SEVERITY_ORDER: readonly Severity[] = ['critical', 'high', 'medium', 'low', 'info']
+
+// ---------------------------------------------------------------------------
+// Operations snapshot: `GET /ops`, `GET /ops/events`, `fixtures/ops.json`
+// ---------------------------------------------------------------------------
+
+/** The version of {@link OpsSnapshot} a producer writes; a reader refuses any other. */
+export const OPS_SCHEMA = 1
+
+/**
+ * What kind of work one agent on the operations snapshot does: a step of the
+ * enterprise cycle, a department working a ticket (or a shift's integration),
+ * an independent reviewer, an intake coordinator, a function gate or CI judge,
+ * a Proving Ground bench cell, or one of the operator's own background agents.
+ */
+export type OpsAgentKind =
+  | 'cycle-step'
+  | 'department'
+  | 'reviewer'
+  | 'coordinator'
+  | 'function-gate'
+  | 'bench-cell'
+  | 'operator-agent'
+
+/** Every agent kind, in the order the Operations view lays out its lanes. */
+export const OPS_AGENT_KINDS: readonly OpsAgentKind[] = [
+  'cycle-step',
+  'coordinator',
+  'department',
+  'reviewer',
+  'function-gate',
+  'bench-cell',
+  'operator-agent',
+]
+
+/**
+ * A link to the record a statement rests on: a GitHub page (a commit, a CI run
+ * or job, a ledger line on the branch) when one exists, else a path on the
+ * producing machine, which a viewer elsewhere cannot open.
+ */
+export interface OpsLink {
+  label: string
+  url?: string
+  path?: string
+}
+
+/**
+ * One agent working now: its newest event is inside the stuck threshold
+ * (`working`), or it has not ended and has been silent longer (`stuck`).
+ */
+export interface OpsAgent {
+  /** Stable across snapshots: the session, transcript or cycle step the agent is. */
+  id: string
+  kind: OpsAgentKind
+  label: string
+  /** The roster seat the agent occupies, when one is recorded for it. */
+  seat?: string
+  division?: string
+  /** The newest tool call or step, cut to one line with credential-shaped strings removed. */
+  doing: string
+  startedAt: string
+  lastEventAt: string
+  elapsedSeconds: number
+  idleSeconds: number
+  /** Input, output, cache-read and cache-write tokens its model requests reported; absent when the source records none. */
+  tokens?: number
+  state: 'working' | 'stuck'
+  /** The shift, intake, cycle or bench record the agent belongs to. */
+  run?: string
+  evidence?: OpsLink
+}
+
+/** What an attention item is about. */
+export type OpsAttentionKind =
+  | 'ci-red'
+  | 'ticket-halted'
+  | 'ticket-rejected'
+  | 'cycle-step-failed'
+  | 'cycle-interrupted'
+  | 'scheduler-stale'
+  | 'scheduler-down'
+  | 'agent-stuck'
+  | 'disk-pressure'
+  | 'memory-pressure'
+  | 'owner-request'
+  | 'source-unknown'
+
+/** One thing that needs attention, with the record it rests on and the next action. */
+export interface OpsAttention {
+  /** Stable across snapshots while the condition holds. */
+  id: string
+  kind: OpsAttentionKind
+  severity: Severity
+  title: string
+  detail: string
+  /** When the condition was recorded, when the source dates it. */
+  at?: string
+  evidence: OpsLink[]
+  next: string
+}
+
+/** How one run in the 24-hour timeline ended; `unknown` when its source records no end state. */
+export type OpsRunOutcome = 'running' | 'ok' | 'failed' | 'unknown'
+
+/** One agent run inside the snapshot's window, for the timeline. */
+export interface OpsRun {
+  id: string
+  kind: OpsAgentKind
+  label: string
+  seat?: string
+  division?: string
+  startedAt: string
+  /** Absent while it runs. */
+  endedAt?: string
+  outcome: OpsRunOutcome
+}
+
+/** The sources a snapshot reads. */
+export type OpsSourceId =
+  | 'roster'
+  | 'ledger'
+  | 'tickets'
+  | 'cycle-logs'
+  | 'cycle-history'
+  | 'scheduler'
+  | 'shifts'
+  | 'department-transcripts'
+  | 'operator-agents'
+  | 'bench'
+  | 'ci'
+  | 'host'
+  | 'requests'
+
+/** Whether one source was read; `unknown` names why it was not, and nothing derived from it is guessed. */
+export interface OpsSource {
+  id: OpsSourceId
+  state: 'ok' | 'unknown'
+  detail: string
+}
+
+/** One roster seat as the Operations scene draws it. */
+export interface OpsSeat {
+  id: string
+  name: string
+  division: string
+  /** A recorded deliverable occupies it (the roster's occupancy rule). */
+  occupied: boolean
+  /** Its newest deliverable falls inside the roster's 24-hour window. */
+  activeToday: boolean
+}
+
+/** Seats per division: defined, occupied by a recorded deliverable, active in the roster's day, and held by an agent working now. */
+export interface OpsSeatCounts {
+  defined: number
+  occupied: number
+  activeToday: number
+  workingNow: number
+}
+
+/** A shipped commit and the Branch CI verdict that covers it. */
+export interface OpsShipped {
+  commit: string
+  at: string
+  tickets: string[]
+  /**
+   * The verdict of the Branch CI run on the commit, else on the oldest later
+   * commit of the branch that has a run and contains it (`ciCommit`); `no-run`
+   * when no read run covers it yet, `unknown` when it could not be placed.
+   */
+  ci: 'pass' | 'fail' | 'running' | 'cancelled' | 'no-run' | 'unknown'
+  /** The commit the verdict was read from, when it is not the shipped commit itself. */
+  ciCommit?: string
+  url?: string
+}
+
+/** One hour of the window: what the enterprise delivered in it. */
+export interface OpsHour {
+  /** The hour's start, ISO. */
+  hour: string
+  shipped: number
+  rejected: number
+  halted: number
+  functions: number
+  runs: number
+}
+
+/**
+ * The whole organisation at a glance. Every field is `null` when the source
+ * it is counted from could not be read; the matching {@link OpsSource} says why.
+ */
+export interface OpsBigPicture {
+  seats: (OpsSeatCounts & { divisions: (OpsSeatCounts & { id: string; name: string })[] }) | null
+  /** Queued and halted are the queue now; shipped and rejected are inside the window. */
+  tickets: { queued: number; halted: number; shipped: number; rejected: number } | null
+  cycles: { last24h: number; lastStartedAt?: string; running?: string; nextAt?: string } | null
+  throughput: { hours: OpsHour[]; shippedPerHour: number; deliverablesPerHour: number } | null
+  shipped: OpsShipped[] | null
+  ci: {
+    branch: string
+    /** The newest completed Branch CI run. */
+    latest?: { commit: string; conclusion: string; url: string; at: string; failingJobs: { name: string; url: string }[] }
+    /** A run in progress, when one is. */
+    running?: { commit: string; url: string; startedAt: string }
+  } | null
+  host: { disks: { mount: string; usedPct: number }[]; memoryAvailablePct: number | null; swapUsedPct: number | null } | null
+}
+
+/**
+ * `GET /ops` payload, and `fixtures/ops.json`: one live operations snapshot,
+ * written by `scripts/enterprise-ops.ts`. `activity` frames are
+ * {@link RunEvent}s whose `sessionId` is an {@link OpsAgent} id, the frames
+ * `GET /ops/events` streams.
+ */
+export interface OpsSnapshot {
+  schema: typeof OPS_SCHEMA
+  generatedAt: string
+  /** Who wrote it: the live loop, the cycle's publish step, the feed, or a command run by hand. */
+  producer: 'loop' | 'cycle' | 'feed' | 'cli'
+  /** How often the producer refreshes, in seconds; absent for a one-off snapshot. */
+  intervalSeconds?: number
+  window: ActiveWindow
+  sources: OpsSource[]
+  agents: OpsAgent[]
+  /** Worst first, then newest first. */
+  attention: OpsAttention[]
+  big: OpsBigPicture
+  /** Every roster seat in roster order; `null` when the roster could not be read. */
+  seats: OpsSeat[] | null
+  runs: OpsRun[]
+  activity: RunEvent[]
+}
