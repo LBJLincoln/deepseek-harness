@@ -11,11 +11,15 @@
 #   3. functions the ticketless divisions run on the new tip, each heavy gate
 #                taking ENTERPRISE_HEAVY_LOCK only while it runs;
 #   4. roster, deck  regenerated from the ledger;
-#   5. push      the functions' ledger lines and evidence, the roster and the
-#                deck data are committed and pushed.
+#   5. record    data/enterprise/cycles/<cycle>.json, built by
+#                `pnpm run enterprise:cycle-record` from the step lines this
+#                script appends to a temporary file and the commits it captured;
+#   6. push      the functions' ledger lines and evidence, the roster, the deck
+#                data and the record are committed and pushed.
 # Every step after the intake runs whatever an earlier step's outcome was,
 # except that an intake stopped by the subscription's usage limit (exit 3)
-# skips the shift, which would stop at the same limit. The cycle exits 0 when
+# skips the shift, which would stop at the same limit; a record that cannot be
+# written is a failed step, and the push still runs. The cycle exits 0 when
 # every step did, 4 when another cycle holds the lock, 5 when the checkout has
 # uncommitted changes to tracked files, and otherwise the first failing step's
 # code. Commits carry ENTERPRISE_COMMIT_TRAILERS (attribution lines) when set.
@@ -40,9 +44,13 @@ main() {
     exit 4
   fi
 
+  # The cycle record's input: one "<name> <exit> <UTC time>" line per step.
+  steps="${TMPDIR:-/tmp}/enterprise-${cycle}.steps"
   step() {
-    local name=$1 code=$2
-    echo "enterprise-cycle: ${cycle} ${name} exit=${code} at $(date -u +%H:%M:%SZ)"
+    local name=$1 code=$2 at
+    at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    echo "enterprise-cycle: ${cycle} ${name} exit=${code} at ${at}"
+    echo "${name} ${code} ${at}" >> "$steps"
     if [ "$code" -ne 0 ] && [ "$first_failure" -eq 0 ]; then first_failure=$code; fi
   }
 
@@ -69,7 +77,11 @@ main() {
     git status --short --untracked-files=no
     exit 5
   fi
+  : > "$steps"
+  start=$(git rev-parse HEAD)
   git pull -q --ff-only origin "$branch"; step pull $?
+  pulled=$(git rev-parse HEAD)
+  remote=$(git rev-parse -q --verify "refs/remotes/origin/${branch}" || echo none)
 
   pnpm run -s enterprise:intake -- --min-open "$min_open"; intake=$?; step intake "$intake"
   ship "chore(enterprise): ${cycle} intake" data/enterprise; step intake-push $?
@@ -84,7 +96,9 @@ main() {
   pnpm run -s enterprise:functions -- --shift "$cycle" --lock "$heavy_lock"; step functions $?
   pnpm run -s roster; step roster $?
   pnpm run -s enterprise:publish; step publish $?
+  pnpm run -s enterprise:cycle-record -- --cycle "$cycle" --steps "$steps" --start "$start" --pulled "$pulled" --remote "$remote"; step record $?
   ship "chore(enterprise): ${cycle} functions, roster and deck" data/enterprise apps/command-deck/public/fixtures; step push $?
+  rm -f "$steps"
 
   echo "enterprise-cycle: ${cycle} done, first failure exit=${first_failure}"
   exit "$first_failure"

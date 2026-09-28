@@ -116,6 +116,19 @@ pnpm run enterprise:publish     # the deck's fixtures from the roster and the le
 
 ## 周期
 
-[`scripts/enterprise-cycle.sh`](../../scripts/enterprise-cycle.sh) 依次运行企业一次：开放工单少于 `ENTERPRISE_MIN_OPEN`（默认 8）张时，由协调人执行[受理](#intake)，并先提交、推送，使班次的克隆能看到新工单；以 `--push` 对按引擎队列顺序排在最前的 `ENTERPRISE_TICKETS`（默认 2）张开放工单运行一个[班次](#shifts)；在新的分支顶端运行不需要工单的[职能](#functions)，每个重型关卡仅在运行期间持有 `ENTERPRISE_HEAVY_LOCK`（默认 `/tmp/dsh-heavy.lock`）；运行 `pnpm run roster` 与 `pnpm run enterprise:publish`；最后把职能行与证据、花名册和指挥台数据合为一个提交并推送。无论前面步骤结果如何，每一步都会运行，唯一的例外是被用量上限停下的受理（退出码 3）会跳过班次。另一个周期持有锁时，周期以退出码 4 退出；检出中已跟踪文件有未提交修改时以退出码 5 退出；其余情况以第一个失败步骤的退出码退出；设置了 `ENTERPRISE_COMMIT_TRAILERS` 时，周期自身的提交会带上它。企业每两小时从开发分支的专用检出运行一次周期，因此不会写入任何操作者的工作树。
+[`scripts/enterprise-cycle.sh`](../../scripts/enterprise-cycle.sh) 依次运行企业一次：开放工单少于 `ENTERPRISE_MIN_OPEN`（默认 8）张时，由协调人执行[受理](#intake)，并先提交、推送，使班次的克隆能看到新工单；以 `--push` 对按引擎队列顺序排在最前的 `ENTERPRISE_TICKETS`（默认 2）张开放工单运行一个[班次](#shifts)；在新的分支顶端运行不需要工单的[职能](#functions)，每个重型关卡仅在运行期间持有 `ENTERPRISE_HEAVY_LOCK`（默认 `/tmp/dsh-heavy.lock`）；运行 `pnpm run roster` 与 `pnpm run enterprise:publish`；写出本周期的[记录](#the-cycle-record)；最后把职能行与证据、花名册、指挥台数据和记录合为一个提交并推送。无论前面步骤结果如何，每一步都会运行，例外只有两个：被用量上限停下的受理（退出码 3）会跳过班次；无法写出的记录是失败的步骤 `record`，之后推送照常运行。另一个周期持有锁时，周期以退出码 4 退出；检出中已跟踪文件有未提交修改时以退出码 5 退出；其余情况以第一个失败步骤的退出码退出；设置了 `ENTERPRISE_COMMIT_TRAILERS` 时，周期自身的提交会带上它。企业每两小时从开发分支的专用检出运行一次周期，因此不会写入任何操作者的工作树。
 
 [`scripts/enterprise-scheduler.sh`](../../scripts/enterprise-scheduler.sh) 让周期在没有操作员会话时仍按时运行。它在该检出中启动一次并脱离终端运行，在每个能被 `ENTERPRISE_SCHEDULE_HOURS`（默认 2）整除的 UTC 小时的第 `ENTERPRISE_SCHEDULE_MINUTE`（默认 13）分钟运行周期，把每个周期的输出写到 `<ENTERPRISE_CYCLE_LOGS>/cycle-<UTC 时间戳>.log`（默认 `/home/user/enterprise-cycles`），把自己的环境传给每个周期，并等待它启动的每个周期结束；若到某个时间点时一个手动启动的周期仍在运行，它先等该周期结束再启动自己的周期，因此一个较长的周期只会推迟下一个周期，而不会让它被跳过。第二个调度器以退出码 4 退出，小时不在 1 到 24 的整数范围内或分钟不在 0 到 59 的整数范围内的调度以退出码 2 退出。容器重启会结束它，因此看守企业的定时 Routine 在它未运行时会重新启动它。
+
+## 周期记录
+
+`cycles/<周期 id>.json` 记录一个周期做了什么：由 `pnpm run enterprise:cycle-record`（[`scripts/enterprise-cycle-record.ts`](../../scripts/enterprise-cycle-record.ts)）在周期的发布步骤之后写出，并随周期的最后一个提交一起提交，因此无论容器本地的日志后来如何，分支都保存着每一个最后推送到达了它的周期。周期脚本为每个步骤向一个临时文件追加一行 `<name> <exit code> <UTC time>`；该命令读取这个文件和检出，校验记录，并且从不覆盖已有的记录。一条记录包含：
+
+- `cycle`、`startedAt`（id 所标记的时刻）与 `endedAt`（构建记录的时刻）；
+- `commits`：`start`，周期开始时检出所在的提交，即运行的周期脚本所在的提交；`pulled`，首次拉取之后的提交，周期新增的台账行以它的台账为基准计数；`end`，构建记录时所在的提交，即周期最后一个提交的父提交；
+- `steps`：记录之前运行过的每个步骤，按顺序，形如 `{ name, exit, at }`——`pull`、`intake`、`intake-push`、`shift`（受理停在用量上限而跳过班次时不出现）、`pull-after-shift`、`functions`、`roster`、`publish`；
+- `shifts`、`tickets` 与 `functions`：台账在周期内新增的工单行所属的班次 id、这些工单行按状态的计数，以及新增的职能行按结果的计数；台账行按多重集合比较，因此重排了它们的变基也只把每行计一次；`unreadable` 统计新增行中任何读取方都无法使用的行数；
+- `firstFailure`：第一个以非零码退出的步骤，形如 `{ step, exit }`，或为 `null`；
+- `previous`：检出中较早记录里最新的一条，以及 `recordOnRemote`：本周期首次拉取时远程分支是否已包含它（检出没有远程跟踪引用时为 `null`）。
+
+一条记录无法陈述它自己的最后推送，由下一个周期的 `previous.recordOnRemote` 陈述：那次推送送达了它时为 `true`；到下一个周期开始时它仍未到达远程分支时为 `false`，此时下一个周期自己的推送会带上检出保留的那个提交。在第一个步骤之前以退出码 4 或 5 退出的周期、记录无法写出的周期，以及运行中途被容器重置终止的周期，都没有记录；分支只能通过这样的周期推送过的提交看到它——`chore(enterprise): <cycle id> intake` 与 `chore(enterprise): <cycle id> functions, roster and deck`——记录出现之前的每个周期也是如此。
