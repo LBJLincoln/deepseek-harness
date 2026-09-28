@@ -3,14 +3,22 @@
 // transcript tree, as written by collect-claude-code-session.mjs. Node
 // built-ins only, no dependencies.
 //
-// Usage: node transcripts-to-dataset.mjs <transcripts-dir> <out-dir>
+// Usage: node transcripts-to-dataset.mjs <transcripts-dir> <out-dir> [--session <id>]
 //
-// Inputs under <transcripts-dir>:
+// Inputs under <transcripts-dir>, a raw tree:
 //   orchestrator-session.jsonl               - the orchestrating session, or its
 //     line-split parts orchestrator-session.part-NN.jsonl
 //   subagents/*.jsonl, subagents/*.output    - one file per background task
 //     (only files whose every line is JSON and that carry at least one real
 //     user/assistant message count as transcripts; see classifyOutputFile)
+//
+// <transcripts-dir> may instead be the live capture (data/transcripts/live,
+// written by capture-live.mjs; it holds `runs/`), with `--session <id>` naming
+// the Claude Code session: the captured `<id>.jsonl` becomes the orchestrator
+// and every captured file under `<id>/subagents/` a subagent, each reassembled
+// from its chunks into a temporary raw tree first. A file captured in more than
+// one epoch is read epoch by epoch, and a line whose `uuid` an earlier epoch
+// already held (a restore replaying the same history) is read once.
 //
 // Outputs under <out-dir>:
 //   agents.jsonl    - one record per transcript (orchestrator + subagents)
@@ -18,16 +26,22 @@
 //   stats.json      - totals + subagent duration distribution
 //   README.md       - provenance and usage note
 
-import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, statSync, lstatSync } from 'node:fs'
-import { join, relative, resolve } from 'node:path'
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, statSync, lstatSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { basename, join, relative, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import assert from 'node:assert/strict'
+import { reassemble } from './live-chunks.mjs'
 
-const [transcriptsArg, outputArg] = process.argv.slice(2)
+const argv = process.argv.slice(2)
+const sessionFlag = argv.indexOf('--session')
+const liveSession = sessionFlag === -1 ? undefined : argv.splice(sessionFlag, 2)[1]
+const [transcriptsArg, outputArg] = argv
 if (transcriptsArg === undefined || outputArg === undefined) {
-  throw new Error('usage: node transcripts-to-dataset.mjs <transcripts-dir> <out-dir>')
+  throw new Error('usage: node transcripts-to-dataset.mjs <transcripts-dir> <out-dir> [--session <id>]')
 }
-const TRANSCRIPTS_DIR = resolve(transcriptsArg)
+const SOURCE_DIR = resolve(transcriptsArg)
+const TRANSCRIPTS_DIR = existsSync(join(SOURCE_DIR, 'runs')) ? materializeLive(SOURCE_DIR, liveSession) : SOURCE_DIR
 const SUBAGENTS_DIR = join(TRANSCRIPTS_DIR, 'subagents')
 const OUTPUT_DIR = resolve(outputArg)
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
@@ -38,6 +52,51 @@ const FINAL_ASSISTANT_EXCERPT_CHARS = 600
 const MESSAGE_TEXT_TRUNCATE_CHARS = 4000
 const TOOL_INPUT_EXCERPT_CHARS = 600
 const FILE_EDIT_TOOL_NAMES = new Set(['Edit', 'Write', 'MultiEdit'])
+
+/**
+ * Reassembles one session from the live capture into a temporary raw tree,
+ * removed when the process exits.
+ * @param {string} liveDir the live capture directory
+ * @param {string | undefined} session the Claude Code session id
+ * @returns {string} the temporary raw tree
+ */
+function materializeLive(liveDir, session) {
+  if (session === undefined) throw new Error(`${liveDir} is a live capture; name the session with --session <id>`)
+  const orchestratorSuffix = `/${session}.jsonl`
+  const subagentsInfix = `/${session}/subagents/`
+  const files = reassemble(liveDir, (chunk) => chunk.path.endsWith(orchestratorSuffix) || chunk.path.includes(subagentsInfix))
+  const dir = mkdtempSync(join(tmpdir(), 'transcripts-live-'))
+  process.on('exit', () => { rmSync(dir, { recursive: true, force: true }) })
+  mkdirSync(join(dir, 'subagents'))
+  let orchestrators = 0
+  for (const [path, { epochs }] of files) {
+    const seen = new Set()
+    const lines = []
+    for (const { bytes } of epochs) {
+      for (const line of bytes.toString('utf8').split('\n')) {
+        if (line.trim() === '') continue
+        let key = line
+        try {
+          key = JSON.parse(line).uuid ?? line
+        } catch {
+          // A line that is not JSON is kept and compared by its text; classifyOutputFile reports the file.
+        }
+        if (seen.has(key)) continue
+        seen.add(key)
+        lines.push(line)
+      }
+    }
+    const text = lines.length === 0 ? '' : `${lines.join('\n')}\n`
+    if (path.endsWith(orchestratorSuffix)) {
+      orchestrators++
+      writeFileSync(join(dir, 'orchestrator-session.jsonl'), text)
+    } else {
+      writeFileSync(join(dir, 'subagents', basename(path)), text)
+    }
+  }
+  if (orchestrators !== 1) throw new Error(`${liveDir} holds ${orchestrators} captured files named ${session}.jsonl; expected exactly one`)
+  return dir
+}
 
 // ---------------------------------------------------------------------------
 // Secret masking
@@ -513,7 +572,7 @@ function main() {
     midAction: midActionAgentIds.length,
     midActionIds: midActionAgentIds.map((id) => `\`${id}\``).join(', ') || 'none',
     sessionId: orchestratorSessionId,
-    rawDir: relative(REPO_DIR, TRANSCRIPTS_DIR),
+    rawDir: relative(REPO_DIR, SOURCE_DIR),
     exportDate: new Date().toISOString().slice(0, 10),
     branch,
     headCommit,

@@ -10,7 +10,14 @@ Complete transcripts of the agent sessions that build this repository, kept in t
 data/transcripts/
   tools/
     collect-claude-code-session.mjs   snapshot one live Claude Code session into <build>/raw/
-    transcripts-to-dataset.mjs        derive agents.jsonl, messages.jsonl, stats.json, and the README pair from a raw tree
+    capture-live.mjs                  append what is new in every live transcript source to live/
+    live-chunks.mjs                   read live/: run manifests, capture state, files reassembled from chunks
+    secret-patterns.mjs               the credential shapes and the redaction both capture tools apply
+    transcripts-to-dataset.mjs        derive agents.jsonl, messages.jsonl, stats.json, and the README pair from a raw tree or live/
+  live/
+    runs/<date>/<time>.json           one manifest per capture run: every chunk it wrote
+    <source>/<date>/<file>/e<epoch>/<date>/<seq>.<ext>.gz
+                                      one immutable chunk: whole lines of one source file, redacted
   <date>-<label>/
     README.md, README.zh.md           generated provenance of that build: session id, repository head, counts
     agents.jsonl                      one record per transcript
@@ -35,9 +42,29 @@ pnpm run verify-translation-pairing --write data/transcripts/2026-09-06-build/RE
 
 The collector handles a credential-shaped string one of three ways: `--accept-hit <sha256>` keeps a reviewed placeholder verbatim, `--redact <pattern>` (a `SECRET_PATTERNS` name, e.g. `openrouter-key`) masks the match as `[REDACTED-<PATTERN>]` so a real credential the operator's own message carried can be preserved with the secret removed, and anything else refuses the write — a refused run prints every unhandled match with both flags to pass. After writing, the tree is re-scanned and any credential shape that is not an accepted placeholder removes the tree and fails, so a redaction miss can never ship a secret; the accepted digests and the `redactions` block are recorded in `manifest.json`. It splits files above 40 MiB at line boundaries so no blob exceeds GitHub's per-file ceiling, records every file's digest, and leaves an unchanged tree untouched, so it runs repeatedly during a build without churn. Commit the raw tree, the regenerated dataset, and the re-recorded pairing together.
 
+## Live capture
+
+The container the sessions run in is reset without notice, and a reset erases every file the pushed branch does not hold. [`scripts/transcripts-capture.sh`](../../scripts/transcripts-capture.sh) therefore runs `tools/capture-live.mjs` every `TRANSCRIPTS_CAPTURE_MINUTES` (default 5) and pushes what it wrote, so a reset loses at most one interval. The default sources are every Claude Code project directory under `~/.claude/projects` (the operator's session, its subagents and tool results, and the sessions of departments, reviewers, intake coordinators and bench cells), the `.sessions` directories and run logs of the enterprise's in-flight shifts and intakes under `/tmp/dsh-enterprise`, the cycle and scheduler logs in `/home/user/enterprise-cycles`, `/tmp/nightly-loop.log`, and the logs under the bench's `.proving-ground/runs`; `--source` replaces the list.
+
+Each run appends only what is new since the last run as immutable gzip chunks under `live/`, and writes one manifest, `live/runs/<date>/<time>.json`, listing per chunk its source path, epoch and sequence number, byte and line range, the SHA-256 of the stored bytes and of the source prefix it ends, its redactions, and the capture time. The capture state is read from those manifests alone, so a fresh clone after a reset resumes where the last pushed run stopped. A chunk holds whole lines; a last line without a newline waits until the file has not changed for `--settle-seconds`. A file that no longer starts with the bytes already captured, such as a session log the server restored from its last compaction, begins a new epoch at byte 0, and the chunks of earlier epochs stay untouched. New bytes above `--max-file-bytes` per file and run, and files past `--max-run-bytes`, are deferred to the next run with a log line naming them.
+
+The credential shapes are the collector's: both tools import [`tools/secret-patterns.mjs`](tools/secret-patterns.mjs). A live chunk is never refused, because refusing it would lose the transcript: every match is masked as `[REDACTED-<PATTERN>]` and counted in the chunk's and the run's `redactions`, a digest a collected build accepted as a placeholder (its `acceptedHits`) stays verbatim, and a PEM private-key block in a plain-text log is masked even when a chunk boundary splits it. The masked chunk is scanned again, and any remaining unaccepted match stops the run before its manifest is written, so the loop commits nothing from it.
+
+The loop runs from a dedicated worktree under a single-instance lock, commits `data/transcripts/live/` alone as `chore(transcripts): live capture <UTC stamp>` with `ENTERPRISE_COMMIT_TRAILERS` appended when set, and pushes by fetch, `git pull --rebase` and push, retrying after 2, 4, 8 and 16 seconds; a commit that did not reach the remote goes with the next round. Its commit and push pass `--no-verify`: the pre-push hook typechecks the whole workspace for about three minutes, longer than half the interval, and a capture commit holds only machine-written chunks and manifests that no hook checks, the reason the [enterprise shift engine](../../.agents/notes/implemented/architecture/2026-09-28-enterprise-shift-engine.md) gives for its own data commits. Branch CI starts no run for a push that changes only transcript data. After a reset, start it again with the operator's trailers in `trailers`:
+
+```sh
+git -C /home/user/deepseek-harness worktree add /home/user/deepseek-harness/.claude/worktrees/transcripts-capture -B transcripts-capture origin/claude/coding-agent-harness-u9l4gt
+cd /home/user/deepseek-harness/.claude/worktrees/transcripts-capture
+ENTERPRISE_COMMIT_TRAILERS="$trailers" nohup setsid bash scripts/transcripts-capture.sh >> /home/user/enterprise-cycles/transcripts-capture.log 2>&1 < /dev/null &
+node data/transcripts/tools/transcripts-to-dataset.mjs data/transcripts/live <out-dir> --session <session id>
+```
+
+The last command derives a dataset from the live chunks of one Claude Code session.
+
 ## What the data is and is not
 
 - The raw tree is verbatim: message text, tool inputs, tool results, token usage, and timing as Claude Code logged them, including the operator's account e-mail where the harness's context reminders carried it. A credential-shaped string is refused unless its digest is accepted as a placeholder or its pattern is redacted, in which case only that match is masked; nothing else is rewritten.
+- The live chunks are the source bytes with every credential shape masked, except the accepted placeholders; the manifests count every mask.
 - The dataset drops tool result bodies and masks credential-shaped strings; each build's generated README states its counts and data-quality notes.
 - These transcripts are Claude outputs. Under Anthropic's usage policy they may not be used to train or fine-tune a competing model; keep them for analysis, process mining, failure taxonomies, and environment synthesis with invented entities. The RLVR corpus for the Daliesk model comes from the harness's own certified runs on routes whose terms allow it, through the [data-use terms](../../packages/governance/data-use/README.md) and the [curator](../../packages/governance/curator/README.md).
 

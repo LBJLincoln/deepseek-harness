@@ -28,39 +28,20 @@
 // every unhandled match with its digest and exits 1. After writing, the tree is
 // re-scanned and any credential shape that is not an accepted placeholder aborts
 // the run and removes the tree, so a redaction miss can never ship a secret.
-// Files above MAX_PART_BYTES are written as line-split parts so no single blob
+// The patterns and the redaction are secret-patterns.mjs, shared with
+// capture-live.mjs. Files above MAX_PART_BYTES are written as line-split parts so no single blob
 // exceeds GitHub's per-file ceiling; the manifest records the whole file's
 // digest, the part list, and what was redacted. A re-run over unchanged sources
 // leaves the tree untouched.
 
-import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, join, relative, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
+import { SECRET_PATTERN_NAMES, redactText, scanSecrets, sha256 } from './secret-patterns.mjs'
 
 const MAX_PART_BYTES = 40 * 1024 * 1024
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
-
-/** Credential-shaped text. Every match must be reviewed and accepted by digest before a snapshot is written. */
-// A distinctive prefix (`sk-or-v1-`, `ghp_`, `AKIA`, `xox`, `Bearer `) carries no
-// leading `\b`: a secret often follows a JSON-escaped newline, whose trailing
-// `n` is a word character, so a leading `\b` would defeat both the redaction and
-// the re-scan. `openai-style-key` keeps its `\b` because the bare `sk-` prefix
-// would otherwise match inside words like `task` or `risk`.
-const SECRET_PATTERNS = [
-  { name: 'anthropic-key', re: /sk-ant-[A-Za-z0-9_-]{20,}/g },
-  { name: 'openrouter-key', re: /sk-or-v1-[A-Za-z0-9]{20,}/g },
-  { name: 'openai-style-key', re: /\bsk-(?:proj-)?[A-Za-z0-9]{20,}/g },
-  { name: 'github-token', re: /(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}/g },
-  { name: 'aws-access-key', re: /AKIA[0-9A-Z]{16}/g },
-  { name: 'slack-token', re: /xox[abprs]-[A-Za-z0-9-]{10,}/g },
-  { name: 'private-key', re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g },
-  { name: 'bearer-token', re: /Bearer [A-Za-z0-9._~+/=-]{20,}/g },
-]
-
-/** SECRET_PATTERNS entry names, for validating --redact. */
-const SECRET_PATTERN_NAMES = new Set(SECRET_PATTERNS.map(pattern => pattern.name))
 
 /**
  * Parses the command line.
@@ -92,58 +73,6 @@ function parseArgs(argv) {
   return options
 }
 
-/** The marker one redacted match becomes; distinct from every SECRET_PATTERNS shape. */
-const redactionMarker = (pattern) => `[REDACTED-${pattern.toUpperCase()}]`
-
-// The `private-key` SECRET_PATTERNS entry matches only the BEGIN marker, which
-// detects a key but would leave its body when redacting. The whole BEGIN…END
-// block (the body may not cross a JSON string boundary or another PEM marker,
-// so a BEGIN line quoted on its own does not extend it) collapses to one marker
-// so no marker or body line survives the re-scan.
-const PRIVATE_KEY_BLOCK = /-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----(?:(?!-----)[^"])*?-----END (?:[A-Z]+ )*PRIVATE KEY-----/g
-const PRIVATE_KEY_MARKER_LINE = /-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----/g
-
-/**
- * Replaces the matches of the named patterns with their marker.
- * @param {string} text file content
- * @param {Set<string>} redact SECRET_PATTERNS names to mask
- * @returns {{ text: string, counts: Record<string, number> }} the masked text and how many matches each named pattern replaced
- */
-function redactText(text, redact) {
-  const counts = {}
-  let redacted = text
-  if (redact.has('private-key')) {
-    const marker = redactionMarker('private-key')
-    const replace = pattern => {
-      redacted = redacted.replace(pattern, () => {
-        counts['private-key'] = (counts['private-key'] ?? 0) + 1
-        return marker
-      })
-    }
-    // The whole block first, then any BEGIN marker left with no END in range (a
-    // key a tool cut off, or a search hit that quotes only the marker line).
-    replace(PRIVATE_KEY_BLOCK)
-    replace(PRIVATE_KEY_MARKER_LINE)
-  }
-  for (const { name, re } of SECRET_PATTERNS) {
-    if (!redact.has(name) || name === 'private-key') continue
-    const marker = redactionMarker(name)
-    redacted = redacted.replace(new RegExp(re.source, re.flags), () => {
-      counts[name] = (counts[name] ?? 0) + 1
-      return marker
-    })
-  }
-  return { text: redacted, counts }
-}
-
-/**
- * @param {Buffer | string} content bytes to digest
- * @returns {string} lowercase hex SHA-256
- */
-function sha256(content) {
-  return createHash('sha256').update(content).digest('hex')
-}
-
 /**
  * Lists the session's source files in a stable order.
  * @param {string} projectsDir Claude Code project directory
@@ -163,25 +92,6 @@ function listSourceFiles(projectsDir, session) {
     }
   }
   return files
-}
-
-/**
- * Finds credential-shaped matches in one file.
- * @param {string} target out-relative path, for the report
- * @param {string} text file content
- * @returns {{ target: string, line: number, pattern: string, digest: string, preview: string }[]}
- */
-function scanSecrets(target, text) {
-  const hits = []
-  const lines = text.split('\n')
-  for (const [index, line] of lines.entries()) {
-    for (const { name, re } of SECRET_PATTERNS) {
-      for (const match of line.matchAll(re)) {
-        hits.push({ target, line: index + 1, pattern: name, digest: sha256(match[0]), preview: `${match[0].slice(0, 12)}…` })
-      }
-    }
-  }
-  return hits
 }
 
 /**

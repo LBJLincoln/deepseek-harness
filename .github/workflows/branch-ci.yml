@@ -7,9 +7,20 @@ name: Branch CI
 # three gate groups (`check:ci:static`, `check:ci:coverage`,
 # `check:ci:consumers`) on hosted `ubuntu-latest` runners, with worker counts
 # sized for their four cores.
+#
+# A push that changes only transcript data starts no run: the capture loop
+# (scripts/transcripts-capture.sh) pushes a commit of data/transcripts/live/
+# every few minutes, and no gate reads the chunks, the raw trees or the derived
+# datasets. The tools and the Markdown pairs under data/transcripts/ are not
+# ignored, because the collector spec and doc-sync gate them.
 on:
   push:
     branches: [claude/coding-agent-harness-u9l4gt]
+    paths-ignore:
+      - 'data/transcripts/live/**'
+      - 'data/transcripts/*/raw/**'
+      - 'data/transcripts/*/*.jsonl'
+      - 'data/transcripts/*/stats.json'
   workflow_dispatch:
 
 # A started run finishes; GitHub keeps only the newest pending run of the
