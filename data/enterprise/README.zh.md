@@ -96,6 +96,10 @@
 
 当[工单队列](tickets/README.md)中的开放工单少于其下限时，由 Program Departments 协调人补充队列：`pnpm run enterprise:intake` 运行一个以协调人为部门的 program，每位协调人为自己的包族提出工单，只有其确定性准入接受的拟议工单才会被提交。每次运行都在 `intake/` 下写出记录，并为部门运行过的每位协调人向 `ledger.jsonl` 追加一行职能行。[enterprise-intake fixture](../../examples/headless-agent/tests/fixtures/enterprise-intake/README.md) 说明命令、准入与记录；[Agent Note](../../.agents/notes/implemented/architecture/2026-09-28-coordinators-intake.md) 记录这一决策。
 
+## 请求
+
+所有者通过提交一个请求 `requests/<name>.md` 向企业交派工作：第一行为 `# <title>`，其下是自由文本，别无其他。当一张工单的 `source.path` 就是某个请求的文件时，这张工单即答复了该请求；只有这样的工单可以取优先级 `0`，[班次](#shifts)的队列顺序会把它排在每一张未尝试过的工单之前。`pnpm run enterprise:requests`（[`scripts/enterprise-requests.ts`](../../scripts/enterprise-requests.ts)）打印每个请求的文件、标题与状态——`waiting`、`refused`、`queued`、`halted`、`shipped` 或 `rejected`——这些状态只从队列、台账与受理记录推导。[请求 README](requests/README.md) 说明如何撰写请求以及每种状态的含义。
+
 ## 代码安全专精方向指的是目标，而非已实现的扫描器
 
 本仓库是 TypeScript/JavaScript 项目，不附带 Java、Go、PHP 或移动端的静态分析工具。每个"部门 x 专精方向"审查员席位——包括本仓库尚未为其实现扫描器的四种语言——都引用其部门位于 `data/knowledge/code-safety/<department>/SKILL.md` 的真实审查知识包；专精方向记录的是该席位*为何而设*，而不是声称已有匹配的扫描器在运行。每位审查员、整合员与项目负责人也都以 `code-safety/<id>` 技能的形式使用该知识包（负责人还使用横切的审查方法与严重性与证据知识包）。审查员路由到 `openrouter`，循环使用本仓库自己的 Proving Ground 基准测试所组合的免费层模型 id（`examples/headless-agent/tests/fixtures/proving-ground-bench/overlays/with-openrouter.cordis.yml`），由生成器提取而非硬编码。请阅读 [`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 了解每个部门具体由哪个来源支撑，并阅读 [Agent Note](../../.agents/notes/implemented/architecture/2026-09-19-enterprise-roster-and-harness-feed.md) 了解完整的理由。

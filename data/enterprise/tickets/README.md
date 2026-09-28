@@ -23,7 +23,7 @@ This directory is the enterprise's work queue: one JSON file per ticket, `T-0001
 
 Proving Ground and Code Safety hold no ticket while their deliverables verify clean: the bench's `admit.mjs` admits every curated environment and the code-safety knowledge packs match the fixture that mounts them, so intake records that finding instead of inventing work.
 
-The engine takes open tickets by `priority`, so intake assigns priorities so that consecutive shifts alternate divisions: the first ticket of each division at `1`, the second at `2`, the rest at `3`.
+The engine takes open tickets by `priority`, so intake assigns priorities so that consecutive shifts alternate divisions: the first ticket of each division at `1`, the second at `2`, the rest at `3`. Priority `0` belongs to a ticket answering one of the owner's [requests](../requests/README.md), which the engine therefore takes before every untried ticket; the validator refuses it on any other ticket.
 
 ## The ticket file
 
@@ -54,7 +54,7 @@ The engine takes open tickets by `priority`, so intake assigns priorities so tha
 | `scope` | Non-empty; every prefix exists; the reviewer rejects a diff outside it. |
 | `acceptance` | Non-empty; check ids unique within the ticket; always includes the package's per-file coverage run and `pnpm run typecheck`, plus `pnpm run doc-sync` when the ticket touches documentation. |
 | `budget` | Positive integers: the token and wall-clock ceilings of one attempt. |
-| `priority` | `1` (first) to `3` (last). |
+| `priority` | `1` (first) to `3` (last), or `0` when `source.path` is a request under `data/enterprise/requests/`. |
 
 The parser accepts exactly these fields; a ticket carrying any other field is invalid.
 

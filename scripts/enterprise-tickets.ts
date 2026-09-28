@@ -3,8 +3,11 @@
  * `data/enterprise/tickets/`. A ticket is one JSON file carrying exactly the
  * fields `data/enterprise/tickets/README.md` lists; it is real only when its
  * seat exists in the roster, its source path exists in the tree and contains
- * its anchor text, and it names a non-empty scope and acceptance.
- * `scripts/enterprise-tickets.spec.ts` runs the check over the committed queue.
+ * its anchor text, and it names a non-empty scope and acceptance. Priority `0`
+ * is reserved for a ticket answering one of the owner's requests under
+ * {@link REQUESTS_DIR}, which the shift's queue order then takes before every
+ * untried ticket. `scripts/enterprise-tickets.spec.ts` runs the check over the
+ * committed queue.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
@@ -14,6 +17,24 @@ import type { Roster } from './enterprise-roster.ts'
 
 /** Queue directory, relative to the repository root. */
 export const TICKETS_DIR = 'data/enterprise/tickets'
+
+/** Directory of the owner's requests, relative to the repository root. */
+export const REQUESTS_DIR = 'data/enterprise/requests'
+
+/** The directory's own documentation, which is not a request. */
+const REQUESTS_README = /^readme(?:\.zh)?\.md$/i
+
+/**
+ * Whether a repository path is one of the owner's requests: a Markdown file
+ * directly under {@link REQUESTS_DIR} other than that directory's README pair.
+ * @param path - a repository-relative path.
+ * @returns true for a request file.
+ */
+export function isRequestFile(path: string): boolean {
+  if (!path.startsWith(`${REQUESTS_DIR}/`)) return false
+  const name = path.slice(REQUESTS_DIR.length + 1)
+  return !name.includes('/') && name.toLowerCase().endsWith('.md') && !REQUESTS_README.test(name)
+}
 
 const TICKET_KEYS = ['id', 'title', 'division', 'seat', 'kind', 'source', 'task', 'scope', 'acceptance', 'budget', 'priority']
 const SOURCE_KEYS = ['path', 'anchor']
@@ -25,6 +46,8 @@ const CHECK_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/
 /** The task text cites its evidence at least once as `path:line`. */
 const EVIDENCE_PATTERN = /[\w./-]+\.(?:ts|tsx|md|json|ya?ml|mjs):\d+/
 const LOWEST_PRIORITY = 3
+/** The priority of a ticket answering a request, before every other priority. */
+const REQUEST_PRIORITY = 0
 
 /**
  * The acceptance commands one queue requires of every ticket, beside the
@@ -196,10 +219,19 @@ function validateTicket(loaded: LoadedTicket, roster: Roster, root: string, poli
   errors.push(...validateScope(scope, root))
   errors.push(...validateAcceptance(acceptance, policy))
   errors.push(...validateBudget(budget))
-  if (!Number.isInteger(priority) || (priority as number) < 1 || (priority as number) > LOWEST_PRIORITY) {
-    errors.push(`priority must be an integer from 1 to ${LOWEST_PRIORITY}`)
-  }
+  errors.push(...validatePriority(priority, source))
   return errors
+}
+
+function validatePriority(priority: unknown, source: unknown): string[] {
+  if (!Number.isInteger(priority) || (priority as number) < REQUEST_PRIORITY || (priority as number) > LOWEST_PRIORITY) {
+    return [`priority must be an integer from 1 to ${LOWEST_PRIORITY}, or ${REQUEST_PRIORITY} for a ticket answering a request`]
+  }
+  const answersRequest = isRecord(source) && typeof source['path'] === 'string' && isRequestFile(source['path'])
+  if (priority === REQUEST_PRIORITY && !answersRequest) {
+    return [`priority ${REQUEST_PRIORITY} is reserved for a ticket whose source.path is a request under ${REQUESTS_DIR}/`]
+  }
+  return []
 }
 
 /**

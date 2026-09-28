@@ -1,14 +1,32 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { afterAll, describe, expect, it } from 'vitest'
 
 import { ROSTER_PATH } from './enterprise-roster.ts'
 import type { Roster } from './enterprise-roster.ts'
-import { loadTickets, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
+import { isRequestFile, loadTickets, REQUESTS_DIR, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
 import type { LoadedTicket } from './enterprise-tickets.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const roster = JSON.parse(readFileSync(resolve(root, ROSTER_PATH), 'utf8')) as Roster
+
+const trees: string[] = []
+
+afterAll(() => {
+  for (const tree of trees.splice(0)) rmSync(tree, { recursive: true, force: true })
+})
+
+/** A tree holding the reference ticket's scope, one request, and the requests README. */
+function requestTree(): string {
+  const tree = mkdtempSync(join(tmpdir(), 'enterprise-tickets-'))
+  trees.push(tree)
+  mkdirSync(join(tree, 'packages/core/agent'), { recursive: true })
+  mkdirSync(join(tree, REQUESTS_DIR), { recursive: true })
+  writeFileSync(join(tree, REQUESTS_DIR, 'dark-mode.md'), '# Show the deck in dark mode\n\nThe deck is too bright at night.\n')
+  writeFileSync(join(tree, REQUESTS_DIR, 'README.md'), '# Requests\n')
+  return tree
+}
 
 /** A ticket that satisfies every rule, grounded in files the queue itself ships. */
 function validTicket(): Record<string, unknown> {
@@ -95,5 +113,39 @@ describe('enterprise ticket queue', () => {
   it('reports a file that is not JSON', () => {
     const loaded: LoadedTicket[] = [{ file: `${TICKETS_DIR}/T-0001.json`, value: new SyntaxError('Unexpected token') }]
     expect(validateTickets(loaded, roster, root).join('\n')).toMatch(/not valid JSON/)
+  })
+})
+
+describe('priority 0', () => {
+  function validate(tree: string, source: { path: string; anchor: string }, priority: number): string[] {
+    const ticket = { ...validTicket(), source, priority }
+    return validateTickets([{ file: `${TICKETS_DIR}/T-0001.json`, value: ticket }], roster, tree)
+  }
+
+  it('is allowed, not required, on a ticket whose source is one of the owner\'s requests', () => {
+    const tree = requestTree()
+    expect(validate(tree, { path: `${REQUESTS_DIR}/dark-mode.md`, anchor: '# Show the deck in dark mode' }, 0)).toEqual([])
+    expect(validate(tree, { path: `${REQUESTS_DIR}/dark-mode.md`, anchor: '# Show the deck in dark mode' }, 2)).toEqual([])
+  })
+
+  it('is refused on a ticket whose source is not a request, the requests README included', () => {
+    expect(errorsOf((ticket) => { ticket['priority'] = 0 })).toEqual([
+      `${TICKETS_DIR}/T-0001.json: priority 0 is reserved for a ticket whose source.path is a request under ${REQUESTS_DIR}/`,
+    ])
+    expect(validate(requestTree(), { path: `${REQUESTS_DIR}/README.md`, anchor: '# Requests' }, 0).join('\n')).toMatch(/priority 0 is reserved/)
+    expect(errorsOf((ticket) => { ticket['priority'] = -1 }).join('\n')).toMatch(/from 1 to 3, or 0 for a ticket answering a request/)
+  })
+
+  it.each([
+    [`${REQUESTS_DIR}/dark-mode.md`, true],
+    [`${REQUESTS_DIR}/Dark mode.MD`, true],
+    [`${REQUESTS_DIR}/README.md`, false],
+    [`${REQUESTS_DIR}/readme.zh.md`, false],
+    [`${REQUESTS_DIR}/archive/old.md`, false],
+    [`${REQUESTS_DIR}/notes.txt`, false],
+    ['data/enterprise/requests.md', false],
+    [`${TICKETS_DIR}/README.md`, false],
+  ])('reads %s as a request: %s', (path, expected) => {
+    expect(isRequestFile(path)).toBe(expected)
   })
 })
