@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时状态与证据后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是 feed 在 `GET /programs` 上提供的项目运行台账，每次已记录的项目运行一条，列出其各部门、各部门的证书、整合的结论以及各项签署。
+本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时状态与证据后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是 feed 在 `GET /programs` 上提供的项目运行台账，每次已记录的项目运行一条，列出其各部门、各部门的证书、整合的结论以及各项签署。Harness Core 各位包管家领取工作的队列位于 [tickets/](tickets/README.md)。
 
 ## 诚实原则
 

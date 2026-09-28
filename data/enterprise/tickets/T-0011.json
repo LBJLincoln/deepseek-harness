@@ -1,0 +1,22 @@
+{
+  "id": "T-0011",
+  "title": "Pin that one pi-ai stream() call makes exactly one provider request on a retryable failure",
+  "division": "harness-core",
+  "seat": "harness-core-llm-pi-ai-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/llm/llm-pi-ai/README.md",
+    "anchor": "The adapter forces pi-ai's SDK `maxRetries` to zero so one `stream()` call makes one provider request."
+  },
+  "task": "Problem: the adapter passes `maxRetries: 0` to the pi-ai SDK (packages/llm/llm-pi-ai/src/adapter.ts:96-97: 'The agent recovery layer owns visible attempts; one adapter call is one SDK attempt') and the README promises at packages/llm/llm-pi-ai/README.md:118 that one `stream()` call makes one provider request, so that `dsh-llm-retry` and the session log own every visible attempt. Nothing pins it on a failure the SDK would retry: packages/llm/llm-pi-ai/tests/adapter.spec.ts asserts a single request only where no retry could happen (an unsupported reasoning effort refused before sending, :560; a consumer abort, :987). A pi-ai upgrade that re-enabled retries, or a lost `maxRetries: 0`, would multiply requests and hide attempts from `llm/retry` without failing a test.\n\nRequired: add packages/llm/llm-pi-ai/tests/single-attempt.spec.ts using the existing `mockServer` helper (packages/llm/llm-pi-ai/tests/mock-server.ts already scripts a non-200 `status` with headers) with a scripted response the SDK treats as retryable: one test with a 500 and one with a 429 carrying a `retry-after` header. Drive the real adapter through `ctx.llm.stream()` as adapter.spec.ts does and assert that the stream finishes with `kind: 'error'` carrying the mapped code (`SERVER`, `RATE_LIMIT`) and that `server.requests` has length 1 after the finish settles.\n\nConstraints: do not mock pi-ai; extend tests/mock-server.ts only if a status-only script cannot express the case; no source change.",
+  "scope": [
+    "packages/llm/llm-pi-ai/"
+  ],
+  "acceptance": [
+    { "id": "spec", "run": "test -f packages/llm/llm-pi-ai/tests/single-attempt.spec.ts && pnpm exec vitest run packages/llm/llm-pi-ai/tests/single-attempt.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/llm/llm-pi-ai/ --coverage --coverage.include='packages/llm/llm-pi-ai/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 2
+}

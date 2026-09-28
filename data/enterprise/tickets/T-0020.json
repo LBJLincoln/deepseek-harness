@@ -1,0 +1,23 @@
+{
+  "id": "T-0020",
+  "title": "Self-skip the subagent search-permission cwd test when the process runs as root",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/subagent/subagent/tests/out-of-process.spec.ts",
+    "anchor": "rejects a directory without search permission"
+  },
+  "task": "Problem: the test at packages/subagent/subagent/tests/out-of-process.spec.ts:77 creates a mode-600 directory and expects `assertUsableCwd` to refuse it. The probe is `isEnterableDirectory` at packages/subagent/subagent/src/out-of-process.ts:78-90, which calls `accessSync(path, constants.X_OK)`. POSIX discretionary access checks do not apply to uid 0, so under root `accessSync` succeeds on a mode-600 directory and the test fails with 'expected [Function] to throw an error', in any root container and in the sandbox this queue runs in. The test already self-skips on win32 (out-of-process.spec.ts:77) because Windows ACLs cannot express the fixture; uid 0 is the same situation, and docs/testing.md:10 records the repository's rule for a host that cannot express a fixture: the suite self-skips there and CI, which can, enforces it. The catch branch of `isEnterableDirectory` stays covered under the skip by the missing-path case of 'accepts an absolute enterable directory and rejects relative or missing paths' (out-of-process.spec.ts:59), so the package's per-file coverage remains 100% when the test does not run.\n\nRequired: extend the skip condition at out-of-process.spec.ts:77 to `process.platform === 'win32' || process.getuid?.() === 0` and extend the comment above it to state that uid 0 bypasses discretionary permission checks, so the search-bit fixture cannot deny access to root. Change nothing else: the fixture, the assertion, and the surrounding tests stay as they are, and the test still runs on every non-root POSIX host.\n\nConstraints: test-only change; no source, README, or Agent Note change. The coverage check runs the subagent packages whose tests own this package's src; every one of them passes under uid 0 once this test skips.",
+  "scope": [
+    "packages/subagent/subagent/"
+  ],
+  "acceptance": [
+    { "id": "skip-condition", "run": "grep -q 'getuid' packages/subagent/subagent/tests/out-of-process.spec.ts" },
+    { "id": "spec-passes-as-root", "run": "pnpm exec vitest run packages/subagent/subagent/tests/out-of-process.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent/ packages/subagent/subagent-fork-in-process/ packages/subagent/subagent-spawn-in-process/ packages/subagent/subagent-in-process-driver/ packages/subagent/subagent-codex/ packages/subagent/subagent-dsh-sdk/ packages/subagent/tool-subagent/ packages/subagent/tool-subagent-control/ packages/subagent/tool-subagent-report/ --coverage --coverage.include='packages/subagent/subagent/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 4000000, "maxWallMs": 1800000 },
+  "priority": 1
+}

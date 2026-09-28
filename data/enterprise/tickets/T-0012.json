@@ -1,0 +1,22 @@
+{
+  "id": "T-0012",
+  "title": "Drop the test-only supportedProtocols root export from dsh-llm-pi-ai",
+  "division": "harness-core",
+  "seat": "harness-core-llm-pi-ai-steward",
+  "kind": "chore",
+  "source": {
+    "path": ".agents/notes/proposed/simplification/2026-07-04-prune-dead-core-spine-api.md",
+    "anchor": "### Grouped helper-export inventory"
+  },
+  "task": "Problem: packages/llm/llm-pi-ai/src/index.ts:82 re-exports `supportedProtocols` from src/provider.ts. Its only importer outside src is packages/llm/llm-pi-ai/tests/catalog.spec.ts; no other package, app or example uses it and the README does not name it. The proposed prune note's grouped inventory targets this package's helper exports as SDK surface without an owner.\n\nRequired: remove the root re-export on index.ts:82 and change catalog.spec.ts to import `../src/provider.ts` (package-local test imports are the existing convention). Keep `supportedProtocols` exported from provider.ts if another module in src imports it; if `pnpm run knip` reports it as an export used only in its own file, drop the `export` keyword and let the test exercise the behavior through the public catalog instead. No behavior change.\n\nConstraints: mechanical, local edit under the Agent Note exemption; do not touch other exports.",
+  "scope": [
+    "packages/llm/llm-pi-ai/"
+  ],
+  "acceptance": [
+    { "id": "export-gone", "run": "! grep -q 'supportedProtocols' packages/llm/llm-pi-ai/src/index.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/llm/llm-pi-ai/ --coverage --coverage.include='packages/llm/llm-pi-ai/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

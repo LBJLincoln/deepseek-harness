@@ -1,0 +1,22 @@
+{
+  "id": "T-0002",
+  "title": "Drop the consumer-less agentCarrier root export from dsh-agent",
+  "division": "harness-core",
+  "seat": "harness-core-agent-steward",
+  "kind": "chore",
+  "source": {
+    "path": ".agents/notes/proposed/simplification/2026-07-04-prune-dead-core-spine-api.md",
+    "anchor": "Consumer package-root implementation helpers"
+  },
+  "task": "Problem: packages/core/agent/src/index.ts:23 re-exports `agentCarrier` (packages/core/agent/src/dispatch.ts:94) at the package root. Its only callers are inside the package: the default `carrier` argument of `agentEvents` at packages/core/agent/src/dispatch.ts:107. No file outside packages/core/agent/src (production, example, app, or test) references it and the package README never names it. The proposed prune note classifies such test-convenience and anticipatory root exports as SDK surface without an owner (packages/AGENTS.md: require a current owner and need).\n\nRequired: remove `agentCarrier` from the root export list at packages/core/agent/src/index.ts:23 and keep `agentEvents`, `assembleContextFor`, `emitAgentEvent` and the type exports on line 24 as they are; keep the function exported from dispatch.ts for its same-package caller. Run `pnpm run knip`: if it reports `agentCarrier` as an export used only in its own file, drop the `export` keyword in dispatch.ts instead. No behavior change.\n\nConstraints: touch nothing else in the package; mechanical, local edit under the Agent Note exemption.",
+  "scope": [
+    "packages/core/agent/"
+  ],
+  "acceptance": [
+    { "id": "export-gone", "run": "! grep -q 'agentCarrier' packages/core/agent/src/index.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/core/agent/ packages/core/agent-loop/ packages/goal/goal-round-driver/tests/goal-round-driver.spec.ts packages/improvement/environment-runner/tests/environment-runner.spec.ts --coverage --coverage.include='packages/core/agent/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

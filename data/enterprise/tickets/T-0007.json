@@ -1,0 +1,22 @@
+{
+  "id": "T-0007",
+  "title": "Pin the documented error codes of the LLM provider directory and model discovery",
+  "division": "harness-core",
+  "seat": "harness-core-llm-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/llm/llm/README.md",
+    "anchor": "All-or-nothing (`INVALID_DIRECTORY`/`DUPLICATE_DIRECTORY`)"
+  },
+  "task": "Problem: the configurable-provider directory and model discovery document stable error codes in packages/llm/llm/README.md:15-17 (`INVALID_DIRECTORY`/`DUPLICATE_DIRECTORY` for `registerConfigurableProviders`, `INVALID_DISCOVERY`/`DUPLICATE_DISCOVERY` for `registerModelDiscovery`) and the source documents `REGISTRATION_DISPOSED` for a disposed handle (packages/llm/llm/src/index.ts:266 and :289). The throws live at packages/llm/llm/src/index.ts:377, :461, :464, :468, :480, :494, :525, :528 and :558, but every test reaching them matches message text only (packages/llm/llm/tests/topology.spec.ts:159-232), and no file under any tests directory in the repository contains `INVALID_DIRECTORY`, `DUPLICATE_DIRECTORY`, `DUPLICATE_DISCOVERY` or `REGISTRATION_DISPOSED`. A code rename would pass every gate while breaking configuration surfaces that branch on the code.\n\nRequired: add packages/llm/llm/tests/directory-error-codes.spec.ts that drives each path through the public `ctx.llm` service (build the context the way topology.spec.ts does) and asserts an `LlmError` with the exact `code`: an empty entry list and an entry with an empty `settingsPath` segment give `INVALID_DIRECTORY`; a provider declared twice in one call, a provider another registration already declares, and `handle.replace()` naming a provider another registration owns give `DUPLICATE_DIRECTORY`; `replace()` on a disposed directory handle and on a disposed adapter registration give `REGISTRATION_DISPOSED`; an empty namespace and a discovery without a provider give `INVALID_DISCOVERY`; a second discovery offer for one namespace gives `DUPLICATE_DISCOVERY`. Assert codes, not messages, and assert that the rejected call left the previous state intact where the README promises all-or-nothing.\n\nConstraints: no source change; the service and its messages stay as they are.",
+  "scope": [
+    "packages/llm/llm/"
+  ],
+  "acceptance": [
+    { "id": "spec", "run": "test -f packages/llm/llm/tests/directory-error-codes.spec.ts && pnpm exec vitest run packages/llm/llm/tests/directory-error-codes.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/llm/ packages/core/agent-loop/tests/loop.spec.ts packages/jobs/tool-jobs/tests/tool-jobs.spec.ts packages/session/session-stats/tests/projection.spec.ts packages/client/ui-conversation/tests/conversation-node-definitions.client.spec.ts --coverage --coverage.include='packages/llm/llm/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 1
+}

@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-`roster.json` in this directory is a generated roster of 147 seat definitions for the enterprise proof of concept, a composition of role x division x specialization built from sources this repository actually defines, and each seat carries the evidence the committed session records give it. [`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) generates it (`pnpm run roster`); [`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) serves it with live status and evidence recomputed (`pnpm run feed`). The roster is not the organisation of record: that is the ledger of program runs the feed serves on `GET /programs`, one entry per recorded program run with its departments, their certificates, the integration's verdict and the sign-offs.
+`roster.json` in this directory is a generated roster of 147 seat definitions for the enterprise proof of concept, a composition of role x division x specialization built from sources this repository actually defines, and each seat carries the evidence the committed session records give it. [`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) generates it (`pnpm run roster`); [`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) serves it with live status and evidence recomputed (`pnpm run feed`). The roster is not the organisation of record: that is the ledger of program runs the feed serves on `GET /programs`, one entry per recorded program run with its departments, their certificates, the integration's verdict and the sign-offs. The work queue the Harness Core stewards draw from is [tickets/](tickets/README.md).
 
 ## The honesty rule
 

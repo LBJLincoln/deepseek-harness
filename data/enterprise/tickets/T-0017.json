@@ -1,0 +1,27 @@
+{
+  "id": "T-0017",
+  "title": "Reclassify the shipped external-agent bridge Agent Note as implemented",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-claude-code-steward",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md",
+    "anchor": "## Acceptance criteria"
+  },
+  "task": "Problem: .agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md (`Status: proposed`) designs bridge mode, `harnessTools: { only: true }` serving the harness tool registry to Claude Code through an in-process MCP server, and bridge mode ships: packages/subagent/subagent-claude-code/README.md:27, :59 and :75 document `harnessTools`; the provider exports `BRIDGE_TOOL_PREFIX`, `BRIDGE_TOOL_DENIAL` and `SUBAGENT_BRIDGE_UNAVAILABLE` from packages/subagent/subagent-claude-code/src/index.ts; the tool server the note names exists at packages/mcp/mcp-tool-server; and the fixture its acceptance names exists at examples/headless-agent/tests/fixtures/agent-bridge/. Two shipped documents still link the note as a proposal: packages/mcp/mcp-tool-server/README.md:7 and docs/subsystems/subagent.md:52. The notes README lifecycle rule (.agents/notes/README.md, 'Lifecycle') places a shipped decision under implemented/, kept current with what shipped.\n\nRequired: check every bullet of the note's '## Acceptance criteria' against the tree (the `UNSUPPORTED_CAPABILITY` refusal, the Loader-booted fixture round trip, denial at the executor, the pinned SDK options and the `bridge/start`, `bridge/assistant`, `bridge/end` order, unchanged black-box specs); move the complete triplet (`.md`, `.zh.md`, `.i18n.yaml`) with `git mv` to .agents/notes/implemented/architecture/ keeping the filename; set line 3 to `Status: implemented` in both languages; rewrite future-tense proposal sentences minimally into facts matching the shipped code (facts only, never the decision, per .agents/notes/implemented/AGENTS.md); fix relative links inside the note (a link to a note that stays proposed, such as `2026-09-05-read-barrier.md`, becomes `../../proposed/architecture/...`); update the two inbound links and their Chinese counterparts; re-record every touched pair with `pnpm run verify-translation-pairing --write <pair paths>`.\n\nConstraints: if a criterion is not met, leave the note in place and name the failing bullet in your report; no code changes.",
+  "scope": [
+    ".agents/notes/proposed/architecture/",
+    ".agents/notes/implemented/architecture/",
+    "packages/mcp/mcp-tool-server/",
+    "docs/subsystems/",
+    "packages/subagent/subagent-claude-code/"
+  ],
+  "acceptance": [
+    { "id": "note-implemented", "run": "test -f .agents/notes/implemented/architecture/2026-09-06-external-agent-bridge.md && ! test -e .agents/notes/proposed/architecture/2026-09-06-external-agent-bridge.md" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent-claude-code/ --coverage --coverage.include='packages/subagent/subagent-claude-code/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 2
+}

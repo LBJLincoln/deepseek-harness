@@ -1,0 +1,23 @@
+{
+  "id": "T-0015",
+  "title": "Drop the SubagentDepthError and seedDescriptorTurn root exports from dsh-subagent",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-steward",
+  "kind": "chore",
+  "source": {
+    "path": ".agents/notes/proposed/simplification/2026-07-04-prune-dead-core-spine-api.md",
+    "anchor": "`depthOf`, `SubagentDepthError`, `waitForExit`, and `exitsWithin` root exports"
+  },
+  "task": "Problem: packages/subagent/subagent/src/index.ts:116 re-exports `SubagentDepthError` (packages/subagent/subagent/src/child-agent.ts:31) and index.ts:100 re-exports `seedDescriptorTurn` (packages/subagent/subagent/src/descriptor-seed.ts:23). Neither has a consumer outside packages/subagent/subagent/src: the depth tests in packages/subagent/subagent-in-process-driver/tests/subagent-in-process-driver.spec.ts:270-291 match the error by `name` and fields without importing the class, `seedDescriptorTurn` is called only from continuation.ts:437, and the README documents the seam's depth vocabulary as `AgentOptions.subagentDepth`, `assertSubagentMaxDepth` and `delegationDepthOf(agent)` (packages/subagent/subagent/README.md:63), which stay exported. The proposed prune note lists `SubagentDepthError` in the row quoted in the source anchor; the other symbols in that row were already made private.\n\nRequired: remove the two root re-exports; keep the class and the function exported from their own modules for their same-package callers; keep messages, codes and behavior unchanged; run the driver spec to prove the depth assertions still hold. No behavior change.\n\nConstraints: no README change (it does not name either symbol), no Agent Note; do not touch the exported depth vocabulary. The coverage check runs the subagent packages whose tests own this package's src; until T-0020 merges, packages/subagent/subagent/tests/out-of-process.spec.ts:77 fails under uid 0 for a reason unrelated to this ticket, so run acceptance as a non-root user or after T-0020.",
+  "scope": [
+    "packages/subagent/subagent/"
+  ],
+  "acceptance": [
+    { "id": "exports-gone", "run": "! grep -q 'SubagentDepthError\\|seedDescriptorTurn' packages/subagent/subagent/src/index.ts" },
+    { "id": "driver-depth-spec", "run": "pnpm exec vitest run packages/subagent/subagent-in-process-driver/tests/subagent-in-process-driver.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent/ packages/subagent/subagent-fork-in-process/ packages/subagent/subagent-spawn-in-process/ packages/subagent/subagent-in-process-driver/ packages/subagent/subagent-codex/ packages/subagent/subagent-dsh-sdk/ packages/subagent/tool-subagent/ packages/subagent/tool-subagent-control/ packages/subagent/tool-subagent-report/ --coverage --coverage.include='packages/subagent/subagent/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 2
+}

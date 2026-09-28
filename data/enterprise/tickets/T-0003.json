@@ -1,0 +1,23 @@
+{
+  "id": "T-0003",
+  "title": "saveSelection() warns when no settings provider can retain the selection",
+  "division": "harness-core",
+  "seat": "harness-core-agent-default-model-steward",
+  "kind": "fix",
+  "source": {
+    "path": "packages/core/agent-default-model/README.md",
+    "anchor": "Without a settings provider, `saveSelection()` cannot retain a selection for a later Agent."
+  },
+  "task": "Problem: `AgentDefaultModelConfig.saveSelection()` at packages/core/agent-default-model/src/index.ts:98-104 writes through `this.ctx.get('settings')?.replace(...)`. In a composition without a settings provider the optional chain resolves successfully while nothing is stored, so the caller (packages/host/apiproxy/src/index.ts:100 forwards the web client's model choice here) reports success and the selection is lost at the next process start without any trace. The README records this only as a limitation (Known Limitations bullet quoted in the source anchor). Repository rule (AGENTS.md, 'Misconfiguration fails loud'): a missing referent is never skipped silently.\n\nRequired: a settings-less composition stays legitimate, so `saveSelection()` keeps returning normally, but when `ctx.get('settings')` is undefined it logs one warning per service instance through `this.ctx.logger.warn` that names `AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE` and states that the selection applies to this process only because no settings provider is loaded; later calls on the same instance do not repeat it. Document the behavior in the README (the `saveSelection()` description and the Known Limitations bullet, English and Chinese together), then re-record with `pnpm run verify-translation-pairing --write packages/core/agent-default-model/README.md`. Add packages/core/agent-default-model/tests/save-selection-without-settings.spec.ts that composes the plugin without `dsh-settings`, observes the context logger, calls `saveSelection()` twice and asserts exactly one warning naming the namespace, and that a composition with the real `SettingsProvider` (the fixture of the existing spec) logs no warning.\n\nConstraints: do not change the method's return type, the settings schema, or the apiproxy consumer.",
+  "scope": [
+    "packages/core/agent-default-model/"
+  ],
+  "acceptance": [
+    { "id": "spec", "run": "test -f packages/core/agent-default-model/tests/save-selection-without-settings.spec.ts && pnpm exec vitest run packages/core/agent-default-model/tests/save-selection-without-settings.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/core/agent-default-model/ --coverage --coverage.include='packages/core/agent-default-model/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 2
+}

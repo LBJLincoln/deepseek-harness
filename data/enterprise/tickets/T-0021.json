@@ -1,0 +1,23 @@
+{
+  "id": "T-0021",
+  "title": "Self-skip the ACP search-permission cwd test when the process runs as root",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-acp-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/subagent/subagent-acp/tests/subagent-acp.spec.ts",
+    "anchor": "rejects a config cwd directory without search permission at load"
+  },
+  "task": "Problem: the test at packages/subagent/subagent-acp/tests/subagent-acp.spec.ts:306 creates a mode-600 directory and expects the load-time cwd check to refuse it. That check is `isDirectory` at packages/subagent/subagent-acp/src/index.ts:93-104, which probes `accessSync(path, constants.X_OK)`. POSIX discretionary access checks do not apply to uid 0, so under root `accessSync` succeeds on a mode-600 directory and the test fails with 'expected [Function] to throw an error', in any root container and in the sandbox this queue runs in. The test already self-skips on win32 (subagent-acp.spec.ts:306) because Windows ACLs cannot express the fixture; uid 0 is the same situation, and docs/testing.md:10 records the repository's rule for a host that cannot express a fixture: the suite self-skips there and CI, which can, enforces it. The catch branch of `isDirectory` stays covered under the skip by the missing-directory tests at subagent-acp.spec.ts:330-341 and :369-379, so the package's per-file coverage remains 100% when the test does not run.\n\nRequired: extend the skip condition at subagent-acp.spec.ts:306 to `process.platform === 'win32' || process.getuid?.() === 0` and extend the comment above it to state that uid 0 bypasses discretionary permission checks, so the search-bit fixture cannot deny access to root. Change nothing else: the fixture, the assertion, and the surrounding tests stay as they are, and the test still runs on every non-root POSIX host.\n\nConstraints: test-only change; no source, README, or Agent Note change.",
+  "scope": [
+    "packages/subagent/subagent-acp/"
+  ],
+  "acceptance": [
+    { "id": "skip-condition", "run": "grep -q 'getuid' packages/subagent/subagent-acp/tests/subagent-acp.spec.ts" },
+    { "id": "spec-passes-as-root", "run": "pnpm exec vitest run packages/subagent/subagent-acp/tests/subagent-acp.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent-acp/ --coverage --coverage.include='packages/subagent/subagent-acp/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 4000000, "maxWallMs": 1800000 },
+  "priority": 1
+}

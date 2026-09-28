@@ -1,0 +1,24 @@
+{
+  "id": "T-0006",
+  "title": "Pin and document the UNSUPPORTED_SCHEMA refusal of the tool registry",
+  "division": "harness-core",
+  "seat": "harness-core-tools-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/core/tools/README.md",
+    "anchor": "### Enforced raw JSON Schema subset"
+  },
+  "task": "Problem: `JsonSchemaError` (packages/core/tools/src/json-schema.ts:62-73) is the registry's refusal of a raw JSON Schema outside the enforced subset: code `UNSUPPORTED_SCHEMA`, name `JsonSchemaError`, and `violations` listing every offending path. It is thrown by `assertSupportedJsonSchema` (json-schema.ts:388 and :404) and by `authorError` in packages/core/tools/src/schema.ts:180-183. No test in the repository asserts the code: packages/core/tools/tests/json-schema.spec.ts and the only cross-package coverage (packages/subagent/subagent-in-process-driver/tests/structured.spec.ts:286 and :295) match the message text, and the README section named in the source anchor (packages/core/tools/README.md:105) never names the code, so a renamed code would pass every gate while breaking consumers that branch on it.\n\nRequired: add packages/core/tools/tests/json-schema-error-code.spec.ts that (1) raises the error through a public entry, `defineTool` or `ctx.tools.register`, with a raw parameter schema using an unsupported construct such as `$ref`, and with a schema carrying two independent violations, asserting `error.code === 'UNSUPPORTED_SCHEMA'`, `error.name === 'JsonSchemaError'`, `error instanceof JsonSchemaError`, and that `violations` lists both paths in walk order and the message joins them with '; '; and (2) asserts the single-violation path from schema.ts:182 carries the same code and name. Document the code and the `violations` field in the README subset section, English and Chinese together, then re-record with `pnpm run verify-translation-pairing --write packages/core/tools/README.md`.\n\nConstraints: do not change the enforced subset, the error class, or any message.",
+  "scope": [
+    "packages/core/tools/"
+  ],
+  "acceptance": [
+    { "id": "spec", "run": "test -f packages/core/tools/tests/json-schema-error-code.spec.ts && pnpm exec vitest run packages/core/tools/tests/json-schema-error-code.spec.ts" },
+    { "id": "readme-code", "run": "grep -q 'UNSUPPORTED_SCHEMA' packages/core/tools/README.md" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/core/tools/ packages/spill/spill-policy/tests/spill-policy.spec.ts --coverage --coverage.include='packages/core/tools/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 2
+}

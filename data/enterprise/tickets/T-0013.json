@@ -1,0 +1,22 @@
+{
+  "id": "T-0013",
+  "title": "Remove the RetryInternals test hook from the llm-retry apply() signature",
+  "division": "harness-core",
+  "seat": "harness-core-llm-retry-steward",
+  "kind": "chore",
+  "source": {
+    "path": "packages/llm/llm-retry/src/index.ts",
+    "anchor": "Non-serializable hooks used to make timing policy deterministic in tests."
+  },
+  "task": "Problem: `apply(ctx, config = {}, internals: RetryInternals = {})` at packages/llm/llm-retry/src/index.ts:99 takes a third parameter that only tests pass. `RetryInternals` (index.ts:39-42, the JSDoc quoted in the source anchor) carries a `random` sampler for jitter, is exported at the package root, and is supplied only by packages/llm/llm-retry/tests/retry.spec.ts:105. The Loader calls a plugin with `(ctx, config)`, so the parameter is unreachable in production and exists to be mocked; the testing policy (docs/testing.md, 'Prefer the real implementation over a mock') mocks the nondeterministic boundary in the test instead of threading hooks through the product signature.\n\nRequired: remove the parameter and the exported interface; sample jitter from `Math.random` inside the module; make the tests deterministic with `vi.spyOn(Math, 'random').mockReturnValue(...)` restored after each test, or by asserting the scheduled delay lies inside the documented jitter band; keep the intent of every existing assertion. `config = {}` stays as it is. No behavior change.\n\nConstraints: the README does not mention the hook, so it needs no change; no Agent Note; do not change retry policy semantics or `llm/retry` event data.",
+  "scope": [
+    "packages/llm/llm-retry/"
+  ],
+  "acceptance": [
+    { "id": "hook-gone", "run": "! grep -q 'RetryInternals' packages/llm/llm-retry/src/index.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/llm/llm-retry/ --coverage --coverage.include='packages/llm/llm-retry/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

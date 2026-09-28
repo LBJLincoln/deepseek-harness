@@ -1,0 +1,22 @@
+{
+  "id": "T-0019",
+  "title": "Drop the test-only STRUCTURED_OUTPUT_INSTRUCTION root export from the in-process driver",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-in-process-driver-steward",
+  "kind": "chore",
+  "source": {
+    "path": ".agents/notes/proposed/simplification/2026-07-04-prune-dead-core-spine-api.md",
+    "anchor": "Consumer package-root implementation helpers"
+  },
+  "task": "Problem: packages/subagent/subagent-in-process-driver/src/index.ts:44 re-exports `STRUCTURED_OUTPUT_INSTRUCTION` (packages/subagent/subagent-in-process-driver/src/structured.ts:26, used by the driver itself at structured.ts:102). Its only importer outside src is this package's own test; no other package, app or example uses it and the README does not name it. `STRUCTURED_OUTPUT_TOOL` next to it has cross-package consumers and stays. The proposed prune note classifies test-only root exports as SDK surface without an owner.\n\nRequired: remove the root re-export on index.ts:44, keep the constant exported from structured.ts for its same-package caller, and change the test to import `../src/structured.ts` (package-local test imports are the existing convention); the model-visible instruction text stays pinned verbatim by that test. No behavior change.\n\nConstraints: mechanical, local edit under the Agent Note exemption; do not touch other exports.",
+  "scope": [
+    "packages/subagent/subagent-in-process-driver/"
+  ],
+  "acceptance": [
+    { "id": "export-gone", "run": "! grep -q 'STRUCTURED_OUTPUT_INSTRUCTION' packages/subagent/subagent-in-process-driver/src/index.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent-in-process-driver/ --coverage --coverage.include='packages/subagent/subagent-in-process-driver/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

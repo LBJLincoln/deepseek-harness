@@ -1,0 +1,23 @@
+{
+  "id": "T-0016",
+  "title": "Document the toolFilter value shape and its load-time validation in the tool-subagent README",
+  "division": "harness-core",
+  "seat": "harness-core-tool-subagent-steward",
+  "kind": "docs",
+  "source": {
+    "path": "packages/subagent/tool-subagent/README.md",
+    "anchor": "| `toolFilter` | Per-child global-tool restriction; requires `toolFilter` capability. |"
+  },
+  "task": "Problem: the config table row for `toolFilter` (packages/subagent/tool-subagent/README.md:27, quoted in the source anchor) never states the value. The schema at packages/subagent/tool-subagent/src/index.ts:94-97 accepts `{ allow?: string[]; deny?: string[] }`; omission is preserved on purpose because Schemastery's `{ allow: [] }` default would deny every tool (comment at index.ts:93); a `toolFilter` that names neither list is rejected at load with the message at index.ts:272-274; and the value reaches the child as a `ToolRestriction` (packages/core/tools/src/index.ts:691-696: `allow` keeps only the named global tools visible, `deny` removes the named ones) applied through `childCtx.tools.restrict(...)` at packages/subagent/subagent/src/child-agent.ts:174. A deployment author cannot write a valid filter from the README alone, and README.md:15 already warns that the filter is not an authority ceiling.\n\nRequired: in the config table row (and in the cordis.yml example if the README has one) document the two keys, that each is a list of global tool names, what `allow` and `deny` do as `ToolRestriction` defines them (state the precedence the tools registry implements when both are present, read from packages/core/tools/src/index.ts), that a `toolFilter` naming neither key fails load with the message at index.ts:273, and that omitting the key means no restriction. English and Chinese together, then re-record with `pnpm run verify-translation-pairing --write packages/subagent/tool-subagent/README.md`.\n\nConstraints: documentation only; no code or schema change.",
+  "scope": [
+    "packages/subagent/tool-subagent/"
+  ],
+  "acceptance": [
+    { "id": "keys-documented", "run": "grep -q '`allow`' packages/subagent/tool-subagent/README.md && grep -q '`deny`' packages/subagent/tool-subagent/README.md" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/tool-subagent/ --coverage --coverage.include='packages/subagent/tool-subagent/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 1
+}

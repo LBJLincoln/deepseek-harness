@@ -1,0 +1,24 @@
+{
+  "id": "T-0001",
+  "title": "Prune the producerless 'clear' and 'compact' SessionStartSource variants",
+  "division": "harness-core",
+  "seat": "harness-core-agent-steward",
+  "kind": "chore",
+  "source": {
+    "path": "packages/core/agent/README.md",
+    "anchor": "`SessionStartSource` reserves `'clear'`/`'compact'` with no emitter yet"
+  },
+  "task": "Problem: `SessionStartSource` at packages/core/agent/src/runtime-types.ts:61 is `'startup' | 'resume' | 'clear' | 'compact'`, but only two variants have a producer: packages/core/agent-loop/src/index.ts:593 publishes `'startup'` and the resume path passes its source through packages/core/agent-loop/src/index.ts:632-640. No plugin emits `'clear'` or `'compact'` (grep for `'compact'` and `'clear'` across packages/*/*/src finds no `agent/session-start` producer) and no test constructs them. The README bullet at packages/core/agent/README.md:121 (mirrored at packages/core/agent/README.zh.md:121) justifies the reservation with a `TODO(compaction)` marker that exists nowhere in the tree, and the compaction seam that shipped under packages/compaction shadows regions inside one session and never restarts a session, so no producer is coming. Repository rule: producer-gated variants stay out until produced (the llm README's Known Limitations cites the archived prune-producerless-vocabulary-variants note for the same rule).\n\nRequired: narrow the type to `'startup' | 'resume'` and make its JSDoc name the two producers; delete the README bullet and its Chinese counterpart in the same change, then re-record the pair with `pnpm run verify-translation-pairing --write packages/core/agent/README.md`; run `pnpm run doc-sync` and regenerate only the catalogs it reports stale.\n\nConstraints: do not add a session event, do not edit packages/core/agent-loop, do not rename or widen other `SessionStartSource` consumers. This is a mechanical, local edit under the Agent Note exemption; do not add one.",
+  "scope": [
+    "packages/core/agent/"
+  ],
+  "acceptance": [
+    { "id": "variants-pruned", "run": "! grep -q \"'compact'\\|'clear'\" packages/core/agent/src/runtime-types.ts" },
+    { "id": "readme-marker-gone", "run": "! grep -q 'TODO(compaction)' packages/core/agent/README.md packages/core/agent/README.zh.md" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/core/agent/ packages/core/agent-loop/ packages/goal/goal-round-driver/tests/goal-round-driver.spec.ts packages/improvement/environment-runner/tests/environment-runner.spec.ts --coverage --coverage.include='packages/core/agent/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 1
+}

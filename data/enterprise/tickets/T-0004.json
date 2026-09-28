@@ -1,0 +1,22 @@
+{
+  "id": "T-0004",
+  "title": "Stop exporting DEFAULT_MAX_PARALLEL_TOOL_CALLS from the agent-loop package root",
+  "division": "harness-core",
+  "seat": "harness-core-agent-loop-steward",
+  "kind": "chore",
+  "source": {
+    "path": ".agents/notes/proposed/simplification/2026-07-04-prune-dead-core-spine-api.md",
+    "anchor": "Consumer package-root implementation helpers"
+  },
+  "task": "Problem: packages/core/agent-loop/src/index.ts:187 re-exports `DEFAULT_MAX_PARALLEL_TOOL_CALLS` (packages/core/agent-loop/src/constants.ts:6) at the package root. Its only consumer outside src is the package's own test (packages/core/agent-loop/tests/tool-calls.spec.ts:14 and :286). Production resolves the default through the Config schema (index.ts:251 and :301) and `resolveMaxParallelToolCalls` (index.ts:134), and the README documents the value as a literal (packages/core/agent-loop/README.md:40, 'default 10; 1 is serial'). The proposed prune note classifies test-only root exports as SDK surface without an owner.\n\nRequired: remove the root re-export on index.ts:187; keep constants.ts and every internal use; change tool-calls.spec.ts to assert the documented literal (`toBe(10)`) or to import `../src/constants.ts` (package-local test imports are the existing convention in this repository). No behavior change.\n\nConstraints: do not edit docs/architecture.md (nothing in the loop's behavior changes) and do not touch other exports. Mechanical, local edit under the Agent Note exemption.",
+  "scope": [
+    "packages/core/agent-loop/"
+  ],
+  "acceptance": [
+    { "id": "export-gone", "run": "! grep -q 'export { DEFAULT_MAX_PARALLEL_TOOL_CALLS }' packages/core/agent-loop/src/index.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/core/agent-loop/ packages/compaction/compaction-basic/tests/manual-compaction.spec.ts --coverage --coverage.include='packages/core/agent-loop/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

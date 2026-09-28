@@ -1,0 +1,22 @@
+{
+  "id": "T-0018",
+  "title": "Pin that a fork child's seed is a one-time snapshot of the parent",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-fork-in-process-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/subagent/subagent-fork-in-process/README.md",
+    "anchor": "**The seed is a one-time snapshot**"
+  },
+  "task": "Problem: the README states that the fork seed is a one-time snapshot: the child sees the parent's completed turns as of the fork and nothing the parent logs afterwards (packages/subagent/subagent-fork-in-process/README.md, Known Limitations, quoted in the source anchor). The provider spec pins only what the seed contains at fork time (packages/subagent/subagent-fork-in-process/tests/subagent-fork-in-process.spec.ts:91, :108 and :134); no test appends to the parent after the fork and asserts the child stays unaffected, so a regression toward live context sharing would pass every gate.\n\nRequired: add packages/subagent/subagent-fork-in-process/tests/seed-snapshot.spec.ts using the existing spec's harness: fork a child from a parent with completed turns, then, while the child is still running, complete another parent turn and append a parent user message; assert that the child's session events and the messages of the child's next model request (read from the scripted model's received request) contain none of the later parent events, while the parent's own log does. Assert through the child Session and the model request, never through prose.\n\nConstraints: no source change; keep the existing spec files untouched.",
+  "scope": [
+    "packages/subagent/subagent-fork-in-process/"
+  ],
+  "acceptance": [
+    { "id": "spec", "run": "test -f packages/subagent/subagent-fork-in-process/tests/seed-snapshot.spec.ts && pnpm exec vitest run packages/subagent/subagent-fork-in-process/tests/seed-snapshot.spec.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent-fork-in-process/ --coverage --coverage.include='packages/subagent/subagent-fork-in-process/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

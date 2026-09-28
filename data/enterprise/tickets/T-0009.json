@@ -1,0 +1,23 @@
+{
+  "id": "T-0009",
+  "title": "Trim the test-only white-box exports from the llm-claude-code package root",
+  "division": "harness-core",
+  "seat": "harness-core-llm-claude-code-steward",
+  "kind": "chore",
+  "source": {
+    "path": ".agents/notes/proposed/simplification/2026-07-04-prune-dead-core-spine-api.md",
+    "anchor": "Consumer package-root implementation helpers"
+  },
+  "task": "Problem: packages/llm/llm-claude-code/src/index.ts:44-95 re-exports implementation helpers at the package root, and the same file defines `UNKNOWN_SESSION_CODE` (packages/llm/llm-claude-code/src/index.ts:101) and `queryDirectory` (packages/llm/llm-claude-code/src/index.ts:120) as exports, whose only importers outside src are this package's own tests: `queryDirectory`, `disposeQuery`, `continuityKey`, `conversationDigest`, `planContinuity`, `ProductSessionTable`, `resumeRefusal`, `TAG_BASE`, `renderConversation`, `tagNamespace`, `answerChunks`, `deliversAnswer`, `claudeSpawnSpec`, `ManagedClaudeCodeProcess`, `sdkEnvironmentOverlay`, `CLAUDE_CODE_COMMAND`, `PERMISSION_MODE`, `CLAUDE_CODE_EFFORTS`, `SESSION_CONTINUITIES`, `MAX_TURNS`, `MISSING_EXECUTABLE_CODE`, `UNKNOWN_SESSION_CODE`, the `DEFAULT_*` constants and the `MALFORMED*` constants. No production module, example, app, or other package imports them and the README names none. The proposed prune note treats such test-only entry points as SDK surface without an owner.\n\nRequired: keep at the root only the plugin contract (`name`, `inject`, `Config`, `apply`), `ClaudeCodeAdapter` with its options and dependency types, the `types.ts` re-export, and every symbol a file outside this package imports (verify each candidate with `grep -rn` across packages, apps and examples before removing it). Point the tests at the owning modules (`../src/continuity.ts`, `../src/render.ts`, `../src/process.ts`, `../src/response.ts`, `../src/config.ts`; package-local test imports are the existing convention). Move `queryDirectory` and `UNKNOWN_SESSION_CODE` out of index.ts into the module that owns the query directory if a test still needs them. Run `pnpm run knip` and drop the `export` keyword where it reports an export used only in its own file. No behavior change.\n\nConstraints: do not change the README beyond deleting a mention if one exists; mechanical edit under the Agent Note exemption.",
+  "scope": [
+    "packages/llm/llm-claude-code/"
+  ],
+  "acceptance": [
+    { "id": "render-helpers-private", "run": "! grep -q 'renderConversation' packages/llm/llm-claude-code/src/index.ts" },
+    { "id": "index-defines-no-helpers", "run": "! grep -qE '^export (function|const) (queryDirectory|UNKNOWN_SESSION_CODE)\\b' packages/llm/llm-claude-code/src/index.ts" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/llm/llm-claude-code/ --coverage --coverage.include='packages/llm/llm-claude-code/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 3
+}

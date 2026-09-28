@@ -1,0 +1,24 @@
+{
+  "id": "T-0014",
+  "title": "Pin and document the PERSISTENCE_UNAVAILABLE refusal of continuable subagents",
+  "division": "harness-core",
+  "seat": "harness-core-subagent-steward",
+  "kind": "test",
+  "source": {
+    "path": "packages/subagent/subagent/src/continuation.ts",
+    "anchor": "Resolve the persistence service continuable children require, or fail loud."
+  },
+  "task": "Problem: continuable children require a session-persistence backend. `requirePersistence()` at packages/subagent/subagent/src/continuation.ts:1470-1478 throws `SubagentError` with code `PERSISTENCE_UNAVAILABLE` and is reached from `startContinuable` (continuation.ts:403-407) and from cold continuation (`coldResume`, continuation.ts:883-889). No test in the repository asserts that code: every continuation spec composes `dsh-session-persistence` (for example packages/subagent/subagent/tests/continuation.spec.ts:189), and the README's `startContinuable` row (packages/subagent/subagent/README.md:19) and continuable-Activation section (README.md:103) never name the failure. A deployment that mounts a continuable delegation tool without a backend therefore has no documented, pinned refusal.\n\nRequired: add packages/subagent/subagent/tests/persistence-unavailable.spec.ts that composes the service with a scripted provider but without `dsh-session-persistence` (reuse the fixtures of tests/service.spec.ts or tests/continuation.spec.ts), calls `startContinuable(...)`, and asserts rejection with a `SubagentError` whose `code` is `PERSISTENCE_UNAVAILABLE` and whose message names the backend to load, and that no child session was created and no `subagent/start` event was emitted; cover the cold-continuation entry the same way if the fixture can reach it. Document the code in the README next to `startContinuable`, English and Chinese together, then re-record with `pnpm run verify-translation-pairing --write packages/subagent/subagent/README.md`.\n\nConstraints: no source change beyond documentation; do not weaken the refusal into a warning. The coverage check runs the subagent packages whose tests own this package's src; until T-0020 merges, packages/subagent/subagent/tests/out-of-process.spec.ts:77 fails under uid 0 for a reason unrelated to this ticket, so run acceptance as a non-root user or after T-0020.",
+  "scope": [
+    "packages/subagent/subagent/"
+  ],
+  "acceptance": [
+    { "id": "spec", "run": "test -f packages/subagent/subagent/tests/persistence-unavailable.spec.ts && pnpm exec vitest run packages/subagent/subagent/tests/persistence-unavailable.spec.ts" },
+    { "id": "readme-code", "run": "grep -q 'PERSISTENCE_UNAVAILABLE' packages/subagent/subagent/README.md" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/subagent/subagent/ packages/subagent/subagent-fork-in-process/ packages/subagent/subagent-spawn-in-process/ packages/subagent/subagent-in-process-driver/ packages/subagent/subagent-codex/ packages/subagent/subagent-dsh-sdk/ packages/subagent/tool-subagent/ packages/subagent/tool-subagent-control/ packages/subagent/tool-subagent-report/ --coverage --coverage.include='packages/subagent/subagent/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 1
+}

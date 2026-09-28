@@ -1,0 +1,27 @@
+{
+  "id": "T-0008",
+  "title": "Reclassify the three shipped Claude Code route Agent Notes as implemented",
+  "division": "harness-core",
+  "seat": "harness-core-llm-claude-code-steward",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/notes/proposed/architecture/2026-09-08-claude-code-route-session-continuity.md",
+    "anchor": "## Acceptance criteria"
+  },
+  "task": "Problem: three Agent Notes about this route still live under .agents/notes/proposed/architecture/ with `Status: proposed` although what they propose ships. `2026-09-06-llm-claude-code.md` proposes the route itself: packages/llm/llm-claude-code exists, with the Loader-booted packages/llm/llm-claude-code/tests/loader-composition.e2e.ts and the opt-in tests/real-product.e2e.ts its acceptance names. `2026-09-07-claude-code-route-native-tools.md` proposes the in-process MCP server that offers the harness tools: `MCP_TOOL_PREFIX` is `mcp__dsh__` at packages/llm/llm-claude-code/src/tools.ts:22 and the server is mounted at packages/llm/llm-claude-code/src/adapter.ts:197. `2026-09-08-claude-code-route-session-continuity.md` proposes `sessionContinuity` and `resumableSessionLimit`: both are Config fields in packages/llm/llm-claude-code/src/config.ts (`DEFAULT_RESUMABLE_SESSION_LIMIT` at :58), documented at packages/llm/llm-claude-code/README.md:36 and :50 and tested in tests/continuity.spec.ts. The notes README lifecycle rule (.agents/notes/README.md, 'Lifecycle') places a shipped decision under implemented/, kept current with what shipped, and this package's README still links the continuity note as a proposal at packages/llm/llm-claude-code/README.md:126.\n\nRequired, per note: check every bullet of its '## Acceptance criteria' section against the tree; move the complete triplet (`.md`, `.zh.md`, `.i18n.yaml`) with `git mv` to .agents/notes/implemented/architecture/ keeping the filename; set line 3 to `Status: implemented` in both languages; rewrite future-tense proposal sentences minimally into present-tense facts where the shipped code differs (facts only, never the decision, per .agents/notes/implemented/AGENTS.md); fix relative links inside the moved notes (a link to a note that stays proposed, such as `2026-09-05-read-barrier.md`, becomes `../../proposed/architecture/...`) and links to the moved notes from other files (packages/llm/llm-claude-code/README.md:126 with its Chinese counterpart, plus whatever `grep -rn <filename> packages docs .agents` finds); re-record every touched pair with `pnpm run verify-translation-pairing --write <pair paths>`.\n\nConstraints: if one note's acceptance criteria are not all met, leave that note in place and name the failing bullet in your report; no code changes.",
+  "scope": [
+    ".agents/notes/proposed/architecture/",
+    ".agents/notes/implemented/architecture/",
+    "packages/llm/llm-claude-code/"
+  ],
+  "acceptance": [
+    { "id": "route-note-implemented", "run": "test -f .agents/notes/implemented/architecture/2026-09-06-llm-claude-code.md" },
+    { "id": "native-tools-note-implemented", "run": "test -f .agents/notes/implemented/architecture/2026-09-07-claude-code-route-native-tools.md" },
+    { "id": "continuity-note-implemented", "run": "test -f .agents/notes/implemented/architecture/2026-09-08-claude-code-route-session-continuity.md && ! test -e .agents/notes/proposed/architecture/2026-09-08-claude-code-route-session-continuity.md" },
+    { "id": "coverage", "run": "pnpm exec vitest run packages/llm/llm-claude-code/ --coverage --coverage.include='packages/llm/llm-claude-code/src/**/*.ts'" },
+    { "id": "typecheck", "run": "pnpm run typecheck" },
+    { "id": "doc-sync", "run": "pnpm run doc-sync" }
+  ],
+  "budget": { "maxTotalTokens": 8000000, "maxWallMs": 2700000 },
+  "priority": 1
+}
