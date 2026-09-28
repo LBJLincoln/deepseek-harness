@@ -9,10 +9,10 @@
 #                               <dir>/cycle-<UTC stamp>.log (default
 #                               /home/user/enterprise-cycles).
 # The environment is passed on to every cycle, ENTERPRISE_COMMIT_TRAILERS
-# included. A second scheduler exits 4 while one holds the lock. A cycle that
-# is still running at the next slot makes that slot's cycle exit 4 in its own
-# log; the scheduler waits for every cycle it starts, so that only happens
-# when a cycle was started by hand.
+# included. A second scheduler exits 4 while one holds the lock. At each slot
+# the scheduler first waits for any cycle still holding the cycle's lock (one
+# started by hand), then starts its own, so a long cycle delays the next one
+# instead of skipping it.
 set -u
 
 # The whole body is one function, parsed before it runs: the cycles pull the
@@ -48,6 +48,7 @@ main() {
     done
     echo "enterprise-scheduler: next cycle at $(date -u -d "@${slot}" +%Y-%m-%dT%H:%M:%SZ)"
     sleep $(( slot - now ))
+    flock "${TMPDIR:-/tmp}/enterprise-cycle.lock" true
     local stamp
     stamp=$(date -u +%Y%m%dT%H%M%SZ)
     bash scripts/enterprise-cycle.sh > "${logs}/cycle-${stamp}.log" 2>&1 < /dev/null
