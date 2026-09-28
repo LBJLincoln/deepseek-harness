@@ -1,8 +1,8 @@
 {
-  "asOf": "2026-09-28T19:26:34.932Z",
+  "asOf": "2026-09-28T20:06:11.397Z",
   "window": {
-    "since": "2026-09-27T19:26:34.932Z",
-    "until": "2026-09-28T19:26:34.932Z"
+    "since": "2026-09-27T20:06:11.397Z",
+    "until": "2026-09-28T20:06:11.397Z"
   },
   "counts": {
     "defined": 147,
@@ -341,6 +341,20 @@
         "division": "program-departments",
         "status": "queued",
         "title": "Fix ralph system-prompt guidance text to match README's quoted text"
+      },
+      {
+        "ticket": "T-0040",
+        "seat": "harness-core-subagent-codex-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Resolve cmd.exe and codex to absolute paths before the Codex provider spawns in the delegating workspace"
+      },
+      {
+        "ticket": "T-0041",
+        "seat": "harness-core-subagent-claude-code-steward",
+        "division": "harness-core",
+        "status": "queued",
+        "title": "Spawn the Claude Code batch shim through an absolute cmd.exe, not a bare name searched in the workspace"
       }
     ],
     "shipped": [
@@ -744,6 +758,22 @@
     },
     {
       "type": "function",
+      "at": "2026-09-28T17:47:04.167Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-lead",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/SAFETY-REPORT.md"
+      },
+      "seconds": 1389
+    },
+    {
+      "type": "function",
       "at": "2026-09-28T17:41:52.000Z",
       "shift": "2026-09-28T17-52Z",
       "seat": "judging-ci-static",
@@ -758,6 +788,102 @@
         "url": "https://github.com/LBJLincoln/deepseek-harness/actions/runs/36459598210/job/109054535468"
       },
       "seconds": 181
+    },
+    {
+      "type": "function",
+      "at": "2026-09-28T17:41:36.151Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-platform-integrator",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-platform.jsonl"
+      },
+      "seconds": 606
+    },
+    {
+      "type": "function",
+      "at": "2026-09-28T17:40:44.471Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-dependencies-integrator",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-dependencies.jsonl"
+      },
+      "seconds": 617
+    },
+    {
+      "type": "function",
+      "at": "2026-09-28T17:40:42.858Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-data-integrator",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-data.jsonl"
+      },
+      "seconds": 660
+    },
+    {
+      "type": "function",
+      "at": "2026-09-28T17:31:30.040Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-injection-integrator",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-injection.jsonl"
+      },
+      "seconds": 455
+    },
+    {
+      "type": "function",
+      "at": "2026-09-28T17:30:27.624Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-access-integrator",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-access.jsonl"
+      },
+      "seconds": 392
+    },
+    {
+      "type": "function",
+      "at": "2026-09-28T17:29:42.666Z",
+      "shift": "172354-77ec",
+      "seat": "code-safety-secrets-integrator",
+      "division": "code-safety",
+      "function": "review",
+      "target": {
+        "commit": "599da758095bd221b6747d5b5631592b8620efe4"
+      },
+      "outcome": "pass",
+      "evidence": {
+        "path": "data/code-safety/2026-09-28-dsh-self-review/sessions/program-cc53a3462031bfcbe3ab04fcbb150e586a2bd270ecbd03cd15eb333934f8405a-secrets.jsonl"
+      },
+      "seconds": 348
     },
     {
       "type": "function",
@@ -881,9 +1007,9 @@
     }
   ],
   "ledger": {
-    "lines": 32,
+    "lines": 39,
     "tickets": 2,
-    "functions": 30,
+    "functions": 37,
     "skipped": 0
   }
 }
