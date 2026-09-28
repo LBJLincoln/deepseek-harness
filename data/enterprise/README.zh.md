@@ -106,7 +106,7 @@
 
 ## 发布指挥台
 
-`pnpm run enterprise:publish`（[`scripts/enterprise-publish.ts`](../../scripts/enterprise-publish.ts)）从花名册、台账与工单队列重新生成指挥台的静态企业数据：`apps/command-deck/public/fixtures/roster.json`，即 `roster.json` 的逐字节副本；以及 `apps/command-deck/public/fixtures/enterprise.json`，即指挥台的台账标签页——`asOf`（花名册盖章时刻与最后一条台账行中较新者）、时间窗、按事业部的在岗与活跃席位、当天按状态分列的工单（queued 来自队列，其余来自每张工单在时间窗内的最新一行）、当天由新到旧的职能运行，以及最近十个已交付提交及其上记录的 CI 裁决（按提交前缀匹配）。两个文件都是其输入的纯函数，只在字节变化时重写；[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 <https://lbjlincoln.github.io/deepseek-harness/>，fixture 的变化正属于此。
+`pnpm run enterprise:publish`（[`scripts/enterprise-publish.ts`](../../scripts/enterprise-publish.ts)）从花名册、台账与工单队列重新生成指挥台的静态企业数据：`apps/command-deck/public/fixtures/roster.json`，即 `roster.json` 的逐字节副本；以及 `apps/command-deck/public/fixtures/enterprise.json`，即指挥台的台账标签页——`asOf`（花名册盖章时刻与最后一条台账行中较新者）、时间窗、按事业部的在岗与活跃席位、当天按状态分列的工单（queued 来自队列，其余来自每张工单在时间窗内的最新一行）、当天由新到旧的职能运行，以及最近十个已交付提交及其上记录的 CI 裁决（按提交前缀匹配）。它还写出 `apps/command-deck/public/fixtures/enterprise-day.json`，即指挥台的 24 hours 标签页：花名册时间窗（截至其 `generatedAt` 的 24 小时）上的[报告](#the-report)，它像报告本身一样读取周期记录、HEAD 的 git 历史与 Branch CI（包脚本设置了 `NODE_USE_ENV_PROXY=1`）；周期在写出自己的记录之前发布，因此这份报告把正在发布的周期列为没有记录的周期。每个文件都是其输入的纯函数（第三个文件的输入还包括 GitHub 的回答），只在字节变化时重写；[`deck-pages.yml`](../../.github/workflows/deck-pages.yml) 在指挥台分支上每一次触及 `apps/command-deck/**` 的推送时重新发布 <https://lbjlincoln.github.io/deepseek-harness/>，fixture 的变化正属于此。
 
 ## 重新生成
 

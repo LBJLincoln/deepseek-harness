@@ -193,6 +193,109 @@ export interface EnterpriseReport {
   ledger: { lines: number; tickets: number; functions: number; skipped: number }
 }
 
+/** One Branch CI run as the 24-hour report cites it. */
+export interface DayCiRun {
+  id: number
+  headSha: string
+  status: string
+  conclusion: string | null
+  url: string
+  createdAt: string
+}
+
+/**
+ * A shipped commit's Branch CI answer: the runs whose head is that exact
+ * commit, else the first completed run created after it whose head contains
+ * it, else no run, or unknown with the reason.
+ */
+export type DayCiAnswer =
+  | { basis: 'exact'; runs: DayCiRun[] }
+  | { basis: 'later'; run: DayCiRun }
+  | { basis: 'none' }
+  | { basis: 'unknown'; reason: string }
+
+/** One cycle that started inside the report's window. */
+export interface DayCycle {
+  cycle: string
+  startedAt: string
+  /** `record` when its cycle record was committed, `git` when only commits naming it were. */
+  source: 'record' | 'git'
+  outcome: 'clean' | 'failed' | 'unknown'
+  /** The commits whose subjects name the cycle, oldest first. */
+  commits: { commit: string; carries: string }[]
+  record?: {
+    endedAt: string
+    firstFailure: { step: string; exit: number } | null
+    failedSteps: string[]
+    shifts: string[]
+    tickets: Record<'shipped' | 'rejected' | 'halted', number>
+    functions: Record<FunctionOutcome, number>
+    /** Whether the next cycle's record found this record on the remote branch. */
+    recordOnRemote: boolean | 'unknown'
+  }
+}
+
+/** One distinct ticket shipped inside the window. */
+export interface DayShippedTicket {
+  ticket: string
+  division: string
+  seat: string
+  commit: string
+  at: string
+  shift: string
+}
+
+/** One shipped commit with its Branch CI answer and the answer in one phrase. */
+export interface DayShippedCommit {
+  commit: string
+  tickets: string[]
+  divisions: string[]
+  ci: DayCiAnswer
+  /** A run's conclusion, `in progress`, `no run` or `unknown`. */
+  verdict: string
+}
+
+/**
+ * `fixtures/enterprise-day.json`: the report `pnpm run enterprise:report`
+ * writes, over the 24 hours ending at the roster's stamp, published by
+ * `pnpm run enterprise:publish` with the rest of the enterprise data. The deck
+ * reads it from the committed fixtures in live and replay alike.
+ */
+export interface EnterpriseDay {
+  window: ActiveWindow
+  head: { commit: string; committedAt: string | null }
+  cycles: {
+    count: number
+    recorded: number
+    gitOnly: number
+    clean: number
+    failed: number
+    failedByStep: Record<string, number>
+    list: DayCycle[]
+  }
+  tickets: {
+    lines: number
+    byStatus: Record<'shipped' | 'rejected' | 'halted', number>
+    byDivision: ({ division: string; lines: number } & Record<'shipped' | 'rejected' | 'halted', number>)[]
+    shipped: DayShippedTicket[]
+  }
+  commits: DayShippedCommit[]
+  seats: {
+    at: string
+    defined: number
+    occupied: number
+    active: number
+    byDivision: { id: string; name: string; defined: number; occupied: number; active: number }[]
+  }
+  functions: { lines: number; byDivision: ({ division: string } & Record<FunctionOutcome, number>)[] }
+  effort: {
+    tokens: { total: number; lines: number; withoutCount: number }
+    seconds: { tickets: number; functions: number; cycles: number }
+  }
+  /** Every fact the report could not establish. */
+  unknowns: string[]
+}
+
 /** One entry of `GET /runs`. */
 export interface Run {
   id: string

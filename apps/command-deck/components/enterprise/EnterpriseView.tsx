@@ -9,6 +9,7 @@ import { useDeck } from '@/deck/store'
 import { EventFeed } from '@/components/shell/EventFeed'
 import { ReplayNotice } from '@/components/shell/ReplayNotice'
 import { deliverables, isOccupied, ledgerLines, NEVER_RUN, routelessSessions, routeRows, UNATTRIBUTED_REASON_TEXT } from './evidence.ts'
+import { DayPanel } from './DayPanel.tsx'
 import { LedgerPanel } from './LedgerPanel.tsx'
 import { RecordPanel } from './RecordPanel.tsx'
 
@@ -20,7 +21,7 @@ const EnterpriseStage = dynamic(
 )
 
 /** Which tab the panel shows while no seat is selected. */
-type Tab = 'enterprise' | 'ledger' | 'record'
+type Tab = 'enterprise' | 'day' | 'ledger' | 'record'
 
 /**
  * The detail panel for one selected seat: its definition, and what the
@@ -253,7 +254,7 @@ function OverviewPanel(): ReactNode {
 
 /**
  * The panel shown when nothing is selected: the headline the roster's evidence
- * supports, then the Enterprise and Record tabs.
+ * supports, then the Enterprise, 24 hours, Ledger and Record tabs.
  * @returns The panel.
  */
 function UnselectedPanel(): ReactNode {
@@ -276,6 +277,7 @@ function UnselectedPanel(): ReactNode {
 
       <div className="tabs">
         <button type="button" data-active={tab === 'enterprise'} onClick={() => setTab('enterprise')}>Enterprise</button>
+        <button type="button" data-active={tab === 'day'} onClick={() => setTab('day')}>24 hours</button>
         <button type="button" data-active={tab === 'ledger'} onClick={() => setTab('ledger')}>Ledger</button>
         <button type="button" data-active={tab === 'record'} onClick={() => setTab('record')}>Record</button>
       </div>
@@ -283,7 +285,7 @@ function UnselectedPanel(): ReactNode {
       {tab === 'enterprise' ? <OverviewPanel /> : (
         <div className="panel__body">
           <ReplayNotice />
-          {tab === 'ledger' ? <LedgerPanel /> : <RecordPanel />}
+          {tab === 'day' ? <DayPanel /> : tab === 'ledger' ? <LedgerPanel /> : <RecordPanel />}
         </div>
       )}
     </>

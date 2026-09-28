@@ -6,12 +6,15 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { LEDGER_PATH, type FunctionLine, type LedgerLine, type TicketLine } from './enterprise-ledger.ts'
 import {
   buildEnterpriseReport,
+  DAY_FIXTURE,
   ENTERPRISE_FIXTURE,
   publishDeckData,
   ROSTER_FIXTURE,
   SHIPPED_LIMIT,
   type EnterpriseReport,
+  type PublishSources,
 } from './enterprise-publish.ts'
+import type { EnterpriseWindowReport } from './enterprise-report.ts'
 import { buildRoster, ROSTER_PATH, serializeRoster, type Roster } from './enterprise-roster.ts'
 import { TICKETS_DIR } from './enterprise-tickets.ts'
 
@@ -158,8 +161,14 @@ describe('buildEnterpriseReport', () => {
   })
 })
 
+/** A checkout whose history names no cycle and lacks the shipped commit, and a Branch CI with no run on it. */
+const SOURCES: PublishSources = {
+  repository: { head: () => 'f'.repeat(40), cycleCommits: () => [], commitTime: () => undefined, contains: () => undefined },
+  github: { json: async () => ({ workflow_runs: [] }), text: async () => '' },
+}
+
 describe('publishDeckData', () => {
-  it('writes the roster fixture as a byte copy and the report, and rewrites neither on an unchanged input', () => {
+  it('writes the roster fixture as a byte copy, the ledger report and the 24 hours report, and rewrites none on an unchanged input', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'enterprise-publish-'))
     dirs.push(dir)
     mkdirSync(join(dir, 'data/enterprise'), { recursive: true })
@@ -168,20 +177,26 @@ describe('publishDeckData', () => {
     writeFileSync(join(dir, LEDGER_PATH), LEDGER.map(line => `${JSON.stringify(line)}\n`).join(''))
     mkdirSync(join(dir, TICKETS_DIR), { recursive: true })
     for (const entry of QUEUE) writeFileSync(join(dir, TICKETS_DIR, `${entry.id}.json`), JSON.stringify(entry))
-    const first = publishDeckData(dir)
-    expect(first.changed).toEqual([ROSTER_FIXTURE, ENTERPRISE_FIXTURE])
+    const first = await publishDeckData(dir, SOURCES)
+    expect(first.changed).toEqual([ROSTER_FIXTURE, ENTERPRISE_FIXTURE, DAY_FIXTURE])
     expect(readFileSync(join(dir, ROSTER_FIXTURE), 'utf8')).toBe(rosterContent)
     const written = JSON.parse(readFileSync(join(dir, ENTERPRISE_FIXTURE), 'utf8')) as EnterpriseReport
     expect(written).toEqual(first.report)
     expect(written.tickets.queued.map(entry => entry.ticket)).toEqual(['T-0005'])
-    const second = publishDeckData(dir)
+    const day = JSON.parse(readFileSync(join(dir, DAY_FIXTURE), 'utf8')) as EnterpriseWindowReport
+    expect(day).toEqual(first.day)
+    expect(day.window).toEqual(roster.activeWindow)
+    expect(day.seats).toMatchObject({ at: roster.activeWindow.until, occupied: roster.counts.occupied, active: roster.counts.active })
+    expect(day.tickets.shipped.map(entry => [entry.ticket, entry.commit])).toEqual([['T-0001', COMMIT]])
+    expect(day.commits[0]?.verdict).toBe('unknown')
+    const second = await publishDeckData(dir, SOURCES)
     expect(second.changed).toEqual([])
     expect(second.report).toEqual(first.report)
   })
 
-  it('refuses to publish without a generated roster', () => {
+  it('refuses to publish without a generated roster', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'enterprise-publish-'))
     dirs.push(dir)
-    expect(() => publishDeckData(dir)).toThrow(/run pnpm run roster first/)
+    await expect(publishDeckData(dir, SOURCES)).rejects.toThrow(/run pnpm run roster first/)
   })
 })

@@ -1,14 +1,17 @@
 /**
  * Regenerates the Command Deck's static enterprise data from the generated
  * roster and the ledger (`pnpm run enterprise:publish`): the roster fixture the
- * deck's Enterprise view draws, and `enterprise.json`, the view's ledger tab —
+ * deck's Enterprise view draws; `enterprise.json`, the view's ledger tab —
  * seats occupied and active per division, the tickets of the enterprise's
  * current day by status, the function runs of that day, and the latest shipped
- * commits with the CI verdicts the judges recorded on them. Both files are a
- * pure function of `data/enterprise/roster.json`, `data/enterprise/ledger.jsonl`
- * and the ticket queue, so a second run over the same inputs writes the same
- * bytes; `deck-pages.yml` republishes the Pages site when they change on the
- * deck's branch.
+ * commits with the CI verdicts the judges recorded on them; and
+ * `enterprise-day.json`, the view's 24 hours tab — the report
+ * `scripts/enterprise-report.ts` builds over the roster's window. The first
+ * two files are a pure function of `data/enterprise/roster.json`,
+ * `data/enterprise/ledger.jsonl` and the ticket queue; the third adds the
+ * cycle records, HEAD's git history and GitHub's Branch CI answers. A second
+ * run over the same inputs writes the same bytes, and `deck-pages.yml`
+ * republishes the Pages site when they change on the deck's branch.
  *
  * @module enterprise-publish
  */
@@ -17,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { githubReader, type GitHubReader } from './enterprise-functions.ts'
 import {
   LEDGER_PATH,
   readLedger,
@@ -29,6 +33,7 @@ import {
   type TicketLine,
   type TicketStatus,
 } from './enterprise-ledger.ts'
+import { enterpriseReport, gitRepository, type EnterpriseWindowReport, type ReportRepository } from './enterprise-report.ts'
 import { ROSTER_PATH, type Roster } from './enterprise-roster.ts'
 import { loadTickets, type LoadedTicket } from './enterprise-tickets.ts'
 
@@ -40,6 +45,15 @@ export const ROSTER_FIXTURE = `${DECK_FIXTURES}/roster.json`
 
 /** The enterprise fixture the deck's ledger tab reads. */
 export const ENTERPRISE_FIXTURE = `${DECK_FIXTURES}/enterprise.json`
+
+/** The fixture the deck's 24 hours tab reads: the enterprise report over the roster's window. */
+export const DAY_FIXTURE = `${DECK_FIXTURES}/enterprise-day.json`
+
+/** What {@link publishDeckData} reads beyond the checkout's files: the git history and Branch CI. */
+export interface PublishSources {
+  repository: ReportRepository
+  github: GitHubReader
+}
 
 /** How many shipped commits the report lists, newest first. */
 export const SHIPPED_LIMIT = 10
@@ -235,32 +249,41 @@ function writeIfChanged(file: string, content: string): boolean {
 }
 
 /**
- * Regenerate both deck fixtures under `root`.
+ * Regenerate the three deck fixtures under `root`. The 24 hours report covers
+ * the roster's own window, so the roster is the generator's output at that
+ * window's end and supplies its seats.
  * @param root - repository root.
- * @returns the report written and the fixtures whose bytes changed, repository-relative.
+ * @param sources - the git history and the Branch CI reader the 24 hours report reads.
+ * @returns the ledger report and the 24 hours report written, and the fixtures whose bytes changed, repository-relative.
  * @throws when the generated roster is missing, because the deck must never show a roster the ledger was not counted into.
  */
-export function publishDeckData(root: string): { report: EnterpriseReport; changed: string[] } {
+export async function publishDeckData(
+  root: string,
+  sources: PublishSources,
+): Promise<{ report: EnterpriseReport; day: EnterpriseWindowReport; changed: string[] }> {
   const rosterFile = join(root, ROSTER_PATH)
   if (!existsSync(rosterFile)) throw new Error(`enterprise-publish: ${ROSTER_PATH} is missing; run pnpm run roster first`)
   const rosterContent = readFileSync(rosterFile, 'utf8')
   const roster = JSON.parse(rosterContent) as Roster
   const ledger = readLedger(join(root, LEDGER_PATH))
   const report = buildEnterpriseReport(roster, ledger, loadTickets(root))
+  const day = await enterpriseReport({ root, ...sources, rosterAt: () => roster }, roster.activeWindow)
   const changed: string[] = []
   if (writeIfChanged(join(root, ROSTER_FIXTURE), rosterContent)) changed.push(ROSTER_FIXTURE)
   if (writeIfChanged(join(root, ENTERPRISE_FIXTURE), `${JSON.stringify(report, null, 2)}\n`)) changed.push(ENTERPRISE_FIXTURE)
-  return { report, changed }
+  if (writeIfChanged(join(root, DAY_FIXTURE), `${JSON.stringify(day, null, 2)}\n`)) changed.push(DAY_FIXTURE)
+  return { report, day, changed }
 }
 
 const isMain = process.argv[1] !== undefined && import.meta.url === `file://${resolve(process.argv[1])}`
 if (isMain) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-  const { report, changed } = publishDeckData(root)
+  const { report, day, changed } = await publishDeckData(root, { repository: gitRepository(root), github: githubReader() })
   const tickets = Object.entries(report.tickets).map(([status, list]) => `${list.length} ${status}`).join(', ')
   console.log([
-    `enterprise-publish: ${changed.length === 0 ? 'kept' : `wrote ${changed.join(' and ')}`};`,
+    `enterprise-publish: ${changed.length === 0 ? 'kept' : `wrote ${changed.join(', ')}`};`,
     `as of ${report.asOf}: ${report.counts.occupied} of ${report.counts.defined} seats occupied, ${report.counts.active} active since ${report.window.since};`,
-    `tickets ${tickets}; ${report.functions.length} function runs in the window; ${report.shipped.length} shipped commits listed`,
+    `tickets ${tickets}; ${report.functions.length} function runs in the window; ${report.shipped.length} shipped commits listed;`,
+    `24 hours: ${day.cycles.count} cycles, ${day.tickets.shipped.length} tickets shipped, ${day.unknowns.length} unknowns`,
   ].join(' '))
 }

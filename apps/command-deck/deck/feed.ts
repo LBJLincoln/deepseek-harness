@@ -9,7 +9,7 @@
  * export.
  */
 
-import type { Comparison, EnterpriseReport, ProgramRecord, Roster, Run, SafetyReview } from './contract.ts'
+import type { Comparison, EnterpriseDay, EnterpriseReport, ProgramRecord, Roster, Run, SafetyReview } from './contract.ts'
 
 /** Whether the deck is reading a live feed or the committed fixtures. */
 type FeedMode = 'live' | 'replay'
@@ -192,6 +192,23 @@ export async function getEnterprise(): Promise<EnterpriseReport | undefined> {
     return await response.json() as EnterpriseReport
   } catch {
     // No report bundled, or the fetch failed: the ledger tab says so.
+    return undefined
+  }
+}
+
+/**
+ * The published 24 hours report (`fixtures/enterprise-day.json`), or
+ * `undefined` when none is bundled. Like the enterprise report it is a
+ * published record, so it is always read from the committed fixtures.
+ * @returns The report, or `undefined` when the deck was built without one.
+ */
+export async function getEnterpriseDay(): Promise<EnterpriseDay | undefined> {
+  try {
+    const response = await fetch(`${FIXTURE_BASE}/enterprise-day.json`, { cache: 'no-store' })
+    if (!response.ok) return undefined
+    return await response.json() as EnterpriseDay
+  } catch {
+    // No report bundled, or the fetch failed: the 24 hours tab says so.
     return undefined
   }
 }
