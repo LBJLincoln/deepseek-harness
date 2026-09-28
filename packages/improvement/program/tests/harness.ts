@@ -194,6 +194,8 @@ export interface ProgramHarness {
   readonly sessions: string
   /** Every command line the scripted shell served, in order. */
   readonly commands: CommandLog
+  /** The timeout each served command was resolved with, index for index with {@link ProgramHarness.commands}. */
+  readonly timeouts: (number | undefined)[]
   /** Every delegated start the stubbed seam served, in order. */
   readonly starts: StubbedStart[]
   /** Every per-session denial a composed read barrier registered, in order. */
@@ -261,6 +263,7 @@ export async function programHarness(
   const root = options.root ?? mkdtempSync(join(tmpdir(), 'program-root-'))
   const sessions = options.sessions ?? mkdtempSync(join(tmpdir(), 'program-sessions-'))
   const commands: CommandLog = []
+  const timeouts: (number | undefined)[] = []
   const starts: StubbedStart[] = []
   const denials: StubbedDenial[] = []
   const prompts: string[] = []
@@ -278,6 +281,7 @@ export async function programHarness(
     root,
     sessions,
     commands,
+    timeouts,
     starts,
     denials,
     prompts,
@@ -345,6 +349,7 @@ export async function programHarness(
     resolve: (request: ShellExecRequest) => request as ShellExecSpec,
     run: async (spec: ShellExecSpec) => {
       commands.push(spec.command)
+      timeouts.push(spec.timeoutMs)
       const scripted = await (options.script ?? ((): ScriptedRun => ({})))(spec.command, spec.workdir ?? root)
       // The service reuses a worktree directory that is already there, so the
       // scripted `worktree add` has to leave one behind.

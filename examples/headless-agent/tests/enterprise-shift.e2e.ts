@@ -9,12 +9,15 @@
  * department decides, only approved departments are assembled and recertified,
  * the push is a fast-forward of the remote or a rebase onto its moved tip, and
  * the ledger lines and the record travel with the shipped work — and nothing
- * about what a model can build. The overlay under the fixture's `overlays/` is
- * the same shift on the operator's Claude Code route.
+ * about what a model can build. Every clone carries a pre-push hook that
+ * refuses every push, as the repository's own hook refuses a push from a clone
+ * whose root is not installed, and every shift names a heavy lock its heavy
+ * acceptance runs take. The overlay under the fixture's `overlays/` is the same
+ * shift on the operator's Claude Code route.
  */
 
 import { execFileSync, spawnSync } from 'node:child_process'
-import { cpSync } from 'node:fs'
+import { chmodSync, cpSync, mkdirSync, writeFileSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -81,10 +84,28 @@ async function seedRemote(): Promise<{ remote: string; base: string }> {
   return { remote, base: git(work, 'rev-parse', 'HEAD') }
 }
 
-/** Run one shift over a remote and read the result line back. */
-async function runShift(remote: string, env: Record<string, string>, expectedExitCode = 0): Promise<ShiftResult> {
+/** What a pushing clone's pre-push hook prints before it refuses the push. */
+const HOOK_REFUSAL = 'the seeded pre-push hook refuses every push'
+
+/**
+ * A git template directory whose `pre-push` hook refuses every push. The
+ * shift's clone is created from it, so the hook sits in the clone's shared
+ * hooks directory the way the offline install puts the repository's own there.
+ */
+async function refusingHooks(): Promise<string> {
+  const template = await mkdtemp(join(tmpdir(), 'enterprise-template-'))
+  roots.push(template)
+  mkdirSync(join(template, 'hooks'))
+  writeFileSync(join(template, 'hooks', 'pre-push'), `#!/bin/sh\necho '${HOOK_REFUSAL}' >&2\nexit 1\n`)
+  chmodSync(join(template, 'hooks', 'pre-push'), 0o755)
+  return template
+}
+
+/** Run one shift over a remote and read the result line back, with the refusing hook and a heavy lock of its own. */
+async function runShift(remote: string, env: Record<string, string>, expectedExitCode = 0): Promise<ShiftResult & { heavyLock: string }> {
   const scratchRoot = await mkdtemp(join(tmpdir(), 'enterprise-scratch-'))
   roots.push(scratchRoot)
+  const heavyLock = join(scratchRoot, 'heavy.lock')
   const { stdout, stderr } = await runLoaderSmoke({
     label: 'enterprise-shift',
     tempDirPrefix: 'enterprise-shift-e2e-',
@@ -103,13 +124,15 @@ async function runShift(remote: string, env: Record<string, string>, expectedExi
       DSH_ENTERPRISE_QUEUE_POLICY: 'open',
       // The clone holds the department branches the assertions compare against.
       DSH_ENTERPRISE_KEEP: '1',
+      GIT_TEMPLATE_DIR: await refusingHooks(),
+      ENTERPRISE_HEAVY_LOCK: heavyLock,
       ...env,
     },
   })
   expect(stderr).toBe('')
   const observed = JSON.parse(stdout.trimEnd().split('\n').at(-1) ?? '') as ShiftResult
   expect(observed.type).toBe('result')
-  return observed
+  return { ...observed, heavyLock }
 }
 
 /** The commits of the remote's `main`, newest first, each with its full message. */
@@ -147,6 +170,7 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(shipped.department.outcome).toBe('certified')
     expect(shipped.checks).toEqual([
       { id: 'greets', ok: true },
+      { id: 'coverage', ok: true },
       { id: 'engine-committed', ok: true },
       { id: 'engine-scope', ok: true },
       { id: 'engine-whitespace', ok: true },
@@ -172,6 +196,12 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     expect(outside.checks.find(check => check.id === 'counts')?.ok).toBe(true)
     expect(outside.checks.find(check => check.id === 'engine-scope')?.ok).toBe(false)
     expect(outside.shipped).toBeNull()
+
+    // The clone's pre-push hook refuses a push that runs it; the shift's own
+    // push skipped it and reached the remote in its first round.
+    const probe = spawnSync('git', ['push', remote, 'HEAD:refs/heads/hook-probe'], { cwd: observed.repo, encoding: 'utf8' })
+    expect(probe.status).not.toBe(0)
+    expect(probe.stderr).toContain(HOOK_REFUSAL)
 
     // The remote's main is the seed, the shipped ticket, then the shift's own
     // commit with the ledger and the record; the ticket commit names the
@@ -219,6 +249,18 @@ describe('an enterprise shift through a real cordis.yml over a seeded remote', (
     const manifest = JSON.parse(git(remote, 'show', `main:${observed.record}/manifest.json`)) as { files: { path: string }[]; base: string }
     expect(manifest.base).toBe(base)
     expect(manifest.files.map(file => file.path)).toEqual(expect.arrayContaining(['result.json', `sessions/${observed.programId}.jsonl`]))
+
+    // The heavy acceptance command ran under the shift's heavy lock — the
+    // seeded check passes only while the lock is held — and the light one ran
+    // as written; the objective named the lock and the heavy fragments.
+    const departmentLog = git(remote, 'show', `main:${observed.record}/sessions/${shipped.department.sessionId ?? ''}.jsonl`)
+      .split('\n').filter(entry => entry !== '').map(entry => JSON.parse(entry) as { type: string; data: Record<string, unknown> })
+    const standard = departmentLog.find(event => event.type === 'verification/standard')?.data['standard'] as { checks: { id: string; run: string }[] } | undefined
+    expect(standard?.checks.slice(0, 2)).toEqual([
+      { id: 'greets', outcome: 'acceptance greets of T-0001 exits 0', run: 'node tools/greet.mjs | grep -qx hello' },
+      { id: 'coverage', outcome: 'acceptance coverage of T-0001 exits 0', run: `flock '${observed.heavyLock}' bash -c 'sh checks/coverage.sh --coverage'` },
+    ])
+    expect(JSON.stringify(departmentLog.find(event => event.type === 'goal/change')?.data)).toContain(`flock ${observed.heavyLock} <command>`)
 
     // The reviewer saw no tool, called none, and read the diff, the commit
     // messages and the checks from its own three messages; its session names

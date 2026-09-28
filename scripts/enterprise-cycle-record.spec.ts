@@ -271,9 +271,10 @@ describe('writeCycleRecord', () => {
 const hasFlock = process.platform === 'linux' && spawnSync('flock', ['--version']).status === 0
 
 /**
- * A stand-in for pnpm: the intake and roster do nothing, the shift commits and
- * pushes one ticket line, the functions append one function line, the roster
- * exits with `ROSTER_EXIT`, and the cycle record runs the real script.
+ * A stand-in for pnpm: the intake and roster do nothing, the shift records the
+ * heavy lock it was handed and commits and pushes one ticket line past the
+ * hooks as the real shift does, the functions append one function line, the
+ * roster exits with `ROSTER_EXIT`, and the cycle record runs the real script.
  */
 const FAKE_PNPM = `#!/bin/sh
 script=$3
@@ -282,8 +283,9 @@ shift 3
 case "$script" in
   enterprise:cycle-record) exec "$TSX" scripts/enterprise-cycle-record.ts "$@" ;;
   enterprise)
+    printf '%s\\n' "\${ENTERPRISE_HEAVY_LOCK:-unset}" > "$TMPDIR/shift-heavy-lock"
     printf '%s\\n' "$TICKET_LINE" >> data/enterprise/ledger.jsonl
-    git -c user.name=t -c user.email=t@example.com commit -q -am shift && git push -q origin "HEAD:$ENTERPRISE_BRANCH" ;;
+    git -c user.name=t -c user.email=t@example.com commit -q --no-verify -am shift && git push -q --no-verify origin "HEAD:$ENTERPRISE_BRANCH" ;;
   enterprise:functions) printf '%s\\n' "$FUNCTION_LINE" >> data/enterprise/ledger.jsonl ;;
   roster) exit "$ROSTER_EXIT" ;;
 esac
@@ -291,23 +293,29 @@ exit 0
 `
 
 describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
-  it('commits a record of every step in its final commit, and the next cycle finds it on the remote', { timeout: 60_000 }, async () => {
+  it('commits a record of every step in its final commit past a refusing pre-push hook, and the next cycle finds it on the remote', { timeout: 60_000 }, async () => {
     const { origin, work } = checkout({
       'package.json': '{ "type": "module" }\n',
       'apps/command-deck/public/fixtures/.keep': '',
       'scripts/enterprise-cycle.sh': readFileSync(join(repoRoot, 'scripts/enterprise-cycle.sh'), 'utf8'),
     })
     for (const file of ['enterprise-cycle-record.ts', 'enterprise-ledger.ts']) copyFileSync(join(repoRoot, 'scripts', file), join(work, 'scripts', file))
-    git(work, 'config', 'core.hooksPath', '/dev/null')
     git(work, 'config', 'commit.gpgsign', 'false')
     git(work, 'config', 'push.negotiate', 'false')
     git(work, 'add', '-A')
     git(work, 'commit', '-q', '-m', 'the record scripts')
     git(work, 'push', '-q', 'origin', 'HEAD:cycle-test')
+    // The repository's pre-push hook, which a push that runs it cannot pass;
+    // every push of the cycle's own skips it.
+    const hooks = tempDir('cycle-hooks-')
+    writeFileSync(join(hooks, 'pre-push'), '#!/bin/sh\necho "the pre-push hook refuses" >&2\nexit 1\n')
+    chmodSync(join(hooks, 'pre-push'), 0o755)
+    git(work, 'config', 'core.hooksPath', hooks)
+    expect(spawnSync('git', ['push', '-q', 'origin', 'HEAD:hook-probe'], { cwd: work, encoding: 'utf8' }).stderr).toContain('the pre-push hook refuses')
     const bin = tempDir('cycle-bin-')
     writeFileSync(join(bin, 'pnpm'), FAKE_PNPM)
     chmodSync(join(bin, 'pnpm'), 0o755)
-    const { ENTERPRISE_COMMIT_TRAILERS: _trailers, ...parent } = process.env
+    const { ENTERPRISE_COMMIT_TRAILERS: _trailers, ENTERPRISE_HEAVY_LOCK: _heavyLock, ...parent } = process.env
     const env = {
       ...parent,
       PATH: `${bin}:${process.env.PATH ?? ''}`,
@@ -331,6 +339,7 @@ describe.skipIf(!hasFlock)('enterprise-cycle.sh', () => {
     expect(git(origin, 'rev-parse', 'cycle-test^')).toBe(record.commits.end)
     expect(git(origin, 'log', '-1', '--format=%s', 'cycle-test')).toBe(`chore(enterprise): ${record.cycle} functions, roster and deck`)
     expect(existsSync(join(env.TMPDIR, `enterprise-${record.cycle}.steps`))).toBe(false)
+    expect(readFileSync(join(env.TMPDIR, 'shift-heavy-lock'), 'utf8')).toBe('/tmp/dsh-heavy.lock\n')
 
     await new Promise(resolveWait => setTimeout(resolveWait, 1100))
     expect(cycle(0)).toBe(0)

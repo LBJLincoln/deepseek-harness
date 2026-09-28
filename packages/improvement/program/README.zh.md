@@ -16,6 +16,7 @@
     maxGoalRounds: 8
     branchPrefix: program
     evidenceMaxChars: 2000
+    checkTimeoutMs: 600000
 ```
 
 | 字段 | 含义 |
@@ -26,6 +27,7 @@
 | `maxGoalRounds`（必填） | 创建每个部门目标与整合目标时所用的轮次上限，也是本服务在把某部门记为 `failed` 之前所驱动的验证尝试次数。 |
 | `branchPrefix`（必填） | 每个 worktree 的分支命名空间：`<branchPrefix>/<programId>/<key>`。为小写短横线格式的 git ref 段。 |
 | `evidenceMaxChars`（必填） | 每条已记录检查证据与每条指令细节的上限。请保持在验证域 `maxTextChars` 之内，超长文本会被它拒绝。 |
+| `checkTimeoutMs`（可选） | 部门或整合标准运行的每条检查与门禁命令的超时，由所组合 shell 执行器自身的上限封顶（`dsh-bash-local` 的 `maxTimeoutMs`）；缺省时使用执行器的默认超时。本服务自己的 `git` 命令始终使用执行器默认值。 |
 
 该服务需要 `agents`、`agentDefaultModel`、`agentPresets`、`completionStandards`、`goals`、`sessions`、`sessionPersistence` 与 `shell`；当组合了 `readBarrier` 时，它为每个成员会话预留读屏障的运行目录，并对整合会话拒绝该程序的工作树根；当程序委派其部门时，它读取 `subagents`。`verify-village-composition` 把组合本包的配置算作区（district）配置，因此该配置还必须带有设了上限的预算策略、一个会话持久化后端和检查点策略。
 

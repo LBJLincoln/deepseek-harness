@@ -235,25 +235,66 @@ export function documentationCheck(policy: QueuePolicy, base: string, id: CheckI
   }]
 }
 
+/** Quote one word for bash: single quotes, each embedded single quote closed, escaped, and reopened. */
+function shellWord(word: string): string {
+  return `'${word.replaceAll("'", String.raw`'\''`)}'`
+}
+
+/**
+ * One acceptance command as the engine runs it. A command the queue policy
+ * marks heavy runs under util-linux `flock` on the shift's heavy lock when the
+ * shift names one — it waits for the lock, holds it while it runs, and releases
+ * it when it exits or is killed — so it never runs beside another heavy run of
+ * this shift or of anything else on the machine that takes the same lock. The
+ * command itself runs in `bash -c` unchanged, whatever its pipes and quotes.
+ * Every other command runs as written.
+ * @param run - the ticket's command line.
+ * @param policy - the queue's policy, which marks heavy runs.
+ * @param heavyLock - the lock file every heavy run takes, or `undefined` to run unlocked.
+ * @returns the command line the check runs.
+ */
+export function acceptanceRun(run: string, policy: QueuePolicy, heavyLock: string | undefined): string {
+  if (heavyLock === undefined || !policy.heavyFragments.some(fragment => run.includes(fragment))) return run
+  return `flock ${shellWord(heavyLock)} bash -c ${shellWord(run)}`
+}
+
+/**
+ * The paths one ticket may change: its own scope, then the queue's generated
+ * paths, which every ticket's scope includes.
+ * @param ticket - the ticket.
+ * @param policy - the queue's policy.
+ * @returns git pathspecs, the ticket's first.
+ */
+export function ticketScope(ticket: Ticket, policy: QueuePolicy): string[] {
+  return [...ticket.scope, ...policy.generatedPaths.filter(path => !ticket.scope.includes(path))]
+}
+
 /**
  * The standard one department is certified against: the ticket's acceptance
- * commands, then the engine's own — the branch carries a commit past the base,
- * every changed path is under one of the ticket's scope prefixes, the diff
- * carries no whitespace error, and a change touching a Markdown document
- * passes the queue's documentation gate. The scope check lists the changed
- * paths outside every prefix through git's own exclude pathspecs and passes
- * only when that list is empty.
+ * commands, each as {@link acceptanceRun} runs it, then the engine's own — the
+ * branch carries a commit past the base, every changed path is under the
+ * ticket's scope or one of the queue's generated paths, the diff carries no
+ * whitespace error, and a change touching a Markdown document passes the
+ * queue's documentation gate. The scope check lists the changed paths outside
+ * every allowed pathspec through git's own exclude pathspecs and passes only
+ * when that list is empty.
  * @param ticket - the ticket.
  * @param base - the revision every worktree of the shift is cut from.
- * @param policy - the queue's policy, whose documentation gate the standard carries.
+ * @param policy - the queue's policy, whose documentation gate, heavy runs and generated paths the standard follows.
+ * @param heavyLock - the lock file the heavy acceptance commands take, or `undefined` to run them unlocked.
  * @param prefix - `''` for the department's own standard, a label for the shift's re-run.
  * @returns the checks in the order they run.
  */
-export function ticketChecks(ticket: Ticket, base: string, policy: QueuePolicy, prefix = ''): StandardCheck[] {
+export function ticketChecks(ticket: Ticket, base: string, policy: QueuePolicy, heavyLock: string | undefined, prefix = ''): StandardCheck[] {
   const id = (name: string): CheckId => `${prefix}${name}` as CheckId
-  const excludes = ticket.scope.map(entry => `':(exclude)${entry}'`).join(' ')
+  const scope = ticketScope(ticket, policy)
+  const excludes = scope.map(entry => `':(exclude)${entry}'`).join(' ')
   return [
-    ...ticket.acceptance.map(check => ({ id: id(check.id), outcome: `acceptance ${check.id} of ${ticket.id} exits 0`, run: check.run })),
+    ...ticket.acceptance.map(check => ({
+      id: id(check.id),
+      outcome: `acceptance ${check.id} of ${ticket.id} exits 0`,
+      run: acceptanceRun(check.run, policy, heavyLock),
+    })),
     {
       id: id(ENGINE_CHECKS.committed),
       outcome: 'the branch carries at least one commit past the base revision',
@@ -261,7 +302,7 @@ export function ticketChecks(ticket: Ticket, base: string, policy: QueuePolicy, 
     },
     {
       id: id(ENGINE_CHECKS.scope),
-      outcome: `every changed path starts with one of: ${ticket.scope.join(', ')}`,
+      outcome: `every changed path is under one of: ${scope.join(', ')}`,
       run: `test -z "$(git diff --name-only ${base} HEAD -- . ${excludes})"`,
     },
     {
@@ -281,18 +322,30 @@ function objectiveHeading(ticket: Ticket): string {
 /**
  * The objective one department's goal is created with: the ticket, the seat,
  * the task, and the rules a contributor to this repository follows, pointed at
- * the files that state them rather than restating them.
+ * the files that state them rather than restating them. A queue that owns
+ * generated files adds how to bring them back in line and that they are in
+ * scope; a shift under a heavy lock adds how the heavy commands are run.
  * @param ticket - the ticket.
  * @param seatName - the display name of the seat, from the roster.
+ * @param policy - the queue's policy, for its generated paths and heavy runs.
+ * @param heavyLock - the lock file the heavy acceptance commands take, or `undefined`.
  * @returns the objective text.
  */
-export function departmentObjective(ticket: Ticket, seatName: string): string {
+export function departmentObjective(ticket: Ticket, seatName: string, policy: QueuePolicy, heavyLock: string | undefined): string {
+  const quoted = (entries: readonly string[]): string => entries.map(entry => `\`${entry}\``).join(', ')
+  const generated = policy.generatedPaths.length === 0 ? '' : ', and the generated files named below'
   return [
     objectiveHeading(ticket),
     `You are the ${seatName} (seat \`${ticket.seat}\`) of the \`${ticket.division}\` division, working this ticket in your own git worktree on your own branch.`,
     `Task: ${ticket.task}`,
-    `Rules: read \`CLAUDE.md\` at the root of this worktree and the README of every package you change before editing, and follow them. Change only paths under: ${ticket.scope.map(entry => `\`${entry}\``).join(', ')}. Install or update no dependencies. Do not push.`,
+    `Rules: read \`CLAUDE.md\` at the root of this worktree and the README of every package you change before editing, and follow them. Change only paths under: ${quoted(ticket.scope)}${generated}. Install or update no dependencies. Do not push.`,
+    ...policy.generatedPaths.length === 0
+      ? []
+      : [`Generated files: when \`pnpm run doc-sync\` reports a generated file stale, run the generator it names (\`pnpm run gen-…\`) and commit what it writes; when it reports a \`type-equiv\` drift, update the named block, and its Chinese counterpart, to match the source; then re-record every translation pair whose sides changed with \`pnpm run verify-translation-pairing --write <English path>\`. These files are inside your scope whichever package they are in: ${quoted(policy.generatedPaths)}.`],
     `Commit every change on this branch before you stop, with a message that names the ticket: only committed work is measured, over a clean worktree. Your work is accepted when these commands exit 0 at the worktree root: ${ticket.acceptance.map(check => `\`${check.run}\``).join('; ')}.`,
+    ...heavyLock === undefined
+      ? []
+      : [`Heavy runs share this machine: the engine runs every acceptance command containing ${quoted(policy.heavyFragments)} under \`flock ${heavyLock}\`, which waits for every other heavy run on the machine. Run such a command yourself the same way, \`flock ${heavyLock} <command>\`, with a timeout that allows for the wait.`],
     'If the ticket turns out larger than written, stop with a report of what you found instead of widening the change.',
   ].join('\n')
 }
@@ -317,20 +370,22 @@ export const REVIEW_INSTRUCTION = [
   '',
   'verdict: approve',
   '',
-  'Use `approve` when the diff does what the ticket asks, stays inside the ticket\'s scope, and the checks passed. Use `reject` when it does not do what the ticket asks, changes more than the ticket asks, or the evidence cannot show that it does. The ticket describes the tree as intake saw it; the diff, the commit messages, and the check outputs are the current facts, so judge the diff against the ticket\'s problem and required behaviour rather than against a step the tree already satisfied. Decide on what you were given; there is nothing further to ask for.',
+  'Use `approve` when the diff does what the ticket asks, stays inside the ticket\'s scope, and the checks passed. Use `reject` when it does not do what the ticket asks, changes more than the ticket asks, or the evidence cannot show that it does. The ticket describes the tree as intake saw it; the diff, the commit messages, and the check outputs are the current facts, so judge the diff against the ticket\'s problem and required behaviour rather than against a step the tree already satisfied. The ticket\'s `generated` paths are inside its scope: a change there that regenerates a generated file, or brings a mirror of the changed source and its translation record back in line, is what the repository\'s gates require of the change, not a widening of it. Decide on what you were given; there is nothing further to ask for.',
 ].join('\n')
 
 /**
  * The ticket as the reviewer reads it.
  * @param ticket - the ticket.
+ * @param policy - the queue's policy, whose generated paths every ticket's scope includes.
  * @returns the second message of the review.
  */
-export function reviewTicketText(ticket: Ticket): string {
+export function reviewTicketText(ticket: Ticket, policy: QueuePolicy): string {
   return [
     `<ticket id="${ticket.id}" kind="${ticket.kind}" seat="${ticket.seat}">`,
     `title: ${ticket.title}`,
     `task: ${ticket.task}`,
     `scope: ${ticket.scope.join(', ')}`,
+    ...policy.generatedPaths.length === 0 ? [] : [`generated: ${policy.generatedPaths.join(', ')}`],
     'acceptance:',
     ...ticket.acceptance.map(check => `- ${check.id}: ${check.run}`),
     '</ticket>',

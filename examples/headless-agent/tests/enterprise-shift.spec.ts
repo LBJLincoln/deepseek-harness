@@ -1,14 +1,18 @@
 /**
  * The pure half of the enterprise shift: ticket selection from the ledger, the
- * standard a ticket compiles to, the reviewer's verdict line, the shipped
- * commit message, and the redaction every recorded byte passes through.
+ * standard a ticket compiles to under the heavy lock and the generated paths,
+ * the objective and the ticket the reviewer reads, the reviewer's verdict line,
+ * the shipped commit message, and the redaction every recorded byte passes
+ * through.
  */
 
 import { describe, expect, it } from 'vitest'
 import type { CheckId } from '@deepseek-ai/dsh-verification/types'
 import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../scripts/enterprise-tickets.ts'
 import {
+  acceptanceRun,
   departmentKey,
+  departmentObjective,
   documentationCheck,
   ENGINE_CHECKS,
   LIMIT_HALT_REASON,
@@ -16,11 +20,13 @@ import {
   queueOrder,
   readReviewVerdict,
   redactCredentials,
+  reviewTicketText,
   selectTickets,
   shiftIdFor,
   shiftRecordName,
   shippedCommitMessage,
   ticketChecks,
+  ticketScope,
   ticketStatuses,
 } from './fixtures/enterprise-shift/shift.ts'
 import type { Ticket, TicketLedgerLine } from './fixtures/enterprise-shift/shift.ts'
@@ -125,20 +131,71 @@ describe('ticket selection', () => {
 
 describe('the standard a ticket compiles to', () => {
   it('runs the acceptance, then requires a commit, the scope, and a clean diff', () => {
-    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY)
+    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY, undefined)
     expect(checks.map(check => check.id)).toEqual(['runs', ENGINE_CHECKS.committed, ENGINE_CHECKS.scope, ENGINE_CHECKS.whitespace])
     expect(checks[1]?.run).toBe('test "$(git rev-parse HEAD)" != "$(git rev-parse abc123)"')
     expect(checks[2]?.run).toBe('test -z "$(git diff --name-only abc123 HEAD -- . \':(exclude)tools/\' \':(exclude)tooling/extra.mjs\')"')
     expect(checks[3]?.run).toBe('git diff --check abc123 HEAD')
-    expect(ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY, 'merged-').map(check => check.id)[0]).toBe('merged-runs')
+    expect(ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY, undefined, 'merged-').map(check => check.id)[0]).toBe('merged-runs')
     expect(departmentKey('T-0007')).toBe('t-0007')
   })
 
   it('carries the queue\'s documentation gate over a change that touches a Markdown document', () => {
-    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', HARNESS_QUEUE_POLICY)
+    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', HARNESS_QUEUE_POLICY, undefined)
     expect(checks.at(-1)?.id).toBe(ENGINE_CHECKS.documentation)
     expect(checks.at(-1)?.run).toBe("! git diff --name-only abc123 HEAD -- '*.md' | grep -q . || pnpm run verify-translation-pairing")
     expect(documentationCheck(OPEN_QUEUE_POLICY, 'abc123', 'x' as CheckId)).toEqual([])
+  })
+
+  it('counts the queue\'s generated paths inside every ticket\'s scope, the ticket\'s own first', () => {
+    const own = ticket('T-0007', 1)
+    expect(ticketScope(own, OPEN_QUEUE_POLICY)).toEqual(['tools/', 'tooling/extra.mjs'])
+    const scope = ticketScope({ ...own, scope: ['docs/subsystems/', 'tools/'] }, HARNESS_QUEUE_POLICY)
+    expect(scope.slice(0, 2)).toEqual(['docs/subsystems/', 'tools/'])
+    expect(scope.filter(entry => entry === 'docs/subsystems/')).toHaveLength(1)
+    expect(scope).toEqual(expect.arrayContaining(['packages/extensions/tool-cordis/src/api-catalog.ts', 'docs/event-producer-consumer.*']))
+    const check = ticketChecks(own, 'abc123', HARNESS_QUEUE_POLICY, undefined).find(entry => entry.id === ENGINE_CHECKS.scope)
+    expect(check?.run).toContain("':(exclude)tools/' ':(exclude)tooling/extra.mjs' ':(exclude)docs/subsystems/'")
+    expect(check?.run).toContain("':(exclude)docs/event-producer-consumer.*'")
+  })
+
+  it('runs a heavy acceptance command under the shift\'s heavy lock, and every other command as written', () => {
+    const heavy = { ...ticket('T-0007', 1), acceptance: [
+      { id: 'greps', run: "! grep -q 'x' a.ts" },
+      { id: 'coverage', run: "pnpm exec vitest run pkg/ --coverage --coverage.include='pkg/src/**/*.ts'" },
+      { id: 'typecheck', run: 'pnpm run typecheck' },
+      { id: 'doc-sync', run: 'pnpm run doc-sync' },
+    ] }
+    const runs = ticketChecks(heavy, 'abc123', HARNESS_QUEUE_POLICY, '/tmp/dsh-heavy.lock').slice(0, 4).map(check => check.run)
+    expect(runs).toEqual([
+      "! grep -q 'x' a.ts",
+      String.raw`flock '/tmp/dsh-heavy.lock' bash -c 'pnpm exec vitest run pkg/ --coverage --coverage.include='\''pkg/src/**/*.ts'\'''`,
+      "flock '/tmp/dsh-heavy.lock' bash -c 'pnpm run typecheck'",
+      "flock '/tmp/dsh-heavy.lock' bash -c 'pnpm run doc-sync'",
+    ])
+    expect(acceptanceRun('pnpm run doc-sync', HARNESS_QUEUE_POLICY, undefined)).toBe('pnpm run doc-sync')
+    expect(acceptanceRun('sh checks/coverage.sh --coverage', OPEN_QUEUE_POLICY, '/tmp/l')).toBe("flock '/tmp/l' bash -c 'sh checks/coverage.sh --coverage'")
+  })
+})
+
+describe('what the department and the reviewer read', () => {
+  it('states the generated paths and how to regenerate them, and the heavy lock when the shift names one', () => {
+    const objective = departmentObjective(ticket('T-0007', 1), 'Tools Steward', HARNESS_QUEUE_POLICY, '/tmp/dsh-heavy.lock')
+    expect(objective).toContain('Change only paths under: `tools/`, `tooling/extra.mjs`, and the generated files named below.')
+    expect(objective).toContain('run the generator it names (`pnpm run gen-…`) and commit what it writes')
+    expect(objective).toContain('`pnpm run verify-translation-pairing --write <English path>`')
+    expect(objective).toContain('These files are inside your scope whichever package they are in: `docs/subsystems/`, `docs/cordis-api/`')
+    expect(objective).toContain('under `flock /tmp/dsh-heavy.lock`')
+    expect(objective).toContain('`flock /tmp/dsh-heavy.lock <command>`')
+    const plain = departmentObjective(ticket('T-0007', 1), 'Tools Steward', OPEN_QUEUE_POLICY, undefined)
+    expect(plain).toContain('Change only paths under: `tools/`, `tooling/extra.mjs`. Install or update no dependencies.')
+    expect(plain).not.toContain('Generated files')
+    expect(plain).not.toContain('flock')
+  })
+
+  it('shows the reviewer the generated paths beside the ticket\'s scope', () => {
+    expect(reviewTicketText(ticket('T-0007', 1), HARNESS_QUEUE_POLICY).split('\n')).toContain(`generated: ${HARNESS_QUEUE_POLICY.generatedPaths.join(', ')}`)
+    expect(reviewTicketText(ticket('T-0007', 1), OPEN_QUEUE_POLICY)).not.toContain('generated:')
   })
 })
 

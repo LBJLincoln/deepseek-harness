@@ -13,7 +13,9 @@
  * whose departments are the selected tickets, reviews, assembles, recertifies,
  * and, with `--push`, ships the result fast-forward to that branch with the
  * shift's ledger lines and record. `DSH_ENTERPRISE_SCRATCH` sets the directory
- * the shift clones under when `--scratch` does not.
+ * the shift clones under when `--scratch` does not; `ENTERPRISE_HEAVY_LOCK`
+ * reaches the driver with the rest of the environment and names the lock its
+ * heavy acceptance runs take, so the command itself is never run under it.
  */
 
 import { execFileSync, spawn } from 'node:child_process'

@@ -137,6 +137,8 @@ export interface Config {
   branchPrefix: string
   /** Bound of each recorded check evidence; keep it at or below the verification domain's text cap. */
   evidenceMaxChars: number
+  /** Timeout of each check and gate command, capped by the executor; absent applies the executor default. */
+  checkTimeoutMs?: number
 }
 
 /** What one goal of a program came to, as the ledger records it. */
@@ -329,6 +331,7 @@ export class ProgramService extends Service {
     maxGoalRounds: z.natural().min(1).required(),
     branchPrefix: z.string().required(),
     evidenceMaxChars: z.natural().min(1).required(),
+    checkTimeoutMs: z.natural().min(1),
   })
 
   private readonly config: Config
@@ -1220,11 +1223,15 @@ export class ProgramService extends Service {
     return false
   }
 
-  /** Run every active check in order through the shell executor rooted at the worktree. */
+  /**
+   * Run every active check in order through the shell executor rooted at the
+   * worktree, each under {@link Config.checkTimeoutMs} when the deployment sets one.
+   */
   private async execute(checks: readonly StandardCheck[], workspace: string): Promise<CheckResult[]> {
     const results: CheckResult[] = []
+    const timeout = this.config.checkTimeoutMs === undefined ? {} : { timeoutMs: this.config.checkTimeoutMs }
     for (const check of checks) {
-      const result = await this.ctx.shell.run(this.ctx.shell.resolve({ command: check.run, workdir: workspace }))
+      const result = await this.ctx.shell.run(this.ctx.shell.resolve({ command: check.run, workdir: workspace, ...timeout }))
       results.push({
         checkId: check.id,
         status: passed(result) ? 'pass' : 'fail',

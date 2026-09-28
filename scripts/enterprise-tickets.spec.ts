@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -5,7 +6,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 
 import { ROSTER_PATH } from './enterprise-roster.ts'
 import type { Roster } from './enterprise-roster.ts'
-import { isRequestFile, loadTickets, REQUESTS_DIR, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
+import { HARNESS_QUEUE_POLICY, isRequestFile, loadTickets, OPEN_QUEUE_POLICY, REQUESTS_DIR, TICKETS_DIR, validateTickets } from './enterprise-tickets.ts'
 import type { LoadedTicket } from './enterprise-tickets.ts'
 
 const root = resolve(import.meta.dirname, '..')
@@ -60,6 +61,15 @@ describe('enterprise ticket queue', () => {
     const loaded = loadTickets(root)
     expect(loaded.length).toBeGreaterThan(0)
     expect(validateTickets(loaded, roster, root)).toEqual([])
+  })
+
+  it('names in the harness policy only generated paths the tree tracks', () => {
+    for (const path of HARNESS_QUEUE_POLICY.generatedPaths) {
+      const tracked = execFileSync('git', ['ls-files', '--', path], { cwd: root, encoding: 'utf8' })
+      expect(tracked.trim(), path).not.toBe('')
+    }
+    expect(OPEN_QUEUE_POLICY.generatedPaths).toEqual([])
+    expect(OPEN_QUEUE_POLICY.heavyFragments).toEqual(HARNESS_QUEUE_POLICY.heavyFragments)
   })
 
   it('assigns every committed ticket to a steward of its own division', () => {

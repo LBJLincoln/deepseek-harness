@@ -920,6 +920,29 @@ describe('what a failing check records', () => {
   })
 })
 
+describe('the time one check may take', () => {
+  /** The timeout every served command matching `pick` was resolved with. */
+  function timeoutsOf(harness: ProgramHarness, pick: (command: string) => boolean): (number | undefined)[] {
+    return harness.commands.flatMap((command, index) => (pick(command) ? [harness.timeouts[index]] : []))
+  }
+
+  it('resolves every department and integration check under the deployment\'s check timeout, and git commands under the executor default', async () => {
+    const harness = await mount({ checkTimeoutMs: 2_700_000 }, { script: passing })
+    const report = await harness.programs.start(spec())
+    expect(report.outcome).toBe('released')
+    expect(timeoutsOf(harness, command => command === 'check-api' || command === 'check-merged')).toEqual([2_700_000, 2_700_000])
+    const git = timeoutsOf(harness, command => command.startsWith('git '))
+    expect(git.length).toBeGreaterThan(0)
+    expect(git.every(timeout => timeout === undefined)).toBe(true)
+  })
+
+  it('leaves every check on the executor default when the deployment sets none', async () => {
+    const harness = await mount({}, { script: passing })
+    await harness.programs.start(spec())
+    expect(timeoutsOf(harness, command => command === 'check-api' || command === 'check-merged')).toEqual([undefined, undefined])
+  })
+})
+
 describe('bounding the departments in flight', () => {
   it('never runs more departments at once than the deployment allows', async () => {
     const inFlight: string[] = []

@@ -61,9 +61,11 @@ function commit(ticket: string): Step {
 
 /**
  * Move the remote branch tip by one commit that carries the tip's own tree, so
- * the shift finds the tip moved when it pushes and rebases onto it cleanly.
+ * the shift finds the tip moved when it pushes and rebases onto it cleanly. The
+ * push stands in for another writer of the branch, which the clone's hooks do
+ * not run for.
  */
-const MOVE_TIP = 'git fetch -q origin main && git push -q "$(git config remote.origin.url)" "$(git commit-tree -p FETCH_HEAD -m \'the tip moved during the shift\' "$(git rev-parse \'FETCH_HEAD^{tree}\')")":refs/heads/main'
+const MOVE_TIP = 'git fetch -q origin main && git push -q --no-verify "$(git config remote.origin.url)" "$(git commit-tree -p FETCH_HEAD -m \'the tip moved during the shift\' "$(git rev-parse \'FETCH_HEAD^{tree}\')")":refs/heads/main'
 
 /** What each seeded ticket's department does, in order, before it answers. */
 const SCRIPTS: Readonly<Record<string, readonly Step[]>> = {

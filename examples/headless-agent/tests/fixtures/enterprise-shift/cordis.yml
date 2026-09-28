@@ -15,8 +15,14 @@
 - id: subprocess
   name: '@deepseek-ai/dsh-subprocess-local'
 
+# The executor caps every timeout it is asked for at `maxTimeoutMs`, so this
+# cap is what lets the program's `checkTimeoutMs` below take effect; a
+# department's own commands keep the executor's two-minute default and may ask
+# for up to this cap.
 - id: bash
   name: '@deepseek-ai/dsh-bash-local'
+  config:
+    maxTimeoutMs: 2700000
 
 - id: fs
   name: '@deepseek-ai/dsh-fs-local'
@@ -117,3 +123,7 @@
     maxGoalRounds: 3
     branchPrefix: program
     evidenceMaxChars: 4096
+    # One acceptance command may take as long as a department's whole wall
+    # budget: `pnpm run doc-sync` alone takes about five minutes on an idle
+    # machine, and a heavy run first waits for the machine's heavy lock.
+    checkTimeoutMs: 2700000

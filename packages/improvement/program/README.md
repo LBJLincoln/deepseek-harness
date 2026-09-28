@@ -16,6 +16,7 @@ Programs: the durable ledger of one client deliverable decomposed into many goal
     maxGoalRounds: 8
     branchPrefix: program
     evidenceMaxChars: 2000
+    checkTimeoutMs: 600000
 ```
 
 | Field | Meaning |
@@ -26,6 +27,7 @@ Programs: the durable ledger of one client deliverable decomposed into many goal
 | `maxGoalRounds` (required) | The round cap every department and integration goal is created with, and the number of validation attempts this service drives before recording a department `failed`. |
 | `branchPrefix` (required) | Branch namespace of every worktree: `<branchPrefix>/<programId>/<key>`. Lower-kebab-case git ref components. |
 | `evidenceMaxChars` (required) | Bound of each recorded check evidence and each directive detail. Keep it at or below the verification domain's `maxTextChars`, which refuses longer text. |
+| `checkTimeoutMs` (optional) | Timeout of each check and gate command a department or integration standard runs, capped by the composed shell executor's own maximum (`maxTimeoutMs` for `dsh-bash-local`); absent applies the executor's default timeout. The service's own `git` commands always take the executor default. |
 
 The service requires `agents`, `agentDefaultModel`, `agentPresets`, `completionStandards`, `goals`, `sessions`, `sessionPersistence`, and `shell`; when `readBarrier` is composed it reserves the run directory of every member session and denies the integration session the program's worktrees root, and it reads `subagents` when a program delegates its departments. `verify-village-composition` counts a composition of this package as a district composition, so it must also carry a capped budget policy, a session persistence backend, and the checkpoint policy.
 

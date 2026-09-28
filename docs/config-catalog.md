@@ -1846,6 +1846,8 @@ export interface Config {
   branchPrefix: string
   /** Bound of each recorded check evidence; keep it at or below the verification domain's text cap. */
   evidenceMaxChars: number
+  /** Timeout of each check and gate command, capped by the executor; absent applies the executor default. */
+  checkTimeoutMs?: number
 }
 ```
 

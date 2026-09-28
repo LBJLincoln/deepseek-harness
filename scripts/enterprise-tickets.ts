@@ -66,22 +66,75 @@ export interface QueuePolicy {
    * says; absent for a queue whose repository has no documentation gate.
    */
   readonly documentationRun?: string
+  /**
+   * Fragments that mark an acceptance command as a heavy run — a whole-workspace
+   * typecheck, a coverage run, the documentation gates — which the shift engine
+   * serializes with every other heavy run on the machine when it runs under a
+   * heavy lock.
+   */
+  readonly heavyFragments: readonly string[]
+  /**
+   * Git pathspecs of the files the repository's generators write and its
+   * documentation gates verify against the source — generated catalogs and
+   * graphs, the pages carrying generated regions or `type-equiv` pastes, and
+   * their translation pair records. Every ticket's scope includes them: a
+   * change that makes one stale must regenerate it, whichever package it is in.
+   */
+  readonly generatedPaths: readonly string[]
 }
+
+/** The commands this repository's heavy runs contain: the typecheck, a coverage run, and the documentation gates. */
+const HEAVY_FRAGMENTS = ['pnpm run typecheck', '--coverage', 'pnpm run doc-sync']
 
 /**
  * This repository's queue: every ticket runs the typecheck and the package's
  * per-file coverage, and a change to any Markdown document passes the
  * bilingual pairing gate, which a department editing a README pair without
- * re-recording it would otherwise ship past the ticket's acceptance.
+ * re-recording it would otherwise ship past the ticket's acceptance. The
+ * generated paths are the outputs of the `gen-*` scripts `pnpm run doc-sync`
+ * checks, with their Chinese sides and pair records, and the subsystem pages
+ * whose `type-equiv` pastes `verify-type-equiv` compares with the source.
  */
 export const HARNESS_QUEUE_POLICY: QueuePolicy = {
   requiredRuns: ['pnpm run typecheck'],
   requiredFragments: [{ fragment: '--coverage', rule: "the package's per-file coverage run" }],
   documentationRun: 'pnpm run verify-translation-pairing',
+  heavyFragments: HEAVY_FRAGMENTS,
+  generatedPaths: [
+    'docs/subsystems/',
+    'docs/cordis-api/',
+    'docs/graph-atlas.*',
+    'docs/capability-seams.*',
+    'docs/event-producer-consumer.*',
+    'docs/agent-lifecycle.*',
+    'docs/tool-execution-pipeline.*',
+    'docs/tool-catalog.*',
+    'docs/config-catalog.*',
+    'docs/persistence-catalog.*',
+    'docs/module-graph.*',
+    'apps/cli/composition.*',
+    'examples/headless-agent/composition.*',
+    'examples/acp-agent/composition.*',
+    'packages/extensions/tool-cordis/src/api-catalog.ts',
+    'packages/extensions/cordis-client-runner/src/client/api-catalog.ts',
+    'packages/extensions/cordis-client-runner/src/client/slot-catalog.ts',
+    'packages/core/session/src/known-event-types.ts',
+    'packages/core/scope/src/scoped-events.generated.ts',
+  ],
 }
 
-/** A queue that mandates nothing beyond the ticket's own checks, for a repository without this one's gates. */
-export const OPEN_QUEUE_POLICY: QueuePolicy = { requiredRuns: [], requiredFragments: [] }
+/**
+ * A queue that mandates nothing beyond the ticket's own checks and owns no
+ * generated file, for a repository without this one's gates. Its heavy runs
+ * are marked by the same fragments, which name what a command does rather than
+ * what a queue requires.
+ */
+export const OPEN_QUEUE_POLICY: QueuePolicy = {
+  requiredRuns: [],
+  requiredFragments: [],
+  heavyFragments: HEAVY_FRAGMENTS,
+  generatedPaths: [],
+}
 
 /** One queue file as read from disk, before validation. */
 export interface LoadedTicket {
