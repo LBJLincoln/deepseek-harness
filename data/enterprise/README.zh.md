@@ -135,4 +135,17 @@ pnpm run enterprise:publish     # the deck's fixtures from the roster and the le
 - `firstFailure`：第一个以非零码退出的步骤，形如 `{ step, exit }`，或为 `null`；
 - `previous`：检出中较早记录里最新的一条，以及 `recordOnRemote`：本周期首次拉取时远程分支是否已包含它（检出没有远程跟踪引用时为 `null`）。
 
-一条记录无法陈述它自己的最后推送，由下一个周期的 `previous.recordOnRemote` 陈述：那次推送送达了它时为 `true`；到下一个周期开始时它仍未到达远程分支时为 `false`，此时下一个周期自己的推送会带上检出保留的那个提交。在第一个步骤之前以退出码 4 或 5 退出的周期、记录无法写出的周期，以及运行中途被容器重置终止的周期，都没有记录；分支只能通过这样的周期推送过的提交看到它——`chore(enterprise): <cycle id> intake` 与 `chore(enterprise): <cycle id> functions, roster and deck`——记录出现之前的每个周期也是如此。
+一条记录无法陈述它自己的最后推送，由下一个周期的 `previous.recordOnRemote` 陈述：那次推送送达了它时为 `true`；到下一个周期开始时它仍未到达远程分支时为 `false`，此时下一个周期自己的推送会带上检出保留的那个提交。在第一个步骤之前以退出码 4 或 5 退出的周期、记录无法写出的周期，以及运行中途被容器重置终止的周期，都没有记录；分支只能通过这样的周期推送过的提交看到它——`chore(enterprise): <cycle id> intake` 与 `chore(enterprise): <cycle id> functions, roster and deck`——记录出现之前的每个周期也是如此，[报告](#the-report)把它计为只在 git 历史中可见。
+
+## 报告
+
+`pnpm run enterprise:report -- [--since <ISO>] [--until <ISO>] [--write]`（[`scripts/enterprise-report.ts`](../../scripts/enterprise-report.ts)）以 Markdown 打印企业在一个时间窗内（两端都包含）做了什么；`--until` 默认为当前时刻，`--since` 默认为 `--until` 之前 24 小时。它读取检出——台账、[周期记录](#the-cycle-record)、HEAD 的 git 历史、花名册生成器——并像[职能](#functions)运行器那样，经代理以无凭据方式从 GitHub REST API 读取 Branch CI 的运行，因此在固定的时间窗上，给定仓库与这些回答，它的输出是确定的。`--write` 还会写出 `reports/<until 形如 YYYY-MM-DDTHHMMZ>.json` 与 `.md`。它报告：
+
+- 时间窗内开始的周期：由记录统计数量、干净与失败的周期，以及每个步骤在多少个周期中失败；每条记录是否到达了远程分支，以下一条记录的陈述为准；没有记录的周期由指名它的提交计数，并标注为只在 git 历史中可见、结果未知；
+- 时间窗内工单行按状态与按事业部的计数，以及已交付的不同工单及其提交；
+- 每个已交付提交的 Branch CI 裁决：以该提交本身为 head 的运行；否则是在该提交之后创建、且在检出历史中 head 包含它的第一个已完成运行，并说明是哪一种；否则为 `no run`；
+- 各事业部定义、在岗与活跃的席位数，来自在时间窗结束时刻、以不晚于该时刻的台账行与已记录会话运行的花名册生成器；
+- 时间窗内职能行按事业部与结果的计数；
+- 工单行陈述的 token 数与秒数、职能行的秒数，以及已记录周期的实际耗时。
+
+数据未显示的内容都列在 Unknown 下，而不是推断：只在 git 历史中可见的周期、无法读取的记录或台账行、API 无法给出或其运行 head 不在检出中的裁决、没有 token 数的工单行，以及尚无后续记录陈述其推送的记录。
