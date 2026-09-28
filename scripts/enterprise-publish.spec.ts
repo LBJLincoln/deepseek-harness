@@ -64,7 +64,7 @@ const GATE: FunctionLine = verdict({
 
 const LEDGER: LedgerLine[] = [
   ticket({}),
-  ticket({ ticket: 'T-0002', at: '2026-09-28T14:00:00.000Z', seat: 'harness-core-tools-steward', shipped: null, review: { verdict: 'request-changes' } }),
+  ticket({ ticket: 'T-0002', at: '2026-09-28T14:00:00.000Z', seat: 'harness-core-tools-steward', shipped: null, review: { verdict: 'reject' } }),
   ticket({ ticket: 'T-0003', at: '2026-09-28T15:00:00.000Z', seat: 'harness-core-agent-steward', shipped: null, review: undefined, reason: 'budget exhausted' }),
   ticket({ ticket: 'T-0004', at: '2026-09-26T15:00:00.000Z', seat: 'harness-core-agent-steward', shipped: { commit: 'f00dfeedbeef' } }),
   verdict({}),

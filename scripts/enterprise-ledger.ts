@@ -275,20 +275,18 @@ export function appendLedger(file: string, lines: readonly LedgerLine[]): void {
 /** The status a ticket line gives its ticket; a ticket with no line is queued. */
 export type TicketStatus = 'shipped' | 'rejected' | 'halted'
 
-/** Review verdicts that let a ticket through; anything else the reviewer wrote is a rejection. */
-const APPROVING_VERDICTS = /^(approve|approved|accept|accepted|pass|passed|ok|ship|merge)$/i
-
 /**
- * Read a ticket line's status: `shipped` when a commit merged, `rejected` when
- * an acceptance check failed or the reviewer did not approve, and `halted`
- * otherwise, the department having stopped short of review.
+ * Read a ticket line's status the way the engine closes tickets: `shipped` when
+ * a commit on the branch carries the change, `rejected` when the independent
+ * review's verdict is `reject`, and `halted` otherwise (a department that failed
+ * its acceptance, a change the integration could not assemble, a shift the usage
+ * limit stopped), which leaves the ticket open for a later shift.
  * @param line - the ticket line.
  * @returns the status.
  */
 export function ticketStatus(line: TicketLine): TicketStatus {
   if (line.shipped !== null) return 'shipped'
-  if (line.checks.some(check => !check.ok)) return 'rejected'
-  if (line.review !== undefined && !APPROVING_VERDICTS.test(line.review.verdict.trim())) return 'rejected'
+  if (line.review !== undefined && line.review.verdict.trim().toLowerCase() === 'reject') return 'rejected'
   return 'halted'
 }
 

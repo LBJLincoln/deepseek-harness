@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录与台账为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时会话状态后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是[台账](#the-ledger)——它旁边的 `ledger.jsonl`，每条交付物一行——以及 feed 在 `GET /programs` 上提供的项目运行。Harness Core 各位包管家领取工作的队列位于 [tickets/](tickets/README.md)；不需要工单的事业部按计划执行各自的[职能](#functions)。
+本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录与台账为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时会话状态后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是[台账](#the-ledger)——它旁边的 `ledger.jsonl`，每条交付物一行——以及 feed 在 `GET /programs` 上提供的项目运行。各位包管家领取工作的队列位于 [tickets/](tickets/README.md)，由[班次](#shifts)处理；不需要工单的事业部按计划执行各自的[职能](#functions)。
 
 ## 诚实原则
 
@@ -34,8 +34,14 @@
 
 `ledger.jsonl` 只追加、从不改写，每行一个 JSON 对象。两种行类型共用它；没有 `type` 的行按工单行读取，缺少读取方所依赖字段（`at`、`seat`、`division`，以及该类型自身的必填字段）的行会被跳过并按行号报告，而不是被猜测。
 
-- **工单行**是一张已处理的工单，由引擎（`pnpm run enterprise -- shift`）追加：`{ "type": "ticket", "at", "shift", "ticket", "seat", "division", "programId", "implementer", "model", "department": { "outcome", "sessionId" }, "checks": [{ "id", "ok" }], "review": { "verdict", "sessionId" }, "integration": { "outcome" }, "shipped": { "commit" } | null, "reason", "tokens", "seconds" }`。其状态从该行读出：`shipped` 指 `shipped` 指明了一个提交；`rejected` 指某项验收检查 `ok: false`，或评审结论不是批准（`approve`、`approved`、`accept`、`accepted`、`pass`、`passed`、`ok`、`ship`、`merge`）；其余为 `halted`；没有任何行的工单为 `queued`。
+- **工单行**是一个班次中处理过的一张工单，由[引擎](#shifts)（`pnpm run enterprise -- shift`）追加：`{ "type": "ticket", "at", "shift", "ticket", "seat", "division", "programId", "implementer", "model", "department": { "outcome", "sessionId" }, "checks": [{ "id", "ok" }], "review": { "verdict", "sessionId" }, "integration": { "outcome" }, "shipped": { "commit" } | null, "reason", "tokens", "seconds" }`。`department.outcome` 取 `certified`、`failed`、`blocked`、`abandoned`、`pending` 或 `halted`；`review.verdict` 取 `approve`、`reject` 或 `none`；`integration.outcome` 取 `merged`、`skipped`、`conflict`、`checks-failed`、`digest-mismatch` 或 `not-shipped`；`shipped.commit` 是分支上承载该工单修改的提交。工单的状态取其最近一行：`shipped` 指 `shipped` 指明了一个提交，`rejected` 指评审结论为 `reject`，其余为 `halted`——验收失败的部门、集成无法组装的修改，或被路由用量上限停下的班次（原因写作 `halted: limit (resets at <instant>)`）——没有任何行的工单为 `queued`。工单一旦为 `shipped` 或 `rejected` 即告关闭；`halted` 的工单保持开放，由后续班次再次处理。
 - **职能行**是一个席位在一个提交上执行其职能，由 `pnpm run enterprise:functions` 追加：`{ "type": "function", "at", "shift", "seat", "division", "function", "target": { "commit", "requested"? }, "outcome": "pass" | "fail" | "error", "evidence": { "path" } | { "url" }, "seconds" }`。`at` 是交付物自身的时间——关卡结束之时，或 CI 裁决作出之时——`outcome` 是关卡或裁决的结果，`error` 表示未能取得裁决，`evidence` 是席位写出的输出，或它读取裁决的页面。
+
+## 班次
+
+一个班次是 [enterprise-shift 引擎](../../examples/headless-agent/tests/fixtures/enterprise-shift/README.md)的一次运行（`pnpm run enterprise -- shift --next <n> --push`）：它克隆开发分支的顶端，让选中的未关闭工单在各自的工作树里经由程序工作流完成，由一位独立评审员对每个已认证的修改作出裁定，把获批的修改装配为每张工单一次提交，重新认证，再连同班次自己的提交一起快进推送到分支。那次提交携带班次的台账行与记录，因此分支是班次唯一的汇报之处。
+
+`shifts/<UTC 日期>-<班次 id>/` 是班次的记录：`result.json`（班次、程序报告、每张工单的台账行连同评审员的理由、停机信息）、`manifest.json`（基准修订、分支、组合、每个文件的 SHA-256）以及班次运行的每个会话的 `sessions/<会话 id>.jsonl`——程序台账、每个部门、每次评审、整合——其中形似凭据的字符串已剪除并计数。记录由运行它的班次写入，此后不再改写。
 
 ## 职能
 

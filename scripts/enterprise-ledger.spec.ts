@@ -109,11 +109,13 @@ describe('readLedger', () => {
 })
 
 describe('ticketStatus', () => {
-  it('reads shipped from a commit, rejected from a failed check or a non-approving verdict, halted otherwise', () => {
+  it('reads shipped from a commit, rejected from a reject verdict, and halted, still open, otherwise', () => {
     expect(ticketStatus(SHIPPED)).toBe('shipped')
     expect(ticketStatus({ ...SHIPPED, shipped: null })).toBe('halted')
-    expect(ticketStatus({ ...SHIPPED, shipped: null, checks: [{ id: 'typecheck', ok: false }] })).toBe('rejected')
-    expect(ticketStatus({ ...SHIPPED, shipped: null, review: { verdict: 'request-changes' } })).toBe('rejected')
+    expect(ticketStatus({ ...SHIPPED, shipped: null, checks: [{ id: 'typecheck', ok: false }] })).toBe('halted')
+    expect(ticketStatus({ ...SHIPPED, shipped: null, review: { verdict: 'reject' } })).toBe('rejected')
+    expect(ticketStatus({ ...SHIPPED, shipped: null, review: { verdict: ' Reject ' } })).toBe('rejected')
+    expect(ticketStatus({ ...SHIPPED, shipped: null, review: { verdict: 'none' } })).toBe('halted')
     expect(ticketStatus({ ...SHIPPED, shipped: null, review: { verdict: 'approved' }, integration: { outcome: 'conflict' } })).toBe('halted')
     const { review: _review, ...unreviewed } = SHIPPED
     expect(ticketStatus({ ...unreviewed, shipped: null, department: { outcome: 'budget-exhausted' } })).toBe('halted')

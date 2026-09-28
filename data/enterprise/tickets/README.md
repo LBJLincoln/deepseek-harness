@@ -66,7 +66,7 @@ A coverage check names the tests that own the package's `src`: its own `tests/` 
 
 ## Status comes from the ledger
 
-A ticket file never records progress. The engine appends what happens to a ticket (claim, verification result, review verdict, merge) to `data/enterprise/ledger.jsonl`, one JSON line per event naming the ticket `id`, and a ticket's status is derived from its most recent ledger line; a ticket with no line is open. The line format belongs to the engine; the queue's rule is only that status is read from the ledger and never written into a ticket. Editing a ticket after its first ledger line changes the work, not the status, and needs a new review.
+A ticket file never records progress. The engine appends what happens to a ticket (the department's outcome, its checks, the review verdict, the integration, the shipped commit) to `data/enterprise/ledger.jsonl`, one JSON line per ticket per shift naming the ticket `id`, and a ticket's status is derived from its most recent ledger line; a ticket with no line is open. The line format belongs to the engine and is stated in [the ledger section](../README.md#the-ledger-and-the-shifts); the queue's rule is only that status is read from the ledger and never written into a ticket. Editing a ticket after its first ledger line changes the work, not the status, and needs a new review.
 
 ## A ticket is real only if its source exists
 

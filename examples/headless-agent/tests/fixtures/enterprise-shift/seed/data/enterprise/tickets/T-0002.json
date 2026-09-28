@@ -1,0 +1,13 @@
+{
+  "id": "T-0002",
+  "title": "Add the answer tool",
+  "division": "harness-core",
+  "seat": "seed-tools-steward",
+  "kind": "feature",
+  "source": { "path": "tools/README.md", "anchor": "answer.mjs` prints `42` and exits 0." },
+  "task": "tools/README.md:6 promises `answer.mjs` prints `42` and exits 0. Add the file under tools/ so that the command exits 0; change nothing else.",
+  "scope": ["tools/"],
+  "acceptance": [{ "id": "answers", "run": "node tools/answer.mjs | grep -qx 42" }],
+  "budget": { "maxTotalTokens": 100000, "maxWallMs": 600000 },
+  "priority": 2
+}
