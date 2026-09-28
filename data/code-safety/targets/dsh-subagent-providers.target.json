@@ -1,0 +1,34 @@
+{
+  "target": "DeepSeek Harness external-agent subagent providers",
+  "repository": "https://github.com/LBJLincoln/deepseek-harness",
+  "revision": "599da758095bd221b6747d5b5631592b8620efe4",
+  "language": "typescript",
+  "source": "This repository's own code at the revision above, checked out with only the paths below; README.md in this directory states why this slice and what it leaves out.",
+  "paths": [
+    "packages/subagent/subagent-acp/src/",
+    "packages/subagent/subagent-acp/package.json",
+    "packages/subagent/subagent-acp/README.md",
+    "packages/subagent/subagent-claude-code/src/",
+    "packages/subagent/subagent-claude-code/package.json",
+    "packages/subagent/subagent-claude-code/README.md",
+    "packages/subagent/subagent-codex/src/",
+    "packages/subagent/subagent-codex/package.json",
+    "packages/subagent/subagent-codex/README.md",
+    "packages/subagent/subagent-dsh-sdk/src/",
+    "packages/subagent/subagent-dsh-sdk/package.json",
+    "packages/subagent/subagent-dsh-sdk/README.md"
+  ],
+  "lock": {
+    "files": 24,
+    "sha256": "9ef83e40075e2fbe10da855f87e6e72064705881d1f2b59a7c31e3b7905fe2d9"
+  },
+  "groundTruth": null,
+  "seeding": {
+    "tool": "data/code-safety/tools/seed-defects.mjs",
+    "language": "typescript",
+    "seed": "dsh-self-review-2026-09-28",
+    "n": 8,
+    "maxPerEntry": 2,
+    "entries": ["ts-log-injection", "ts-eval-injection", "ts-redos-new-regexp", "ts-hardcoded-credential"]
+  }
+}

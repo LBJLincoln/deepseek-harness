@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "Each entry names a defect class the departments' skills (data/knowledge/code-safety/) look for, a regex that finds a candidate insertion site, and a string template that introduces the defect at that site. seed-defects.mjs is the generic interpreter: it applies sitePattern per line, filters by fileRequirePattern/fileExcludePattern/fieldHintPattern, and fills insertTemplate's {{placeholders}}. {{indent}} is the site line's leading whitespace, {{source}} and {{field}} are the matched req.<source>.<field> (absent for hardcoded-credential), {{line}} is the 1-based line number of the site (for unique identifier names), and {{hex}} is a seeded pseudo-random 32-character hex string (hardcoded-credential only).",
+  "note": "Each entry names a defect class the departments' skills (data/knowledge/code-safety/) look for, a regex that finds a candidate insertion site, and a string template that introduces the defect at that site. seed-defects.mjs is the generic interpreter: it applies sitePattern per line, filters by fileRequirePattern/fileExcludePattern/fieldHintPattern, and fills insertTemplate's {{placeholders}}. {{indent}} is the site line's leading whitespace, {{source}} and {{field}} are sitePattern's first and second capture groups (the matched req.<source>.<field> in the javascript entries; the declared constant and the object it was read from in the typescript entries; absent for the hardcoded-credential entries), {{line}} is the 1-based line number of the site (for unique identifier names), and {{hex}} is a seeded pseudo-random 32-character hex string (hardcoded-credential only).",
   "entries": [
     {
       "id": "eval-injection",
@@ -99,6 +99,54 @@
       "fileExcludePattern": "AKIA[0-9A-Z]{16}|process\\.env\\.\\w+_SECRET\\s*\\|\\|",
       "fieldHintPattern": null,
       "insertTemplate": "{{indent}}const appSecret{{line}} = process.env.APP_SECRET || '{{hex}}';"
+    },
+    {
+      "id": "ts-log-injection",
+      "cwe": "CWE-117",
+      "category": "Injection (log)",
+      "language": "typescript",
+      "skill": "injection",
+      "description": "Sites are lines that declare a constant from a value read off an external process's wire message (params, message, record, response, update, notification, item, turn, thread, terminal, session); inserted code writes that constant into a stderr log line with no control-character stripping, the TypeScript counterpart of the javascript log-injection entry.",
+      "sitePattern": "^\\s*const\\s+([A-Za-z_$][\\w$]*)(?:\\s*:\\s*[^=]+)?\\s*=\\s*(?:(?:string|object)\\(\\s*|Reflect\\.get\\(\\s*)?(params|message|record|response|update|notification|item|turn|thread|terminal|session)\\b\\s*[.\\[,]",
+      "fileExcludePattern": "console\\.(?:log|error|warn)\\(`",
+      "fieldHintPattern": null,
+      "insertTemplate": "{{indent}}console.error(`subagent {{source}}: ${String({{source}})}`)"
+    },
+    {
+      "id": "ts-eval-injection",
+      "cwe": "CWE-95",
+      "category": "Injection (eval of external data)",
+      "language": "typescript",
+      "skill": "injection",
+      "description": "Sites are lines that declare a constant from a value read off an external process's wire message; inserted code passes that constant to eval(), the TypeScript counterpart of the javascript eval-injection entry.",
+      "sitePattern": "^\\s*const\\s+([A-Za-z_$][\\w$]*)(?:\\s*:\\s*[^=]+)?\\s*=\\s*(?:(?:string|object)\\(\\s*|Reflect\\.get\\(\\s*)?(params|message|record|response|update|notification|item|turn|thread|terminal|session)\\b\\s*[.\\[,]",
+      "fileExcludePattern": "\\beval\\s*\\(",
+      "fieldHintPattern": null,
+      "insertTemplate": "{{indent}}const {{source}}Value{{line}} = eval(String({{source}}))"
+    },
+    {
+      "id": "ts-redos-new-regexp",
+      "cwe": "CWE-1333",
+      "category": "Regular-expression denial of service",
+      "language": "typescript",
+      "skill": "injection",
+      "description": "Sites are lines that declare a constant from a value read off an external process's wire message; inserted code compiles that constant directly into a RegExp, the new RegExp(userInput) pattern the injection skill names explicitly.",
+      "sitePattern": "^\\s*const\\s+([A-Za-z_$][\\w$]*)(?:\\s*:\\s*[^=]+)?\\s*=\\s*(?:(?:string|object)\\(\\s*|Reflect\\.get\\(\\s*)?(params|message|record|response|update|notification|item|turn|thread|terminal|session)\\b\\s*[.\\[,]",
+      "fileExcludePattern": "new\\s+RegExp\\s*\\(",
+      "fieldHintPattern": null,
+      "insertTemplate": "{{indent}}const {{source}}Pattern{{line}} = new RegExp(String({{source}}))"
+    },
+    {
+      "id": "ts-hardcoded-credential",
+      "cwe": "CWE-798",
+      "category": "Hardcoded credentials",
+      "language": "typescript",
+      "skill": "secrets",
+      "description": "Sites are a module's own single-line exported constants (no request field needed); inserted code declares a secret with a hardcoded fallback used when the environment variable is unset, the process.env.JWT_SECRET || 'literal' pattern the secrets skill names explicitly.",
+      "sitePattern": "^export const [A-Za-z_$][\\w$]*\\s*=\\s*[^({\\[]+$",
+      "fileExcludePattern": "AKIA[0-9A-Z]{16}|process\\.env\\.\\w+_(?:SECRET|TOKEN)\\s*\\|\\|",
+      "fieldHintPattern": null,
+      "insertTemplate": "const serviceToken{{line}} = process.env.DSH_SERVICE_TOKEN || '{{hex}}'"
     }
   ]
 }

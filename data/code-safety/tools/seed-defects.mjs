@@ -10,17 +10,24 @@
 // `fieldHintPattern` tested against a captured `req.*` field name), and a
 // string template (`insertTemplate`) that becomes one new line placed
 // immediately after the matched line. `{{indent}}` is the matched line's
-// leading whitespace, `{{source}}`/`{{field}}` are the matched
-// `req.<source>.<field>` (absent for the credential entry, which matches a
-// bare `require(...)` line instead), `{{line}}` is the matched line's 1-based
+// leading whitespace, `{{source}}`/`{{field}}` are the site pattern's first
+// and second capture groups — the matched `req.<source>.<field>` in the
+// JavaScript entries, the declared constant and the object it was read from
+// in the TypeScript entries, absent for the credential entries, which match a
+// module-level line instead — `{{line}}` is the matched line's 1-based
 // number (for unique identifier names), and `{{hex}}` is a 32-character hex
-// string derived from the seed and the site (the hardcoded-credential entry
+// string derived from the seed and the site (the hardcoded-credential entries
 // only). Site detection is regex-level, not a parser; a lightweight per-line
 // scan skips `//` comments, `/* */` bodies, and multi-line template literals so an
-// insertion never lands inside one. Every inserted line is validated with
-// `node --check` immediately after insertion; a site whose file fails the
-// check is undone and does not count toward N. No two accepted sites in the
-// same file are ever within 10 lines of each other.
+// insertion never lands inside one. Every inserted line is validated
+// immediately after insertion — a JavaScript file with `node --check`, a
+// TypeScript file with the TypeScript parser, which must report no syntax
+// error and must read each inserted line as exactly one statement of its own,
+// so an insertion that a semicolon-free neighbour would absorb (a following
+// `? …` or `.method()` continuation) is refused rather than planted with a
+// changed meaning; a site whose file fails the check is undone and does not
+// count toward N. No two accepted sites in the same file are ever within 10
+// lines of each other.
 //
 // Selection order is a seeded Fisher-Yates shuffle of every candidate site
 // (from every entry, across every eligible file), read in two passes: sites
@@ -32,9 +39,9 @@
 //
 // Usage:
 //   node seed-defects.mjs <target dir> <out dir> --seed <seed> --n <count>
-//     [--language javascript] [--catalogue <path>] [--avoid <ground-truth.json>]...
+//     [--language javascript|typescript] [--catalogue <path>] [--avoid <ground-truth.json>]...
 //   node seed-defects.mjs <target dir> --dry-run [--seed <seed> --n <count>]
-//     [--language javascript] [--catalogue <path>] [--avoid <ground-truth.json>]... [--json]
+//     [--language javascript|typescript] [--catalogue <path>] [--avoid <ground-truth.json>]... [--json]
 //
 // A real run writes <out dir>/repo (the mutated copy), <out
 // dir>/seeded.ground-truth.json (same fields as targets/nodegoat.ground-truth.json:
@@ -42,12 +49,15 @@
 // definite location), and <out dir>/seed-manifest.json (seed, catalogue
 // digest, sites considered, sites planted, per-entry counts, rejections).
 // Both live beside `repo/`, never inside it, so the review the estimate scores
-// is never pointed at its own answer key. `--dry-run` scans the target in
-// place (never copies or writes) and lists every candidate site; with `--seed`
-// and `--n` it also marks which ones that seed would plant.
+// is never pointed at its own answer key; the copy leaves out every `.git`
+// directory for the same reason, because `git diff` in a copy that kept the
+// target's history would print every planted line. `--dry-run` scans the
+// target in place (never copies or writes) and lists every candidate site;
+// with `--seed` and `--n` it also marks which ones that seed would plant.
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { basename, join, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -58,8 +68,8 @@ const MIN_LINE_SEPARATION = 10
 const EXCLUDED_DIR_NAMES = new Set(['node_modules', '.git', 'test', 'tests', 'spec', 'vendor', 'dist', 'build', 'coverage', '.next', '.nuxt'])
 /** Well-known build-tool configuration filenames, not application source that processes requests. */
 const EXCLUDED_FILE_NAMES = new Set(['Gruntfile.js', 'gulpfile.js', 'webpack.config.js', 'rollup.config.js', 'karma.conf.js', 'jest.config.js', 'babel.config.js', '.eslintrc.js'])
-/** File extension scanned per supported `--language`. */
-const EXTENSION_BY_LANGUAGE = { javascript: '.js' }
+/** File extension scanned per supported `--language`; a declaration file (`.d.ts`) is never a site. */
+const EXTENSION_BY_LANGUAGE = { javascript: '.js', typescript: '.ts' }
 
 /**
  * Parses the command line.
@@ -90,7 +100,7 @@ export function parseArgs(argv) {
   }
   const [targetDir, outDir] = positional
   if (targetDir === undefined) {
-    throw new Error('usage: node seed-defects.mjs <target dir> <out dir> --seed <seed> --n <count> [--language javascript] [--catalogue <path>] [--avoid <ground-truth.json>]... [--max-per-entry <count>] ; or --dry-run in place of <out dir> --seed --n')
+    throw new Error('usage: node seed-defects.mjs <target dir> <out dir> --seed <seed> --n <count> [--language javascript|typescript] [--catalogue <path>] [--avoid <ground-truth.json>]... [--max-per-entry <count>] ; or --dry-run in place of <out dir> --seed --n')
   }
   if (!dryRun && outDir === undefined) throw new Error('an out dir is required unless --dry-run')
   if (!dryRun && seed === undefined) throw new Error('--seed is required unless --dry-run')
@@ -152,7 +162,8 @@ export function seededShuffle(items, rng) {
 
 /**
  * Lists files under a directory with the given extension, skipping
- * `EXCLUDED_DIR_NAMES`, `EXCLUDED_FILE_NAMES`, and `*.min<extension>` files.
+ * `EXCLUDED_DIR_NAMES`, `EXCLUDED_FILE_NAMES`, and `*.min<extension>` and
+ * `*.d<extension>` files.
  * @param {string} rootDir the directory to walk
  * @param {string} extension file extension to keep, with its leading dot
  * @returns {string[]} absolute paths, sorted
@@ -164,7 +175,7 @@ export function listSourceFiles(rootDir, extension) {
       if (EXCLUDED_DIR_NAMES.has(name) || EXCLUDED_FILE_NAMES.has(name)) continue
       const full = join(dir, name)
       if (statSync(full).isDirectory()) walk(full)
-      else if (name.endsWith(extension) && !name.endsWith(`.min${extension}`)) results.push(full)
+      else if (name.endsWith(extension) && !name.endsWith(`.min${extension}`) && !name.endsWith(`.d${extension}`)) results.push(full)
     }
   }
   walk(rootDir)
@@ -328,13 +339,57 @@ export function applyInsertions(originalText, lineIndices, siteByLineIndex, entr
  * @param {string} absPath the file to check
  * @returns {boolean} true when the file parses
  */
-function checkSyntax(absPath) {
+function checkJavaScript(absPath) {
   try {
     execFileSync(process.execPath, ['--check', absPath], { stdio: 'pipe' })
     return true
   } catch {
+    // `node --check` exits non-zero on a syntax error, which is the answer.
     return false
   }
+}
+
+/**
+ * Whether a TypeScript file parses without a syntax error and reads every
+ * inserted line as exactly one statement: a statement that starts at the
+ * line's first non-blank character and ends on the same line. The TypeScript
+ * compiler is resolved from this repository's own install only when a
+ * TypeScript target is seeded, so a JavaScript run needs nothing beyond Node.
+ * @param {string} text the file's content after insertion
+ * @param {string} fileName the file's name, for the parser's script kind
+ * @param {number[]} insertedLines 1-based lines that must each hold one whole statement
+ * @returns {boolean} true when the file parses and every inserted line stands alone
+ */
+export function checkTypeScript(text, fileName, insertedLines) {
+  const ts = createRequire(import.meta.url)('typescript')
+  const { diagnostics = [] } = ts.transpileModule(text, { fileName, reportDiagnostics: true, compilerOptions: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext } })
+  if (diagnostics.length > 0) return false
+  const source = ts.createSourceFile(fileName, text, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS)
+  const lines = text.split('\n')
+  const standalone = new Set()
+  const visit = (node) => {
+    if (ts.isVariableStatement(node) || ts.isExpressionStatement(node)) {
+      const start = source.getLineAndCharacterOfPosition(node.getStart(source))
+      const end = source.getLineAndCharacterOfPosition(node.getEnd())
+      if (start.line === end.line && start.character === /^\s*/.exec(lines[start.line])[0].length) standalone.add(start.line + 1)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(source)
+  return insertedLines.every(line => standalone.has(line))
+}
+
+/**
+ * Validates one file after insertion by its language's rule.
+ * @param {string} absPath the file, already rewritten
+ * @param {string} language the run's `--language`
+ * @param {number[]} insertedLines 1-based lines inserted into the file so far
+ * @returns {boolean} true when the file passes
+ */
+function checkSyntax(absPath, language, insertedLines) {
+  return language === 'typescript'
+    ? checkTypeScript(readFileSync(absPath, 'utf8'), basename(absPath), insertedLines)
+    : checkJavaScript(absPath)
 }
 
 /**
@@ -369,9 +424,10 @@ function tooCloseToAccepted(acceptedLines, lineIndex) {
  * @param {string} seed the run's seed
  * @param {number} n how many sites to plant
  * @param {number} [maxPerEntry] the most sites any one catalogue entry may contribute; default unlimited. Spreads a small N across classes instead of letting the entry with the most candidates dominate.
+ * @param {string} [language] the run's `--language`, which picks the syntax check; default `javascript`
  * @returns {{ planted: object[], rejectedBySeparation: number, rejectedByCheck: number }} the accepted sites (with `finalLine`) and rejection counts
  */
-export function selectAndPlant(candidates, entries, seed, n, maxPerEntry = Infinity) {
+export function selectAndPlant(candidates, entries, seed, n, maxPerEntry = Infinity, language = 'javascript') {
   const entryById = new Map(entries.map(entry => [entry.id, entry]))
   const ordered = orderCandidates(candidates, seed)
   const hexFor = site => createHash('sha256').update(`${seed}:${site.file}:${site.lineIndex}`).digest('hex').slice(0, 32)
@@ -400,7 +456,7 @@ export function selectAndPlant(candidates, entries, seed, n, maxPerEntry = Infin
 
     const { text, finalLineByIndex } = applyInsertions(originalText, tentativeLines, siteByLineIndex, entryById, hexFor)
     writeFileSync(candidate.absPath, text)
-    if (checkSyntax(candidate.absPath)) {
+    if (checkSyntax(candidate.absPath, language, [...finalLineByIndex.values()])) {
       acceptedLinesByFile.set(candidate.file, tentativeLines)
       siteByLineIndexByFile.set(candidate.file, siteByLineIndex)
       countByEntry.set(candidate.entryId, (countByEntry.get(candidate.entryId) ?? 0) + 1)
@@ -432,13 +488,13 @@ export function seedDefects(options) {
 
   const repoDir = join(outDir, 'repo')
   mkdirSync(outDir, { recursive: true })
-  cpSync(targetDir, repoDir, { recursive: true })
+  cpSync(targetDir, repoDir, { recursive: true, filter: source => basename(source) !== '.git' })
 
   const avoidSet = loadAvoidSet(avoidPaths, 3)
   const candidates = findCandidates(repoDir, entries, extension, avoidSet)
-  const { planted, rejectedBySeparation, rejectedByCheck } = selectAndPlant(candidates, entries, seed, n, maxPerEntry)
+  const { planted, rejectedBySeparation, rejectedByCheck } = selectAndPlant(candidates, entries, seed, n, maxPerEntry, language)
   if (planted.length < n) {
-    throw new Error(`only ${planted.length} of the requested ${n} sites could be planted (${candidates.length} candidates considered, ${rejectedBySeparation} too close to another accepted site, ${rejectedByCheck} undone after failing node --check, ${maxPerEntry === Infinity ? 'no' : maxPerEntry}-per-entry cap); widen the catalogue, raise --max-per-entry, or lower --n`)
+    throw new Error(`only ${planted.length} of the requested ${n} sites could be planted (${candidates.length} candidates considered, ${rejectedBySeparation} too close to another accepted site, ${rejectedByCheck} undone after failing the syntax check, ${maxPerEntry === Infinity ? 'no' : maxPerEntry}-per-entry cap); widen the catalogue, raise --max-per-entry, or lower --n`)
   }
 
   const entryById = new Map(entries.map(entry => [entry.id, entry]))
@@ -544,7 +600,8 @@ function main() {
     }
     for (const [i, c] of candidates.entries()) {
       const marker = selected.has(i) ? '[SELECTED]' : '          '
-      console.log(`${marker} ${c.file}:${c.lineIndex + 1} ${c.entryId}${c.field ? ` (req.${c.source}.${c.field})` : ''}${c.hinted ? '' : ' [unhinted]'}`)
+      const captured = options.language === 'javascript' ? `req.${c.source}.${c.field}` : `${c.source} from ${c.field}`
+      console.log(`${marker} ${c.file}:${c.lineIndex + 1} ${c.entryId}${c.field ? ` (${captured})` : ''}${c.hinted ? '' : ' [unhinted]'}`)
     }
     console.log(`${candidates.length} candidate sites${options.seed !== undefined ? `; ${selected.size} of ${options.n} requested would be planted under seed ${JSON.stringify(options.seed)}` : ''}`)
     return

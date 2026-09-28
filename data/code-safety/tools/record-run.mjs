@@ -5,12 +5,16 @@
 // composition, the locked target, the per-department outcome and every file's
 // SHA-256. Node built-ins only.
 //
-// Usage: node record-run.mjs <run-directory> <name> --composition <path>
+// Usage: node record-run.mjs <run-directory> <name> --composition <path> [--seeded <seed out dir>]
 //
 //   <run-directory>  where `pnpm run code-safety` ran: holds stdout.jsonl,
 //                    stderr.txt, .sessions/ and repo/
 //   <name>           the record directory name, e.g. 2026-09-19-nodegoat
 //   --composition    repository-relative cordis.yml the driver booted
+//   --seeded         the seed-defects.mjs out dir whose repo/ the run reviewed:
+//                    its seeded.ground-truth.json and seed-manifest.json are
+//                    copied into the record, and seeded-recall.json scores the
+//                    released findings against them, all digested with the rest
 //
 // The record directory is written once; an existing target is refused so a
 // recorded run is never rewritten in place. A run whose program did not release
@@ -22,6 +26,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { REDACTION_RULE, redactRecordFiles } from './redact-record.mjs'
+import { score } from './seeded-recall.mjs'
 
 const REPO_DIR = resolve(import.meta.dirname, '..', '..', '..')
 const RECORDS_DIR = resolve(import.meta.dirname, '..')
@@ -32,21 +37,26 @@ const SEVERITIES = ['critical', 'high', 'medium', 'low', 'info']
 /**
  * Parses the command line.
  * @param {string[]} argv arguments after the script path
- * @returns {{ runDirectory: string, name: string, composition: string }}
+ * @returns {{ runDirectory: string, name: string, composition: string, seeded: string | undefined }}
  */
 function parseArgs(argv) {
   const positional = []
   let composition
+  let seeded
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--composition') composition = argv[++i]
+    else if (argv[i] === '--seeded') seeded = argv[++i]
     else positional.push(argv[i])
   }
   const [runDirectory, name] = positional
   if (runDirectory === undefined || name === undefined || composition === undefined) {
-    throw new Error('usage: node record-run.mjs <run-directory> <name> --composition <path>')
+    throw new Error('usage: node record-run.mjs <run-directory> <name> --composition <path> [--seeded <seed out dir>]')
   }
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name)) throw new Error(`run name must be a plain directory name: ${name}`)
-  return { runDirectory: resolve(runDirectory), name, composition }
+  if (seeded !== undefined && !existsSync(join(seeded, 'seeded.ground-truth.json'))) {
+    throw new Error(`--seeded ${seeded} holds no seeded.ground-truth.json; pass the out dir seed-defects.mjs wrote`)
+  }
+  return { runDirectory: resolve(runDirectory), name, composition, seeded: seeded === undefined ? undefined : resolve(seeded) }
 }
 
 /**
@@ -143,7 +153,7 @@ function span(logs) {
 }
 
 function main() {
-  const { runDirectory, name, composition } = parseArgs(process.argv.slice(2))
+  const { runDirectory, name, composition, seeded } = parseArgs(process.argv.slice(2))
   const target = join(RECORDS_DIR, name)
   if (existsSync(target)) throw new Error(`${relative(REPO_DIR, target)} already exists; a recorded run is never rewritten`)
   if (!existsSync(join(REPO_DIR, composition))) throw new Error(`composition ${composition} is not in the repository`)
@@ -169,6 +179,16 @@ function main() {
   const stderr = join(runDirectory, 'stderr.txt')
   if (existsSync(stderr) && statSync(stderr).size > 0) record('stderr.txt', readFileSync(stderr))
   for (const { sessionId, path } of logs) record(`sessions/${sessionId}.jsonl`, readFileSync(path))
+  // A review of a seeded copy carries its answer key and its reading, so the
+  // estimate is read from the same digested files as the findings it scores.
+  const seededReading = seeded === undefined ? undefined : (() => {
+    const truth = readFileSync(join(seeded, 'seeded.ground-truth.json'))
+    record('seeded.ground-truth.json', truth)
+    record('seed-manifest.json', readFileSync(join(seeded, 'seed-manifest.json')))
+    const reading = score(result.findings === '' ? [] : JSON.parse(result.findings), JSON.parse(truth.toString('utf8')))
+    record('seeded-recall.json', Buffer.from(`${JSON.stringify(reading, null, 2)}\n`))
+    return reading
+  })()
   // Key material the departments read out of the target is replaced before anything is digested.
   const redactions = redactRecordFiles(target, written)
   refuseCredentials(target, written)
@@ -211,9 +231,12 @@ function main() {
     sessions: Object.fromEntries(logs.map(log => [log.sessionId, `sessions/${log.sessionId}.jsonl`])),
     files,
     redactions: { rule: REDACTION_RULE, tool: 'tools/redact-record.mjs', files: redactions },
+    ...seededReading === undefined ? {} : {
+      seeded: { groundTruth: 'seeded.ground-truth.json', manifest: 'seed-manifest.json', reading: 'seeded-recall.json', planted: seededReading.n, caught: seededReading.caught, interval: seededReading.interval },
+    },
   }
   writeFileSync(join(target, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
-  console.log(`recorded ${relative(REPO_DIR, target)}: ${files.length} files, ${logs.length} session logs, ${findings.length} findings, outcome ${result.report.outcome}, examiner exit ${result.verifier.exitCode}, ${redactions.length} files redacted`)
+  console.log(`recorded ${relative(REPO_DIR, target)}: ${files.length} files, ${logs.length} session logs, ${findings.length} findings, outcome ${result.report.outcome}, examiner exit ${result.verifier.exitCode}, ${redactions.length} files redacted${seededReading === undefined ? '' : `, seeded recall ${seededReading.caught}/${seededReading.n}`}`)
 }
 
 main()
