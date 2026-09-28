@@ -173,22 +173,47 @@ export function departmentKey(ticketId: string): string {
   return ticketId.toLowerCase()
 }
 
-/** Ids of the three checks the engine adds to every ticket's acceptance. */
-export const ENGINE_CHECKS = { committed: 'engine-committed', scope: 'engine-scope', whitespace: 'engine-whitespace' } as const
+/** Ids of the checks the engine adds to every ticket's acceptance. */
+export const ENGINE_CHECKS = {
+  committed: 'engine-committed',
+  scope: 'engine-scope',
+  whitespace: 'engine-whitespace',
+  documentation: 'engine-documentation',
+} as const
+
+/**
+ * The queue's documentation gate as one check: the policy's command runs when
+ * the diff from `base` touches any Markdown document, and the check passes
+ * without running it when none changed.
+ * @param policy - the queue's policy; a policy without a documentation run yields no check.
+ * @param base - the revision the diff starts from.
+ * @param id - the check's id.
+ * @returns the check, or nothing.
+ */
+export function documentationCheck(policy: QueuePolicy, base: string, id: CheckId): StandardCheck[] {
+  if (policy.documentationRun === undefined) return []
+  return [{
+    id,
+    outcome: `a change that touches a Markdown document passes: ${policy.documentationRun}`,
+    run: `! git diff --name-only ${base} HEAD -- '*.md' | grep -q . || ${policy.documentationRun}`,
+  }]
+}
 
 /**
  * The standard one department is certified against: the ticket's acceptance
- * commands, then the engine's own three — the branch carries a commit past the
- * base, every changed path is under one of the ticket's scope prefixes, and the
- * diff carries no whitespace error. The scope check lists the changed paths
- * outside every prefix through git's own exclude pathspecs and passes only when
- * that list is empty.
+ * commands, then the engine's own — the branch carries a commit past the base,
+ * every changed path is under one of the ticket's scope prefixes, the diff
+ * carries no whitespace error, and a change touching a Markdown document
+ * passes the queue's documentation gate. The scope check lists the changed
+ * paths outside every prefix through git's own exclude pathspecs and passes
+ * only when that list is empty.
  * @param ticket - the ticket.
  * @param base - the revision every worktree of the shift is cut from.
+ * @param policy - the queue's policy, whose documentation gate the standard carries.
  * @param prefix - `''` for the department's own standard, a label for the shift's re-run.
  * @returns the checks in the order they run.
  */
-export function ticketChecks(ticket: Ticket, base: string, prefix = ''): StandardCheck[] {
+export function ticketChecks(ticket: Ticket, base: string, policy: QueuePolicy, prefix = ''): StandardCheck[] {
   const id = (name: string): CheckId => `${prefix}${name}` as CheckId
   const excludes = ticket.scope.map(entry => `':(exclude)${entry}'`).join(' ')
   return [
@@ -208,6 +233,7 @@ export function ticketChecks(ticket: Ticket, base: string, prefix = ''): Standar
       outcome: 'the diff carries no whitespace error',
       run: `git diff --check ${base} HEAD`,
     },
+    ...documentationCheck(policy, base, id(ENGINE_CHECKS.documentation)),
   ]
 }
 

@@ -45,11 +45,13 @@ import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-signoff'
 import type { CheckId, StandardCheck } from '@deepseek-ai/dsh-verification/types'
 import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../../../scripts/enterprise-tickets.ts'
+import type { QueuePolicy } from '../../../../../scripts/enterprise-tickets.ts'
 import { ROSTER_PATH } from '../../../../../scripts/enterprise-roster.ts'
 import type { Roster } from '../../../../../scripts/enterprise-roster.ts'
 import {
   departmentKey,
   departmentObjective,
+  documentationCheck,
   LEDGER_PATH,
   parseLedger,
   readQueue,
@@ -233,7 +235,13 @@ function artefactOf(tickets: readonly Ticket[]): string {
  * repeats every ticket's acceptance over the merged head and gates the clean
  * tree.
  */
-function programSpec(repo: string, tickets: readonly Ticket[], base: string, implementer: ImplementerKind): ProgramSpec {
+function programSpec(
+  repo: string,
+  tickets: readonly Ticket[],
+  base: string,
+  implementer: ImplementerKind,
+  policy: QueuePolicy,
+): ProgramSpec {
   const merged: StandardCheck[] = tickets.flatMap(ticket => ticket.acceptance.map(check => ({
     id: `merged-${departmentKey(ticket.id)}-${check.id}` as CheckId,
     outcome: `acceptance ${check.id} of ${ticket.id} exits 0 on the merged head`,
@@ -251,10 +259,10 @@ function programSpec(repo: string, tickets: readonly Ticket[], base: string, imp
       isolation: 'none',
       budget: { maxTotalTokens: ticket.budget.maxTotalTokens, maxWallMs: ticket.budget.maxWallMs },
       dependsOn: [],
-      checks: ticketChecks(ticket, base),
+      checks: ticketChecks(ticket, base, policy),
     })),
     integration: {
-      checks: merged,
+      checks: [...merged, ...documentationCheck(policy, base, 'merged-engine-documentation' as CheckId)],
       gates: ['test -z "$(git status --porcelain)"', `git diff --check ${base} HEAD`],
     },
   }
@@ -493,10 +501,13 @@ function unship(repo: string, base: string, runs: readonly TicketRun[], outcome:
 
 /**
  * Re-run every assembled ticket's acceptance over the assembled tree, which is
- * what a shipped commit is certified on.
+ * what a shipped commit is certified on, then the queue's documentation gate
+ * over the whole assembled change.
+ * @param base - the revision the assembled commits follow, for the documentation gate's diff.
+ * @param policy - the queue's policy, whose documentation gate runs last.
  * @returns the first failing check as `<ticket> <check>: <output>`, or `undefined` when every check passed.
  */
-function recertify(repo: string, runs: readonly TicketRun[]): string | undefined {
+function recertify(repo: string, runs: readonly TicketRun[], base: string, policy: QueuePolicy): string | undefined {
   installOffline(repo)
   for (const run of runs) {
     if (run.commit === null) continue
@@ -504,6 +515,10 @@ function recertify(repo: string, runs: readonly TicketRun[]): string | undefined
       const result = runCheck(repo, check.run)
       if (!result.ok) return `${run.ticket.id} ${check.id}: ${result.output.slice(-1000)}`
     }
+  }
+  for (const check of documentationCheck(policy, base, 'engine-documentation' as CheckId)) {
+    const result = runCheck(repo, check.run)
+    if (!result.ok) return `${check.id}: ${result.output.slice(-1000)}`
   }
   return undefined
 }
@@ -531,7 +546,8 @@ for (const name of Object.keys(process.env)) {
 }
 
 const { repo, base } = cloneTip(config)
-const tickets = readQueue(repo, config.openPolicy ? OPEN_QUEUE_POLICY : HARNESS_QUEUE_POLICY)
+const policy = config.openPolicy ? OPEN_QUEUE_POLICY : HARNESS_QUEUE_POLICY
+const tickets = readQueue(repo, policy)
 const ledgerFile = join(repo, LEDGER_PATH)
 const ledgerBefore = parseLedger(existsSync(ledgerFile) ? readFileSync(ledgerFile, 'utf8') : '')
 const selected = selectTickets(tickets, ledgerBefore, config.selection)
@@ -540,7 +556,7 @@ if (selected.length === 0) {
   if (!config.keep) rmSync(config.scratch, { recursive: true, force: true })
   process.exit(0)
 }
-const spec = programSpec(repo, selected, base, config.implementer)
+const spec = programSpec(repo, selected, base, config.implementer, policy)
 const programId = programIdFor(programSpecDigest(resolveProgramSpec(spec)))
 const runs: TicketRun[] = selected.map(ticket => ({
   ticket,
@@ -698,7 +714,7 @@ if (prepared !== undefined) {
           }
         }
         if (head !== base) {
-          const failed = recertify(repo, candidates)
+          const failed = recertify(repo, candidates, base, policy)
           if (failed !== undefined) head = unship(repo, base, candidates, 'checks-failed', `acceptance failed over the assembled tree: ${failed}`)
         }
       } catch (error: unknown) {
@@ -801,7 +817,7 @@ try {
           } else {
             head = git(repo, 'rev-parse', 'HEAD')
             rereadCommits(repo, tip, runs)
-            const failed = recertify(repo, runs)
+            const failed = recertify(repo, runs, tip, policy)
             if (failed !== undefined) head = unship(repo, tip, runs, 'checks-failed', `the tip moved to ${tip}; acceptance failed over the rebased tree: ${failed}`)
           }
         }

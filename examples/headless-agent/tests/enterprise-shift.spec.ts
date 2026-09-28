@@ -5,8 +5,11 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import type { CheckId } from '@deepseek-ai/dsh-verification/types'
+import { HARNESS_QUEUE_POLICY, OPEN_QUEUE_POLICY } from '../../../scripts/enterprise-tickets.ts'
 import {
   departmentKey,
+  documentationCheck,
   ENGINE_CHECKS,
   parseLedger,
   readReviewVerdict,
@@ -90,13 +93,20 @@ describe('ticket selection', () => {
 
 describe('the standard a ticket compiles to', () => {
   it('runs the acceptance, then requires a commit, the scope, and a clean diff', () => {
-    const checks = ticketChecks(ticket('T-0007', 1), 'abc123')
+    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY)
     expect(checks.map(check => check.id)).toEqual(['runs', ENGINE_CHECKS.committed, ENGINE_CHECKS.scope, ENGINE_CHECKS.whitespace])
     expect(checks[1]?.run).toBe('test "$(git rev-parse HEAD)" != "$(git rev-parse abc123)"')
     expect(checks[2]?.run).toBe('test -z "$(git diff --name-only abc123 HEAD -- . \':(exclude)tools/\' \':(exclude)tooling/extra.mjs\')"')
     expect(checks[3]?.run).toBe('git diff --check abc123 HEAD')
-    expect(ticketChecks(ticket('T-0007', 1), 'abc123', 'merged-').map(check => check.id)[0]).toBe('merged-runs')
+    expect(ticketChecks(ticket('T-0007', 1), 'abc123', OPEN_QUEUE_POLICY, 'merged-').map(check => check.id)[0]).toBe('merged-runs')
     expect(departmentKey('T-0007')).toBe('t-0007')
+  })
+
+  it('carries the queue\'s documentation gate over a change that touches a Markdown document', () => {
+    const checks = ticketChecks(ticket('T-0007', 1), 'abc123', HARNESS_QUEUE_POLICY)
+    expect(checks.at(-1)?.id).toBe(ENGINE_CHECKS.documentation)
+    expect(checks.at(-1)?.run).toBe("! git diff --name-only abc123 HEAD -- '*.md' | grep -q . || pnpm run verify-translation-pairing")
+    expect(documentationCheck(OPEN_QUEUE_POLICY, 'abc123', 'x' as CheckId)).toEqual([])
   })
 })
 

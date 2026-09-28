@@ -37,12 +37,24 @@ export interface QueuePolicy {
   readonly requiredRuns: readonly string[]
   /** Fragments at least one acceptance command must contain, each with the rule it stands for. */
   readonly requiredFragments: readonly { readonly fragment: string; readonly rule: string }[]
+  /**
+   * Command line the shift engine runs at the worktree root over every change
+   * that touches a Markdown document, whatever the ticket's own acceptance
+   * says; absent for a queue whose repository has no documentation gate.
+   */
+  readonly documentationRun?: string
 }
 
-/** This repository's queue: every ticket runs the typecheck and the package's per-file coverage. */
+/**
+ * This repository's queue: every ticket runs the typecheck and the package's
+ * per-file coverage, and a change to any Markdown document passes the
+ * bilingual pairing gate, which a department editing a README pair without
+ * re-recording it would otherwise ship past the ticket's acceptance.
+ */
 export const HARNESS_QUEUE_POLICY: QueuePolicy = {
   requiredRuns: ['pnpm run typecheck'],
   requiredFragments: [{ fragment: '--coverage', rule: "the package's per-file coverage run" }],
+  documentationRun: 'pnpm run verify-translation-pairing',
 }
 
 /** A queue that mandates nothing beyond the ticket's own checks, for a repository without this one's gates. */
