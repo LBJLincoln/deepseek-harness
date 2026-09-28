@@ -372,6 +372,16 @@ interface SubagentResult {
   /** Why the run ended. A non-`completed` reason means `output` may be partial. */
   readonly stopReason: SubagentStopReason
   /**
+   * The facts of the failure that ended a run with `stopReason: 'error'`, when
+   * the backend classified it into the LLM seam's vocabulary: the seam's
+   * provider-neutral code and message, with the provider's status and stated
+   * retry delay when it gave them. A code of `QUOTA` says the child's provider
+   * refused to serve until its own state changes — a spent usage window or
+   * balance — which is a fact about the route rather than about this task.
+   * Absent for an uncoded failure and for every other stop reason.
+   */
+  readonly failure?: LlmFailure
+  /**
    * The model the child's own backend states it ran, as that backend names it:
    * the harness model id of an in-process child's route, the product's full
    * model id for a foreign agent that reports one. It is what the backend

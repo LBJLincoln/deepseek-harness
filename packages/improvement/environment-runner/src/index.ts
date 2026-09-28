@@ -43,8 +43,8 @@ import type {
 } from '@deepseek-ai/dsh-environments/types'
 import type {} from '@deepseek-ai/dsh-goal'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
-import { assertNever, createUserMessage, HarnessError } from '@deepseek-ai/dsh-llm'
-import type { TokenUsage } from '@deepseek-ai/dsh-llm'
+import { assertNever, createUserMessage, HarnessError, QUOTA_EXCEEDED_CODE } from '@deepseek-ai/dsh-llm'
+import type { LlmFailure, TokenUsage } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-read-barrier'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
@@ -105,6 +105,7 @@ export type EnvironmentRunErrorCode =
   | 'ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED'
   | 'ENVIRONMENT_RUN_PRESET_UNAVAILABLE'
   | 'ENVIRONMENT_RUN_UNKNOWN_PRESET'
+  | 'ENVIRONMENT_RUN_ROUTE_LIMIT'
 
 /** Error returned by the environment runner boundary. */
 export class EnvironmentRunError extends HarnessError {
@@ -117,6 +118,55 @@ export class EnvironmentRunError extends HarnessError {
   constructor(message: string, code: EnvironmentRunErrorCode) {
     super(message, code)
   }
+}
+
+/** The message a route-limited run ends with: the route, the attempt, the provider's own words, and the reset when stated. */
+function routeLimitMessage(route: EnvironmentRunModel, attempt: number, failure: LlmFailure, resetsAt: number | undefined): string {
+  const reset = resetsAt === undefined ? '' : `; its limit lifts at ${new Date(resetsAt).toISOString()}`
+  return `route ${route.provider}/${route.model} cannot serve attempt ${attempt}: ${failure.message}${reset}`
+}
+
+/**
+ * The end of a run its model route refused to serve, thrown under
+ * `ENVIRONMENT_RUN_ROUTE_LIMIT` with the facts the `environment/route-limit`
+ * event recorded, so a scheduler stops the route on the code and names the
+ * reset without parsing the message.
+ */
+export class EnvironmentRouteLimitError extends EnvironmentRunError {
+  /** Epoch milliseconds the route stated its limit lifts at, absent when it stated none. */
+  readonly resetsAt?: number
+
+  /**
+   * @param route - the route the cut attempt ran on.
+   * @param attempt - one-based attempt the refusal cut.
+   * @param failure - the refusing failure as the seam classified it.
+   * @param resetsAt - epoch milliseconds the route stated its limit lifts at, or `undefined`.
+   */
+  constructor(
+    readonly route: EnvironmentRunModel,
+    readonly attempt: number,
+    readonly failure: LlmFailure,
+    resetsAt: number | undefined,
+  ) {
+    super(routeLimitMessage(route, attempt, failure, resetsAt), 'ENVIRONMENT_RUN_ROUTE_LIMIT')
+    if (resetsAt !== undefined) this.resetsAt = resetsAt
+  }
+}
+
+/**
+ * Whether a failure the seam classified says the route serves no request
+ * until its own state changes, which is the one failure the runner ends a
+ * run on instead of validating the tree the attempt left.
+ * @param failure - the failure a turn or a child run ended with, if any.
+ * @returns true for the seam's `QUOTA` code.
+ */
+function refusesRoute(failure: LlmFailure | undefined): failure is LlmFailure {
+  return failure?.code === QUOTA_EXCEEDED_CODE
+}
+
+/** The last `turn/end` appended at or after `since`, which is how the turn a delivery drove ended. */
+function lastTurnEnd(events: readonly SessionEvent[], since: number): SessionEvent<'turn/end'> | undefined {
+  return events.slice(since).findLast((event): event is SessionEvent<'turn/end'> => event.type === 'turn/end')
 }
 
 /** Deployment choices of the runner, validated from `cordis.yml`. */
@@ -1198,6 +1248,12 @@ export class EnvironmentRunner extends Service {
    *   confine, or has no budget policy to bound, an agent preset no composed
    *   roster supplies, an unusable workspace or fixture, an implementer that
    *   replaced the goal, or a lost standard.
+   * @throws {@link EnvironmentRouteLimitError} when an attempt's model route
+   *   refused to serve until its own state changes — the seam's `QUOTA`
+   *   failure on a route turn or a delegated child — after the session
+   *   recorded the `environment/route-limit` and was flushed; the attempt is
+   *   never validated, so the cell is an error of the route, not a failed
+   *   certificate.
    */
   async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport> {
     const definition = this.ctx.environments.get(request.environment)
@@ -1578,8 +1634,8 @@ export class EnvironmentRunner extends Service {
           // measures and stops it — at the cell's caps, and at the attempt's
           // share of them while this bound stands — without the runner asking;
           // the review turn's steps are measured the same way.
-          await this.deliver(agent, delivery.work.text)
-          if (delivery.review !== undefined) await this.deliver(agent, delivery.review.text)
+          await this.deliverOrHalt(agent, delivery, delivery.work.text)
+          if (delivery.review !== undefined) await this.deliverOrHalt(agent, delivery, delivery.review.text)
           return 'ran'
         case 'subagent':
           return await this.delegate(agent, implementer, delivery, budget)
@@ -1596,6 +1652,47 @@ export class EnvironmentRunner extends Service {
   private async deliver(agent: Agent, text: string): Promise<void> {
     agent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
     await agent.whenIdle()
+  }
+
+  /**
+   * Deliver one turn to the route implementer, then end the run if the route
+   * refused it. A turn that ended in the seam's `QUOTA` failure spent no model
+   * step on the task, so the tree it left measures nothing, and every later
+   * step on this route would be refused the same way until the route's own
+   * state changes; validating it would record a failed certificate for a run
+   * the route, not the task, ended.
+   */
+  private async deliverOrHalt(agent: Agent, delivery: AttemptDelivery, text: string): Promise<void> {
+    const since = agent.session.events.length
+    await this.deliver(agent, text)
+    const ended = lastTurnEnd(agent.session.events, since)
+    if (ended === undefined) return
+    const { reason } = ended.data
+    if (reason.kind !== 'error' || !refusesRoute(reason.error)) return
+    this.haltAtRouteLimit(agent, delivery, reason.error, ended.time)
+  }
+
+  /**
+   * Record that the attempt's route refused to serve and end the run. The
+   * reset is the failure's stated delay measured from `at` — the refusing
+   * turn's own end for a route attempt, the child's settlement for a delegated
+   * one — so the record names an instant a scheduler can wait for.
+   * @param agent - the cell agent whose session records the refusal.
+   * @param delivery - the attempt the refusal cut, with the route it ran on.
+   * @param failure - the refusing failure as the seam classified it.
+   * @param at - epoch milliseconds the refusal was observed at.
+   */
+  private haltAtRouteLimit(agent: Agent, delivery: AttemptDelivery, failure: LlmFailure, at: number): never {
+    const { model: route, attempt } = delivery
+    const resetsAt = failure.providerRetryAfterMs === undefined ? undefined : at + failure.providerRetryAfterMs
+    agent.session.append('environment/route-limit', {
+      attempt,
+      provider: route.provider,
+      model: route.model,
+      failure,
+      ...resetsAt === undefined ? {} : { resetsAt },
+    })
+    throw new EnvironmentRouteLimitError(route, attempt, failure, resetsAt)
   }
 
   /**
@@ -1662,8 +1759,9 @@ export class EnvironmentRunner extends Service {
     } catch (error: unknown) {
       // A provider rejects a start its signal already aborted. When the cell's
       // own deadline is what aborted it, the attempt ended at the wall cap with
-      // no child to record; anything else is the provider's failure.
-      if (!deadline.expired) throw error
+      // no child to record; anything else is the provider's failure, and a
+      // route's refusal ends the run whatever the deadline did after it.
+      if (!deadline.expired || error instanceof EnvironmentRouteLimitError) throw error
     } finally {
       deadline.dispose()
     }
@@ -1712,6 +1810,7 @@ export class EnvironmentRunner extends Service {
         provider: implementer.provider,
         runId: run.id,
         stopReason: deadline.expired ? 'budget-deadline' : result.stopReason,
+        ...result.failure === undefined ? {} : { failure: result.failure },
         ...result.structured === undefined ? {} : { structured: result.structured },
         ...usage === undefined ? {} : { usage },
         ...result.reportedModel === undefined ? {} : { reportedModel: result.reportedModel },
@@ -1728,6 +1827,10 @@ export class EnvironmentRunner extends Service {
         ...spent === undefined ? {} : { usage: spent },
         ...result.reportedCostUsd === undefined ? {} : { costUsd: result.reportedCostUsd },
       })
+      // A child its route refused is recorded like any other, and then the run
+      // ends: the tree it left measures nothing, and the next child on this
+      // route would be refused the same way.
+      if (refusesRoute(result.failure)) this.haltAtRouteLimit(agent, delivery, result.failure, Date.now())
     } finally {
       await run.dispose()
     }

@@ -13,9 +13,11 @@ import {
   type PermissionMode,
   type Query,
   type SDKMessage,
+  type SDKRateLimitInfo,
   type SDKResultMessage,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
+import { isQuotaExceededError, LlmError, QUOTA_EXCEEDED_CODE, quotaRetryAfter } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import {
@@ -116,22 +118,36 @@ export function textTask(prompt: readonly ContentBlock[]): string {
 }
 
 /**
- * Strictly derive the only SDK result that can complete a shared run.
+ * Strictly derive the only SDK result that can complete a shared run. A result
+ * the installation's usage limit refused — the CLI published a rate-limit
+ * event in the `rejected` state, or the result's text is the product's
+ * usage-limit notice — throws the seam's `QUOTA` failure carrying the delay
+ * until the stated reset (the event's `resetsAt` in unix seconds, else the
+ * notice's clock time), because that refusal is a state of the route rather
+ * than of this task; every other refusal throws a plain error.
  * @param message - an official discriminated result union.
+ * @param rateLimit - the last rate-limit event the run published, when it published one.
+ * @param now - epoch milliseconds the result was read at; the reset delay is measured from it.
  * @returns exact final text for a successful, non-error result.
  */
-export function successfulResult(message: SDKResultMessage): string {
-  if (
-    message.subtype !== 'success'
-    || message.is_error
-    || message.result.trim().length === 0
-  ) {
-    const detail = message.subtype === 'success'
-      ? 'success result was marked as an error or contained no answer'
-      : message.errors.join('; ') || message.subtype
-    throw new Error(`subagent-claude-code: Claude Code failed: ${detail}`)
+export function successfulResult(
+  message: SDKResultMessage,
+  rateLimit?: SDKRateLimitInfo,
+  now: number = Date.now(),
+): string {
+  if (message.subtype === 'success' && !message.is_error && message.result.trim().length > 0) return message.result
+  const reported = message.subtype === 'success' ? message.result : message.errors.join('; ')
+  if (rateLimit?.status === 'rejected' || isQuotaExceededError(reported)) {
+    throw new LlmError(
+      `subagent-claude-code: Claude Code refused the run at its usage limit: ${reported}`,
+      QUOTA_EXCEEDED_CODE,
+      quotaRetryAfter(reported, now, rateLimit?.resetsAt),
+    )
   }
-  return message.result
+  const detail = message.subtype === 'success'
+    ? 'success result was marked as an error or contained no answer'
+    : reported || message.subtype
+  throw new Error(`subagent-claude-code: Claude Code failed: ${detail}`)
 }
 
 /**
@@ -146,10 +162,14 @@ export async function consumeClaudeQuery(
   observe?: (message: SDKMessage) => void,
 ): Promise<SubagentResult> {
   let answer: string | undefined
+  // The newest rate-limit state the installation published; a `rejected` one
+  // is the structured account of a usage-limit refusal.
+  let rateLimit: SDKRateLimitInfo | undefined
   for await (const message of query) {
     observe?.(message)
+    if (message.type === 'rate_limit_event') rateLimit = message.rate_limit_info
     if (message.type !== 'result') continue
-    answer = successfulResult(message)
+    answer = successfulResult(message, rateLimit)
   }
   if (answer === undefined) {
     throw new Error('subagent-claude-code: Claude Code ended without a result')

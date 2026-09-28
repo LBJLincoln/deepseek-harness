@@ -10,6 +10,7 @@ import {
   buildLedgerLine,
   decideIteration,
   describePlan,
+  describeRouteLimits,
   formatLedgerLine,
   formatPlansListing,
   formatRunBanner,
@@ -339,6 +340,20 @@ describe('resolveRecordName', () => {
     // on that date, and this plan holds a record on another date.
     const night = new Date('2026-09-21T22:09:51.509Z')
     expect(resolveRecordName(night, 'e9-preset-craft-vs-plain-t5', readdirSync(RECORDS_ROOT))).toBe('2026-09-21-bench-e9-preset-craft-vs-plain-t5')
+  })
+})
+
+describe('describeRouteLimits', () => {
+  it('names each route a status reports stopped at its limit, with the reset when the provider stated one', () => {
+    const resetsAt = Date.UTC(2026, 8, 27, 20, 20)
+    expect(describeRouteLimits({
+      report: { routeLimits: [{ provider: 'claude-code', model: 'sonnet', message: "You've hit your session limit · resets 8:20pm (UTC)", resetsAt }] },
+    })).toBe("route claude-code/sonnet stopped at its limit: You've hit your session limit · resets 8:20pm (UTC); its limit lifts at 2026-09-27T20:20:00.000Z")
+    expect(describeRouteLimits({
+      result: { routeLimits: [{ provider: 'deepseek', model: 'v4', message: 'insufficient balance' }, { provider: 'a', model: 'b', message: 'm' }] },
+    })).toBe('route deepseek/v4 stopped at its limit: insufficient balance; route a/b stopped at its limit: m')
+    expect(describeRouteLimits({ report: { routeLimits: [] } })).toBeUndefined()
+    expect(describeRouteLimits({})).toBeUndefined()
   })
 })
 

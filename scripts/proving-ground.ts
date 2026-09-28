@@ -613,6 +613,43 @@ export function readRecordedReading(recordDir: string, record: string): Recorded
   throw new Error(`record ${record} holds neither an experiment result nor a fleet leaderboard`)
 }
 
+/** One route a run's `status.json` names as stopped at its limit, as the fleet and the experiments record it. */
+interface RouteLimitField {
+  readonly provider?: string
+  readonly model?: string
+  readonly message?: string
+  readonly resetsAt?: number
+}
+
+/** The fields of a run's `status.json` that name the routes whose limit stopped it: a fleet's `report`, an experiment's `result`. */
+export interface RunStatusRouteLimits {
+  readonly report?: { readonly routeLimits?: readonly RouteLimitField[] }
+  readonly result?: { readonly routeLimits?: readonly RouteLimitField[] }
+}
+
+/**
+ * The routes a run's `status.json` names as stopped at their limit, as one
+ * clause a failed ledger line carries: each route with the provider's own
+ * words and, when the provider stated it, the instant its limit lifts.
+ * @param status - the parsed `status.json` of a fleet or experiment run.
+ * @returns the clause, or `undefined` when the status names no route limit.
+ */
+export function describeRouteLimits(status: RunStatusRouteLimits): string | undefined {
+  const limits = status.report?.routeLimits ?? status.result?.routeLimits ?? []
+  if (limits.length === 0) return undefined
+  return limits.map((limit) => {
+    const reset = typeof limit.resetsAt === 'number' ? `; its limit lifts at ${new Date(limit.resetsAt).toISOString()}` : ''
+    return `route ${String(limit.provider)}/${String(limit.model)} stopped at its limit: ${String(limit.message)}${reset}`
+  }).join('; ')
+}
+
+/** The route-limit clause of a run directory's `status.json`, or `undefined` when the driver wrote none or it names no limit. */
+function routeLimitReason(outDir: string): string | undefined {
+  const statusPath = join(outDir, 'status.json')
+  if (!existsSync(statusPath)) return undefined
+  return describeRouteLimits(JSON.parse(readFileSync(statusPath, 'utf8')) as RunStatusRouteLimits)
+}
+
 /**
  * The schedule `--dry-run` prints: the queue and one line per selected entry, in
  * run order.
@@ -980,9 +1017,12 @@ async function runQueueEntry(identity: IterationIdentity): Promise<LedgerLine> {
     head: identity.head,
   })
   if (driverCode !== 0) {
+    // A driver that a route's limit stopped still wrote its status, so the
+    // ledger names the route and the reset rather than an exit code alone.
+    const limits = routeLimitReason(outDir)
     return buildLedgerLine(identity, {
       kind: 'failed',
-      reason: `the ${entry.kind} driver exited ${driverCode}; the run directory is ${relative(REPO_ROOT, outDir)}`,
+      reason: `the ${entry.kind} driver exited ${driverCode}${limits === undefined ? '' : `: ${limits}`}; the run directory is ${relative(REPO_ROOT, outDir)}`,
     })
   }
   const record = resolveRecordName(now, planLabel, readdirSync(RECORDS_ROOT))

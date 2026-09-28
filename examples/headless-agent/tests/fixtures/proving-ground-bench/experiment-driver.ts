@@ -121,6 +121,17 @@ try {
   const status = { type: 'result', plan: plan.name, environments: selected, startedAt, endedAt: new Date().toISOString(), result, rows: page.json.rows, facts, exported }
   await writeFile('status.json', `${JSON.stringify(status, null, 2)}\n`)
   process.stdout.write(`${JSON.stringify(status)}\n`)
+  // A route that refused to serve until its own state changes stopped the
+  // pair short: the result above keeps every cell the wall cut or left
+  // unstarted as an unpaired error, and the run exits non-zero naming the
+  // route and, when the provider stated it, the instant its limit lifts.
+  if (result.routeLimits.length > 0) {
+    for (const limit of result.routeLimits) {
+      const reset = limit.resetsAt === undefined ? '' : `; its limit lifts at ${new Date(limit.resetsAt).toISOString()}`
+      process.stderr.write(`experiment-driver: route ${limit.provider}/${limit.model} stopped at its limit: ${limit.message}${reset}\n`)
+    }
+    process.exitCode = 1
+  }
 } finally {
   await ctx.fiber.dispose()
 }

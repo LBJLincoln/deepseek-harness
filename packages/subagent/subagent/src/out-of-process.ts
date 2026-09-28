@@ -13,7 +13,8 @@
 
 import { accessSync, constants, statSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
-import type { ContentBlock } from '@deepseek-ai/dsh-llm'
+import { HarnessError, LlmError } from '@deepseek-ai/dsh-llm'
+import type { ContentBlock, LlmFailure } from '@deepseek-ai/dsh-llm'
 import type { SubagentCapabilities, SubagentResult, SubagentRun, SubagentStopReason } from './types.ts'
 
 /**
@@ -173,10 +174,22 @@ export interface RunResultSettlement {
 }
 
 /**
+ * The seam-coded facts of one rejection, when the backend classified it: an
+ * `LlmError` keeps its validated facts, any other harness error its code and
+ * message, and an uncoded error states none.
+ */
+function failureOf(error: unknown): { failure?: LlmFailure } {
+  if (error instanceof LlmError) return { failure: error.failure }
+  if (error instanceof HarnessError) return { failure: { message: error.message, code: error.code } }
+  return {}
+}
+
+/**
  * Settle an out-of-process run result under the seam contract: `result` never
  * rejects after publication. A normally completed or rejected attempt resolves
  * as `aborted` when cancellation already settled locally; another rejection is
- * flattened to `stopReason: 'error'` through the contained diagnostic sink.
+ * flattened to `stopReason: 'error'` through the contained diagnostic sink,
+ * carrying the rejection's seam-coded facts as `failure` when it had a code.
  * The abort listener is removed on every path.
  * @param parts - the attempt, output snapshot, cancellation state, sink, and signal wiring.
  * @returns the terminal result (never a rejection).
@@ -196,7 +209,7 @@ export async function settleRunResult(parts: RunResultSettlement): Promise<Subag
     } catch {
       // The diagnostic sink cannot reject the run result.
     }
-    return { output: parts.collectOutput(), stopReason: 'error' }
+    return { output: parts.collectOutput(), stopReason: 'error', ...failureOf(error) }
   } finally {
     parts.signal.removeEventListener('abort', parts.onAbort)
   }

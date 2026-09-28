@@ -10,6 +10,8 @@
 
 SDK 接收由文本块原样拼接成的任务。提供方会完整迭代 SDK 消息流，而且只接受满足以下条件的 `result` 消息：其 `subtype: "success"`、`is_error: false` 且 `result` 非空白，之后迭代器还须正常结束。所有 SDK 错误子类型、标记为错误的成功消息、缺失答案、迭代器失败、协议失败或进程失败都映射为 `error`；该提供方不会产生 `max-tokens` 或 `refusal`。
 
+有一种 `error` 会被进一步分类，因为它是安装的状态而非任务的状态：订阅的用量限制。被安装以这种方式拒绝的 run——CLI 发布了 `status: 'rejected'` 的 `rate_limit_event`，或结果文本就是产品的提示（`You've hit your session limit · resets 8:20pm (UTC)`，2026-09-27 那次运行在撞墙之后的每次查询上记录下的形态）——在 `stopReason: 'error'` 之外以 `failure: { code: 'QUOTA', message, providerRetryAfterMs? }` 结算，延迟以事件的 `resetsAt`（unix 秒）或产品说明时的提示 UTC 钟点计量。事件是结构化信号，优先于文本；缝的共享 `isQuotaExceededError` 识别这一族提示。在该提供方上启动大量子 agent 的调用方在第一个这样的失败上停止（[运行器](../../improvement/environment-runner/README.md#a-route-limit-ends-the-run)结束该 cell，并把它记录为错误而非失败的证书）；其他任何 `error` 都不携带 `failure`。
+
 本地取消会在结果竞态中胜出并映射为 `aborted`。`dispose()`（资源释放）具有幂等性：它会中止此次运行、请求 SDK query 关闭、调用共享的进程树逐级终止机制，并等待整棵进程树退出。SDK 的优雅关闭只表达协议意图；进程是否完全停稳仍以子进程句柄为准。结果失败与独立的清理失败仍彼此分离。
 
 在 spawn 任何进程之前，`start()` 会询问已组合的 [read barrier（读屏障）](../../verification/read-barrier/README.md)：这个进程外子 agent 是否允许运行。对部署声称 `process` 或 `host` 隔离的 implementer 会话，会以 `SubagentError` 的 `READ_BARRIER_REFUSED` 拒绝，因为外部 agent 自带工具栈，本进程安装的任何围栏都触及不到它的读取；在 `none` 声明下不拒绝任何启动。提供方会向 read barrier 登记该拒绝，因此 scope 普查会报告 `subagent`。

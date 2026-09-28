@@ -117,7 +117,7 @@ class StubFleet extends Service {
       }
       this.ctx.emit('fleet/cell', payload)
     }
-    return { group, cells: [], leaderboard: [], spend: { inputTokens, outputTokens: 0 } }
+    return { group, cells: [], leaderboard: [], spend: { inputTokens, outputTokens: 0 }, routeLimits: [] }
   }
 }
 

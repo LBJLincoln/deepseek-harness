@@ -111,11 +111,31 @@ export type FleetCellOutcome =
 
 /**
  * Stable codes the fleet records on a cell it never handed to the runner:
- * `FLEET_ROUTE_BREAKER_OPEN` for a route the circuit breaker stopped
- * scheduling, `FLEET_TOKEN_CEILING_REACHED` for a cell left unstarted once the
- * plan's reported spend crossed its ceiling.
+ * `FLEET_ROUTE_LIMIT_REACHED` for a cell on a route whose provider refused to
+ * serve until its own state changes — or, in a paired run, on any route once
+ * one is refused that way — `FLEET_ROUTE_BREAKER_OPEN` for a route the circuit
+ * breaker stopped scheduling, `FLEET_TOKEN_CEILING_REACHED` for a cell left
+ * unstarted once the plan's reported spend crossed its ceiling.
  */
-export type FleetCellErrorCode = 'FLEET_ROUTE_BREAKER_OPEN' | 'FLEET_TOKEN_CEILING_REACHED'
+export type FleetCellErrorCode = 'FLEET_ROUTE_LIMIT_REACHED' | 'FLEET_ROUTE_BREAKER_OPEN' | 'FLEET_TOKEN_CEILING_REACHED'
+
+/**
+ * One model route a run stopped scheduling because its provider refused to
+ * serve until its own state changes: a spent usage window or balance, which
+ * the runner ends a cell on with `ENVIRONMENT_RUN_ROUTE_LIMIT`. The first cell
+ * a route refuses that way raises it; the run records every later cell of the
+ * route as `FLEET_ROUTE_LIMIT_REACHED` without starting it.
+ */
+export interface FleetRouteLimit {
+  readonly provider: string
+  readonly model: string
+  /** The seam code of the refusing failure, `QUOTA`. */
+  readonly code: string
+  /** The provider's own words for the refusal, as the cell's failure carried them. */
+  readonly message: string
+  /** Epoch milliseconds the route stated its limit lifts at, absent when it stated none. */
+  readonly resetsAt?: number
+}
 
 /**
  * A cell that produced no report. The code is the thrown harness error's when
@@ -218,6 +238,14 @@ export interface FleetRunReport {
   readonly leaderboard: readonly LeaderboardRow[]
   /** Model usage of the whole run; the same sum `tokenCeiling` is measured against. */
   readonly spend: FleetSpend
+  /**
+   * The routes whose limit stopped scheduling in this run, in the order they
+   * were hit; empty for a run no route refused. A paired run's two reports
+   * carry the same list, because a limit on either plan's route stops the
+   * whole batch. A driver that finds one exits non-zero naming it, since the
+   * plan was not measured to its end.
+   */
+  readonly routeLimits: readonly FleetRouteLimit[]
 }
 
 /**

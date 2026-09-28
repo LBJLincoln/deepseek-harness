@@ -8,7 +8,7 @@
 
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentId, EnvironmentRunModel, EnvironmentRunSelfReview, EnvironmentRunStamp } from '@deepseek-ai/dsh-environments/types'
-import type { TokenUsage } from '@deepseek-ai/dsh-llm'
+import type { LlmFailure, TokenUsage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type { SubagentStopReason } from '@deepseek-ai/dsh-subagent'
 import type { CheckResult, VerificationCertificate } from '@deepseek-ai/dsh-verification/types'
@@ -31,7 +31,41 @@ declare module '@deepseek-ai/dsh-session/types' {
      * an alias resolved to.
      */
     'environment/delegation': EnvironmentDelegation
+    /**
+     * The end of a run whose model route refused to serve: the attempt the
+     * refusal cut, the route, the failure as the LLM seam classified it, and
+     * the instant the route stated its limit lifts. Appended once, right
+     * before the run ends with `ENVIRONMENT_RUN_ROUTE_LIMIT` — after the
+     * `turn/end` of a route attempt or the `environment/delegation` of a
+     * delegated one — and never followed by a validation of that attempt, so
+     * a fold reading it counts the cell as an error of the route rather than
+     * as a failed certificate. Log-only; it never enters model history.
+     */
+    'environment/route-limit': EnvironmentRouteLimit
   }
+}
+
+/**
+ * Durable record of a run its model route refused to serve. The route's own
+ * state, not the task, ended the run: the seam's `QUOTA` failure says the
+ * route serves nothing until its usage window resets or its balance is
+ * restored, so the attempt it cut was never validated.
+ */
+export interface EnvironmentRouteLimit {
+  /** One-based attempt the refusal cut. */
+  readonly attempt: number
+  /** Provider route the attempt ran on: the rung's, or the stamped model's for a run without a ladder. */
+  readonly provider: string
+  /** Model of that route. */
+  readonly model: string
+  /** The refusing failure as the seam classified it: code `QUOTA`, the provider's own message, and the delay it stated. */
+  readonly failure: LlmFailure
+  /**
+   * Epoch milliseconds the route stated its limit lifts at — the failure's
+   * `providerRetryAfterMs` measured from the moment the refusal was recorded.
+   * Absent when the provider stated no reset.
+   */
+  readonly resetsAt?: number
 }
 
 /**
@@ -103,6 +137,13 @@ export interface EnvironmentDelegation {
   readonly runId: SessionId
   /** How the child run ended. */
   readonly stopReason: EnvironmentDelegationStopReason
+  /**
+   * The seam-coded facts of the failure that ended a child run in `error`,
+   * exactly as the provider settled them; absent for an uncoded failure and
+   * for every other stop reason. A `QUOTA` code is a refusal of the route the
+   * child ran on, and the run ends on it with an `environment/route-limit`.
+   */
+  readonly failure?: LlmFailure
   /** Structured result the child returned, absent when it returned none. */
   readonly structured?: unknown
   /**

@@ -51,7 +51,8 @@
 
 | 字段 | 来源 |
 |---|---|
-| `reward`、`rewardBasis` | 轨迹奖励折叠，读取 `goal/change` 与各 `verification/*` 事件 |
+| `reward`、`rewardBasis` | 轨迹奖励折叠，读取 `goal/change`、各 `verification/*` 事件与 `environment/route-limit` |
+| `routeLimit` | 结束该次运行的路由拒绝，来自运行器的 `environment/route-limit`（[`@deepseek-ai/dsh-environment-runner`](../environment-runner/README.md#a-route-limit-ends-the-run)）：被它切断的尝试、路由、缝的 code 与提供方的消息，以及路由声明其限制解除的时刻（若它声明了）；路由把会话服务到底时缺省。它存在时，`reward` 以 `route-limit` 依据为 `null` |
 | `certified`、`certificateRevision`、`certificateExecutor` | 验证折叠中覆盖当前标准修订的证书，以及它所引运行的执行者 |
 | `parity` | 最后一条 `verification/run` 的 `parity`；该次运行没有度量用例时不存在 |
 | `tamper` | 最后一条 `verification/run` 的 `verdict`；会话一次运行也没有记录时为 `not-instrumented` |
@@ -91,7 +92,7 @@
 
 ## Scoreboard rows
 
-一行是一条模型路由、一条尝试阶梯、一个实现者与一个 agent preset 在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨阶梯、实现者、preset、隔离级别、该划分或跨区求平均，因此第二次尝试升级到别的模型的单元格，绝不会与第一档相同、没有阶梯的单元格算作同一行，自审过其工作的档位绝不会与未自审的档位算作同一行，同一条路由上的两种 agent 组合保持为两行，同一环境上的外部 coding agent 与 harness 自身路由保持为两行，按区扣留的发布也是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 的会话，`errors` 统计一次也没有记录的已盖章会话，因此没有产生运行就结束的单元格是一列而不是缺失的行。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；token 求和覆盖该行的每个会话，含出错的会话。
+一行是一条模型路由、一条尝试阶梯、一个实现者与一个 agent preset 在一个环境、一个隔离级别、留出划分的一侧、一个区上的结果；任何一行都不会跨阶梯、实现者、preset、隔离级别、该划分或跨区求平均，因此第二次尝试升级到别的模型的单元格，绝不会与第一档相同、没有阶梯的单元格算作同一行，自审过其工作的档位绝不会与未自审的档位算作同一行，同一条路由上的两种 agent 组合保持为两行，同一环境上的外部 coding agent 与 harness 自身路由保持为两行，按区扣留的发布也是整行丢弃，而不是把它们混合。`runs` 统计至少记录了一次 `verification/run` 且被其路由服务到底的会话，`errors` 统计一次也没有记录的已盖章会话，以及被路由拒绝结束的会话（存在 `routeLimit`，无论此前有过多少次运行），因此没有产生运行就结束的单元格，以及被路由切断的单元格，都是一列而不是缺失的行或失败的证书。`certificateRate` 为 `certified / runs`，`attemptsMean` 为有运行的会话上 `runsRecorded` 的均值，二者在没有运行时都为 `0`；被路由切断的会话不进入任何 pass@k 批次，也不陈述 parity；token 求和覆盖该行的每个会话，含出错的会话。
 
 另有四列陈述发布在这些比率之外所需要的东西。`escapesDenied` 把屏障拒绝的读取在该行各会话上求和，因此「一个 cell 十次尝试读取工作区之外」与「十个 cell 各尝试一次」是不同的事实；对未组合屏障运行的行，它为 `0`——那里既没有拒绝，也没有记录。`tampered` 统计最后一次记录运行带 `tampered` 裁决的会话；一行的 `errors` 恰好就是它的未插桩会话，因为没有记录运行的会话没有裁决可读。`compositionSha256` 是该行每个会话都陈述的摘要，某个会话没有陈述或两者不一致时缺席，因此只覆盖一行中一部分的摘要绝不归因整行。`certificateExecutors` 按首次出现顺序保存该行已认证会话的去重 executor：没有认证任何东西的行为空，有两个或更多则表示该行的证书彼此不一致，任何单一 executor 都不得与其比率并列发布。
 

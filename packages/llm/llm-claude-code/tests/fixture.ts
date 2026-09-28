@@ -10,6 +10,7 @@ import type {
   NonNullableUsage,
   SDKAssistantMessage,
   SDKMessage,
+  SDKRateLimitInfo,
   SDKResultMessage,
 } from '@anthropic-ai/claude-agent-sdk'
 import { createAssistantMessage, createToolResultMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -64,6 +65,33 @@ export function successResult(overrides: Partial<SDKResultMessage> = {}): SDKRes
     usage: usage(),
     ...overrides,
   } as SDKResultMessage
+}
+
+/**
+ * The notice the product's result carried for every query of the run that hit
+ * the subscription's session limit on 2026-09-27, verbatim from its logs.
+ */
+export const USAGE_LIMIT_NOTICE = "You've hit your session limit · resets 8:20pm (UTC)"
+
+/**
+ * The product's result for a query its subscription's usage limit refused, as
+ * the route logged it: a successful subtype the product marked failed, whose
+ * terminal reason names the API, whose stop reason is the answer's, and whose
+ * text is the notice.
+ */
+export function usageLimitResult(overrides: Partial<SDKResultMessage> = {}): SDKResultMessage {
+  return successResult({
+    is_error: true,
+    terminal_reason: 'api_error',
+    stop_reason: 'stop_sequence',
+    result: USAGE_LIMIT_NOTICE,
+    ...overrides,
+  })
+}
+
+/** One rate-limit event, which the installation publishes when its usage state changes. */
+export function rateLimitEvent(info: SDKRateLimitInfo): SDKMessage {
+  return { type: 'rate_limit_event', rate_limit_info: info, uuid: 'l1', session_id: 's1' } as unknown as SDKMessage
 }
 
 /** One assistant message of the query, carrying the blocks the API delivered. */

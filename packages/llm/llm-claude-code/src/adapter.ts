@@ -23,10 +23,11 @@ import {
   type Options,
   type Query,
   type SDKAssistantMessage,
+  type SDKRateLimitInfo,
   type SDKResultMessage,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
-import { errorChain, LlmAdapter, LlmError } from '@deepseek-ai/dsh-llm'
+import { errorChain, LlmAdapter, LlmError, QUOTA_EXCEEDED_CODE, quotaRetryAfter } from '@deepseek-ai/dsh-llm'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -49,7 +50,14 @@ import {
 } from './continuity.ts'
 import { claudeSpawnSpec, ManagedClaudeCodeProcess } from './process.ts'
 import { renderConversation } from './render.ts'
-import { answerChunks, deliversAnswer, parseAnswer, resultFailure, TRANSPORT_CODE } from './response.ts'
+import {
+  answerChunks,
+  deliversAnswer,
+  isUsageLimitRefusal,
+  parseAnswer,
+  resultFailure,
+  TRANSPORT_CODE,
+} from './response.ts'
 import { MCP_SERVER_NAME, toolOffer } from './tools.ts'
 import type {
   ClaudeCodeModel,
@@ -428,6 +436,9 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     let child: SubprocessHandle | undefined
     let query: Query | undefined
     let result: SDKResultMessage | undefined
+    // The newest rate-limit state the installation published during the query;
+    // a `rejected` one is the structured account of a usage-limit refusal.
+    let rateLimit: SDKRateLimitInfo | undefined
     const assistants: SDKAssistantMessage[] = []
     try {
       query = officialQuery({
@@ -449,15 +460,16 @@ export class ClaudeCodeAdapter extends LlmAdapter {
         if (next.done) break
         if (next.value.type === 'result') result = next.value
         if (next.value.type === 'assistant') assistants.push(next.value)
+        if (next.value.type === 'rate_limit_event') rateLimit = next.value.rate_limit_info
       }
     } catch (error: unknown) {
-      const failure = this.queryFailure(error, options.signal, watchdog.signal)
+      const failure = this.queryFailure(error, options.signal, watchdog.signal, rateLimit)
       // The SDK reports a failed result by publishing it and then throwing. A
       // throw that follows a result is a second account of the same query, and
       // the result is the better one. Cancellation and idle expiry are the
       // exception: the harness stopped this query, so its own reason outranks
       // whatever the product managed to publish.
-      if (result === undefined || failure.code !== TRANSPORT_CODE) throw failure
+      if (result === undefined || failure.harnessStopped) throw failure.error
     } finally {
       watchdog.signal.removeEventListener('abort', cancelQuery)
       consumer.abort(new Error('llm-claude-code: query consumer stopped'))
@@ -467,7 +479,7 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     if (result === undefined) {
       throw new LlmError('llm-claude-code: the query ended without a result', 'STREAM_CLOSED')
     }
-    if (!deliversAnswer(result, assistants)) throw resultFailure(result)
+    if (!deliversAnswer(result, assistants)) throw resultFailure(result, rateLimit)
     const answer = parseAnswer(assistants, offer?.names ?? NO_OFFERED_TOOLS)
     return answerChunks(answer, result.usage, result.uuid, replayState(plan))
   }
@@ -486,25 +498,45 @@ export class ClaudeCodeAdapter extends LlmAdapter {
     }
   }
 
-  /** Classify one failure raised while the query was running. */
-  private queryFailure(error: unknown, caller: AbortSignal | undefined, fused: AbortSignal): LlmError {
+  /**
+   * Classify one failure raised while the query was running: the seam-coded
+   * error, and whether the harness itself stopped the query, in which case its
+   * own reason outranks whatever result the product published.
+   */
+  private queryFailure(
+    error: unknown,
+    caller: AbortSignal | undefined,
+    fused: AbortSignal,
+    rateLimit: SDKRateLimitInfo | undefined,
+  ): { error: LlmError; harnessStopped: boolean } {
     if (timeoutOf(fused, STREAM_IDLE_TIMEOUT_CODE) !== undefined) {
-      return new LlmError(
-        `llm-claude-code: the query produced nothing for ${this.options.queryTimeoutMs}ms`,
-        'TIMEOUT',
-        { cause: error },
-      )
+      return {
+        error: new LlmError(
+          `llm-claude-code: the query produced nothing for ${this.options.queryTimeoutMs}ms`,
+          'TIMEOUT',
+          { cause: error },
+        ),
+        harnessStopped: true,
+      }
     }
     if (caller?.aborted === true) {
-      return new LlmError('llm-claude-code: the query was aborted by the caller', 'ABORTED', { cause: error })
+      return {
+        error: new LlmError('llm-claude-code: the query was aborted by the caller', 'ABORTED', { cause: error }),
+        harnessStopped: true,
+      }
     }
     // The SDK reports some refusals by throwing rather than by publishing a
     // result, so the rendered chain is the only record of what the product
-    // said; the durable failure carries the message, not the live cause.
-    return new LlmError(
-      `llm-claude-code: the query failed: ${errorChain(error)}`,
-      TRANSPORT_CODE,
-      { cause: error },
-    )
+    // said; the durable failure carries the message, not the live cause. A
+    // chain that carries the usage-limit notice is that refusal.
+    const detail = errorChain(error)
+    const text = `llm-claude-code: the query failed: ${detail}`
+    if (isUsageLimitRefusal(rateLimit, detail)) {
+      return {
+        error: new LlmError(text, QUOTA_EXCEEDED_CODE, { cause: error, ...quotaRetryAfter(detail, Date.now(), rateLimit?.resetsAt) }),
+        harnessStopped: false,
+      }
+    }
+    return { error: new LlmError(text, TRANSPORT_CODE, { cause: error }), harnessStopped: false }
   }
 }

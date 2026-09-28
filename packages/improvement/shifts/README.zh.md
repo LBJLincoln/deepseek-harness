@@ -117,6 +117,7 @@ WantedBy=multi-user.target
 |---|---|---|
 | 编排器崩溃 | 一个有 `shift/start` 而没有 `shift/end` 的班次会话；重启之后出现 `shift/resume` 与一条或多条 `outcome: interrupted` 的 `shift/cell` 记录 | 除非 interrupted 计数持续增长，否则无需处理：重启会恢复该班次。某个区反复出现遗留 cell 才是结论。 |
 | 某条模型路由故障超出重试预算 | 带 `FLEET_ROUTE_BREAKER_OPEN` 的 `outcome: error` 的 `shift/cell` 记录，以及 `cells.error` 覆盖计划大部分的 `shift/end` | 停掉该区（从配置中移除并重启）直到路由恢复；期间由花费窗口限制一条抖动路由能花掉多少。 |
+| 某条模型路由的提供方在其状态改变之前拒绝服务——订阅的用量窗口耗尽、余额用光 | 一条带 `ENVIRONMENT_RUN_ROUTE_LIMIT` 的 `outcome: error` 的 `shift/cell` 记录，其消息点名该路由以及提供方声明时的限制解除时刻，随后该计划中该路由的每个后续 cell 各一条带 `FLEET_ROUTE_LIMIT_REACHED` 的记录（[fleet](../fleet/README.md#a-route-limit-stops-the-route) 在第一个上就封住该路由） | 无需修复：这些 cell 是错误，不是失败的证书。停掉该区直到记录点名的那一刻，或者让它继续运行，由下一份计划探测该路由一次，窗口仍未重置时再次停下。 |
 | 班次定时器已死 | 该区最近一次 `shift/start.scheduledAt` 已超过一个 `intervalMs`，且其后没有 `shift/skipped` | 检查进程是否还在、其配置是否仍点名该区；台账分不清停掉的定时器与停掉的进程。 |
 | 磁盘写满 | 什么也没有——写不进去的正是台账本身 | 对持久化根目录与工作区根目录的可用空间告警；fleet 上的 `workspaceRetention: remove-all` 限制检出内容，但会话日志目前还没有保留策略。 |
 | 工具调用卡死 | 什么也没有——班次一直开着，不再出现新的 `shift/cell` | 对最近一条 `shift/cell` 比预期 cell 时长更旧的班次告警；工具超时策略只能约束执行器看得见的调用，约束不了提供方永不作答的那种。 |

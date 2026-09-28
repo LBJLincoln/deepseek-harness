@@ -123,6 +123,7 @@ export function experiment(
       candidate: { model: { provider: 'cli-mock', model: candidate }, implementer: { kind: 'route' }, group: `experiment-${digest}-candidate` },
     },
     cells: [],
+    routeLimits: [],
     errors: [],
     seedsPaired: 4,
     discordantPairs: 3,

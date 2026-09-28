@@ -150,6 +150,31 @@ export interface SessionFactsOutcome {
   readonly goalRoundsCap?: number
   /** Cap named by the last `budget/breach`, absent for a session that breached none. */
   readonly budgetBreachCap?: BudgetCapId
+  /**
+   * The route refusal that ended the run, from the runner's
+   * `environment/route-limit`; absent for a session its route served to the
+   * end. Present, the session is an error of its route rather than a measured
+   * cell: {@link reward} is `null` on the `route-limit` basis and the
+   * scoreboard counts the session under `errors`, whatever runs it recorded
+   * before the refusal.
+   */
+  readonly routeLimit?: SessionFactsRouteLimit
+}
+
+/** The route refusal one session's run ended on, as the scoreboard and the facts export state it. */
+export interface SessionFactsRouteLimit {
+  /** One-based attempt the refusal cut. */
+  readonly attempt: number
+  /** Provider route the attempt ran on. */
+  readonly provider: string
+  /** Model of that route. */
+  readonly model: string
+  /** The seam code of the refusing failure, `QUOTA`. */
+  readonly code: string
+  /** The provider's own words for the refusal. */
+  readonly message: string
+  /** Epoch milliseconds the route stated its limit lifts at, absent when it stated none. */
+  readonly resetsAt?: number
 }
 
 /**

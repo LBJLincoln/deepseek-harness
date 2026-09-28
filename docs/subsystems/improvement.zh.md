@@ -318,6 +318,14 @@ interface ExperimentResult {
    * fleet's cell order. Empty when every cell of both arms reported.
    */
   readonly errors: readonly ExperimentCellError[]
+  /**
+   * The routes whose limit stopped the paired run, each once, in the order the
+   * fleet hit them; empty when no route was refused. A non-empty list says the
+   * comparison was not measured to its end: the cells the refusal cut or left
+   * unstarted are among `errors` and unpaired, so the verdict reads the pairs
+   * that completed alone, and a driver exits non-zero naming the routes.
+   */
+  readonly routeLimits: readonly FleetRouteLimit[]
   /** Paired repetition indexes over every environment; the bootstrap's units. */
   readonly seedsPaired: number
   /** Paired repetitions whose two arms disagree on the certificate; only these move `delta`. */
@@ -677,6 +685,12 @@ async checkPreset(preset: string | undefined): Promise<void>
  *   confine, or has no budget policy to bound, an agent preset no composed
  *   roster supplies, an unusable workspace or fixture, an implementer that
  *   replaced the goal, or a lost standard.
+ * @throws {@link EnvironmentRouteLimitError} when an attempt's model route
+ *   refused to serve until its own state changes — the seam's `QUOTA`
+ *   failure on a route turn or a delegated child — after the session
+ *   recorded the `environment/route-limit` and was flushed; the attempt is
+ *   never validated, so the cell is an error of the route, not a failed
+ *   certificate.
  */
 async run(request: EnvironmentRunRequest): Promise<EnvironmentRunReport>
 
@@ -714,7 +728,7 @@ async stageReference(agent: Agent, environment: EnvironmentId): Promise<string>
 
 Types: [Agent](core.md) · [BudgetCap](guard.md)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:1129`](../../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:1179`](../../packages/improvement/environment-runner/src/index.ts)
 
 <a id="ctxenvironments--environmentregistry"></a>
 
@@ -813,9 +827,11 @@ Fleet runs (`ctx.fleet`): a plan of environment cells through the runner, with a
 ```ts cordis-catalog
 /**
  * Run every cell of a plan and fold the leaderboard. A cell whose run
- * throws is kept as an error outcome, as is a cell the route breaker or the
- * token ceiling refused to start; the fleet run itself rejects only for a
- * plan it cannot start.
+ * throws is kept as an error outcome, as is a cell the route breaker, the
+ * token ceiling, or a route's limit refused to start; the first cell a
+ * route's limit ends walls that route for the rest of the run, and the
+ * report names every walled route under `routeLimits`. The fleet run itself
+ * rejects only for a plan it cannot start.
  * @param plan - environments, model entries with their optional agent
  *   presets, an optional attempt ladder and implementer, repetitions, an
  *   optional exact cell selection, workspace root, group, district, policy
@@ -862,7 +878,7 @@ async run(plan: FleetPlan): Promise<FleetRunReport>
 async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports>
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:404`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:485`](../../packages/improvement/fleet/src/index.ts)
 
 <a id="ctxobservatory--observatoryservice"></a>
 
@@ -961,7 +977,7 @@ async exportFacts(request: FactsExportRequest): Promise<FactsExportReport>
 
 Types: [SessionId](core.md)
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:190`](../../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:200`](../../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="ctxshifts--shiftservice"></a>
 
@@ -1038,5 +1054,5 @@ One cell of a running plan settled: the fleet has recorded its outcome and appli
 'fleet/cell'(payload: FleetCellEvent): void
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:58`](../../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:59`](../../packages/improvement/fleet/src/index.ts)
 <!-- END GENERATED cordis-surface -->

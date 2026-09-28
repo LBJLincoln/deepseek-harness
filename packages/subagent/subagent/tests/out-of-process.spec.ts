@@ -8,6 +8,7 @@ import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, relative, resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
+import { HarnessError, LlmError } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import {
   assertPositiveFinite,
@@ -171,7 +172,32 @@ describe('settleRunResult', () => {
       signal: controller.signal,
       onAbort,
     })
-    expect(result.stopReason).toBe('error')
+    expect(result).toEqual({ output: [], stopReason: 'error' })
+  })
+
+  it('carries the seam-coded facts of a classified failure, and none for an uncoded one', async () => {
+    const settle = async (error: Error) => {
+      const { controller, onAbort } = wiring()
+      return settleRunResult({
+        attempt: async () => { throw error },
+        collectOutput: () => [],
+        cancelled: () => false,
+        signal: controller.signal,
+        onAbort,
+      })
+    }
+    // A provider's usage limit: the seam's quota code with the stated reset delay.
+    expect(await settle(new LlmError('Claude Code: usage limit', 'QUOTA', { providerRetryAfterMs: 9_180_000 }))).toEqual({
+      output: [],
+      stopReason: 'error',
+      failure: { message: 'Claude Code: usage limit', code: 'QUOTA', providerRetryAfterMs: 9_180_000 },
+    })
+    expect(await settle(new HarnessError('wire closed', 'STREAM_CLOSED'))).toEqual({
+      output: [],
+      stopReason: 'error',
+      failure: { message: 'wire closed', code: 'STREAM_CLOSED' },
+    })
+    expect(await settle(new Error('pipe torn'))).not.toHaveProperty('failure')
   })
 })
 

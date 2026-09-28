@@ -59,6 +59,8 @@
 
 随后两个 arm 作为一次 `ctx.fleet.runPaired` 调用在相同的 id 上以相同的重复次数运行，各自携带该 arm 的路由与 implementer。fleet 把两个 arm 的 cell 交错开来——同一个环境、同一个重复序号上的 baseline cell 紧挨着 candidate cell，然后是下一个重复序号，再然后是下一个环境——因此一个 arm 不会与它运行所处的那个小时混杂在一起，两个 arm 之间提供方一侧的漂移会落在双方身上，而每个 arm 回来时仍是它自己那份计划单独运行时会产出的报告。被 fleet 保留为错误的 cell 会让它那次重复落单，而不是让整场实验失败，并且结果会在 `errors` 下列出它，带着它的 arm、environment、重复序号以及 fleet 的代码与消息，使一份存下来的结果无需运行它的进程就能说明某次重复为何没有配对。结果会作为一行 JSON 写入 `sink`，且该 sink 恰好被关闭一次；这个 sink 就是轨迹导出器的 `TrajectorySink`，因此 `@deepseek-ai/dsh-trajectories` 的 `jsonlFileSink(path)` 同时服务于两种导出。
 
+一条在自身状态改变之前拒绝服务的路由——订阅的用量窗口耗尽、余额用光——会让配对运行停下来：[fleet](../fleet/README.md#a-route-limit-stops-the-route) 在该路由拒绝的第一个 cell 上就封住它，并且因为有一侧被拒的配对什么也度量不了，不再启动任一 arm 的任何后续 cell。结果在 `errors` 下列出这些 cell（被拒绝切断的那个 cell 为 `ENVIRONMENT_RUN_ROUTE_LIMIT`，每个未启动的为 `FLEET_ROUTE_LIMIT_REACHED`），并在 `routeLimits` 下把每条这样的路由各点名一次，带着提供方自己的措辞以及路由声明其限制解除的时刻（若它声明了）。这些重复落单，因此 delta、区间与裁定只读已完成的配对，读不到墙切掉的任何东西；非空的 `routeLimits` 说明这次比较没有被度量到底，bench 的驱动器据此以非零退出。
+
 结果在每个 arm 的 stamp group 旁重述该 arm：`arms.baseline` 与 `arms.candidate` 携带该 arm 运行时的 `model` 路由、该 arm 命名阶梯时其升级经过的 `ladder`、`implementer`（缺省的 implementer 被陈述为 `{ kind: 'route' }`），以及该 arm 指名 preset 时其组合所用的 `preset`，因此一份已存储的结果无需产生它的计划，也能分辨 harness 原生的 arm 与被委派的 arm、以及一种组合与另一种组合。`caps` 按上限求值顺序陈述两个 arm 的每个 cell 运行所处的上限，因此一份已存储结果的读者无需找到它背后的组合，就能看到这场比较是在什么预算内被度量的。
 
 ### The arms run under one budget

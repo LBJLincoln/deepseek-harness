@@ -24,7 +24,16 @@ export class HarnessError extends Error {
 /** Canonical provider-neutral code for a model request rejected because its context window was exceeded. */
 export const CONTEXT_WINDOW_EXCEEDED_CODE = 'CONTEXT_WINDOW_EXCEEDED'
 
-/** Canonical provider-neutral code for an exhausted account quota or balance. */
+/**
+ * Canonical provider-neutral code for an exhausted account quota, balance, or
+ * usage window. The route serves no request until the provider's own state
+ * changes — a top-up, or the window's reset — so the code is outside the
+ * default retryable set: repeating the request before that change fails
+ * identically. A failure with this code carries `providerRetryAfterMs` when
+ * the provider stated the reset, as the delay from the failure until it; a
+ * quota with no stated reset carries none. A scheduler that runs many
+ * requests on one route stops the route on the first failure with this code.
+ */
 export const QUOTA_EXCEEDED_CODE = 'QUOTA'
 
 /**
@@ -86,6 +95,13 @@ export function isContextWindowExceededError(detail: string): boolean {
 }
 
 /**
+ * The notice the Claude Code product states a spent usage window with: `You've
+ * hit your session limit · resets 8:20pm (UTC)`, and the same opening for its
+ * weekly, fast-mode, and monthly-spend windows and a team's shared budget.
+ */
+const CLAUDE_USAGE_LIMIT_NOTICE = /\b(?:you've|you have)\s+(?:hit|reached)\s+your\b[^.\n]{0,60}?\b(?:limit|budget)\b/i
+
+/**
  * Recognize provider wording that identifies an exhausted account quota rather
  * than a transient request-rate limit.
  * @param detail - provider error code/type/message text joined into one string.
@@ -96,7 +112,76 @@ export function isQuotaExceededError(detail: string): boolean {
     || /\b(?:quota|usage[\s_-]+limit)[\s_-]+(?:exceeded|exhausted|reached)\b/i.test(detail)
     || /\bexceed(?:ed|s)?[\s_-]+(?:(?:your|the)[\s_-]+)?(?:current[\s_-]+)?quota\b/i.test(detail)
     || /\b(?:balance|credits?)[\s_-]+(?:exhausted|depleted)\b/i.test(detail)
-    || /\bout[\s_-]+of[\s_-]+(?:credits?|budget)\b/i.test(detail)
+    || /\bout[\s_-]+of[\s_-]+(?:(?:usage[\s_-]+)?credits?|budget)\b/i.test(detail)
+    || CLAUDE_USAGE_LIMIT_NOTICE.test(detail)
+}
+
+/**
+ * The reset a usage-limit notice states as a clock time in UTC: `resets
+ * 8:20pm (UTC)`, with the minutes optional and a 24-hour time accepted when no
+ * `am`/`pm` follows. A notice in any other zone is not read, because the seam
+ * has no table to place it on the day.
+ */
+const QUOTA_RESET_CLOCK = /\bresets\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*\((?:UTC|GMT)\)/i
+
+/** Milliseconds in one day, the period a clock-time reset repeats at. */
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * The delay from `now` until the reset a quota failure states, when it states
+ * one as a UTC clock time: the next instant strictly after `now` at which the
+ * clock reads that time. A detail stating no reset, a reset in another zone,
+ * or a time no clock shows yields `undefined`, and the failure then carries no
+ * delay.
+ * @param detail - provider error code/type/message text joined into one string.
+ * @param now - epoch milliseconds the failure was observed at.
+ * @returns a positive delay in milliseconds, or `undefined`.
+ */
+export function quotaResetDelayMs(detail: string, now: number): number | undefined {
+  const match = QUOTA_RESET_CLOCK.exec(detail)
+  if (match === null) return undefined
+  const [, hourText, minuteText, meridiem] = match as unknown as [string, string, string | undefined, string | undefined]
+  const clockHour = Number(hourText)
+  const minute = minuteText === undefined ? 0 : Number(minuteText)
+  if (minute > 59) return undefined
+  let hour: number
+  if (meridiem === undefined) {
+    if (clockHour > 23) return undefined
+    hour = clockHour
+  } else {
+    if (clockHour < 1 || clockHour > 12) return undefined
+    hour = clockHour % 12 + (meridiem.toLowerCase() === 'pm' ? 12 : 0)
+  }
+  const day = new Date(now)
+  const today = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour, minute)
+  const resetsAt = today > now ? today : today + DAY_MS
+  return resetsAt - now
+}
+
+/** Milliseconds per unix second, the unit rate-limit headers and events state a reset instant in. */
+const SECOND_MS = 1000
+
+/**
+ * The `providerRetryAfterMs` a quota failure carries for a stated reset: the
+ * delay from `now` to `resetsAtSeconds` when the provider stated the instant
+ * (unix seconds, as rate-limit headers and events state it), else the delay
+ * {@link quotaResetDelayMs} reads from the detail's clock time. Empty when
+ * neither states a reset still ahead of `now`, so the failure then carries no
+ * delay rather than a zero or negative one the seam refuses.
+ * @param detail - provider error code/type/message text joined into one string.
+ * @param now - epoch milliseconds the failure was observed at.
+ * @param resetsAtSeconds - the reset instant the provider stated in unix seconds, when it stated one.
+ * @returns the option to spread into the failure's `LlmError` options.
+ */
+export function quotaRetryAfter(
+  detail: string,
+  now: number,
+  resetsAtSeconds?: number,
+): Readonly<{ providerRetryAfterMs?: number }> {
+  const delay = resetsAtSeconds !== undefined && Number.isFinite(resetsAtSeconds)
+    ? resetsAtSeconds * SECOND_MS - now
+    : quotaResetDelayMs(detail, now)
+  return delay !== undefined && delay > 0 ? { providerRetryAfterMs: delay } : {}
 }
 
 /**

@@ -695,7 +695,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Run one environment as one fresh session and validate it.',
         parameters: [{ name: 'request', description: 'environment id, absolute workspace directory, optional implementer, agent preset, model route, attempt ladder, repetition, group, district, policy version, sampling seed, and abort signal.' }],
         returns: 'the stamp, the attempts with the route each ran on, the certificate when one run passed, the accumulated usage, and the caps the cell ran under.',
-        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an attempt ladder that is empty, past the ceiling, unusably shared, or shared where no budget policy is composed, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an agent preset no composed roster supplies, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.'],
+        throws: ['{@link EnvironmentRunError} for an unknown environment, a seed that is not a safe non-negative integer, an attempt ladder that is empty, past the ceiling, unusably shared, or shared where no budget policy is composed, an implementer provider the composition does not hold, cannot confine, or has no budget policy to bound, an agent preset no composed roster supplies, an unusable workspace or fixture, an implementer that replaced the goal, or a lost standard.', '{@link EnvironmentRouteLimitError} when an attempt\'s model route refused to serve until its own state changes — the seam\'s `QUOTA` failure on a route turn or a delegated child — after the session recorded the `environment/route-limit` and was flushed; the attempt is never validated, so the cell is an error of the route, not a failed certificate.'],
       },
       {
         signature: 'cellCaps(implementer: EnvironmentRunImplementer): readonly BudgetCap[]',
@@ -766,7 +766,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     methods: [
       {
         signature: 'async run(plan: FleetPlan): Promise<FleetRunReport>',
-        description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker or the token ceiling refused to start; the fleet run itself rejects only for a plan it cannot start.',
+        description: 'Run every cell of a plan and fold the leaderboard. A cell whose run throws is kept as an error outcome, as is a cell the route breaker, the token ceiling, or a route\'s limit refused to start; the first cell a route\'s limit ends walls that route for the rest of the run, and the report names every walled route under `routeLimits`. The fleet run itself rejects only for a plan it cannot start.',
         parameters: [{ name: 'plan', description: 'environments, model entries with their optional agent presets, an optional attempt ladder and implementer, repetitions, an optional exact cell selection, workspace root, group, district, policy version, base seed, token ceiling, and abort signal.' }],
         returns: 'every cell\'s outcome in plan order, the leaderboard folded from the reports, and the run\'s spend.',
         throws: ['{@link FleetError} when the plan selects no environment, asks for no repetition, names no or an unenumerated cell, sets a token ceiling that is not a positive integer, sets a seed that is not a safe non-negative integer, or carries an attempt ladder with no rung.', '{@link EnvironmentRunError} unchanged from {@link EnvironmentRunner.checkImplementer}, when the plan\'s implementer is a provider this composition cannot honor for a route the plan names, and from {@link EnvironmentRunner.checkPreset}, when a model entry names an agent preset this composition cannot compose a cell from.', '{@link LlmError} unchanged from `ctx.llm.checkRoute`, when a route the plan names is not composed or has no credential to reach it with.'],
@@ -3889,7 +3889,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ExperimentResult',
-    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly errors: readonly ExperimentCellError[];\n    readonly seedsPaired: number;\n    readonly discordantPairs: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly statistic: ExperimentStatistic;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly caps: readonly BudgetCap[];\n    readonly verdict: ExperimentVerdict;\n    readonly verdictBasis: ExperimentVerdictBasis;\n}',
+    declaration: 'export interface ExperimentResult {\n    readonly digest: string;\n    readonly arms: ExperimentArms;\n    readonly cells: readonly ExperimentCell[];\n    readonly errors: readonly ExperimentCellError[];\n    readonly routeLimits: readonly FleetRouteLimit[];\n    readonly seedsPaired: number;\n    readonly discordantPairs: number;\n    readonly delta: number;\n    readonly interval?: ConfidenceInterval;\n    readonly statistic: ExperimentStatistic;\n    readonly spend: ExperimentSpend;\n    readonly thresholds: ExperimentThresholds;\n    readonly caps: readonly BudgetCap[];\n    readonly verdict: ExperimentVerdict;\n    readonly verdictBasis: ExperimentVerdictBasis;\n}',
   },
   {
     name: 'ExperimentSpend',
@@ -3984,8 +3984,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface FleetPlan {\n    readonly environments: FleetEnvironmentSelection;\n    readonly models: readonly FleetModelEntry[];\n    readonly ladder?: readonly EnvironmentRunRung[];\n    readonly implementer?: EnvironmentRunImplementer;\n    readonly repetitions: number;\n    readonly cells?: readonly FleetCell[];\n    readonly workspaceRoot: string;\n    readonly group?: string;\n    readonly district?: string;\n    readonly policyVersion?: string;\n    readonly seed?: number;\n    readonly tokenCeiling?: number;\n    readonly signal?: AbortSignal;\n}',
   },
   {
+    name: 'FleetRouteLimit',
+    declaration: 'export interface FleetRouteLimit {\n    readonly provider: string;\n    readonly model: string;\n    readonly code: string;\n    readonly message: string;\n    readonly resetsAt?: number;\n}',
+  },
+  {
     name: 'FleetRunReport',
-    declaration: 'export interface FleetRunReport {\n    readonly group: string;\n    readonly cells: readonly FleetCellOutcome[];\n    readonly leaderboard: readonly LeaderboardRow[];\n    readonly spend: FleetSpend;\n}',
+    declaration: 'export interface FleetRunReport {\n    readonly group: string;\n    readonly cells: readonly FleetCellOutcome[];\n    readonly leaderboard: readonly LeaderboardRow[];\n    readonly spend: FleetSpend;\n    readonly routeLimits: readonly FleetRouteLimit[];\n}',
   },
   {
     name: 'FleetSpend',
@@ -4977,11 +4981,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionFactsOutcome',
-    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly parity?: RunParity;\n    readonly tamper: SessionTamper;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n}',
+    declaration: 'export interface SessionFactsOutcome {\n    readonly reward: 1 | 0 | null;\n    readonly rewardBasis: TrajectoryRewardBasis;\n    readonly certified: boolean;\n    readonly certificateRevision?: number;\n    readonly certificateExecutor?: RunExecutor;\n    readonly parity?: RunParity;\n    readonly tamper: SessionTamper;\n    readonly runsRecorded: number;\n    readonly attempts: number;\n    readonly directives: number;\n    readonly relaxations: number;\n    readonly goalPhase?: GoalPhase;\n    readonly goalRoundsStarted: number;\n    readonly goalRoundsCap?: number;\n    readonly budgetBreachCap?: BudgetCapId;\n    readonly routeLimit?: SessionFactsRouteLimit;\n}',
   },
   {
     name: 'SessionFactsRecord',
     declaration: 'export interface SessionFactsRecord extends SessionFacts {\n    readonly identity: PersistedFactsIdentity;\n}',
+  },
+  {
+    name: 'SessionFactsRouteLimit',
+    declaration: 'export interface SessionFactsRouteLimit {\n    readonly attempt: number;\n    readonly provider: string;\n    readonly model: string;\n    readonly code: string;\n    readonly message: string;\n    readonly resetsAt?: number;\n}',
   },
   {
     name: 'SessionFactsTools',
@@ -5365,7 +5373,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentResult',
-    declaration: 'export interface SubagentResult {\n    readonly output: ContentBlock[];\n    readonly structured?: unknown;\n    readonly stopReason: SubagentStopReason;\n    readonly reportedModel?: string;\n    readonly reportedUsage?: TokenUsage;\n    readonly reportedCostUsd?: number;\n}',
+    declaration: 'export interface SubagentResult {\n    readonly output: ContentBlock[];\n    readonly structured?: unknown;\n    readonly stopReason: SubagentStopReason;\n    readonly failure?: LlmFailure;\n    readonly reportedModel?: string;\n    readonly reportedUsage?: TokenUsage;\n    readonly reportedCostUsd?: number;\n}',
   },
   {
     name: 'SubagentRun',
@@ -5713,7 +5721,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TrajectoryRewardBasis',
-    declaration: 'export type TrajectoryRewardBasis = \'tamper\' | \'certificate\' | \'uncertified-completion\' | \'none\';',
+    declaration: 'export type TrajectoryRewardBasis = \'route-limit\' | \'tamper\' | \'certificate\' | \'uncertified-completion\' | \'none\';',
   },
   {
     name: 'TrajectorySink',

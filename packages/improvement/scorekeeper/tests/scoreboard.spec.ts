@@ -12,6 +12,7 @@ import type { BudgetRoutePricing } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
 import { foldScoreboard, foldSessionFacts, unbiasedPassAtK } from '@deepseek-ai/dsh-scorekeeper'
 import type { SessionFactsRecord } from '@deepseek-ai/dsh-scorekeeper'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { RunExecutor, RunVerdict } from '@deepseek-ai/dsh-verification/types'
 import { cellLog, header, Log, MOCK_ROUTE, stamp } from './log.ts'
 
@@ -127,6 +128,40 @@ describe('foldScoreboard', () => {
   it('keeps a stamped session that recorded no run as an error column with zeroed rates', () => {
     const fold = foldScoreboard([cell('errored', { certified: false, runs: 0 })], {}, [1])
     expect(fold.rows[0]).toMatchObject({ runs: 0, errors: 1, certified: 0, certificateRate: 0, attemptsMean: 0 })
+  })
+
+  it('counts a session its route refused under errors, whatever it measured first, outside every rate and batch', () => {
+    // A cell measured once, then cut by its route's usage limit: an error of
+    // the route, never a failed certificate of the arm.
+    const events = cellLog({ stamp: stamp({ group: 'batch-1', repetition: 1 }), certified: false, runs: 1, weightPassed: 3 })
+    events.push({
+      type: 'environment/route-limit',
+      seq: events.length,
+      time: 5_000,
+      data: {
+        attempt: 2,
+        provider: 'cli-mock',
+        model: 'cli-mock',
+        failure: { message: "You've hit your session limit · resets 8:20pm (UTC)", code: 'QUOTA' },
+      },
+    } as unknown as SessionEvent)
+    const fold = foldScoreboard([
+      cell('a0', { certified: true, runs: 1, group: 'batch-1', repetition: 0 }),
+      foldSessionFacts(header('a1'), events),
+    ], {}, [1])
+    expect(fold.rows).toHaveLength(1)
+    expect(fold.rows[0]).toMatchObject({
+      runs: 1,
+      errors: 1,
+      certified: 1,
+      certificateRate: 1,
+      attemptsMean: 1,
+      // Both sessions' tokens are summed; the cut one's parity is not read.
+      inputTokens: 24,
+      outputTokens: 6,
+      stats: { groups: 1, samples: 1, passAtK: [{ k: 1, value: 1, groups: 1 }] },
+    })
+    expect(fold.rows[0]).not.toHaveProperty('parity')
   })
 
   it('splits rows by isolation level and by the held-out flag', () => {

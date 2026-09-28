@@ -9,6 +9,8 @@ import LlmRuntime, {
   LlmAdapter,
   LlmError,
   ProviderRequestId,
+  quotaResetDelayMs,
+  quotaRetryAfter,
   ReasoningEffortId,
   resolveRetryPolicy,
   StreamChunk,
@@ -122,9 +124,59 @@ describe('LlmRuntime', () => {
       'usage-limit-exceeded',
       'out of credits',
       'OpenAI API error (429): You exceeded your current quota, please check your plan and billing details.',
+      // The Claude Code product's notices for a spent usage window, as its
+      // stream-json result carried them on 2026-09-27 and as its binary
+      // templates them for the other windows it meters.
+      "success api_error stop_sequence You've hit your session limit · resets 8:20pm (UTC)",
+      "You've hit your weekly limit · resets Oct 3 at 8pm (UTC)",
+      "You've hit your monthly spend limit.",
+      "You've reached your Sonnet limit.",
+      "You've hit your team's shared budget. Switch to another model to continue.",
+      "You're out of usage credits. Switch to another model to continue.",
     ]) expect(isQuotaExceededError(detail)).toBe(true)
     expect(isQuotaExceededError('HTTP 429: rate limit reached')).toBe(false)
     expect(isQuotaExceededError('quota resets in one minute')).toBe(false)
+    expect(isQuotaExceededError('you have hit your stride. no limit applies')).toBe(false)
+  })
+
+  it('reads the delay until a reset a quota notice states as a UTC clock time', () => {
+    // 2026-09-27T17:47:00Z, the minute the recorded run hit its wall.
+    const now = Date.UTC(2026, 8, 27, 17, 47)
+    const hours = (count: number): number => count * 60 * 60 * 1000
+    expect(quotaResetDelayMs("You've hit your session limit · resets 8:20pm (UTC)", now)).toBe(hours(2) + 33 * 60 * 1000)
+    // A time already shown today is tomorrow's.
+    expect(quotaResetDelayMs('resets 8am (GMT)', now)).toBe(hours(14) + 13 * 60 * 1000)
+    // Noon and midnight in the 12-hour clock, and a 24-hour time without a meridiem.
+    expect(quotaResetDelayMs('resets 12pm (UTC)', now)).toBe(hours(18) + 13 * 60 * 1000)
+    expect(quotaResetDelayMs('resets 12:00am (UTC)', now)).toBe(hours(6) + 13 * 60 * 1000)
+    expect(quotaResetDelayMs('resets 20:20 (UTC)', now)).toBe(hours(2) + 33 * 60 * 1000)
+    // The stated minute itself is not yet a reset: it is tomorrow's.
+    expect(quotaResetDelayMs('resets 5:47pm (UTC)', now)).toBe(hours(24))
+  })
+
+  it('turns a stated reset instant, else the notice clock time, into the failure option, and nothing for a reset behind now', () => {
+    const now = Date.UTC(2026, 8, 27, 17, 47)
+    const resetsAt = Date.UTC(2026, 8, 27, 20, 20)
+    // A provider-stated instant, in unix seconds, outranks the notice text.
+    expect(quotaRetryAfter("You've hit your session limit · resets 8:20pm (UTC)", now, resetsAt / 1000 + 60))
+      .toEqual({ providerRetryAfterMs: resetsAt - now + 60_000 })
+    expect(quotaRetryAfter("You've hit your session limit · resets 8:20pm (UTC)", now)).toEqual({ providerRetryAfterMs: resetsAt - now })
+    expect(quotaRetryAfter('insufficient_quota', now, now / 1000 - 1)).toEqual({})
+    expect(quotaRetryAfter('insufficient_quota', now, Number.NaN)).toEqual({})
+    expect(quotaRetryAfter('insufficient_quota', now)).toEqual({})
+  })
+
+  it('carries no delay for a notice that states no reset the seam can place on the day', () => {
+    const now = Date.UTC(2026, 8, 27, 17, 47)
+    for (const detail of [
+      "You've hit your monthly spend limit.",
+      'resets in 3 hours',
+      'resets 8:20pm (PDT)',
+      'resets 13pm (UTC)',
+      'resets 0am (UTC)',
+      'resets 25:00 (UTC)',
+      'resets 8:75pm (UTC)',
+    ]) expect(quotaResetDelayMs(detail, now)).toBeUndefined()
   })
 
   it('errorChain renders the full cause chain of a wrapped transport failure', () => {

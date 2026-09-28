@@ -34,7 +34,7 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 
 `foldTrajectory(meta, events)` 是服务背后的纯投影，导出供测试与离线工具使用。相同输入下结果确定。
 
-`foldTrajectoryReward(events)` 由日志中的 goal 与验证事件决定奖励。最后一条记录的 [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) 携带 `verdict: 'tampered'` 的会话，无论日志里还有什么，都以 `tamper` 依据记为 `outcome: 0`：一次发现用于度量该任务的文件已被改动的运行，说明这次度量作废——检查失败只说明工作尚未完成，把两者合并会让检查已不再描述任务的工作区拿到部分学分。其余情形下，只要存在标准就由验证者决定，未认证的完成属于未决，没有 goal 的日志则未被度量。
+`foldTrajectoryReward(events)` 由日志中的 goal、验证与路由限制事件决定奖励。运行被环境运行器以 [`environment/route-limit`](../environment-runner/README.md#a-route-limit-ends-the-run) 结束的会话——其模型路由在自身状态改变之前拒绝服务，用量窗口或余额耗尽——无论此前记录过多少次运行，都以 `route-limit` 依据记为 `outcome: null`：是路由而非任务结束了这次运行，没有任何东西把这份工作度量到底，因此这样的会话既不得学分也不算失败。最后一条记录的 [`verification/run`](../../verification/verification/README.md#what-a-runs-verdict-says) 携带 `verdict: 'tampered'` 的会话，无论日志里还有什么，都以 `tamper` 依据记为 `outcome: 0`：一次发现用于度量该任务的文件已被改动的运行，说明这次度量作废——检查失败只说明工作尚未完成，把两者合并会让检查已不再描述任务的工作区拿到部分学分。运行器在第一次拒绝或第一次篡改上就结束运行，因此一份日志至多持有二者之一。其余情形下，只要存在标准就由验证者决定，未认证的完成属于未决，没有 goal 的日志则未被度量。
 
 `foldTrajectoryStop(events)` 决定会话最后一个工作单元如何结束：由会话自身模型路由实现的会话看它的最后一个轮次，由外部实现方完成工作的会话看它的最后一条 `environment/delegation`。`turn/end` 的原因 kind 原样携带，包括插件合并进 `TurnEndReasonMap` 的 kind，因此插件越过输出 token 上限继续执行的轮次仍折叠为 `max-tokens`；委托尝试陈述 subagent seam 的 `completed`、`aborted`、`error`、`max-tokens` 或 `refusal`。当一次 [`budget/breach`](../../guard/budget-policy/README.md#what-a-breach-does) 终结了工作时，以 `budget` 取代二者：被该越限阻塞的轮次、被运行器的挂钟截止时间提前截断的尝试（`budget-deadline`），或在最后一个已结束单元之后越过会话自身上限的越限——后者正是预算在下一次尝试之前耗尽的委托 cell 的结束方式。每个后续轮次或尝试都会重新陈述原因，因此一次被其梯级份额截断的尝试之后若有一次自行结束的尝试，结果折叠为 `completed`。结束于一个未关闭轮次之内的日志为 `interrupted`，一个工作单元也没有结束的日志为 `none`。越限的 scope 或委托停止原因若是所属包从不写出的值，折叠即失败，导出把该会话报告在 `skipped` 中。
 
@@ -53,7 +53,7 @@ sink 在最后一次写入之后或失败之后恰好关闭一次。报告携带
 | `messages` | 压缩替换之后按模型可见顺序排列的表面消息：`user`、`assistant`（有请求时带 `toolCalls`）与 `tool`（带 `toolCallId`、`isError`）角色；每条携带来源事件的 `seq`、其 `turn` 与 `step`、逐字的内容块（含 reasoning）以及记录的来源 kind |
 | `steps` | 每次模型调用一条，附适配器报告的用量 |
 | `stopReason` | 会话最后一个工作单元的结束方式：`turn/end` 的原因 kind、委托尝试的 `refusal`、预算越限终结工作时的 `budget`、结束于未关闭轮次之内的日志的 `interrupted`，或 `none`；始终存在 |
-| `reward` | 当证书覆盖当前标准修订时 `outcome` 为 `1`，存在标准而无证书时为 `0`，其余为 `null`；`basis` 为 `tamper`（最后记录的运行发现检查方拥有的文件已被改动）、`certificate`、`uncertified-completion`（goal 完成但从未编写标准）或 `none`（无 goal）；附 goal 快照、覆盖证书以及尝试、directive 与 relaxation 计数 |
+| `reward` | 当证书覆盖当前标准修订时 `outcome` 为 `1`，存在标准而无证书时为 `0`，其余为 `null`；`basis` 为 `route-limit`（运行的模型路由拒绝服务，因此没有任何东西把工作度量到底）、`tamper`（最后记录的运行发现检查方拥有的文件已被改动）、`certificate`、`uncertified-completion`（goal 完成但从未编写标准）或 `none`（无 goal）；附 goal 快照、覆盖证书以及尝试、directive 与 relaxation 计数 |
 | `parity` | 最后记录的那次运行的 `{ weightPassed, weightTotal }`；该次运行没有度量用例时不存在 |
 | `provenance` | 组件注册表方案中的组件 id（`composition:<preset>`、`environment:<id>`、`model-provider:<provider>`、`tool:<name>`）、按首次使用顺序排列的工具名，以及证书的隔离级别 |
 

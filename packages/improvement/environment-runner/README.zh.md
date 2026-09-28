@@ -52,7 +52,7 @@
 
 报告携带环境 id、会话 id、与追加时完全一致的 stamp、每次尝试一条记录及其路由、其记录稿接口、其检查结果与工作区摘要、`certified`、某次运行通过时的证书、该次运行的模型用量（route 运行对会话全部 assistant 消息求和，被委派的运行则对每个子进程按其 `environment/delegation` 记录的花费求和），以及 `escapesDenied`——该 cell 自身日志中的 `read-barrier/denied` 记录条数；对停留在自己工作区内的 cell，以及所有没有屏障的运行，它为 `0`。scorekeeper（记分员）从持久化日志中折叠出同样的记录，因此报告与其计分板列不会产生分歧。无论哪条路径，包括抛出错误时，会话都会被刷写，agent 句柄都会被释放。
 
-`EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_INVALID_LADDER`、`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE`、`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED`、`ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写；`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 拒绝环境或组合无法支持的参考程序预置。`resolveConfig(config)` 是导出的默认值解析步骤。
+`EnvironmentRunError` 代码：`ENVIRONMENT_RUN_UNKNOWN_ENVIRONMENT`、`ENVIRONMENT_RUN_INVALID_SEED`、`ENVIRONMENT_RUN_INVALID_LADDER`、`ENVIRONMENT_RUN_IMPLEMENTER_UNAVAILABLE`、`ENVIRONMENT_RUN_IMPLEMENTER_UNCONFINED`、`ENVIRONMENT_RUN_IMPLEMENTER_MODEL_UNSUPPORTED`、`ENVIRONMENT_RUN_INVALID_WORKSPACE` 与 `ENVIRONMENT_RUN_INVALID_FIXTURE` 在任何 agent 存在之前拒绝；`ENVIRONMENT_RUN_UNSAFE_CHECK_SCRIPT`、`ENVIRONMENT_RUN_GOAL_REPLACED` 与 `ENVIRONMENT_RUN_STANDARD_LOST` 指出预留目录无法承载的检查、替换了 goal 的实现者，或不再是当前的标准，此时会话已被刷写；`ENVIRONMENT_RUN_ROUTE_LIMIT`——以 `EnvironmentRouteLimitError` 抛出——指出[一条拒绝服务的路由](#a-route-limit-ends-the-run)，此时会话已记录该拒绝并被刷写；`ENVIRONMENT_RUN_NO_REFERENCE` 与 `ENVIRONMENT_RUN_NO_RESERVATION` 拒绝环境或组合无法支持的参考程序预置。`resolveConfig(config)` 是导出的默认值解析步骤。
 
 只在已稳定的组合上调用 `run()`：运行器通过 agent loop 注册的注册表工厂创建 agent。持久记录是会话日志；轨迹导出器把它折叠为一行 `dsh-trajectory/3`，其 `environment` 字段就是该 stamp，并据此扣留留出会话。
 
@@ -110,6 +110,8 @@ preset 被记录两次，因为这两份记录回答的是不同的问题。cell
 
 被篡改的委派尝试记录其指令并结束本次运行，不再启动另一个子进程：该 cell 没有属于自己的转录去承载跟进，而且没有任何证书能跟在一次无效尝试之后。
 
+当子进程以 `error` 结束且其 provider 把失败分类进了 LLM 缝的词汇时，委派事件还携带 `failure`——code、消息，以及 provider 声明的重试延迟——与 [`SubagentResult.failure`](../../subagent/subagent/README.md#one-shot-ownership-and-lifecycle) 结算的完全一致。那里的 `QUOTA` code 是路由的拒绝，会[结束本次运行](#a-route-limit-ends-the-run)。
+
 ### The budget a delegated attempt runs under
 
 route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/README.md)无需运行器过问，就会按部署的上限度量并停止它。委派尝试不发起任何步骤，因此由运行器过问：它从 `ctx.sessionBudgets` 读取同一批上限并自行应用，而 `ENVIRONMENT_RUN_IMPLEMENTER_UNBOUNDED` 会在 agent 存在之前拒绝在没有预算策略的组合中进行委派运行。这类组合中的 route 运行只是不设上限，因为没有组合策略的部署是选择了不设预算；而委派运行会在同一部署下的 route 运行受约束时不受约束，这正是该拒绝所防止的。
@@ -121,6 +123,14 @@ route 尝试会发起步骤，因此[预算策略](../../guard/budget-policy/REA
 3. **计入子进程的花费。** `recordForeignSpend` 为每次子运行写入一条 `usage/foreign`——进程外子进程用 `reportedUsage`，其余用进程内子进程求和得到的 `usage`，并把 `reportedCostUsd` 按部署的 `foreignCostEurPerUsd` 换算。预算折叠会把它计入，因此从下一次尝试的度量起，`maxTotalTokens` 与成本上限约束委派 cell 的方式，与它们约束 route cell 完全相同。受界定的尝试会在这次计费之后、其自身上限仍然生效时再被度量一次，因此超出本档位份额的子进程会在事发之处记录 attempt 作用域的越限，而不是等到下一次尝试。
 
 `ctx.environmentRuns.cellCaps(implementer)` 回答某个臂的单个 cell 在什么约束下运行，每份报告都以 `caps` 陈述它。route cell 在每一项已配置上限之下运行；委派 cell 在同一列表之下运行，但去掉部署未声明 `foreignCostEurPerUsd` 的 `maxCostEur`，因为一种货币的上限无法约束另一种货币的价格。[实验](../experiments/README.md)会拒绝两个臂解析出不同列表的计划。
+
+## A route limit ends the run
+
+一条模型路由可能在自身状态改变之前拒绝服务：订阅的用量窗口耗尽，余额用光。LLM 缝把这种拒绝分类为 `QUOTA`，并在 provider 给出重置时刻时以 `providerRetryAfterMs` 携带到那一刻的延迟（[Claude Code 路由](../../llm/llm-claude-code/README.md#the-installations-usage-limit)读取产品的提示与其速率限制事件；[Claude Code subagent](../../subagent/subagent-claude-code/README.md) 在子 run 上结算同一失败）。校验这样一次尝试留下的树，会为一次由路由而非任务结束的运行记下一份失败的证书——而该路由上的每次后续尝试都会被同样拒绝——因此运行器改为结束本次运行。
+
+对 route 尝试，运行器读取所投递轮次结束时的 `turn/end`，工作轮次与自审轮次同样对待；以 `QUOTA` 失败结束的轮次即为拒绝。对委派尝试，它在记录委派并计入子进程上报的花费之后读取子进程的 `failure`。无论哪种，它都追加一条 `environment/route-limit { attempt, provider, model, failure, resetsAt? }`——被拒绝切断的尝试、它所运行的路由（档位的路由，或盖章模型的路由）、原样的失败，以及以拒绝轮次的结束或子进程的结算为起点、把失败的延迟换算成的 epoch 时刻（provider 未声明重置时缺省）——然后刷写会话、释放 agent，并抛出 `EnvironmentRouteLimitError`：一个 code 为 `ENVIRONMENT_RUN_ROUTE_LIMIT` 的 `EnvironmentRunError`，其 `route`、`attempt`、`failure` 与 `resetsAt` 复述该事件，其消息为 `route <provider>/<model> cannot serve attempt <n>: <failure message>; its limit lifts at <ISO instant>`。被切断的尝试永不被校验，也不再启动后续尝试；此前记录的运行与指令留在日志里。
+
+这条记录正是各折叠所读取的：[scorekeeper](../scorekeeper/README.md) 把该会话计入 `errors` 而非 `runs`，无论它在拒绝之前度量过什么；[轨迹奖励](../trajectories/README.md)以 `route-limit` 依据为 `null`，因此该 cell 不进入任何证书率、任何 pass@k 批次与任何奖励。[fleet](../fleet/README.md#a-route-limit-stops-the-route) 在第一个这样的 cell 上停止为该路由排程。以任何其他失败结束的轮次——重试策略放弃了的传输失败、超时——一如既往地被校验，因为它留下的树可能仍是实现者的工作。
 
 ## Sampling and what a replay reproduces
 
@@ -243,6 +253,7 @@ Before your work is validated, audit the implementation against the specificatio
 ## Known Limitations and Deferred Work
 
 - **进程外子进程上的 `keep` 记录稿不可用**——被委派的 arm 总是丢弃记录稿，因为在多次尝试之间恢复同一个外部会话，需要一项[subagent 缝](../../subagent/subagent/README.md)未宣告的 provider 恢复能力。在有这样的能力之前，进程内的 `spawn` provider 充当 route 的 `drop` 对照。
+- **路由限制结束运行；没有任何东西等待重置**——`environment/route-limit` 记录了路由声明其限制解除的时刻，但运行器既不睡到那一刻，也不在其后恢复该 cell；想要度量该 cell 的运维方或调度方在那一刻之后再跑一次。只有缝的 `QUOTA` code 以这种方式结束运行：重试策略放弃了的速率限制，或任何其他传输失败，仍作为实现者的工作被校验。
 - **自审轮次不与其尝试分开度量**——尝试记录、运行的 `usage` 与每一行记分板都把自审轮次计入它所属的尝试之内；只有会话日志能把它的花费与工作的花费分开：route cell 靠它所持有的那条用户消息，被委派的 cell 靠它所持有的 `selfReview` 委派记录。
 
 - **屏障只覆盖文件系统读取**——组合了日志读取工具的实现者 preset，或运行检查的 bash 执行器，仍能通过屏障未设围栏的 seam 触及标准；本运行器的证书强度等于配置的 `isolation` 声明，而此处没有任何环节去验证它。

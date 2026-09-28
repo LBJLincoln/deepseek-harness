@@ -439,6 +439,18 @@ async function applied(ctx: Context): Promise<Record<string, string | undefined>
 
 const MARKER = 'test -f MARKER'
 
+/**
+ * The failure the Claude Code route settled every step with once the
+ * subscription's session limit was reached on 2026-09-27, as the seam now
+ * classifies it: the product's notice verbatim, the quota code, and the delay
+ * to the reset the notice states.
+ */
+const ROUTE_LIMIT = {
+  message: "llm-claude-code: the query failed: success api_error stop_sequence You've hit your session limit · resets 8:20pm (UTC)",
+  code: 'QUOTA',
+  providerRetryAfterMs: 9_180_000,
+}
+
 /** The self-review turn a rung asking for one ends its attempt with; the text is pinned by the runner README. */
 const SELF_REVIEW = '<self_review>\nBefore your work is validated: re-read the specification at the top of this task and check your implementation against every requirement and corner it states — exact output on stdout and stderr, exit codes, and edge inputs the visible tests may not cover. Run the visible tests once more. Fix anything that does not match the specification, then stop.\n</self_review>'
 
@@ -729,6 +741,93 @@ describe('EnvironmentRunner', () => {
     expect(StubGoals.current.completed).toEqual([])
     expect(StubSessions.current.flushed).toBe(1)
     expect(StubAgents.current.disposed).toBe(1)
+  })
+
+  it('ends a run its route refused at its limit as a route error, recording the refusal and validating nothing', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 3 },
+      onTurn: (turn, session) => {
+        session.append('turn/end', { turn, reason: { kind: 'error', error: ROUTE_LIMIT } })
+      },
+    })
+    const thrown = await run().catch((error: unknown) => error)
+    const agent = StubAgents.current.agent
+    const ended = agent.session.events.find(event => event.type === 'turn/end')
+    // The reset is the failure's delay measured from the refused turn's end.
+    const resetsAt = (ended?.time ?? 0) + ROUTE_LIMIT.providerRetryAfterMs
+    const lifted = new Date(resetsAt).toISOString()
+    expect(thrown).toEqual(expect.objectContaining({
+      code: 'ENVIRONMENT_RUN_ROUTE_LIMIT',
+      route: { provider: 'mock', model: 'mock-default' },
+      attempt: 1,
+      failure: ROUTE_LIMIT,
+      message: `route mock/mock-default cannot serve attempt 1: ${ROUTE_LIMIT.message}; its limit lifts at ${lifted}`,
+    }))
+    expect(agent.session.events.filter(event => event.type === 'environment/route-limit').map(event => event.data)).toEqual([{
+      attempt: 1,
+      provider: 'mock',
+      model: 'mock-default',
+      failure: ROUTE_LIMIT,
+      resetsAt,
+    }])
+    // Nothing was validated: the cell is an error of the route, not a failed
+    // certificate, and the session was still flushed and the agent disposed.
+    expect(agent.turns).toHaveLength(1)
+    expect(StubStandards.current.runs).toEqual([])
+    expect(StubStandards.current.directives).toEqual([])
+    expect(StubShell.current.requests).toEqual([])
+    expect(StubSessions.current.flushed).toBe(1)
+    expect(StubAgents.current.disposed).toBe(1)
+
+    // A refusal that states no reset records none and names none.
+    const unstated = { message: 'llm-claude-code: the query failed: insufficient_quota', code: 'QUOTA' }
+    const silent = await harness({
+      onTurn: (turn, session) => {
+        session.append('turn/end', { turn, reason: { kind: 'error', error: unstated } })
+      },
+    })
+    await expect(silent.run()).rejects.toThrow(expect.objectContaining({
+      code: 'ENVIRONMENT_RUN_ROUTE_LIMIT',
+      message: `route mock/mock-default cannot serve attempt 1: ${unstated.message}`,
+    }))
+    const refusal = StubAgents.current.agent.session.events.find(event => event.type === 'environment/route-limit')
+    expect(refusal?.data).toEqual({ attempt: 1, provider: 'mock', model: 'mock-default', failure: unstated })
+    expect(refusal?.data).not.toHaveProperty('resetsAt')
+  })
+
+  it('ends the run at the later attempt its route refused, after the earlier attempt was validated', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 3 },
+      onTurn: (turn, session) => {
+        if (turn === 1) assistantTurns(turn, session)
+        else session.append('turn/end', { turn, reason: { kind: 'error', error: ROUTE_LIMIT } })
+      },
+    })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }))
+    await expect(run({ ladder: [{}, { model: { provider: 'mock', model: 'b' } }, {}] }))
+      .rejects.toMatchObject({ code: 'ENVIRONMENT_RUN_ROUTE_LIMIT', attempt: 2, route: { provider: 'mock', model: 'b' } })
+    // The first attempt was measured and directed; the second was refused on
+    // its own rung, so it was never measured and no third attempt started.
+    expect(StubStandards.current.runs).toHaveLength(1)
+    expect(StubStandards.current.directives).toHaveLength(1)
+    expect(StubAgents.current.agent.turns).toHaveLength(2)
+    expect(StubAgents.current.agent.session.events.filter(event => event.type === 'environment/route-limit').map(event => event.data))
+      .toEqual([expect.objectContaining({ attempt: 2, provider: 'mock', model: 'b' })])
+  })
+
+  it('validates an attempt whose turn ended in any other failure, and one whose turn completed', async () => {
+    const transport = { message: 'llm-claude-code: the query failed: the CLI died', code: 'TRANSPORT' }
+    const { run } = await harness({
+      config: { maxAttempts: 2 },
+      onTurn: (turn, session) => {
+        session.append('turn/end', { turn, reason: turn === 1 ? { kind: 'error', error: transport } : { kind: 'completed' } })
+      },
+    })
+    StubShell.current.script(MARKER, shellResult({ exitCode: 1 }), shellResult({ exitCode: 1 }))
+    const report = await run()
+    expect(report.certified).toBe(false)
+    expect(report.attempts).toHaveLength(2)
+    expect(StubAgents.current.agent.session.events.some(event => event.type === 'environment/route-limit')).toBe(false)
   })
 
   it('names timeouts, aborts, and signals in the evidence and bounds every string', async () => {
@@ -1222,6 +1321,37 @@ describe('EnvironmentRunner delegated to an external implementer', () => {
     expect(StubShell.current.requests.map(request => request.workdir)).toEqual([workspace, workspace])
     // No assistant message reaches the cell log; the run's usage is what its two children spent.
     expect(report.usage).toEqual({ inputTokens: 30, outputTokens: 6 })
+  })
+
+  it('ends a delegated run whose child the route refused, recording the failure on the delegation and the refusal', async () => {
+    const { run } = await harness({
+      config: { maxAttempts: 2, isolation: 'none' },
+      providers: { 'claude-code': PRODUCT_CAPABILITIES },
+    })
+    StubSubagents.current.children = [{
+      result: { output: [], stopReason: 'error', failure: ROUTE_LIMIT, reportedModel: 'claude-sonnet-4-5-20250929' },
+    }]
+    const before = Date.now()
+    await expect(run({ implementer: { kind: 'subagent', provider: 'claude-code' }, model: { provider: 'claude-code', model: 'sonnet' } }))
+      .rejects.toMatchObject({ code: 'ENVIRONMENT_RUN_ROUTE_LIMIT', route: { provider: 'claude-code', model: 'sonnet' }, attempt: 1 })
+    const events = StubAgents.current.agent.session.events
+    // The child is recorded as any other, with the failure its provider settled, and then the run ends.
+    expect(events.filter(event => event.type === 'environment/delegation').map(event => event.data)).toEqual([{
+      attempt: 1,
+      restatedTask: false,
+      provider: 'claude-code',
+      runId: 'child-1',
+      stopReason: 'error',
+      failure: ROUTE_LIMIT,
+      reportedModel: 'claude-sonnet-4-5-20250929',
+    }])
+    const refusal = events.find(event => event.type === 'environment/route-limit')?.data as { resetsAt: number }
+    expect(refusal).toMatchObject({ attempt: 1, provider: 'claude-code', model: 'sonnet', failure: ROUTE_LIMIT })
+    expect(refusal.resetsAt).toBeGreaterThanOrEqual(before + ROUTE_LIMIT.providerRetryAfterMs)
+    expect(StubStandards.current.runs).toEqual([])
+    expect(StubSubagents.current.started).toHaveLength(1)
+    expect(StubSubagents.current.disposed).toBe(1)
+    expect(StubSessions.current.flushed).toBe(1)
   })
 
   it('records a child that produced no local agent and delegates under a signal of its own', async () => {

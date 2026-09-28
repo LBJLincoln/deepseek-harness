@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
-import { EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
+import { EnvironmentRouteLimitError, EnvironmentRunError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunImplementer, EnvironmentRunReport, EnvironmentRunRequest } from '@deepseek-ai/dsh-environment-runner'
 import { EnvironmentId } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentFilter, EnvironmentId as EnvironmentIdType, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
@@ -787,6 +787,111 @@ describe('FleetService', () => {
       { message: 'route a flickered' },
       { message: 'route a flickered' },
     ])
+  })
+
+  it('stops a route on the first cell its limit refused, records the rest as refused, and names the reset', async () => {
+    const { ctx, announced, plan } = await harness()
+    // The failure the Claude Code route settled every step with once the
+    // subscription's session limit was reached on 2026-09-27, as the runner
+    // ends a cell on it: route `a` walls at its third cell, mid-run.
+    const failure = {
+      message: "llm-claude-code: the query failed: success api_error stop_sequence You've hit your session limit · resets 8:20pm (UTC)",
+      code: 'QUOTA',
+      providerRetryAfterMs: 9_180_000,
+    }
+    const resetsAt = Date.UTC(2026, 8, 27, 20, 20)
+    let served = 0
+    StubRuns.current.script = (request) => {
+      if (request.model?.model === 'a') {
+        served += 1
+        if (served > 2) throw new EnvironmentRouteLimitError({ provider: 'mock', model: 'a' }, 1, failure, resetsAt)
+      }
+      return report(request, { certified: true, usage: { inputTokens: 4, outputTokens: 1 } })
+    }
+    const result = await ctx.fleet.run(plan({ repetitions: 2 }))
+
+    // Cells run in plan order: a0 a1 b0 b1 (round-trip), a0 a1 b0 b1 (unsatisfiable).
+    // Route a's third cell hits the wall; its fourth is refused without a
+    // start, and route b keeps running.
+    expect(result.cells.map(outcome => ('error' in outcome ? outcome.error.code : 'report'))).toEqual([
+      'report', 'report', 'report', 'report',
+      'ENVIRONMENT_RUN_ROUTE_LIMIT', 'FLEET_ROUTE_LIMIT_REACHED', 'report', 'report',
+    ])
+    expect(StubRuns.current.requests.map(request => request.model?.model)).toEqual(['a', 'a', 'b', 'b', 'a', 'b', 'b'])
+    const [cut, refused] = result.cells.filter((outcome): outcome is Extract<typeof outcome, { error: unknown }> => 'error' in outcome)
+    expect(cut?.error).toEqual({
+      code: 'ENVIRONMENT_RUN_ROUTE_LIMIT',
+      message: `route mock/a cannot serve attempt 1: ${failure.message}; its limit lifts at 2026-09-27T20:20:00.000Z`,
+    })
+    expect(refused?.error).toEqual({
+      code: 'FLEET_ROUTE_LIMIT_REACHED',
+      message: `route mock/a stopped at its limit: ${failure.message}; its limit lifts at 2026-09-27T20:20:00.000Z`,
+    })
+    // The report names the route and the reset, and its rows keep the cut and
+    // refused cells out of every rate.
+    expect(result.routeLimits).toEqual([{ provider: 'mock', model: 'a', code: 'QUOTA', message: failure.message, resetsAt }])
+    expect(result.leaderboard.map(row => [
+      row.model, row.environmentId, row.runs, row.errors, row.certified, row.certificateRate,
+    ])).toEqual([
+      ['a', ROUND_TRIP, 2, 0, 2, 1], ['b', ROUND_TRIP, 2, 0, 2, 1],
+      ['a', UNSATISFIABLE, 0, 2, 0, 0], ['b', UNSATISFIABLE, 2, 0, 2, 1],
+    ])
+    expect(announced.map(payload => payload.outcome.kind)).toEqual([
+      'reported', 'reported', 'reported', 'reported', 'error', 'error', 'reported', 'reported',
+    ])
+
+    // A run no route refused reports none.
+    const clear = await harness()
+    StubRuns.current.script = request => report(request, { certified: true })
+    expect((await clear.ctx.fleet.run(clear.plan({ models: [MODEL_A], repetitions: 1 }))).routeLimits).toEqual([])
+
+    // Two cells of one route in flight together are both refused; the wall is
+    // raised once, by whichever ended first, and every later cell is refused.
+    const concurrent = await harness({ maxConcurrent: 2 })
+    StubRuns.current.script = async (request) => {
+      if (request.repetition === 0) return report(request, { certified: true })
+      await new Promise(resolve => setTimeout(resolve, 5))
+      throw new EnvironmentRouteLimitError({ provider: 'mock', model: 'a' }, 1, failure, resetsAt)
+    }
+    const doubled = await concurrent.ctx.fleet.run(concurrent.plan({ models: [MODEL_A], repetitions: 3 }))
+    expect(doubled.cells.map(outcome => ('error' in outcome ? outcome.error.code : 'report'))).toEqual([
+      'report', 'ENVIRONMENT_RUN_ROUTE_LIMIT', 'ENVIRONMENT_RUN_ROUTE_LIMIT',
+      'FLEET_ROUTE_LIMIT_REACHED', 'FLEET_ROUTE_LIMIT_REACHED', 'FLEET_ROUTE_LIMIT_REACHED',
+    ])
+    expect(doubled.routeLimits).toHaveLength(1)
+  })
+
+  it('stops both plans of a paired run once either plan\'s route is refused at its limit', async () => {
+    const { ctx, plan } = await harness({ maxConcurrent: 2 })
+    const failure = { message: 'llm-claude-code: the query failed: insufficient_quota', code: 'QUOTA' }
+    StubRuns.current.script = async (request) => {
+      await new Promise(resolve => setTimeout(resolve, 1))
+      if (request.model?.model === 'a' && request.repetition === 1) {
+        throw new EnvironmentRouteLimitError({ provider: 'mock', model: 'a' }, 2, failure, undefined)
+      }
+      return report(request, { certified: true })
+    }
+    const [walled, partner] = await ctx.fleet.runPaired(
+      plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_A], repetitions: 4 }, 'batch-first'),
+      plan({ environments: { ids: [ROUND_TRIP] }, models: [MODEL_B], repetitions: 4 }, 'batch-second'),
+    )
+
+    // Pair 0 ran; pair 1's `a` cell hit the wall while its `b` cell was in
+    // flight and completed; every later cell of BOTH plans is refused unstarted,
+    // the partner's naming the walled route.
+    expect(walled.cells.map(outcome => ('error' in outcome ? outcome.error.code : 'report')))
+      .toEqual(['report', 'ENVIRONMENT_RUN_ROUTE_LIMIT', 'FLEET_ROUTE_LIMIT_REACHED', 'FLEET_ROUTE_LIMIT_REACHED'])
+    expect(partner.cells.map(outcome => ('error' in outcome ? outcome.error.code : 'report')))
+      .toEqual(['report', 'report', 'FLEET_ROUTE_LIMIT_REACHED', 'FLEET_ROUTE_LIMIT_REACHED'])
+    expect(partner.cells[2]).toMatchObject({
+      error: { message: `route mock/b was not started: its pair's route mock/a stopped at its limit: ${failure.message}` },
+    })
+    expect(StubRuns.current.requests).toHaveLength(4)
+    // Both reports carry the one wall, without a reset the provider never stated.
+    const limit = { provider: 'mock', model: 'a', code: 'QUOTA', message: failure.message }
+    expect(walled.routeLimits).toEqual([limit])
+    expect(partner.routeLimits).toEqual([limit])
+    expect(walled.routeLimits[0]).not.toHaveProperty('resetsAt')
   })
 
   it('refuses every unstarted cell once the reported spend crosses the ceiling, and lets the in-flight ones finish', async () => {

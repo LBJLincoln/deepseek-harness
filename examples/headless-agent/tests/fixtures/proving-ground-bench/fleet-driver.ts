@@ -125,6 +125,17 @@ try {
   }
   await writeFile('status.json', `${JSON.stringify(status, null, 2)}\n`)
   process.stdout.write(`${JSON.stringify(status)}\n`)
+  // A route that refused to serve until its own state changes stopped the
+  // plan short: the record above keeps every cell the wall cut or left
+  // unstarted as an error, and the run exits non-zero naming the route and,
+  // when the provider stated it, the instant its limit lifts.
+  if (report.routeLimits.length > 0) {
+    for (const limit of report.routeLimits) {
+      const reset = limit.resetsAt === undefined ? '' : `; its limit lifts at ${new Date(limit.resetsAt).toISOString()}`
+      process.stderr.write(`fleet-driver: route ${limit.provider}/${limit.model} stopped at its limit: ${limit.message}${reset}\n`)
+    }
+    process.exitCode = 1
+  }
 } finally {
   await ctx.fiber.dispose()
 }

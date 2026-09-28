@@ -11,7 +11,7 @@
 
 import type { Agent, AgentOptions } from '@deepseek-ai/dsh-agent'
 import type { Branded } from '@deepseek-ai/dsh-brand'
-import type { ContentBlock, TokenUsage } from '@deepseek-ai/dsh-llm'
+import type { ContentBlock, LlmFailure, TokenUsage } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
 import type { ObjectJsonSchema, ToolRestriction } from '@deepseek-ai/dsh-tools'
 import type { SubagentDescriptorData } from './descriptor.ts'
@@ -272,6 +272,16 @@ export interface SubagentResult {
   readonly structured?: unknown
   /** Why the run ended. A non-`completed` reason means `output` may be partial. */
   readonly stopReason: SubagentStopReason
+  /**
+   * The facts of the failure that ended a run with `stopReason: 'error'`, when
+   * the backend classified it into the LLM seam's vocabulary: the seam's
+   * provider-neutral code and message, with the provider's status and stated
+   * retry delay when it gave them. A code of `QUOTA` says the child's provider
+   * refused to serve until its own state changes — a spent usage window or
+   * balance — which is a fact about the route rather than about this task.
+   * Absent for an uncoded failure and for every other stop reason.
+   */
+  readonly failure?: LlmFailure
   /**
    * The model the child's own backend states it ran, as that backend names it:
    * the harness model id of an in-process child's route, the product's full

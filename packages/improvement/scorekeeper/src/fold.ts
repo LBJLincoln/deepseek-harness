@@ -137,6 +137,7 @@ function isOutcomeEvent(event: SessionEvent): boolean {
     case 'verification/certificate':
     case 'verification/directive':
     case 'budget/breach':
+    case 'environment/route-limit':
       return true
     // An admitted continuation round is a user message; the goal fold counts it.
     case 'user/message':
@@ -153,6 +154,23 @@ function breachCap(events: readonly SessionEvent[]): Pick<SessionFactsOutcome, '
     if (event.type === 'budget/breach') cap = event.data.cap
   }
   return cap === undefined ? {} : { budgetBreachCap: cap }
+}
+
+/** The route refusal that ended the run, absent when the events hold none; the runner records at most one. */
+function routeLimit(events: readonly SessionEvent[]): Pick<SessionFactsOutcome, 'routeLimit'> {
+  const refusal = events.findLast((event): event is SessionEvent<'environment/route-limit'> => event.type === 'environment/route-limit')
+  if (refusal === undefined) return {}
+  const { attempt, provider, model, failure, resetsAt } = refusal.data
+  return {
+    routeLimit: {
+      attempt,
+      provider,
+      model,
+      code: failure.code,
+      message: failure.message,
+      ...resetsAt === undefined ? {} : { resetsAt },
+    },
+  }
 }
 
 /**
@@ -184,6 +202,7 @@ function foldOutcome(events: readonly SessionEvent[]): SessionFactsOutcome {
     ...goal.goal === undefined ? {} : { goalPhase: goal.goal.phase, goalRoundsCap: goal.goal.maxGoalRounds },
     goalRoundsStarted: goal.roundsStarted,
     ...breachCap(events),
+    ...routeLimit(events),
   }
 }
 

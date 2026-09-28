@@ -743,7 +743,7 @@ export interface Config {
 
 Depends on: `CertificateIsolation` (`@deepseek-ai/dsh-verification/types`)
 
-Source: [`packages/improvement/environment-runner/src/index.ts:123`](../packages/improvement/environment-runner/src/index.ts)
+Source: [`packages/improvement/environment-runner/src/index.ts:173`](../packages/improvement/environment-runner/src/index.ts)
 
 <a id="deepseek-aidsh-environments"></a>
 
@@ -830,7 +830,7 @@ export interface RouteBreakerConfig {
 export type WorkspaceRetention = 'keep' | 'remove-certified' | 'remove-all'
 ```
 
-Source: [`packages/improvement/fleet/src/index.ts:88`](../packages/improvement/fleet/src/index.ts)
+Source: [`packages/improvement/fleet/src/index.ts:89`](../packages/improvement/fleet/src/index.ts)
 
 <a id="deepseek-aidsh-fs-local"></a>
 
@@ -2069,7 +2069,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/improvement/scorekeeper/src/index.ts:161`](../packages/improvement/scorekeeper/src/index.ts)
+Source: [`packages/improvement/scorekeeper/src/index.ts:171`](../packages/improvement/scorekeeper/src/index.ts)
 
 <a id="deepseek-aidsh-sdk-jsonrpc-server"></a>
 

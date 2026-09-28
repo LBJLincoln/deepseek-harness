@@ -295,6 +295,40 @@ describe('foldTrajectory', () => {
     expect(trajectory.reward).not.toHaveProperty('certificate')
   })
 
+  it('leaves a session its route refused unmeasured on the route-limit basis, whatever it measured first', () => {
+    const log = new Log()
+    log.push('goal/change', goalChange('create', 'active', 1))
+    log.push('verification/standard', casedStandard())
+    log.push('verification/run', casedRun(1, 3))
+    log.push('turn/start', { turn: 2 })
+    log.push('turn/end', {
+      turn: 2,
+      reason: {
+        kind: 'error',
+        error: { message: "llm-claude-code: the query failed: success api_error stop_sequence You've hit your session limit · resets 8:20pm (UTC)", code: 'QUOTA', providerRetryAfterMs: 9_180_000 },
+      },
+    })
+    log.push('environment/route-limit', {
+      attempt: 2,
+      provider: 'claude-code',
+      model: 'sonnet',
+      failure: { message: 'llm-claude-code: the query failed: success api_error stop_sequence You\'ve hit your session limit · resets 8:20pm (UTC)', code: 'QUOTA', providerRetryAfterMs: 9_180_000 },
+      resetsAt: 1_790_542_800_000,
+    })
+    const trajectory = foldTrajectory(header, log.events)
+    // The first attempt was measured and failed; the route, not the task, ended
+    // the run, so the session earns neither the zero nor a certificate.
+    expect(trajectory.reward).toEqual({
+      outcome: null,
+      basis: 'route-limit',
+      goal: { id: 'goal-1', objective: 'Prove the export', phase: 'active' },
+      directives: 0,
+      relaxations: 0,
+      attempts: 1,
+    })
+    expect(trajectory.stopReason).toBe('error')
+  })
+
   it('marks an unmeasured completion and a goal-less log as undecided', () => {
     const completed = new Log()
     completed.push('goal/change', goalChange('create', 'active', 1))

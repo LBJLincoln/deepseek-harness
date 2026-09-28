@@ -10,7 +10,7 @@
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId } from '@deepseek-ai/dsh-environments/types'
-import type { FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
+import type { FleetRouteLimit, FleetRunReport } from '@deepseek-ai/dsh-fleet/types'
 import { bootstrapIntervals, EXPERIMENT_STATISTIC } from './statistics.ts'
 import type { DeltaStratum } from './statistics.ts'
 import type {
@@ -85,6 +85,22 @@ function errorsOf(arm: ExperimentArmRole, report: FleetRunReport): ExperimentCel
     })
   }
   return errors
+}
+
+/**
+ * The routes whose limit stopped the paired run, each once. Both arms' reports
+ * carry the same walls, because the fleet shares them across a pair, so the
+ * union is keyed by route in the order the walls were hit.
+ */
+function routeLimitsOf(arms: readonly FleetRunReport[]): FleetRouteLimit[] {
+  const limits = new Map<string, FleetRouteLimit>()
+  for (const arm of arms) {
+    for (const limit of arm.routeLimits) {
+      const key = `${limit.provider}\0${limit.model}`
+      if (!limits.has(key)) limits.set(key, limit)
+    }
+  }
+  return [...limits.values()]
 }
 
 /** Model usage summed over every reported cell of both arms. */
@@ -254,6 +270,7 @@ export function foldExperiment(request: ExperimentFoldRequest): ExperimentResult
       ...errorsOf('baseline', request.baseline),
       ...errorsOf('candidate', request.candidate),
     ],
+    routeLimits: routeLimitsOf([request.baseline, request.candidate]),
     seedsPaired,
     discordantPairs: reading.discordantPairs,
     delta: perPair(pooled, seedsPaired),

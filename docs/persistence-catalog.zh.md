@@ -554,6 +554,26 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 
 来源：[`packages/improvement/environment-runner/src/types.ts:33`](../packages/improvement/environment-runner/src/types.ts)
 
+<a id="environmentroute-limit--log-only"></a>
+
+#### `environment/route-limit` — log-only
+
+```ts persistence-catalog
+/**
+ * The end of a run whose model route refused to serve: the attempt the
+ * refusal cut, the route, the failure as the LLM seam classified it, and
+ * the instant the route stated its limit lifts. Appended once, right
+ * before the run ends with `ENVIRONMENT_RUN_ROUTE_LIMIT` — after the
+ * `turn/end` of a route attempt or the `environment/delegation` of a
+ * delegated one — and never followed by a validation of that attempt, so
+ * a fold reading it counts the cell as an error of the route rather than
+ * as a failed certificate. Log-only; it never enters model history.
+ */
+'environment/route-limit': EnvironmentRouteLimit
+```
+
+来源：[`packages/improvement/environment-runner/src/types.ts:44`](../packages/improvement/environment-runner/src/types.ts)
+
 <a id="environmentrun--log-only"></a>
 
 #### `environment/run` — log-only

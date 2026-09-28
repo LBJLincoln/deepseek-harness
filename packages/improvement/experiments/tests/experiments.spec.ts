@@ -143,6 +143,7 @@ function fleetReport(plan: FleetPlan, script: CellScript): FleetRunReport {
       inputTokens: reports.reduce((sum, entry) => sum + (entry.usage?.inputTokens ?? 0), 0),
       outputTokens: reports.reduce((sum, entry) => sum + (entry.usage?.outputTokens ?? 0), 0),
     },
+    routeLimits: [],
   }
 }
 
@@ -754,6 +755,47 @@ describe('ExperimentService', () => {
     expect(foldExperiment(request)).toEqual(result)
     expect(foldExperiment(request)).toEqual(foldExperiment(request))
     expect(result.interval?.lower).toBeLessThan(result.interval?.upper as number)
+  })
+
+  it('names each route whose limit stopped the pair once, and leaves the cut repetitions unpaired', async () => {
+    const { ctx, plan } = await harness()
+    StubFleet.current.script = cell => ({ certified: cell.repetition === 0 })
+    const result = await ctx.experiments.run(plan({ repetitions: 2 }))
+    // The failure the Claude Code route settled every step with once the
+    // subscription's session limit was reached on 2026-09-27, as the fleet
+    // records the route it walled; both arms' reports carry the same wall.
+    const limit = {
+      provider: BASELINE.provider,
+      model: BASELINE.model,
+      code: 'QUOTA',
+      message: "llm-claude-code: the query failed: success api_error stop_sequence You've hit your session limit · resets 8:20pm (UTC)",
+      resetsAt: Date.UTC(2026, 8, 27, 20, 20),
+    }
+    const other = { provider: 'other', model: 'x', code: 'QUOTA', message: 'insufficient_quota' }
+    const cut: CellScript = cell => (
+      cell.repetition === 1
+        ? { error: { code: cell.model.model === BASELINE.model ? 'ENVIRONMENT_RUN_ROUTE_LIMIT' : 'FLEET_ROUTE_LIMIT_REACHED', message: limit.message } }
+        : { certified: true }
+    )
+    const folded = foldExperiment({
+      digest: result.digest,
+      arms: result.arms,
+      environments: [ROUND_TRIP, UNSATISFIABLE],
+      repetitions: 2,
+      thresholds: result.thresholds,
+      caps: CAPS,
+      baseline: { ...fleetReport(StubFleet.current.plans[0] as FleetPlan, cut), routeLimits: [limit] },
+      candidate: { ...fleetReport(StubFleet.current.plans[1] as FleetPlan, cut), routeLimits: [limit, other] },
+    })
+    expect(folded.routeLimits).toEqual([limit, other])
+    expect(folded.errors.map(error => [error.arm, error.repetition, error.code])).toEqual([
+      ['baseline', 1, 'ENVIRONMENT_RUN_ROUTE_LIMIT'], ['baseline', 1, 'ENVIRONMENT_RUN_ROUTE_LIMIT'],
+      ['candidate', 1, 'FLEET_ROUTE_LIMIT_REACHED'], ['candidate', 1, 'FLEET_ROUTE_LIMIT_REACHED'],
+    ])
+    // Only the completed repetition pairs; the wall's repetitions move nothing.
+    expect(folded.cells.map(cell => [cell.pairs, cell.unpaired])).toEqual([[1, 1], [1, 1]])
+    expect(folded.seedsPaired).toBe(2)
+    expect(result.routeLimits).toEqual([])
   })
 
   it('reads back the group it minted and ignores every group outside its namespace', async () => {

@@ -14,7 +14,7 @@ import type { Options, Query, SDKMessage } from '@anthropic-ai/claude-agent-sdk'
 import { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import LlmRuntime, { BlockAssembler, createAssistantMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { GenerateOptions, Message, StreamChunk } from '@deepseek-ai/dsh-llm'
+import type { GenerateOptions, LlmError, Message, StreamChunk } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SubprocessRuntime from '@deepseek-ai/dsh-subprocess'
 import type {
@@ -36,11 +36,14 @@ import {
   errorResult,
   fakeChild,
   partialMessage,
+  rateLimitEvent,
   request,
   successResult,
   textBlock,
   toolConversation,
   toolUseBlock,
+  usageLimitResult,
+  USAGE_LIMIT_NOTICE,
   type FakeChild,
 } from './fixture.ts'
 
@@ -395,6 +398,41 @@ describe('failure classification', () => {
     const failure = await failureOf(request())
     expect(failure).toMatchObject({ code: 'TRANSPORT' })
     expect((failure as Error).message).toContain('Self-signed certificate detected')
+  })
+
+  it('classifies the installation\'s usage-limit refusal as quota, from the rejected event and from the notice alone', async () => {
+    // The event and the notice together, as a query refused by a spent window publishes them.
+    script({
+      messages: [
+        rateLimitEvent({ status: 'rejected', rateLimitType: 'five_hour', resetsAt: Math.floor(Date.now() / 1000) + 3600 }),
+        usageLimitResult(),
+      ],
+    })
+    const structured = await failureOf(request())
+    expect(structured).toMatchObject({ code: 'QUOTA' })
+    expect((structured as LlmError).failure.providerRetryAfterMs).toBeGreaterThan(3500 * 1000)
+
+    // The notice alone, which is what the recorded run's logs prove the
+    // product published: quota, with the reset read from the notice's clock time.
+    script({ messages: [usageLimitResult()] })
+    const noticed = await failureOf(request())
+    expect(noticed).toMatchObject({ code: 'QUOTA', message: `llm-claude-code: the query failed: success api_error stop_sequence ${USAGE_LIMIT_NOTICE}` })
+    expect((noticed as LlmError).failure.providerRetryAfterMs).toBeGreaterThan(0)
+  })
+
+  it('classifies a thrown refusal by its notice, and prefers the published result over a throw that follows it', async () => {
+    script({ failWith: new Error(`Claude Code process exited: ${USAGE_LIMIT_NOTICE}`) })
+    const thrown = await failureOf(request())
+    expect(thrown).toMatchObject({ code: 'QUOTA', message: `llm-claude-code: the query failed: Claude Code process exited: ${USAGE_LIMIT_NOTICE}` })
+    expect((thrown as LlmError).failure.providerRetryAfterMs).toBeGreaterThan(0)
+
+    // The result carries the API status the throw cannot; the harness did not
+    // stop this query, so the result is the account that is kept.
+    script({
+      messages: [usageLimitResult({ api_error_status: 429 })],
+      failWith: new Error(`Claude Code process exited: ${USAGE_LIMIT_NOTICE}`),
+    })
+    expect(await failureOf(request())).toMatchObject({ code: 'QUOTA', failure: { status: 429 } })
   })
 
   it('treats a query that ended without a result as a closed stream', async () => {

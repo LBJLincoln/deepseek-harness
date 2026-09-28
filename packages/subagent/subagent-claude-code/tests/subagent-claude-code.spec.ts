@@ -163,6 +163,9 @@ function fakeChild(options: FakeChildOptions = {}): FakeChild {
   }
 }
 
+/** The notice the product's result carried for every query of the run that hit the subscription's session limit on 2026-09-27. */
+const USAGE_LIMIT_NOTICE = "You've hit your session limit · resets 8:20pm (UTC)"
+
 function success(
   result = 'answer',
   isError = false,
@@ -662,6 +665,39 @@ describe('query options and result mapping', () => {
     ))).toThrow('error_max_turns')
   })
 
+  it('classifies the installation\'s usage-limit refusal as the seam\'s quota failure with the stated reset', () => {
+    // 2026-09-27T17:47:00Z, the minute the recorded run hit its wall, and the
+    // reset its notice states.
+    const wallAt = Date.UTC(2026, 8, 27, 17, 47)
+    const resetsAt = Date.UTC(2026, 8, 27, 20, 20)
+    // The result the product published on every query after that wall, verbatim.
+    const refused = {
+      ...success(USAGE_LIMIT_NOTICE, true),
+      terminal_reason: 'api_error',
+      stop_reason: 'stop_sequence',
+    } as SDKResultMessage
+    expect(() => successfulResult(refused, undefined, wallAt)).toThrow(expect.objectContaining({
+      code: 'QUOTA',
+      failure: {
+        message: `subagent-claude-code: Claude Code refused the run at its usage limit: ${USAGE_LIMIT_NOTICE}`,
+        code: 'QUOTA',
+        providerRetryAfterMs: resetsAt - wallAt,
+      },
+    }))
+    // The rejected rate-limit event outranks the text and states its reset in
+    // unix seconds; one whose reset is already behind `now` states no delay.
+    const rejected = { status: 'rejected', rateLimitType: 'five_hour', resetsAt: resetsAt / 1000 + 60 } as const
+    const refusedAt429 = 'subagent-claude-code: Claude Code refused the run at its usage limit: API Error: 429'
+    expect(() => successfulResult(success('API Error: 429', true), rejected, wallAt)).toThrow(expect.objectContaining({
+      failure: { message: refusedAt429, code: 'QUOTA', providerRetryAfterMs: resetsAt - wallAt + 60_000 },
+    }))
+    expect(() => successfulResult(success('API Error: 429', true), { ...rejected, resetsAt: wallAt / 1000 - 1 }, wallAt))
+      .toThrow(expect.objectContaining({ failure: { message: refusedAt429, code: 'QUOTA' } }))
+    // An error subtype whose message is the notice is the same refusal.
+    expect(() => successfulResult(failure('error_during_execution', ["You've hit your weekly limit"])))
+      .toThrow(expect.objectContaining({ code: 'QUOTA' }))
+  })
+
   it('consumes the complete stream and keeps the latest strict success', async () => {
     const query = queryFrom([
       { type: 'system', subtype: 'init' } as SDKMessage,
@@ -762,6 +798,23 @@ describe('run publication, cancellation, and settlement', () => {
       )
       await run.dispose()
     }
+  })
+
+  it('settles a run the installation refused at its usage limit with the quota failure beside the error stop', async () => {
+    const fixture = fakeRun([
+      {
+        type: 'rate_limit_event',
+        rate_limit_info: { status: 'rejected', rateLimitType: 'five_hour', resetsAt: Math.floor(Date.now() / 1000) + 3600 },
+      } as SDKMessage,
+      success(USAGE_LIMIT_NOTICE, true),
+    ])
+    const onError = vi.fn()
+    const run = await startClaudeCodeRun(request(), { ...fixture.spec, onError })
+    const settled = await run.result
+    expect(settled).toMatchObject({ output: [], stopReason: 'error', failure: { code: 'QUOTA' } })
+    expect(settled.failure?.providerRetryAfterMs).toBeGreaterThan(3500 * 1000)
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: 'QUOTA' }), 'error')
+    await run.dispose()
   })
 
   it('fails closed when iteration rejects after a result', async () => {

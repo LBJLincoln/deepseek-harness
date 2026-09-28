@@ -9,6 +9,7 @@
 import type {
   NonNullableUsage,
   SDKAssistantMessage,
+  SDKRateLimitInfo,
   SDKResultMessage,
 } from '@anthropic-ai/claude-agent-sdk'
 import {
@@ -19,8 +20,9 @@ import {
   isQuotaExceededError,
   LlmError,
   QUOTA_EXCEEDED_CODE,
+  quotaRetryAfter,
 } from '@deepseek-ai/dsh-llm'
-import type { StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
+import type { LlmErrorOptions, StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { harnessToolName } from './tools.ts'
 import type { ClaudeCodeAnswer, ClaudeCodeReplayState, ClaudeCodeToolCall } from './types.ts'
 
@@ -39,6 +41,16 @@ export const MAX_TURNS_CODE = 'MAX_TURNS'
  * result, and any SDK failure raised without a result at all.
  */
 export const TRANSPORT_CODE = 'TRANSPORT'
+
+/**
+ * Code for a query the API refused for its request rate: a successful result
+ * the product marked failed with HTTP status 429 and no usage-limit notice,
+ * which the retry policy repeats after its own delay.
+ */
+export const RATE_LIMIT_CODE = 'RATE_LIMIT'
+
+/** HTTP status the API answers a request it refused for its rate with. */
+const TOO_MANY_REQUESTS = 429
 
 function malformed(detail: string): LlmError {
   return new LlmError(`llm-claude-code: ${detail}`, MALFORMED_RESPONSE_CODE)
@@ -145,26 +157,85 @@ export function mapUsage(usage: NonNullableUsage): TokenUsage {
 }
 
 /**
+ * The HTTP status of the API failure a successful query the product marked
+ * failed reports, as the seam's own `status` fact. Absent when the product
+ * reported none, or one outside the HTTP range the seam validates.
+ */
+function apiStatus(message: SDKResultMessage): Pick<LlmErrorOptions, 'status'> {
+  if (message.subtype !== 'success') return {}
+  const status = message.api_error_status
+  return typeof status === 'number' && Number.isInteger(status) && status >= 100 && status <= 599
+    ? { status }
+    : {}
+}
+
+/**
+ * Whether a query was refused by the installation's usage limit: the CLI
+ * published a rate-limit event in the `rejected` state, or the result's text
+ * is the product's usage-limit notice. The event is the structured signal and
+ * outranks the text; the text is what the recorded logs prove the product
+ * states when the event is absent.
+ * @param rateLimit - the last rate-limit event of the query, when it published one.
+ * @param detail - every string the result reported, joined.
+ * @returns true for a refusal no repeat of the request can lift.
+ */
+export function isUsageLimitRefusal(rateLimit: SDKRateLimitInfo | undefined, detail: string): boolean {
+  return rateLimit?.status === 'rejected' || isQuotaExceededError(detail)
+}
+
+/**
+ * The seam's `QUOTA` failure for a query the installation's usage limit
+ * refused, carrying the API status the result reported and the delay until
+ * the reset: the rejected rate-limit event's `resetsAt` (unix seconds) when
+ * the installation published one, else the clock time of the notice text.
+ * @param text - the failure's message.
+ * @param detail - every string the result reported, joined.
+ * @param rateLimit - the last rate-limit event of the query, when it published one.
+ * @param now - epoch milliseconds the result was read at.
+ * @param status - the API status option the result carried.
+ * @returns the failure to throw.
+ */
+function usageLimitFailure(
+  text: string,
+  detail: string,
+  rateLimit: SDKRateLimitInfo | undefined,
+  now: number,
+  status: Pick<LlmErrorOptions, 'status'> = {},
+): LlmError {
+  return new LlmError(text, QUOTA_EXCEEDED_CODE, { ...status, ...quotaRetryAfter(detail, now, rateLimit?.resetsAt) })
+}
+
+/**
  * Classify one query that carries no answer. Every code, terminal reason, and
  * message the product reported joins one detail string so the seam's shared
  * classifiers see the same evidence they see from an HTTP provider. A
  * successful query the product itself marked failed carries an API failure of
  * its own in `result` — a connection, rate, or capacity failure of the request
- * it made — so that text joins the detail and the residue is transient.
+ * it made — so that text joins the detail: the installation's usage limit is
+ * `QUOTA`, carrying the delay until the stated reset; a 429 with no such
+ * notice is `RATE_LIMIT`; the residue is transient.
  * @param message - the product's result message.
+ * @param rateLimit - the last rate-limit event the query published, when it published one.
+ * @param now - epoch milliseconds the result was read at; the reset delay is measured from it.
  * @returns the seam-coded failure to throw for this query.
  */
-export function resultFailure(message: SDKResultMessage): LlmError {
+export function resultFailure(
+  message: SDKResultMessage,
+  rateLimit?: SDKRateLimitInfo,
+  now: number = Date.now(),
+): LlmError {
   const reported = message.subtype === 'success' ? [message.result] : message.errors
   const detail = [message.subtype, message.terminal_reason, message.stop_reason, ...reported]
     .filter(part => typeof part === 'string' && part.length > 0)
     .join(' ')
   const text = `llm-claude-code: the query failed: ${detail}`
   if (isContextWindowExceededError(detail)) return new LlmError(text, CONTEXT_WINDOW_EXCEEDED_CODE)
-  if (isQuotaExceededError(detail)) return new LlmError(text, QUOTA_EXCEEDED_CODE)
+  if (isUsageLimitRefusal(rateLimit, detail)) return usageLimitFailure(text, detail, rateLimit, now, apiStatus(message))
   switch (message.subtype) {
-    case 'success':
-      return new LlmError(text, TRANSPORT_CODE)
+    case 'success': {
+      const status = apiStatus(message)
+      return new LlmError(text, status.status === TOO_MANY_REQUESTS ? RATE_LIMIT_CODE : TRANSPORT_CODE, status)
+    }
     case 'error_max_turns':
       return new LlmError(text, MAX_TURNS_CODE)
     case 'error_max_budget_usd':

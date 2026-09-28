@@ -16,7 +16,7 @@ import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
-import type {} from '@deepseek-ai/dsh-environment-runner'
+import { EnvironmentRouteLimitError } from '@deepseek-ai/dsh-environment-runner'
 import type { EnvironmentRunReport } from '@deepseek-ai/dsh-environment-runner/types'
 import { isSeed, ROUTE_IMPLEMENTER } from '@deepseek-ai/dsh-environments'
 import type { EnvironmentDefinition, EnvironmentId, EnvironmentRunModel, EnvironmentRunStampRung } from '@deepseek-ai/dsh-environments/types'
@@ -30,6 +30,7 @@ import type {
   FleetModelEntry,
   FleetPairedReports,
   FleetPlan,
+  FleetRouteLimit,
   FleetRunReport,
   FleetSpend,
   LeaderboardRow,
@@ -125,6 +126,73 @@ function cellError(error: unknown): FleetCellError {
   return { message: error instanceof Error ? error.message : String(error) }
 }
 
+/** The route limit a thrown cell failure states, when the runner ended the cell on one. */
+function routeLimitOf(error: unknown): FleetRouteLimit | undefined {
+  if (!(error instanceof EnvironmentRouteLimitError)) return undefined
+  return {
+    provider: error.route.provider,
+    model: error.route.model,
+    code: error.failure.code,
+    message: error.failure.message,
+    ...error.resetsAt === undefined ? {} : { resetsAt: error.resetsAt },
+  }
+}
+
+/** The reset a route limit states, as the refusal names it. */
+function resetClause(limit: FleetRouteLimit): string {
+  return limit.resetsAt === undefined ? '' : `; its limit lifts at ${new Date(limit.resetsAt).toISOString()}`
+}
+
+/**
+ * The routes a batch stopped scheduling because their provider refused to
+ * serve until its own state changes — a spent usage window or balance, which
+ * the runner ends a cell on with `ENVIRONMENT_RUN_ROUTE_LIMIT`. The first cell
+ * a route refuses that way raises its wall, and every later cell on that route
+ * is refused before it starts. A paired run shares one instance between its
+ * two plans and refuses every later cell of either plan once any route is
+ * walled, because a pair with a refused side measures nothing.
+ */
+class RouteWalls {
+  private readonly walls = new Map<string, FleetRouteLimit>()
+
+  /** @param paired - whether a wall on any route stops every route. */
+  constructor(private readonly paired: boolean) {}
+
+  /** Raise the wall of a route; the first refusal of a route is the one kept. */
+  raise(limit: FleetRouteLimit): void {
+    const route = routeName(limit)
+    if (!this.walls.has(route)) this.walls.set(route, limit)
+  }
+
+  /**
+   * The refusal that keeps a cell out of the runner, or `undefined` when no
+   * wall applies to it.
+   * @param cell - the cell about to start.
+   * @returns the error to record for the cell.
+   */
+  refusal(cell: FleetCell): FleetCellError | undefined {
+    const route = routeName(cell.model)
+    const own = this.walls.get(route)
+    if (own !== undefined) {
+      return {
+        code: 'FLEET_ROUTE_LIMIT_REACHED' satisfies FleetCellErrorCode,
+        message: `route ${route} stopped at its limit: ${own.message}${resetClause(own)}`,
+      }
+    }
+    const first = this.paired ? this.walls.values().next().value : undefined
+    if (first === undefined) return undefined
+    return {
+      code: 'FLEET_ROUTE_LIMIT_REACHED' satisfies FleetCellErrorCode,
+      message: `route ${route} was not started: its pair's route ${routeName(first)} stopped at its limit: ${first.message}${resetClause(first)}`,
+    }
+  }
+
+  /** Every walled route, in the order the walls were raised. */
+  list(): FleetRouteLimit[] {
+    return [...this.walls.values()]
+  }
+}
+
 /** Run `tasks` in task order with at most `limit` in flight. */
 async function bounded(tasks: readonly (() => Promise<void>)[], limit: number): Promise<void> {
   let next = 0
@@ -145,9 +213,10 @@ function routeName(model: EnvironmentRunModel): string {
 
 /**
  * Running state of one plan: the consecutive errors each model route has
- * produced and the spend the reported cells have folded. Both are read as a
- * cell is about to start, so a refusal only ever keeps an unstarted cell out of
- * the runner and never interrupts one in flight.
+ * produced, the spend the reported cells have folded, and the route walls the
+ * batch shares. All are read as a cell is about to start, so a refusal only
+ * ever keeps an unstarted cell out of the runner and never interrupts one in
+ * flight.
  */
 class PlanLedger {
   private readonly consecutiveErrors = new Map<string, number>()
@@ -157,6 +226,7 @@ class PlanLedger {
   constructor(
     private readonly breaker: RouteBreakerConfig | undefined,
     private readonly ceiling: number | undefined,
+    private readonly walls: RouteWalls,
   ) {}
 
   /** Model usage of every cell folded so far. */
@@ -164,12 +234,20 @@ class PlanLedger {
     return { inputTokens: this.inputTokens, outputTokens: this.outputTokens }
   }
 
+  /** The routes whose limit stopped scheduling in this batch, in the order they were hit. */
+  get routeLimits(): FleetRouteLimit[] {
+    return this.walls.list()
+  }
+
   /**
-   * The refusal that keeps a cell out of the runner.
+   * The refusal that keeps a cell out of the runner: a walled route first,
+   * because it is the most specific reason, then the ceiling, then the breaker.
    * @param cell - the cell about to start.
    * @returns the error to record for the cell, or `undefined` when nothing refuses it.
    */
   refusal(cell: FleetCell): FleetCellError | undefined {
+    const walled = this.walls.refusal(cell)
+    if (walled !== undefined) return walled
     const spent = this.inputTokens + this.outputTokens
     if (this.ceiling !== undefined && spent >= this.ceiling) {
       return {
@@ -191,9 +269,11 @@ class PlanLedger {
    * Fold one outcome the runner produced. A refused cell never reaches this,
    * so a refusal neither opens another route's breaker nor moves the spend.
    * @param outcome - the settled outcome of one cell the runner handled.
+   * @param limit - the route limit the cell's failure stated, when the runner ended it on one.
    */
-  record(outcome: FleetCellOutcome): void {
+  record(outcome: FleetCellOutcome, limit: FleetRouteLimit | undefined): void {
     const route = routeName(outcome.cell.model)
+    if (limit !== undefined) this.walls.raise(limit)
     if ('error' in outcome) {
       this.consecutiveErrors.set(route, (this.consecutiveErrors.get(route) ?? 0) + 1)
       return
@@ -316,6 +396,7 @@ function planReport(run: PlanRun): FleetRunReport {
     cells: run.outcomes,
     leaderboard: foldLeaderboard(run.outcomes, run.definitions),
     spend: run.ledger.spend,
+    routeLimits: run.ledger.routeLimits,
   }
 }
 
@@ -423,9 +504,11 @@ export class FleetService extends Service {
 
   /**
    * Run every cell of a plan and fold the leaderboard. A cell whose run
-   * throws is kept as an error outcome, as is a cell the route breaker or the
-   * token ceiling refused to start; the fleet run itself rejects only for a
-   * plan it cannot start.
+   * throws is kept as an error outcome, as is a cell the route breaker, the
+   * token ceiling, or a route's limit refused to start; the first cell a
+   * route's limit ends walls that route for the rest of the run, and the
+   * report names every walled route under `routeLimits`. The fleet run itself
+   * rejects only for a plan it cannot start.
    * @param plan - environments, model entries with their optional agent
    *   presets, an optional attempt ladder and implementer, repetitions, an
    *   optional exact cell selection, workspace root, group, district, policy
@@ -444,7 +527,7 @@ export class FleetService extends Service {
    *   the plan names is not composed or has no credential to reach it with.
    */
   async run(plan: FleetPlan): Promise<FleetRunReport> {
-    const prepared = await this.prepare(plan)
+    const prepared = await this.prepare(plan, new RouteWalls(false))
     await this.runSchedule(prepared.cells.map((_, index) => ({ run: prepared, index })))
     return planReport(prepared)
   }
@@ -474,9 +557,12 @@ export class FleetService extends Service {
    *   either plan names is not composed or has no credential to reach it with.
    */
   async runPaired(first: FleetPlan, second: FleetPlan): Promise<FleetPairedReports> {
+    // One set of walls for the pair: a route refused on either side stops
+    // both, because every remaining pair would have a refused side.
+    const walls = new RouteWalls(true)
     // Sequential, not concurrent: the first plan's refusal is the one the
     // caller gets, so a pair naming the same bad route names it once.
-    const runs = [await this.prepare(first), await this.prepare(second)] as const
+    const runs = [await this.prepare(first, walls), await this.prepare(second, walls)] as const
     checkPairable(runs[0], runs[1])
     await this.runSchedule(pairwise(runs[0], runs[1]))
     return [planReport(runs[0]), planReport(runs[1])]
@@ -486,8 +572,10 @@ export class FleetService extends Service {
    * Validate a plan, resolve its environment selection, enumerate the cells it
    * runs, and open the ledger they fold into. Every refusal a plan earns
    * happens here, before any cell of it — or of a plan paired with it — starts.
+   * @param plan - the plan to prepare.
+   * @param walls - the route walls this plan's cells raise and are refused by, shared across a pair.
    */
-  private async prepare(plan: FleetPlan): Promise<PlanRun> {
+  private async prepare(plan: FleetPlan, walls: RouteWalls): Promise<PlanRun> {
     if (!Number.isInteger(plan.repetitions) || plan.repetitions < 1) {
       throw new FleetError(`repetitions must be a positive integer, got ${String(plan.repetitions)}`, 'FLEET_INVALID_PLAN')
     }
@@ -518,7 +606,7 @@ export class FleetService extends Service {
       }
     }
     const cells = plan.cells === undefined ? enumerated : restrict(enumerated, plan.cells)
-    const ledger = new PlanLedger(this.resolved.routeBreaker, plan.tokenCeiling)
+    const ledger = new PlanLedger(this.resolved.routeBreaker, plan.tokenCeiling, walls)
     return { plan, group, definitions, cells, ledger, outcomes: new Array<FleetCellOutcome>(cells.length) }
   }
 
@@ -626,8 +714,8 @@ export class FleetService extends Service {
   private async runCell(cell: FleetCell, plan: FleetPlan, group: string, ledger: PlanLedger): Promise<FleetCellOutcome> {
     const refusal = ledger.refusal(cell)
     if (refusal !== undefined) return this.settle({ cell, error: refusal }, plan, group)
-    const { outcome, workspace } = await this.execute(cell, plan, group)
-    ledger.record(outcome)
+    const { outcome, workspace, limit } = await this.execute(cell, plan, group)
+    ledger.record(outcome, limit)
     if (workspace !== undefined && this.removes(outcome)) await rm(workspace, { recursive: true, force: true })
     return this.settle(outcome, plan, group)
   }
@@ -660,13 +748,14 @@ export class FleetService extends Service {
   /**
    * Run one cell in a fresh workspace directory; a thrown error becomes the
    * cell's outcome. The workspace is returned when one was minted, so retention
-   * can reach a directory whose run then failed.
+   * can reach a directory whose run then failed, and the route limit when the
+   * runner ended the cell on one, so the ledger can wall the route.
    */
   private async execute(
     cell: FleetCell,
     plan: FleetPlan,
     group: string,
-  ): Promise<{ outcome: FleetCellOutcome; workspace?: string }> {
+  ): Promise<{ outcome: FleetCellOutcome; workspace?: string; limit?: FleetRouteLimit }> {
     let workspace: string | undefined
     try {
       workspace = await mkdtemp(join(plan.workspaceRoot, 'cell-'))
@@ -687,7 +776,12 @@ export class FleetService extends Service {
       return { outcome: { cell, report }, workspace }
     } catch (error: unknown) {
       const outcome: FleetCellOutcome = { cell, error: cellError(error) }
-      return workspace === undefined ? { outcome } : { outcome, workspace }
+      const limit = routeLimitOf(error)
+      return {
+        outcome,
+        ...workspace === undefined ? {} : { workspace },
+        ...limit === undefined ? {} : { limit },
+      }
     }
   }
 }

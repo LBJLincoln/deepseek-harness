@@ -16,6 +16,7 @@ import {
   foldSessionFacts,
   foldSessionFactsState,
 } from '@deepseek-ai/dsh-scorekeeper'
+import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { cellLog, certificate, directive, goalChange, header, Log, manifest, MOCK_ROUTE, runRecord, standard, stamp } from './log.ts'
 import type { Route } from './log.ts'
 
@@ -281,6 +282,52 @@ describe('foldSessionFacts', () => {
     priced.push('environment/delegation', { attempt: 1, provider: 'acp', runId: 'child-1', stopReason: 'completed', reportedCostUsd: 0.02 })
     expect(foldSessionFacts(header('priced'), priced.events).efficiency.delegated)
       .toEqual({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.02 })
+  })
+
+  it('carries the route refusal that ended the run and leaves the reward unmeasured on its basis', () => {
+    // A cell whose first attempt was measured and failed, and whose second the
+    // route refused, as the runner records it.
+    const failure = {
+      message: "llm-claude-code: the query failed: success api_error stop_sequence You've hit your session limit · resets 8:20pm (UTC)",
+      code: 'QUOTA',
+      providerRetryAfterMs: 9_180_000,
+    }
+    const events = cellLog({ stamp: stamp(), certified: false, runs: 1 })
+    const at = events.length
+    events.push({
+      type: 'environment/route-limit',
+      seq: at,
+      time: 5_000,
+      data: { attempt: 2, provider: 'claude-code', model: 'sonnet', failure, resetsAt: 1_790_542_800_000 },
+    } as unknown as SessionEvent)
+    const facts = foldSessionFacts(header('cut'), events)
+    expect(facts.outcome).toMatchObject({
+      reward: null,
+      rewardBasis: 'route-limit',
+      certified: false,
+      runsRecorded: 1,
+      routeLimit: {
+        attempt: 2,
+        provider: 'claude-code',
+        model: 'sonnet',
+        code: 'QUOTA',
+        message: failure.message,
+        resetsAt: 1_790_542_800_000,
+      },
+    })
+
+    // A refusal whose provider stated no reset records none.
+    const unstated = cellLog({ stamp: stamp(), certified: false, runs: 0 })
+    unstated.push({
+      type: 'environment/route-limit',
+      seq: unstated.length,
+      time: 5_000,
+      data: { attempt: 1, provider: 'deepseek', model: 'v4', failure: { message: 'insufficient balance', code: 'QUOTA' } },
+    } as unknown as SessionEvent)
+    const bare = foldSessionFacts(header('cut-bare'), unstated).outcome
+    expect(bare.routeLimit).toEqual({ attempt: 1, provider: 'deepseek', model: 'v4', code: 'QUOTA', message: 'insufficient balance' })
+    expect(bare.routeLimit).not.toHaveProperty('resetsAt')
+    expect(foldSessionFacts(header('served'), cellLog({ stamp: stamp(), certified: true, runs: 1 })).outcome).not.toHaveProperty('routeLimit')
   })
 
   it('records the cap of the last budget breach', () => {

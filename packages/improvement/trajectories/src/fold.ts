@@ -217,10 +217,21 @@ function scanGoal(events: readonly SessionEvent[]): RewardGoal {
 }
 
 /**
- * Decide one session's reward from its goal and verification events alone: a
- * tampered last run outranks everything, the verifier decides whenever a
- * standard exists, an uncertified completion is undecided, and a log without a
- * goal is unmeasured.
+ * Whether the log records that the run ended because its model route refused
+ * to serve — the environment runner's `environment/route-limit`, read here by
+ * type alone as the budget and delegation records are, since the runner's
+ * vocabulary is not this package's dependency.
+ */
+function routeLimited(events: readonly SessionEvent[]): boolean {
+  return events.some(event => (event.type as string) === 'environment/route-limit')
+}
+
+/**
+ * Decide one session's reward from its goal, verification, and route-limit
+ * events alone: a run its route refused is unmeasured, a tampered last run
+ * outranks everything else, the verifier decides whenever a standard exists,
+ * an uncertified completion is undecided, and a log without a goal is
+ * unmeasured.
  * @param events - the session's contiguous event log.
  * @returns the reward outcome with its basis, the measured goal, the covering certificate, and the counts behind them.
  */
@@ -235,6 +246,11 @@ export function foldTrajectoryReward(events: readonly SessionEvent[]): Trajector
     relaxations: verification.standard?.relaxed.length ?? 0,
     attempts: verification.runsRecorded,
   }
+  // The route, not the task, ended the run: whatever the standard measured
+  // before the refusal, nothing measured the work to its end, so the session
+  // earns neither credit nor a failure. The runner ends the run on the first
+  // refusal or the first tamper, so a log holds at most one of the two.
+  if (routeLimited(events)) return { outcome: null, basis: 'route-limit', ...goal, ...counts }
   // A tampered run means the checks stopped describing the task, so no
   // certificate and no goal phase in the same log can earn credit for it.
   if (verification.lastRun?.verdict === 'tampered') return { outcome: 0, basis: 'tamper', ...goal, ...counts }

@@ -171,7 +171,12 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
   rows.set(key, row)
   const outcome = record.outcome
   const efficiency = record.efficiency
-  if (outcome.runsRecorded === 0) row.errors += 1
+  // A session its route refused to serve was never measured to its end,
+  // whatever runs it recorded first: it is an error of the route, so it counts
+  // under `errors`, states no parity, and joins no pass@k batch. Its tokens
+  // were spent, so they are summed like every errored session's.
+  const cut = outcome.routeLimit !== undefined
+  if (cut || outcome.runsRecorded === 0) row.errors += 1
   else {
     row.runs += 1
     row.attemptSum += outcome.runsRecorded
@@ -186,14 +191,14 @@ function accumulate(rows: Map<string, RowAccumulator>, record: SessionFactsRecor
     if (efficiency.costEur === undefined) row.uncostedCertified += 1
     else row.certifiedCostEur += efficiency.costEur
   }
-  if (outcome.parity !== undefined) {
+  if (outcome.parity !== undefined && !cut) {
     row.parityRateSum += outcome.parity.weightPassed / outcome.parity.weightTotal
     row.paritySessions += 1
   }
   row.inputTokens += efficiency.inputTokens
   row.outputTokens += efficiency.outputTokens
   for (const digest of efficiency.pricingDigests) row.digests.add(digest)
-  if (environment.group === undefined) return
+  if (environment.group === undefined || cut) return
   const batch = row.batches.get(environment.group) ?? { samples: 0, certified: 0 }
   row.batches.set(environment.group, batch)
   batch.samples += 1

@@ -9,6 +9,7 @@
 import type { BudgetCap } from '@deepseek-ai/dsh-budget-policy'
 import type { EnvironmentRunImplementer, EnvironmentRunRung } from '@deepseek-ai/dsh-environment-runner/types'
 import type { EnvironmentId, EnvironmentRunModel } from '@deepseek-ai/dsh-environments/types'
+import type { FleetRouteLimit } from '@deepseek-ai/dsh-fleet/types'
 import type { TrajectorySink } from '@deepseek-ai/dsh-trajectories/types'
 
 /** Role one arm plays in a comparison; both roles run the same cells. */
@@ -229,6 +230,14 @@ export interface ExperimentResult {
    * fleet's cell order. Empty when every cell of both arms reported.
    */
   readonly errors: readonly ExperimentCellError[]
+  /**
+   * The routes whose limit stopped the paired run, each once, in the order the
+   * fleet hit them; empty when no route was refused. A non-empty list says the
+   * comparison was not measured to its end: the cells the refusal cut or left
+   * unstarted are among `errors` and unpaired, so the verdict reads the pairs
+   * that completed alone, and a driver exits non-zero naming the routes.
+   */
+  readonly routeLimits: readonly FleetRouteLimit[]
   /** Paired repetition indexes over every environment; the bootstrap's units. */
   readonly seedsPaired: number
   /** Paired repetitions whose two arms disagree on the certificate; only these move `delta`. */

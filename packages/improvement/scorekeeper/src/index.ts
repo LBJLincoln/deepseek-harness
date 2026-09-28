@@ -77,6 +77,8 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
   outcome: zod.object({
     reward: zod.union([zod.literal(1), zod.literal(0), zod.null()]),
     rewardBasis: zod.union([
+      zod.literal('route-limit'),
+      zod.literal('tamper'),
       zod.literal('certificate'),
       zod.literal('uncertified-completion'),
       zod.literal('none'),
@@ -107,6 +109,14 @@ const sessionFactsSchema: ZodType<SessionFacts> = zod.object({
     goalRoundsStarted: zod.number().int().nonnegative(),
     goalRoundsCap: zod.number().int().positive().optional(),
     budgetBreachCap: zod.string().min(1).optional(),
+    routeLimit: zod.object({
+      attempt: zod.number().int().positive(),
+      provider: zod.string().min(1),
+      model: zod.string().min(1),
+      code: zod.string().min(1),
+      message: zod.string().min(1),
+      resetsAt: zod.number().int().nonnegative().optional(),
+    }).optional(),
   }),
   efficiency: zod.object({
     turns: zod.number().int().nonnegative(),

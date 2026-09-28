@@ -101,13 +101,16 @@ export interface TrajectoryStep {
 }
 
 /**
- * How the reward was decided: `tamper` when the last recorded run found the
+ * How the reward was decided: `route-limit` when the run ended because its
+ * model route refused to serve until its own state changes (the runner's
+ * `environment/route-limit`), so nothing measured the work to its end and the
+ * outcome is `null`; `tamper` when the last recorded run found the
  * check-owned files changed, which voids the measurement whatever else the log
  * says; `certificate` when a completion standard existed for the goal (the
  * verifier decided); `uncertified-completion` when the goal completed with no
  * standard ever authored; `none` when the log holds no goal.
  */
-export type TrajectoryRewardBasis = 'tamper' | 'certificate' | 'uncertified-completion' | 'none'
+export type TrajectoryRewardBasis = 'route-limit' | 'tamper' | 'certificate' | 'uncertified-completion' | 'none'
 
 /** The goal the reward measures, as the log last recorded it. */
 export interface TrajectoryGoal {

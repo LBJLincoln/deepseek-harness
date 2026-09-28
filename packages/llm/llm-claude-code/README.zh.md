@@ -83,7 +83,11 @@ resume 需要 `persistSession: true`，因此安装会在运维方自己的配�
 
 ## 错误
 
-目录未声明的模型为 `UNKNOWN_MODEL`，指名了会话存储所不持有的 harness 会话的请求为 `UNKNOWN_SESSION`，图像内容为 `UNSUPPORTED_CONTENT`，三者都发生在任何查询之前。主机在 subprocess 缝的 PATH 上没有 `claude` 时为 `MISSING_EXECUTABLE`。空闲到期与调用方取消分别为 `TIMEOUT` 与 `ABORTED`。回复不可用为 `MALFORMED_RESPONSE` 与 `EMPTY_RESPONSE`，查询结束却未发布结果为 `STREAM_CLOSED`。不携带答案的结果依据它上报的全部 code、terminal reason、stop reason 与消息分类：先经缝的共享分类器给出 `CONTEXT_WINDOW_EXCEEDED` 与 `QUOTA`，再按结果子类型给出——没有工具调用却触及轮次上限为 `MAX_TURNS`，预算上限为 `QUOTA`，结构化输出重试耗尽为 `MALFORMED_RESPONSE`，执行期间失败为 `PRODUCT_ERROR`，而产品自己标记为失败的成功结果为 `TRANSPORT`，它携带的是产品自身请求的 API 失败，值得重试。SDK 以抛出而非发布结果的方式报告的失败成为 `TRANSPORT`，其消息中带有渲染后的 cause 链；结果发布之后的抛出会被丢弃，因为结果才是该次查询对自身的交代——除非是 harness 停止了该查询，此时 `TIMEOUT` 与 `ABORTED` 优先于产品已发布的任何内容。
+目录未声明的模型为 `UNKNOWN_MODEL`，指名了会话存储所不持有的 harness 会话的请求为 `UNKNOWN_SESSION`，图像内容为 `UNSUPPORTED_CONTENT`，三者都发生在任何查询之前。主机在 subprocess 缝的 PATH 上没有 `claude` 时为 `MISSING_EXECUTABLE`。空闲到期与调用方取消分别为 `TIMEOUT` 与 `ABORTED`。回复不可用为 `MALFORMED_RESPONSE` 与 `EMPTY_RESPONSE`，查询结束却未发布结果为 `STREAM_CLOSED`。不携带答案的结果依据它上报的全部 code、terminal reason、stop reason 与消息分类：先经缝的共享分类器给出 `CONTEXT_WINDOW_EXCEEDED`，再判断安装的用量限制，然后按结果子类型给出——没有工具调用却触及轮次上限为 `MAX_TURNS`，预算上限为 `QUOTA`，结构化输出重试耗尽为 `MALFORMED_RESPONSE`，执行期间失败为 `PRODUCT_ERROR`，而产品自己标记为失败的成功结果携带的是产品自身请求的 API 失败：其 `api_error_status` 为 429 时为 `RATE_LIMIT`，否则为 `TRANSPORT`，二者都值得重试，且在产品上报了该状态时都把它作为失败的 `status` 携带。SDK 以抛出而非发布结果的方式报告的失败成为 `TRANSPORT`，其消息中带有渲染后的 cause 链；结果发布之后的抛出会被丢弃，因为结果才是该次查询对自身的交代——除非是 harness 停止了该查询，此时 `TIMEOUT` 与 `ABORTED` 优先于产品已发布的任何内容。
+
+### 安装的用量限制
+
+订阅的用量窗口——五小时的 session limit、每周的 weekly limit——是安装的状态而非某一次请求的状态：一旦耗尽，这条路由上的每次查询都会被拒绝，直到几分钟到几小时后窗口重置。本路由把这种拒绝分类为缝的 `QUOTA`，默认重试策略不会重复它，并在产品说明了重置时刻时以 `providerRetryAfterMs` 携带到那一刻的延迟。识别它的信号有两个，按此顺序。结构化的信号是 SDK 的 `rate_limit_event`：发布过一条 `status: 'rejected'` 事件的查询是被该窗口拒绝的，其 `resetsAt`（unix 秒）就是重置时刻。有记录的信号是产品写进结果文本的提示——成功子类型带 `is_error: true`、`terminal_reason: 'api_error'` 与 `result: "You've hit your session limit · resets 8:20pm (UTC)"`，这正是 2026-09-27 撞上限制的那次运行的会话日志所持有的、也是它们唯一持有的证据；缝的共享 `isQuotaExceededError` 识别产品这一族提示，`quotaResetDelayMs` 读出以 UTC 钟点陈述的重置。SDK 以抛出方式报告的拒绝依其渲染后的 cause 链适用同一分类。产品上报而两种信号都没有的 429 是请求速率限制 `RATE_LIMIT`，重试策略按自己的延迟重复它。失败消息保留产品自己的措辞，因此运维方读到的是提示以及产品所说的重置；调度方读的是 code 与延迟（[运行器](../../improvement/environment-runner/README.md#a-route-limit-ends-the-run)据此结束 cell，[fleet](../../improvement/fleet/README.md#a-route-limit-stops-the-route)据此停止该路由）。
 
 ## Model Experience
 
