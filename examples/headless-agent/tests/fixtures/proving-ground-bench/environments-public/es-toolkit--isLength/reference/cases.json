@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isLength.spec.ts › isLength › should return `true` for lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isLength } from \"./src/predicate/isLength.js\";\n{\n{\n{\nconst values = [0, 3, Number.MAX_SAFE_INTEGER];\n        const expected = values.map(() => true);\n        const actual = values.map(isLength);\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isLength.spec.ts › isLength › should return `false` for non-lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isLength } from \"./src/predicate/isLength.js\";\n{\n{\n{\nconst values = [-1, '1', 1.1, Number.MAX_SAFE_INTEGER + 1];\n        const expected = values.map(() => false);\n        const actual = values.map(isLength);\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

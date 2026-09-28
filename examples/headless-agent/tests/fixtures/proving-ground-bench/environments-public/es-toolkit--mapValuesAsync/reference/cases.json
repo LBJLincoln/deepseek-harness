@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/mapValuesAsync.spec.ts › mapValuesAsync › should iterate over and map the object using its own values asynchronously",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValuesAsync } from \"./src/object/mapValuesAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst result = await mapValuesAsync({ a: 1, b: 2, c: 3 }, async (n) => n * 2);\n        expect(result).toEqual({ a: 2, b: 4, c: 6 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/mapValuesAsync.spec.ts › mapValuesAsync › should pass the key corresponding to the current value into the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValuesAsync } from \"./src/object/mapValuesAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst result = await mapValuesAsync({ a: 1, b: 2, c: 3 }, async (_, key) => key);\n        expect(result).toEqual({ a: 'a', b: 'b', c: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/mapValuesAsync.spec.ts › mapValuesAsync › should pass the cloned object into the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValuesAsync } from \"./src/object/mapValuesAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst result = await mapValuesAsync({ a: 1, b: 2, c: 3 }, async (value, key, object) => {\n            object[key] = value * 11;\n            return value * 11;\n        });\n        expect(result).toEqual({ a: 11, b: 22, c: 33 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/mapValuesAsync.spec.ts › mapValuesAsync › should use full concurrency when not specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapValuesAsync } from \"./src/object/mapValuesAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10 };\n        let running = 0;\n        let maxRunning = 0;\n        const fn = async (value) => {\n            running++;\n            if (running > maxRunning) {\n                maxRunning = running;\n            }\n            await delay(20);\n            running--;\n            return value * 2;\n        };\n        await mapValuesAsync(obj, fn);\n        expect(maxRunning).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

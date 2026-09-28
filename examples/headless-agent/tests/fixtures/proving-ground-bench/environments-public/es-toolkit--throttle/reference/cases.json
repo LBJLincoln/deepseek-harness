@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/throttle.spec.ts › throttle › should preserve this context when called as a method",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { throttle } from \"./src/function/throttle.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst throttleMs = 50;\n        let capturedMsg;\n        const obj = {\n            msg: 'hello world',\n            logWithThrottle: throttle(function () {\n                capturedMsg = this?.msg;\n            }, throttleMs),\n        };\n        obj.logWithThrottle();\n        expect(capturedMsg).toBe('hello world');\n        capturedMsg = undefined;\n        obj.logWithThrottle();\n        obj.logWithThrottle();\n        await delay(throttleMs + 1);\n        expect(capturedMsg).toBe('hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

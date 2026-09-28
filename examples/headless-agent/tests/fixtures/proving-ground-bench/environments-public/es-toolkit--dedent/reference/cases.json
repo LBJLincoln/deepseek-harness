@@ -1,0 +1,362 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/dedent.spec.ts › dedent › should remove common leading whitespace from each line",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('  hello\\n  world')).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/dedent.spec.ts › dedent › should preserve relative indentation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('  hello\\n    world')).toBe('hello\\n  world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/dedent.spec.ts › dedent › should handle a tagged template literal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst result = dedent `\n      hello\n      world\n    `;\n        expect(result).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/dedent.spec.ts › dedent › should preserve relative indentation in a tagged template literal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst result = dedent `\n      hello\n        world\n    `;\n        expect(result).toBe('hello\\n  world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/dedent.spec.ts › dedent › should handle interpolations in a tagged template literal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst name = 'world';\n        const result = dedent `\n      hello\n      ${name}\n    `;\n        expect(result).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/dedent.spec.ts › dedent › should not dedent the lines of a multi-line interpolated value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst value = 'a\\nb';\n        const result = dedent `\n      hello ${value}\n      world\n    `;\n        expect(result).toBe('hello a\\nb\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/dedent.spec.ts › dedent › should not let an indented interpolated value change the common indentation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst value = 'x';\n        const result = dedent `\n      hello\n        ${value}\n    `;\n        expect(result).toBe('hello\\n  x');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/dedent.spec.ts › dedent › should handle an interpolated value that contains a null character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst value = '\\x00';\n        const result = dedent `\n      hello ${value}\n      world\n    `;\n        expect(result).toBe('hello \\x00\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/dedent.spec.ts › dedent › should handle a static part that contains a null character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst value = 'x';\n        const result = dedent `\n      \\x00 ${value}\n      world\n    `;\n        expect(result).toBe('\\x00 x\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/dedent.spec.ts › dedent › should handle empty lines",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst result = dedent `\n      hello\n\n      world\n    `;\n        expect(result).toBe('hello\\n\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/dedent.spec.ts › dedent › should handle a single line",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('  hello')).toBe('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/string/dedent.spec.ts › dedent › should handle an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/string/dedent.spec.ts › dedent › should handle a string with no indentation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('hello\\nworld')).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/string/dedent.spec.ts › dedent › should handle tab indentation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('\\t\\thello\\n\\t\\tworld')).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/string/dedent.spec.ts › dedent › should remove first and last empty lines",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('\\n  hello\\n  world\\n')).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/string/dedent.spec.ts › dedent › should handle lines with only whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('  hello\\n    \\n  world')).toBe('hello\\n\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/string/dedent.spec.ts › dedent › should handle mixed indentation levels",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('    a\\n  b\\n      c')).toBe('  a\\nb\\n    c');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "src/string/dedent.spec.ts › dedent › should handle Windows line endings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('  hello\\r\\n  world')).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "src/string/dedent.spec.ts › dedent › should handle a string with only empty lines",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('\\n\\n\\n')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "src/string/dedent.spec.ts › dedent › should accept an opening line that contains only whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst result = dedent `\\t\n      hello\n    `;\n        expect(result).toBe('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "src/string/dedent.spec.ts › dedent › should throw a TypeError if the opening line has content",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(() => dedent `hello\n      world\n    `).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "src/string/dedent.spec.ts › dedent › should throw a TypeError if the template has no newline",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(() => dedent `hello`).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "src/string/dedent.spec.ts › dedent › should throw a TypeError if the template starts with an interpolation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst name = 'hello';\n        expect(() => dedent `${name}\n      world\n    `).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "src/string/dedent.spec.ts › dedent › should throw a TypeError if the closing line has content",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(() => dedent `\n      hello\n      world`).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "src/string/dedent.spec.ts › dedent › should throw a TypeError if the template ends with an interpolation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst name = 'world';\n        expect(() => dedent `\n      hello\n      ${name}`).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "src/string/dedent.spec.ts › dedent › should not check the template shape when called with a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nexpect(dedent('hello')).toBe('hello');\n        expect(dedent('  hello\\n  world')).toBe('hello\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "src/string/dedent.spec.ts › dedent › should compose with another tag function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst upper = (strings, ...values) => {\n            let result = '';\n            for (let i = 0; i < strings.length; i++) {\n                result += strings[i];\n                if (i < values.length) {\n                    result += String(values[i]);\n                }\n            }\n            return result.toUpperCase();\n        };\n        const dedentedUpper = dedent(upper);\n        const result = dedentedUpper `\n      hello\n      world\n    `;\n        expect(result).toBe('HELLO\\nWORLD');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "src/string/dedent.spec.ts › dedent › should compose with another tag function and preserve interpolations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst identity = (strings, ...values) => {\n            let result = '';\n            for (let i = 0; i < strings.length; i++) {\n                result += strings[i];\n                if (i < values.length) {\n                    result += String(values[i]);\n                }\n            }\n            return result;\n        };\n        const dedentedIdentity = dedent(identity);\n        const name = 'es-toolkit';\n        const result = dedentedIdentity `\n      Welcome to\n      ${name}!\n    `;\n        expect(result).toBe('Welcome to\\nes-toolkit!');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "src/string/dedent.spec.ts › dedent › should compose with another tag function and not dedent multi-line interpolations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst identity = (strings, ...values) => {\n            let result = '';\n            for (let i = 0; i < strings.length; i++) {\n                result += strings[i];\n                if (i < values.length) {\n                    result += String(values[i]);\n                }\n            }\n            return result;\n        };\n        const dedentedIdentity = dedent(identity);\n        const value = 'a\\nb';\n        const result = dedentedIdentity `\n      hello ${value}\n      world\n    `;\n        expect(result).toBe('hello a\\nb\\nworld');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "src/string/dedent.spec.ts › dedent › should throw a TypeError from a composed tag function if the template shape is invalid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dedent } from \"./src/string/dedent.js\";\n{\n{\n{\nconst identity = (strings) => strings.join('');\n        const dedentedIdentity = dedent(identity);\n        expect(() => dedentedIdentity `hello\n      world\n    `).toThrow(TypeError);\n        expect(() => dedentedIdentity `\n      hello\n      world`).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/yearsToMonths/test.ts › yearsToMonths › converts years to months",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToMonths } from \"./src/yearsToMonths/index.js\";\n{\n{\n{\nexpect(yearsToMonths(1)).toBe(12);\n        expect(yearsToMonths(2)).toBe(24);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/yearsToMonths/test.ts › yearsToMonths › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToMonths } from \"./src/yearsToMonths/index.js\";\n{\n{\n{\nexpect(yearsToMonths(1.7)).toBe(20);\n        expect(yearsToMonths(0.1)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/yearsToMonths/test.ts › yearsToMonths › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToMonths } from \"./src/yearsToMonths/index.js\";\n{\n{\n{\nexpect(yearsToMonths(1.5)).toBe(18);\n        expect(yearsToMonths(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/yearsToMonths/test.ts › yearsToMonths › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { yearsToMonths } from \"./src/yearsToMonths/index.js\";\n{\n{\n{\nexpect(yearsToMonths(1.23)).toBe(14);\n        expect(yearsToMonths(-1.23)).toBe(-14);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

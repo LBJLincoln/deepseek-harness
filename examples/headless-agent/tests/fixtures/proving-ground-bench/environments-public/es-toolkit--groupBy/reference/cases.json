@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/groupBy.spec.ts › groupBy › should group elements by a given key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = [\n            { category: 'fruit', name: 'apple' },\n            { category: 'fruit', name: 'banana' },\n            { category: 'vegetable', name: 'carrot' },\n            { category: 'fruit', name: 'pear' },\n            { category: 'vegetable', name: 'broccoli' },\n        ];\n        const result = groupBy(array, item => item.category);\n        expect(result).toEqual({\n            fruit: [\n                { category: 'fruit', name: 'apple' },\n                { category: 'fruit', name: 'banana' },\n                { category: 'fruit', name: 'pear' },\n            ],\n            vegetable: [\n                { category: 'vegetable', name: 'carrot' },\n                { category: 'vegetable', name: 'broccoli' },\n            ],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/groupBy.spec.ts › groupBy › should handle an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = [];\n        const result = groupBy(array, item => item.category);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/groupBy.spec.ts › groupBy › should handle an array with one element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = [{ category: 'fruit', name: 'apple' }];\n        const result = groupBy(array, item => item.category);\n        expect(result).toEqual({\n            fruit: [{ category: 'fruit', name: 'apple' }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/groupBy.spec.ts › groupBy › should pass index to the key-generating function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = ['a', 'b', 'c', 'd', 'e'];\n        const result = groupBy(array, (item, index) => (index % 2 === 0 ? 'even' : 'odd'));\n        expect(result).toEqual({\n            even: ['a', 'c', 'e'],\n            odd: ['b', 'd'],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/groupBy.spec.ts › groupBy › should pass array to the key-generating function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = [1, 2, 3, 4];\n        const result = groupBy(array, (item, index, arr) => (item < arr.length / 2 ? 'small' : 'large'));\n        expect(result).toEqual({\n            small: [1],\n            large: [2, 3, 4],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/groupBy.spec.ts › groupBy › should group elements by a numeric key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = [\n            { score: 1, name: 'John' },\n            { score: 2, name: 'Jane' },\n            { score: 1, name: 'Joe' },\n        ];\n        const result = groupBy(array, item => item.score);\n        expect(result).toEqual({\n            '1': [\n                { score: 1, name: 'John' },\n                { score: 1, name: 'Joe' },\n            ],\n            '2': [{ score: 2, name: 'Jane' }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/groupBy.spec.ts › groupBy › should group elements by a symbol key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst TYPE_A = Symbol();\n        const TYPE_B = Symbol();\n        const array = [\n            { type: TYPE_A, score: 1, name: 'John' },\n            { type: TYPE_A, score: 2, name: 'Jane' },\n            { type: TYPE_B, score: 1, name: 'Joe' },\n        ];\n        const result = groupBy(array, item => item.type);\n        expect(result).toEqual({\n            [TYPE_A]: [\n                { type: TYPE_A, score: 1, name: 'John' },\n                { type: TYPE_A, score: 2, name: 'Jane' },\n            ],\n            [TYPE_B]: [{ type: TYPE_B, score: 1, name: 'Joe' }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/array/groupBy.spec.ts › groupBy › should handle duplicate keys correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { groupBy } from \"./src/array/groupBy.js\";\n{\n{\n{\nconst array = [\n            { category: 'fruit', name: 'apple' },\n            { category: 'fruit', name: 'apple' },\n        ];\n        const result = groupBy(array, item => item.category);\n        expect(result).toEqual({\n            fruit: [\n                { category: 'fruit', name: 'apple' },\n                { category: 'fruit', name: 'apple' },\n            ],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

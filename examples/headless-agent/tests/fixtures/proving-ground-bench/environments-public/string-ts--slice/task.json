@@ -1,0 +1,52 @@
+{
+  "id": "code:string-ts--implement-slice",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "string-ts",
+    "url": "https://github.com/gustavoguichard/string-ts",
+    "commit": "7850efd6baba551d60e4b85a2e4a8ed075167bb5",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "5854449485af03f03c6fc021dc1419e2f62be9ec1efb9f5a4eb46d75931aa6c5",
+    "copyright": "Copyright (c) 2023 Gustavo Guichard",
+    "module": "src/native/slice.ts",
+    "tests": [
+      "src/native/slice.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/native/slice.js",
+    "function": "slice"
+  },
+  "title": "Implement slice from string-ts",
+  "prompt": "`src/native/slice.js` is the JavaScript build of `src/native/slice.ts` from string-ts (https://github.com/gustavoguichard/string-ts at commit 7850efd6baba, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `slice`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * A strongly-typed version of `String.prototype.slice`.\n * @param str the string to slice.\n * @param start the start index.\n * @param end the end index.\n * @returns the sliced string in both type level and runtime.\n * @example slice('hello world', 6) // 'world'\n */\nexport function slice<\n  T extends string,\n  S extends number = 0,\n  E extends number | undefined = undefined,\n>(str: T, start: S = 0 as S, end: E = undefined as E)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isNotNil.spec.ts › isNotNil › returns false if the value is null or undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNotNil } from \"./src/predicate/isNotNil.js\";\n{\n{\n{\nexpect(isNotNil(null)).toBe(false);\n        expect(isNotNil(undefined)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isNotNil.spec.ts › isNotNil › returns true if the value is not null nor undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNotNil } from \"./src/predicate/isNotNil.js\";\n{\n{\n{\nexpect(isNotNil('')).toBe(true);\n        expect(isNotNil(123)).toBe(true);\n        expect(isNotNil(0)).toBe(true);\n        expect(isNotNil(false)).toBe(true);\n        expect(isNotNil(true)).toBe(true);\n        expect(isNotNil([])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isNotNil.spec.ts › isNotNil › can be used with TypeScript as a type predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNotNil } from \"./src/predicate/isNotNil.js\";\n{\n{\n{\nconst arr1 = [1, 2, null, 4, undefined];\n        const arr2 = [1, 2, null];\n        const arr3 = [1, 2, 4, undefined];\n        const result1 = arr1.filter(isNotNil);\n        const result2 = arr2.filter(isNotNil);\n        const result3 = arr3.filter(isNotNil);\n        // Here the type of result should be `number[]`.\n        expect(result1).toStrictEqual([1, 2, 4]);\n        expect(result2).toStrictEqual([1, 2]);\n        expect(result3).toStrictEqual([1, 2, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "id": "code:ufo--implement-cleanDoubleSlashes",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "ufo",
+    "url": "https://github.com/unjs/ufo",
+    "commit": "f06c800d0c59f2a4a1b9ba65eb6cb61a84419be6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "46231df5a7733c3f52f11b71f3df61813007745b62b09031acfb45fb42d75082",
+    "copyright": "Copyright (c) Pooya Parsa <pooya@pi0.io>",
+    "module": "src/utils.ts",
+    "tests": [
+      "test/double-slash.test.ts",
+      "test/resolve.test.ts",
+      "test/trailing-slash.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/utils.js",
+    "function": "cleanDoubleSlashes"
+  },
+  "title": "Implement cleanDoubleSlashes from ufo",
+  "prompt": "`src/utils.js` is the JavaScript build of `src/utils.ts` from ufo (https://github.com/unjs/ufo at commit f06c800d0c59, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `cleanDoubleSlashes`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Removes double slashes from the URL.\n *\n * @example\n *\n * ```js\n * cleanDoubleSlashes(\"//foo//bar//\"); // \"/foo/bar/\"\n *\n * cleanDoubleSlashes(\"http://example.com/analyze//http://localhost:3000//\");\n * // Returns \"http://example.com/analyze/http://localhost:3000/\"\n * ```\n *\n * @group utils\n */\nexport function cleanDoubleSlashes(input = \"\"): string\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/encoding.js`, `src/parse.js`, `src/punycode.js`, `src/query.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

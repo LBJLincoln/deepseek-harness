@@ -71,3 +71,7 @@ Before your work is validated, audit the implementation against the specificatio
 - **模型可能不逐句遍历。** 把陈述概括成自己一份边角清单的实现者又回到了规格自审；记录稿显示它是否在运行探针前写下了要求，记录无论如何都保留这份证据。
 - **只有一对。** 每 arm 二十四个 cell 对真实效应的界定不紧于约 ±0.19，而未改动的基线每晚移动一到三个 cell；读数是给队列的证据，永远不是默认值。
 - **夜间 Routine 跑在同一订阅上。** 与之重叠的运行与基线 fleet 及 E12 复现共享路由的速率限制。
+
+## Reading
+
+这对实验于 2026-09-27 23:12 UTC 运行，记录为 [`2026-09-27-bench-e13-probe-review-sonnet-t5t6`](../../../../data/proving-ground/2026-09-27-bench-e13-probe-review-sonnet-t5t6/manifest.json)：24 之 16 对 24 之 19，delta 0.125，区间 [−0.167, 0.417]，`paired-cluster-bootstrap/1`，inconclusive，因此什么都不排队，也没有默认档位要求探针自审。就这对实验要回答的问题而言：探针自审没有转化任何 A2 或 A3 cell。它比基线多出的那一个 `sheet-eval` 证书来自其自审未曾改动的工作回合；两个 `task-runner` cell 都按实现者自己对消息的理解探测了任务名那句话，并一如既往地漏掉 `corner-059` 与 `corner-060`；两个 `md-render` cell 都漏掉了各自基线通过的定义行用例，其自审探测了定义却未作改动。逐句遍历到达了一条条款，即模式 A1 的参数个数：自审对源码的全部编辑就是三个 cell 里同一个 `args.length !== 1` 修补，而这个编辑转化了 `conf-canon` 第 0 次重复；朝探针一侧的另外四次翻转是噪声底线早已计价的首次尝试波动。记录稿显示实现者给陈述的句子编号，并以所覆盖的那句话标注每个探针，每个 cell 3 到 14 个探针、合计 174 步，代价是多 43% 的 cell 时间、多 38% 的输出 token、两倍的计费 token，以及自审回合内的两次上限突破。各行、段落与决定在 [Proving Ground README](../../../../data/proving-ground/README.md)、[改进日志](../../../../data/proving-ground/improvement-log.md)与[结果笔记](2026-09-08-hypothesis-program-results.md)中；`selfReview: 'probe'` 留在梯上供后续配对使用——第二档上的探针自审，或面对一份引述其消息的陈述——并在每个默认档位上保持关闭。

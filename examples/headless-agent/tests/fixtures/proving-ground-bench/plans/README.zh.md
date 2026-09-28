@@ -32,7 +32,7 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `e10-openrouter-nex-vs-laguna-t2` | 两个免费开放权重 agentic 模型组成的冻结配对，第一对没有订阅臂的配对 | 2 | 基线 `openrouter`/`nex-agi/nex-n2.5-pro:free` 对候选 `openrouter`/`poolside/laguna-s-2.1:free`，district `bench-openrouter` | 1 | with-openrouter | not recorded |
 | `e11-openrouter-nemotron-vs-qwen-t2` | 基座模型决定所权衡的两个 120B 级开放权重模型，在 harness 循环上正面对比，使用操作者的 OpenRouter 额度，评估条款 | 2 | 基线 `openrouter`/`nvidia/nemotron-3-super-120b-a12b` 对候选 `openrouter`/`qwen/qwen3.5-122b-a10b`，district `bench-openrouter` | 1 | with-openrouter-paid | not recorded：密钥所属账户在 2026-09-22 没有额度（两个模型都返回 402），配对等待购买额度后运行 |
 | `e12-self-review-sonnet-t5t6` | 不靠第二次尝试提高验证密度：以自审回合收尾的单次尝试对没有自审的单次尝试，在中间模型上，覆盖八个密封的第 5 层与四个第 6 层环境 | 5-6 | 基线 `sonnet` ladder×1 对候选 `sonnet` ladder×1 `+review` | 2 | base | `2026-09-27-bench-e12-self-review-sonnet-t5t6`（24 之 15 对 24 之 19，0.167 [−0.042, 0.375]，inconclusive；由夜间队列复现） |
-| `e13-probe-review-sonnet-t5t6` | 探针自审对无自审：以逐句探针自审收尾的单次尝试对没有自审的单次尝试，在与 E12 相同的 cell 上，针对规格自审未能触及的隐藏校验条款 | 5-6 | 基线 `sonnet` ladder×1 对候选 `sonnet` ladder×1 `+probe` | 2 | base | 尚未记录 |
+| `e13-probe-review-sonnet-t5t6` | 探针自审对无自审：以逐句探针自审收尾的单次尝试对没有自审的单次尝试，在与 E12 相同的 cell 上，针对规格自审未能触及的隐藏校验条款 | 5-6 | 基线 `sonnet` ladder×1 对候选 `sonnet` ladder×1 `+probe` | 2 | base | `2026-09-27-bench-e13-probe-review-sonnet-t5t6`（24 之 16 对 24 之 19，0.125 [−0.167, 0.417]，inconclusive；自审自己的编辑只转化了一个单元，未排队） |
 | `h1-fleet-deepseek-t2` | 跑在开放权重路由上的 harness 循环 fleet | 2 | fleet `deepseek-official`/`deepseek-v4-flash`，district `bench-h1` | 1 | with-deepseek | not recorded |
 | `h1-fleet-harness-loop-sonnet-t2` | harness 循环 fleet | 2 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t2` |
 | `h1-fleet-harness-loop-sonnet-t4` | harness 循环 fleet | 4 | fleet `sonnet`，district `bench-h1` | 1 | base | `2026-09-07-bench-h1-harness-loop-t4` |
@@ -49,3 +49,4 @@ Proving Ground bench（`examples/headless-agent/tests/fixtures/proving-ground-be
 | `h3-baseline-sonnet-t5` | 尝试上限：基线 fleet 臂 | 5 | fleet `sonnet`，district `bench-h3` | 2 | base | `2026-09-19-bench-h3-baseline-sonnet-t5` |
 | `h4-craft-sonnet-t5` | 知识：挂载三个工艺技能 | 5 | fleet `sonnet`，district `bench-h4` | 2 | with-craft-skills | `2026-09-08-bench-h4-craft-skills-t5` |
 | `held-out-sonnet-all` | 保留环境的可靠性估计 | held-out | fleet `sonnet`，district `bench-held-out` | 3 | base | `2026-09-08-bench-held-out-sonnet-all` |
+| `public-smoke-sonnet` | 公开仓库任务族的第一次舰队：每个钉住的来源各取一个已准入的子环境，依来源自己的隐藏测试评判，跑在中间模型上 | 2-4 | 舰队 `sonnet`，district `bench-public` | 1 | with-public | `2026-09-27-bench-public-smoke-sonnet`（10 of 10，其中 8 个在第一次尝试） |

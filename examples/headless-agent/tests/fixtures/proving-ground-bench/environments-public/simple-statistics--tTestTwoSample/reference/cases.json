@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/t_test_two_sample.test.js › tTestTwoSample › can test independency of two samples",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_tTestTwoSample } from \"./src/t_test_two_sample.js\";\nconst ss = Object.freeze({ tTestTwoSample: __ns1_tTestTwoSample });\n{\n{\n{\nconst res = ss.tTestTwoSample([1, 2, 3, 4], [3, 4, 5, 6], 0);\n        assert.equal(res, -2.1908902300206643);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/t_test_two_sample.test.js › tTestTwoSample › can test independency of two samples (mu == -2)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_tTestTwoSample } from \"./src/t_test_two_sample.js\";\nconst ss = Object.freeze({ tTestTwoSample: __ns1_tTestTwoSample });\n{\n{\n{\nconst res = ss.tTestTwoSample([1, 2, 3, 4], [3, 4, 5, 6], -2);\n        assert.equal(res, 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/t_test_two_sample.test.js › tTestTwoSample › can test independency of two samples of different lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_tTestTwoSample } from \"./src/t_test_two_sample.js\";\nconst ss = Object.freeze({ tTestTwoSample: __ns1_tTestTwoSample });\n{\n{\n{\nconst res = ss.tTestTwoSample([1, 2, 3, 4], [3, 4, 5, 6, 1, 2, 0]);\n        assert.equal(res, -0.4165977904505309);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/t_test_two_sample.test.js › tTestTwoSample › has an edge case for one sample being of size zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_tTestTwoSample } from \"./src/t_test_two_sample.js\";\nconst ss = Object.freeze({ tTestTwoSample: __ns1_tTestTwoSample });\n{\n{\n{\nassert.equal(ss.tTestTwoSample([1, 2, 3, 4], []), null);\n        assert.equal(ss.tTestTwoSample([], [1, 2, 3, 4]), null);\n        assert.equal(ss.tTestTwoSample([], []), null);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

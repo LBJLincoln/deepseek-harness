@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/minutesToMilliseconds/test.ts › minutesToMilliseconds › converts minutes to milliseconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToMilliseconds } from \"./src/minutesToMilliseconds/index.js\";\n{\n{\n{\nexpect(minutesToMilliseconds(1)).toBe(60000);\n        expect(minutesToMilliseconds(2)).toBe(120000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/minutesToMilliseconds/test.ts › minutesToMilliseconds › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToMilliseconds } from \"./src/minutesToMilliseconds/index.js\";\n{\n{\n{\nexpect(minutesToMilliseconds(0.123456)).toBe(7407);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/minutesToMilliseconds/test.ts › minutesToMilliseconds › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToMilliseconds } from \"./src/minutesToMilliseconds/index.js\";\n{\n{\n{\nexpect(minutesToMilliseconds(1.5)).toBe(90000);\n        expect(minutesToMilliseconds(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/minutesToMilliseconds/test.ts › minutesToMilliseconds › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { minutesToMilliseconds } from \"./src/minutesToMilliseconds/index.js\";\n{\n{\n{\nexpect(minutesToMilliseconds(1.123456)).toBe(67407);\n        expect(minutesToMilliseconds(-1.123456)).toBe(-67407);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

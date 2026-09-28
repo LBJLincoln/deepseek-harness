@@ -1,0 +1,218 @@
+[
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(countBy([1, \"a\", 1, mySymbol, \"A\", mySymbol], when(isString, toLowerCase()))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › mixed data types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n        expect(pipe([1, \"a\", 1, mySymbol, \"A\", mySymbol], countBy(when(isString, toLowerCase())))).toStrictEqual({ 1: 2, a: 2, [mySymbol]: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/countBy.test.ts › skip items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\nexpect(countBy([1, 2, 3, 4, 5], when(isStrictEqual(3), constant(undefined)))).toStrictEqual({ 1: 1, 2: 1, 4: 1, 5: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › without else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"hello\"), constant(\"was true\"))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › without else › returns the identity when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"olleh\"), constant(\"was true\"))).toBe(\"hello\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › without else › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"20\", isString, (x, radix) => Number.parseInt(x, radix),\n            // Extra args:\n            16 /* radix */)).toBe(32);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › with else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"hello\"), constant(\"was true\"))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › with else › returns the else path when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"olleh\"), {\n                onTrue: constant(\"was true\"),\n                onFalse: constant(\"was false\"),\n            })).toBe(\"was false\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/when.test.ts › dataFirst › with else › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(when(123, (x) => x % 2 === 0, {\n                onTrue: (x, offset) => x + offset,\n                onFalse: (x, offset) => x + offset + 1,\n            },\n            // Extra args:\n            100)).toBe(224);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/when.test.ts › dataLast › without else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"hello\"), constant(\"was true\")))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/when.test.ts › dataLast › without else › returns the identity when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"olleh\"), constant(\"was true\")))).toBe(\"hello\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/when.test.ts › dataLast › without else › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(map([1, 2, 3, 4], when((x) => x % 2 === 0, (x, index) => x + index))).toStrictEqual([1, 3, 3, 7]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/when.test.ts › dataLast › with else › returns the happy path when true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"hello\"), constant(\"was true\")))).toBe(\"was true\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/when.test.ts › dataLast › with else › returns the else path when false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(pipe(\"hello\", when(isStrictEqual(\"olleh\"), {\n                onTrue: constant(\"was true\"),\n                onFalse: constant(\"was false\"),\n            }))).toBe(\"was false\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/when.test.ts › dataLast › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\nexpect(map([1, 2, 3, 4], when((x) => x % 2 === 0, {\n            onTrue: (x, index) => x + index,\n            onFalse: (x, index) => `${x}${index}`,\n        }))).toStrictEqual([\"10\", 3, \"32\", 7]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/when.test.ts › can return other types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\nexpect(when(\"hello\", isStrictEqual(\"hello\"), constant(42), constant({ a: \"hello\" }))).toBe(42);\n    expect(when(\"hello\", isStrictEqual(\"olleh\"), {\n        onTrue: constant(42),\n        onFalse: constant({ a: \"hello\" }),\n    })).toStrictEqual({ a: \"hello\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/when.test.ts › recipes › acts as a coalesce tool",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\nexpect(map([0, 1, 2, undefined, 4, undefined, 6], when(isNot(isDefined), constant(\"missing\")))).toStrictEqual([0, 1, 2, \"missing\", 4, \"missing\", 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/when.test.ts › recipes › can replace defaultTo",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n// Nullish\n        expect(map([undefined, null, 1], when(isNullish, constant(42)))).toStrictEqual([42, 42, 1]);\n        // NaN\n        expect(map([NaN, 1], when(Number.isNaN, constant(42)))).toStrictEqual([\n            42, 1,\n        ]);\n        // All\n        expect(map([NaN, undefined, null, 1], when((x) => Number.isNaN(x) || x === null || x === undefined, constant(42)))).toStrictEqual([42, 42, 42, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

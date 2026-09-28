@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/medianBy.spec.ts › medianBy › calculates the median of values extracted from objects with odd number of elements",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { medianBy } from \"./src/math/medianBy.js\";\n{\n{\n{\nconst result = medianBy([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }, { a: 5 }], x => x.a);\n        expect(result).toEqual(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/medianBy.spec.ts › medianBy › calculates the median of values extracted from objects with even number of elements",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { medianBy } from \"./src/math/medianBy.js\";\n{\n{\n{\nconst result = medianBy([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }], x => x.a);\n        expect(result).toEqual(2.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/medianBy.spec.ts › medianBy › returns the correct median for unsorted values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { medianBy } from \"./src/math/medianBy.js\";\n{\n{\n{\nconst result = medianBy([{ a: 5 }, { a: 2 }, { a: 1 }, { a: 4 }, { a: 3 }], x => x.a);\n        expect(result).toEqual(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/medianBy.spec.ts › medianBy › returns NaN for empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { medianBy } from \"./src/math/medianBy.js\";\n{\n{\n{\nconst people = [];\n        expect(medianBy(people, x => x.age)).toEqual(NaN);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/medianBy.spec.ts › medianBy › returns the single element for arrays with one element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { medianBy } from \"./src/math/medianBy.js\";\n{\n{\n{\nexpect(medianBy([{ a: 42 }], x => x.a)).toEqual(42);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

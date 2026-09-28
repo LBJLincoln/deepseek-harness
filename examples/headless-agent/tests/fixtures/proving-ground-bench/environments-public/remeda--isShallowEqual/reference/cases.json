@@ -1,0 +1,242 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › primitives › undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(undefined, undefined)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › primitives › null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(null, null)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › primitives › string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(\"a\", \"a\")).toBe(true);\n        expect(isShallowEqual(\"a\", \"b\")).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › primitives › number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(1, 1)).toBe(true);\n        expect(isShallowEqual(1, 2)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › primitives › boolean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(true, true)).toBe(true);\n        expect(isShallowEqual(true, false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › primitives › bigint",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(1n, 1n)).toBe(true);\n        expect(isShallowEqual(1n, 2n)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › objects › arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = [1, 2, 3];\n        expect(isShallowEqual(data, [1, 2, 3])).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, [1, 2])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › objects › objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = { a: 1, b: 2 };\n        expect(isShallowEqual(data, { a: 1, b: 2 })).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, { a: 1 })).toBe(false);\n        expect(isShallowEqual(data, { a: 1, c: 3 })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › objects › uint arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = new Uint8Array([1, 2, 3]);\n        expect(isShallowEqual(data, new Uint8Array([1, 2, 3]))).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, new Uint8Array([1, 2]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › objects › maps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = new Map([[\"a\", 1]]);\n        expect(isShallowEqual(data, new Map([[\"a\", 1]]))).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, new Map([[\"a\", 2]]))).toBe(false);\n        expect(isShallowEqual(data, new Map([\n            [\"a\", 1],\n            [\"b\", 2],\n        ]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › objects › sets",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = new Set([1, 2, 3]);\n        expect(isShallowEqual(data, new Set([1, 2, 3]))).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, new Set([1, 2]))).toBe(false);\n        expect(isShallowEqual(data, new Set([4, 5, 6]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › built-ins › regex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = /a/u;\n        expect(isShallowEqual(data, /a/u)).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, /b/u)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › built-ins › dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = new Date();\n        expect(isShallowEqual(data, new Date())).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, new Date(data.getTime() + 1))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › built-ins › promises",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst data = Promise.resolve(1);\n        expect(isShallowEqual(data, Promise.resolve(1))).toBe(true);\n        expect(isShallowEqual(data, data)).toBe(true);\n        expect(isShallowEqual(data, Promise.resolve(2))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › sameValueZero › nan",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(NaN, NaN)).toBe(true);\n        expect(isShallowEqual({ a: NaN }, { a: NaN })).toBe(true);\n        expect(isShallowEqual([NaN], [NaN])).toBe(true);\n        expect(isShallowEqual(new Map([[\"a\", NaN]]), new Map([[\"a\", NaN]]))).toBe(true);\n        expect(isShallowEqual(new Set([NaN]), new Set([NaN]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › sameValueZero › signed zeros",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nexpect(isShallowEqual(0, -0)).toBe(true);\n        expect(isShallowEqual({ a: 0 }, { a: -0 })).toBe(true);\n        expect(isShallowEqual([0], [-0])).toBe(true);\n        expect(isShallowEqual(new Map([[\"a\", 0]]), new Map([[\"a\", -0]]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › shallow inequality › arrays of objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst a = { a: 1 };\n        expect(isShallowEqual([a], [a])).toBe(true);\n        expect(isShallowEqual([a], [{ a: 1 }])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › shallow inequality › arrays of arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst a = [1];\n        expect(isShallowEqual([a], [a])).toBe(true);\n        expect(isShallowEqual([a], [[1]])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › shallow inequality › objects of arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst a = [1];\n        expect(isShallowEqual({ a }, { a })).toBe(true);\n        expect(isShallowEqual({ a }, { a: [1] })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/isShallowEqual.test.ts › shallow inequality › objects of objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isShallowEqual } from \"./src/isShallowEqual.js\";\n{\n{\n{\nconst a = { b: 1 };\n        expect(isShallowEqual({ a }, { a })).toBe(true);\n        expect(isShallowEqual({ a }, { a: { b: 1 } })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

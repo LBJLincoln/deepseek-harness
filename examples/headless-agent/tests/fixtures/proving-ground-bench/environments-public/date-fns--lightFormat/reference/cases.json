@@ -1,0 +1,242 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › accepts a timestamp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nconst date = new Date(2014, 3, 4).getTime();\n        expect(lightFormat(date, \"yyyy-MM-dd\")).toBe(\"2014-04-04\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › escapes characters between the single quote characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nconst result = lightFormat(date, \"'yyyy-'MM-dd'D yyyy-'MM-dd'\");\n        expect(result).toBe(\"yyyy-04-04D yyyy-04-04\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › two single quote characters are transformed into a \"real\" single quote",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nconst date = new Date(2014, 3, 4, 5);\n        expect(lightFormat(date, \"''h 'o''clock'''\")).toBe(\"'5 o'clock'\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › accepts new line character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nconst date = new Date(2014, 3, 4, 5);\n        expect(lightFormat(date, \"yyyy-MM-dd'\\n'HH:mm:ss\")).toBe(\"2014-04-04\\n05:00:00\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › year › regular year › works as expected",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\n{\nconst result = lightFormat(date, \"y yy yyy yyyy yyyyy\");\n                expect(result).toBe(\"1986 86 1986 1986 01986\");\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › year › regular year › 1 BC formats as 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\n{\nconst date = new Date(0);\n                date.setFullYear(0 /* Jan */, 1);\n                date.setHours(0, 0, 0, 0);\n                const result = lightFormat(date, \"y\");\n                expect(result).toBe(\"1\");\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › year › regular year › 2 BC formats as 2",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\n{\nconst date = new Date(0);\n                date.setFullYear(-1, 0 /* Jan */, 1);\n                date.setHours(0, 0, 0, 0);\n                const result = lightFormat(date, \"y\");\n                expect(result).toBe(\"2\");\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › month › formatting month",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\nconst result = lightFormat(date, \"M MM\");\n            expect(result).toBe(\"4 04\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › day › date",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\nconst result = lightFormat(date, \"d dd\");\n            expect(result).toBe(\"4 04\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › hour › hour [1-12]",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\nconst result = lightFormat(new Date(2018, 0 /* Jan */, 1, 0, 0, 0, 0), \"h hh\");\n            expect(result).toBe(\"12 12\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › hour › hour [0-23]",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\nconst result = lightFormat(new Date(2018, 0 /* Jan */, 1, 0, 0, 0, 0), \"H HH\");\n            expect(result).toBe(\"0 00\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › hour › AM, PM › works as expected",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\n{\nconst result = lightFormat(new Date(2018, 0 /* Jan */, 1, 0, 0, 0, 0), \"a aa aaa aaaa aaaaa\");\n                expect(result).toBe(\"AM AM am a.m. a\");\n                const pmResult = lightFormat(new Date(2018, 0 /* Jan */, 1, 13, 0, 0, 0), \"a aa aaa aaaa aaaaa\");\n                expect(pmResult).toBe(\"PM PM pm p.m. p\");\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › hour › AM, PM › 12 PM",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 12, 0, 0, 900);\n                expect(lightFormat(date, \"h H a\")).toBe(\"12 12 PM\");\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › hour › AM, PM › 12 AM",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 6, 0, 0, 0, 900);\n                expect(lightFormat(date, \"h H a\")).toBe(\"12 0 AM\");\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › minute",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nconst result = lightFormat(date, \"m mm\");\n        expect(result).toBe(\"32 32\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › second › second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\n{\nconst result = lightFormat(date, \"s ss\");\n            expect(result).toBe(\"55 55\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › fractional seconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nconst result = lightFormat(date, \"S SS SSS SSSS\");\n        expect(result).toBe(\"1 12 123 1230\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › returns empty string when the format is an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nexpect(lightFormat(Date.now(), \"\")).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › throws RangeError if the date isn't valid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nexpect(lightFormat.bind(null, new Date(NaN), \"MMMM d, yyyy\")).toThrow(RangeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "pkgs/core/src/lightFormat/test.ts › lightFormat › throws RangeError exception if the format string contains an unescaped latin alphabet character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lightFormat } from \"./src/lightFormat/index.js\";\n{\n{\nconst date = new Date(1986, 3 /* Apr */, 4, 10, 32, 55, 123);\n{\nexpect(lightFormat.bind(null, date, \"yyyy-MM-dd-nnnn\")).toThrow(RangeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/windowed.spec.ts › windowed › should return a list of overlapping consecutive pairs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4], 2)).toEqual([\n            [1, 2],\n            [2, 3],\n            [3, 4],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/windowed.spec.ts › windowed › should return a list of overlapping windows of the given size with given offsets",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4, 5, 6], 3, 2)).toEqual([\n            [1, 2, 3],\n            [3, 4, 5],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/windowed.spec.ts › windowed › should return a list of non-overlapping windows of the given size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4, 5, 6], 3, 3)).toEqual([\n            [1, 2, 3],\n            [4, 5, 6],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/windowed.spec.ts › windowed › should return a list of partial with partial windows of smaller size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4, 5, 6], 3, 2, { partialWindows: true })).toEqual([\n            [1, 2, 3],\n            [3, 4, 5],\n            [5, 6],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/windowed.spec.ts › windowed › should behave like chunked when size equals step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4, 5, 6], 3, 3)).toEqual([\n            [1, 2, 3],\n            [4, 5, 6],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/windowed.spec.ts › windowed › should skip elements when step is greater than size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4, 5, 6], 2, 4)).toEqual([\n            [1, 2],\n            [5, 6],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/windowed.spec.ts › windowed › should properly handle step bigger than array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([1, 2, 3, 4, 5, 6], 2, 10)).toEqual([[1, 2]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/array/windowed.spec.ts › windowed › should return an empty array when the input array is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(windowed([], 3)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/array/windowed.spec.ts › windowed › should throw error on invalid size or step",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { windowed } from \"./src/array/windowed.js\";\n{\n{\n{\nexpect(() => windowed([1, 2, 3], 0)).toThrowErrorMatchingInlineSnapshot(`[Error: Size must be a positive integer.]`);\n        expect(() => windowed([1, 2, 3], 1, 0)).toThrowErrorMatchingInlineSnapshot(`[Error: Step must be a positive integer.]`);\n        expect(() => windowed([1, 2, 3], -1)).toThrowErrorMatchingInlineSnapshot(`[Error: Size must be a positive integer.]`);\n        expect(() => windowed([1, 2, 3], 0.5)).toThrowErrorMatchingInlineSnapshot(`[Error: Size must be a positive integer.]`);\n        expect(() => windowed([1, 2, 3], 1, -1)).toThrowErrorMatchingInlineSnapshot(`[Error: Step must be a positive integer.]`);\n        expect(() => windowed([1, 2, 3], 1, 0.5)).toThrowErrorMatchingInlineSnapshot(`[Error: Step must be a positive integer.]`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

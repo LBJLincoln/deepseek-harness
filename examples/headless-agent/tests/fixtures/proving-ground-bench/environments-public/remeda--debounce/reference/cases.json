@@ -1,0 +1,146 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/debounce.test.ts › main functionality › subsequent debounced calls return the last `func` result",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        debouncer.call(\"a\");\n        await sleep(64);\n        expect(debouncer.call(\"b\")).toBe(\"a\");\n        await sleep(128);\n        expect(debouncer.call(\"c\")).toBe(\"b\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/debounce.test.ts › main functionality › subsequent leading debounced calls return the last `func` result",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32, timing: \"leading\" });\n        expect([debouncer.call(\"a\"), debouncer.call(\"b\")]).toStrictEqual([\n            \"a\",\n            \"a\",\n        ]);\n        await sleep(64);\n        expect([debouncer.call(\"c\"), debouncer.call(\"d\")]).toStrictEqual([\n            \"c\",\n            \"c\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can cancel before the timer starts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(() => {\n            debouncer.cancel();\n        }).not.toThrow();\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can cancel after the timer ends",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBe(\"hello\");\n        expect(() => {\n            debouncer.cancel();\n        }).not.toThrow();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can cancel maxWait timer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 16, maxWaitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(1);\n        debouncer.cancel();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can return a cached value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { timing: \"leading\", waitMs: 32 });\n        expect(debouncer.cachedValue).toBeUndefined();\n        expect(debouncer.call(\"hello\")).toBe(\"hello\");\n        expect(debouncer.cachedValue).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can check for inflight timers (trailing)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.isPending).toBe(false);\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        expect(debouncer.isPending).toBe(true);\n        await sleep(1);\n        expect(debouncer.isPending).toBe(true);\n        await sleep(32);\n        expect(debouncer.isPending).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can check for inflight timers (leading)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { timing: \"leading\", waitMs: 32 });\n        expect(debouncer.isPending).toBe(false);\n        expect(debouncer.call(\"hello\")).toBe(\"hello\");\n        expect(debouncer.isPending).toBe(true);\n        await sleep(1);\n        expect(debouncer.isPending).toBe(true);\n        await sleep(32);\n        expect(debouncer.isPending).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can flush before a cool-down",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.flush()).toBeUndefined();\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can flush during a cool-down",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(1);\n        expect(debouncer.call(\"world\")).toBeUndefined();\n        await sleep(1);\n        expect(debouncer.flush()).toBe(\"world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can flush after a cool-down",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.flush()).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/debounce.test.ts › errors › prevents maxWaitMs to be less than waitMs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nexpect(() => debounce(identity(), { waitMs: 32, maxWaitMs: 16 })).toThrow(\"debounce: maxWaitMs (16) cannot be less than waitMs (32)\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

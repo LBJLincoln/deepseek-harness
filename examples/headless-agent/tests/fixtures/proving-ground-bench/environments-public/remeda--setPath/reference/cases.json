@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/setPath.test.ts › data first › should set a deeply nested value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(setPath(TEST_OBJECT, [\"a\", \"b\", \"c\"], 2)).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/setPath.test.ts › data first › should work nested arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(setPath(TEST_OBJECT, [\"a\", \"e\", 1, \"f\", \"g\"], 2)).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, e: [{ f: { g: 1 } }, { f: { g: 2 } }] },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/setPath.test.ts › data first › should work with undefined / optional types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(setPath(TEST_OBJECT, [\"a\", \"z\"], undefined)).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, z: undefined },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/setPath.test.ts › data first › should support partial paths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(setPath(TEST_OBJECT, [\"a\", \"b\"], { c: 2 })).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/setPath.test.ts › data first › should combo well with stringToPath",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(setPath(TEST_OBJECT, stringToPath(\"a.b.c\"), 2)).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/setPath.test.ts › data last › should set a deeply nested value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(pipe(TEST_OBJECT, setPath([\"a\", \"b\", \"c\"], 2))).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/setPath.test.ts › data last › should work nested arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(pipe(TEST_OBJECT, setPath([\"a\", \"e\", 1, \"f\", \"g\"], 2))).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, e: [{ f: { g: 1 } }, { f: { g: 2 } }] },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/setPath.test.ts › data last › should work with undefined / optional types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(pipe(TEST_OBJECT, setPath([\"a\", \"z\"], undefined))).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, z: undefined },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/setPath.test.ts › data last › should support partial paths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { setPath } from \"./src/setPath.js\";\nimport { stringToPath } from \"./src/stringToPath.js\";\n{\nconst TEST_OBJECT = {\n    a: { b: { c: 1 }, e: [{ f: { g: 1 } }, { f: { g: 1 } }] },\n    y: 10,\n};\n{\n{\nexpect(pipe(TEST_OBJECT, setPath([\"a\", \"b\"], { c: 2 }))).toStrictEqual({\n            ...TEST_OBJECT,\n            a: { ...TEST_OBJECT.a, b: { c: 2 } },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

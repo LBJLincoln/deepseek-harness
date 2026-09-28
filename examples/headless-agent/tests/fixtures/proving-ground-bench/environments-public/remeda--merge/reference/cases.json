@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/merge.test.ts › data first › should merge",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/merge.js\";\n{\n{\n{\nexpect(merge({ x: 1, y: 2 }, { y: 10, z: 2 })).toStrictEqual({\n            x: 1,\n            y: 10,\n            z: 2,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/merge.test.ts › data last › should merge",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/merge.js\";\n{\n{\n{\nexpect(merge({ y: 10, z: 2 })({ x: 1, y: 2 })).toStrictEqual({\n            x: 1,\n            y: 10,\n            z: 2,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

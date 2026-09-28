@@ -1,0 +1,338 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/toTitleCase.test.ts › empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"\")).toBe(\"\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/toTitleCase.test.ts › basic words",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"hello world\")).toBe(\"Hello World\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/toTitleCase.test.ts › camelCase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"fooBar\")).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/toTitleCase.test.ts › pascalCase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"FooBar\")).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/toTitleCase.test.ts › kebab-case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"foo-bar\")).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/toTitleCase.test.ts › snake_case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"foo_bar\")).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/toTitleCase.test.ts › sCREAMING_SNAKE_CASE",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"FOO_BAR\")).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/toTitleCase.test.ts › sCREAMING-KEBAB-CASE",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"FOO-BAR\")).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/toTitleCase.test.ts › single word lowercase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"foo\")).toBe(\"Foo\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/toTitleCase.test.ts › single word uppercase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"FOO\")).toBe(\"Foo\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/toTitleCase.test.ts › mixed separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(toTitleCase(\"foo-bar_baz qux\")).toBe(\"Foo Bar Baz Qux\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/toTitleCase.test.ts › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\nexpect(pipe(\"fooBar\", toTitleCase())).toBe(\"Foo Bar\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/toTitleCase.test.ts › lodash spec › lodash example: '--foo-bar--'",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"--foo-bar--\")).toBe(\"Foo Bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/toTitleCase.test.ts › lodash spec › lodash example: 'fooBar'",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"fooBar\")).toBe(\"Foo Bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/toTitleCase.test.ts › lodash spec › lodash example: '__FOO_BAR__'",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"__FOO_BAR__\")).toBe(\"Foo Bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/toTitleCase.test.ts › edge cases › repeated separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"foo____bar\")).toBe(\"Foo Bar\");\n        expect(toTitleCase(\"foo----bar\")).toBe(\"Foo Bar\");\n        expect(toTitleCase(\"foo    bar\")).toBe(\"Foo Bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/toTitleCase.test.ts › edge cases › leading and trailing separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"--foo-bar--\")).toBe(\"Foo Bar\");\n        expect(toTitleCase(\"__foo_bar__\")).toBe(\"Foo Bar\");\n        expect(toTitleCase(\"  foo bar  \")).toBe(\"Foo Bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/toTitleCase.test.ts › edge cases › vendor prefixed css property",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"-webkit-animation\")).toBe(\"Webkit Animation\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/toTitleCase.test.ts › edge cases › double prefixed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"--very-prefixed\")).toBe(\"Very Prefixed\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/toTitleCase.test.ts › edge cases › complex mixed case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"foo-bar_abc xyzBarFoo\")).toBe(\"Foo Bar Abc Xyz Bar Foo\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/toTitleCase.test.ts › edge cases › with numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"foo123bar\")).toBe(\"Foo 123 Bar\");\n        expect(toTitleCase(\"foo-bar-123\")).toBe(\"Foo Bar 123\");\n        expect(toTitleCase(\"version2Update\")).toBe(\"Version 2 Update\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/toTitleCase.test.ts › unicode › maintains diacritics",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"café naïve\")).toBe(\"Café Naïve\");\n        expect(toTitleCase(\"CAFÉ_NAÏVE\")).toBe(\"Café Naïve\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/toTitleCase.test.ts › unicode › handles non-Latin scripts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"москва петербург\")).toBe(\"Москва Петербург\");\n        expect(toTitleCase(\"ελλάδα_αθήνα\")).toBe(\"Ελλάδα Αθήνα\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/toTitleCase.test.ts › preserveConsecutiveUppercase option › defaults to true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"XMLHttpRequest\")).toBe(\"XML Http Request\");\n        expect(toTitleCase(\"XMLHttpRequest\", { preserveConsecutiveUppercase: true })).toBe(\"XML Http Request\");\n        expect(toTitleCase(\"HTMLParser\")).toBe(\"HTML Parser\");\n        expect(toTitleCase(\"HTMLParser\", { preserveConsecutiveUppercase: true })).toBe(\"HTML Parser\");\n        expect(toTitleCase(\"getCSSProperty\")).toBe(\"Get CSS Property\");\n        expect(toTitleCase(\"getCSSProperty\", { preserveConsecutiveUppercase: true })).toBe(\"Get CSS Property\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/toTitleCase.test.ts › preserveConsecutiveUppercase option › false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"XMLHttpRequest\", { preserveConsecutiveUppercase: false })).toBe(\"Xml Http Request\");\n        expect(toTitleCase(\"HTMLParser\", { preserveConsecutiveUppercase: false })).toBe(\"Html Parser\");\n        expect(toTitleCase(\"getCSSProperty\", { preserveConsecutiveUppercase: false })).toBe(\"Get Css Property\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/toTitleCase.test.ts › preserveConsecutiveUppercase option › mixed case examples",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"fooBAR\")).toBe(\"Foo BAR\");\n        expect(toTitleCase(\"fooBAR\", { preserveConsecutiveUppercase: true })).toBe(\"Foo BAR\");\n        expect(toTitleCase(\"fooBAR\", { preserveConsecutiveUppercase: false })).toBe(\"Foo Bar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/toTitleCase.test.ts › preserveConsecutiveUppercase option › complex examples",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(toTitleCase(\"foo_BAR-biz_BUZZ\")).toBe(\"Foo BAR Biz BUZZ\");\n        expect(toTitleCase(\"foo_BAR-biz_BUZZ\", { preserveConsecutiveUppercase: true })).toBe(\"Foo BAR Biz BUZZ\");\n        expect(toTitleCase(\"foo_BAR-biz_BUZZ\", { preserveConsecutiveUppercase: false })).toBe(\"Foo Bar Biz Buzz\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/toTitleCase.test.ts › preserveConsecutiveUppercase option › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toTitleCase } from \"./src/toTitleCase.js\";\n{\n{\n{\nexpect(pipe(\"XMLHttpRequest\", toTitleCase( /* default options */))).toBe(\"XML Http Request\");\n        expect(pipe(\"XMLHttpRequest\", toTitleCase({ preserveConsecutiveUppercase: true }))).toBe(\"XML Http Request\");\n        expect(pipe(\"XMLHttpRequest\", toTitleCase({ preserveConsecutiveUppercase: false }))).toBe(\"Xml Http Request\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/shuffle.test.ts › data-first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { difference } from \"./src/difference.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { shuffle } from \"./src/shuffle.js\";\n{\n{\nconst input = [4, 2, 7, 5];\n    const shuffled = shuffle(input);\n    // Shuffled array has the same items\n    expect(shuffled).toHaveLength(4);\n    expect(difference(input, shuffled)).toHaveLength(0);\n    expect(difference(shuffled, input)).toHaveLength(0);\n    // Original array not mutated\n    expect(shuffled).not.toBe(input);\n    expect(input).toStrictEqual([4, 2, 7, 5]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/shuffle.test.ts › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { difference } from \"./src/difference.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { shuffle } from \"./src/shuffle.js\";\n{\n{\nconst input = [4, 2, 7, 5];\n    const shuffled = pipe(input, shuffle());\n    // Shuffled array has the same items\n    expect(shuffled).toHaveLength(4);\n    expect(difference(input, shuffled)).toHaveLength(0);\n    expect(difference(shuffled, input)).toHaveLength(0);\n    // Original array not mutated\n    expect(shuffled).not.toBe(input);\n    expect(input).toStrictEqual([4, 2, 7, 5]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

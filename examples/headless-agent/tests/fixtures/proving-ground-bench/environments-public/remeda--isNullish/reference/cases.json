@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/when.test.ts › recipes › can replace defaultTo",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n// Nullish\n        expect(map([undefined, null, 1], when(isNullish, constant(42)))).toStrictEqual([42, 42, 1]);\n        // NaN\n        expect(map([NaN, 1], when(Number.isNaN, constant(42)))).toStrictEqual([\n            42, 1,\n        ]);\n        // All\n        expect(map([NaN, undefined, null, 1], when((x) => Number.isNaN(x) || x === null || x === undefined, constant(42)))).toStrictEqual([42, 42, 42, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

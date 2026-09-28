@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-pad",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/string/pad.ts",
+    "tests": [
+      "src/string/pad.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/string/pad.js",
+    "function": "pad"
+  },
+  "title": "Implement pad from es-toolkit",
+  "prompt": "`src/string/pad.js` is the JavaScript build of `src/string/pad.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `pad`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Pads string on the left and right sides if it's shorter than length. Padding characters are truncated if they can't be evenly divided by length.\n * If the length is less than or equal to the original string's length, or if the padding character is an empty string, the original string is returned unchanged.\n *\n * @param str - The string to pad.\n * @param [length] - The length of the resulting string once padded.\n * @param [chars] - The character(s) to use for padding.\n * @returns The padded string, or the original string if padding is not required.\n *\n * @example\n * const result1 = pad('abc', 8);         // result will be '  abc   '\n * const result2 = pad('abc', 8, '_-');   // result will be '_-abc_-_'\n * const result3 = pad('abc', 3);         // result will be 'abc'\n * const result4 = pad('abc', 2);         // result will be 'abc'\n *\n */\nexport function pad(str: string, length: number, chars = ' '): string\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

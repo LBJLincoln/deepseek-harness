@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-004",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(X <= 82) when X ~ N (80, 25) is 0.6554",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores an 82 or less?\n        assert.equal(ss.cumulativeStdNormalProbability(ss.zScore(82, 80, 5)), 0.6554);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(X >= 90) when X ~ N (80, 25) is 0.0228",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores a 90 or more?\n        assert.equal(+(1 - ss.cumulativeStdNormalProbability(ss.zScore(90, 80, 5))).toPrecision(5), 0.0228);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(X <= 74) when X ~ N (80, 25) is 0.1151",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores a 74 or less?\n        assert.equal(ss.cumulativeStdNormalProbability(ss.zScore(74, 80, 5)), 0.1151);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/normal_distribution.test.js › natural distribution and z-score › P(78 <= X <= 88) when X ~ N (80, 25) is 0.6006",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_cumulativeStdNormalProbability } from \"./src/cumulative_std_normal_probability.js\";\nimport { default as __ns1_normalDistribution } from \"./src/normal_distribution.js\";\nimport { default as __ns1_standardNormalTable } from \"./src/standard_normal_table.js\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ cumulativeStdNormalProbability: __ns1_cumulativeStdNormalProbability, normalDistribution: __ns1_normalDistribution, standardNormalTable: __ns1_standardNormalTable, zScore: __ns1_zScore });\n{\n{\n{\n// Taken from the examples of use in http://en.wikipedia.org/wiki/Standard_normal_table\n        // A professor's exam scores are approximately distributed normally with mean 80 and standard deviation 5.\n        // What is the probability that a student scores between 78 and 88?\n        const prob88 = ss.cumulativeStdNormalProbability(ss.zScore(88, 80, 5));\n        const prob78 = ss.cumulativeStdNormalProbability(ss.zScore(78, 80, 5));\n        assert.equal(+(prob88 - prob78).toPrecision(5), 0.6006);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "test/z_score.test.js › zScore",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_zScore } from \"./src/z_score.js\";\nconst ss = Object.freeze({ zScore: __ns1_zScore });\n{\n{\nassert.equal(ss.zScore(78, 80, 5), -0.4);\n    assert.equal(ss.zScore(78, 90, 5), -2.4);\n    assert.equal(ss.zScore(78, 90, 2), -6);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

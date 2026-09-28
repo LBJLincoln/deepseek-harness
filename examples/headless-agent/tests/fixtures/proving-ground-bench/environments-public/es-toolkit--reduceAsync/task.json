@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-reduceAsync",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/reduceAsync.ts",
+    "tests": [
+      "src/array/reduceAsync.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/reduceAsync.js",
+    "function": "reduceAsync"
+  },
+  "title": "Implement reduceAsync from es-toolkit",
+  "prompt": "`src/array/reduceAsync.js` is the JavaScript build of `src/array/reduceAsync.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `reduceAsync`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Reduces an array to a single value using an async reducer function.\n *\n * Applies the reducer function sequentially to each element (left to right),\n * carrying an accumulated result from one call to the next. Unlike other async\n * array methods, reduce must process elements sequentially and does not support\n * concurrency limiting.\n *\n * @template T - The type of elements in the array.\n * @template U - The type of the accumulated result.\n * @param array The array to reduce.\n * @param reducer An async function that processes each element.\n * @param initialValue The initial value of the accumulator.\n * @returns A promise that resolves to the final accumulated value.\n * @example\n * const numbers = [1, 2, 3, 4, 5];\n * const sum = await reduceAsync(\n *   numbers,\n *   async (acc, n) => acc + await fetchValue(n),\n *   0\n * );\n * // Returns: sum of all fetched values\n *\n * @example\n * const users = [{ id: 1 }, { id: 2 }, { id: 3 }];\n * const userMap = await reduceAsync(\n *   users,\n *   async (acc, user) => {\n *     const details = await fetchUserDetails(user.id);\n *     acc[user.id] = details;\n *     return acc;\n *   },\n *   {} as Record<number, any>\n * );\n * // Returns: { 1: {...}, 2: {...}, 3: {...} }\n */\nexport async function reduceAsync<T, U>(\n  array: readonly T[],\n  reducer: (accumulator: U, currentValue: T, currentIndex: number, array: readonly T[]) => Promise<U>,\n  initialValue?: U\n): Promise<U>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_internal/DOMException.js`, `src/_internal/globalThis.js`, `src/error/AbortError.js`, `src/promise/delay.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/sortBy.spec.ts › sortBy › should stable sort objects by a single property in ascending order",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nexpect(sortBy(users, ['user'])).toEqual([\n            { user: 'bar', age: 7 },\n            { user: 'bar', age: 29 },\n            { user: 'foo', age: 24 },\n            { user: 'foo', age: 8 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/sortBy.spec.ts › sortBy › should stable sort objects by multiple properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nexpect(sortBy(users, ['user', 'age'])).toEqual([\n            { user: 'bar', age: 7 },\n            { user: 'bar', age: 29 },\n            { user: 'foo', age: 8 },\n            { user: 'foo', age: 24 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/sortBy.spec.ts › sortBy › should stable sort objects by iteratee function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nexpect(sortBy(users, [user => user.user])).toEqual([\n            { user: 'bar', age: 7 },\n            { user: 'bar', age: 29 },\n            { user: 'foo', age: 24 },\n            { user: 'foo', age: 8 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/sortBy.spec.ts › sortBy › should stable sort objects by iteratee function and property",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nexpect(sortBy(users, [user => user.user, user => user.age])).toEqual([\n            { user: 'bar', age: 7 },\n            { user: 'bar', age: 29 },\n            { user: 'foo', age: 8 },\n            { user: 'foo', age: 24 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/sortBy.spec.ts › sortBy › should stable sort objects by mixed iteratee function and key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nexpect(sortBy(users, ['user', user => user.age])).toEqual([\n            { user: 'bar', age: 7 },\n            { user: 'bar', age: 29 },\n            { user: 'foo', age: 8 },\n            { user: 'foo', age: 24 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/sortBy.spec.ts › sortBy › should place null and undefined values at the end",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nconst items = [\n            { user: 'foo', age: 3 },\n            { user: 'bar', age: null },\n            { user: 'baz', age: 1 },\n            { user: 'qux', age: undefined },\n            { user: 'quux', age: 2 },\n        ];\n        expect(sortBy(items, ['age'])).toEqual([\n            { user: 'baz', age: 1 },\n            { user: 'quux', age: 2 },\n            { user: 'foo', age: 3 },\n            { user: 'bar', age: null },\n            { user: 'qux', age: undefined },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/sortBy.spec.ts › sortBy › should maintain stable order among multiple null and undefined values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortBy } from \"./src/array/sortBy.js\";\n{\n{\nconst users = [\n        { user: 'foo', age: 24 },\n        { user: 'bar', age: 7 },\n        { user: 'foo', age: 8 },\n        { user: 'bar', age: 29 },\n    ];\n{\nconst items = [\n            { user: 'a', age: null },\n            { user: 'b', age: 1 },\n            { user: 'c', age: undefined },\n            { user: 'd', age: null },\n            { user: 'e', age: undefined },\n        ];\n        expect(sortBy(items, ['age'])).toEqual([\n            { user: 'b', age: 1 },\n            { user: 'a', age: null },\n            { user: 'd', age: null },\n            { user: 'c', age: undefined },\n            { user: 'e', age: undefined },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

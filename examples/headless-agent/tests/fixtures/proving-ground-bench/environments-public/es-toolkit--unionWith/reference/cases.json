@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/unionWith.spec.ts › unionWith › should work with a `comparator`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unionWith } from \"./src/array/unionWith.js\";\n{\n{\n{\nexpect(unionWith([\n            { x: 1, y: 2 },\n            { x: 2, y: 1 },\n        ], [\n            { x: 1, y: 1 },\n            { x: 1, y: 2 },\n        ], (a, b) => a.x === b.x)).toEqual([\n            { x: 1, y: 2 },\n            { x: 2, y: 1 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

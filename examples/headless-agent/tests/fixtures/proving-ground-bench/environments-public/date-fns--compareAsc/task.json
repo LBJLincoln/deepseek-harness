@@ -1,0 +1,52 @@
+{
+  "id": "code:date-fns--implement-compareAsc",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "date-fns",
+    "url": "https://github.com/date-fns/date-fns",
+    "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+    "license": "MIT",
+    "licenseFile": "pkgs/core/LICENSE.md",
+    "licenseSha256": "8d3951c38967b964b1fe259bfd200c2647cc04c858b55a4414e3122a60f1ef4b",
+    "copyright": "Copyright (c) 2021 Sasha Koss and Lesha Koss https://kossnocorp.mit-license.org",
+    "module": "pkgs/core/src/compareAsc/index.ts",
+    "tests": [
+      "pkgs/core/src/compareAsc/test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/compareAsc/index.js",
+    "function": "compareAsc"
+  },
+  "title": "Implement compareAsc from date-fns",
+  "prompt": "`src/compareAsc/index.js` is the JavaScript build of `pkgs/core/src/compareAsc/index.ts` from date-fns (https://github.com/date-fns/date-fns at commit 717ce0a807ea, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `compareAsc`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * @name compareAsc\n * @category Common Helpers\n * @summary Compare the two dates and return -1, 0 or 1.\n *\n * @description\n * Compare the two dates and return 1 if the first date is after the second,\n * -1 if the first date is before the second or 0 if dates are equal.\n *\n * **You don't need date-fns\\***:\n *\n * Temporal has a built-in [`Temporal.Instant.compare()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/compare) method.\n *\n * \\* **Not really**, see: https://date-fns.org/you-dont-need-date-fns\n *\n * @param dateLeft - The first date to compare\n * @param dateRight - The second date to compare\n *\n * @returns The result of the comparison\n *\n * @example\n * // Compare 11 February 1987 and 10 July 1989:\n * const result = compareAsc(new Date(1987, 1, 11), new Date(1989, 6, 10))\n * //=> -1\n *\n * @example\n * // Sort the array of dates:\n * const result = [\n *   new Date(1995, 6, 2),\n *   new Date(1987, 1, 11),\n *   new Date(1989, 6, 10)\n * ].sort(compareAsc)\n * //=> [\n * //   Wed Feb 11 1987 00:00:00,\n * //   Mon Jul 10 1989 00:00:00,\n * //   Sun Jul 02 1995 00:00:00\n * // ]\n *\n * @example\n * // Using Temporal:\n * const result = Temporal.Instant.compare(\n *   Temporal.Instant.from(\"1987-02-11T00:00:00Z\"),\n *   Temporal.Instant.from(\"1989-07-10T00:00:00Z\"),\n * )\n * //=> -1\n */\nexport function compareAsc(\n  dateLeft: DateArg<Date> & {},\n  dateRight: DateArg<Date> & {},\n): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/constants/index.js`, `src/constructFrom/index.js`, `src/toDate/index.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

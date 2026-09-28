@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/spread.spec.ts › spread › should correctly transform a function with multiple arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { spread } from \"./src/function/spread.js\";\n{\nfunction add(a, b) {\n    return a + b;\n}\nfunction greet(name, greeting = 'Hello') {\n    return `${greeting}, ${name}!`;\n}\n{\n{\nconst spreadAdd = spread(add);\n        expect(spreadAdd([1, 2])).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/spread.spec.ts › spread › should correctly transform a function with default arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { spread } from \"./src/function/spread.js\";\n{\nfunction add(a, b) {\n    return a + b;\n}\nfunction greet(name, greeting = 'Hello') {\n    return `${greeting}, ${name}!`;\n}\n{\n{\nconst spreadGreet = spread(greet);\n        expect(spreadGreet(['Alice'])).toBe('Hello, Alice!');\n        expect(spreadGreet(['Bob', 'Hi'])).toBe('Hi, Bob!');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/spread.spec.ts › spread › should handle functions with varying argument lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { spread } from \"./src/function/spread.js\";\n{\nfunction add(a, b) {\n    return a + b;\n}\nfunction greet(name, greeting = 'Hello') {\n    return `${greeting}, ${name}!`;\n}\n{\n{\nfunction concat(...args) {\n            return args.join(' ');\n        }\n        const spreadConcat = spread(concat);\n        expect(spreadConcat(['Hello', 'World', 'Vitest'])).toBe('Hello World Vitest');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/spread.spec.ts › spread › should maintain the context of `this` when calling the original function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { spread } from \"./src/function/spread.js\";\n{\nfunction add(a, b) {\n    return a + b;\n}\nfunction greet(name, greeting = 'Hello') {\n    return `${greeting}, ${name}!`;\n}\n{\n{\nfunction greetWithContext(name) {\n            return `${this.greeting}, ${name}!`;\n        }\n        const context = { greeting: 'Hey' };\n        const spreadGreetWithContext = spread(greetWithContext.bind(context));\n        expect(spreadGreetWithContext(['Alice'])).toBe('Hey, Alice!');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/upperCase.spec.ts › upperCase › should change camel case to upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('camelCase')).toEqual('CAMEL CASE');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/upperCase.spec.ts › upperCase › should change space to space",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('some whitespace')).toEqual('SOME WHITESPACE');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/upperCase.spec.ts › upperCase › should change hyphen to space",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('hyphen-text')).toEqual('HYPHEN TEXT');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/upperCase.spec.ts › upperCase › should change Acronyms to small letter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('HTTPRequest')).toEqual('HTTP REQUEST');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/upperCase.spec.ts › upperCase › should handle leading and trailing whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('    leading and trailing whitespace    ')).toEqual('LEADING AND TRAILING WHITESPACE');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/upperCase.spec.ts › upperCase › should handle special characters correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('special@characters!')).toEqual('SPECIAL CHARACTERS');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/upperCase.spec.ts › upperCase › should handle strings that are already in upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('upper_case')).toEqual('UPPER CASE');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/upperCase.spec.ts › upperCase › should work with an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/upperCase.spec.ts › upperCase › should work with screaming snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperCase } from \"./src/string/upperCase.js\";\n{\n{\n{\nexpect(upperCase('FOO_BAR')).toEqual('FOO BAR');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

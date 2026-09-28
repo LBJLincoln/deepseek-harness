@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/flattenDeep.spec.ts › flattenDeep › should flatten a deeply nested array of numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenDeep } from \"./src/array/flattenDeep.js\";\n{\n{\n{\nconst originArr = [1, [2, [3, [4, [5]]]]];\n        const expectedArr = [1, 2, 3, 4, 5];\n        expect(flattenDeep(originArr)).toEqual(expectedArr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/flattenDeep.spec.ts › flattenDeep › should flatten a deeply nested array with mixed types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flattenDeep } from \"./src/array/flattenDeep.js\";\n{\n{\n{\nconst originArr = [1, ['str', [3, [4, [false, [{ id: 1 }]]]]]];\n        const expectedArr = [1, 'str', 3, 4, false, { id: 1 }];\n        expect(flattenDeep(originArr)).toEqual(expectedArr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

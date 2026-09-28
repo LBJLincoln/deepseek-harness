@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/sampleSize.spec.ts › sampleSize › returns an empty array for size 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sampleSize } from \"./src/array/sampleSize.js\";\n{\n{\n{\nconst result = sampleSize([1, 2, 3], 0);\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/sampleSize.spec.ts › sampleSize › returns the same array if the size is equal to the array length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sampleSize } from \"./src/array/sampleSize.js\";\n{\n{\n{\nconst array = [1, 2, 3];\n        const result = sampleSize(array, array.length);\n        expect(result).toEqual(array);\n        expect(result).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/sampleSize.spec.ts › sampleSize › throws an error if the size is greater than the array length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sampleSize } from \"./src/array/sampleSize.js\";\n{\n{\n{\nexpect(() => sampleSize([1, 2, 3], 4)).toThrowErrorMatchingInlineSnapshot(`[Error: Size must be less than or equal to the length of array.]`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

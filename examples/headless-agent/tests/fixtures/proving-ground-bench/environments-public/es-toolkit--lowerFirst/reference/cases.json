@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/lowerFirst.spec.ts › lowerFirst › should change first character of upper case to lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerFirst } from \"./src/string/lowerFirst.js\";\n{\n{\n{\nexpect(lowerFirst('Fred')).toEqual('fred');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/lowerFirst.spec.ts › lowerFirst › should keep first character of lower case unaltered",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerFirst } from \"./src/string/lowerFirst.js\";\n{\n{\n{\nexpect(lowerFirst('fred')).toEqual('fred');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/lowerFirst.spec.ts › lowerFirst › should keep all other characters unaltered",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerFirst } from \"./src/string/lowerFirst.js\";\n{\n{\n{\nexpect(lowerFirst('FRED')).toEqual('fRED');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/lowerFirst.spec.ts › lowerFirst › should work with an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerFirst } from \"./src/string/lowerFirst.js\";\n{\n{\n{\nexpect(lowerFirst('')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/lowerFirst.spec.ts › lowerFirst › should keep white space and not alter string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerFirst } from \"./src/string/lowerFirst.js\";\n{\n{\n{\nexpect(lowerFirst('  fred')).toEqual('  fred');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

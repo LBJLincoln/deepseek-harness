@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/bisect.test.js › bisect › can find root of sin and cos",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as bisect } from \"./src/bisect.js\";\n{\n{\n{\nassert.equal(Number(bisect(Math.sin, 1, 4, 100, 0.003).toFixed(4)), 3.1416);\n        assert.equal(Number(bisect(Math.cos, 0, 4, 100, 0.003).toFixed(4)), 1.5723);\n        assert.throws(function () {\n            assert.equal(Number(bisect(Math.cos, 0, 4, 1, 0.003).toFixed(4)), 1.5723);\n        });\n        assert.throws(function () {\n            bisect(0);\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

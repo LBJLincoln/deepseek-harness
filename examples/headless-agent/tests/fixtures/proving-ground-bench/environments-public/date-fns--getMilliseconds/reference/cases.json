@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/getMilliseconds/test.ts › getMilliseconds › returns the milliseconds of the given date",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getMilliseconds } from \"./src/getMilliseconds/index.js\";\n{\n{\n{\nconst result = getMilliseconds(new Date(2012, 1 /* Feb */, 29, 11, 45, 5, 123));\n        expect(result).toBe(123);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/getMilliseconds/test.ts › getMilliseconds › accepts a timestamp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getMilliseconds } from \"./src/getMilliseconds/index.js\";\n{\n{\n{\nconst result = getMilliseconds(new Date(2014, 3 /* Apr */, 2, 23, 30, 42, 500).getTime());\n        expect(result).toBe(500);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/getMilliseconds/test.ts › getMilliseconds › returns NaN if the given date is invalid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { getMilliseconds } from \"./src/getMilliseconds/index.js\";\n{\n{\n{\nconst result = getMilliseconds(new Date(NaN));\n        expect(isNaN(result)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

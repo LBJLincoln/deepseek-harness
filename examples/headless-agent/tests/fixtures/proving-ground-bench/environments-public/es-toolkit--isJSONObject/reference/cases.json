@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-002",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONValue › should return true for a valid JSON object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONValue({ key: 'value' })).toBe(true);\n        expect(isJSONValue({\n            nested: { boolean: true, array: [1, 2, 3], string: 'test', null: null },\n        })).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONValue › should return false for invalid JSON values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONValue(undefined)).toBe(false);\n        expect(isJSONValue(() => { })).toBe(false);\n        expect(isJSONValue(new Date())).toBe(false);\n        expect(isJSONValue(/regex/)).toBe(false);\n        expect(isJSONValue(Symbol('symbol'))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONArray › should return true for valid JSON arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONArray([1, 2, 3])).toBe(true);\n        expect(isJSONArray(['string', null, true])).toBe(true);\n        expect(isJSONArray([{ key: 'value' }, [1, 2], null])).toBe(true);\n        expect(isJSONArray([])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONArray › should return false for invalid JSON arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONArray('not an array')).toBe(false);\n        expect(isJSONArray(123)).toBe(false);\n        expect(isJSONArray(null)).toBe(false);\n        expect(isJSONArray(undefined)).toBe(false);\n        expect(isJSONArray({})).toBe(false);\n        expect(isJSONArray([1, 2, () => { }])).toBe(false);\n        expect(isJSONArray([1, 2, new Date()])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONObject › isJSONObject should return true for valid JSON objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONObject({ a: 1, b: 'es-toolkit' })).toBe(true);\n        expect(isJSONObject({})).toBe(true);\n        expect(isJSONObject({ nested: { boolean: true, array: [1, 2, 3], string: 'test', null: null } })).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONObject › isJSONObject should return false for not valid value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONObject(null)).toBe(false);\n        expect(isJSONObject(undefined)).toBe(false);\n        expect(isJSONObject('string')).toBe(false);\n        expect(isJSONObject(123)).toBe(false);\n        expect(isJSONObject(true)).toBe(false);\n        expect(isJSONObject([1, 2, 3])).toBe(false);\n        expect(isJSONObject({ date: new Date() })).toBe(false);\n        expect(isJSONObject({ func: () => { } })).toBe(false);\n        expect(isJSONObject({ regexp: /test/ })).toBe(false);\n        expect(isJSONObject({ undefinedProperty: undefined })).toBe(false);\n        expect(isJSONObject({ symbolProperty: Symbol('test') })).toBe(false);\n        expect(isJSONObject({ nested: { a: function* () { } } })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/predicate/isJSONValue.spec.ts › isJSONObject › isJSONObject should return false when key is not a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSONArray, isJSONObject, isJSONValue } from \"./src/predicate/isJSONValue.js\";\n{\n{\n{\nexpect(isJSONObject({ [Symbol('a')]: 'a' })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

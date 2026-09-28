@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-percentile",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/math/percentile.ts",
+    "tests": [
+      "src/math/percentile.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/math/percentile.js",
+    "function": "percentile"
+  },
+  "title": "Implement percentile from es-toolkit",
+  "prompt": "`src/math/percentile.js` is the JavaScript build of `src/math/percentile.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `percentile`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Calculates the value at the given percentile of an array of numbers.\n *\n * Sorts the array in ascending order and returns the element at the nearest rank.\n * See {@link https://en.wikipedia.org/wiki/Percentile#The_nearest-rank_method | Nearest rank method}.\n *\n * `NaN` values are sorted as the smallest values. Returns `NaN` if the array is empty.\n *\n * @param arr - An array of numbers to calculate the percentile.\n * @param percentile - The percentile to compute, in the range `[0, 100]`.\n * @returns The value at the given percentile.\n * @throws {Error} Throws an error if `percentile` is not a number, less than `0`, or greater than `100`.\n *\n * @example\n * percentile([1, 2, 3, 4, 5], 50);\n * // Returns 3\n *\n * @example\n * percentile([1, 2, 3, 4, 5], 75);\n * // Returns 4\n *\n * @example\n * percentile([5, 1, 4, 2, 3], 0);\n * // Returns 1\n */\nexport function percentile(arr: readonly number[], percentile: number): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

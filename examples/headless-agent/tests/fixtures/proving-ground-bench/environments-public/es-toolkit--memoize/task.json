@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-memoize",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/function/memoize.ts",
+    "tests": [
+      "src/function/memoize.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/function/memoize.js",
+    "function": "memoize"
+  },
+  "title": "Implement memoize from es-toolkit",
+  "prompt": "`src/function/memoize.js` is the JavaScript build of `src/function/memoize.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `memoize`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates a memoized version of the provided function. The memoized function caches\n * results based on the argument it receives, so if the same argument is passed again,\n * it returns the cached result instead of recomputing it.\n *\n * This function works with functions that take zero or just one argument. If your function\n * originally takes multiple arguments, you should refactor it to take a single object or array\n * that combines those arguments.\n *\n * If the argument is not primitive (e.g., arrays or objects), provide a\n * `getCacheKey` function to generate a unique cache key for proper caching.\n *\n * @template F - The type of the function to be memoized.\n * @param fn - The function to be memoized. It should accept a single argument and return a value.\n * @param [options={}] - Optional configuration for the memoization.\n * @param [options.cache] - The cache object used to store results. Defaults to a new `Map`.\n * @param [options.getCacheKey] - An optional function to generate a unique cache key for each argument.\n *\n * @returns The memoized function with an additional `cache` property that exposes the internal cache.\n *\n * @example\n * // Example using the default cache\n * const add = (x: number) => x + 10;\n * const memoizedAdd = memoize(add);\n *\n * console.log(memoizedAdd(5)); // 15\n * console.log(memoizedAdd(5)); // 15 (cached result)\n * console.log(memoizedAdd.cache.size); // 1\n *\n * @example\n * // Example using a custom resolver\n * const sum = (arr: number[]) => arr.reduce((x, y) => x + y, 0);\n * const memoizedSum = memoize(sum, { getCacheKey: (arr: number[]) => arr.join(',') });\n * console.log(memoizedSum([1, 2])); // 3\n * console.log(memoizedSum([1, 2])); // 3 (cached result)\n * console.log(memoizedSum.cache.size); // 1\n *\n * @example\n * // Example using a custom cache implementation\n * class CustomCache<K, T> implements MemoizeCache<K, T> {\n *   private cache = new Map<K, T>();\n *\n *   set(key: K, value: T): void {\n *     this.cache.set(key, value);\n *   }\n *\n *   get(key: K): T | undefined {\n *     return this.cache.get(key);\n *   }\n *\n *   has(key: K): boolean {\n *     return this.cache.has(key);\n *   }\n *\n *   delete(key: K): boolean {\n *     return this.cache.delete(key);\n *   }\n *\n *   clear(): void {\n *     this.cache.clear();\n *   }\n *\n *   get size(): number {\n *     return this.cache.size;\n *   }\n * }\n * const customCache = new CustomCache<string, number>();\n * const memoizedSumWithCustomCache = memoize(sum, { cache: customCache });\n * const arr = [1, 2];\n * console.log(memoizedSumWithCustomCache(arr)); // 3\n * console.log(memoizedSumWithCustomCache(arr)); // 3 (cached result)\n * console.log(memoizedSumWithCustomCache.cache.size); // 1\n */\nexport function memoize<F extends (...args: any) => any>(\n  fn: F,\n  options: {\n    cache?: MemoizeCache<any, ReturnType<F>>;\n    getCacheKey?: (args: Parameters<F>[0]) => unknown;\n  } = {}\n): F & { cache: MemoizeCache<any, ReturnType<F>> }\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

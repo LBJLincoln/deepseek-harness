@@ -1,0 +1,1688 @@
+{
+  "type": "result",
+  "plan": "public-smoke-sonnet",
+  "environments": [
+    "code:es-toolkit--implement-dedent",
+    "code:remeda--implement-chunk",
+    "code:simple-statistics--implement-quantile",
+    "code:antfu-utils--implement-deepMerge",
+    "code:case-anything--implement-camelCase",
+    "code:string-ts--implement-padStart",
+    "code:ms--implement-parse",
+    "code:date-fns--implement-lightFormat",
+    "code:ufo--implement-parseURL",
+    "code:change-case--implement-camelCase"
+  ],
+  "implementer": {
+    "kind": "route"
+  },
+  "startedAt": "2026-09-27T23:31:35.625Z",
+  "endedAt": "2026-09-27T23:36:43.135Z",
+  "report": {
+    "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+    "cells": [
+      {
+        "cell": {
+          "environment": "code:es-toolkit--implement-dedent",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:es-toolkit--implement-dedent",
+          "sessionId": "environment-9bcdc4f1-2468-4117-a70a-20491f80f420",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:es-toolkit--implement-dedent",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "05efda58b13ab10150d78635cac49db3de17dcf85f5dfc796fa40dda0777aff8",
+            "checksSha256": "a315cd92fc18552c862aaef5d89f9ebd581157b39a24ca2f965fc9210679ae8d",
+            "fixtureSha256": "0259b61671a510c01b713eb0e60b67cc59e27e555b63cdcb29b68468f8d1c105",
+            "contentSha256": "c2beb5c280694b36baa352027443b68b9b73ab3e3f7b81e733ecc8e107940c29",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 30 of 30 passed (weight 30 of 30)",
+                  "cases": {
+                    "passed": 30,
+                    "total": 30,
+                    "weightPassed": 30,
+                    "weightTotal": 30,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "8773c3a07171f9844739b3368f8688be88e40f3bef6544ca71df244d5829e088"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-38e6ebf2-ae29-42d3-8852-a7a5bdc054d7",
+              "revision": 1
+            },
+            "goalId": "goal-1ab2a2ec-106c-4b2c-aeca-00b78340efad",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 30 of 30 passed (weight 30 of 30)",
+                "cases": {
+                  "passed": 30,
+                  "total": 30,
+                  "weightPassed": 30,
+                  "weightTotal": 30,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790551944122
+          },
+          "usage": {
+            "inputTokens": 14,
+            "outputTokens": 2587,
+            "cacheReadTokens": 70131,
+            "cacheWriteTokens": 13127
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:remeda--implement-chunk",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:remeda--implement-chunk",
+          "sessionId": "environment-5cc40c16-e5c4-49ed-95c8-401ae0c601f2",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:remeda--implement-chunk",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "1bd7706c098ed22a2ed49b5a4f71d7818f6e3595bb9f299424e1be80c8f5d515",
+            "checksSha256": "589f581d21f34e30cdf09fbcb859eecb79f8362b642eb65b22ce4297e883f7a5",
+            "fixtureSha256": "a19a72f41e50ca0af0b472cf06c8ab527ced978991f1a57430e575dc10a2e1b8",
+            "contentSha256": "818c5488a711171aee35dfb8f9027245a0b0303035365ac9afaf2aab47716870",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 9 of 9 passed (weight 9 of 9)",
+                  "cases": {
+                    "passed": 9,
+                    "total": 9,
+                    "weightPassed": 9,
+                    "weightTotal": 9,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "e9bb3c60484eb855ed78417b550179a0cb306ef5eead1c2832272c297551096c"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-49877d60-79fb-491c-98d1-7265ba419ef4",
+              "revision": 1
+            },
+            "goalId": "goal-60590f34-0ae8-4b74-989c-a44e4594400b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 9 of 9 passed (weight 9 of 9)",
+                "cases": {
+                  "passed": 9,
+                  "total": 9,
+                  "weightPassed": 9,
+                  "weightTotal": 9,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790551924116
+          },
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 801,
+            "cacheReadTokens": 36489,
+            "cacheWriteTokens": 7336
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:simple-statistics--implement-quantile",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:simple-statistics--implement-quantile",
+          "sessionId": "environment-f8104390-bb9c-42bb-91cb-4d3294c5f2a5",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:simple-statistics--implement-quantile",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "19d70a765c6bbf006e739fa5291a9f25b4df3f670d10845a6bdaa300cdf0faf0",
+            "checksSha256": "d64e037d334956edd8bfce2fe3e4fff948e7ab6950b39861c13fd795014162a1",
+            "fixtureSha256": "1483d8a38d8bde143f3d2d05ecbfeb7dcae756a1a2da5118b3c738bec47a2665",
+            "contentSha256": "14f09829eb3fc78572b4bf95a75be1d031f392a49fb37eb108f9094757651a67",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 12 of 12 passed (weight 12 of 12)",
+                  "cases": {
+                    "passed": 12,
+                    "total": 12,
+                    "weightPassed": 12,
+                    "weightTotal": 12,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "1029bb3ce1153aa633c1154c726ee134c3991a3d06cbb83ebe79167bb7c957a2"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-64b0adf2-b113-4698-a39a-ad8157fb4841",
+              "revision": 1
+            },
+            "goalId": "goal-74278046-4aac-4c68-9277-b29d1f4bb457",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 12 of 12 passed (weight 12 of 12)",
+                "cases": {
+                  "passed": 12,
+                  "total": 12,
+                  "weightPassed": 12,
+                  "weightTotal": 12,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790551951694
+          },
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 1323,
+            "cacheReadTokens": 44642,
+            "cacheWriteTokens": 9953
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:antfu-utils--implement-deepMerge",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:antfu-utils--implement-deepMerge",
+          "sessionId": "environment-ded62e2b-e006-407a-9937-4e16287e78eb",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:antfu-utils--implement-deepMerge",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "4d415b25ac462a5eb52afa5789c86ec69f3e636cb11cb661f17e7bed8a3fa887",
+            "checksSha256": "bd60daef84993637a9b05661e5d86aec4a1467d9132b3c4daf2bfcc0b6350826",
+            "fixtureSha256": "9995cc6480b216c0f25e9203406dc0138c907333d5fda82cd7fe294725068cf8",
+            "contentSha256": "1ebdc33095fdafb23b7b0b4bbc64f2264c60da18a4717ce591c2f0cc521f5811",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "fail",
+                  "evidence": "cases: 4 of 5 passed (weight 4 of 5)\ncase \"case-005\" differed on exit; exit 1\nstderr: file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-qEBO9i/test/expect-shim.mjs:152\n    throw new AssertionError(`expected ${format(actual)} ${negated ? 'not ' : ''}${description}`)\n          ^\n\nAssertionError: expected {\"a\":{\"x\":1}} to equal {\"a\":{\"x\":{\"f\":2}}}\n    at verdict (file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-qEBO9i/test/expect-shim.mjs:152:11)\n    at Object.toEqual (file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-qEBO9i/test/expect-shim.mjs:172:26)\n    at file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-qEBO9i/[eval1]:8:43\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2",
+                  "cases": {
+                    "passed": 4,
+                    "total": 5,
+                    "weightPassed": 4,
+                    "weightTotal": 5,
+                    "failed": [
+                      {
+                        "id": "case-005",
+                        "weight": 1,
+                        "channels": [
+                          "exit"
+                        ],
+                        "exitClass": "nonzero"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "f28b198f2dbe8499217c9fdd5f92e8697658bd3096d3b4b81d4bf3434c08142e"
+            },
+            {
+              "attempt": 2,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 5 of 5 passed (weight 5 of 5)",
+                  "cases": {
+                    "passed": 5,
+                    "total": 5,
+                    "weightPassed": 5,
+                    "weightTotal": 5,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "6127483b916e030e8fbe6b41a82e8ec94c20a9c14b88ea669ad355396639f482"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-23e3c115-6481-4e67-b99a-838da74b5259",
+              "revision": 1
+            },
+            "goalId": "goal-162fb7e7-4c34-4a33-bc0d-13eeaf6aa492",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 5 of 5 passed (weight 5 of 5)",
+                "cases": {
+                  "passed": 5,
+                  "total": 5,
+                  "weightPassed": 5,
+                  "weightTotal": 5,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552056882
+          },
+          "usage": {
+            "inputTokens": 28,
+            "outputTokens": 6410,
+            "cacheReadTokens": 198202,
+            "cacheWriteTokens": 21759
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:case-anything--implement-camelCase",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:case-anything--implement-camelCase",
+          "sessionId": "environment-fb917a22-53e3-4ba8-904f-12c4a3d7e615",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:case-anything--implement-camelCase",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "c5d086c57cab7979229584669847e9135334dd4672f8df6a8d00b683e7594fa0",
+            "checksSha256": "64b592c6b3ad1a7296f0ea63abc846ad948868205e06184784bab1c8212a6cad",
+            "fixtureSha256": "2c31264208ab44c883cc44186773750d459098671177da9671f0c4f335d1602b",
+            "contentSha256": "d567094ba8b6b96af08a32910535d81cb1c412280f84fc942aef14d06a774315",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "fail",
+                  "evidence": "cases: 22 of 26 passed (weight 22 of 26)\n…/test/expect-shim.mjs:172:26)\n    at file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-v2liNx/[eval1]:11:6\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\ncase \"case-324\" differed on exit; exit 1\nstderr: file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-v2liNx/test/expect-shim.mjs:152\n    throw new AssertionError(`expected ${format(actual)} ${negated ? 'not ' : ''}${description}`)\n          ^\n\nAssertionError: expected \"日本catベルギーDogうちゅう\" to equal \"日本catベルギーdogうちゅう\"\n    at verdict (file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-v2liNx/test/expect-shim.mjs:152:11)\n    at Object.toEqual (file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-v2liNx/test/expect-shim.mjs:172:26)\n    at file:///home/user/deepseek-harness/.claude/worktrees/agent-ab14616428b60b5c9/.proving-ground/runs/public-smoke-sonnet-20260927T233130Z/cell-v2liNx/[eval1]:5:72\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2",
+                  "cases": {
+                    "passed": 22,
+                    "total": 26,
+                    "weightPassed": 22,
+                    "weightTotal": 26,
+                    "failed": [
+                      {
+                        "id": "case-161",
+                        "weight": 1,
+                        "channels": [
+                          "exit"
+                        ],
+                        "exitClass": "nonzero"
+                      },
+                      {
+                        "id": "case-181",
+                        "weight": 1,
+                        "channels": [
+                          "exit"
+                        ],
+                        "exitClass": "nonzero"
+                      },
+                      {
+                        "id": "case-220",
+                        "weight": 1,
+                        "channels": [
+                          "exit"
+                        ],
+                        "exitClass": "nonzero"
+                      },
+                      {
+                        "id": "case-324",
+                        "weight": 1,
+                        "channels": [
+                          "exit"
+                        ],
+                        "exitClass": "nonzero"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "f11761465ff470b7c7784e06b2f8c83ad81d739be6e015d41376bc494770b3f6"
+            },
+            {
+              "attempt": 2,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 26 of 26 passed (weight 26 of 26)",
+                  "cases": {
+                    "passed": 26,
+                    "total": 26,
+                    "weightPassed": 26,
+                    "weightTotal": 26,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "cdeb56213e899658595380e592c35089fa8f9b66c813d197adb8f9cf5aa05e00"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-03876a6b-4d0a-4c47-999e-03982d959729",
+              "revision": 1
+            },
+            "goalId": "goal-91ae248a-94ea-453e-8192-655c807dd82b",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 26 of 26 passed (weight 26 of 26)",
+                "cases": {
+                  "passed": 26,
+                  "total": 26,
+                  "weightPassed": 26,
+                  "weightTotal": 26,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552161803
+          },
+          "usage": {
+            "inputTokens": 46,
+            "outputTokens": 11111,
+            "cacheReadTokens": 700119,
+            "cacheWriteTokens": 69988
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:string-ts--implement-padStart",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:string-ts--implement-padStart",
+          "sessionId": "environment-e3cc6024-80ab-4a00-a89b-e94d315874fc",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:string-ts--implement-padStart",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "1abefa7ab08525e113477cd81eb1d3f1c20eace3e8666732e2eecf61c9d10e38",
+            "checksSha256": "2b708b1b1bbc9fed366b1691dce27553c816932c72d47c834e074aef3c61bb80",
+            "fixtureSha256": "dc57d441c8a77426e20bc2bf2feee1b062c25ae174f2fcdc6b8cc907d9d2a6f4",
+            "contentSha256": "86d0a42bad8ba9b20c036c7d3e785bb6133690edc64b5775c6481d5439724ef9",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 5 of 5 passed (weight 5 of 5)",
+                  "cases": {
+                    "passed": 5,
+                    "total": 5,
+                    "weightPassed": 5,
+                    "weightTotal": 5,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "3b2e954c445d7e6b4b57840b52585388871ee86b65d9821cfea64d45321b908a"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-dbae108f-a8de-461d-983a-e968d64a7382",
+              "revision": 1
+            },
+            "goalId": "goal-15b5541f-522d-40f5-be3f-21bb7e4dc16f",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 5 of 5 passed (weight 5 of 5)",
+                "cases": {
+                  "passed": 5,
+                  "total": 5,
+                  "weightPassed": 5,
+                  "weightTotal": 5,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552069906
+          },
+          "usage": {
+            "inputTokens": 6,
+            "outputTokens": 408,
+            "cacheReadTokens": 18126,
+            "cacheWriteTokens": 5277
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:ms--implement-parse",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:ms--implement-parse",
+          "sessionId": "environment-9faf2453-1f09-4dd0-9590-4f3bf0a26c29",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:ms--implement-parse",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "8254a5c000be45e8eea8743ea36eff2297995ce54d5feac191467cfb2ef8ddb6",
+            "checksSha256": "4792fc2e9985450c1940d456b10bf5a8016d4d277f0eac0f9db8201fa31781b5",
+            "fixtureSha256": "07e39930206526403ec46594dfbb0758382fb9dc106f6be4e753bbc13ad6aa57",
+            "contentSha256": "424f3aa227b13a8f82bbc59adb8af683559a37e59ac9618b734855e139679004",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 60 of 60 passed (weight 60 of 60)",
+                  "cases": {
+                    "passed": 60,
+                    "total": 60,
+                    "weightPassed": 60,
+                    "weightTotal": 60,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "4e07141e45d481fd6cb9a80411149ff10d059d8027f75952b3ad06dd05089060"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-ac09c397-41ee-4fcf-a2ee-b14d99633d3c",
+              "revision": 1
+            },
+            "goalId": "goal-77421b27-8c51-4e55-a192-436bab486bad",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 60 of 60 passed (weight 60 of 60)",
+                "cases": {
+                  "passed": 60,
+                  "total": 60,
+                  "weightPassed": 60,
+                  "weightTotal": 60,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552121942
+          },
+          "usage": {
+            "inputTokens": 16,
+            "outputTokens": 2903,
+            "cacheReadTokens": 81709,
+            "cacheWriteTokens": 12262
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:date-fns--implement-lightFormat",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:date-fns--implement-lightFormat",
+          "sessionId": "environment-145ef0d9-3350-4038-83cd-336a33c80da8",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:date-fns--implement-lightFormat",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "92786d1a7508347bb250a019e600473d2ad806e1e398fbd287dcbb912556ec6a",
+            "checksSha256": "9b20bc054b1de41830e1dde63dd8af48ad53ce2e96be7f3e9ecbdcd2c158c01d",
+            "fixtureSha256": "3c998af4d5abbcb475c17775f02f68ad3c098cc069eb879d10c4cab9ba19d01f",
+            "contentSha256": "a8a6c645ffcd4fe684f2004af184db0389e4f1feaf49bc39980679a3c344b395",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 20 of 20 passed (weight 20 of 20)",
+                  "cases": {
+                    "passed": 20,
+                    "total": 20,
+                    "weightPassed": 20,
+                    "weightTotal": 20,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "391c20369229350d053c02945997d5fd0bd89f1efb1dc061ce85cf38930a8b70"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-e1b6d02a-ec4b-4b00-bc50-9ad40e0ea5ed",
+              "revision": 1
+            },
+            "goalId": "goal-3362a6ea-40e5-473e-835c-fa0837fc1054",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 20 of 20 passed (weight 20 of 20)",
+                "cases": {
+                  "passed": 20,
+                  "total": 20,
+                  "weightPassed": 20,
+                  "weightTotal": 20,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552146354
+          },
+          "usage": {
+            "inputTokens": 8,
+            "outputTokens": 1453,
+            "cacheReadTokens": 36679,
+            "cacheWriteTokens": 10574
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:ufo--implement-parseURL",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:ufo--implement-parseURL",
+          "sessionId": "environment-35edabe8-4710-49db-abb9-df8d700e61fa",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:ufo--implement-parseURL",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "ac7cd50895ccf3593d748fecbacd41b6ddad1949520edae2e97e83167b86a3a1",
+            "checksSha256": "11deb5a7821b1b5a87a65ba81158d19385fddb1e4da8817aa8cac14491747f5f",
+            "fixtureSha256": "3d6b13dab939f8ebae7bf7dac070409eb00da219d2a79e339cd6f5d19bc5053b",
+            "contentSha256": "a51e4701c4269f8398739afda9699e26c9b6b59e3db35bdc29623f653b5304a6",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 1 of 1 passed (weight 1 of 1)",
+                  "cases": {
+                    "passed": 1,
+                    "total": 1,
+                    "weightPassed": 1,
+                    "weightTotal": 1,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "2e2f9c8733fa2c4ec19f652d0c1fb0581afa55537ebad39ab05c5acd4ce60878"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-82091e48-b061-4e80-89e2-556537ef2715",
+              "revision": 1
+            },
+            "goalId": "goal-f054de16-f190-435b-83dd-72a5a8cd41d5",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 1 of 1 passed (weight 1 of 1)",
+                "cases": {
+                  "passed": 1,
+                  "total": 1,
+                  "weightPassed": 1,
+                  "weightTotal": 1,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552195762
+          },
+          "usage": {
+            "inputTokens": 18,
+            "outputTokens": 2827,
+            "cacheReadTokens": 159140,
+            "cacheWriteTokens": 22888
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      },
+      {
+        "cell": {
+          "environment": "code:change-case--implement-camelCase",
+          "model": {
+            "provider": "claude-code",
+            "model": "sonnet"
+          },
+          "repetition": 0
+        },
+        "report": {
+          "environment": "code:change-case--implement-camelCase",
+          "sessionId": "environment-57c89fd4-8b68-4c2b-9382-712ea343196e",
+          "stamp": {
+            "kind": "environment/run",
+            "version": 1,
+            "environmentId": "code:change-case--implement-camelCase",
+            "environmentKind": "bench",
+            "heldOut": false,
+            "promptSha256": "15db4fe863535bc5005176b3711ba661ee2f5015889adac7a9dbe20b0808547b",
+            "checksSha256": "042162376ca76c91b91f7ddea4827661d8c250f504f0d59ac235d018b2835d13",
+            "fixtureSha256": "9bc0b544a99cbbdf9beec83abd159e05c89efedfd50139018b2ee2bb72ae6713",
+            "contentSha256": "69ece64d67e915080d86939b32f69e22226b267f95f86325889eb7ae7f7d3834",
+            "repetition": 0,
+            "group": "fleet-1e610d5c-74d9-49db-a6cc-c7b203bfc858",
+            "district": "bench-public",
+            "policyVersion": "bench-2026-09-27-public-smoke",
+            "seed": 1,
+            "model": {
+              "provider": "claude-code",
+              "model": "sonnet"
+            },
+            "isolation": "none",
+            "implementer": "route"
+          },
+          "attempts": [
+            {
+              "attempt": 1,
+              "model": {
+                "provider": "claude-code",
+                "model": "sonnet"
+              },
+              "transcript": "kept",
+              "results": [
+                {
+                  "checkId": "spec-cases",
+                  "status": "pass",
+                  "evidence": "cases: 1 of 1 passed (weight 1 of 1)",
+                  "cases": {
+                    "passed": 1,
+                    "total": 1,
+                    "weightPassed": 1,
+                    "weightTotal": 1,
+                    "failed": []
+                  }
+                },
+                {
+                  "checkId": "no-dependencies",
+                  "status": "pass",
+                  "evidence": "exit 0"
+                }
+              ],
+              "treeHash": "d8c87f7442eb6670548c9870b81509bf5b8556d1cfa7a64ebab82aab90c877ff"
+            }
+          ],
+          "certified": true,
+          "certificate": {
+            "standard": {
+              "id": "standard-2e5cb4dd-f32f-433b-bf19-4ac73564f593",
+              "revision": 1
+            },
+            "goalId": "goal-183b199f-f028-4158-8eff-2601ed481672",
+            "isolation": "none",
+            "executor": "runner",
+            "results": [
+              {
+                "checkId": "spec-cases",
+                "status": "pass",
+                "evidence": "cases: 1 of 1 passed (weight 1 of 1)",
+                "cases": {
+                  "passed": 1,
+                  "total": 1,
+                  "weightPassed": 1,
+                  "weightTotal": 1,
+                  "failed": []
+                }
+              },
+              {
+                "checkId": "no-dependencies",
+                "status": "pass",
+                "evidence": "exit 0"
+              }
+            ],
+            "recordedAt": 1790552202469
+          },
+          "usage": {
+            "inputTokens": 18,
+            "outputTokens": 1976,
+            "cacheReadTokens": 100810,
+            "cacheWriteTokens": 12776
+          },
+          "caps": [
+            [
+              "maxTotalTokens",
+              1500000
+            ],
+            [
+              "maxWallMs",
+              1200000
+            ]
+          ],
+          "escapesDenied": 0
+        }
+      }
+    ],
+    "leaderboard": [
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:es-toolkit--implement-dedent",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 14,
+        "outputTokens": 2587,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:remeda--implement-chunk",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 10,
+        "outputTokens": 801,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:simple-statistics--implement-quantile",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 10,
+        "outputTokens": 1323,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:antfu-utils--implement-deepMerge",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 2,
+        "inputTokens": 28,
+        "outputTokens": 6410,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:case-anything--implement-camelCase",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 2,
+        "inputTokens": 46,
+        "outputTokens": 11111,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:string-ts--implement-padStart",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 6,
+        "outputTokens": 408,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:ms--implement-parse",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 16,
+        "outputTokens": 2903,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:date-fns--implement-lightFormat",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 8,
+        "outputTokens": 1453,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:ufo--implement-parseURL",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 18,
+        "outputTokens": 2827,
+        "isolation": "none",
+        "implementer": "route"
+      },
+      {
+        "provider": "claude-code",
+        "model": "sonnet",
+        "environmentId": "code:change-case--implement-camelCase",
+        "environmentKind": "bench",
+        "heldOut": false,
+        "runs": 1,
+        "errors": 0,
+        "certified": 1,
+        "certificateRate": 1,
+        "attemptsMean": 1,
+        "inputTokens": 18,
+        "outputTokens": 1976,
+        "isolation": "none",
+        "implementer": "route"
+      }
+    ],
+    "spend": {
+      "inputTokens": 174,
+      "outputTokens": 31799
+    }
+  },
+  "rows": [
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:antfu-utils--implement-deepMerge",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:case-anything--implement-camelCase",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:change-case--implement-camelCase",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:date-fns--implement-lightFormat",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:es-toolkit--implement-dedent",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:ms--implement-parse",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:remeda--implement-chunk",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:simple-statistics--implement-quantile",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:string-ts--implement-padStart",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    },
+    {
+      "provider": "claude-code",
+      "model": "sonnet",
+      "environmentId": "code:ufo--implement-parseURL",
+      "environmentKind": "bench",
+      "district": "bench-public",
+      "heldOut": false,
+      "isolation": "none",
+      "implementer": "route",
+      "certificateExecutors": [
+        "runner"
+      ],
+      "tamper": "none",
+      "tampered": 0,
+      "escapesDenied": 0,
+      "runs": 1,
+      "errors": 0,
+      "certified": 1,
+      "resolved": 1,
+      "parity": 1
+    }
+  ],
+  "facts": {
+    "sessions": 10,
+    "exported": 10,
+    "skipped": []
+  },
+  "exported": {
+    "manifest": {
+      "version": "dsh-export-manifest/2",
+      "exportedAt": 1790552203134,
+      "purpose": "evaluation",
+      "profile": "village-v1",
+      "profileSha256": "b2c86201b5feac7e63e8260793faffbbf09a2d4a61c48483edd4ee4150258a7b",
+      "records": 10,
+      "withheld": {
+        "heldOut": 0,
+        "districts": 0,
+        "terms": 0
+      },
+      "ruleHits": {
+        "shipped:private-key": 0,
+        "shipped:jwt": 0,
+        "shipped:aws-access-key": 0,
+        "shipped:aws-secret-key": 0,
+        "shipped:github-token": 0,
+        "shipped:slack-token": 0,
+        "shipped:email": 75,
+        "shipped:bearer-token": 0,
+        "shipped:api-key": 0,
+        "shipped:ipv4": 0,
+        "shipped:e164-phone": 0
+      },
+      "ruleRecords": {
+        "shipped:private-key": 0,
+        "shipped:jwt": 0,
+        "shipped:aws-access-key": 0,
+        "shipped:aws-secret-key": 0,
+        "shipped:github-token": 0,
+        "shipped:slack-token": 0,
+        "shipped:email": 2,
+        "shipped:bearer-token": 0,
+        "shipped:api-key": 0,
+        "shipped:ipv4": 0,
+        "shipped:e164-phone": 0
+      },
+      "recordsSha256": "44f94186d67c80866fa134178159f98f6875263dab0dcca4d31918160deb328e",
+      "trajectoryFormat": "dsh-trajectory/3"
+    },
+    "sessions": 10,
+    "exported": 10,
+    "rewarded": 10,
+    "filtered": 0,
+    "heldOut": 0,
+    "withheldByDistrict": 0,
+    "withheldByTerms": 0,
+    "skipped": []
+  }
+}

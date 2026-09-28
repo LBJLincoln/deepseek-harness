@@ -69,6 +69,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
       'mock-route',
       'registry-only',
       'registry-only-with-completion',
+      'registry-only-with-public',
       'registry-only-with-repository',
       'route-only',
       'with-completion',
@@ -80,6 +81,7 @@ describe('listOverlayNames / resolveOverlayPath', () => {
       'with-openrouter',
       'with-openrouter-paid',
       'with-presets',
+      'with-public',
       'with-repository',
       'with-spawn',
     ])

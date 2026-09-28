@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/repeat.test.ts › repeat › should repeat the string by a given number of times",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { repeat } from \"./src/native/repeat.js\";\n{\n{\n{\nconst data = 'abc';\n        const result = repeat(data, 3);\n        expect(result).toEqual('abcabcabc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/repeat.test.ts › repeat › should be empty when repeating 0 times",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { repeat } from \"./src/native/repeat.js\";\n{\n{\n{\nconst data = 'abc';\n        const result = repeat(data);\n        expect(result).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/native/repeat.test.ts › repeat › should correctly type union inputs without creating permutations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { repeat } from \"./src/native/repeat.js\";\n{\n{\n{\nconst data = 'a';\n        const result = repeat(data, 2);\n        expect(['aa', 'bb']).toContain(result);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/native/repeat.test.ts › repeat › should fall back to string type for large repeat counts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { repeat } from \"./src/native/repeat.js\";\n{\n{\n{\nconst result = repeat('═', 80);\n        expect(result).toEqual('═'.repeat(80));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

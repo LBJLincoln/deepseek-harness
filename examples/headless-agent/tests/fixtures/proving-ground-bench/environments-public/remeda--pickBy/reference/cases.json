@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/pickBy.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { pickBy } from \"./src/pickBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pickBy({ a: 1, b: 2, A: 3, B: 4 }, (_, key) => key.toUpperCase() === key)).toStrictEqual({ A: 3, B: 4 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/pickBy.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { pickBy } from \"./src/pickBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2, A: 3, B: 4 }, pickBy((_, key) => key.toUpperCase() === key))).toStrictEqual({ A: 3, B: 4 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/pickBy.test.ts › symbols are filtered out",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { pickBy } from \"./src/pickBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n    expect(pickBy({ [mySymbol]: 1 }, constant(true))).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/unzipWith.spec.ts › unzipWith › should unzip arrays correctly with an iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzipWith } from \"./src/array/unzipWith.js\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nconst zipped = zip([10, 20, 30], [40, 50, 60], [70, 80, 90]);\n        const result = unzipWith(zipped, (item, item2, item3) => item + item2 + item3);\n        expect(result).toEqual([60, 150, 240]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/unzipWith.spec.ts › unzipWith › should handle arrays of different lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzipWith } from \"./src/array/unzipWith.js\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nconst zipped = zip([1, 20, 300, 4000], [100, 200, 300]);\n        const result = unzipWith(zipped, (item, item2, item3, item4) => item + item2 + item3 + item4);\n        expect(result).toEqual([4321, NaN]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/zip.spec.ts › zip › zips multiple arrays to create a tuple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nexpect(zip([1, 2, 3])).toEqual([[1], [2], [3]]);\n        expect(zip([1, 2, 3], ['a', 'b', 'c'])).toEqual([\n            [1, 'a'],\n            [2, 'b'],\n            [3, 'c'],\n        ]);\n        expect(zip([1, 2, 3], ['a', 'b'])).toEqual([\n            [1, 'a'],\n            [2, 'b'],\n            [3, undefined],\n        ]);\n        expect(zip([1, 2, 3], ['a', 'b', 'c'], [true, true, false])).toEqual([\n            [1, 'a', true],\n            [2, 'b', true],\n            [3, 'c', false],\n        ]);\n        expect(zip([1], ['a'], [true], [null])).toEqual([[1, 'a', true, null]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/zip.spec.ts › zip › supports spread operators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { zip } from \"./src/array/zip.js\";\n{\n{\n{\nexpect(zip(...[[1], ['s'], [{ a: 2 }]])).toEqual([[1, 's', { a: 2 }]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

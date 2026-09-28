@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/tap.test.ts › data first › should return input value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(tap(DATA, (data) => data.length)).toBe(DATA);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/tap.test.ts › data last › should return input value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe(DATA, tap((data) => data.length))).toBe(DATA);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/tap.test.ts › data last › should work in the middle of pipe sequence",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap((data) => {\n            expect(data).toStrictEqual([2]);\n        }), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/tap.test.ts › data last › should infer types after tapping function reference with parameter type any",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap(foo), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

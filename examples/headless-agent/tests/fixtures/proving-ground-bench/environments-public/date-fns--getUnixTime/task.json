@@ -1,0 +1,52 @@
+{
+  "id": "code:date-fns--implement-getUnixTime",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "date-fns",
+    "url": "https://github.com/date-fns/date-fns",
+    "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+    "license": "MIT",
+    "licenseFile": "pkgs/core/LICENSE.md",
+    "licenseSha256": "8d3951c38967b964b1fe259bfd200c2647cc04c858b55a4414e3122a60f1ef4b",
+    "copyright": "Copyright (c) 2021 Sasha Koss and Lesha Koss https://kossnocorp.mit-license.org",
+    "module": "pkgs/core/src/getUnixTime/index.ts",
+    "tests": [
+      "pkgs/core/src/getUnixTime/test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/getUnixTime/index.js",
+    "function": "getUnixTime"
+  },
+  "title": "Implement getUnixTime from date-fns",
+  "prompt": "`src/getUnixTime/index.js` is the JavaScript build of `pkgs/core/src/getUnixTime/index.ts` from date-fns (https://github.com/date-fns/date-fns at commit 717ce0a807ea, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `getUnixTime`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * @name getUnixTime\n * @category Timestamp Helpers\n * @summary Get the seconds timestamp of the given date.\n *\n * @description\n * Get the seconds timestamp of the given date.\n *\n * @param date - The given date\n *\n * @returns The timestamp\n *\n * @example\n * // Get the timestamp of 29 February 2012 11:45:05 CET:\n * const result = getUnixTime(new Date(2012, 1, 29, 11, 45, 5))\n * //=> 1330512305\n */\nexport function getUnixTime(date: DateArg<Date> & {}): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/constants/index.js`, `src/constructFrom/index.js`, `src/toDate/index.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

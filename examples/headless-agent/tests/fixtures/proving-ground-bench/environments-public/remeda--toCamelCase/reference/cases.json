@@ -1,0 +1,206 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/toCamelCase.test.ts › data-last › without options",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(pipe(\"hello world\", toCamelCase())).toBe(\"helloWorld\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/toCamelCase.test.ts › data-last › with options (preserveConsecutiveUppercase: true)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(pipe(\"fooBAR\", toCamelCase({ preserveConsecutiveUppercase: true }))).toBe(\"fooBAR\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/toCamelCase.test.ts › data-last › with options (preserveConsecutiveUppercase: false)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(pipe(\"fooBAR\", toCamelCase({ preserveConsecutiveUppercase: false }))).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › pascal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"FooBar\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › kebab",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo-bar\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › complex kebab",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo-bar-abc-123\")).toBe(\"fooBarAbc123\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › space",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo bar\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › snake",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo_bar\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › no delimiter from mono",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foobar\")).toBe(\"foobar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › mixed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo-bar_abc xyzBarFoo\")).toBe(\"fooBarAbcXyzBarFoo\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › vendor prefixed css property",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"-webkit-animation\")).toBe(\"webkitAnimation\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › double prefixed kebab",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"--very-prefixed\")).toBe(\"veryPrefixed\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › repeated separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo____bar\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › uppercase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"FOO\")).toBe(\"foo\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › lowercase",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"foo\")).toBe(\"foo\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › screaming snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"FOO_BAR\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/toCamelCase.test.ts › tests copied from type-fest's tests › screaming kebab case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { toCamelCase } from \"./src/toCamelCase.js\";\n{\n{\n{\nexpect(toCamelCase(\"FOO-BAR\")).toBe(\"fooBar\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › returns 0 when value equals start",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(0, 100, 0)).toBe(0);\n        expect(inverseLerp(10, 20, 10)).toBe(0);\n        expect(inverseLerp(-5, 5, -5)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › returns 1 when value equals stop",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(0, 100, 100)).toBe(1);\n        expect(inverseLerp(10, 20, 20)).toBe(1);\n        expect(inverseLerp(-5, 5, 5)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › returns where value lies between start and stop as a fraction",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(0, 100, 50)).toBe(0.5);\n        expect(inverseLerp(10, 20, 12.5)).toBe(0.25);\n        expect(inverseLerp(-10, 10, 0)).toBe(0.5);\n        expect(inverseLerp(0, 1, 0.75)).toBe(0.75);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › works when start is greater than stop",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(100, 0, 75)).toBe(0.25);\n        expect(inverseLerp(20, 10, 15)).toBe(0.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › is not clamped when value is outside [start, stop]",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(0, 100, 150)).toBe(1.5);\n        expect(inverseLerp(0, 100, -50)).toBe(-0.5);\n        expect(inverseLerp(10, 20, 30)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › returns 0 when start and stop are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(5, 5, 5)).toBe(0);\n        expect(inverseLerp(5, 5, 10)).toBe(0);\n        expect(inverseLerp(5, 5, 0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › works with decimal inputs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nexpect(inverseLerp(0.1, 0.3, 0.2)).toBeCloseTo(0.5);\n        expect(inverseLerp(0.1, 0.7, 0.16)).toBeCloseTo(0.1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/math/inverseLerp.spec.ts › inverseLerp › is the inverse of lerp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { inverseLerp } from \"./src/math/inverseLerp.js\";\nimport { lerp } from \"./src/math/lerp.js\";\n{\n{\n{\nconst cases = [\n            [0, 100, 0.5],\n            [10, 20, 0.25],\n            [-5, 5, 0.9],\n            [100, 0, 0.3],\n            [0.1, 0.3, 0.7],\n        ];\n        for (const [start, stop, fraction] of cases) {\n            expect(inverseLerp(start, stop, lerp(start, stop, fraction))).toBeCloseTo(fraction);\n            expect(lerp(start, stop, inverseLerp(start, stop, lerp(start, stop, fraction)))).toBeCloseTo(lerp(start, stop, fraction));\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

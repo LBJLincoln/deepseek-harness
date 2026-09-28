@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/isSameSecond/test.ts › isSameSecond › returns true if the given dates have the same second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSameSecond } from \"./src/isSameSecond/index.js\";\n{\n{\n{\nconst result = isSameSecond(new Date(2014, 8 /* Sep */, 4, 6, 30, 15), new Date(2014, 8 /* Sep */, 4, 6, 30, 15, 500));\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/isSameSecond/test.ts › isSameSecond › returns false if the given dates have different seconds",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSameSecond } from \"./src/isSameSecond/index.js\";\n{\n{\n{\nconst result = isSameSecond(new Date(2014, 8 /* Sep */, 4, 6, 30, 58, 999), new Date(2014, 8 /* Sep */, 4, 6, 30, 59));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/isSameSecond/test.ts › isSameSecond › accepts a timestamp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSameSecond } from \"./src/isSameSecond/index.js\";\n{\n{\n{\nconst result = isSameSecond(new Date(2014, 8 /* Sep */, 4, 18, 45, 30).getTime(), new Date(2014, 8 /* Sep */, 4, 18, 45, 30, 400).getTime());\n        expect(result).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/isSameSecond/test.ts › isSameSecond › returns false if the first date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSameSecond } from \"./src/isSameSecond/index.js\";\n{\n{\n{\nconst result = isSameSecond(new Date(NaN), new Date(1989, 6 /* Jul */, 10));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/isSameSecond/test.ts › isSameSecond › returns false if the second date is `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSameSecond } from \"./src/isSameSecond/index.js\";\n{\n{\n{\nconst result = isSameSecond(new Date(1987, 1 /* Feb */, 11), new Date(NaN));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/isSameSecond/test.ts › isSameSecond › returns false if the both dates are `Invalid Date`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSameSecond } from \"./src/isSameSecond/index.js\";\n{\n{\n{\nconst result = isSameSecond(new Date(NaN), new Date(NaN));\n        expect(result).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

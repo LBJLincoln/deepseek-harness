@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/omit.spec.ts › omit › should omit properties from an object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omit } from \"./src/object/omit.js\";\n{\n{\n{\nconst object = { foo: 1, bar: 2, baz: 3 };\n        const result = omit(object, ['foo', 'bar']);\n        expect(result).toEqual({ baz: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/omit.spec.ts › omit › should return an empty object if all keys are omitted",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omit } from \"./src/object/omit.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3 };\n        const result = omit(obj, ['a', 'b', 'c']);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/omit.spec.ts › omit › should return the same object if no keys are omitted",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omit } from \"./src/object/omit.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3 };\n        const result = omit(obj, []);\n        expect(result).toEqual({ a: 1, b: 2, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/omit.spec.ts › omit › should not affect the original object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omit } from \"./src/object/omit.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3 };\n        const result = omit(obj, ['b']);\n        expect(result).toEqual({ a: 1, c: 3 });\n        expect(obj).toEqual({ a: 1, b: 2, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

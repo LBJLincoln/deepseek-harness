@@ -1,0 +1,16 @@
+# Keyless view of the bench with the public-repository family mounted beside
+# the curated registrar: for a smoke that counts what both producers register
+# without composing any model route. Same idea as registry-only.cordis.yml,
+# plus register-public-environments.
+- id: environments
+  name: '@deepseek-ai/dsh-environments'
+
+- id: register-environments
+  name: '../register-environments.ts'
+
+- id: register-public-environments
+  name: '../register-public-environments.ts'
+  config:
+    # Resolved against register-public-environments.ts's own location (the
+    # bench root), never against this overlay file's own directory.
+    directory: './environments-public'

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/mergeAll.test.ts › merge objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mergeAll } from \"./src/mergeAll.js\";\n{\n{\nexpect(mergeAll([{ a: 1, b: 1 }, { b: 2, c: 3 }, { d: 10 }])).toStrictEqual({\n        a: 1,\n        b: 2,\n        c: 3,\n        d: 10,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/mergeAll.test.ts › should return an empty object when the input is an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mergeAll } from \"./src/mergeAll.js\";\n{\n{\nconst input = [];\n    const result = mergeAll(input);\n    expect(result).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

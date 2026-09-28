@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/join.test.ts › joins same-typed items › number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [1, 2, 3, 4, 5];\n        const result = join(array, \",\");\n        expect(result).toBe(\"1,2,3,4,5\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/join.test.ts › joins same-typed items › string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [\"a\", \"b\", \"c\", \"d\", \"e\"];\n        const result = join(array, \",\");\n        expect(result).toBe(\"a,b,c,d,e\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/join.test.ts › joins same-typed items › bigint",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [1n, 2n, 3n, 4n, 5n];\n        const result = join(array, \",\");\n        expect(result).toBe(\"1,2,3,4,5\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/join.test.ts › joins same-typed items › boolean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [true, false, true, false, true];\n        const result = join(array, \",\");\n        expect(result).toBe(\"true,false,true,false,true\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/join.test.ts › joins same-typed items › null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [null, null, null, null, null];\n        const result = join(array, \",\");\n        expect(result).toBe(\",,,,\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/join.test.ts › joins same-typed items › undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [undefined, undefined, undefined, undefined, undefined];\n        const result = join(array, \",\");\n        expect(result).toBe(\",,,,\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/join.test.ts › joins different-typed items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\nconst array = [1, \"2\", 3n, true, null, undefined];\n    const result = join(array, \",\");\n    expect(result).toBe(\"1,2,3,true,,\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/join.test.ts › edge-cases › empty glue",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [1, 2, 3, 4, 5];\n        const result = join(array, \"\");\n        expect(result).toBe(\"12345\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/join.test.ts › edge-cases › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [];\n        const result = join(array, \",\");\n        expect(result).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/join.test.ts › edge-cases › doesnt add glue on single item",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/join.js\";\n{\n{\n{\nconst array = [1];\n        const result = join(array, \",\");\n        expect(result).toBe(\"1\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

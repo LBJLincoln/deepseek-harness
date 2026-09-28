@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/filter.test.ts › data_first › filter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst isNumber = (x) => typeof x === \"number\";\n{\n{\nconst result = filter([1, 2, 3], (x) => x % 2 === 1);\n        expect(result).toStrictEqual([1, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/filter.test.ts › data_first › data_first with typescript guard",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst isNumber = (x) => typeof x === \"number\";\n{\n{\nconst result = filter([1, 2, 3, \"abc\", true], isNumber);\n        expect(result).toStrictEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/filter.test.ts › data_first › filter indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nconst isNumber = (x) => typeof x === \"number\";\n{\n{\nconst result = filter([1, 2, 3], (x, i) => x % 2 === 1 && i !== 1);\n        expect(result).toStrictEqual([1, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › difference › data_first › should return difference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter([1, 2, 3, 4], isNot(isIncludedIn([2, 5, 3])))).toStrictEqual([1, 4]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › difference › data_last › should return difference",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter(isNot(isIncludedIn([2, 5, 3])))([1, 2, 3, 4])).toStrictEqual([1, 4]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › intersection › data_first › intersection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter([1, 2, 3], isIncludedIn([2, 3, 5]))).toStrictEqual([\n                    2, 3,\n                ]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/isIncludedIn.test.ts › legacy v1 replacements › intersection › data_last › intersection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { isIncludedIn } from \"./src/isIncludedIn.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\n{\n{\nexpect(filter(isIncludedIn([2, 3, 5]))([1, 2, 3])).toStrictEqual([\n                    2, 3,\n                ]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "packages/remeda/src/tap.test.ts › data last › should work in the middle of pipe sequence",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap((data) => {\n            expect(data).toStrictEqual([2]);\n        }), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-039",
+    "title": "packages/remeda/src/tap.test.ts › data last › should infer types after tapping function reference with parameter type any",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap(foo), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

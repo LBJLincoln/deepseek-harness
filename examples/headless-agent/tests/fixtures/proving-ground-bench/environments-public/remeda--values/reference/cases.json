@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/values.test.ts › works with arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { values } from \"./src/values.js\";\n{\n{\nexpect(values([\"x\", \"y\", \"z\"])).toStrictEqual([\"x\", \"y\", \"z\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/values.test.ts › should return values of object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { values } from \"./src/values.js\";\n{\n{\nexpect(values({ a: \"x\", b: \"y\", c: \"z\" })).toStrictEqual([\"x\", \"y\", \"z\"]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/values.test.ts › should skip symbol keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { values } from \"./src/values.js\";\n{\n{\nexpect(values({ [Symbol(\"a\")]: \"x\" })).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/values.test.ts › shouldn't skip symbol values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { values } from \"./src/values.js\";\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n    expect(values({ a: mySymbol })).toStrictEqual([mySymbol]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

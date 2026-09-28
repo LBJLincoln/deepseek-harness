@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should change camel case to lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('camelCase')).toEqual('camel case');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should change space to space",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('some whitespace')).toEqual('some whitespace');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should change hyphen to space",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('hyphen-text')).toEqual('hyphen text');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should change Acronyms to small letter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('HTTPRequest')).toEqual('http request');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should handle leading and trailing whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('    leading and trailing whitespace    ')).toEqual('leading and trailing whitespace');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should handle special characters correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('special@characters!')).toEqual('special characters');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should handle strings that are already in lower case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('lower_case')).toEqual('lower case');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should work with an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/lowerCase.spec.ts › lowerCase › should work with screaming snake case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lowerCase } from \"./src/string/lowerCase.js\";\n{\n{\n{\nexpect(lowerCase('FOO_BAR')).toEqual('foo bar');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

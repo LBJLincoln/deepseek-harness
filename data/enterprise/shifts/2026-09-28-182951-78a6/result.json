@@ -1,0 +1,147 @@
+{
+  "type": "result",
+  "shift": "182951-78a6",
+  "startedAt": "2026-09-28T18:29:53.155Z",
+  "base": "d2cc487f7bc83a8aa3f7c56ec7733f8ddf392631",
+  "remote": "https://github.com/LBJLincoln/deepseek-harness",
+  "branch": "claude/coding-agent-harness-u9l4gt",
+  "implementer": "route",
+  "model": "Claude Code sonnet",
+  "programId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc",
+  "report": {
+    "programId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc",
+    "sessionId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc",
+    "outcome": "released",
+    "mergedRevision": "5d20f8cd9d296f7c0fafe620eeda1b486ee0f49f",
+    "goals": [
+      {
+        "key": "t-0012",
+        "status": "merged",
+        "sessionId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc-t-0012",
+        "revision": "acdd673c2e8ef7e174849bb3771af5cd2ed3d8d6",
+        "tree": "c898a8e5d8db2f5b698f401b1483eee9a5c76691"
+      },
+      {
+        "key": "t-0019",
+        "status": "merged",
+        "sessionId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc-t-0019",
+        "revision": "dfb9a5c86ae95bee0d36829b27a321b760e14488",
+        "tree": "6ce4b503ed4dea2fa4c8cf3ff7e8f492bb8a42ed"
+      }
+    ]
+  },
+  "halt": null,
+  "tickets": [
+    {
+      "type": "ticket",
+      "at": "2026-09-28T19:04:29.582Z",
+      "shift": "182951-78a6",
+      "ticket": "T-0012",
+      "seat": "harness-core-llm-pi-ai-steward",
+      "division": "harness-core",
+      "programId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc-t-0012"
+      },
+      "checks": [
+        {
+          "id": "export-gone",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0012-fb58af6f"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "1d6a5d3430aef9893b1a28adfea1f1841238c866"
+      },
+      "reason": "approved and assembled",
+      "tokens": 1047317,
+      "seconds": 547,
+      "rationale": "- Core requirement met: `src/index.ts:82`'s `export { supportedProtocols } from './provider.ts'` is removed and nothing else in that file's export list is touched — matches \"do not touch other exports.\"\n- The conditional branch (\"keep `supportedProtocols` exported from provider.ts if another module in src imports it\") is satisfied per the commit message: `src/config.ts` still imports it, so the export stays in `provider.ts` and the `export`-keyword-drop path doesn't apply. The diff doesn't touch `provider.ts`, consistent with that.\n- `tests/catalog.spec.ts` is unchanged in the diff. The commit message asserts it already imported `supportedProtocols` from `../src/provider.ts` directly rather than via the root, so the ticket's prescribed edit was already satisfied by the existing tree. The check outputs corroborate this: `pnpm run typecheck` passed across the repo (which would fail if the test still referenced a now-missing root export), and the coverage run shows 100% statement/function coverage including `provider.ts`, meaning `supportedProtocols` is still exercised by the test suite through a working import. Per the reviewing instructions, a step the tree already satisfied shouldn't be faulted in the diff.\n- README.md/README.zh.md updates are in-scope documentation fixes that keep the docs accurate after the export removal — reasonable and mechanical, not scope creep.\n- All required acceptance checks pass: `export-gone`, `coverage` (100%, 213/213 tests), `typecheck`, plus the engine checks (committed/scope/whitespace).\n- No behavior change is introduced; the change is a mechanical, local edit consistent with the \"chore\" classification and Agent Note exemption."
+    },
+    {
+      "type": "ticket",
+      "at": "2026-09-28T19:04:29.582Z",
+      "shift": "182951-78a6",
+      "ticket": "T-0019",
+      "seat": "harness-core-subagent-in-process-driver-steward",
+      "division": "harness-core",
+      "programId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc",
+      "implementer": "route",
+      "model": "Claude Code sonnet",
+      "department": {
+        "outcome": "certified",
+        "sessionId": "program-1250322d2cf78becf21469443de776baed7f7d74665e61c625c7646d5b06a4bc-t-0019"
+      },
+      "checks": [
+        {
+          "id": "export-gone",
+          "ok": true
+        },
+        {
+          "id": "coverage",
+          "ok": true
+        },
+        {
+          "id": "typecheck",
+          "ok": true
+        },
+        {
+          "id": "engine-committed",
+          "ok": true
+        },
+        {
+          "id": "engine-scope",
+          "ok": true
+        },
+        {
+          "id": "engine-whitespace",
+          "ok": true
+        }
+      ],
+      "review": {
+        "verdict": "approve",
+        "sessionId": "review-t-0019-da50c0af"
+      },
+      "integration": {
+        "outcome": "merged"
+      },
+      "shipped": {
+        "commit": "cfe0a75f79ec8f7e63aca9e64fcbf8017e1c7f38"
+      },
+      "reason": "approved and assembled",
+      "tokens": 475850,
+      "seconds": 376,
+      "rationale": "- The one substantive line change matches the ticket exactly: `STRUCTURED_OUTPUT_INSTRUCTION` is dropped from the re-export list in `index.ts` while `STRUCTURED_OUTPUT_TOOL`'s re-export is left untouched, satisfying \"do not touch other exports\" and the \"keep STRUCTURED_OUTPUT_TOOL\" instruction.\n- `export-gone` check passes, directly confirming the required grep condition.\n- The ticket also called for the test to import the constant from `../src/structured.ts` instead of the root. The diff doesn't touch a test file, and the commit message asserts the test already imported it that way. This claim is corroborated by the evidence available: the coverage run shows all 4 test files and 59 tests passing with 100% statement/branch/function/line coverage on the package's src, which would not be possible if the test still referenced the now-removed root export (that would be a hard import failure, not a silent pass). So the pre-existing test import satisfying the requirement is consistent with the observed check output.\n- `typecheck` passes, so no other consumer (in-package or cross-package) broke from the export removal.\n- Change is mechanical and scoped to the single package named in the ticket; no unrelated files touched. `structured.ts` itself is unmodified, consistent with \"keep the constant exported from structured.ts.\"\n- `engine-committed`, `engine-scope`, `engine-whitespace` all pass, and the commit message accurately describes the change with correct attribution trailers.\n\nNo evidence in the diff or checks contradicts the ticket's required behavior; the \"no behavior change\" claim is backed by passing tests and typecheck."
+    }
+  ],
+  "redacted": 0
+}

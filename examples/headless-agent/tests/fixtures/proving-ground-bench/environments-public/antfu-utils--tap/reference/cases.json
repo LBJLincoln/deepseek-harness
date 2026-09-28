@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function.test.ts › tap",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { tap } from \"./src/function.js\";\n{\n{\nexpect(tap(1, value => value++)).toEqual(1);\n    expect(tap({ a: 1 }, obj => obj.a++)).toEqual({ a: 2 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

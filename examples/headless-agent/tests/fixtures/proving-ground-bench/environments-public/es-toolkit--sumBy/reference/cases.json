@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/sumBy.spec.ts › sumBy function › calculates the sum of values extracted from objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sumBy } from \"./src/math/sumBy.js\";\n{\n{\n{\nconst result = sumBy([{ a: 1 }, { a: 2 }, { a: 3 }], x => x.a);\n        expect(result).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/sumBy.spec.ts › sumBy function › returns 0 for empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sumBy } from \"./src/math/sumBy.js\";\n{\n{\n{\nconst people = [];\n        expect(sumBy(people, x => x.age)).toEqual(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/sumBy.spec.ts › sumBy function › ensures that adding the sums of two arrays equals the sum of their concatenation.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sumBy } from \"./src/math/sumBy.js\";\n{\n{\n{\nconst array1 = [];\n        const array2 = [{ a: 1 }, { a: 2 }, { a: 3 }];\n        expect(sumBy(array1, x => x.a) + sumBy(array2, x => x.a)).toBe(sumBy([...array1, ...array2], x => x.a));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/sumBy.spec.ts › sumBy function › can access its zero‑based index in the array.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sumBy } from \"./src/math/sumBy.js\";\n{\n{\n{\nconst result = sumBy([{ a: 1 }, { a: 2 }, { a: 3 }], (x, i) => x.a * i);\n        expect(result).toBe(8);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

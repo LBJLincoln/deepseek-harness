@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/equal_interval_breaks.test.js › equalIntervalBreaks",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as equalIntervalBreaks } from \"./src/equal_interval_breaks.js\";\n{\n{\nassert.deepEqual(equalIntervalBreaks([1], 4), [1], \"1-length case\");\n    assert.deepEqual(equalIntervalBreaks([1, 2, 3, 4, 5, 6], 4), [1, 2.25, 3.5, 4.75, 6], \"three breaks\");\n    assert.deepEqual(equalIntervalBreaks([1, 2, 3, 4, 5, 6], 2), [1, 3.5, 6], \"two breaks\");\n    assert.deepEqual(equalIntervalBreaks([1, 2, 3, 4, 5, 6], 1), [1, 6], \"one break\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

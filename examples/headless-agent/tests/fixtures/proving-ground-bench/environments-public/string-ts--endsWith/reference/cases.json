@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/ends-with.test.ts › endsWith › without offset › should return true when text ends with search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'c');\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/ends-with.test.ts › endsWith › without offset › should return false when text does not end with search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'b');\n            expect(result).toEqual(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/native/ends-with.test.ts › endsWith › with offset › should return true when offset text ends with search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'b', 2);\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/native/ends-with.test.ts › endsWith › with offset › should return true when offset text ends with search (multi-char)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'bc', 3);\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/native/ends-with.test.ts › endsWith › with offset › should return false when offset string does not end with search",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'c', 1);\n            expect(result).toEqual(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/native/ends-with.test.ts › endsWith › with bad offset › should return false when the offset is negative",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'a', -1);\n            expect(result).toEqual(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/native/ends-with.test.ts › endsWith › with bad offset › should return true when the end matches and offset is greater than text length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { endsWith } from \"./src/native/ends-with.js\";\n{\n{\nconst text = 'abc';\n{\n{\nconst result = endsWith(text, 'c', 10);\n            expect(result).toEqual(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

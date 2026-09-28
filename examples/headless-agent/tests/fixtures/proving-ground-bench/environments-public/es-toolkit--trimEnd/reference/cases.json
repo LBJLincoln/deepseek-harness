@@ -1,0 +1,194 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove trailing characters from the string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('hello---', '-')).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove trailing characters when multiple characters are provided",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('123000', '0')).toEqual('123');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should return the string unchanged when there are no trailing characters to remove",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('hello', 'x')).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove trailing occurrences of a single character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('abcabcabc', 'c')).toEqual('abcabcab');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should handle an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('', 'x')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove trailing spaces when specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('hello world   ', ' ')).toEqual('hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should handle a case where the string is already trimmed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('trimmed', 'x')).toEqual('trimmed');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should return an empty string when all characters are removed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('xxxxx', 'x')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove numbers from the end of a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('abc123456', '6')).toEqual('abc12345');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should handle cases where multiple trailing characters need removal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('abc123abc123abc', 'c')).toEqual('abc123abc123ab');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should trim the string without giving the second parameter, which defaults to whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('  hello world  ')).toEqual('  hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove trailing characters when chars is an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('hello---', ['-', 'o'])).toEqual('hell');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should remove trailing characters from the string when multiple characters are provided in an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('123000', ['0', '3'])).toEqual('12');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should return the string unchanged when none of the trailing characters in the array match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('hello', ['x', 'y', 'z'])).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should handle cases where multiple trailing characters in the array need removal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(trimEnd('abcabcabc', ['c', 'b'])).toEqual('abcabca');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/string/trimEnd.spec.ts › trimEnd › should throw an error when chars is a string with multiple characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimEnd } from \"./src/string/trimEnd.js\";\n{\n{\n{\nexpect(() => trimEnd('hello', 'ab')).toThrow(`The 'chars' parameter should be a single character string.`);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

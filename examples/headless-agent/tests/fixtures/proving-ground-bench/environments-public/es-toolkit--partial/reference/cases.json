@@ -1,0 +1,170 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/partial.spec.ts › partial › partial partially applies arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst par = partial(identity, 'a');\n        expect(par()).toBe('a');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/partial.spec.ts › partial › partial creates a function that can be invoked with additional arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst fn = function (a, b) {\n            return [a, b];\n        };\n        const par = partial(fn, 'a');\n        expect(par('b')).toEqual(['a', 'b']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/partial.spec.ts › partial › partial works when there are no partially applied arguments and the created function is invoked without additional arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst fn = function () {\n            return arguments.length;\n        };\n        const par = partial(fn);\n        expect(par()).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/partial.spec.ts › partial › partial works when there are no partially applied arguments and the created function is invoked with additional arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst par = partial(identity);\n        expect(par('a')).toBe('a');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/function/partial.spec.ts › partial › partial supports placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\n// eslint-disable-next-line @typescript-eslint/no-unused-vars\n        const fn = function (..._) {\n            // eslint-disable-next-line prefer-rest-params\n            return Array.from(arguments);\n        };\n        const par = partial(fn, placeholder, 'b', placeholder);\n        expect(par('a', 'c')).toEqual(['a', 'b', 'c']);\n        expect(par('a')).toEqual(['a', 'b', undefined]);\n        expect(par()).toEqual([undefined, 'b', undefined]);\n        expect(par('a', 'c', 'd')).toEqual(['a', 'b', 'c', 'd']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/function/partial.spec.ts › partial › partial creates a function with a length of 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\n// eslint-disable-next-line @typescript-eslint/no-unused-vars\n        const fn = function (_a, _b, _c) { };\n        const par = partial(fn, 'a');\n        expect(par.length).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/function/partial.spec.ts › partial › partial ensures new par is an instance of func",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nfunction Foo(value) {\n            return value && object;\n        }\n        const object = {};\n        const par = partial(Foo);\n        // @ts-expect-error - par is a constructor\n        expect(new par() instanceof Foo).toBe(true);\n        // @ts-expect-error - par is a constructor\n        expect(new par(true)).toBe(object);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/function/partial.spec.ts › partial › partial clones metadata for created functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nfunction greet(greeting, name) {\n            return `${greeting} ${name}`;\n        }\n        const par1 = partial(greet, 'hi');\n        const par2 = partial(par1, 'barney');\n        const par3 = partial(par1, 'pebbles');\n        expect(par1('fred')).toBe('hi fred');\n        expect(par2()).toBe('hi barney');\n        expect(par3()).toBe('hi pebbles');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/function/partial.spec.ts › partial › partial should work with curried functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst fn = function (a, b, c) {\n            return a + b + c;\n        }, curried = curry(partial(fn, 1), 2);\n        expect(curried(2, 3)).toBe(6);\n        expect(curried(2)(3)).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/function/partial.spec.ts › partial › partial should work with placeholders and curried functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst fn = function () {\n            // eslint-disable-next-line prefer-rest-params\n            return Array.from(arguments);\n        }, curried = curry(fn), par = partial(curried, partial.placeholder, 'b', partial.placeholder, 'd');\n        expect(par('a', 'c')).toEqual(['a', 'b', 'c', 'd']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/function/partial.spec.ts › partial › should create partialed function without copying prototype from arrow function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst arrowFn = (a, b) => a + b;\n        const partialed = partial(arrowFn, 10);\n        expect(partialed(5)).toBe(15);\n        expect(typeof partialed.prototype).toBe('object');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/function/partial.spec.ts › partial › fully applies a 2-argument function and returns a zero-argument function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst add = (a, b) => a + b;\n        const addThree = partial(add, 1, 2);\n        expect(addThree()).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/function/partial.spec.ts › partial › fully applies a 3-argument function and returns a zero-argument function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst sum = (a, b, c) => a + b + c;\n        const sumAll = partial(sum, 1, 2, 3);\n        expect(sumAll()).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/function/partial.spec.ts › partial › fully applies a 4-argument function and returns a zero-argument function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { partial } from \"./src/function/partial.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nfunction identity(arg) {\n    return arg;\n}\n{\nconst { placeholder } = partial;\n{\nconst sumFour = (a, b, c, d) => a + b + c + d;\n        const sumAll = partial(sumFour, 1, 2, 3, 4);\n        expect(sumAll()).toBe(10);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/intersection.test.ts › returns empty array trivially",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([], [])).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/intersection.test.ts › returns empty array on empty input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([], [1, 2, 3])).toStrictEqual([]);\n    expect(intersection([1, 2, 3], [])).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/intersection.test.ts › returns empty array on disjoint arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([1], [2])).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/intersection.test.ts › works trivially on a single item",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([1], [1])).toStrictEqual([1]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/intersection.test.ts › maintains multi-set semantics (returns only one copy)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([1, 1], [1])).toStrictEqual([1]);\n    expect(intersection([1], [1, 1])).toStrictEqual([1]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/intersection.test.ts › maintains multi-set semantics (returns as many copies as available)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([1, 1, 1, 1, 1], [1, 1])).toStrictEqual([1, 1]);\n    expect(intersection([1, 1], [1, 1, 1, 1, 1])).toStrictEqual([1, 1]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/intersection.test.ts › preserves the original order in source array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([3, 2, 1], [1, 2, 3])).toStrictEqual([3, 2, 1]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/intersection.test.ts › maintains order for multiple copies",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(intersection([3, 2, 2, 2, 2, 2, 1], [1, 2, 3])).toStrictEqual([\n        3, 2, 1,\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/intersection.test.ts › returns a shallow copy even when all items match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { intersection } from \"./src/intersection.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst data = [1, 2, 3];\n    const result = intersection(data, [1, 2, 3]);\n    expect(result).toStrictEqual(data);\n    expect(result).not.toBe(data);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

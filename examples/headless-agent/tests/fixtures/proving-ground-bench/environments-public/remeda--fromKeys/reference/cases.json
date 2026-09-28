@@ -1,0 +1,170 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/fromKeys.test.ts › works on trivially empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromKeys([], (item) => `${item}_`)).toStrictEqual({});\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/fromKeys.test.ts › works on regular arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromKeys([\"a\"], (item) => `${item}_`)).toStrictEqual({ a: \"a_\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/fromKeys.test.ts › works with duplicates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromKeys([\"a\", \"a\"], (item) => `${item}_`)).toStrictEqual({ a: \"a_\" });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/fromKeys.test.ts › uses the last value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nlet counter = 0;\n    expect(fromKeys([\"a\", \"a\"], () => {\n        counter += 1;\n        return counter;\n    })).toStrictEqual({ a: 2 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/fromKeys.test.ts › works with number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(fromKeys([123], add(1))).toStrictEqual({ 123: 124 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/fromKeys.test.ts › works with symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst symbol = Symbol(\"a\");\n    expect(fromKeys([symbol], () => 1)).toStrictEqual({ [symbol]: 1 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/fromKeys.test.ts › works with a mix of key types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst symbol = Symbol(\"a\");\n    expect(fromKeys([\"a\", 123, symbol], (item) => typeof item)).toStrictEqual({\n        a: \"string\",\n        123: \"number\",\n        [symbol]: \"symbol\",\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works on trivially empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], fromKeys((item) => `${item}_`))).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works on regular arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"a\"], fromKeys((item) => `${item}_`))).toStrictEqual({ a: \"a_\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works with duplicates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"a\"], fromKeys((item) => `${item}_`))).toStrictEqual({ a: \"a_\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › uses the last value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nlet counter = 0;\n        expect(pipe([\"a\", \"a\"], fromKeys(() => {\n            counter += 1;\n            return counter;\n        }))).toStrictEqual({ a: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works with number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([123], fromKeys(add(1)))).toStrictEqual({ 123: 124 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works with symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst symbol = Symbol(\"a\");\n        expect(pipe([symbol], fromKeys(() => 1))).toStrictEqual({ [symbol]: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/fromKeys.test.ts › dataLast › works with a mix of key types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { fromKeys } from \"./src/fromKeys.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst symbol = Symbol(\"a\");\n        expect(pipe([\"a\", 123, symbol], fromKeys((item) => typeof item))).toStrictEqual({\n            a: \"string\",\n            123: \"number\",\n            [symbol]: \"symbol\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

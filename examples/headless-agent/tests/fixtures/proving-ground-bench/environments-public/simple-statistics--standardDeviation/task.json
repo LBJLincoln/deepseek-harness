@@ -1,0 +1,52 @@
+{
+  "id": "code:simple-statistics--implement-standardDeviation",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/standard_deviation.js",
+    "tests": [
+      "test/standard_deviation.test.js",
+      "test/weighted_standard_deviation.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/standard_deviation.js",
+    "function": "standardDeviation"
+  },
+  "title": "Implement standardDeviation from simple-statistics",
+  "prompt": "`src/standard_deviation.js` is the JavaScript build of `src/standard_deviation.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `standardDeviation`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * The [standard deviation](http://en.wikipedia.org/wiki/Standard_deviation)\n * is the square root of the variance. This is also known as the population\n * standard deviation. It's useful for measuring the amount\n * of variation or dispersion in a set of values.\n *\n * Standard deviation is only appropriate for full-population knowledge: for\n * samples of a population, {@link sampleStandardDeviation} is\n * more appropriate.\n *\n * @param {Array<number>} x input\n * @returns {number} standard deviation\n * @example\n * variance([2, 4, 4, 4, 5, 5, 7, 9]); // => 4\n * standardDeviation([2, 4, 4, 4, 5, 5, 7, 9]); // => 2\n */\nfunction standardDeviation(x)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/mean.js`, `src/sum.js`, `src/sum_nth_power_deviations.js`, `src/validate_weighted_input.js`, `src/variance.js`, `src/weighted_mean.js`, `src/weighted_standard_deviation.js`, `src/weighted_variance.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

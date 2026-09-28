@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-004",
+    "title": "test/minmax.test.js › extent › can get the extent of one number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_extent } from \"./src/extent.js\";\nimport { default as __ns1_extentSorted } from \"./src/extent_sorted.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_maxSorted } from \"./src/max_sorted.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_minSorted } from \"./src/min_sorted.js\";\nconst ss = Object.freeze({ extent: __ns1_extent, extentSorted: __ns1_extentSorted, max: __ns1_max, maxSorted: __ns1_maxSorted, min: __ns1_min, minSorted: __ns1_minSorted });\n{\n{\nassert.throws(function () {\n        ss.extent([]);\n    });\n{\nassert.deepEqual(ss.extent([1]), [1, 1]);\n        assert.equal(ss.extent([1])[0], ss.extent([1])[1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/minmax.test.js › extent › can get the extent of three numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_extent } from \"./src/extent.js\";\nimport { default as __ns1_extentSorted } from \"./src/extent_sorted.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_maxSorted } from \"./src/max_sorted.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_minSorted } from \"./src/min_sorted.js\";\nconst ss = Object.freeze({ extent: __ns1_extent, extentSorted: __ns1_extentSorted, max: __ns1_max, maxSorted: __ns1_maxSorted, min: __ns1_min, minSorted: __ns1_minSorted });\n{\n{\nassert.throws(function () {\n        ss.extent([]);\n    });\n{\nassert.deepEqual(ss.extent([1, 7, -1000]), [-1000, 7]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

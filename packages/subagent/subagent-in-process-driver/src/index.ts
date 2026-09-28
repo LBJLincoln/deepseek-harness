@@ -39,10 +39,7 @@ import {
   type StructuredAttachment,
 } from './structured.ts'
 
-export {
-  STRUCTURED_OUTPUT_TOOL,
-  STRUCTURED_OUTPUT_INSTRUCTION,
-} from './structured.ts'
+export { STRUCTURED_OUTPUT_TOOL } from './structured.ts'
 
 /** Map a session turn outcome to the subagent seam's terminal vocabulary. */
 function toStopReason(reason: TurnEndReason | undefined): SubagentStopReason {

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › returns the Cartesian product of two arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nexpect(cartesianProduct([1, 2], ['a', 'b'])).toEqual([\n            [1, 'a'],\n            [1, 'b'],\n            [2, 'a'],\n            [2, 'b'],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › returns the Cartesian product of three arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nexpect(cartesianProduct([0, 1], [0, 1], [0, 1])).toEqual([\n            [0, 0, 0],\n            [0, 0, 1],\n            [0, 1, 0],\n            [0, 1, 1],\n            [1, 0, 0],\n            [1, 0, 1],\n            [1, 1, 0],\n            [1, 1, 1],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › returns single-element tuples when given a single array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nexpect(cartesianProduct([1, 2, 3])).toEqual([[1], [2], [3]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › returns a single empty tuple when no arrays are given",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nexpect(cartesianProduct()).toEqual([[]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › returns an empty array when any input array is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nexpect(cartesianProduct([1, 2, 3], [])).toEqual([]);\n        expect(cartesianProduct([], ['a', 'b'])).toEqual([]);\n        expect(cartesianProduct([1], [], [2])).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › emits tuples in lexicographic order with the rightmost array advancing fastest",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nexpect(cartesianProduct(['A', 'B', 'C', 'D'], ['x', 'y'])).toEqual([\n            ['A', 'x'],\n            ['A', 'y'],\n            ['B', 'x'],\n            ['B', 'y'],\n            ['C', 'x'],\n            ['C', 'y'],\n            ['D', 'x'],\n            ['D', 'y'],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/cartesianProduct.spec.ts › cartesianProduct › supports spread operators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cartesianProduct } from \"./src/array/cartesianProduct.js\";\n{\n{\n{\nconst inputs = [\n            [1, 2],\n            [3, 4],\n        ];\n        expect(cartesianProduct(...inputs)).toEqual([\n            [1, 3],\n            [1, 4],\n            [2, 3],\n            [2, 4],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

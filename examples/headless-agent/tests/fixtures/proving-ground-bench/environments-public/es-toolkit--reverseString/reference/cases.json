@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/reverseString.spec.ts › reverseString › should reverse a simple string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reverseString } from \"./src/string/reverseString.js\";\n{\n{\n{\nexpect(reverseString('hello')).toBe('olleh');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/reverseString.spec.ts › reverseString › should reverse a string with spaces",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reverseString } from \"./src/string/reverseString.js\";\n{\n{\n{\nexpect(reverseString('foo bar')).toBe('rab oof');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/reverseString.spec.ts › reverseString › should reverse a string with Unicode characters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reverseString } from \"./src/string/reverseString.js\";\n{\n{\n{\nexpect(reverseString('foo 😄 bar')).toBe('rab 😄 oof');\n        expect(reverseString('foo 𝌆 bar')).toBe('rab 𝌆 oof');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/reverseString.spec.ts › reverseString › should reverse an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reverseString } from \"./src/string/reverseString.js\";\n{\n{\n{\nexpect(reverseString('')).toBe('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/reverseString.spec.ts › reverseString › should reverse a numeric string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { reverseString } from \"./src/string/reverseString.js\";\n{\n{\n{\nexpect(reverseString('12345')).toBe('54321');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

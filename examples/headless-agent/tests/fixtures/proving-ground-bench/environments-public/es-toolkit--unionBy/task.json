@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-unionBy",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/unionBy.ts",
+    "tests": [
+      "src/array/unionBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/unionBy.js",
+    "function": "unionBy"
+  },
+  "title": "Implement unionBy from es-toolkit",
+  "prompt": "`src/array/unionBy.js` is the JavaScript build of `src/array/unionBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `unionBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates an array of unique values, in order, from all given arrays using a provided mapping function to determine equality.\n *\n * @template T - The type of elements in the array.\n * @template U - The type of mapped elements.\n * @param arr1 - The first array.\n * @param arr2 - The second array.\n * @param mapper - The function to map array elements to comparison values.\n * @returns A new array containing the union of unique elements from `arr1` and `arr2`, based on the values returned by the mapping function.\n *\n * @example\n * // Custom mapping function for numbers (modulo comparison)\n * const moduloMapper = (x) => x % 3;\n * unionBy([1, 2, 3], [4, 5, 6], moduloMapper);\n * // Returns [1, 2, 3]\n *\n * @example\n * // Custom mapping function for objects with an 'id' property\n * const idMapper = (obj) => obj.id;\n * unionBy([{ id: 1 }, { id: 2 }], [{ id: 2 }, { id: 3 }], idMapper);\n * // Returns [{ id: 1 }, { id: 2 }, { id: 3 }]\n */\nexport function unionBy<T, U>(arr1: readonly T[], arr2: readonly T[], mapper: (item: T) => U): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/array/uniqBy.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/jenks.test.js › jenks › will not try to assign more classes than datapoints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as jenks } from \"./src/jenks.js\";\n{\n{\n{\nassert.equal(jenks([1, 2], 3), null);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/jenks.test.js › jenks › assigns correct breaks (small gaps between classes)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as jenks } from \"./src/jenks.js\";\n{\n{\n{\nassert.deepEqual(jenks([1, 2, 4, 5, 7, 9, 10, 20], 3), [1, 7, 20, 20]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/jenks.test.js › jenks › assigns correct breaks (large gaps between classes)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as jenks } from \"./src/jenks.js\";\n{\n{\n{\nassert.deepEqual(jenks([2, 32, 33, 34, 100], 3), [2, 32, 100, 100]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/jenks.test.js › jenks › assigns correct breaks (breaking N points into N classes)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as jenks } from \"./src/jenks.js\";\n{\n{\n{\nassert.deepEqual(jenks([9, 10, 11, 12, 13], 5), [9, 10, 11, 12, 13, 13]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/jenks.test.js › jenks › is translation invariant",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as jenks } from \"./src/jenks.js\";\n{\n{\n{\nconst offset = 1700000000000;\n        const data = [];\n        for (let i = 0; i < 12; i++) {\n            data.push(i);\n        }\n        const shifted = data.map(function (v) {\n            return v + offset;\n        });\n        const breaks = jenks(data, 3);\n        const shiftedBreaks = jenks(shifted, 3);\n        assert.deepEqual(shiftedBreaks, breaks.map(function (v) {\n            return v + offset;\n        }));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

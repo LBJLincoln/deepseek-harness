@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/double-slash.test.ts › cleanDoubleSlashes › no input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cleanDoubleSlashes } from \"./src/utils.js\";\n{\n{\nconst tests = {\n        \"//foo//bar//\": \"/foo/bar/\",\n        \"http://foo.com//\": \"http://foo.com/\",\n        \"http://foo.com/bar//foo/\": \"http://foo.com/bar/foo/\",\n        \"http://example.com/analyze//http://localhost:3000//\": \"http://example.com/analyze/http://localhost:3000/\",\n    };\n{\nexpect(cleanDoubleSlashes()).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

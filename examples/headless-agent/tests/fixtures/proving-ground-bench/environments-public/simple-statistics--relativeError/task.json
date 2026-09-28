@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-relativeError",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/relative_error.js",
+    "tests": [
+      "test/relative_error.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/relative_error.js",
+    "function": "relativeError"
+  },
+  "title": "Implement relativeError from simple-statistics",
+  "prompt": "`src/relative_error.js` is the JavaScript build of `src/relative_error.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `relativeError`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Relative error.\n *\n * This is more difficult to calculate than it first appears [1,2].  The usual\n * formula for the relative error between an actual value A and an expected\n * value E is `|(A-E)/E|`, but:\n *\n * 1. If the expected value is 0, any other value has infinite relative error,\n *    which is counter-intuitive: if the expected voltage is 0, getting 1/10th\n *    of a volt doesn't feel like an infinitely large error.\n *\n * 2. This formula does not satisfy the mathematical definition of a metric [3].\n *    [4] solved this problem by defining the relative error as `|ln(|A/E|)|`,\n *    but that formula only works if all values are positive: for example, it\n *    reports the relative error of -10 and 10 as 0.\n *\n * Our implementation sticks with convention and returns:\n *\n * - 0 if the actual and expected values are both zero\n * - Infinity if the actual value is non-zero and the expected value is zero\n * - `|(A-E)/E|` in all other cases\n *\n * [1] https://math.stackexchange.com/questions/677852/how-to-calculate-relative-error-when-true-value-is-zero\n * [2] https://en.wikipedia.org/wiki/Relative_change_and_difference\n * [3] https://en.wikipedia.org/wiki/Metric_(mathematics)#Definition\n * [4] F.W.J. Olver: \"A New Approach to Error Arithmetic.\" SIAM Journal on\n *     Numerical Analysis, 15(2), 1978, 10.1137/0715024.\n *\n * @param {number} actual The actual value.\n * @param {number} expected The expected value.\n * @return {number} The relative error.\n */\nfunction relativeError(actual, expected)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isError.spec.ts › isError › should return `true` for error objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isError } from \"./src/predicate/isError.js\";\n{\n{\n{\nexpect(isError(new Error())).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isError.spec.ts › isError › should return 'true' for subclassed values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isError } from \"./src/predicate/isError.js\";\n{\n{\n{\nclass CustomError extends Error {\n        }\n        expect(isError(new CustomError())).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isError.spec.ts › isError › should return 'false' for non-error objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isError } from \"./src/predicate/isError.js\";\n{\n{\n{\nexpect(isError({})).toBe(false);\n        expect(isError(null)).toBe(false);\n        expect(isError(undefined)).toBe(false);\n        expect(isError('')).toBe(false);\n        expect(isError(1)).toBe(false);\n        expect(isError(true)).toBe(false);\n        expect(isError(Symbol())).toBe(false);\n        expect(isError(() => { })).toBe(false);\n        expect(isError(new Date())).toBe(false);\n        expect(isError(new Map())).toBe(false);\n        expect(isError(new Set())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/predicate/isError.spec.ts › isError › should return 'false' for plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isError } from \"./src/predicate/isError.js\";\n{\n{\n{\nexpect(isError({ name: 'Error', message: '' })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/predicate/isError.spec.ts › isError › should work with an error object from another realm",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isError } from \"./src/predicate/isError.js\";\n{\n{\n{\nconst realm = { error: new Error() };\n        expect(isError(realm.error)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

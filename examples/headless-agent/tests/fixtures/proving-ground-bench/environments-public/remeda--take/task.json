@@ -1,0 +1,58 @@
+{
+  "id": "code:remeda--implement-take",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/take.ts",
+    "tests": [
+      "packages/remeda/src/difference.test.ts",
+      "packages/remeda/src/drop.test.ts",
+      "packages/remeda/src/isIncludedIn.test.ts",
+      "packages/remeda/src/map.test.ts",
+      "packages/remeda/src/mapWithFeedback.test.ts",
+      "packages/remeda/src/pipe.test.ts",
+      "packages/remeda/src/take.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/take.js",
+    "function": "take"
+  },
+  "title": "Implement take from remeda",
+  "prompt": "`src/take.js` is the JavaScript build of `packages/remeda/src/take.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `take`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns the first `n` elements of `array`.\n *\n * Related operations:\n * - `drop` - to skip past the first `n` instead.\n * - `splice` - to remove or insert at an arbitrary index.\n * - `takeLast` - same, but from the end of the array.\n *\n * @param array - The array.\n * @param n - The number of elements to take.\n * @signature\n *    take(array, n)\n * @example\n *    take([1, 2, 3, 4, 3, 2, 1], 3) // => [1, 2, 3]\n * @dataFirst\n * @lazy\n * @category Array\n */\nexport function take(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/add.js`, `src/constant.js`, `src/difference.js`, `src/drop.js`, `src/filter.js`, `src/flat.js`, `src/identity.js`, `src/internal/lazyDataLastImpl.js`, `src/internal/purryFromLazy.js`, `src/internal/utilityEvaluators.js`, `src/isIncludedIn.js`, `src/isNot.js`, `src/map.js`, `src/mapWithFeedback.js`, `src/multiply.js`, `src/pipe.js`, `src/prop.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

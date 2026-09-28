@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataFirst › works on empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nexpect(hasAtLeast([], 0)).toBe(true);\n        expect(hasAtLeast([], 10)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataFirst › works on single item arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nexpect(hasAtLeast([1], 0)).toBe(true);\n        expect(hasAtLeast([1], 1)).toBe(true);\n        expect(hasAtLeast([1], 2)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataFirst › works on large arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nconst array = Array.from({ length: 1000 }, (_, i) => i);\n        expect(hasAtLeast(array, 0)).toBe(true);\n        expect(hasAtLeast(array, 1)).toBe(true);\n        expect(hasAtLeast(array, 1000)).toBe(true);\n        expect(hasAtLeast(array, 1001)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataFirst › works on sparse arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nconst array = Array.from({ length: 1000 });\n        expect(hasAtLeast(array, 0)).toBe(true);\n        expect(hasAtLeast(array, 1)).toBe(true);\n        expect(hasAtLeast(array, 1000)).toBe(true);\n        expect(hasAtLeast(array, 1001)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataLast › works on empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nexpect(hasAtLeast(0)([])).toBe(true);\n        expect(hasAtLeast(10)([])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataLast › works on single item arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nexpect(hasAtLeast(0)([1])).toBe(true);\n        expect(hasAtLeast(1)([1])).toBe(true);\n        expect(hasAtLeast(2)([1])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataLast › works on large arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nconst array = Array.from({ length: 1000 }, (_, i) => i);\n        expect(hasAtLeast(0)(array)).toBe(true);\n        expect(hasAtLeast(1)(array)).toBe(true);\n        expect(hasAtLeast(1000)(array)).toBe(true);\n        expect(hasAtLeast(1001)(array)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/hasAtLeast.test.ts › dataLast › works on sparse arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hasAtLeast } from \"./src/hasAtLeast.js\";\n{\n{\n{\nconst array = Array.from({ length: 1000 });\n        expect(hasAtLeast(0)(array)).toBe(true);\n        expect(hasAtLeast(1)(array)).toBe(true);\n        expect(hasAtLeast(1000)(array)).toBe(true);\n        expect(hasAtLeast(1001)(array)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-isIncludedIn",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/isIncludedIn.ts",
+    "tests": [
+      "packages/remeda/src/isIncludedIn.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/isIncludedIn.js",
+    "function": "isIncludedIn"
+  },
+  "title": "Implement isIncludedIn from remeda",
+  "prompt": "`src/isIncludedIn.js` is the JavaScript build of `packages/remeda/src/isIncludedIn.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isIncludedIn`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Checks if the item is included in the container. This is a wrapper around\n * `Array.prototype.includes` and `Set.prototype.has` and thus relies on the\n * same equality checks that those functions do (which is reference equality,\n * e.g. `===`). In some cases the input's type is also narrowed to the\n * container's item types.\n *\n * Notice that unlike most functions, this function takes a generic item as it's\n * data and **an array** as it's parameter.\n *\n * @param data - The item that is checked.\n * @param container - The items that are checked against.\n * @returns `true` if the item is in the container, or `false` otherwise. In\n * cases the type of `data` is also narrowed down.\n * @signature\n *   isIncludedIn(data, container);\n * @example\n *   isIncludedIn(2, [1, 2, 3]); // => true\n *   isIncludedIn(4, [1, 2, 3]); // => false\n *\n *   const data = \"cat\" as \"cat\" | \"dog\" | \"mouse\";\n *   isIncludedIn(data, [\"cat\", \"dog\"] as const); // true (typed \"cat\" | \"dog\");\n * @dataFirst\n * @category Guard\n */\nexport function isIncludedIn(\n  dataOrContainer: unknown,\n  container?: readonly unknown[],\n): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/filter.js`, `src/internal/lazyDataLastImpl.js`, `src/internal/utilityEvaluators.js`, `src/isNot.js`, `src/map.js`, `src/pipe.js`, `src/purry.js`, `src/take.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

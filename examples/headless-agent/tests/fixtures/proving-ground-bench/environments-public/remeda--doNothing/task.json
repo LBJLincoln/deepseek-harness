@@ -1,0 +1,53 @@
+{
+  "id": "code:remeda--implement-doNothing",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/doNothing.ts",
+    "tests": [
+      "packages/remeda/src/doNothing.test.ts",
+      "packages/remeda/src/mergeDeep.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/doNothing.js",
+    "function": "doNothing"
+  },
+  "title": "Implement doNothing from remeda",
+  "prompt": "`src/doNothing.js` is the JavaScript build of `packages/remeda/src/doNothing.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `doNothing`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * A function that takes any arguments and does nothing with them. This is\n * useful as a placeholder for any function or API that requires a **void**\n * function (a function that doesn't return a value). This could also be used in\n * combination with a ternary or other conditional execution to allow disabling\n * a function call for a specific case.\n *\n * Notice that this is a dataLast impl where the function needs to be invoked\n * to get the \"do nothing\" function.\n *\n * See also:\n * * `constant` - A function that ignores it's arguments and returns the same value on every invocation.\n * * `identity` - A function that returns the first argument it receives.\n *\n * @signature\n *   doNothing();\n * @example\n *   myApi({ onSuccess: handleSuccess, onError: doNothing() });\n *   myApi({ onSuccess: isDemoMode ? doNothing(): handleSuccess });\n * @dataLast\n * @category Function\n */\nexport function doNothing(): typeof doesNothing\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`, `src/isPlainObject.js`, `src/mergeDeep.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

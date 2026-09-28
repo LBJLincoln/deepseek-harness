@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/quartersToMonths/test.ts › quartersToMonths › converts quarters to months",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToMonths } from \"./src/quartersToMonths/index.js\";\n{\n{\n{\nexpect(quartersToMonths(1)).toBe(3);\n        expect(quartersToMonths(2)).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/quartersToMonths/test.ts › quartersToMonths › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToMonths } from \"./src/quartersToMonths/index.js\";\n{\n{\n{\nexpect(quartersToMonths(1.5)).toBe(4);\n        expect(quartersToMonths(0.3)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/quartersToMonths/test.ts › quartersToMonths › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToMonths } from \"./src/quartersToMonths/index.js\";\n{\n{\n{\nexpect(quartersToMonths(0.4)).toBe(1);\n        expect(quartersToMonths(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/quartersToMonths/test.ts › quartersToMonths › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { quartersToMonths } from \"./src/quartersToMonths/index.js\";\n{\n{\n{\nexpect(quartersToMonths(12.34)).toBe(37);\n        expect(quartersToMonths(-12.34)).toBe(-37);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

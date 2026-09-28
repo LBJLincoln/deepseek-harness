@@ -1,0 +1,51 @@
+{
+  "id": "T-0028",
+  "title": "Re-point two bug-fix notes from the deleted TUI smoke to the test that pins them now",
+  "division": "curation-data",
+  "seat": "curation-data-bug-fix-curator",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md",
+    "anchor": "the regression lives in `apps/cli/tests/tui-keyless-smoke.e2e.ts`"
+  },
+  "task": "Problem: two implemented bug-fix notes name `apps/cli/tests/tui-keyless-smoke.e2e.ts` as the test that pins their fix, in present tense: .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md:57 (\"the regression lives in `apps/cli/tests/tui-keyless-smoke.e2e.ts`. It boots the shipped tree in a real PTY ... expects exit 1, and asserts the captured bytes contain both the labelled boot rejection ... and `ESC[?2004l`\") and .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md:41 (\"The `dsh` invalid-provider PTY case in `apps/cli/tests/tui-keyless-smoke.e2e.ts` pins the end-to-end contract\"), with the same sentences in their .zh.md counterparts at the same lines. That file does not exist: `ls apps/cli/tests/` lists no TUI smoke since the TUI surface was removed (.agents/notes/implemented/simplification/2026-08-04-remove-tui-package.md), and the invalid-provider boot-failure case now runs through apps/cli/tests/built-bin.e2e.ts, whose fixture `apps/cli/tests/fixtures/invalid-provider.cordis.yml` is bound at apps/cli/tests/built-bin.e2e.ts:15; vendor/README.md:44 already names \"the patch-overlay boot-failure built-bin case in `apps/cli/tests/built-bin.e2e.ts`\" as the pin for the same deadlock. .agents/notes/README.md:13 requires an implemented note's paths to be kept current.\n\nRequired: in both notes, replace the stale test path with the current owning case — read apps/cli/tests/built-bin.e2e.ts and cite the exact test title that boots the invalid-provider fixture and what it asserts (exit code and diagnostic); if the PTY-specific assertion on the bracketed-paste reset `ESC[?2004l` is asserted nowhere any more, state that as a named coverage gap in the fail-loud note instead of claiming it; update both Chinese counterparts minimally; re-record both pairs with `pnpm run verify-translation-pairing --write <note>.md`.\n\nConstraints: facts only; do not edit the TUI-removal note, vendor/README.md, or anything under .agents/notes/archived/; no test change; no new Agent Note. The queue's mandatory coverage run names dsh-app-boot, whose boot path these notes describe; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md",
+    ".agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.zh.md",
+    ".agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.i18n.yaml",
+    ".agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md",
+    ".agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.zh.md",
+    ".agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.i18n.yaml"
+  ],
+  "acceptance": [
+    {
+      "id": "stale-test-gone",
+      "run": "! grep -q 'tui-keyless-smoke' .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.zh.md .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.zh.md"
+    },
+    {
+      "id": "current-pin-cited-in-both",
+      "run": "test \"$(grep -l 'built-bin.e2e.ts' .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md | wc -l)\" = 2"
+    },
+    {
+      "id": "pairs-recorded",
+      "run": "pnpm run verify-translation-pairing .agents/notes/implemented/bug-fix/2026-07-31-fail-loud-releases-the-terminal.md .agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/boot/app-boot/ --coverage --coverage.include='packages/boot/app-boot/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 2
+}

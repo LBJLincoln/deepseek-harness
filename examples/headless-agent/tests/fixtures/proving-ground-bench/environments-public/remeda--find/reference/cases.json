@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/find.test.ts › data first › find",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { find } from \"./src/find.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(find([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], ({ b }) => b === 2)).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/find.test.ts › data first › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { find } from \"./src/find.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(find([\n            { a: 1, b: 1 },\n            { a: 1, b: 2 },\n            { a: 2, b: 1 },\n            { a: 1, b: 3 },\n        ], ({ b }, idx) => b === 2 && idx === 1)).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

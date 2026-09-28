@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/promise/withTimeout.spec.ts › withTimeout › returns the result value if a response is received before the specified wait time",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { withTimeout } from \"./src/promise/withTimeout.js\";\n{\n{\n{\nconst result = await withTimeout(async () => {\n            await delay(50);\n            return 'foo';\n        }, 100);\n        expect(result).toEqual('foo');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/promise/withTimeout.spec.ts › withTimeout › lifts the time limit when the signal is aborted, resolving with the run result",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { delay } from \"./src/promise/delay.js\";\nimport { withTimeout } from \"./src/promise/withTimeout.js\";\n{\n{\n{\nconst controller = new AbortController();\n        setTimeout(() => controller.abort(), 25); // disarm before the 50ms deadline\n        const result = await withTimeout(async () => {\n            await delay(100); // outlives the 50ms timeout\n            return 'foo';\n        }, 50, { signal: controller.signal });\n        expect(result).toEqual('foo');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

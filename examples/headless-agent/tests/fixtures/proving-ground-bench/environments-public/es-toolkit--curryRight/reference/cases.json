@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/curryRight.spec.ts › curryRight › should return original type of function when function without any arguments received",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { curryRight } from \"./src/function/curryRight.js\";\n{\n{\n{\nconst fn = () => 'test';\n        const curried = curryRight(fn);\n        expect(curried()).toBe('test');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/curryRight.spec.ts › curryRight › should curry based on the number of arguments given",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { curryRight } from \"./src/function/curryRight.js\";\n{\n{\n{\nconst fn = (a, b, c, d) => [a, b, c, d];\n        const curried = curryRight(fn);\n        const expected = [4, 3, 2, 1];\n        expect(curried(1)(2)(3)(4)).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/curryRight.spec.ts › curryRight › should inference type correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { curryRight } from \"./src/function/curryRight.js\";\n{\n{\n{\nconst fn = (a, b, c) => ({ a, b, c });\n        const curried = curryRight(fn);\n        expectTypeOf(curried).parameters.toEqualTypeOf();\n        expectTypeOf(curried(true)).parameters.toEqualTypeOf();\n        expectTypeOf(curried(true)).not.toEqualTypeOf();\n        expectTypeOf(curried(true)('a')).parameters.toEqualTypeOf();\n        expectTypeOf(curried(true)('a')).not.toEqualTypeOf();\n        expectTypeOf(curried(true)('a')(1)).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-range",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/range.ts",
+    "tests": [
+      "packages/remeda/src/range.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/range.js",
+    "function": "range"
+  },
+  "title": "Implement range from remeda",
+  "prompt": "`src/range.js` is the JavaScript build of `packages/remeda/src/range.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `range`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Returns a sequence of numbers from `start` (inclusive) to `end` (exclusive),\n * adding `step` (default is `1`) to each number in the sequence.\n *\n * @param start - The first number in the sequence.\n * @param endOrOptions - The end number **or** an object which is used to\n * **also** define a step size.\n * @param endOrOptions.end - The non-inclusive end of the range.\n * @param endOrOptions.step - The gap between consecutive numbers.\n * @signature\n *   range(start, end)\n *   range(start, { end, step })\n * @example\n *    range(1, 5); //=> [1, 2, 3, 4]\n *    range(1, { end: 5, step: 2 }); //=> [1, 3]\n * @dataFirst\n * @category Array\n */\nexport function range(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`, `src/internal/utilityEvaluators.js`, `src/map.js`, `src/mapValues.js`, `src/pipe.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

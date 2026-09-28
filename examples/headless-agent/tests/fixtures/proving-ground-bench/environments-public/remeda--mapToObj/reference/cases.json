@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/mapToObj.test.ts › data_first › mapToObj",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapToObj } from \"./src/mapToObj.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst result = mapToObj([1, 2, 3], (x) => [String(x), x * 2]);\n        expect(result).toStrictEqual({ 1: 2, 2: 4, 3: 6 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/mapToObj.test.ts › data_first › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapToObj } from \"./src/mapToObj.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst result = mapToObj([0, 0, 0], (_, i) => [i, i]);\n        expect(result).toStrictEqual({ 0: 0, 1: 1, 2: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/mapToObj.test.ts › data_last › mapToObj",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapToObj } from \"./src/mapToObj.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst result = pipe([1, 2, 3], mapToObj((x) => [String(x), x * 2]));\n        expect(result).toStrictEqual({ 1: 2, 2: 4, 3: 6 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/mapToObj.test.ts › data_last › indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapToObj } from \"./src/mapToObj.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst result = pipe([0, 0, 0], mapToObj((_, i) => [i, i]));\n        expect(result).toStrictEqual({ 0: 0, 1: 1, 2: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

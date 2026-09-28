@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/serialize/serializeNumber.spec.ts › serializeNumber › should serialize integers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeNumber } from \"./src/util/serialize/serializeNumber.js\";\n{\n{\n{\nexpect(serializeNumber(0)).toBe('0');\n        expect(serializeNumber(100)).toBe('100');\n        expect(serializeNumber(-100)).toBe('-100');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/serialize/serializeNumber.spec.ts › serializeNumber › should serialize -0 as 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeNumber } from \"./src/util/serialize/serializeNumber.js\";\n{\n{\n{\nexpect(serializeNumber(-0)).toBe('0');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/serialize/serializeNumber.spec.ts › serializeNumber › should serialize floating point numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeNumber } from \"./src/util/serialize/serializeNumber.js\";\n{\n{\n{\nexpect(serializeNumber(1.5)).toBe('1.5');\n        expect(serializeNumber(Number.EPSILON)).toBe('2.220446049250313e-16');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/serialize/serializeNumber.spec.ts › serializeNumber › should serialize NaN and Infinity",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serializeNumber } from \"./src/util/serialize/serializeNumber.js\";\n{\n{\n{\nexpect(serializeNumber(NaN)).toBe('NaN');\n        expect(serializeNumber(Infinity)).toBe('Infinity');\n        expect(serializeNumber(-Infinity)).toBe('-Infinity');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

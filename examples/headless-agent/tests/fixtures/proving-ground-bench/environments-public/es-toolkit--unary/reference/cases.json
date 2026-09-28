@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/unary.spec.ts › unary › should cap the number of arguments provided to `func`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unary } from \"./src/function/unary.js\";\n{\n{\n{\nconst actual = ['6', '8', '10'].map(unary(parseInt));\n        expect(actual).toEqual([6, 8, 10]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/unary.spec.ts › unary › should not force a minimum argument count",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unary } from \"./src/function/unary.js\";\n{\n{\n{\nfunction fn() {\n            // eslint-disable-next-line prefer-rest-params\n            return Array.from(arguments);\n        }\n        const capped = unary(fn);\n        expect(capped()).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/unary.spec.ts › unary › should use `this` binding of function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unary } from \"./src/function/unary.js\";\n{\n{\n{\n// eslint-disable-next-line @typescript-eslint/no-unused-vars\n        const capped = unary(function (_a, _b) {\n            return this;\n        });\n        const object = { capped: capped };\n        expect(object.capped(1)).toBe(object);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-003",
+    "title": "test/log_average.test.js › log average › does not overflow for large products",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nimport { default as __ns1_logAverage } from \"./src/log_average.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, geometricMean: __ns1_geometricMean, logAverage: __ns1_logAverage });\n{\n{\n{\nconst value = 1000;\n        const array = [];\n        for (let i = 0; i < 100; i++) {\n            array.push(value);\n        }\n        if (!Number.isFinite(ss.logAverage(Object.freeze(array)))) {\n            assert.fail(\"log average failed for large product\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/log_average.test.js › log average › does not underflow for small products",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nimport { default as __ns1_logAverage } from \"./src/log_average.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, geometricMean: __ns1_geometricMean, logAverage: __ns1_logAverage });\n{\n{\n{\nconst value = 0.001;\n        const array = [];\n        for (let i = 0; i < 100; i++) {\n            array.push(value);\n        }\n        if (ss.logAverage(Object.freeze(array)) === 0) {\n            assert.fail(\"log average failed for small product\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/log_average.test.js › log average › agrees with geometricMean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nimport { default as __ns1_logAverage } from \"./src/log_average.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, geometricMean: __ns1_geometricMean, logAverage: __ns1_logAverage });\n{\n{\n{\nconst arr = [];\n        for (let i = 0; i < 10; i++) {\n            arr.push(Math.exp(Math.random()));\n        }\n        if (Math.abs(ss.logAverage(Object.freeze(arr)) -\n            ss.geometricMean(Object.freeze(arr))) > ss.epsilon) {\n            assert.fail(\"log average and geometric mean are not equal\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/log_average.test.js › log average › equals zero if array contains zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nimport { default as __ns1_logAverage } from \"./src/log_average.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, geometricMean: __ns1_geometricMean, logAverage: __ns1_logAverage });\n{\n{\n{\nif (ss.logAverage([0, 1, 2]) !== 0) {\n            assert.fail(\"log average of array containing zero is not zero\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

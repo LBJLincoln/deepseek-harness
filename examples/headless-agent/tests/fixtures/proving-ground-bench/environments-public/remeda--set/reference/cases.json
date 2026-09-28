@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/evolve.test.ts › data first › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, {\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        })).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/evolve.test.ts › data last › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, evolve({\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        }))).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/set.test.ts › data first › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { set } from \"./src/set.js\";\n{\n{\n{\nexpect(set({ a: 1 }, \"a\", 2)).toStrictEqual({ a: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/set.test.ts › data last › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { set } from \"./src/set.js\";\n{\n{\n{\nexpect(pipe({ a: 1 }, set(\"a\", 2))).toStrictEqual({ a: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

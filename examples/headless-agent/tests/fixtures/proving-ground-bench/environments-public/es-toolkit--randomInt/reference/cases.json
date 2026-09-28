@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/randomInt.spec.ts › randomInt › generates a random integer between min (inclusive) and max (exclusive)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInt } from \"./src/math/randomInt.js\";\n{\n{\n{\nconst min = 0;\n        const max = 5;\n        for (let i = 0; i < 100; i++) {\n            const result = randomInt(min, max);\n            expect(result).toBeGreaterThanOrEqual(min);\n            expect(result).toBeLessThan(max);\n            expect(Number.isInteger(result)).toBe(true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/randomInt.spec.ts › randomInt › generates a random integer between 0 (inclusive) and max (exclusive)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInt } from \"./src/math/randomInt.js\";\n{\n{\n{\nfor (let i = 0; i < 100; i++) {\n            const result = randomInt(5);\n            expect(result).toBeGreaterThanOrEqual(0);\n            expect(result).toBeLessThan(5);\n            expect(Number.isInteger(result)).toBe(true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/math/randomInt.spec.ts › randomInt › throws an error if min is greater than max",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInt } from \"./src/math/randomInt.js\";\n{\n{\n{\nconst min = 5;\n        const max = 0;\n        expect(() => randomInt(min, max)).toThrow('Invalid input: The maximum value must be greater than the minimum value.');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/math/randomInt.spec.ts › randomInt › handles edge cases where min and max are the same",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInt } from \"./src/math/randomInt.js\";\n{\n{\n{\nconst min = 5;\n        const max = 5;\n        expect(() => randomInt(min, max)).toThrow('Invalid input: The maximum value must be greater than the minimum value.');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/math/randomInt.spec.ts › randomInt › works with negative ranges",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInt } from \"./src/math/randomInt.js\";\n{\n{\n{\nconst min = -10;\n        const max = -1;\n        for (let i = 0; i < 100; i++) {\n            const result = randomInt(min, max);\n            expect(result).toBeGreaterThanOrEqual(min);\n            expect(result).toBeLessThan(max);\n            expect(Number.isInteger(result)).toBe(true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/math/randomInt.spec.ts › randomInt › works with a mix of negative and positive ranges",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { randomInt } from \"./src/math/randomInt.js\";\n{\n{\n{\nconst min = -5;\n        const max = 5;\n        for (let i = 0; i < 100; i++) {\n            const result = randomInt(min, max);\n            expect(result).toBeGreaterThanOrEqual(min);\n            expect(result).toBeLessThan(max);\n            expect(Number.isInteger(result)).toBe(true);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

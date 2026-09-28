@@ -55,6 +55,7 @@
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments/`：bench 的任务内容，不是仓库文档。第 6 层环境的 README 是被度量的 implementer 会读到的文件之一，与该任务 `task.json` 中的英文 `prompt` 并列；翻译它会改变 bench 所度量的东西。
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments-completion/`：工厂从上述环境合成出的 completion 家族；子环境复制其父环境的任务文件，README 也在其中，因此适用同一规则。
 - `examples/headless-agent/tests/fixtures/proving-ground-bench/environments-repository/`：工厂从本仓库自身的包合成出的 repository 家族；子环境的 README 是被度量的 implementer 会读到的任务内容，因此适用同一规则。
+- `examples/headless-agent/tests/fixtures/proving-ground-bench/environments-public/`：工厂从宽松许可的公开仓库合成出的 public 家族；子环境的 README 是被度量的 implementer 会读到的任务内容，其 `LICENSE` 是逐字保留的来源许可证文本，因此适用同一规则。
 - `examples/headless-agent/tests/fixtures/program-readme-rows/seed/`：readme-rows 程序交付进入的仓库。其中的 `data/proving-ground/README.md` 与 `README.zh.md` 只装着三份记录的已提交行，逐字复制自真实的那一对：它们是考官的期望输出，交付的工具必须逐字节复现，不是文档。
 - `examples/headless-agent/tests/fixtures/enterprise-shift/seed/`：enterprise-shift e2e 克隆并推送的仓库。其中的 README 是播种的工单所引用并修改的源文件，是脚本化部门据以被度量的内容，不是文档。
 

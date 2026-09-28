@@ -1,0 +1,518 @@
+[
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/constant.test.ts › can completely change the type of the pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sliceString } from \"./src/sliceString.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(pipe([1, 2, 3], constant(\"hello world\"), sliceString(0, 4))).toBe(\"hell\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › empty string, 0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(\"\", 0)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › empty string, >0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(\"\", 100)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › empty string, <0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(\"\", -100)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › alphabet, 0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 0)).toBe(ALPHABET);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › alphabet, >0 indexStart, <len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 10)).toBe(\"klmnopqrstuvwxyz\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › alphabet, <0 indexStart, >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, -10)).toBe(\"qrstuvwxyz\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › alphabet, >0 indexStart, >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 100)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexStart › alphabet, <0 indexStart, <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, -100)).toBe(ALPHABET);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › empty string, 0 indexStart, 0 indexEnd",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(\"\", 0, 0)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, 0 indexStart, 0 indexEnd",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 0, 0)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, 0 indexStart, >indexStart indexEnd <len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 0, 10)).toBe(\"abcdefghij\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, 0 indexStart, >indexStart indexEnd >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 0, 100)).toBe(ALPHABET);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, 0 indexStart, <indexStart indexEnd >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 0, -10)).toBe(\"abcdefghijklmnop\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, 0 indexStart <len, <indexStart indexEnd <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 0, -100)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart <len, >indexStart indexEnd <len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 10, 20)).toBe(\"klmnopqrst\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart <len, >indexStart indexEnd >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 10, 100)).toBe(\"klmnopqrstuvwxyz\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart <len, <indexStart indexEnd >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 10, 5)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart <len, <indexStart indexEnd <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 10, -100)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart >len, >indexStart indexEnd >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 100, 200)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart >len, <indexStart indexEnd >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 100, 5)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/sliceString.test.ts › dataFirst › indexEnd › alphabet, >0 indexStart >len, <indexStart indexEnd <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(ALPHABET, 100, -100)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › empty string, 0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0)(\"\")).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › empty string, >0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(100)(\"\")).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › empty string, <0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(-100)(\"\")).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › alphabet, 0 indexStart",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0)(ALPHABET)).toBe(ALPHABET);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › alphabet, >0 indexStart, <len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(10)(ALPHABET)).toBe(\"klmnopqrstuvwxyz\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › alphabet, <0 indexStart, >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(-10)(ALPHABET)).toBe(\"qrstuvwxyz\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-035",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › alphabet, >0 indexStart, >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(100)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-036",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexStart › alphabet, <0 indexStart, <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(-100)(ALPHABET)).toBe(ALPHABET);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › empty string, 0 indexStart, 0 indexEnd",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0, 0)(\"\")).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, 0 indexStart, 0 indexEnd",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0, 0)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-039",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, 0 indexStart, >indexStart indexEnd <len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0, 10)(ALPHABET)).toBe(\"abcdefghij\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-040",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, 0 indexStart, >indexStart indexEnd >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0, 100)(ALPHABET)).toBe(ALPHABET);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-041",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, 0 indexStart, <indexStart indexEnd >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0, -10)(ALPHABET)).toBe(\"abcdefghijklmnop\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, 0 indexStart <len, <indexStart indexEnd <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(0, -100)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-043",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart <len, >indexStart indexEnd <len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(10, 20)(ALPHABET)).toBe(\"klmnopqrst\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-044",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart <len, >indexStart indexEnd >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(10, 100)(ALPHABET)).toBe(\"klmnopqrstuvwxyz\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-045",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart <len, <indexStart indexEnd >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(10, 5)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-046",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart <len, <indexStart indexEnd <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(10, -100)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-047",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart >len, >indexStart indexEnd >len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(100, 200)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-048",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart >len, <indexStart indexEnd >-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(100, 5)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-049",
+    "title": "packages/remeda/src/sliceString.test.ts › dataLast › indexEnd › alphabet, >0 indexStart >len, <indexStart indexEnd <-len",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sliceString } from \"./src/sliceString.js\";\n{\nconst ALPHABET = \"abcdefghijklmnopqrstuvwxyz\";\n{\n{\n{\nexpect(sliceString(100, -100)(ALPHABET)).toBe(\"\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

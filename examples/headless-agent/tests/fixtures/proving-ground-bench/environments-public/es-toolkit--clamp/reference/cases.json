@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/math/clamp.spec.ts › clamp function › works with max",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clamp } from \"./src/math/clamp.js\";\n{\n{\n{\nexpect(clamp(3, 5)).toBe(3);\n        expect(clamp(10, 6)).toBe(6);\n        expect(clamp(6, 10)).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/math/clamp.spec.ts › clamp function › works with max and min",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clamp } from \"./src/math/clamp.js\";\n{\n{\n{\nexpect(clamp(3, 5, 10)).toBe(5);\n        expect(clamp(10, 6, 10)).toBe(10);\n        expect(clamp(6, 10, 10)).toBe(10);\n        expect(clamp(7, 5, 10)).toBe(7);\n        expect(clamp(100, 5, 6)).toBe(6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

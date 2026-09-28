@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/omitBy.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { omitBy } from \"./src/omitBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(omitBy({ a: 1, b: 2, A: 3, B: 4 }, (_, key) => key.toUpperCase() === key)).toStrictEqual({ a: 1, b: 2 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/omitBy.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { omitBy } from \"./src/omitBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nexpect(pipe({ a: 1, b: 2, A: 3, B: 4 }, omitBy((_, key) => key.toUpperCase() === key))).toStrictEqual({ a: 1, b: 2 });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/omitBy.test.ts › number keys are converted to strings in the mapper",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { omitBy } from \"./src/omitBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nomitBy({ 123: \"hello\" }, (_, key) => {\n        expect(key).toBe(\"123\");\n        return true;\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/omitBy.test.ts › symbols are passed through",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { omitBy } from \"./src/omitBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\nconst mySymbol = Symbol(\"mySymbol\");\n    expect(omitBy({ [mySymbol]: 1 }, constant(true))).toStrictEqual({\n        [mySymbol]: 1,\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

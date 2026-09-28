@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/numeric_sort.test.js › numericSort",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as numericSort } from \"./src/numeric_sort.js\";\n{\n{\nassert.deepEqual(numericSort([1, 2]), [1, 2]);\n    assert.deepEqual(numericSort([2, 1]), [1, 2]);\n    const input = Object.freeze([2, 1]);\n    const output = Object.freeze([1, 2]);\n    assert.deepEqual(numericSort(input), output);\n    assert.deepEqual(input, [2, 1], \"does not mutate input\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

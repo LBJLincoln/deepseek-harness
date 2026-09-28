@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/shuffle.spec.ts › shuffle › randomizes the order of an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { shuffle } from \"./src/array/shuffle.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        expect(shuffle(arr).slice().sort()).toEqual(arr.slice().sort());\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/shuffle.spec.ts › shuffle › does not modify the original array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { shuffle } from \"./src/array/shuffle.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5];\n        const copiedArr = arr.slice();\n        shuffle(arr);\n        expect(arr).toEqual(copiedArr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

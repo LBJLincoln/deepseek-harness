@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_first › swap array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices([1, 2, 3, 4, 5], 0, -1)).toStrictEqual([5, 2, 3, 4, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_first › swap string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices(\"apple\", 0, 1)).toBe(\"paple\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_first › fails gracefully on NaN indices",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices(\"apple\", NaN, 1)).toBe(\"apple\");\n        expect(swapIndices(\"apple\", 1, NaN)).toBe(\"apple\");\n        expect(swapIndices(\"apple\", NaN, NaN)).toBe(\"apple\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_first › fails gracefully on overflow indices",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices(\"apple\", 100, 1)).toBe(\"apple\");\n        expect(swapIndices(\"apple\", 1, 100)).toBe(\"apple\");\n        expect(swapIndices(\"apple\", 200, 300)).toBe(\"apple\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_first › fails gracefully on indices at the exact length boundary",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices([1, 2, 3], 3, 0)).toStrictEqual([1, 2, 3]);\n        expect(swapIndices([1, 2, 3], 0, 3)).toStrictEqual([1, 2, 3]);\n        expect(swapIndices(\"apple\", 5, 0)).toBe(\"apple\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_last › swap array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices(-1, 4)([1, 2, 3, 4, 5])).toStrictEqual([1, 2, 3, 4, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/swapIndices.test.ts › data_last › swap string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { swapIndices } from \"./src/swapIndices.js\";\n{\n{\n{\nexpect(swapIndices(0, -1)(\"apple\")).toBe(\"eppla\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

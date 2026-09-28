@@ -1,0 +1,52 @@
+{
+  "id": "code:date-fns--implement-differenceInMinutes",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "date-fns",
+    "url": "https://github.com/date-fns/date-fns",
+    "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+    "license": "MIT",
+    "licenseFile": "pkgs/core/LICENSE.md",
+    "licenseSha256": "8d3951c38967b964b1fe259bfd200c2647cc04c858b55a4414e3122a60f1ef4b",
+    "copyright": "Copyright (c) 2021 Sasha Koss and Lesha Koss https://kossnocorp.mit-license.org",
+    "module": "pkgs/core/src/differenceInMinutes/index.ts",
+    "tests": [
+      "pkgs/core/src/differenceInMinutes/test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/differenceInMinutes/index.js",
+    "function": "differenceInMinutes"
+  },
+  "title": "Implement differenceInMinutes from date-fns",
+  "prompt": "`src/differenceInMinutes/index.js` is the JavaScript build of `pkgs/core/src/differenceInMinutes/index.ts` from date-fns (https://github.com/date-fns/date-fns at commit 717ce0a807ea, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `differenceInMinutes`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * @name differenceInMinutes\n * @category Minute Helpers\n * @summary Get the number of minutes between the given dates.\n *\n * @description\n * Get the signed number of full (rounded towards 0) minutes between the given dates.\n *\n * **You don't need date-fns\\***:\n *\n * Temporal has a built-in [`Temporal.Instant.prototype.until()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/until) method that can return the elapsed minutes between two instants.\n *\n * \\* **Not really**, see: https://date-fns.org/you-dont-need-date-fns\n *\n * @param dateLeft - The later date\n * @param dateRight - The earlier date\n * @param options - An object with options.\n *\n * @returns The number of minutes\n *\n * @example\n * // How many minutes are between 2 July 2014 12:07:59 and 2 July 2014 12:20:00?\n * const result = differenceInMinutes(\n *   new Date(2014, 6, 2, 12, 20, 0),\n *   new Date(2014, 6, 2, 12, 7, 59)\n * )\n * //=> 12\n *\n * @example\n * // How many minutes are between 10:01:59 and 10:00:00\n * const result = differenceInMinutes(\n *   new Date(2000, 0, 1, 10, 0, 0),\n *   new Date(2000, 0, 1, 10, 1, 59)\n * )\n * //=> -1\n *\n * @example\n * // Using Temporal:\n * const earlier = Temporal.Instant.from(\"2014-07-02T12:07:59Z\")\n * const later = Temporal.Instant.from(\"2014-07-02T12:20:00Z\")\n * const result = earlier.until(later, {\n *   largestUnit: \"minutes\",\n *   smallestUnit: \"minutes\",\n *   roundingMode: \"trunc\",\n * }).minutes\n * //=> 12\n */\nexport function differenceInMinutes(\n  dateLeft: DateArg<Date> & {},\n  dateRight: DateArg<Date> & {},\n  options?: DifferenceInMinutesOptions,\n): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_lib/getRoundingMethod/index.js`, `src/constants/index.js`, `src/constructFrom/index.js`, `src/differenceInMilliseconds/index.js`, `src/toDate/index.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

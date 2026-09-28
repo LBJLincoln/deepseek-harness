@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/is.test.ts › isPrimitive",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isPrimitive } from \"./src/is.js\";\n{\n{\nexpect(isPrimitive(null)).toBe(true);\n    expect(isPrimitive(undefined)).toBe(true);\n    expect(isPrimitive(0)).toBe(true);\n    expect(isPrimitive('')).toBe(true);\n    expect(isPrimitive(Symbol('foo'))).toBe(true);\n    expect(isPrimitive(1n)).toBe(true);\n    expect(isPrimitive([])).toBe(false);\n    expect(isPrimitive({})).toBe(false);\n    class Foo {\n    }\n    expect(isPrimitive(new Foo())).toBe(false);\n    expect(isPrimitive(new Map())).toBe(false);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

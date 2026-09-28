@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/dropRight.spec.ts › dropRight › should drop `itemsCount` elements from an array from the end",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropRight } from \"./src/array/dropRight.js\";\n{\n{\n{\nexpect(dropRight([1.2, 2.3, 3.4], 1)).toEqual([1.2, 2.3]);\n        expect(dropRight(['a', 'b', 'c', 'd'], 2)).toEqual(['a', 'b']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/dropRight.spec.ts › dropRight › should return all elements if itemsCount < 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropRight } from \"./src/array/dropRight.js\";\n{\n{\n{\nexpect(dropRight([1.2, 2.3, 3.4], 0)).toEqual([1.2, 2.3, 3.4]);\n        expect(dropRight([1.2, 2.3, 3.4], -1)).toEqual([1.2, 2.3, 3.4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/dropRight.spec.ts › dropRight › should coerce itemsCount to an integer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropRight } from \"./src/array/dropRight.js\";\n{\n{\n{\nexpect(dropRight([1.2, 2.3, 3.4], 1.5)).toEqual([1.2, 2.3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/dropRight.spec.ts › dropRight › should return empty array if itemsCount >= arr.length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropRight } from \"./src/array/dropRight.js\";\n{\n{\n{\nexpect(dropRight([1.2, 2.3, 3.4], 4)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

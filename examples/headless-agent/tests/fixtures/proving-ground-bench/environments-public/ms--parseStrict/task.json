@@ -1,0 +1,55 @@
+{
+  "id": "code:ms--implement-parseStrict",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "ms",
+    "url": "https://github.com/vercel/ms",
+    "commit": "4ff48cec099f0514c3e9bbca18706c9c21122bfb",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    "copyright": "Copyright (c) 2025 Vercel, Inc.",
+    "module": "src/index.ts",
+    "tests": [
+      "src/format.test.ts",
+      "src/index.test.ts",
+      "src/parse-strict.test.ts",
+      "src/parse.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/index.js",
+    "function": "parseStrict"
+  },
+  "title": "Implement parseStrict from ms",
+  "prompt": "`src/index.js` is the JavaScript build of `src/index.ts` from ms (https://github.com/vercel/ms at commit 4ff48cec099f, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `parseStrict`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Parse the given StringValue and return milliseconds.\n *\n * @param value - A typesafe StringValue to parse to milliseconds\n * @returns The parsed value in milliseconds, or `NaN` if the string can't be\n * parsed\n */\nexport function parseStrict(value: StringValue): number\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

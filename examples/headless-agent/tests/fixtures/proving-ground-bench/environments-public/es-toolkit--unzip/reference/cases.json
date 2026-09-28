@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/unzip.spec.ts › unzip › should unzip arrays correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzip } from \"./src/array/unzip.js\";\n{\n{\n{\nconst zipped = [\n            ['a', true, 1],\n            ['b', false, 2],\n        ];\n        const result = unzip(zipped);\n        expect(result).toEqual([\n            ['a', 'b'],\n            [true, false],\n            [1, 2],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/unzip.spec.ts › unzip › should handle empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzip } from \"./src/array/unzip.js\";\n{\n{\n{\nconst zipped = [[], [], [], []];\n        const result = unzip(zipped);\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/unzip.spec.ts › unzip › should handle arrays of different lengths",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unzip } from \"./src/array/unzip.js\";\n{\n{\n{\nconst zipped = [\n            ['a', 1, true, 32, 100],\n            ['b', 2, false],\n        ];\n        const result = unzip(zipped);\n        expect(result).toEqual([\n            ['a', 'b'],\n            [1, 2],\n            [true, false],\n            [32, undefined],\n            [100, undefined],\n        ]);\n        const zipped2 = [['a', 1, true], ['b', 2, false, 32, 58], [1]];\n        const result2 = unzip(zipped2);\n        expect(result2).toEqual([\n            ['a', 'b', 1],\n            [1, 2, undefined],\n            [true, false, undefined],\n            [undefined, 32, undefined],\n            [undefined, 58, undefined],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

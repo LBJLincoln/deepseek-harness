@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/take.spec.ts › take › returns the first n elements from the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { take } from \"./src/array/take.js\";\n{\n{\n{\nexpect(take([1, 2, 3, 4, 5], 3)).toEqual([1, 2, 3]);\n        expect(take(['a', 'b', 'c', 'd'], 2)).toEqual(['a', 'b']);\n        expect(take([true, false, true], 1)).toEqual([true]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/take.spec.ts › take › handles cases where count is greater than array length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { take } from \"./src/array/take.js\";\n{\n{\n{\nexpect(take([1, 2, 3], 5)).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/take.spec.ts › take › handles cases where count is zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { take } from \"./src/array/take.js\";\n{\n{\n{\nexpect(take([1, 2, 3], 0)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/take.spec.ts › take › handles empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { take } from \"./src/array/take.js\";\n{\n{\n{\nexpect(take([], 3)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

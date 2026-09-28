@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-isPrimitive",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/predicate/isPrimitive.ts",
+    "tests": [
+      "src/predicate/isPrimitive.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/predicate/isPrimitive.js",
+    "function": "isPrimitive"
+  },
+  "title": "Implement isPrimitive from es-toolkit",
+  "prompt": "`src/predicate/isPrimitive.js` is the JavaScript build of `src/predicate/isPrimitive.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isPrimitive`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Checks whether a value is a JavaScript primitive.\n * JavaScript primitives include null, undefined, strings, numbers, booleans, symbols, and bigints.\n *\n * @param value The value to check.\n * @returns Returns true if `value` is a primitive, false otherwise.\n *\n * @example\n * isPrimitive(null); // true\n * isPrimitive(undefined); // true\n * isPrimitive('123'); // true\n * isPrimitive(false); // true\n * isPrimitive(true); // true\n * isPrimitive(Symbol('a')); // true\n * isPrimitive(123n); // true\n * isPrimitive({}); // false\n * isPrimitive(new Date()); // false\n * isPrimitive(new Map()); // false\n * isPrimitive(new Set()); // false\n * isPrimitive([1, 2, 3]); // false\n */\nexport function isPrimitive(value: unknown): value is null | undefined | string | number | boolean | symbol | bigint\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

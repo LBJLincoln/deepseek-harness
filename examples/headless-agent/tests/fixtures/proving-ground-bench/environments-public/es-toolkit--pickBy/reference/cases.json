@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/pickBy.spec.ts › pickBy › should pick properties based on the predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = { a: 1, b: 'pick', c: 3 };\n        const shouldPick = (value) => typeof value === 'string';\n        const result = pickBy(obj, shouldPick);\n        expect(result).toEqual({ b: 'pick' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/pickBy.spec.ts › pickBy › should return an empty object if no properties satisfy the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3 };\n        const shouldPick = (value) => typeof value === 'string';\n        const result = pickBy(obj, shouldPick);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/pickBy.spec.ts › pickBy › should return the same object if all properties satisfy the predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = { a: 'pick', b: 'pick', c: 'pick' };\n        const shouldPick = (value) => typeof value === 'string';\n        const result = pickBy(obj, shouldPick);\n        expect(result).toEqual(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/pickBy.spec.ts › pickBy › should work with an empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = {};\n        const shouldPick = (value) => value;\n        const result = pickBy(obj, shouldPick);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/pickBy.spec.ts › pickBy › should work with nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = { a: 1, b: { nested: 'pick' }, c: 3 };\n        const shouldPick = (value, key) => key === 'b';\n        const result = pickBy(obj, shouldPick);\n        expect(result).toEqual({ b: { nested: 'pick' } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/pickBy.spec.ts › pickBy › should pass numeric keys as strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = { 1: 'skip', 2: 'pick' };\n        const keys = [];\n        const result = pickBy(obj, (value, key) => {\n            expectTypeOf(key).toEqualTypeOf();\n            keys.push(key);\n            return value === 'pick';\n        });\n        expect(keys).toEqual(['1', '2']);\n        expect(result).toEqual({ 2: 'pick' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/pickBy.spec.ts › pickBy › should type number index signature keys as numeric strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\nconst obj = { 1: 'skip', 2: 'pick' };\n        pickBy(obj, (_value, key) => {\n            expectTypeOf(key).toEqualTypeOf();\n            return key === '2';\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/pickBy.spec.ts › pickBy › should preserve string literal key types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pickBy } from \"./src/object/pickBy.js\";\n{\n{\n{\npickBy({ a: 1, b: 2 }, (_value, key) => {\n            expectTypeOf(key).toEqualTypeOf();\n            return true;\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

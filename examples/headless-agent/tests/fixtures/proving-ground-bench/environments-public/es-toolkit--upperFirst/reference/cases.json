@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/upperFirst.spec.ts › upperFirst › should change first character of lower case to upper case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperFirst } from \"./src/string/upperFirst.js\";\n{\n{\n{\nexpect(upperFirst('fred')).toEqual('Fred');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/upperFirst.spec.ts › upperFirst › should keep first character of upper case unaltered",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperFirst } from \"./src/string/upperFirst.js\";\n{\n{\n{\nexpect(upperFirst('Fred')).toEqual('Fred');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/upperFirst.spec.ts › upperFirst › should keep first character of all upper case unaltered",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperFirst } from \"./src/string/upperFirst.js\";\n{\n{\n{\nexpect(upperFirst('FRED')).toEqual('FRED');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/upperFirst.spec.ts › upperFirst › should work with an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperFirst } from \"./src/string/upperFirst.js\";\n{\n{\n{\nexpect(upperFirst('')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/upperFirst.spec.ts › upperFirst › should keep white space and not alter string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { upperFirst } from \"./src/string/upperFirst.js\";\n{\n{\n{\nexpect(upperFirst('  fred')).toEqual('  fred');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

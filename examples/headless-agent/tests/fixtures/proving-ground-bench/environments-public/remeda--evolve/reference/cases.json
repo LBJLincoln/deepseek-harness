@@ -1,0 +1,182 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/evolve.test.ts › data first › creates a new object by evolving the `data` according to the `transformation` functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({\n            id: 1,\n            quartile: [1, 2, 3, 4],\n            time: { elapsed: 100, remaining: 1400 },\n        }, {\n            id: add(1),\n            quartile: sum,\n            time: { elapsed: add(1), remaining: add(-1) },\n        })).toStrictEqual({\n            id: 2,\n            quartile: 10,\n            time: { elapsed: 101, remaining: 1399 },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/evolve.test.ts › data first › does not invoke function if `data` does not contain the key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({}, { id: add(1) })).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/evolve.test.ts › data first › is not destructive and is immutable",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nconst data = { n: 100 };\n        const expected = { n: 101 };\n        const result = evolve(data, { n: add(1) });\n        expect(data).toStrictEqual({ n: 100 });\n        expect(result).toStrictEqual(expected);\n        expect(result).not.toBe(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/evolve.test.ts › data first › is recursive",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({ first: 1, nested: { second: 2, third: 3 } }, { nested: { second: add(-1), third: add(1) } })).toStrictEqual({ first: 1, nested: { second: 1, third: 4 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/evolve.test.ts › data first › ignores undefined transformations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({ n: 0 }, {})).toStrictEqual({ n: 0 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/evolve.test.ts › data first › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, {\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        })).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/evolve.test.ts › data first › accept function whose second and subsequent arguments are optional",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({ arg2Optional: 1, arg2arg3Optional: 1 }, {\n            arg2Optional: (_, arg2) => arg2 === undefined,\n            arg2arg3Optional: (_, arg2, arg3) => arg2 === undefined && arg3 === undefined,\n        })).toStrictEqual({ arg2Optional: true, arg2arg3Optional: true });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/evolve.test.ts › data first › ignore transformers for non-object values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({ a: \"hello\" }, {\n            a: { b: constant(3) },\n        })).toStrictEqual({ a: \"hello\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/evolve.test.ts › data last › creates a new object by evolving the `data` according to the `transformation` functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({\n            id: 1,\n            quartile: [1, 2, 3, 4],\n            time: { elapsed: 100, remaining: 1400 },\n        }, evolve({\n            id: add(1),\n            quartile: sum,\n            time: { elapsed: add(1), remaining: add(-1) },\n        }))).toStrictEqual({\n            id: 2,\n            quartile: 10,\n            time: { elapsed: 101, remaining: 1399 },\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/evolve.test.ts › data last › does not invoke function if `data` does not contain the key",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({}, evolve({ id: add(1) }))).toStrictEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/evolve.test.ts › data last › is not destructive and is immutable",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nconst data = { n: 100 };\n        const expected = { n: 101 };\n        const result = pipe(data, evolve({ n: add(1) }));\n        expect(data).toStrictEqual({ n: 100 });\n        expect(result).toStrictEqual(expected);\n        expect(result).not.toBe(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/evolve.test.ts › data last › is recursive",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({ first: 1, nested: { second: 2, third: 3 } }, evolve({ nested: { second: add(-1), third: add(1) } }))).toStrictEqual({ first: 1, nested: { second: 1, third: 4 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/evolve.test.ts › data last › ignores undefined transformations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({ n: 0 }, evolve({}))).toStrictEqual({ n: 0 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/evolve.test.ts › data last › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, evolve({\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        }))).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/evolve.test.ts › data last › accept function whose second and subsequent arguments are optional",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({ arg2Optional: 1, arg2arg3Optional: 1 }, evolve({\n            arg2Optional: (_, arg2) => arg2 === undefined,\n            arg2arg3Optional: (_, arg2, arg3) => arg2 === undefined && arg3 === undefined,\n        }))).toStrictEqual({ arg2Optional: true, arg2arg3Optional: true });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

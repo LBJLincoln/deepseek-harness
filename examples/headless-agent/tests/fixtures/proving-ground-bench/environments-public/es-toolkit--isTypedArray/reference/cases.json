@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isTypedArray.spec.ts › isTypedArray › returns `true` for typed arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isTypedArray } from \"./src/predicate/isTypedArray.js\";\n{\n{\n{\nexpect(isTypedArray(new Uint8Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Uint8ClampedArray(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Uint16Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Uint32Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new BigUint64Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Int8Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Int16Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Int32Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new BigInt64Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Float32Array(new ArrayBuffer(8)))).toBe(true);\n        expect(isTypedArray(new Float64Array(new ArrayBuffer(8)))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isTypedArray.spec.ts › isTypedArray › returns `false` for values that are not typed arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isTypedArray } from \"./src/predicate/isTypedArray.js\";\n{\n{\n{\nexpect(isTypedArray(1)).toBe(false);\n        expect(isTypedArray(new Map())).toBe(false);\n        expect(isTypedArray(new Set())).toBe(false);\n        expect(isTypedArray('')).toBe(false);\n        expect(isTypedArray(Symbol('a'))).toBe(false);\n        expect(isTypedArray([1, 2, 3])).toBe(false);\n        expect(isTypedArray(false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

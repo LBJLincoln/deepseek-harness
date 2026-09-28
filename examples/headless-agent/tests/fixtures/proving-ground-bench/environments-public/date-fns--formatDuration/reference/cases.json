@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/formatDuration/test.ts › formatDuration › formats full duration",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { formatDuration } from \"./src/formatDuration/index.js\";\n{\n{\n{\nexpect(formatDuration({\n            years: 2,\n            months: 9,\n            weeks: 1,\n            days: 7,\n            hours: 5,\n            minutes: 9,\n            seconds: 30,\n        })).toBe(\"2 years 9 months 1 week 7 days 5 hours 9 minutes 30 seconds\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/formatDuration/test.ts › formatDuration › formats partial duration",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { formatDuration } from \"./src/formatDuration/index.js\";\n{\n{\n{\nexpect(formatDuration({ months: 9, days: 2 })).toBe(\"9 months 2 days\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/formatDuration/test.ts › formatDuration › allows to customize the format",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { formatDuration } from \"./src/formatDuration/index.js\";\n{\n{\n{\nexpect(formatDuration({\n            years: 2,\n            months: 9,\n            weeks: 1,\n            days: 7,\n            hours: 5,\n            minutes: 9,\n            seconds: 30,\n        }, { format: [\"months\", \"weeks\"] })).toBe(\"9 months 1 week\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/formatDuration/test.ts › formatDuration › does not include zeros by default",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { formatDuration } from \"./src/formatDuration/index.js\";\n{\n{\n{\nexpect(formatDuration({\n            years: 0,\n            months: 0,\n            weeks: 1,\n            days: 0,\n            hours: 0,\n            minutes: 0,\n            seconds: 0,\n        })).toBe(\"1 week\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/formatDuration/test.ts › formatDuration › allows to include zeros",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { formatDuration } from \"./src/formatDuration/index.js\";\n{\n{\n{\nexpect(formatDuration({\n            years: 0,\n            months: 0,\n            weeks: 1,\n            days: 0,\n            hours: 0,\n            minutes: 0,\n            seconds: 0,\n        }, { zero: true })).toBe(\"0 years 0 months 1 week 0 days 0 hours 0 minutes 0 seconds\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/formatDuration/test.ts › formatDuration › allows to customize the delimiter",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { formatDuration } from \"./src/formatDuration/index.js\";\n{\n{\n{\nexpect(formatDuration({ months: 9, days: 2 }, { delimiter: \", \" })).toBe(\"9 months, 2 days\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

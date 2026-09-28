@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/partition.test.ts › data first › partition with type guard",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/isNumber.js\";\nimport { partition } from \"./src/partition.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(partition([1, \"a\", 2, \"b\"], isNumber)).toStrictEqual([\n            [1, 2],\n            [\"a\", \"b\"],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

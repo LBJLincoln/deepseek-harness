@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/geometric_mean.test.js › geometric mean › can get the mean of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nconst ss = Object.freeze({ geometricMean: __ns1_geometricMean });\n{\n{\n{\nassert.equal(ss.geometricMean([2, 8]), 4);\n        assert.equal(ss.geometricMean([4, 1, 1 / 32]), 0.5);\n        assert.equal(Math.round(ss.geometricMean([2, 32, 1])), 4);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/geometric_mean.test.js › geometric mean › equals zero if array contains zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nconst ss = Object.freeze({ geometricMean: __ns1_geometricMean });\n{\n{\n{\nif (ss.geometricMean([0, 1, 2]) !== 0) {\n            assert.fail(\"geometric mean of array containing zero is not zero\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/log_average.test.js › log average › agrees with geometricMean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_geometricMean } from \"./src/geometric_mean.js\";\nimport { default as __ns1_logAverage } from \"./src/log_average.js\";\nconst ss = Object.freeze({ epsilon: __ns1_epsilon, geometricMean: __ns1_geometricMean, logAverage: __ns1_logAverage });\n{\n{\n{\nconst arr = [];\n        for (let i = 0; i < 10; i++) {\n            arr.push(Math.exp(Math.random()));\n        }\n        if (Math.abs(ss.logAverage(Object.freeze(arr)) -\n            ss.geometricMean(Object.freeze(arr))) > ss.epsilon) {\n            assert.fail(\"log average and geometric mean are not equal\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/allPass.test.ts › data first › allPass",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allPass } from \"./src/allPass.js\";\n{\nconst fns = [(x) => x % 3 === 0, (x) => x % 4 === 0];\n{\n{\nexpect(allPass(12, fns)).toBe(true);\n        expect(allPass(4, fns)).toBe(false);\n        expect(allPass(3, fns)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/allPass.test.ts › data last › allPass",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { allPass } from \"./src/allPass.js\";\n{\nconst fns = [(x) => x % 3 === 0, (x) => x % 4 === 0];\n{\n{\nexpect(allPass(fns)(12)).toBe(true);\n        expect(allPass(fns)(4)).toBe(false);\n        expect(allPass(fns)(3)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

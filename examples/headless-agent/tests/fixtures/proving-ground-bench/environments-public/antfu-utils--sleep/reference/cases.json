@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/promise.test.ts › promise",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createSingletonPromise, sleep } from \"./src/promise.js\";\n{\n{\nlet dummy = 0;\n    const promise = createSingletonPromise(async () => {\n        await sleep(10);\n        dummy += 1;\n        return dummy;\n    });\n    expect(dummy).toBe(0);\n    await promise();\n    expect(dummy).toBe(1);\n    await promise();\n    expect(await promise()).toBe(1);\n    expect(dummy).toBe(1);\n    await promise.reset();\n    await promise();\n    expect(dummy).toBe(2);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

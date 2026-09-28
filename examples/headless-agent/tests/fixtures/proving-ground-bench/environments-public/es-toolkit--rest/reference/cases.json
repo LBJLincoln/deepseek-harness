@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/rest.spec.ts › rest › should apply a rest parameter to `func`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rest } from \"./src/function/rest.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\nconst restFn = rest(fn);\n        expect(restFn(1, 2, 3, 4)).toEqual([1, 2, [3, 4]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/rest.spec.ts › rest › should work with `start`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rest } from \"./src/function/rest.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\nconst restFn = rest(fn, 1);\n        expect(restFn(1, 2, 3, 4)).toEqual([1, [2, 3, 4]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/rest.spec.ts › rest › should use an empty array when `start` is not reached",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rest } from \"./src/function/rest.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\nconst restFn = rest(fn);\n        expect(restFn(1)).toEqual([1, undefined, []]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/rest.spec.ts › rest › should work on functions with more than three parameters",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { rest } from \"./src/function/rest.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\n// eslint-disable-next-line @typescript-eslint/no-unused-vars\n        const restFn = rest(function (_a, _b, _c, _d) {\n            // eslint-disable-next-line prefer-rest-params\n            return Array.from(arguments);\n        });\n        expect(restFn(1, 2, 3, 4, 5)).toEqual([1, 2, 3, [4, 5]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

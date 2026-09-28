@@ -1,0 +1,52 @@
+{
+  "id": "T-0033",
+  "title": "Bring the shared-base-overlays note's Decision up to the bundle layout that superseded it",
+  "division": "curation-data",
+  "seat": "curation-data-simplification-curator",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md",
+    "anchor": "`apps/cli/config/base.cordis.yml` holds the 43 rows both surfaces mount."
+  },
+  "task": "Problem: the Decision section of .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md:19 states in present tense that `apps/cli/config/base.cordis.yml` holds the 43 rows both surfaces mount and that `apps/cli/config/tui.cordis.yml` and `apps/cli/config/web.cordis.yml` are the surface patch lists, and line 27 says the TUI tests moved to `apps/cli/tests/`; the .zh.md counterpart says the same at the same lines. None of those files exist: `apps/cli/config/` holds only `agent-presets/`, the shared rows live in packages/bundle/base/cordis.patch.yml and the web surface's rows in packages/bundle/web-app/cordis.patch.yml (the `dsh --profile` patch-layer bundles that packages/bundle/README.md documents), the TUI overlay was deleted with the TUI (.agents/notes/implemented/simplification/2026-08-04-remove-tui-package.md), and apps/cli/tests/ holds no TUI test. The Problem section at lines 9-11 describes the historical state and stays as written. .agents/notes/README.md:13 requires an implemented note's Decision to be kept current with paths and names.\n\nRequired: update the Decision's paths to the current bundle files, state the TUI overlay and its tests as removed with a link to the TUI-removal note rather than rewriting them out of the decision, and keep the one-include-level rationale (patches never cross an include boundary) intact; update the Chinese counterpart minimally; re-record the pair with `pnpm run verify-translation-pairing --write .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md`.\n\nConstraints: facts only; keep the alternatives and consequences as they are; do not touch the bundles, other notes, or anything under .agents/notes/archived/; no new Agent Note. The queue's mandatory coverage run names dsh-app-boot, the plugin that applies the bundles the note now cites; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md",
+    ".agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.zh.md",
+    ".agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.i18n.yaml"
+  ],
+  "acceptance": [
+    {
+      "id": "stale-base-path-gone",
+      "run": "! grep -q 'apps/cli/config/base.cordis.yml' .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.zh.md"
+    },
+    {
+      "id": "base-bundle-cited",
+      "run": "grep -q 'packages/bundle/base/cordis.patch.yml' .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md"
+    },
+    {
+      "id": "tui-removal-linked",
+      "run": "grep -q '2026-08-04-remove-tui-package.md' .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md"
+    },
+    {
+      "id": "pair-recorded",
+      "run": "pnpm run verify-translation-pairing .agents/notes/implemented/simplification/2026-07-29-shared-base-config-overlays.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/boot/app-boot/ --coverage --coverage.include='packages/boot/app-boot/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 3
+}

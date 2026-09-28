@@ -1,0 +1,69 @@
+{
+  "id": "code:remeda--implement-map",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/map.ts",
+    "tests": [
+      "packages/remeda/src/constant.test.ts",
+      "packages/remeda/src/difference.test.ts",
+      "packages/remeda/src/drop.test.ts",
+      "packages/remeda/src/evolve.test.ts",
+      "packages/remeda/src/filter.test.ts",
+      "packages/remeda/src/find.test.ts",
+      "packages/remeda/src/identity.test.ts",
+      "packages/remeda/src/intersection.test.ts",
+      "packages/remeda/src/isIncludedIn.test.ts",
+      "packages/remeda/src/map.test.ts",
+      "packages/remeda/src/mapWithFeedback.test.ts",
+      "packages/remeda/src/pipe.test.ts",
+      "packages/remeda/src/range.test.ts",
+      "packages/remeda/src/sortBy.test.ts",
+      "packages/remeda/src/take.test.ts",
+      "packages/remeda/src/tap.test.ts",
+      "packages/remeda/src/when.test.ts",
+      "packages/remeda/src/zip.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/map.js",
+    "function": "map"
+  },
+  "title": "Implement map from remeda",
+  "prompt": "`src/map.js` is the JavaScript build of `packages/remeda/src/map.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `map`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates a new array populated with the results of calling a provided function\n * on every element in the calling array. Equivalent to `Array.prototype.map`.\n *\n * @param data - The array to map.\n * @param callbackfn - A function to execute for each element in the array. Its\n * return value is added as a single element in the new array.\n * @returns A new array with each element being the result of the callback\n * function.\n * @signature\n *    map(data, callbackfn)\n * @example\n *    map([1, 2, 3], multiply(2)); // => [2, 4, 6]\n *    map([0, 0], add(1)); // => [1, 1]\n *    map([0, 0], (value, index) => value + index); // => [0, 1]\n * @dataFirst\n * @lazy\n * @category Array\n */\nexport function map(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/add.js`, `src/constant.js`, `src/difference.js`, `src/drop.js`, `src/evolve.js`, `src/filter.js`, `src/find.js`, `src/first.js`, `src/flat.js`, `src/hasAtLeast.js`, `src/identity.js`, `src/internal/lazyDataLastImpl.js`, `src/internal/purryFromLazy.js`, `src/internal/purryOrderRules.js`, `src/internal/toSingle.js`, `src/internal/utilityEvaluators.js`, `src/intersection.js`, `src/isDefined.js`, `src/isIncludedIn.js`, `src/isNot.js`, `src/isNullish.js`, `src/isStrictEqual.js`, `src/isString.js`, `src/length.js`, `src/mapValues.js`, `src/mapWithFeedback.js`, `src/multiply.js`, `src/omit.js`, `src/pipe.js`, `src/prop.js`, `src/purry.js`, `src/range.js`, `src/reduce.js`, `src/set.js`, `src/sliceString.js`, `src/sortBy.js`, `src/take.js`, `src/tap.js`, `src/times.js`, `src/when.js`, `src/zip.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

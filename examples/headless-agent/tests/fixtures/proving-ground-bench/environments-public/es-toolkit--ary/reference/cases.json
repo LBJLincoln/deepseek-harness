@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/ary.spec.ts › ary › should cap the number of arguments provided to `func`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\nconst actual = ['6', '8', '10'].map(ary(parseInt, 1));\n        expect(actual).toEqual([6, 8, 10]);\n        const capped = ary(fn, 2);\n        expect(capped('a', 'b', 'c', 'd')).toEqual(['a', 'b']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/ary.spec.ts › ary › should not force a minimum argument count",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\nconst args = ['a', 'b', 'c'];\n        const capped = ary(fn, 3);\n        const expected = args.map((arg, index) => args.slice(0, index));\n        // eslint-disable-next-line prefer-spread\n        const actual = expected.map(array => capped.apply(undefined, array));\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/ary.spec.ts › ary › should use `this` binding of function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\n// eslint-disable-next-line @typescript-eslint/no-unused-vars\n        const capped = ary(function (_a, _b) {\n            return this;\n        }, 1);\n        const object = { capped: capped };\n        expect(object.capped()).toBe(object);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/ary.spec.ts › ary › should use the existing `ary` if smaller",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\n{\n{\nfunction fn(_a, _b, _c) {\n        // eslint-disable-next-line prefer-rest-params\n        return Array.from(arguments);\n    }\n{\nconst capped = ary(ary(fn, 1), 2);\n        expect(capped('a', 'b', 'c', 'd')).toEqual(['a']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flow(getProp, uniq);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/function/flowRight.spec.ts › flowRight › `flowRight` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flowRight } from \"./src/function/flowRight.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flowRight(uniq, getProp);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

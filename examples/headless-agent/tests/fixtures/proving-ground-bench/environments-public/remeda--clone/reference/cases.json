@@ -1,0 +1,206 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/clone.test.ts › primitive types › number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nexpect(clone(0)).toBe(0);\n        expect(clone(4)).toBe(4);\n        expect(clone(-4)).toBe(-4);\n        expect(clone(4.5)).toBe(4.5);\n        expect(clone(9_007_199_254_740_991)).toBe(9_007_199_254_740_991);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/clone.test.ts › primitive types › string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nexpect(clone(\"foo\")).toBe(\"foo\");\n        expect(clone(\"\")).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/clone.test.ts › primitive types › boolean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nexpect(clone(true)).toBe(true);\n        expect(clone(false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/clone.test.ts › objects › clones shallow object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst obj = { a: 1, b: \"foo\", c: true, d: new Date(2013, 11, 25) };\n        const cloned = clone(obj);\n        expect(cloned).not.toBe(obj);\n        expect(cloned).toStrictEqual(obj);\n        obj.c = false;\n        obj.d.setDate(31);\n        expect(cloned).toStrictEqual({\n            a: 1,\n            b: \"foo\",\n            c: true,\n            d: new Date(2013, 11, 25),\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/clone.test.ts › objects › clones deep object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst obj = { a: { b: { c: \"foo\" } } };\n        const cloned = clone(obj);\n        expect(cloned).not.toBe(obj);\n        expect(cloned).toStrictEqual(obj);\n        obj.a.b.c = \"bar\";\n        expect(cloned).toStrictEqual({ a: { b: { c: \"foo\" } } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/clone.test.ts › objects › clones objects with circular references",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst x = { c: null };\n        const y = { a: x };\n        const z = { b: y };\n        x.c = z;\n        const cloned = clone(x);\n        expect(cloned).not.toBe(x);\n        expect(cloned).toStrictEqual(x);\n        expect(cloned.c).not.toBe(x.c);\n        expect(cloned.c).toStrictEqual(x.c);\n        expect(cloned.c.b).not.toBe(x.c.b);\n        expect(cloned.c.b).toStrictEqual(x.c.b);\n        expect(cloned.c.b.a).not.toBe(x.c.b.a);\n        expect(cloned.c.b.a).toStrictEqual(x.c.b.a);\n        expect(cloned.c.b.a.c).not.toBe(x.c.b.a.c);\n        expect(cloned.c.b.a.c).toStrictEqual(x.c.b.a.c);\n        x.c.b = 1;\n        expect(cloned.c.b).not.toStrictEqual(x.c.b);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/clone.test.ts › arrays › clones shallow arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst list = [1, 2, 3];\n        const cloned = clone(list);\n        expect(cloned).not.toBe(list);\n        expect(cloned).toStrictEqual(list);\n        list.pop();\n        expect(cloned).not.toStrictEqual(list);\n        expect(cloned).toStrictEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/clone.test.ts › arrays › clones deep arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst list = [1, [1, 2, 3], [[[5]]]];\n        const cloned = clone(list);\n        expect(cloned).not.toBe(list);\n        expect(cloned).toStrictEqual(list);\n        expect(cloned[2]).not.toBe(list[2]);\n        expect(cloned[2]).toStrictEqual(list[2]);\n        expect(cloned[2][0]).not.toBe(list[2][0]);\n        expect(cloned[2][0]).toStrictEqual(list[2][0]);\n        expect(cloned).toStrictEqual([1, [1, 2, 3], [[[5]]]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/clone.test.ts › functions › keep reference to function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst list = [{ a: (x) => x + x }];\n        const cloned = clone(list);\n        expect(cloned).not.toBe(list);\n        expect(cloned).toStrictEqual(list);\n        expect(cloned[0].a(10)).toBe(20);\n        expect(list[0].a).toBe(cloned[0].a);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/clone.test.ts › built-in types › clones Date object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst date = new Date(2014, 10, 14, 23, 59, 59, 999);\n        const cloned = clone(date);\n        expect(cloned).not.toBe(date);\n        expect(cloned).toStrictEqual(new Date(2014, 10, 14, 23, 59, 59, 999));\n        expect(cloned.getDay()).toBe(5); // friday\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/clone.test.ts › nested mixed objects › clones array with objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst list = [{ a: { b: 1 } }, [{ c: { d: 1 } }]];\n        const cloned = clone(list);\n        list[1][0] = null;\n        expect(cloned).toStrictEqual([{ a: { b: 1 } }, [{ c: { d: 1 } }]]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/clone.test.ts › nested mixed objects › clones array with arrays › nulls",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\n{\nconst list = [[1], [[3]]];\n            const cloned = clone(list);\n            list[1][0] = null;\n            expect(cloned).toStrictEqual([[1], [[3]]]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/clone.test.ts › nested mixed objects › clones array with arrays › clones array with mutual ref object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\n{\nconst obj = { a: 1 };\n            const list = [{ b: obj }, { b: obj }];\n            const cloned = clone(list);\n            expect(cloned[0]?.b).toBe(cloned[1]?.b);\n            expect(cloned[0]?.b).not.toBe(list[0]?.b);\n            expect(cloned[0]?.b).toStrictEqual(list[0]?.b);\n            expect(cloned[1]?.b).not.toBe(list[1]?.b);\n            expect(cloned[1]?.b).toStrictEqual(list[1]?.b);\n            expect(cloned[0]?.b).toStrictEqual({ a: 1 });\n            expect(cloned[1]?.b).toStrictEqual({ a: 1 });\n            obj.a = 2;\n            expect(cloned[0]?.b).toStrictEqual({ a: 1 });\n            expect(cloned[1]?.b).toStrictEqual({ a: 1 });\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/clone.test.ts › edge cases › undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nexpect(clone(undefined)).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/clone.test.ts › edge cases › nulls",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nexpect(clone(null)).toBeNull();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/clone.test.ts › edge cases › empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst obj = {};\n        expect(clone(obj)).not.toBe(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/clone.test.ts › edge cases › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { version } from \"node:process\";\nimport { clone } from \"./src/clone.js\";\n{\n{\n{\nconst array = [];\n        expect(clone(array)).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

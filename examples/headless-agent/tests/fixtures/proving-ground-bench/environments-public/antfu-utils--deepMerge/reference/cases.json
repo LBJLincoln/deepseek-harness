@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-002",
+    "title": "src/object.test.ts › deepMerge › should merge Objects and all nested Ones",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\n{\nconst obj1 = { a: { a1: 'A1' }, c: 'C', d: {} };\n        const obj2 = { a: { a2: 'A2' }, b: { b1: 'B1' }, d: null };\n        const obj3 = { a: { a1: 'A1', a2: 'A2' }, b: { b1: 'B1' }, c: 'C', d: null };\n        expect(deepMerge({}, obj1, obj2)).toEqual(obj3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object.test.ts › deepMerge › should behave like Object.assign on the top level",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\n{\nconst obj1 = { a: { a1: 'A1' }, c: 'C' };\n        const obj2 = { a: undefined, b: { b1: 'B1' } };\n        const merged = deepMerge(obj1, obj2);\n        expect(merged).toEqual(Object.assign({}, obj1, obj2));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object.test.ts › deepMerge › should not merge array values, just override",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\n{\nconst obj1 = { a: ['A', 'B'] };\n        const obj2 = { a: ['C'], b: ['D'] };\n        expect(deepMerge({}, obj1, obj2)).toEqual({ a: ['C'], b: ['D'] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object.test.ts › deepMerge › should overide plain value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\n{\nconst obj1 = { a: { x: 1 } };\n        const obj2 = { a: { x: { f: 2 } } };\n        expect(deepMerge({}, obj1, obj2)).toEqual({ a: { x: { f: 2 } } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object.test.ts › deepMerge › prototype pollution 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\n{\nconst obj = {};\n        const obj2 = {};\n        const payload = JSON.parse('{\"__proto__\":{\"polluted\":\"Polluted!\"}}');\n        expect(obj.polluted).toBeUndefined();\n        expect(obj2.polluted).toBeUndefined();\n        deepMerge(obj, payload);\n        expect(obj.polluted).toBeUndefined();\n        expect(obj2.polluted).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/mapKeys.spec.ts › mapKeys › should iterate over and map the object using its own string keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeys } from \"./src/object/mapKeys.js\";\n{\n{\n{\nexpect(mapKeys({ a: 1, b: 2, c: 3 }, (_, key) => `${key}a`)).toEqual({ aa: 1, ba: 2, ca: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/mapKeys.spec.ts › mapKeys › should iterate over and map the object using its own number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeys } from \"./src/object/mapKeys.js\";\n{\n{\n{\nexpect(mapKeys({ 1: 'a', 2: 'b', 3: 'c' }, (_, key) => Number(key) * 2)).toEqual({ 2: 'a', 4: 'b', 6: 'c' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/mapKeys.spec.ts › mapKeys › should pass the value corresponding to the current key into the iteratee",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { mapKeys } from \"./src/object/mapKeys.js\";\n{\n{\n{\nexpect(mapKeys({ a: 1, b: 2, c: 3 }, value => value)).toEqual({ 1: 1, 2: 2, 3: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

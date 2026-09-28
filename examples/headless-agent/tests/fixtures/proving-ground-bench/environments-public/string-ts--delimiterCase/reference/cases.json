@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/word-case/delimiter-case.test.ts › delimiterCase › casing functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { SEPARATORS_TEXT, WEIRD_TEXT } from \"./src/internal/fixtures.js\";\nimport { delimiterCase } from \"./src/utils/word-case/delimiter-case.js\";\n{\n{\n{\nconst expected = 'some@Weird@cased@$*@String@1986@Foo@Bar@W@FOR@WUMBO';\n        const result = delimiterCase(WEIRD_TEXT, '@');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/utils/word-case/delimiter-case.test.ts › delimiterCase › with various separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { SEPARATORS_TEXT, WEIRD_TEXT } from \"./src/internal/fixtures.js\";\nimport { delimiterCase } from \"./src/utils/word-case/delimiter-case.js\";\n{\n{\n{\nconst result = delimiterCase(SEPARATORS_TEXT, '.');\n        const expected = 'one.two.three.four.five.six.seven.eight.nine.ten';\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

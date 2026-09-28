@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/word-case/title-case.test.ts › titleCase › casing functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { SEPARATORS_TEXT, WEIRD_TEXT } from \"./src/internal/fixtures.js\";\nimport { titleCase } from \"./src/utils/word-case/title-case.js\";\n{\n{\n{\nconst expected = 'Some Weird Cased $* String 1986 Foo Bar W For Wumbo';\n        const result = titleCase(WEIRD_TEXT);\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/utils/word-case/title-case.test.ts › titleCase › with various separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { SEPARATORS_TEXT, WEIRD_TEXT } from \"./src/internal/fixtures.js\";\nimport { titleCase } from \"./src/utils/word-case/title-case.js\";\n{\n{\n{\nconst result = titleCase(SEPARATORS_TEXT);\n        const expected = 'One Two Three Four Five Six Seven Eight Nine Ten';\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

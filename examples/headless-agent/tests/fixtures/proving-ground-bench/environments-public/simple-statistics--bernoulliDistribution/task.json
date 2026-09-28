@@ -1,0 +1,51 @@
+{
+  "id": "code:simple-statistics--implement-bernoulliDistribution",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/bernoulli_distribution.js",
+    "tests": [
+      "test/bernoulli_distribution.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/bernoulli_distribution.js",
+    "function": "bernoulliDistribution"
+  },
+  "title": "Implement bernoulliDistribution from simple-statistics",
+  "prompt": "`src/bernoulli_distribution.js` is the JavaScript build of `src/bernoulli_distribution.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `bernoulliDistribution`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * The [Bernoulli distribution](http://en.wikipedia.org/wiki/Bernoulli_distribution)\n * is the probability discrete\n * distribution of a random variable which takes value 1 with success\n * probability `p` and value 0 with failure\n * probability `q` = 1 - `p`. It can be used, for example, to represent the\n * toss of a coin, where \"1\" is defined to mean \"heads\" and \"0\" is defined\n * to mean \"tails\" (or vice versa). It is\n * a special case of a Binomial Distribution\n * where `n` = 1.\n *\n * @param {number} p input value, between 0 and 1 inclusive\n * @returns {number[]} values of bernoulli distribution at this point\n * @throws {Error} if p is outside 0 and 1\n * @example\n * bernoulliDistribution(0.3); // => [0.7, 0.3]\n */\nfunction bernoulliDistribution(p) /*: number[] */\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/epsilon.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

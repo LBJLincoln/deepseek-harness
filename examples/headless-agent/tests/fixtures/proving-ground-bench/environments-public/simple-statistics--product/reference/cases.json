@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/product.test.js › product › can get the product of one number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_product } from \"./src/product.js\";\nconst ss = Object.freeze({ product: __ns1_product });\n{\n{\n{\nassert.equal(ss.product([2]), 2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/product.test.js › product › can get the product of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_product } from \"./src/product.js\";\nconst ss = Object.freeze({ product: __ns1_product });\n{\n{\n{\nassert.equal(ss.product([2, 3]), 6);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/product.test.js › product › can get the product of a negative number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_product } from \"./src/product.js\";\nconst ss = Object.freeze({ product: __ns1_product });\n{\n{\n{\nassert.equal(ss.product([-1, 2, 3, 4]), -24);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/product.test.js › product › the product of no numbers is one - the multiplicative identity",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_product } from \"./src/product.js\";\nconst ss = Object.freeze({ product: __ns1_product });\n{\n{\n{\nassert.equal(ss.product([]), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

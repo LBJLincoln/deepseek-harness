@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/clamp.test.ts › min value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clamp } from \"./src/clamp.js\";\n{\n{\nexpect(clamp(10, { min: 20 })).toBe(20);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/clamp.test.ts › max value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clamp } from \"./src/clamp.js\";\n{\n{\nexpect(clamp(10, { max: 5 })).toBe(5);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/clamp.test.ts › ok value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { clamp } from \"./src/clamp.js\";\n{\n{\nexpect(clamp(10, { max: 20, min: 5 })).toBe(10);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/object-keys/replace-keys.test.ts › replaceKeys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { replaceKeys } from \"./src/utils/object-keys/replace-keys.js\";\n{\n{\nconst expected = {\n        some: { deepNested: { value: true } },\n        value: true,\n    };\n    const result = replaceKeys({\n        some: { deepNested: { value: true } },\n        other_value: true,\n    }, 'other_', '');\n    expect(result).toEqual(expected);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

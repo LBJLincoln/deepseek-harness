@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/mapWithFeedback.test.ts › data first › should return an array of successively accumulated values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { mapWithFeedback } from \"./src/mapWithFeedback.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(mapWithFeedback([1, 2, 3, 4, 5], (acc, x) => acc + x, 100)).toStrictEqual([101, 103, 106, 110, 115]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/mapWithFeedback.test.ts › data first › should use the same accumulator on every iteration if it's mutable, therefore returning an array containing {array length} references to the accumulator.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { mapWithFeedback } from \"./src/mapWithFeedback.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst results = mapWithFeedback([1, 2, 3, 4, 5], (acc, x) => {\n            acc[x] = x;\n            return acc;\n        }, {});\n        const [item] = results;\n        expect(item).toStrictEqual({ \"1\": 1, \"2\": 2, \"3\": 3, \"4\": 4, \"5\": 5 });\n        for (const result of results) {\n            expect(result).toBe(item);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/mapWithFeedback.test.ts › data first › if an empty array is provided, it should never iterate, returning a new empty array.",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { mapWithFeedback } from \"./src/mapWithFeedback.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst data = [];\n        const result = mapWithFeedback(data, (acc) => acc, \"value\");\n        expect(result).toStrictEqual([]);\n        expect(result).not.toBe(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/mapWithFeedback.test.ts › data last › should return an array of successively accumulated values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { mapWithFeedback } from \"./src/mapWithFeedback.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], mapWithFeedback((acc, x) => acc + x, 100))).toStrictEqual([101, 103, 106, 110, 115]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/mapWithFeedback.test.ts › data last › should track index and progressively include elements from the original array in the items array during each iteration, forming a growing window",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { mapWithFeedback } from \"./src/mapWithFeedback.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nconst lazyItems = [];\n        const indices = [];\n        pipe([1, 2, 3, 4, 5], mapWithFeedback((acc, x, index, items) => {\n            indices.push(index);\n            lazyItems.push([...items]);\n            return acc + x;\n        }, 100));\n        expect(indices).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(lazyItems).toStrictEqual([\n            [1],\n            [1, 2],\n            [1, 2, 3],\n            [1, 2, 3, 4],\n            [1, 2, 3, 4, 5],\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

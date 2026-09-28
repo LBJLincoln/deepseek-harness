@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/weeksToDays/test.ts › weeksToDays › converts weeks to days",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { weeksToDays } from \"./src/weeksToDays/index.js\";\n{\n{\n{\nexpect(weeksToDays(1)).toBe(7);\n        expect(weeksToDays(2)).toBe(14);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/weeksToDays/test.ts › weeksToDays › uses floor rounding",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { weeksToDays } from \"./src/weeksToDays/index.js\";\n{\n{\n{\nexpect(weeksToDays(1.5)).toBe(10);\n        expect(weeksToDays(0.1)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/weeksToDays/test.ts › weeksToDays › handles border values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { weeksToDays } from \"./src/weeksToDays/index.js\";\n{\n{\n{\nexpect(weeksToDays(1.5)).toBe(10);\n        expect(weeksToDays(0)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/weeksToDays/test.ts › weeksToDays › properly works with negative numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { weeksToDays } from \"./src/weeksToDays/index.js\";\n{\n{\n{\nexpect(weeksToDays(1.23)).toBe(8);\n        expect(weeksToDays(-1.23)).toBe(-8);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,266 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › returns undefined on empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([], identity())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › returns the item on a single item array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([1], identity())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › finds the minimum",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([2, 1, 4, 3, 5], identity())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › finds the minimum with a non-trivial order rule",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([\"aa\", \"a\", \"aaaa\", \"aaa\", \"aaaaa\"], (x) => x.length)).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › finds the max with 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([2, 1, 4, 3, 5], [identity(), \"desc\"])).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › finds the max with non-trivial 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([\"aa\", \"a\", \"aaaa\", \"aaa\", \"aaaaa\"], [identity(), \"desc\"])).toBe(\"aaaaa\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › breaks ties with multiple order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"a\", \"bb\", \"b\", \"aaaa\", \"bbb\", \"aa\", \"aaa\", \"bbbb\"];\n        expect(firstBy(data, (x) => x.length, identity())).toBe(\"a\");\n        expect(firstBy(data, [(x) => x.length, \"desc\"], identity())).toBe(\"aaaa\");\n        expect(firstBy(data, (x) => x.length, [identity(), \"desc\"])).toBe(\"b\");\n        expect(firstBy(data, [(x) => x.length, \"desc\"], [identity(), \"desc\"])).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([\"b\", \"a\", \"c\"], identity())).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([2, 1, 3], identity())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([true, false, true, true, false], identity())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare valueOfs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([new Date(), new Date(1), new Date(2)], identity())).toStrictEqual(new Date(1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › returns undefined on empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], firstBy(identity()))).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › returns the item on a single item array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1], firstBy(identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the minimum",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 4, 3, 5], firstBy(identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the minimum with a non-trivial order rule",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"aa\", \"a\", \"aaaa\", \"aaa\", \"aaaaa\"], firstBy((x) => x.length))).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the max with 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 4, 3, 5], firstBy([identity(), \"desc\"]))).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the max with non-trivial 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"aa\", \"a\", \"aaaa\", \"aaa\", \"aaaaa\"], firstBy([identity(), \"desc\"]))).toBe(\"aaaaa\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › breaks ties with multiple order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"a\", \"bb\", \"b\", \"aaaa\", \"bbb\", \"aa\", \"aaa\", \"bbbb\"];\n        expect(pipe(data, firstBy((x) => x.length, identity()))).toBe(\"a\");\n        expect(pipe(data, firstBy([(x) => x.length, \"desc\"], identity()))).toBe(\"aaaa\");\n        expect(pipe(data, firstBy((x) => x.length, [identity(), \"desc\"]))).toBe(\"b\");\n        expect(pipe(data, firstBy([(x) => x.length, \"desc\"], [identity(), \"desc\"]))).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"b\", \"a\", \"c\"], firstBy(identity()))).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 3], firstBy(identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([true, false, true, true, false], firstBy(identity()))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare valueOfs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([new Date(), new Date(1), new Date(2)], firstBy(identity()))).toStrictEqual(new Date(1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

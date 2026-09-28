@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-differenceWith",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/differenceWith.ts",
+    "tests": [
+      "src/array/differenceWith.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/differenceWith.js",
+    "function": "differenceWith"
+  },
+  "title": "Implement differenceWith from es-toolkit",
+  "prompt": "`src/array/differenceWith.js` is the JavaScript build of `src/array/differenceWith.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `differenceWith`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Computes the difference between two arrays based on a custom equality function.\n *\n * This function takes two arrays and a custom comparison function. It returns a new array containing\n * the elements that are present in the first array but not in the second array. The comparison to determine\n * if elements are equal is made using the provided custom function.\n *\n * @template T, U\n * @param firstArr - The array from which to get the difference.\n * @param secondArr - The array containing elements to exclude from the first array.\n * @param areItemsEqual - A function to determine if two items are equal.\n * @returns A new array containing the elements from the first array that do not match any elements in the second array\n * according to the custom equality function.\n *\n * @example\n * const array1 = [{ id: 1 }, { id: 2 }, { id: 3 }];\n * const array2 = [{ id: 2 }, { id: 4 }];\n * const areItemsEqual = (a, b) => a.id === b.id;\n * const result = differenceWith(array1, array2, areItemsEqual);\n * // result will be [{ id: 1 }, { id: 3 }] since the elements with id 2 are considered equal and are excluded from the result.\n *\n * @example\n * const array1 = [{ id: 1 }, { id: 2 }, { id: 3 }];\n * const array2 = [2, 4];\n * const areItemsEqual = (a, b) => a.id === b;\n * const result = differenceWith(array1, array2, areItemsEqual);\n * // result will be [{ id: 1 }, { id: 3 }] since the element with id 2 is considered equal to the second array's element and is excluded from the result.\n */\nexport function differenceWith<T, U>(\n  firstArr: readonly T[],\n  secondArr: readonly U[],\n  areItemsEqual: (x: T, y: U) => boolean\n): T[]\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

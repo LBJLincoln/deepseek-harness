@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-isShallowEqual",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/isShallowEqual.ts",
+    "tests": [
+      "packages/remeda/src/isShallowEqual.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/isShallowEqual.js",
+    "function": "isShallowEqual"
+  },
+  "title": "Implement isShallowEqual from remeda",
+  "prompt": "`src/isShallowEqual.js` is the JavaScript build of `packages/remeda/src/isShallowEqual.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isShallowEqual`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Performs a *shallow structural* comparison between two values to determine if\n * they are equivalent. For primitive values this is equivalent to `===`, for\n * arrays a **strict equality** check would be performed on every item, in\n * order, and for objects props will be matched and checked for **strict\n * equality**; Unlike `isDeepEqual` where the function also *recurses* into each\n * item and value.\n *\n * !IMPORTANT: symbol properties of objects are not supported right now and\n * might result in unexpected behavior. Please open an issue in the Remeda\n * github project if you need support for these types.\n *\n * !IMPORTANT: Promise, Date, and RegExp, are shallowly equal, even when they\n * are semantically different (e.g. resolved promises); but `isDeepEqual` does\n * compare the latter 2 semantically by-value.\n *\n * The result would be narrowed to the second value so that the function can be\n * used as a type guard.\n *\n * See:\n * - `isStrictEqual` if you don't need a deep comparison and just want to check\n * for simple (`===`, `Object.is`) equality.\n * - `isDeepEqual` for a recursively deep check of arrays and objects.\n *\n * @param data - The first value to compare.\n * @param other - The second value to compare.\n * @signature\n *    isShallowEqual(data, other)\n * @example\n *    isShallowEqual(1, 1) //=> true\n *    isShallowEqual(1, '1') //=> false\n *    isShallowEqual([1, 2, 3], [1, 2, 3]) //=> true\n *    isShallowEqual([[1], [2], [3]], [[1], [2], [3]]) //=> false\n * @dataFirst\n * @category Guard\n */\nexport function isShallowEqual(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should return the result of the async function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => 1);\n        expect(error).toBeNull();\n        expect(result).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should return the error of the async function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => {\n            throw new Error('test');\n        });\n        expect(error).toBeInstanceOf(Error);\n        expect(error instanceof Error && error.message).toBe('test');\n        expect(result).toBeNull();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should return the error of the async function that rejects after a delay",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => {\n            await delay(100);\n            throw new Error('delayed error');\n        });\n        expect(error).toBeInstanceOf(Error);\n        expect(error instanceof Error && error.message).toBe('delayed error');\n        expect(result).toBeNull();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should return the result of a complex async operation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => {\n            const value1 = await Promise.resolve(10);\n            const value2 = await Promise.resolve(20);\n            return value1 + value2;\n        });\n        expect(error).toBeNull();\n        expect(result).toBe(30);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should accept a single type argument for the result type",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => [1, 2, 3]);\n        expect(error).toBeNull();\n        expect(result).toEqual([1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/util/attemptAsync.spec.ts › attemptAsync › should work with non-Error thrown objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { attemptAsync } from \"./src/util/attemptAsync.js\";\nimport { delay } from \"./src/promise/delay.js\";\n{\n{\n{\nconst [error, result] = await attemptAsync(async () => {\n            throw 'string error'; // Not an Error instance\n        });\n        expect(error).toBe('string error');\n        expect(result).toBeNull();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

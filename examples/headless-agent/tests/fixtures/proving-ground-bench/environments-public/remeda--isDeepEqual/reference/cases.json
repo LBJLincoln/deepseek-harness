@@ -1,0 +1,722 @@
+[
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › works with a single case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [isDeepEqual(\"Jokic\"), () => \"center\"])).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › works with two cases",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [isDeepEqual(\"Murray\"), () => \"point guard\"], [isDeepEqual(\"Jokic\"), () => \"center\"])).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataFirst) › picks the first matching case",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(conditional(\"Jokic\", [isDeepEqual(\"Jokic\"), () => \"center\"], [isDeepEqual(\"Jokic\"), () => \"mvp\"])).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/conditional.test.ts › runtime (dataLast) › should return value of first pair",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { conditional } from \"./src/conditional.js\";\nimport { constant } from \"./src/constant.js\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst value = pipe(\"Jokic\", conditional([isDeepEqual(\"Murray\"), () => \"point guard\"], [isDeepEqual(\"Jokic\"), () => \"center\"], [isDeepEqual(\"Jokic\"), () => \"mvp\"]));\n        expect(value).toBe(\"center\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › not equal numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(1, 2)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › number and array are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(1, [])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › 0 and null are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(0, null)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › equal strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(\"a\", \"a\")).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › empty string and null are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(\"\", null)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › null is equal to null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(null, null)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › equal booleans (true)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(true, true)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › not equal booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(true, false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › 1 and true are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(1, true)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › 0 and false are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(0, false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › naN and NaN are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(NaN, NaN)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › infinity and Infinity are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(Infinity, Infinity)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › scalars › infinity and -Infinity are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(Infinity, -Infinity)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › empty objects are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({}, {})).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › equal objects (different properties \"order\")",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ a: 1, b: \"2\" }, { b: \"2\", a: 1 })).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › not equal objects (extra property)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ a: 1, b: \"2\" }, { a: 1, b: \"2\", c: [] })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › not equal objects (different properties) #1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ a: 1, b: \"2\", c: 3 }, { a: 1, b: \"2\", d: 3 })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › not equal objects (different properties) #2",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ a: 1, b: \"2\", c: 3 }, { a: 1, b: \"2\", d: 3 })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › not equal objects (different sub-property value)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ a: [{ b: \"c\" }] }, { a: [{ b: \"d\" }] })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › not equal objects (different sub-property)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ a: [{ b: \"c\" }] }, { a: [{ c: \"c\" }] })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › empty array and empty object are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({}, [])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-036",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › object with extra undefined properties are not equal #2",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ foo: undefined }, {})).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › object with extra undefined properties are not equal #3",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ foo: undefined }, { bar: undefined })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › nulls are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(null, null)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-039",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › null and undefined are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(null, undefined)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-041",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › objects › undefined and empty object are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(undefined, {})).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sets › two empty sets should be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Set(), new Set())).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-043",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sets › two sets of the same lenght should not be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Set([1]), new Set([1, 2]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-045",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sets › two sets of with the same primitive content should equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Set([{ a: 1 }, { b: 3 }]), new Set([{ b: 3 }, { a: 1 }]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-046",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sets › two sets with duplicated non primitive content should not be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Set([{ a: 1 }, { b: 3 }, { a: 1 }]), new Set([{ b: 3 }, { a: 1 }, { b: 3 }]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-047",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sets › two sets of Maps with the same values should be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Set([new Map([[\"a\", 123]]), new Map([[\"b\", 456]])]), new Set([new Map([[\"b\", 456]]), new Map([[\"a\", 123]])]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-048",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sets › two sets with more than two items that are all equal should be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Set([{ a: 1 }, { b: 3 }, { c: 4 }, { a: 1 }]), new Set([{ b: 3 }, { c: 4 }, { a: 1 }, { a: 1 }]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-050",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › arrays › equal arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual([1, 2, 3], [1, 2, 3])).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-051",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › arrays › not equal arrays (different item)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual([1, 2, 3], [1, 2, 4])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-052",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › arrays › not equal arrays (different length)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual([1, 2, 3], [1, 2])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-054",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › arrays › not equal arrays of objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual([{ a: \"a\" }, { b: \"b\" }], [{ a: \"a\" }, { b: \"c\" }])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-055",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › arrays › pseudo array and equivalent array are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({ \"0\": 0, \"1\": 1, length: 2 }, [0, 1])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-056",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › maps › works on shallow equal maps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Map([[\"a\", 1]]), new Map([[\"a\", 1]]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-057",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › maps › two empty Maps should be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Map(), new Map())).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-059",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › maps › two Maps with different keys shoud not be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Map([\n            [\"a\", 1],\n            [\"c\", 2],\n        ]), new Map([\n            [\"a\", 1],\n            [\"b\", 2],\n        ]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-060",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › maps › two maps with the same keys but with different values should not be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Map([\n            [\"a\", 1],\n            [\"b\", 3],\n            [\"c\", 2],\n        ]), new Map([\n            [\"a\", 1],\n            [\"b\", 2],\n            [\"c\", 2],\n        ]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-061",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › maps › two Maps with the same non primitives data should be equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Map([\n            [\"a\", { a: [1, 2, 3] }],\n            [\"b\", { a: [3] }],\n            [\"c\", { b: [4] }],\n        ]), new Map([\n            [\"a\", { a: [1, 2, 3] }],\n            [\"b\", { a: [3] }],\n            [\"c\", { b: [4] }],\n        ]))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-063",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › dates › not equal date objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Date(\"2017-06-16T21:36:48.362Z\"), new Date(\"2017-01-01T00:00:00.000Z\"))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-064",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › dates › date and string are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Date(\"2017-06-16T21:36:48.362Z\"), \"2017-06-16T21:36:48.362Z\")).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-065",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › dates › date and object are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(new Date(\"2017-06-16T21:36:48.362Z\"), {})).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-066",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › regular expressions › equal RegExp objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(/foo/u, /foo/u)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-068",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › regular expressions › not equal RegExp objects (different flags)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(/foo/u, /foo/iu)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-069",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › regular expressions › regExp and string are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(/foo/u, \"foo\")).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-070",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › regular expressions › regExp and object are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(/foo/u, {})).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-072",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › functions › different functions are not equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(func1, func2)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-073",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › sample objects › big object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual({\n            prop1: \"value1\",\n            prop2: \"value2\",\n            prop3: \"value3\",\n            prop4: {\n                subProp1: \"sub value1\",\n                subProp2: {\n                    subSubProp1: \"sub sub value1\",\n                    subSubProp2: [1, 2, { prop2: 1, prop: 2 }, 4, 5],\n                },\n            },\n            prop5: 1000,\n            prop6: new Date(2016, 2, 10),\n        }, {\n            prop5: 1000,\n            prop3: \"value3\",\n            prop1: \"value1\",\n            prop2: \"value2\",\n            prop6: new Date(\"2016/03/10\"),\n            prop4: {\n                subProp2: {\n                    subSubProp1: \"sub sub value1\",\n                    subSubProp2: [1, 2, { prop2: 1, prop: 2 }, 4, 5],\n                },\n                subProp1: \"sub value1\",\n            },\n        })).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-074",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › null-prototype objects › are equal to equivalent plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nconst data = { a: 1, b: \"2\" };\n        const nullProtoObject = withNullPrototype(data);\n        expect(isDeepEqual(nullProtoObject, data)).toBe(true);\n        expect(isDeepEqual(data, nullProtoObject)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-075",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › null-prototype objects › are equal to equivalent null-prototype objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nconst data = { a: 1, b: \"2\" };\n        expect(isDeepEqual(withNullPrototype(data), withNullPrototype(data))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-077",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › null-prototype objects › compare property values against plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nconst data = { a: 1 };\n        const nullProtoObject = withNullPrototype({ a: 2 });\n        expect(isDeepEqual(data, nullProtoObject)).toBe(false);\n        expect(isDeepEqual(nullProtoObject, data)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-078",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › null-prototype objects › compare property values between null-prototype objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nexpect(isDeepEqual(withNullPrototype({ a: 1 }), withNullPrototype({ a: 2 }))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-079",
+    "title": "packages/remeda/src/isDeepEqual.test.ts › null-prototype objects › work in data-last form",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDeepEqual } from \"./src/isDeepEqual.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\nfunction func1() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction func2() {\n    throw new Error(\"This function should never be called!\");\n}\nfunction withNullPrototype(data) {\n    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- we rely on the type of Object.create which isn't typed.\n    return Object.assign(Object.create(null), data);\n}\n{\n{\nconst data = { a: 1 };\n        const nullProtoObject = withNullPrototype(data);\n        expect(pipe(data, isDeepEqual(nullProtoObject))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

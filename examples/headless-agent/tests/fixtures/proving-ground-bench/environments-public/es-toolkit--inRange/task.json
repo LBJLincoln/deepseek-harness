@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-inRange",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/math/inRange.ts",
+    "tests": [
+      "src/math/inRange.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/math/inRange.js",
+    "function": "inRange"
+  },
+  "title": "Implement inRange from es-toolkit",
+  "prompt": "`src/math/inRange.js` is the JavaScript build of `src/math/inRange.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `inRange`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Checks if the value is within a specified range.\n *\n * @param value The value to check.\n * @param minimum The lower bound of the range (inclusive).\n * @param maximum The upper bound of the range (exclusive).\n * @returns `true` if the value is within the specified range, otherwise `false`.\n * @throws {Error} Throws an error if the `minimum` is greater or equal than the `maximum`.\n *\n * @example\n * const result1 = inRange(3, 5); // result1 will be true.\n * const result2 = inRange(1, 2, 5); // result2 will be false.\n * const result3 = inRange(1, 5, 2); // If the minimum is greater or equal than the maximum, an error is thrown.\n */\nexport function inRange(value: number, minimum: number, maximum?: number): boolean\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

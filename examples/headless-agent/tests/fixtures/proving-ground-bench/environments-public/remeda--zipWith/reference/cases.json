@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/zipWith.test.ts › data first › should zip with predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(zipWith([\"1\", \"2\", \"3\"], [\"a\", \"b\", \"c\"], (a, b) => `${a}${b}`)).toStrictEqual([\"1a\", \"2b\", \"3c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/zipWith.test.ts › data first › should truncate to shorter second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(zipWith([\"1\", \"2\", \"3\"], [\"a\", \"b\"], (a, b) => `${a}${b}`)).toStrictEqual([\"1a\", \"2b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/zipWith.test.ts › data first › should truncate to shorter first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(zipWith([\"1\", \"2\"], [\"a\", \"b\", \"c\"], (a, b) => `${a}${b}`)).toStrictEqual([\"1a\", \"2b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/zipWith.test.ts › data second › should zip with predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(zipWith((a, b) => `${a}${b}`)([\"1\", \"2\", \"3\"], [\"a\", \"b\", \"c\"])).toStrictEqual([\"1a\", \"2b\", \"3c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/zipWith.test.ts › data second › should truncate to shorter second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(zipWith((a, b) => `${a}${b}`)([\"1\", \"2\", \"3\"], [\"a\", \"b\"])).toStrictEqual([\"1a\", \"2b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/zipWith.test.ts › data second › should truncate to shorter first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(zipWith((a, b) => `${a}${b}`)([\"1\", \"2\"], [\"a\", \"b\", \"c\"])).toStrictEqual([\"1a\", \"2b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/zipWith.test.ts › data second with initial arg › should zip with predicate",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(pipe([\"1\", \"2\", \"3\"], zipWith([\"a\", \"b\", \"c\"], (a, b) => `${a}${b}`))).toStrictEqual([\"1a\", \"2b\", \"3c\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/zipWith.test.ts › data second with initial arg › should truncate to shorter second",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(pipe([\"1\", \"2\", \"3\"], zipWith([\"a\", \"b\"], (a, b) => `${a}${b}`))).toStrictEqual([\"1a\", \"2b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/zipWith.test.ts › data second with initial arg › should truncate to shorter first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(pipe([\"1\", \"2\"], zipWith([\"a\", \"b\", \"c\"], (a, b) => `${a}${b}`))).toStrictEqual([\"1a\", \"2b\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/zipWith.test.ts › data second with initial arg › should return empty when first is empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { zipWith } from \"./src/zipWith.js\";\n{\n{\n{\nexpect(pipe([], zipWith([\"a\", \"b\"], (a, b) => `${a}${b}`))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-forEachAsync",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/forEachAsync.ts",
+    "tests": [
+      "src/array/forEachAsync.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/forEachAsync.js",
+    "function": "forEachAsync"
+  },
+  "title": "Implement forEachAsync from es-toolkit",
+  "prompt": "`src/array/forEachAsync.js` is the JavaScript build of `src/array/forEachAsync.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `forEachAsync`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Executes an async callback function for each element in an array.\n *\n * Unlike the native `forEach`, this function returns a promise that resolves\n * when all async operations complete. It supports optional concurrency limiting.\n *\n * @template T - The type of elements in the array.\n * @param array The array to iterate over.\n * @param callback An async function to execute for each element.\n * @param [options] Optional configuration object.\n * @param [options.concurrency] Maximum number of concurrent async operations. If not specified, all operations run concurrently.\n * @returns A promise that resolves when all operations complete.\n * @example\n * const users = [{ id: 1 }, { id: 2 }, { id: 3 }];\n * await forEachAsync(users, async (user) => {\n *   await updateUser(user.id);\n * });\n * // All users have been updated\n *\n * @example\n * // With concurrency limit\n * const items = [1, 2, 3, 4, 5];\n * await forEachAsync(\n *   items,\n *   async (item) => await processItem(item),\n *   { concurrency: 2 }\n * );\n * // Processes at most 2 items concurrently\n */\nexport async function forEachAsync<T>(\n  array: readonly T[],\n  callback: (item: T, index: number, array: readonly T[]) => Promise<void>,\n  options?: ForEachAsyncOptions\n): Promise<void>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_internal/DOMException.js`, `src/_internal/globalThis.js`, `src/error/AbortError.js`, `src/promise/delay.js`, `src/promise/limitAsync.js`, `src/promise/semaphore.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "code:string-ts--implement-concat",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "string-ts",
+    "url": "https://github.com/gustavoguichard/string-ts",
+    "commit": "7850efd6baba551d60e4b85a2e4a8ed075167bb5",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "5854449485af03f03c6fc021dc1419e2f62be9ec1efb9f5a4eb46d75931aa6c5",
+    "copyright": "Copyright (c) 2023 Gustavo Guichard",
+    "module": "src/native/concat.ts",
+    "tests": [
+      "src/native/concat.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/native/concat.js",
+    "function": "concat"
+  },
+  "title": "Implement concat from string-ts",
+  "prompt": "`src/native/concat.js` is the JavaScript build of `src/native/concat.ts` from string-ts (https://github.com/gustavoguichard/string-ts at commit 7850efd6baba, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `concat`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * A strongly-typed version of `String.prototype.concat`.\n * @param strings the tuple of strings to concatenate.\n * @returns the concatenated string in both type level and runtime.\n * @example concat('a', 'bc', 'def') // 'abcdef'\n */\nexport function concat<T extends string[]>(...strings: T): Concat<T>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/native/join.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/flatten.spec.ts › flatten › should flatten a array to the default depth of 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatten } from \"./src/array/flatten.js\";\n{\n{\nconst originArr = [1, [2, [3, [4]]]];\n{\nconst expectedArr = [1, 2, [3, [4]]];\n        expect(flatten(originArr)).toEqual(expectedArr);\n        expect(originArr.flat()).toEqual(expectedArr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/flatten.spec.ts › flatten › should flatten a deeply nested array to the specified depth",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatten } from \"./src/array/flatten.js\";\n{\n{\nconst originArr = [1, [2, [3, [4]]]];\n{\nconst expectedArr1 = [1, 2, [3, [4]]];\n        expect(flatten(originArr, 1)).toEqual(expectedArr1);\n        expect(originArr.flat(1)).toEqual(expectedArr1);\n        const expectedArr2 = [1, 2, 3, [4]];\n        expect(flatten(originArr, 2)).toEqual(expectedArr2);\n        expect(originArr.flat(2)).toEqual(expectedArr2);\n        const expectedArr3 = [1, 2, 3, 4];\n        expect(flatten(originArr, 3)).toEqual(expectedArr3);\n        expect(originArr.flat(3)).toEqual(expectedArr3);\n        expect(flatten(originArr, Infinity)).toEqual(expectedArr3);\n        expect(originArr.flat(Infinity)).toEqual(expectedArr3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/flatten.spec.ts › flatten › should return the same array if depth is 0 or NaN or negative",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatten } from \"./src/array/flatten.js\";\n{\n{\nconst originArr = [1, [2, [3, [4]]]];\n{\nconst expectedArr = [1, [2, [3, [4]]]];\n        expect(flatten(originArr, 0)).toEqual(expectedArr);\n        expect(originArr.flat(0)).toEqual(expectedArr);\n        expect(flatten(originArr, NaN)).toEqual(expectedArr);\n        expect(originArr.flat(NaN)).toEqual(expectedArr);\n        expect(flatten(originArr, -1)).toEqual(expectedArr);\n        expect(originArr.flat(-1)).toEqual(expectedArr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/flatten.spec.ts › flatten › should flatten arrays to the specified depth considering floating point values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatten } from \"./src/array/flatten.js\";\n{\n{\nconst originArr = [1, [2, [3, [4]]]];\n{\nconst expectedArr1 = [1, 2, [3, [4]]];\n        expect(flatten(originArr, 1.3)).toEqual(expectedArr1);\n        expect(originArr.flat(1.3)).toEqual(expectedArr1);\n        const expectedArr2 = [1, 2, 3, [4]];\n        expect(flatten(originArr, 2.5)).toEqual(expectedArr2);\n        expect(originArr.flat(2.5)).toEqual(expectedArr2);\n        const expectedArr3 = [1, 2, 3, 4];\n        expect(flatten(originArr, 3.9)).toEqual(expectedArr3);\n        expect(originArr.flat(3.9)).toEqual(expectedArr3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/flatten.spec.ts › flatten › should handle empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { flatten } from \"./src/array/flatten.js\";\n{\n{\nconst originArr = [1, [2, [3, [4]]]];\n{\nconst originArr = [];\n        expect(flatten(originArr, 2)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

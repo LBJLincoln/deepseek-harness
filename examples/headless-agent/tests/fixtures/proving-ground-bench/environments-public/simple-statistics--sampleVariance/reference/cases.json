@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/sample_variance.test.js › sample variance › can get the sample variance of a six-sided die",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleVariance } from \"./src/sample_variance.js\";\nconst ss = Object.freeze({ sampleVariance: __ns1_sampleVariance });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\nassert.throws(function () {\n        ss.sampleVariance([1]);\n    });\nassert.throws(function () {\n        ss.sampleVariance([]);\n    });\n{\nassert.equal(rnd(ss.sampleVariance([1, 2, 3, 4, 5, 6])), 3.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/sample_variance.test.js › sample variance › can get the sample variance of numbers 1-10",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleVariance } from \"./src/sample_variance.js\";\nconst ss = Object.freeze({ sampleVariance: __ns1_sampleVariance });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\nassert.throws(function () {\n        ss.sampleVariance([1]);\n    });\nassert.throws(function () {\n        ss.sampleVariance([]);\n    });\n{\nassert.equal(rnd(ss.sampleVariance([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])), 9.167);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/sample_variance.test.js › sample variance › the sample variance of two numbers that are the same is 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sampleVariance } from \"./src/sample_variance.js\";\nconst ss = Object.freeze({ sampleVariance: __ns1_sampleVariance });\n{\nfunction rnd(x) {\n    return Math.round(x * 1000) / 1000;\n}\n{\nassert.throws(function () {\n        ss.sampleVariance([1]);\n    });\nassert.throws(function () {\n        ss.sampleVariance([]);\n    });\n{\nassert.equal(rnd(ss.sampleVariance([1, 1])), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

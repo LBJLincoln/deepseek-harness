@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should sort object keys alphabetically by default",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst result = sortKeys({ c: 3, a: 1, b: 2 });\n        expect(Object.keys(result)).toEqual(['a', 'b', 'c']);\n        expect(result).toEqual({ a: 1, b: 2, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should sort keys with a custom compare function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst result = sortKeys({ a: 1, b: 2, c: 3 }, (a, b) => b.localeCompare(a));\n        expect(Object.keys(result)).toEqual(['c', 'b', 'a']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should return an empty object for empty input",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst result = sortKeys({});\n        expect(result).toEqual({});\n        expect(Object.keys(result)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should preserve values after sorting",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst obj = { z: [1, 2], a: { nested: true }, m: 'hello' };\n        const result = sortKeys(obj);\n        expect(Object.keys(result)).toEqual(['a', 'm', 'z']);\n        expect(result.z).toEqual([1, 2]);\n        expect(result.a).toEqual({ nested: true });\n        expect(result.m).toBe('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should handle numeric string keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst result = sortKeys({ 3: 'c', 1: 'a', 2: 'b' });\n        expect(Object.keys(result)).toEqual(['1', '2', '3']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should not mutate the original object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst obj = { b: 2, a: 1 };\n        const result = sortKeys(obj);\n        expect(result).not.toBe(obj);\n        expect(Object.keys(obj)).toEqual(['b', 'a']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/sortKeys.spec.ts › sortKeys › should handle single-key objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sortKeys } from \"./src/object/sortKeys.js\";\n{\n{\n{\nconst result = sortKeys({ only: 1 });\n        expect(Object.keys(result)).toEqual(['only']);\n        expect(result).toEqual({ only: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

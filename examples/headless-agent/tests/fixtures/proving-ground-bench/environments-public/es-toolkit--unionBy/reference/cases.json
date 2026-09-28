@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/unionBy.spec.ts › unionBy › should work with a `mapper`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { unionBy } from \"./src/array/unionBy.js\";\n{\n{\n{\nexpect(unionBy([2.1], [1.2, 2.3], Math.floor)).toEqual([2.1, 1.2]);\n        expect(unionBy([{ x: 1 }], [{ x: 2 }, { x: 1 }], ({ x }) => x)).toEqual([{ x: 1 }, { x: 2 }]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

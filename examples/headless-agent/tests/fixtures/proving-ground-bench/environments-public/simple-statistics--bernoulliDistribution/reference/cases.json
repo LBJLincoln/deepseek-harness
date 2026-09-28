@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/bernoulli_distribution.test.js › bernoulliDistribution › can return generate probability and cumulative probability distributions for p = 0.3",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_bernoulliDistribution } from \"./src/bernoulli_distribution.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nconst ss = Object.freeze({ bernoulliDistribution: __ns1_bernoulliDistribution, epsilon: __ns1_epsilon });\n{\n{\n{\nassert.ok(Array.isArray(ss.bernoulliDistribution(0.3)));\n        assert.equal(ss.bernoulliDistribution(0.3)[0], 0.7, ss.epsilon);\n        assert.equal(ss.bernoulliDistribution(0.3)[1], 0.3, ss.epsilon);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

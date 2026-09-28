@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isPrimitive.spec.ts › isPrimitive › returns `true` for primitives",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isPrimitive } from \"./src/predicate/isPrimitive.js\";\n{\n{\n{\nexpect(isPrimitive(null)).toBe(true);\n        expect(isPrimitive(undefined)).toBe(true);\n        expect(isPrimitive('123')).toBe(true);\n        expect(isPrimitive(false)).toBe(true);\n        expect(isPrimitive(true)).toBe(true);\n        expect(isPrimitive(Symbol('a'))).toBe(true);\n        expect(isPrimitive(123n)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isPrimitive.spec.ts › isPrimitive › returns `false` for values that are not primitives",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isPrimitive } from \"./src/predicate/isPrimitive.js\";\n{\n{\n{\nexpect(isPrimitive({})).toBe(false);\n        expect(isPrimitive(new Date())).toBe(false);\n        expect(isPrimitive(new Map())).toBe(false);\n        expect(isPrimitive(new Set())).toBe(false);\n        expect(isPrimitive([1, 2, 3])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

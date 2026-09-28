@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-004",
+    "title": "src/function/flow.spec.ts › flow › `flow` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flow } from \"./src/function/flow.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flow(getProp, uniq);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/function/flowRight.spec.ts › flowRight › `flowRight` should work with curried functions with placeholders",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { ary } from \"./src/function/ary.js\";\nimport { flowRight } from \"./src/function/flowRight.js\";\nimport { head } from \"./src/array/head.js\";\nimport { uniq } from \"./src/array/uniq.js\";\nimport { map } from \"./src/compat/array/map.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\nconst add = function (x, y) {\n    return x + y;\n};\nconst square = function (n) {\n    return n * n;\n};\n{\n{\nconst curried = curry(ary(map, 2), 2);\n        // eslint-disable-next-line @typescript-eslint/ban-ts-comment\n        // @ts-expect-error\n        const getProp = curried(curried.placeholder, (value) => value.a);\n        const objects = [{ a: 1 }, { a: 2 }, { a: 1 }];\n        const combined = flowRight(uniq, getProp);\n        expect(combined(objects)).toEqual([1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

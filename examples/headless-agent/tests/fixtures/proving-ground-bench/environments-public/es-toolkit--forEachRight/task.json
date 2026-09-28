@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-forEachRight",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/forEachRight.ts",
+    "tests": [
+      "src/array/forEachRight.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/forEachRight.js",
+    "function": "forEachRight"
+  },
+  "title": "Implement forEachRight from es-toolkit",
+  "prompt": "`src/array/forEachRight.js` is the JavaScript build of `src/array/forEachRight.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `forEachRight`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Iterates over elements of 'arr' from right to left and invokes 'callback' for each element.\n *\n * @template T - The type of elements in the array.\n * @param arr - The array to iterate over.\n * @param callback - The function invoked per iteration.\n * The callback function receives three arguments:\n *  - 'value': The current element being processed in the array.\n *  - 'index': The index of the current element being processed in the array.\n *  - 'arr': The array 'forEachRight' was called upon.\n *\n * @example\n * const array = [1, 2, 3];\n * const result: number[] = [];\n *\n * // Use the forEachRight function to iterate through the array and add each element to the result array.\n * forEachRight(array, (value) => {\n *  result.push(value);\n * })\n *\n * console.log(result) // Output: [3, 2, 1]\n */\nexport function forEachRight<T>(arr: readonly T[], callback: (value: T, index: number, arr: T[]) => void): void\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/at.spec.ts › at › should return the elements corresponding to the specified keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { at } from \"./src/array/at.js\";\n{\n{\n{\nexpect(at(['a', 'b', 'c'], [0, 2])).toEqual(['a', 'c']);\n        expect(at(['a', 'b', 'c'], [2, 0])).toEqual(['c', 'a']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/at.spec.ts › at › should support negative indices",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { at } from \"./src/array/at.js\";\n{\n{\n{\nexpect(at(['a', 'b', 'c'], [-1, -2])).toEqual(['c', 'b']);\n        expect(at(['a', 'b', 'c'], [-2, -1])).toEqual(['b', 'c']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/at.spec.ts › at › should return `undefined` for nonexistent keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { at } from \"./src/array/at.js\";\n{\n{\n{\nexpect(at(['a', 'b', 'c'], [2, 4, 0, -4])).toEqual(['c', undefined, 'a', undefined]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/at.spec.ts › at › should return an empty array when no keys are given",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { at } from \"./src/array/at.js\";\n{\n{\n{\nexpect(at(['a', 'b', 'c'], [])).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/at.spec.ts › at › should return undefined for non-integer indices",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { at } from \"./src/array/at.js\";\n{\n{\n{\nconst data = ['a', 'b', 'c'];\n        const indices = [1.5, -1.5, NaN, Infinity, -Infinity];\n        expect(at(data, indices)).toEqual(indices.map(i => data.at(i)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

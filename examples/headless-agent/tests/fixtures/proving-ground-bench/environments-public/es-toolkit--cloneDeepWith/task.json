@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-cloneDeepWith",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/object/cloneDeepWith.ts",
+    "tests": [
+      "src/object/cloneDeepWith.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/object/cloneDeepWith.js",
+    "function": "cloneDeepWith"
+  },
+  "title": "Implement cloneDeepWith from es-toolkit",
+  "prompt": "`src/object/cloneDeepWith.js` is the JavaScript build of `src/object/cloneDeepWith.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `cloneDeepWith`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Deeply clones the given object.\n *\n * You can customize the deep cloning process using the `cloneValue` function.\n * The function takes the current value `value`, the property name `key`, and the entire object `obj` as arguments.\n * If the function returns a value, that value is used;\n * if it returns `undefined`, the default cloning method is used.\n *\n * @template T - The type of the object.\n * @param obj - The object to clone.\n * @param [cloneValue] - A function to customize the cloning process.\n * @returns A deep clone of the given object.\n *\n * @example\n * // Clone a primitive value\n * const num = 29;\n * const clonedNum = cloneDeepWith(num);\n * console.log(clonedNum); // 29\n * console.log(clonedNum === num); // true\n *\n * @example\n * // Clone an object with a customizer\n * const obj = { a: 1, b: 2 };\n * const clonedObj = cloneDeepWith(obj, (value) => {\n *   if (typeof value === 'number') {\n *     return value * 2; // Double the number\n *   }\n * });\n * console.log(clonedObj); // { a: 2, b: 4 }\n * console.log(clonedObj === obj); // false\n *\n * @example\n * // Clone an array with a customizer\n * const arr = [1, 2, 3];\n * const clonedArr = cloneDeepWith(arr, (value) => {\n *   if (typeof value === 'number') {\n *     return value + 1; // Increment each number\n *   }\n * });\n * console.log(clonedArr); // [2, 3, 4]\n * console.log(clonedArr === arr); // false\n */\nexport function cloneDeepWith<T>(\n  obj: T,\n  cloneValue: (value: any, key: PropertyKey | undefined, obj: T, stack: Map<any, any>) => any\n): T\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/_internal/globalThis.js`, `src/compat/_internal/getSymbols.js`, `src/compat/_internal/getTag.js`, `src/compat/_internal/tags.js`, `src/function/noop.js`, `src/predicate/isBuffer.js`, `src/predicate/isPrimitive.js`, `src/predicate/isTypedArray.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

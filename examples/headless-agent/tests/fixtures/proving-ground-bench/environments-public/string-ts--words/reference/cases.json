@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/words.test.ts › words › it splits words at separators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/utils/words.js\";\n{\n{\n{\nconst expected = [\n            'one',\n            'two',\n            'three',\n            'four',\n            'five',\n            'six',\n            'seven',\n            'eight',\n            'nine',\n            'ten',\n        ];\n        const result = words('[one] two-three/four.five(six){seven}|eight_nine\\\\ten');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/utils/words.test.ts › words › it splits words at digits",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/utils/words.js\";\n{\n{\n{\nconst expected = ['2', 'Weird', 'Cased', '1986', 'Foo'];\n        const result = words('2WeirdCased1986Foo');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/utils/words.test.ts › words › it splits words at special chars",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/utils/words.js\";\n{\n{\n{\nconst expected = ['$', '2', 'Weird', 'Cased', '@@', 'Foo'];\n        const result = words('$2WeirdCased@@Foo');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/utils/words.test.ts › words › it splits words at casing",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/utils/words.js\";\n{\n{\n{\nconst expected = ['some', 'Weird', 'Cased', 'STRING', 'Foo'];\n        const result = words('someWeirdCasedSTRINGFoo');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/utils/words.test.ts › words › it preserves apostrophes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/utils/words.js\";\n{\n{\n{\nconst expected = [\"Where's\", 'the', 'leak', \"ma'am\"];\n        const result = words(\"Where's the leak ma'am\");\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/utils/words.test.ts › words › it combines all of the rules above and trims the word",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { words } from \"./src/utils/words.js\";\n{\n{\n{\nconst expected = [\n            'some',\n            'Weird',\n            'cased',\n            '$*',\n            'String',\n            '1986',\n            'Foo',\n            'Bar',\n        ];\n        const result = words(' someWeird-cased$*String1986Foo Bar ');\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

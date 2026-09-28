@@ -4,7 +4,10 @@
  * a same-file `#anchor`) must name a real heading slug or explicit `<a id>`.
  * URL and root-absolute targets are excluded; query strings do not affect
  * resolution against the source file. The checker never rewrites, and
- * symlinked instruction files are deduped.
+ * symlinked instruction files are deduped. Archived Agent Notes and the
+ * public-repository family's task READMEs are not scanned: the former are
+ * frozen, and the latter repeat a third-party module's documentation
+ * verbatim, whose anchors name the source's own documentation site.
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -28,6 +31,13 @@ const PATTERNS = [
   'packages/AGENTS.md',
   '.agents/skills/**/*.md',
 ]
+
+/**
+ * Task content the public-repository environment factory writes: a child's
+ * README carries its source's JSDoc verbatim, so a link in it is the source's
+ * and never this repository's to resolve.
+ */
+const PUBLIC_FAMILY_TASK_CONTENT = /^examples\/headless-agent\/tests\/fixtures\/proving-ground-bench\/environments-public\//u
 
 /** A broken relative link: a missing target path or a missing anchor on it. */
 interface Violation {
@@ -198,7 +208,7 @@ export function findViolations(
 // Run only when invoked as a script, not when imported by the spec.
 if (process.argv[1] && import.meta.filename === resolve(process.argv[1])) {
   // Archived notes remain valid link targets, but their historical outbound links are frozen.
-  const files = uniqueRepoFiles(root, PATTERNS, isArchivedAgentNotePath)
+  const files = uniqueRepoFiles(root, PATTERNS, path => isArchivedAgentNotePath(path) || PUBLIC_FAMILY_TASK_CONTENT.test(path))
   const anchorsOf = anchorCache()
   const all = files.flatMap(file => findViolations(file.abs, anchorsOf))
   const checked = files.length

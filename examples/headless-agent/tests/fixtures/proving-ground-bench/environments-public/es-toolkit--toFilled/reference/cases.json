@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([], '*');\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills middle values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([1, 2, 3, 4, 5], '*', 1, 4);\n        expect(result).toEqual([1, '*', '*', '*', 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills entire array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([1, 2, 3, 4, 5], '*');\n        expect(result).toEqual(['*', '*', '*', '*', '*']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills from specified start position",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([1, 2, 3, 4, 5], '*', 2);\n        expect(result).toEqual([1, 2, '*', '*', '*']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills with negative start position",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([1, 2, 3, 4, 5], '*', -3);\n        expect(result).toEqual([1, 2, '*', '*', '*']);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills with positive start and negative end positions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([1, 2, 3, 4, 5], '*', 1, -1);\n        expect(result).toEqual([1, '*', '*', '*', 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/toFilled.spec.ts › toFilled › fills with both negative start and end positions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { toFilled } from \"./src/array/toFilled.js\";\n{\n{\n{\nconst result = toFilled([1, 2, 3, 4, 5], '*', -4, -1);\n        expect(result).toEqual([1, '*', '*', '*', 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

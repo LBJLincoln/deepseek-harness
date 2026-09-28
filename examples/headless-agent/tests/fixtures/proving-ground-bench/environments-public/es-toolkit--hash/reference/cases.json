@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/hash/browser.spec.ts › hash (browser) › should produce output identical to the node implementation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hash as browserHash } from \"./src/util/hash/browser.js\";\nimport { hash as nodeHash } from \"./src/util/hash/node.js\";\n{\nfunction serializeLabel(value) {\n    try {\n        return String(value);\n    }\n    catch {\n        return typeof value;\n    }\n}\n{\n{\nconst values = [\n            null,\n            undefined,\n            0,\n            -0,\n            123n,\n            'hello world 😎',\n            { b: 2, a: 1 },\n            [1, 2n, 'a', { k: 1 }],\n            new Set([3, 1, 2]),\n            new Map([\n                ['b', 2],\n                ['a', 1],\n            ]),\n            new Date(0),\n            new Uint8Array([1, 2, 3]),\n            { nested: { deeply: { value: [1, { x: new Set(['a', 'b']) }] } } },\n        ];\n        for (const value of values) {\n            expect(browserHash(value), serializeLabel(value)).toBe(nodeHash(value));\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/hash/browser.spec.ts › hash (browser) › should produce a 43-character Base64URL string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hash as browserHash } from \"./src/util/hash/browser.js\";\nimport { hash as nodeHash } from \"./src/util/hash/node.js\";\n{\nfunction serializeLabel(value) {\n    try {\n        return String(value);\n    }\n    catch {\n        return typeof value;\n    }\n}\n{\n{\nexpect(browserHash([1, 2, 3])).toBe('phXuruId5Red4IDejDBSyNqQEThAa6ccOMAyhF99VPQ');\n        expect(browserHash({ a: 1 })).toMatch(/^[A-Za-z0-9_-]{43}$/);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/hash/browser.spec.ts › hash (browser) › should not depend on key insertion order",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hash as browserHash } from \"./src/util/hash/browser.js\";\nimport { hash as nodeHash } from \"./src/util/hash/node.js\";\n{\nfunction serializeLabel(value) {\n    try {\n        return String(value);\n    }\n    catch {\n        return typeof value;\n    }\n}\n{\n{\nexpect(browserHash({ b: 2, a: 1 })).toBe(browserHash({ a: 1, b: 2 }));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/hash/browser.spec.ts › hash (browser) › should hash circular references identically to the node implementation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hash as browserHash } from \"./src/util/hash/browser.js\";\nimport { hash as nodeHash } from \"./src/util/hash/node.js\";\n{\nfunction serializeLabel(value) {\n    try {\n        return String(value);\n    }\n    catch {\n        return typeof value;\n    }\n}\n{\n{\nconst object = {};\n        object.self = object;\n        expect(browserHash(object)).toBe(nodeHash(object));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/util/hash/browser.spec.ts › hash (browser) › should throw a TypeError for values that cannot be serialized",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { hash as browserHash } from \"./src/util/hash/browser.js\";\nimport { hash as nodeHash } from \"./src/util/hash/node.js\";\n{\nfunction serializeLabel(value) {\n    try {\n        return String(value);\n    }\n    catch {\n        return typeof value;\n    }\n}\n{\n{\nexpect(() => browserHash(new WeakMap())).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

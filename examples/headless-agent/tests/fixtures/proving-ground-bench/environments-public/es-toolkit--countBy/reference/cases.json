@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/countBy.spec.ts › countBy › should count the occurrences of each item in an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/array/countBy.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5];\n        const result = countBy(arr, String);\n        expect(result).toEqual({\n            '1': 2,\n            '2': 2,\n            '3': 2,\n            '4': 2,\n            '5': 2,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/countBy.spec.ts › countBy › should count the occurrences of each item in an array that applied transformer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/array/countBy.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5];\n        const result = countBy(arr, item => (item % 2 === 0 ? 'even' : 'odd'));\n        expect(result).toEqual({\n            odd: 6,\n            even: 4,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/countBy.spec.ts › countBy › should pass index to mapper function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/array/countBy.js\";\n{\n{\n{\nconst arr = ['a', 'b', 'c', 'd'];\n        const result = countBy(arr, (item, index) => (index < 2 ? 'first' : 'rest'));\n        expect(result).toEqual({\n            first: 2,\n            rest: 2,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/countBy.spec.ts › countBy › should pass array to mapper function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/array/countBy.js\";\n{\n{\n{\nconst arr = [1, 2, 3, 4];\n        const result = countBy(arr, (item, index, array) => (item < array.length / 2 ? 'small' : 'large'));\n        expect(result).toEqual({\n            small: 1,\n            large: 3,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

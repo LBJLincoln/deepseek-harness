@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-004",
+    "title": "test/sum.test.js › sumSimple › can get the sum of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.equal(ss.sumSimple([1, 2]), 3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/sum.test.js › sumSimple › can get the sum of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.equal(ss.sumSimple([\n            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3,\n            1.4, 1.5, 1.6, 1.7\n        ]), 15.299999999999999);\n        assert.equal(ss.sum([\n            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3,\n            1.4, 1.5, 1.6, 1.7\n        ]), 15.3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/sum.test.js › sumSimple › the sum of no numbers is zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.equal(ss.sumSimple([]), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/sum.test.js › sumSimple › same NaN behavior as sum",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.ok(Number.isNaN(ss.sumSimple([null])));\n        assert.ok(Number.isNaN(ss.sumSimple([1, 2, null])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

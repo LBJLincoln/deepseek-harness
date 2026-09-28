@@ -1,0 +1,278 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/util/hash/node.spec.ts › hash (node) › should hash the serialized value with SHA-256 in Base64URL format",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createHash } from 'node:crypto';\nimport { hash } from \"./src/util/hash/node.js\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\nconst expected = createHash('sha256')\n            .update(serialize({ a: 1, b: 2 }))\n            .digest('base64url');\n        expect(hash({ a: 1, b: 2 })).toBe(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/util/hash/node.spec.ts › hash (node) › should produce a 43-character Base64URL string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createHash } from 'node:crypto';\nimport { hash } from \"./src/util/hash/node.js\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\nexpect(hash([1, 2, 3])).toBe('phXuruId5Red4IDejDBSyNqQEThAa6ccOMAyhF99VPQ');\n        expect(hash({ a: 1 })).toMatch(/^[A-Za-z0-9_-]{43}$/);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/util/hash/node.spec.ts › hash (node) › should not depend on key insertion order",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createHash } from 'node:crypto';\nimport { hash } from \"./src/util/hash/node.js\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\nexpect(hash({ b: 2, a: 1 })).toBe(hash({ a: 1, b: 2 }));\n        expect(hash(new Set([3, 1, 2]))).toBe(hash(new Set([2, 3, 1])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/util/hash/node.spec.ts › hash (node) › should produce different hashes for different values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createHash } from 'node:crypto';\nimport { hash } from \"./src/util/hash/node.js\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\nexpect(hash({ a: 1 })).not.toBe(hash({ a: 2 }));\n        expect(hash(1)).not.toBe(hash('1'));\n        expect(hash([1, 2])).not.toBe(hash(new Set([1, 2])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/util/hash/node.spec.ts › hash (node) › should hash circular references",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createHash } from 'node:crypto';\nimport { hash } from \"./src/util/hash/node.js\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\nconst object = {};\n        object.self = object;\n        expect(hash(object)).toMatch(/^[A-Za-z0-9_-]{43}$/);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/util/hash/node.spec.ts › hash (node) › should throw a TypeError for values that cannot be serialized",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { createHash } from 'node:crypto';\nimport { hash } from \"./src/util/hash/node.js\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\nexpect(() => hash(new WeakMap())).toThrow(TypeError);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize strings with quotes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize('hello world 😎')).toBe(\"'hello world 😎'\");\n            expect(serialize({ msg: 'hello world 😎' })).toBe(\"{'msg':'hello world 😎'}\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(0)).toBe('0');\n            expect(serialize(-0)).toBe('0');\n            expect(serialize(100)).toBe('100');\n            expect(serialize(NaN)).toBe('NaN');\n            expect(serialize(Infinity)).toBe('Infinity');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(true)).toBe('true');\n            expect(serialize(false)).toBe('false');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize null and undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(null)).toBe('null');\n            expect(serialize(undefined)).toBe('undefined');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(123n)).toBe('123n');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(Symbol('test'))).toBe(\"Symbol('test')\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should serialize functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(Math.max)).toBe('max:[native]');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › primitives › should distinguish undefined from the string \"undefined\"",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize([undefined, 'undefined'])).toBe(\"[undefined,'undefined']\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › objects › should serialize plain objects with sorted keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize({ a: 1, b: 2 })).toBe(\"{'a':1,'b':2}\");\n            expect(serialize({ b: 2, a: 1 })).toBe(\"{'a':1,'b':2}\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › objects › should serialize nested structures",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize({ a: [1, { b: new Set([2, 1]) }], c: 3n })).toBe(\"{'a':[1,{'b':Set[1,2]}],'c':3n}\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › objects › should serialize builtin objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(new Date(0))).toBe(\"Date('1970-01-01T00:00:00.000Z')\");\n            expect(serialize(/.*/)).toBe('RegExp(/.*/)');\n            expect(serialize(new Map([['a', 1]]))).toBe(\"Map{'a':1}\");\n            expect(serialize(new Uint8Array([1, 2, 3]))).toBe('Uint8Array[1,2,3]');\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › objects › should throw a TypeError for unsupported objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(() => serialize(new WeakMap())).toThrow(TypeError);\n            expect(() => serialize({ a: new Promise(() => { }) })).toThrow(TypeError);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › stability › should produce the same output regardless of key insertion order",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize({ b: 2, a: 1 })).toBe(serialize({ a: 1, b: 2 }));\n            expect(serialize(new Set([3, 1, 2]))).toBe(serialize(new Set([2, 3, 1])));\n            expect(serialize(new Map([\n                ['a', 1],\n                ['b', 2],\n            ]))).toBe(serialize(new Map([\n                ['b', 2],\n                ['a', 1],\n            ])));\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › stability › should produce the same output for structurally equal values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nconst shared = { _: 1, b: { _: 2, c: { _: 3 } } };\n            expect(serialize({ a: shared, b: shared })).toBe(serialize({\n                a: { _: 1, b: { _: 2, c: { _: 3 } } },\n                b: { _: 1, b: { _: 2, c: { _: 3 } } },\n            }));\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › stability › should not depend on the locale when sorting keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\n// In Slovak, `ch` is a single letter sorted after `h`; code unit\n            // ordering keeps `checkIn` before `destination` in every locale.\n            expect(serialize({ destination: 'bar', checkIn: 'foo' })).toBe(\"{'checkIn':'foo','destination':'bar'}\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › stability › should distinguish values with different types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nexpect(serialize(1)).not.toBe(serialize('1'));\n            expect(serialize([1, 2])).not.toBe(serialize(new Set([1, 2])));\n            expect(serialize({ a: 1 })).not.toBe(serialize(new Map([['a', 1]])));\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "src/util/serialize/serialize.spec.ts › serialize › circular references › should serialize circular references as back-references",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { serialize } from \"./src/util/serialize/serialize.js\";\n{\n{\n{\n{\nconst object = {};\n            object.self = object;\n            expect(serialize(object)).toBe(\"{'self':#ref0}\");\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

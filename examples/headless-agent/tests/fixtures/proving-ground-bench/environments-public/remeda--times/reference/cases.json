@@ -1,0 +1,122 @@
+[
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/constant.test.ts › can be used as a fill function (with times)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sliceString } from \"./src/sliceString.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(times(10, constant(\"a\"))).toStrictEqual([\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n        \"a\",\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/identity.test.ts › can be used as a fill function (with times)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(times(10, identity())).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/times.test.ts › data_first › returns a trivial empty array for non-positive values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nconst zeroResult = times(0, identity());\n        expect(zeroResult).toStrictEqual([]);\n        const negativeResult = times(-1000, identity());\n        expect(negativeResult).toStrictEqual([]);\n        // Make sure that the array returned is new, and not the same copy.\n        expect(zeroResult).not.toBe(negativeResult);\n        expect(times(-5.5, identity())).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/times.test.ts › data_first › creates an array of the correct length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(times(123, constant(1))).toHaveLength(123);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/times.test.ts › data_first › returns fn results as arr",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(times(5, identity())).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(times(5, multiply(2))).toStrictEqual([0, 2, 4, 6, 8]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/times.test.ts › data_first › rounds down non-integer numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(times(5.5, identity())).toStrictEqual([0, 1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/times.test.ts › data_last › returns a trivial empty array for non-positive values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nconst zeroResult = pipe(0, times(identity()));\n        expect(zeroResult).toStrictEqual([]);\n        const negativeResult = pipe(-1000, times(identity()));\n        expect(negativeResult).toStrictEqual([]);\n        // Make sure that the array returned is new, and not the same copy.\n        expect(zeroResult).not.toBe(negativeResult);\n        expect(pipe(-5.5, times(identity()))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "packages/remeda/src/times.test.ts › data_last › creates an array of the correct length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(pipe(123, times(constant(1)))).toHaveLength(123);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/times.test.ts › data_last › returns fn results as arr",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(pipe(5, times(identity()))).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(pipe(5, times(multiply(2)))).toStrictEqual([0, 2, 4, 6, 8]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/times.test.ts › data_last › rounds down non-integer numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(pipe(5.5, times(identity()))).toStrictEqual([0, 1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

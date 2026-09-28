@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/rankBy.test.ts › runtime (dataFirst) › works trivially with empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { rankBy } from \"./src/rankBy.js\";\n{\n{\n{\nexpect(rankBy([], 1, identity)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/rankBy.test.ts › runtime (dataFirst) › maintains the rank for items already in the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { rankBy } from \"./src/rankBy.js\";\n{\n{\n{\nconst data = [5, 1, 3];\n        const sorted = [...data].sort((a, b) => a - b);\n        for (const [index, item] of sorted.entries()) {\n            expect(rankBy(data, item, identity())).toBe(index);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/rankBy.test.ts › runtime (dataFirst) › can rank items not in the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { rankBy } from \"./src/rankBy.js\";\n{\n{\n{\nconst data = [5, 1, 3];\n        expect(rankBy(data, 0, identity())).toBe(0);\n        expect(rankBy(data, 2, identity())).toBe(1);\n        expect(rankBy(data, 4, identity())).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/rankBy.test.ts › runtime (dataFirst) › finds items ranked at the end of the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { rankBy } from \"./src/rankBy.js\";\n{\n{\n{\nconst data = [5, 1, 3];\n        expect(rankBy(data, 6, identity())).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

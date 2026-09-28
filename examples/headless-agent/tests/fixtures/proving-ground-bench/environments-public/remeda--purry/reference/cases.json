@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/purry.test.ts › all arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { purry } from \"./src/purry.js\";\n{\nfunction sub(a, b) {\n    return a - b;\n}\nfunction fn(...args) {\n    return purry(sub, args);\n}\n{\nexpect(fn(10, 5)).toBe(5);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/purry.test.ts › 1 missing",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { purry } from \"./src/purry.js\";\n{\nfunction sub(a, b) {\n    return a - b;\n}\nfunction fn(...args) {\n    return purry(sub, args);\n}\n{\nconst purried = fn(5);\n    expect(purried(10)).toBe(5);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/purry.test.ts › wrong number of arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { purry } from \"./src/purry.js\";\n{\nfunction sub(a, b) {\n    return a - b;\n}\nfunction fn(...args) {\n    return purry(sub, args);\n}\n{\nexpect(() => fn(5, 10, 40)).toThrow(\"Wrong number of arguments\");\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

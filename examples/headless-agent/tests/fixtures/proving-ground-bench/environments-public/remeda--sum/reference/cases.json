@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/sum.test.ts › dataFirst › should return the sum of numbers in an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nexpect(sum([1, 2, 3])).toBe(6);\n        expect(sum([4, 5, 6])).toBe(15);\n        expect(sum([-1, 0, 1])).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/sum.test.ts › dataFirst › should return 0 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nexpect(sum([])).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/sum.test.ts › dataFirst › works on bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nexpect(sum([1n, 2n, 3n])).toBe(6n);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/sum.test.ts › dataLast › should return the sum of numbers in an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], sum())).toBe(6);\n        expect(pipe([4, 5, 6], sum())).toBe(15);\n        expect(pipe([-1, 0, 1], sum())).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/sum.test.ts › dataLast › should return 0 for an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nexpect(pipe([], sum())).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/sum.test.ts › known issues! › returns 0 (`number`) instead of 0n (`bigint`) for empty `bigint` arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sum } from \"./src/sum.js\";\n{\n{\n{\nconst result = sum([]);\n        expect(result).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

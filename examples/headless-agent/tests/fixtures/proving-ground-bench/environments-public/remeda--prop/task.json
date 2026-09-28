@@ -1,0 +1,60 @@
+{
+  "id": "code:remeda--implement-prop",
+  "tier": 4,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/prop.ts",
+    "tests": [
+      "packages/remeda/src/countBy.test.ts",
+      "packages/remeda/src/groupBy.test.ts",
+      "packages/remeda/src/indexBy.test.ts",
+      "packages/remeda/src/meanBy.test.ts",
+      "packages/remeda/src/pipe.test.ts",
+      "packages/remeda/src/prop.test.ts",
+      "packages/remeda/src/pullObject.test.ts",
+      "packages/remeda/src/sortBy.test.ts",
+      "packages/remeda/src/sumBy.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/prop.js",
+    "function": "prop"
+  },
+  "title": "Implement prop from remeda",
+  "prompt": "`src/prop.js` is the JavaScript build of `packages/remeda/src/prop.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `prop`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Gets the value of the given property from an object. Nested properties can\n * be accessed by providing a variadic array of keys that define the path from\n * the root to the desired property. Arrays can be accessed by using numeric\n * keys. Unions, optional properties, and index signatures are handled\n * gracefully by returning `undefined` early for any non-existing property on\n * the path. Paths are validated against the object type to provide stronger\n * type safety, better compile-time errors, and to enable autocompletion in\n * IDEs.\n *\n * To check whether a key exists on the object, use `hasProp`.\n *\n * @param data - The object or array to access.\n * @param key - The key(s) for the property to extract.\n * @signature\n *   prop(data, ...keys);\n * @example\n *   prop({ foo: { bar: 'baz' } }, 'foo'); //=> { bar: 'baz' }\n *   prop({ foo: { bar: 'baz' } }, 'foo', 'bar'); //=> 'baz'\n *   prop([\"cat\", \"dog\"], 1); //=> 'dog'\n * @dataFirst\n * @category Object\n */\nexport function prop(\n  maybeData: NonPropertyKey | PropertyKey,\n  ...args: readonly PropertyKey[]\n): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/add.js`, `src/constant.js`, `src/countBy.js`, `src/filter.js`, `src/flat.js`, `src/groupBy.js`, `src/identity.js`, `src/indexBy.js`, `src/internal/lazyDataLastImpl.js`, `src/internal/purryFromLazy.js`, `src/internal/purryOrderRules.js`, `src/internal/utilityEvaluators.js`, `src/isStrictEqual.js`, `src/isString.js`, `src/map.js`, `src/meanBy.js`, `src/pipe.js`, `src/pullObject.js`, `src/purry.js`, `src/sortBy.js`, `src/sumBy.js`, `src/take.js`, `src/toLowerCase.js`, `src/when.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

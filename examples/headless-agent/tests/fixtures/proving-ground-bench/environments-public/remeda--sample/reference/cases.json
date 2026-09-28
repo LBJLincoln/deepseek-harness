@@ -1,0 +1,158 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/sample.test.ts › identity › for full (=== n) sample size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [1, 2, 3];\n        const result = sample(array, 3);\n        expect(result).toStrictEqual(array);\n        expect(result).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/sample.test.ts › identity › for large (> n) sample sizes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [1, 2, 3];\n        const result = sample(array, 10);\n        expect(result).toStrictEqual(array);\n        expect(result).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/sample.test.ts › identity › on empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 1);\n        expect(result).toStrictEqual(array);\n        expect(result).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/sample.test.ts › identity › on empty arrays and sample size 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 0);\n        expect(result).toStrictEqual(array);\n        expect(result).not.toBe(array);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/sample.test.ts › edge cases › works on empty arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst result = sample([], 1);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/sample.test.ts › edge cases › treats negative sample sizes as 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nexpect(sample([1, 2, 3], -1)).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/sample.test.ts › edge cases › rounds non-integer sample sizes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nexpect(sample([1, 2, 3], 0.5)).toHaveLength(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/sample.test.ts › sampleSize === n › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 0);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/sample.test.ts › sampleSize === n › empty readonly array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 0);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/sample.test.ts › sampleSize > n › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 10);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/sample.test.ts › sampleSize > n › empty readonly array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 10);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/sample.test.ts › non-const sampleSize › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 5);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/sample.test.ts › non-const sampleSize › empty readonly array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { sample } from \"./src/sample.js\";\nimport { times } from \"./src/times.js\";\nimport { unique } from \"./src/unique.js\";\n{\nfunction generateRandomArray() {\n    return unique(times(100, Math.random));\n}\nconst allIndices = (array) => array.map((_, index) => index);\n{\n{\nconst array = [];\n        const result = sample(array, 5);\n        expect(result).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

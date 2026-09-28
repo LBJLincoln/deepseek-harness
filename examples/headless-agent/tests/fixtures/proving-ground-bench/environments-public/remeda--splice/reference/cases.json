@@ -1,0 +1,494 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/splice.test.ts › typical cases › removing a element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\nexpect(splice([1, 2, 3], 0, 1, [])).toStrictEqual([2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/splice.test.ts › typical cases › inserting a element",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\nexpect(splice([1, 2, 3], 0, 0, [4])).toStrictEqual([4, 1, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/splice.test.ts › typical cases › removing elements and inserting elements",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\nexpect(splice([1, 2, 3], 0, 2, [4, 5])).toStrictEqual([4, 5, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/splice.test.ts › immutability",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\nconst data = [1, 2, 3];\n    const result = splice(data, 0, 0, []);\n    expect(result).toStrictEqual(data);\n    expect(result).not.toBe(data);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array start › no deletions › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, 0, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array start › no deletions › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, 0, [3])).toStrictEqual([3, 1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array start › delete some › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, 1, [])).toStrictEqual([2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array start › delete some › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, 1, [3])).toStrictEqual([3, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array start › delete all › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, 2, [])).toStrictEqual([]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array start › delete all › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, 2, [3])).toStrictEqual([3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start within the array › no deletions › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, 0, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start within the array › no deletions › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, 0, [3])).toStrictEqual([1, 3, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start within the array › delete some › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, 1, [])).toStrictEqual([1]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start within the array › delete some › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, 1, [3])).toStrictEqual([1, 3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start within the array › delete all › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, 2, [])).toStrictEqual([1]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start within the array › delete all › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, 2, [3])).toStrictEqual([1, 3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array end › no deletions › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 2, 0, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › start at array end › no deletions › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 2, 0, [3])).toStrictEqual([1, 2, 3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › empty array › start at array start › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([], 0, -1, [])).toStrictEqual([]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/splice.test.ts › regression tests › empty array › start at array start › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([], 0, -1, [3])).toStrictEqual([3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › negative deleteCount › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, -1, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › negative deleteCount › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, -1, [3])).toStrictEqual([1, 3, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › no deletions › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, 0, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › no deletions › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, 0, [3])).toStrictEqual([1, 3, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › delete some › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, 1, [])).toStrictEqual([1]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › delete some › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, 1, [3])).toStrictEqual([1, 3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › delete all › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, 2, [])).toStrictEqual([1]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative start › delete all › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], -1, 2, [3])).toStrictEqual([1, 3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative deleteCount › start at array start › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, -1, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative deleteCount › start at array start › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 0, -1, [3])).toStrictEqual([3, 1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative deleteCount › start within the array › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, -1, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-032",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative deleteCount › start within the array › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 1, -1, [3])).toStrictEqual([1, 3, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-033",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative deleteCount › start at array end › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 2, -1, [])).toStrictEqual([1, 2]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › negative deleteCount › start at array end › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([1, 2], 2, -1, [3])).toStrictEqual([1, 2, 3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-035",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › empty array › negative start › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([], -1, -1, [])).toStrictEqual([]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-036",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › empty array › negative start › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([], -1, -1, [3])).toStrictEqual([3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-037",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › empty array › start > data.length › without replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([], 1, -1, [])).toStrictEqual([]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-038",
+    "title": "packages/remeda/src/splice.test.ts › overflow indices › empty array › start > data.length › with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\n{\n{\nexpect(splice([], 1, -1, [3])).toStrictEqual([3]);\n}\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-039",
+    "title": "packages/remeda/src/splice.test.ts › a purried data-last implementation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\nexpect(pipe([1, 2, 3, 4, 5, 6, 7, 8], splice(2, 3, [9, 10]))).toStrictEqual([\n        1, 2, 9, 10, 6, 7, 8,\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-040",
+    "title": "packages/remeda/src/splice.test.ts › replacement defaults to an empty array › data-first",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\nexpect(splice([1, 2, 3, 4, 5], 1, 2)).toStrictEqual(splice([1, 2, 3, 4, 5], 1, 2, []));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-041",
+    "title": "packages/remeda/src/splice.test.ts › replacement defaults to an empty array › data-last",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pipe } from \"./src/pipe.js\";\nimport { splice } from \"./src/splice.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4, 5], splice(1, 2))).toStrictEqual(pipe([1, 2, 3, 4, 5], splice(1, 2, [])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

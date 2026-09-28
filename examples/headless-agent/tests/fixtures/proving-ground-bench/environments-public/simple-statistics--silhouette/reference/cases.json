@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-002",
+    "title": "test/silhouette.test.js › silhouette test › Single cluster of one point has metric 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_silhouette } from \"./src/silhouette.js\";\nimport { default as __ns1_silhouetteMetric } from \"./src/silhouette_metric.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, silhouette: __ns1_silhouette, silhouetteMetric: __ns1_silhouetteMetric });\n{\n{\n{\nconst points = Object.freeze([[0.5]]);\n        const labels = Object.freeze([0]);\n        const actual = ss.silhouette(points, labels);\n        assert.deepEqual(actual, [0.0]);\n        const metric = ss.silhouetteMetric(points, labels);\n        assert.equal(metric, 0.0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/silhouette.test.js › silhouette test › Single cluster of two points has metric 1.0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_silhouette } from \"./src/silhouette.js\";\nimport { default as __ns1_silhouetteMetric } from \"./src/silhouette_metric.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, silhouette: __ns1_silhouette, silhouetteMetric: __ns1_silhouetteMetric });\n{\n{\n{\nconst points = Object.freeze([[0.25], [0.75]]);\n        const labels = Object.freeze([0, 0]);\n        const actual = ss.silhouette(points, labels);\n        assert.deepEqual(actual, [1.0, 1.0]);\n        const metric = ss.silhouetteMetric(points, labels);\n        assert.equal(metric, 1.0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/silhouette.test.js › silhouette test › Two clusters with one point each has metric 0.0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_silhouette } from \"./src/silhouette.js\";\nimport { default as __ns1_silhouetteMetric } from \"./src/silhouette_metric.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, silhouette: __ns1_silhouette, silhouetteMetric: __ns1_silhouetteMetric });\n{\n{\n{\nconst points = Object.freeze([[0.25], [0.75]]);\n        const labels = Object.freeze([0, 1]);\n        const actual = ss.silhouette(points, labels);\n        assert.deepEqual(actual, [0.0, 0.0]);\n        const metric = ss.silhouetteMetric(points, labels);\n        assert.equal(metric, 0.0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/silhouette.test.js › silhouette test › Two clusters with two points each has metric 0.6",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_silhouette } from \"./src/silhouette.js\";\nimport { default as __ns1_silhouetteMetric } from \"./src/silhouette_metric.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, silhouette: __ns1_silhouette, silhouetteMetric: __ns1_silhouetteMetric });\n{\n{\n{\nconst points = Object.freeze([[0.2], [0.4], [0.6], [0.8]]);\n        const labels = Object.freeze([0, 0, 1, 1]);\n        const actual = ss.silhouette(points, labels);\n        const expected = Object.freeze([0.6, 1 / 3, 1 / 3, 0.6]);\n        assert.ok(actual.every((val, i) => ss.approxEqual(val, expected[i])));\n        const metric = ss.silhouetteMetric(points, labels);\n        assert.ok(ss.approxEqual(metric, 0.6));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/silhouette.test.js › silhouette test › A singleton cluster has silhouette value 0, not NaN",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_silhouette } from \"./src/silhouette.js\";\nimport { default as __ns1_silhouetteMetric } from \"./src/silhouette_metric.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, silhouette: __ns1_silhouette, silhouetteMetric: __ns1_silhouetteMetric });\n{\n{\n{\nconst points = Object.freeze([[0], [10], [11]]);\n        const labels = Object.freeze([0, 1, 1]);\n        const actual = ss.silhouette(points, labels);\n        const expected = Object.freeze([0, 0.9, 10 / 11]);\n        assert.ok(actual.every((val, i) => ss.approxEqual(val, expected[i])));\n        assert.ok(actual.every((val) => !Number.isNaN(val)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

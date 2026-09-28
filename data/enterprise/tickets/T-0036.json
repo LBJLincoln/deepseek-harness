@@ -1,0 +1,42 @@
+{
+  "id": "T-0036",
+  "title": "Stop the GIF skill from building the web bundle twice",
+  "division": "knowledge",
+  "seat": "knowledge-record-browser-gif-skill-keeper",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/skills/record-browser-gif/SKILL.md",
+    "anchor": "then build that recorded tree — here, `pnpm run build && pnpm run build:web`"
+  },
+  "task": "Problem: .agents/skills/record-browser-gif/SKILL.md:29 tells the recorder to build the recorded tree with `pnpm run build && pnpm run build:web`. In package.json the `build` script is `npm run build:lib && npm run build:web` (`node -e \"console.log(require('./package.json').scripts.build)\"`), so the skill's command runs the Vite web build twice on every staging pass, and a reader takes from it that `pnpm run build` alone would leave the browser bundle unbuilt, which is false. The skill's own evidence-chain rule (SKILL.md:29, \"A GIF recorded against another commit's build misattributes the evidence\") is what makes the exact build command load-bearing.\n\nRequired: replace the command with `pnpm run build` and state in the same sentence that it emits the package libs and the web bundle, so the reader knows why one command suffices. Change nothing else in the skill.\n\nConstraints: skill markdown only; do not change package.json scripts; the skills tree has no Chinese counterparts; mechanical, local doc edit under the Agent Note exemption. The queue's mandatory coverage run names dsh-skill-filesystem, the package that loads skill directories; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/skills/record-browser-gif/"
+  ],
+  "acceptance": [
+    {
+      "id": "double-build-gone",
+      "run": "! grep -q 'pnpm run build && pnpm run build:web' .agents/skills/record-browser-gif/SKILL.md"
+    },
+    {
+      "id": "single-build-kept",
+      "run": "grep -q 'pnpm run build' .agents/skills/record-browser-gif/SKILL.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 3
+}

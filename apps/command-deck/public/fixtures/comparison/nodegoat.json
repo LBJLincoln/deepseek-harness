@@ -2,7 +2,7 @@
   "target": "OWASP NodeGoat",
   "revision": "c5cb68a7084e4ae7dcc60e6a98768720a81841e8",
   "knownIssues": 18,
-  "date": "2026-09-22",
+  "date": "2026-09-28",
   "note": "Same target, same revision, same 18-issue ground truth, scored by the same rule (a finding within three lines of a known issue). The single-model and enterprise tiers run the same model (sonnet); the only difference between them is the harness. The issue count and locations were never disclosed to any tier.",
   "tiers": [
     {
@@ -331,6 +331,152 @@
       ],
       "lost": [],
       "targetsCaught": []
+    },
+    {
+      "id": "6",
+      "ran": "2026-09-27",
+      "record": "data/code-safety/2026-09-27-nodegoat-9-misses-a",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "department scope and knowledge pack: injection and access checklists, platform citation rule",
+      "change": "The injection department's instruction and persona own server-side HTTP clients, log sinks and regular-expression tests; the access skill, persona and instruction hold account enumeration and password policy; the platform persona cites a disabled control's own line. Nothing names a target file, route or line. The pair runs a checkout of the diagnosis commit against a checkout of the commit before it, interleaved on the same target, revision and model, twice each; nothing else differs.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-REDOS",
+        "NG-A5"
+      ],
+      "decision": "keep",
+      "pair": "3",
+      "arm": "with",
+      "reading": "With the diagnosed checklists, first run: 18 of 18. The pair's reading is per arm across both runs, in the comparison README.",
+      "found": 18,
+      "recall": 1,
+      "findings": 70,
+      "onKnown": 57,
+      "verified": true,
+      "wall": "1730 s",
+      "gained": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-SSRF",
+        "NG-REDOS"
+      ],
+      "lost": [],
+      "targetsCaught": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-REDOS",
+        "NG-A5"
+      ]
+    },
+    {
+      "id": "7",
+      "ran": "2026-09-27",
+      "record": "data/code-safety/2026-09-27-nodegoat-10-base-c",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "department scope and knowledge pack as committed before the diagnosis, the pair's control arm",
+      "change": "The six departments with the instructions, personas and skills of the commit before the diagnosis (745d904b1), the control arm of the checklist pair, run from its own checkout after the first with arm on the same target, revision and model.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-REDOS",
+        "NG-A5"
+      ],
+      "decision": "keep",
+      "pair": "3",
+      "arm": "without",
+      "reading": "Without the diagnosed checklists, first run: 14 of 18.",
+      "found": 14,
+      "recall": 0.778,
+      "findings": 45,
+      "onKnown": 31,
+      "verified": true,
+      "wall": "1383 s",
+      "gained": [
+        "NG-SSRF"
+      ],
+      "lost": [],
+      "targetsCaught": [
+        "NG-A5"
+      ]
+    },
+    {
+      "id": "8",
+      "ran": "2026-09-27",
+      "record": "data/code-safety/2026-09-27-nodegoat-11-misses-b",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "department scope and knowledge pack: injection and access checklists, platform citation rule",
+      "change": "The second run with the diagnosed checklists: the six departments on the same target, revision and model, from a second checkout of the diagnosis commit.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-REDOS",
+        "NG-A5"
+      ],
+      "decision": "keep",
+      "pair": "3",
+      "arm": "with",
+      "reading": "With the diagnosed checklists, second run: 18 of 18.",
+      "found": 18,
+      "recall": 1,
+      "findings": 49,
+      "onKnown": 34,
+      "verified": true,
+      "wall": "1559 s",
+      "gained": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-SSRF",
+        "NG-REDOS"
+      ],
+      "lost": [],
+      "targetsCaught": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-REDOS",
+        "NG-A5"
+      ]
+    },
+    {
+      "id": "9",
+      "ran": "2026-09-28",
+      "record": "data/code-safety/2026-09-27-nodegoat-12-base-d",
+      "baseline": "data/code-safety/2026-09-21-nodegoat-3",
+      "mechanism": "department scope and knowledge pack as committed before the diagnosis, the pair's control arm",
+      "change": "The second run of the control arm: the six departments as committed before the diagnosis, on the same target, revision and model.",
+      "targets": [
+        "NG-A1-3",
+        "NG-A2-2a",
+        "NG-A2-2b",
+        "NG-REDOS",
+        "NG-A5"
+      ],
+      "decision": "keep",
+      "pair": "3",
+      "arm": "without",
+      "reading": "Without the diagnosed checklists, second run: 15 of 18. Across the pair the with arm means 18.0 of 18 (18, 18), the without arm 14.5 (14, 15): the log injection and the two broken-authentication issues no enterprise run had caught are caught in both with runs and missed in both without runs, the regular expression is caught in both with runs and in one without run, and nothing the without arm caught is lost.",
+      "found": 15,
+      "recall": 0.833,
+      "findings": 49,
+      "onKnown": 31,
+      "verified": true,
+      "wall": "1636 s",
+      "gained": [
+        "NG-SSRF",
+        "NG-REDOS"
+      ],
+      "lost": [],
+      "targetsCaught": [
+        "NG-REDOS",
+        "NG-A5"
+      ]
     }
   ]
 }

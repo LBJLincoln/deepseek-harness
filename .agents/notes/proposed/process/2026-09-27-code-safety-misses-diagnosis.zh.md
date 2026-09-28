@@ -87,6 +87,8 @@ cd <change> && node data/code-safety/tools/assemble-comparison.mjs data/code-saf
 
 汇编器为每份记录打出召回率、相对 r3 基线多抓与丢失的问题，以及抓到的目标；这一对像通才那一对一样按臂跨两次运行来读，四份记录加入 [`data/code-safety/README.md`](../../../../data/code-safety/README.md) 的运行表与对比 README 的迭代表。
 
+这一对已在 2026-09-27 与 2026-09-28 运行，其记录为 [`2026-09-27-nodegoat-9-misses-a`](../../../../data/code-safety/2026-09-27-nodegoat-9-misses-a/manifest.json)、[`-10-base-c`](../../../../data/code-safety/2026-09-27-nodegoat-10-base-c/manifest.json)、[`-11-misses-b`](../../../../data/code-safety/2026-09-27-nodegoat-11-misses-b/manifest.json) 与 [`-12-base-d`](../../../../data/code-safety/2026-09-27-nodegoat-12-base-d/manifest.json)，读数见[对比 README](../../../../data/code-safety/comparisons/2026-09-22-nodegoat/README.md#the-loops-third-iteration-the-diagnosed-checklists-read-as-a-pair)。与上文流程有两处出入：已提交的基线是 `745d904b1`，即诊断提交 `679eca6bd` 的父提交，而不是 `c1ecf5e85`，因为诊断是在两个不改动任何指令、人设或技能文本的提交之后合并的（一个从 `departments.ts` 去掉三个 `export` 关键字，另一个改了一条测试描述），因此基线臂的知识摘要正是上文所述的那个；基线臂的 program id 也不是 `program-e570066f…`——goal 目标里带着该检出自身的 semgrep 规则路径，所以每个检出都会铸出自己的 id（同一检出的两次基线运行同为 `program-4b9874c3…`，两个检出的两次 with 运行分别为 `program-5ed00b9d…` 与 `program-007d6600…`），两臂靠 `knowledge.sha256` 区分，其读数与上文所述一致。有两次尝试没有成为记录：紧接在第一个 with 臂之后运行的基线臂已被记录，却在复制出来之前随会话的暂存磁盘一起丢失；第二个 with 臂的第一次尝试在 1069 秒后结束，因为路由把账户的会话上限返回给了 dependencies 部门，五个部门已认证、没有任何发布。被记录的四次运行分别读作十八项中的 18、14、18 与 15；其中没有任何部门读取过另一次运行的发现或报告，任何部门打开过的唯一一份属于其他运行的文件——第二次基线运行的 injection 部门在寻找自己的 `REPORTING.md` 时读到的一次旧 dvja 运行报告仓库里的报告说明与目标锁定文件——不含任何发现，描述的是另一个目标。
+
 ## Alternatives considered
 
 **再加一个部门，或再上一次通才。**否决：每个被漏问题的文件在每次运行里都被其归属部门打开过，通才在它的两次运行里都读了 `session.js`，却一条认证问题也没有提交；这些漏报缺的不是广度，通才那一对也已经记录了第七个阅读者在这个目标上不增加召回率。
@@ -108,6 +110,8 @@ cd <change> && node data/code-safety/tools/assemble-comparison.mjs data/code-saf
 - 基线臂两次都抓到的问题没有一项被改动臂两次都漏掉，且改动臂每次运行至少读作十八项中的十六项：高于六部门 program 在这个目标上的 12 到 15 区间（r3 到 r8 为 13、13、15、14、13、15），因此增益不是某一次运行的波动。
 - `iterations.json` 的判定规则：以上各行全部成立时为 `keep`；改动臂在两次运行里抓到的从未被抓到过的三项少于两项时为 `keep-knowledge`（改动作为通用手艺保留，效果未确立）；基线臂两次都抓到而改动臂两次都漏掉的问题是一处回归，在任何进一步改动之前先按本文阅读漏报的方式从日志中读出。
 - 无密钥 e2e（`examples/headless-agent/tests/program-code-safety.e2e.ts`）在改动后的指令下通过，`pnpm run typecheck`、`pnpm run doc-sync`、`pnpm run verify-agent-note-format` 与 `pnpm run verify-translation-pairing` 通过，且技能文本不命名任何目标的文件、路由或行。
+
+对照这四份记录来读：第一条对摘要与审查器成立，对 program id 的措辞不成立，如 `## Verification` 所述；第二条完全成立——`NG-A2-2a`、`NG-A2-2b` 与 `NG-A1-3` 在两次 with 运行里都被抓到、在两次基线运行里都被漏掉，`NG-REDOS`、`NG-SSRF` 与 `NG-A5` 在两次 with 运行里都被抓到；第三条成立，两次 with 运行都读作十八项中的十八项，基线运行抓到的没有一项丢失；因此判定规则读作 `keep`，这也是 `iterations.json` 所记录的。这些清单是否留作 program 的默认值由操作者决定；在决定作出之前，本文保持 proposed。
 
 ## Risks
 

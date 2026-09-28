@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/relative_error.test.js › relative error › equal values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_relativeError } from \"./src/relative_error.js\";\nconst ss = Object.freeze({ relativeError: __ns1_relativeError });\n{\n{\n{\nassert.equal(ss.relativeError(14.5, 14.5), 0.0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/relative_error.test.js › relative error › negative values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_relativeError } from \"./src/relative_error.js\";\nconst ss = Object.freeze({ relativeError: __ns1_relativeError });\n{\n{\n{\nassert.equal(ss.relativeError(-4, -5), 0.2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/relative_error.test.js › relative error › correct handling of zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_relativeError } from \"./src/relative_error.js\";\nconst ss = Object.freeze({ relativeError: __ns1_relativeError });\n{\n{\n{\nassert.equal(ss.relativeError(10101, 0), Number.POSITIVE_INFINITY);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/relative_error.test.js › relative error › correct handling of double zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_relativeError } from \"./src/relative_error.js\";\nconst ss = Object.freeze({ relativeError: __ns1_relativeError });\n{\n{\n{\nassert.equal(ss.relativeError(0, 0), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

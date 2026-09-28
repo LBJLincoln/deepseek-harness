@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/identity.spec.ts › identity › should return the input value unchanged for a number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\n{\n{\n{\nexpect(identity(5)).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/function/identity.spec.ts › identity › should return the input value unchanged for a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\n{\n{\n{\nexpect(identity('hello')).toBe('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/function/identity.spec.ts › identity › should return the input value unchanged for an object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\n{\n{\n{\nconst obj = { key: 'value' };\n        expect(identity(obj)).toBe(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/function/identity.spec.ts › identity › should return the input value unchanged for an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\n{\n{\n{\nconst arr = [1, 2, 3];\n        expect(identity(arr)).toBe(arr);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/function/identity.spec.ts › identity › should return the input value unchanged for a boolean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\n{\n{\n{\nexpect(identity(true)).toBe(true);\n        expect(identity(false)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/function/partialRight.spec.ts › partialRight › partialRight partially applies arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\nimport { partialRight } from \"./src/function/partialRight.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\n{\nconst { placeholder } = partialRight;\n{\nconst par = partialRight(identity, 'a');\n        expect(par()).toBe('a');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/function/partialRight.spec.ts › partialRight › partialRight works when there are no partially applied arguments and the created function is invoked with additional arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/function/identity.js\";\nimport { partialRight } from \"./src/function/partialRight.js\";\nimport { curry } from \"./src/compat/function/curry.js\";\n{\n{\nconst { placeholder } = partialRight;\n{\nconst par = partialRight(identity);\n        expect(par('a')).toBe('a');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

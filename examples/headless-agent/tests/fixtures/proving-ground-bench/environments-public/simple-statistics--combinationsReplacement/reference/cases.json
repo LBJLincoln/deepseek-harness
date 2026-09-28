@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/combinations_replacement.test.js › combinations › generates one empty combination when choosing zero objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combinationsReplacement } from \"./src/combinations_replacement.js\";\nconst ss = Object.freeze({ combinationsReplacement: __ns1_combinationsReplacement });\n{\n{\n{\nassert.deepEqual(ss.combinationsReplacement(Object.freeze([1, 2]), 0), [\n            []\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/combinations_replacement.test.js › combinations › generates one empty combination from an empty collection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combinationsReplacement } from \"./src/combinations_replacement.js\";\nconst ss = Object.freeze({ combinationsReplacement: __ns1_combinationsReplacement });\n{\n{\n{\nassert.deepEqual(ss.combinationsReplacement(Object.freeze([]), 0), [\n            []\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/combinations_replacement.test.js › combinations › has no positive-length combinations of an empty collection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combinationsReplacement } from \"./src/combinations_replacement.js\";\nconst ss = Object.freeze({ combinationsReplacement: __ns1_combinationsReplacement });\n{\n{\n{\nassert.deepEqual(ss.combinationsReplacement([], 1), []);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/combinations_replacement.test.js › combinations › generates 1 permutation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combinationsReplacement } from \"./src/combinations_replacement.js\";\nconst ss = Object.freeze({ combinationsReplacement: __ns1_combinationsReplacement });\n{\n{\n{\nassert.deepEqual(ss.combinationsReplacement(Object.freeze([1]), 1), [\n            [1]\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/combinations_replacement.test.js › combinations › generates combinations of 1,2 choosing two at a time, with replacement",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_combinationsReplacement } from \"./src/combinations_replacement.js\";\nconst ss = Object.freeze({ combinationsReplacement: __ns1_combinationsReplacement });\n{\n{\n{\nassert.deepEqual(ss.combinationsReplacement(Object.freeze([1, 2]), 2), [\n            [1, 1],\n            [1, 2],\n            [2, 2]\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

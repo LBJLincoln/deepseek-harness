@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isDate.spec.ts › isDate › should return `true` for dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDate } from \"./src/predicate/isDate.js\";\n{\n{\n{\nexpect(isDate(new Date())).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isDate.spec.ts › isDate › should return `false` for non-dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDate } from \"./src/predicate/isDate.js\";\n{\n{\n{\nexpect(isDate('2024-01-01')).toBe(false);\n        expect(isDate(2024)).toBe(false);\n        expect(isDate({ year: 2024, month: 1, day: 1 })).toBe(false);\n        expect(isDate([2024, 1, 1])).toBe(false);\n        expect(isDate(new Error())).toBe(false);\n        expect(isDate(/a/)).toBe(false);\n        expect(isDate(Symbol('2024'))).toBe(false);\n        expect(isDate(null)).toBe(false);\n        expect(isDate(undefined)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isDate.spec.ts › isDate › should work on date within object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isDate } from \"./src/predicate/isDate.js\";\n{\n{\n{\nconst obj = {\n            date: new Date(),\n        };\n        expect(isDate(obj.date)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

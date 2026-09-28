@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/doNothing.test.ts › does nothing when called with no arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\n{\n{\nconst doesNothing = doNothing();\n    expect(() => {\n        doesNothing();\n    }).not.toThrow();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/doNothing.test.ts › ignores any parameters sent to the function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\n{\n{\nconst doesNothing = doNothing();\n    expect(() => {\n        doesNothing(1);\n    }).not.toThrow();\n    expect(() => {\n        doesNothing(1, 2);\n    }).not.toThrow();\n    expect(() => {\n        doesNothing(1, 2, \"a\");\n    }).not.toThrow();\n    expect(() => {\n        doesNothing(undefined);\n    }).not.toThrow();\n    expect(() => {\n        doesNothing([\"a\"]);\n    }).not.toThrow();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/mergeDeep.test.ts › runtime (dataFirst) › should work with weird object types, functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { doNothing } from \"./src/doNothing.js\";\nimport { mergeDeep } from \"./src/mergeDeep.js\";\n{\n{\n{\nconst a = { foo: doNothing() };\n        const b = { foo: 123 };\n        expect(mergeDeep(a, b)).toStrictEqual({ foo: 123 });\n        expect(mergeDeep(b, a)).toStrictEqual({ foo: doNothing() });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

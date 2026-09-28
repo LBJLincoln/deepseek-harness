@@ -1,0 +1,374 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/isEmptyish.test.ts › nullish › null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(null)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/isEmptyish.test.ts › nullish › undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(undefined)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/isEmptyish.test.ts › strings › literals",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(\"\")).toBe(true);\n        expect(isEmptyish(\"test\")).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/isEmptyish.test.ts › strings › boxed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// eslint-disable-next-line no-new-wrappers, unicorn/new-for-builtins\n        expect(isEmptyish(new String(\"\"))).toBe(true);\n        // eslint-disable-next-line no-new-wrappers, unicorn/new-for-builtins\n        expect(isEmptyish(new String(\"test\"))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish([])).toBe(true);\n        expect(isEmptyish([1, 2, 3])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › sparse",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// eslint-disable-next-line no-sparse-arrays\n        expect(isEmptyish([, ,])).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › via Array.from",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(Array.from({ length: 0 }))).toBe(true);\n        expect(isEmptyish(Array.from({ length: 10 }))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › typed arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(new Int8Array())).toBe(true);\n        expect(isEmptyish(new Int8Array([1, 2, 3]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › buffers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(Buffer.alloc(0))).toBe(true);\n        expect(isEmptyish(Buffer.alloc(3))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › sets",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(new Set())).toBe(true);\n        expect(isEmptyish(new Set([1, 2, 3]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/isEmptyish.test.ts › arrays › array-like (e.g., `arguments`)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// eslint-disable-next-line unicorn/consistent-function-scoping\n        function empty() {\n            // eslint-disable-next-line prefer-rest-params\n            expect(isEmptyish(arguments)).toBe(true);\n        }\n        empty();\n        // eslint-disable-next-line unicorn/consistent-function-scoping\n        function nonEmpty(_p0, _p1, _p2) {\n            // eslint-disable-next-line prefer-rest-params\n            expect(isEmptyish(arguments)).toBe(false);\n        }\n        nonEmpty(\"test\", 123, true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "packages/remeda/src/isEmptyish.test.ts › keyed collections › plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish({})).toBe(true);\n        expect(isEmptyish({ key: \"value\" })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "packages/remeda/src/isEmptyish.test.ts › keyed collections › null-prototyped objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment\n        const object = Object.create(null);\n        expect(isEmptyish(object)).toBe(true);\n        object.key = \"hello, world!\";\n        expect(isEmptyish(object)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "packages/remeda/src/isEmptyish.test.ts › keyed collections › symbol props",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish({ [Symbol(\"hello\")]: \"world\" })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "packages/remeda/src/isEmptyish.test.ts › keyed collections › maps",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(new Map())).toBe(true);\n        expect(isEmptyish(new Map([[\"key\", \"value\"]]))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/isEmptyish.test.ts › keyed collections › url search params",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish(new URLSearchParams())).toBe(true);\n        expect(isEmptyish(new URLSearchParams(\"\"))).toBe(true);\n        expect(isEmptyish(new URLSearchParams(\"?\"))).toBe(true);\n        expect(isEmptyish(new URLSearchParams(\"hello\"))).toBe(false);\n        expect(isEmptyish(new URLSearchParams({ hello: \"world \" }))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/isEmptyish.test.ts › keyed collections › prototype chains",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// Verifying chained prototypes would add complexity the implementation and\n        // incur performance costs, and the real-life practical use for such a chain\n        // is minimal.\n        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument\n        expect(isEmptyish(Object.create(Object.create({})))).toBe(true);\n        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument\n        expect(isEmptyish(Object.create(Object.create({ a: 123 })))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/isEmptyish.test.ts › self-declared sizes › length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish({ length: 0 })).toBe(true);\n        expect(isEmptyish({ length: 1 })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "packages/remeda/src/isEmptyish.test.ts › self-declared sizes › size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish({ size: 0 })).toBe(true);\n        expect(isEmptyish({ size: 1 })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/isEmptyish.test.ts › self-declared sizes › props are not coerced",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish({ length: \"0\" })).toBe(false);\n        expect(isEmptyish({ size: null })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/isEmptyish.test.ts › self-declared sizes › length has precedence over size",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\nexpect(isEmptyish({ length: 0, size: 5 })).toBe(true);\n        expect(isEmptyish({ length: 1, size: 0 })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always false › numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\nexpect(isEmptyish(0)).toBe(false);\n            expect(isEmptyish(-0)).toBe(false);\n            expect(isEmptyish(NaN)).toBe(false);\n            expect(isEmptyish(Infinity)).toBe(false);\n            expect(isEmptyish(100)).toBe(false);\n            expect(isEmptyish(12.34)).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-023",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always false › bigints",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\nexpect(isEmptyish(0n)).toBe(false);\n            expect(isEmptyish(1n)).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always false › booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\nexpect(isEmptyish(false)).toBe(false);\n            expect(isEmptyish(true)).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always false › symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\n// Using an empty string in a symbol results in the same \"kind\" of\n            // symbol as ones created with a non-empty string. It's unlikely that the\n            // actual value of a symbol would be checked (and not its identity), and\n            // that that value would be checked for emptiness explicitly.\n            expect(isEmptyish(Symbol(\"\"))).toBe(false);\n            expect(isEmptyish(Symbol(\"something\"))).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always false › functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\n// It's not possible to check the contents of a function at runtime, and\n            // even if it were, there's a semantic difference between a purely empty\n            // function and one that doesn't do anything useful (but can still log,\n            // for example).\n            // eslint-disable-next-line @typescript-eslint/no-empty-function\n            expect(isEmptyish(() => { })).toBe(false);\n            expect(isEmptyish(() => {\n                // eslint-disable-next-line no-console\n                console.log(\"hello\");\n            })).toBe(false);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › classes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// It's hard to define what an empty class is; does it have private members?\n        // are we considering it empty if one of it's fields is empty?\n        // eslint-disable-next-line @typescript-eslint/no-extraneous-class\n        class Empty {\n        }\n        class NonEmpty {\n            a = \"hello\";\n        }\n        class NonEmptyButPrivate {\n            #a = \"hello\";\n            get a() {\n                return this.#a;\n            }\n        }\n        class ContainerWrapper {\n            data = [];\n        }\n        expect(isEmptyish(new Empty())).toBe(true);\n        expect(isEmptyish(new NonEmpty())).toBe(false);\n        expect(isEmptyish(new NonEmptyButPrivate())).toBe(true);\n        expect(isEmptyish(new ContainerWrapper())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-028",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › errors",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n// Errors are just classes! We don't special-case errors to check the length\n        // of the message because errors could be designed so that the message is\n        // not important and they hold information in other properties, and they\n        // wouldn't be semantically empty because of that.\n        class MyError extends Error {\n            data;\n            // eslint-disable-next-line unicorn/custom-error-definition\n            constructor(data = \"hello\") {\n                super();\n                this.data = data;\n            }\n        }\n        // eslint-disable-next-line unicorn/error-message\n        expect(isEmptyish(new Error())).toBe(true);\n        expect(isEmptyish(new Error(\"hello world!\"))).toBe(true);\n        expect(isEmptyish(new MyError())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-029",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always true › regexp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\n// There is no value in an empty regexp because it catches nothing so it's\n            // unlikely that this would be needed.\n            // eslint-disable-next-line prefer-regex-literals, require-unicode-regexp\n            expect(isEmptyish(new RegExp(\"\"))).toBe(true);\n            expect(isEmptyish(/abc/u)).toBe(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-030",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always true › dates",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\n// Dates are wrapped numbers, even if we special-case them there is no\n            // clear semantic for what an \"empty\" date would be.\n            expect(isEmptyish(new Date(0))).toBe(true);\n            expect(isEmptyish(new Date())).toBe(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-031",
+    "title": "packages/remeda/src/isEmptyish.test.ts › unsupported types › always true › weak collections",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyish } from \"./src/isEmptyish.js\";\n{\n{\n{\n{\n// Weak collections don't have a mechanism that allows tracking its size\n            // or enumerating its entries.\n            expect(isEmptyish(new WeakMap())).toBe(true);\n            expect(isEmptyish(new WeakSet())).toBe(true);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

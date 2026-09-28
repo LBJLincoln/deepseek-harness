@@ -1,0 +1,170 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/linear_regression.test.js › linear regression › correctly generates a line for a 0, 0 to 1, 1 dataset",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nconst l = linearRegressionLine(linearRegression([\n            [0, 0],\n            [1, 1]\n        ]));\n        assert.equal(l(0), 0);\n        assert.equal(l(0.5), 0.5);\n        assert.equal(l(1), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/linear_regression.test.js › linear regression › correctly generates a line for a 0, 0 to 1, 0 dataset",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nconst l = linearRegressionLine(linearRegression([\n            [0, 0],\n            [1, 0]\n        ]));\n        assert.equal(l(0), 0);\n        assert.equal(l(0.5), 0);\n        assert.equal(l(1), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/linear_regression.test.js › linear regression › handles a single-point sample",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nconst l = linearRegressionLine(linearRegression([[0, 0]]));\n        assert.deepEqual(l(10), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/linear_regression.test.js › linear regression › a straight line will have a slope of 0",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nassert.deepEqual(linearRegression([\n            [0, 0],\n            [1, 0]\n        ]), { m: 0, b: 0 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/linear_regression.test.js › linear regression › a line at 50% grade",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nassert.deepEqual(linearRegression([\n            [0, 0],\n            [1, 0.5]\n        ]), { m: 0.5, b: 0 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/linear_regression.test.js › linear regression › a line with a high y-intercept",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nassert.deepEqual(linearRegression([\n            [0, 20],\n            [1, 10]\n        ]), { m: -10, b: 20 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/linear_regression.test.js › linear regression › keeps its precision when x values share a large offset",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\n// A perfect line y = 2x + 1, shifted so the x values are the size of\n        // a millisecond timestamp. The naive sums lose every significant\n        // digit of the variance to cancellation.\n        const data = [];\n        for (let i = 0; i < 5; i++) {\n            data.push([1e11 + i, 2 * i + 1]);\n        }\n        const { m, b } = linearRegression(data);\n        assert.equal(m, 2);\n        assert.equal(b, 1 - 2 * 1e11);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/linear_regression.test.js › linear regression › agrees with weightedLinearRegression when the weights are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as linearRegression } from \"./src/linear_regression.js\";\nimport { default as linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\n{\n{\n{\nconst data = [];\n        for (let i = 0; i < 5; i++) {\n            data.push([1e9 + i, 2 * i + 1]);\n        }\n        const weights = data.map(function () {\n            return 1;\n        });\n        assert.deepEqual(linearRegression(data), weightedLinearRegression(data, weights));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/r_squared.test.js › r-squared › says that the r squared of a two-point line is perfect",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as __ns1_rSquared } from \"./src/r_squared.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, linearRegressionLine: __ns1_linearRegressionLine, rSquared: __ns1_rSquared });\n{\n{\n{\nconst d = Object.freeze([\n            [0, 0],\n            [1, 1]\n        ]);\n        const l = ss.linearRegressionLine(ss.linearRegression(d));\n        assert.equal(ss.rSquared(d, l), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "test/r_squared.test.js › r-squared › says that the r squared of a three-point line is not perfect",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as __ns1_rSquared } from \"./src/r_squared.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, linearRegressionLine: __ns1_linearRegressionLine, rSquared: __ns1_rSquared });\n{\n{\n{\nconst d = Object.freeze([\n            [0, 0],\n            [0.5, 0.2],\n            [1, 1]\n        ]);\n        const l = ss.linearRegressionLine(ss.linearRegression(d));\n        assert.notEqual(ss.rSquared(d, l), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "test/r_squared.test.js › r-squared › r-squared of single sample is 1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_linearRegressionLine } from \"./src/linear_regression_line.js\";\nimport { default as __ns1_rSquared } from \"./src/r_squared.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, linearRegressionLine: __ns1_linearRegressionLine, rSquared: __ns1_rSquared });\n{\n{\n{\nconst d = Object.freeze([[0, 0]]);\n        const l = ss.linearRegressionLine(ss.linearRegression(d));\n        assert.equal(ss.rSquared(d, l), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "test/weighted_linear_regression.test.js › weightedLinearRegression › equals linearRegression when the weights are equal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, weightedLinearRegression: __ns1_weightedLinearRegression });\n{\n{\n{\nconst data = [\n            [0, 0],\n            [1, 1],\n            [2, 2],\n            [3, 5]\n        ];\n        const plain = ss.linearRegression(data);\n        for (const w of [1, 4, 0.25]) {\n            const weighted = ss.weightedLinearRegression(data, data.map(() => w));\n            assert.equal(weighted.m, plain.m);\n            assert.equal(weighted.b, plain.b);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "test/weighted_linear_regression.test.js › weightedLinearRegression › a zero weight drops its observation",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, weightedLinearRegression: __ns1_weightedLinearRegression });\n{\n{\n{\nconst data = [\n            [0, 1],\n            [1, 3],\n            [2, 4],\n            [3, 8],\n            [4, 9]\n        ];\n        const dropped = ss.weightedLinearRegression(data, [0, 1, 1, 1, 1]);\n        const without = ss.linearRegression(data.slice(1));\n        assert.equal(dropped.m, without.m);\n        assert.equal(dropped.b, without.b);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "test/weighted_linear_regression.test.js › weightedLinearRegression › integer weights match repeating the observations",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_linearRegression } from \"./src/linear_regression.js\";\nimport { default as __ns1_weightedLinearRegression } from \"./src/weighted_linear_regression.js\";\nconst ss = Object.freeze({ linearRegression: __ns1_linearRegression, weightedLinearRegression: __ns1_weightedLinearRegression });\n{\n{\n{\nconst weighted = ss.weightedLinearRegression([\n            [1, 2],\n            [2, 3],\n            [3, 5]\n        ], [1, 2, 1]);\n        const repeated = ss.linearRegression([\n            [1, 2],\n            [2, 3],\n            [2, 3],\n            [3, 5]\n        ]);\n        assert.equal(weighted.m, repeated.m);\n        assert.equal(weighted.b, repeated.b);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

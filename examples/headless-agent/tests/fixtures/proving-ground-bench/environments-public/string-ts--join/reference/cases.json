@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/join.test.ts › join › should join words in both type level and runtime level",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/native/join.js\";\n{\n{\n{\nconst result = join(['a', 'b', 'c'], '-');\n        expect(result).toEqual('a-b-c');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/join.test.ts › join › should join only at runtime level when type is wide",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { join } from \"./src/native/join.js\";\n{\n{\n{\nconst data = ['a', 'b', 'c'];\n        const result = join(data, '-');\n        expect(result).toEqual('a-b-c');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

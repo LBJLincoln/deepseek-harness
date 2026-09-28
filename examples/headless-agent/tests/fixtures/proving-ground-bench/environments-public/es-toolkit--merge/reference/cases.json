@@ -1,0 +1,182 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/merge.spec.ts › merge › should merge properties from source object into target object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: 1, b: 2 };\n        const source = { b: 3, c: 4 };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: 1, b: 3, c: 4 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/merge.spec.ts › merge › should deeply merge nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: { x: 1, y: 2 }, b: 2 };\n        const source = { a: { y: 3, z: 4 }, c: 5 };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: { x: 1, y: 3, z: 4 }, b: 2, c: 5 });\n        const names = {\n            characters: [{ name: 'barney' }, { name: 'fred' }],\n        };\n        const ages = {\n            characters: [{ age: 36 }, { age: 40 }],\n        };\n        const heights = {\n            characters: [{ height: '5\\'4\"' }, { height: '5\\'5\"' }],\n        };\n        const expected = {\n            characters: [\n                { name: 'barney', age: 36, height: '5\\'4\"' },\n                { name: 'fred', age: 40, height: '5\\'5\"' },\n            ],\n        };\n        expect(merge(merge(names, ages), heights)).toEqual(expected);\n        const target2 = { a: [1, 2], b: { x: 1 } };\n        const source2 = { a: [3], b: { y: 2 } };\n        expect(merge(target2, source2)).toEqual({ a: [3, 2], b: { x: 1, y: 2 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/merge.spec.ts › merge › should merge arrays deeply",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: [1, 2] };\n        const source = { a: [3, 4] };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: [3, 4] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/merge.spec.ts › merge › should handle merging with null values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: null };\n        const source = { a: [1, 2, 3] };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: [1, 2, 3] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/merge.spec.ts › merge › should handle merging arrays into non-array target values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst numbers = [1, 2, 3];\n        const target = { a: 1, b: {} };\n        const source = { b: numbers, c: 4 };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: 1, b: { '0': 1, '1': 2, '2': 3 }, c: 4 });\n        expect(result.b).not.toBe(numbers);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/merge.spec.ts › merge › should create new plain object when merged",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst plainObject = { b: 2 };\n        const target = {};\n        const source = { a: plainObject };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: plainObject });\n        expect(result.a).not.toBe(plainObject);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/merge.spec.ts › merge › should handle merging values that are neither arrays nor plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst date = new Date();\n        const target = {};\n        const source = { a: date };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: date });\n        // unlike arrays and plain objects, the original value is used.\n        expect(result.a).toBe(date);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/merge.spec.ts › merge › should not overwrite existing values with undefined from source",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: 1, b: 2 };\n        const source = { b: undefined, c: 3 };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: 1, b: 2, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/merge.spec.ts › merge › should handle merging of deeply nested objects with arrays and objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: { b: { c: [1] } } };\n        const source = { a: { b: { c: [2], d: 3 }, e: [4] } };\n        const result = merge(target, source);\n        expect(result).toEqual({ a: { b: { c: [2], d: 3 }, e: [4] } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/object/merge.spec.ts › merge › should skip unsafe properties like __proto__",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: 1 };\n        const source = Object.create(null);\n        source.__proto__ = { b: 2 };\n        source.a = 2;\n        const result = merge(target, source);\n        expect(result).toEqual({ a: 2 });\n        expect(result.__proto__).toBe(Object.prototype);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/object/merge.spec.ts › merge › should behave like recursive Object.assign, applying the same logic to nested properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst topLevelArray = merge(['1'], { a: 2 });\n        const topLevelObject = merge({ a: 2 }, ['1']);\n        const nestedArray = merge({ x: ['1'] }, { x: { a: 2 } });\n        const nestedObject = merge({ x: { a: 2 } }, { x: ['1'] });\n        expect(Array.isArray(topLevelArray)).toBe(true);\n        expect(topLevelArray[0]).toBe('1');\n        expect(topLevelArray.a).toBe(2);\n        expect(typeof topLevelObject).toBe('object');\n        expect(topLevelObject).toEqual({ a: 2, 0: '1' });\n        expect(typeof nestedObject.x).toBe('object');\n        expect(nestedObject.x).toEqual({ a: 2, 0: '1' });\n        expect(nestedObject.x[0]).toBe('1');\n        expect(Array.isArray(nestedArray.x)).toBe(true);\n        expect(nestedArray.x[0]).toBe('1');\n        expect(nestedArray.x.a).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-012",
+    "title": "src/object/merge.spec.ts › merge › should type nested objects as a deep merge, not a shallow intersection",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: 1, b: { x: 1, y: 2 } };\n        const source = { b: { y: 3, z: 4 }, c: 5 };\n        const result = merge(target, source);\n        expectTypeOf(result).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/object/merge.spec.ts › merge › should use the source type when a defined source property overwrites the target",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: 1 };\n        const source = { a: 2 };\n        const result = merge(target, source);\n        expectTypeOf(result.a).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/object/merge.spec.ts › merge › does not collapse to never when an optional source property may be skipped",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { b: undefined };\n        const source = {};\n        const result = merge(target, source);\n        expectTypeOf(result.b).not.toBeNever();\n        expectTypeOf(result.b).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/object/merge.spec.ts › merge › keeps a plain intersection for keys present on only one side",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { merge } from \"./src/object/merge.js\";\n{\n{\n{\nconst target = { a: 1 };\n        const source = { b: 'x' };\n        const result = merge(target, source);\n        expectTypeOf(result).toEqualTypeOf();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › runtime correctness › empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(binarySearchCutoffIndex([], () => true)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › runtime correctness › single value, always false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(binarySearchCutoffIndex([1], () => false)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › runtime correctness › single value, always true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(binarySearchCutoffIndex([1], () => true)).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › runtime correctness › multiple values, always false",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(binarySearchCutoffIndex([1, 2, 3, 4, 5], () => false)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › runtime correctness › multiple values, always true",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(binarySearchCutoffIndex([1, 2, 3, 4, 5], () => true)).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › runtime correctness › fancy stuff",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(binarySearchCutoffIndex([\"a\", \"ab\", \"abc\", \"abcd\", \"abcde\"], ({ length }) => length < 3)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › binary search correctness via the index › after 0 items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n        ], (_, index) => index < 0)).toStrictEqual([8, 4, 2, 1, 0]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › binary search correctness via the index › after 4 items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n        ], (_, index) => index < 4)).toStrictEqual([8, 4, 2, 3]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › binary search correctness via the index › after 8 items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n        ], (_, index) => index < 8)).toStrictEqual([8, 4, 6, 7]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › binary search correctness via the index › after 12 items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n        ], (_, index) => index < 12)).toStrictEqual([8, 12, 10, 11]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "packages/remeda/src/internal/binarySearchCutoffIndex.test.ts › binary search correctness via the index › after 20 items",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { binarySearchCutoffIndex } from \"./src/internal/binarySearchCutoffIndex.js\";\n{\nfunction indicesSeen(items, predicate) {\n    const indices = [];\n    binarySearchCutoffIndex(items, (pivot, index) => {\n        indices.push(index);\n        return predicate(pivot, index);\n    });\n    return indices;\n}\n{\n{\nexpect(indicesSeen([\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n            undefined,\n        ], (_, index) => index < 20)).toStrictEqual([8, 12, 14, 15]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

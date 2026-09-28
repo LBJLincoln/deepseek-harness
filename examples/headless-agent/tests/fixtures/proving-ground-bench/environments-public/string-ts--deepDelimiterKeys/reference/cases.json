@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/object-keys/deep-delimiter-keys.test.ts › deepDelimiterKeys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepDelimiterKeys } from \"./src/utils/object-keys/deep-delimiter-keys.js\";\n{\n{\nconst expected = {\n        some: { 'deep@nested': { value: true } },\n        'other@value': true,\n    };\n    const result = deepDelimiterKeys({\n        some: { 'deep-nested': { value: true } },\n        'other-value': true,\n    }, '@');\n    expect(result).toEqual(expected);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

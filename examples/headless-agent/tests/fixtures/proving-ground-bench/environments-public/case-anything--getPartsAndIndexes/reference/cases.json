@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/utils.test.ts › splitAndPrefix($var, { keepSpecialCharacters: false })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$mesqueeb.mesqueebmesqueeb..mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: false,\n    })).toEqual(['mesqueeb', 'mesqueebmesqueeb', 'mesqueeb', 'Blues', 'Jazz', 'github', 'com']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/utils.test.ts › splitAndPrefix($var, { keepSpecialCharacters: true })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$mesqueeb.mesqueebmesqueeb..mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: true,\n    })).toEqual(['$mesqueeb', '.mesqueebmesqueeb', '..mesqueeb', '.Blues', 'Jazz', '@github', '.com']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/utils.test.ts › splitAndPrefix($var, { keepSpecialCharacters: false, prefix: '-' })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$mesqueeb.mesqueebmesqueeb.mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: false,\n        prefix: '-',\n    })).toEqual(['mesqueeb', '-mesqueebmesqueeb', '-mesqueeb', '-Blues', '-Jazz', '-github', '-com']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/utils.test.ts › splitAndPrefix(short, { keepSpecialCharacters: false, prefix: '-' })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`mesqueebMESQUEEB`, { keepSpecialCharacters: true, prefix: '-' })).toEqual([\n        'mesqueeb',\n        '-MESQUEEB',\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/utils.test.ts › splitAndPrefix($var, { keepSpecialCharacters: true, prefix: '-' })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$mesqueeb.mesqueebmesqueeb.mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: true,\n        prefix: '-',\n    })).toEqual(['$mesqueeb', '.mesqueebmesqueeb', '.mesqueeb', '.Blues', '-Jazz', '@github', '.com']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "test/utils.test.ts › splitAndPrefix($var multiple special chars, { keepSpecialCharacters: true, prefix: '-' })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$$mesqueeb-/_mesqueebmesqueeb...mesqueeb.BluesJazz@_@github.-com`, {\n        keepSpecialCharacters: true,\n        prefix: '-',\n    })).toEqual([\n        '$$mesqueeb',\n        '-/_mesqueebmesqueeb',\n        '...mesqueeb',\n        '.Blues',\n        '-Jazz',\n        '@_@github',\n        '.-com',\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "test/utils.test.ts › splitAndPrefix($var.slice(1), { keepSpecialCharacters: true })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`mesqueeb.mesqueebmesqueeb.mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: true,\n    })).toEqual(['mesqueeb', '.mesqueebmesqueeb', '.mesqueeb', '.Blues', 'Jazz', '@github', '.com']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "test/utils.test.ts › splitAndPrefix(sentence, { keepSpecialCharacters: false })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$mesqueeb.mesqueeb mesqueeb.mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: false,\n    })).toEqual(['mesqueebmesqueeb', 'mesqueebmesqueebBluesJazzgithubcom']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "test/utils.test.ts › splitAndPrefix(sentence, { keepSpecialCharacters: true })",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { splitAndPrefix } from \"./src/utils.js\";\n{\n{\nexpect(splitAndPrefix(`$mesqueeb.mesqueeb mesqueeb.mesqueeb.BluesJazz@github.com`, {\n        keepSpecialCharacters: true,\n    })).toEqual(['$mesqueeb.mesqueeb', 'mesqueeb.mesqueeb.BluesJazz@github.com']);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

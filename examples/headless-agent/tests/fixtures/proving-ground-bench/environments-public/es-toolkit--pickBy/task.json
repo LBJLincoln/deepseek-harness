@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-pickBy",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/object/pickBy.ts",
+    "tests": [
+      "src/object/pickBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/object/pickBy.js",
+    "function": "pickBy"
+  },
+  "title": "Implement pickBy from es-toolkit",
+  "prompt": "`src/object/pickBy.js` is the JavaScript build of `src/object/pickBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `pickBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Creates a new object composed of the properties that satisfy the predicate function.\n *\n * This function takes an object and a predicate function, and returns a new object that\n * includes only the properties for which the predicate function returns true.\n *\n * @template T - The type of object.\n * @param obj - The object to pick properties from.\n * @param shouldPick - A predicate function that determines\n * whether a property should be picked. It takes the property's key and value as arguments and returns `true`\n * if the property should be picked, and `false` otherwise. Numeric keys are passed as strings.\n * @returns A new object with the properties that satisfy the predicate function.\n *\n * @example\n * const obj = { a: 1, b: 'pick', c: 3 };\n * const shouldPick = (value) => typeof value === 'string';\n * const result = pickBy(obj, shouldPick);\n * // result will be { b: 'pick' }\n */\nexport function pickBy<T extends Record<string, any>>(\n  obj: T,\n  shouldPick: (value: T[keyof T], key: ObjectKeys<T>) => boolean\n): Partial<T>\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

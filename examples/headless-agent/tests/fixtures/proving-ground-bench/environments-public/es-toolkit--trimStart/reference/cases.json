@@ -1,0 +1,194 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading characters from the string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('---hello', '-')).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading zeros from the string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('000123', '0')).toEqual('123');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/trimStart.spec.ts › trimStart › should return the string unchanged when there are no leading characters to remove",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('hello', 'x')).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading occurrences of a single character",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('abcabcabc', 'a')).toEqual('bcabcabc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/trimStart.spec.ts › trimStart › should handle an empty string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('', 'x')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading spaces when specified",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('   hello world', ' ')).toEqual('hello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/trimStart.spec.ts › trimStart › should handle a case where the string is already trimmed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('trimmed', 'x')).toEqual('trimmed');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/string/trimStart.spec.ts › trimStart › should return an empty string when all characters are removed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('xxxxx', 'x')).toEqual('');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove numbers from the start of a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('123456abc', '1')).toEqual('23456abc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "src/string/trimStart.spec.ts › trimStart › should handle cases where multiple leading characters need removal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('aaaabbbcccc', 'a')).toEqual('bbbcccc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-011",
+    "title": "src/string/trimStart.spec.ts › trimStart › should trim the string without giving the second parameter, which defaults to whitespace",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('  hello world  ')).toEqual('hello world  ');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading characters when chars is an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('---hello', ['-', 'h'])).toEqual('ello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-014",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading characters from the string when multiple characters are provided in an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('000123', ['0', '1'])).toEqual('23');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-015",
+    "title": "src/string/trimStart.spec.ts › trimStart › should return the string unchanged when none of the leading characters in the array match",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('hello', ['x', 'y', 'z'])).toEqual('hello');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "src/string/trimStart.spec.ts › trimStart › should handle cases where multiple leading characters in the array need removal",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('abcabcabc', ['a', 'b'])).toEqual('cabcabc');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "src/string/trimStart.spec.ts › trimStart › should remove leading spaces and other characters when specified in an array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { trimStart } from \"./src/string/trimStart.js\";\n{\n{\n{\nexpect(trimStart('   hello world', [' ', 'h'])).toEqual('ello world');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

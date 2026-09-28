@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/entries.test.ts › should return pairs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { entries } from \"./src/entries.js\";\n{\n{\nexpect(entries({ a: 1, b: 2, c: 3 })).toStrictEqual([\n        [\"a\", 1],\n        [\"b\", 2],\n        [\"c\", 3],\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/entries.test.ts › should ignore symbol keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { entries } from \"./src/entries.js\";\n{\n{\nexpect(entries({ [Symbol(\"a\")]: 1 })).toStrictEqual([]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/entries.test.ts › should turn numbers to strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { entries } from \"./src/entries.js\";\n{\n{\nexpect(entries({ 1: \"hello\" })).toStrictEqual([[\"1\", \"hello\"]]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/entries.test.ts › returns symbol values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { entries } from \"./src/entries.js\";\n{\n{\nconst mySymbol = Symbol(\"hello\");\n    expect(entries({ a: mySymbol })).toStrictEqual([[\"a\", mySymbol]]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/entries.test.ts › works with complex objects as values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { entries } from \"./src/entries.js\";\n{\n{\nconst complexObject = { a: { b: { c: [{ d: true }, { d: false }] } } };\n    expect(entries({ a: complexObject })).toStrictEqual([[\"a\", complexObject]]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

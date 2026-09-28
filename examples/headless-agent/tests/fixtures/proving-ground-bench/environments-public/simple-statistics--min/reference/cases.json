@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/minmax.test.js › min › can get the minimum of one number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_extent } from \"./src/extent.js\";\nimport { default as __ns1_extentSorted } from \"./src/extent_sorted.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_maxSorted } from \"./src/max_sorted.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_minSorted } from \"./src/min_sorted.js\";\nconst ss = Object.freeze({ extent: __ns1_extent, extentSorted: __ns1_extentSorted, max: __ns1_max, maxSorted: __ns1_maxSorted, min: __ns1_min, minSorted: __ns1_minSorted });\n{\n{\nassert.throws(function () {\n        ss.min([]);\n    });\n{\nassert.equal(ss.min([1]), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "test/minmax.test.js › min › can get the minimum of three numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_extent } from \"./src/extent.js\";\nimport { default as __ns1_extentSorted } from \"./src/extent_sorted.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_maxSorted } from \"./src/max_sorted.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_minSorted } from \"./src/min_sorted.js\";\nconst ss = Object.freeze({ extent: __ns1_extent, extentSorted: __ns1_extentSorted, max: __ns1_max, maxSorted: __ns1_maxSorted, min: __ns1_min, minSorted: __ns1_minSorted });\n{\n{\nassert.throws(function () {\n        ss.min([]);\n    });\n{\nassert.equal(ss.min([1, 7, -1000]), -1000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "test/quantile.test.js › quantile › min quantile is equal to the min",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_median } from \"./src/median.js\";\nimport { default as __ns1_min } from \"./src/min.js\";\nimport { default as __ns1_quantile } from \"./src/quantile.js\";\nconst ss = Object.freeze({ max: __ns1_max, median: __ns1_median, min: __ns1_min, quantile: __ns1_quantile });\n{\n{\nassert.throws(function () {\n        ss.quantile([], 0.5);\n    });\n{\nassert.equal(ss.quantile([1, 2, 3], 0), ss.min([1, 2, 3]));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

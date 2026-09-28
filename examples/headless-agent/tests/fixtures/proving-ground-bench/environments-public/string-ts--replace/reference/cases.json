@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/native/replace.test.ts › replace › should replace chars in a string at both type level and runtime level once",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { replace } from \"./src/native/replace.js\";\n{\n{\n{\nconst data = 'some nice string';\n        const result = replace(data, ' ');\n        expect(result).toEqual('somenice string');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/native/replace.test.ts › replace › should replace chars but not at type level when using RegExp",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { replace } from \"./src/native/replace.js\";\n{\n{\n{\nconst data = 'some nice string';\n        const result = replace(data, /nice /);\n        expect(result).toEqual('some string');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

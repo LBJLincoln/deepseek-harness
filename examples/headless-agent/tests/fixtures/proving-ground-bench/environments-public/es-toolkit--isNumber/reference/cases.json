@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isNumber.spec.ts › isNumber › returns true if the value is a number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/predicate/isNumber.js\";\n{\n{\n{\nexpect(isNumber(0)).toBe(true);\n        expect(isNumber(123)).toBe(true);\n        expect(isNumber(-456)).toBe(true);\n        expect(isNumber(3.14)).toBe(true);\n        expect(isNumber(Infinity)).toBe(true);\n        expect(isNumber(-Infinity)).toBe(true);\n        expect(isNumber(NaN)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isNumber.spec.ts › isNumber › returns false if the value is not a number",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isNumber } from \"./src/predicate/isNumber.js\";\n{\n{\n{\nexpect(isNumber('123')).toBe(false);\n        expect(isNumber(true)).toBe(false);\n        expect(isNumber(false)).toBe(false);\n        expect(isNumber(null)).toBe(false);\n        expect(isNumber(undefined)).toBe(false);\n        expect(isNumber({ a: 1 })).toBe(false);\n        expect(isNumber([1, 2, 3])).toBe(false);\n        expect(isNumber(new Number(42))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

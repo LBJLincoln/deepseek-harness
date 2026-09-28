@@ -1,0 +1,74 @@
+[
+  {
+    "id": "case-001",
+    "title": "pkgs/core/src/locale/zh-CN/test.ts › zh-CN locale › parses October with localized month tokens",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parse } from \"./src/parse/index.js\";\nimport { zhCN } from \"./src/locale/zh-CN/index.js\";\n{\n{\n{\nexpect(parse(\"2022年10月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhCN,\n        })).toEqual(new Date(2022, 9 /* Oct */, 27));\n        expect(parse(\"2022年十月27日\", \"yyyy年MMMMdd日\", new Date(), {\n            locale: zhCN,\n        })).toEqual(new Date(2022, 9 /* Oct */, 27));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "pkgs/core/src/locale/zh-CN/test.ts › zh-CN locale › parses November and December as distinct months",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parse } from \"./src/parse/index.js\";\nimport { zhCN } from \"./src/locale/zh-CN/index.js\";\n{\n{\n{\nexpect(parse(\"2022年11月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhCN,\n        })).toEqual(new Date(2022, 10 /* Nov */, 27));\n        expect(parse(\"2022年12月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhCN,\n        })).toEqual(new Date(2022, 11 /* Dec */, 27));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "pkgs/core/src/locale/zh-HK/test.ts › zh-HK locale › parses October with localized month tokens",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parse } from \"./src/parse/index.js\";\nimport { zhHK } from \"./src/locale/zh-HK/index.js\";\n{\n{\n{\nexpect(parse(\"2022年10月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhHK,\n        })).toEqual(new Date(2022, 9 /* Oct */, 27));\n        expect(parse(\"2022年十月27日\", \"yyyy年MMMMdd日\", new Date(), {\n            locale: zhHK,\n        })).toEqual(new Date(2022, 9 /* Oct */, 27));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "pkgs/core/src/locale/zh-HK/test.ts › zh-HK locale › parses November and December as distinct months",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parse } from \"./src/parse/index.js\";\nimport { zhHK } from \"./src/locale/zh-HK/index.js\";\n{\n{\n{\nexpect(parse(\"2022年11月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhHK,\n        })).toEqual(new Date(2022, 10 /* Nov */, 27));\n        expect(parse(\"2022年12月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhHK,\n        })).toEqual(new Date(2022, 11 /* Dec */, 27));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "pkgs/core/src/locale/zh-TW/test.ts › zh-TW locale › parses October with localized month tokens",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parse } from \"./src/parse/index.js\";\nimport { zhTW } from \"./src/locale/zh-TW/index.js\";\n{\n{\n{\nexpect(parse(\"2022年10月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhTW,\n        })).toEqual(new Date(2022, 9 /* Oct */, 27));\n        expect(parse(\"2022年十月27日\", \"yyyy年MMMMdd日\", new Date(), {\n            locale: zhTW,\n        })).toEqual(new Date(2022, 9 /* Oct */, 27));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "pkgs/core/src/locale/zh-TW/test.ts › zh-TW locale › parses November and December as distinct months",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parse } from \"./src/parse/index.js\";\nimport { zhTW } from \"./src/locale/zh-TW/index.js\";\n{\n{\n{\nexpect(parse(\"2022年11月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhTW,\n        })).toEqual(new Date(2022, 10 /* Nov */, 27));\n        expect(parse(\"2022年12月27日\", \"yyyy年MMMdd日\", new Date(), {\n            locale: zhTW,\n        })).toEqual(new Date(2022, 11 /* Dec */, 27));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

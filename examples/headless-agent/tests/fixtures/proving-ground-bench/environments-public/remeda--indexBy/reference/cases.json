@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/indexBy.test.ts › dataFirst",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { indexBy } from \"./src/indexBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\nexpect(indexBy([\n        { dir: \"left\", code: 97 },\n        { dir: \"right\", code: 100 },\n    ], prop(\"code\"))).toStrictEqual({\n        97: { dir: \"left\", code: 97 },\n        100: { dir: \"right\", code: 100 },\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/indexBy.test.ts › dataLast",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { indexBy } from \"./src/indexBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\nexpect(pipe([\n        { dir: \"left\", code: 97 },\n        { dir: \"right\", code: 100 },\n    ], indexBy(prop(\"code\")))).toStrictEqual({\n        97: { dir: \"left\", code: 97 },\n        100: { dir: \"right\", code: 100 },\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/prop.test.ts › factory function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { indexBy } from \"./src/indexBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\nconst propA = prop(\"a\");\n    expect(indexBy([{ a: 1 }, { a: 2 }], propA)).toStrictEqual({\n        \"1\": { a: 1 },\n        \"2\": { a: 2 },\n    });\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

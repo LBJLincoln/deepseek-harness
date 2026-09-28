@@ -1,0 +1,62 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/findLastIndex.test.ts › data first › findLastIndex",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLastIndex } from \"./src/findLastIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLastIndex([1, 2, 3, 4], (x) => x % 2 === 1)).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/findLastIndex.test.ts › data first › findLast first value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLastIndex } from \"./src/findLastIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLastIndex([1, 2, 3, 4], (x) => x === 1)).toBe(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "packages/remeda/src/findLastIndex.test.ts › data first › findLastIndex -1",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLastIndex } from \"./src/findLastIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(findLastIndex([1, 2, 3, 4], (x) => x === 5)).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/findLastIndex.test.ts › data last › found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLastIndex } from \"./src/findLastIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], findLastIndex((x) => x % 2 === 1))).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/findLastIndex.test.ts › data last › not found",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { findLastIndex } from \"./src/findLastIndex.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 4], findLastIndex((x) => x === 5))).toBe(-1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

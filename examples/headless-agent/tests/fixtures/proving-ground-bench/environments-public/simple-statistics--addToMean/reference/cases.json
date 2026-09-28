@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/add_to_mean.test.js › addToMean › can get add a single value to a mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_addToMean } from \"./src/add_to_mean.js\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nconst ss = Object.freeze({ addToMean: __ns1_addToMean, mean: __ns1_mean });\n{\n{\n{\nconst values = Object.freeze([13, 14, 15, 8, 20]);\n        assert.equal(ss.addToMean(ss.mean(values), values.length, 53), 20.5);\n        assert.equal(ss.addToMean(ss.mean(values), values.length, 53), ss.mean(values.concat(53)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

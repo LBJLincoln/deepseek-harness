@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "test/subtract_from_mean.test.js › subtractFromMean › can remove a single value from a mean",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_mean } from \"./src/mean.js\";\nimport { default as __ns1_subtractFromMean } from \"./src/subtract_from_mean.js\";\nconst ss = Object.freeze({ mean: __ns1_mean, subtractFromMean: __ns1_subtractFromMean });\n{\n{\n{\nconst values = Object.freeze([13, 14, 15, 8, 20, 54]);\n        assert.equal(ss.subtractFromMean(ss.mean(values), values.length, 54), 14);\n        assert.equal(ss.subtractFromMean(ss.mean(values), values.length, 54), ss.mean(values.slice(0, -1)));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

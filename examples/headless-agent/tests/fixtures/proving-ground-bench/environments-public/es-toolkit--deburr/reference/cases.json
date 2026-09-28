@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/string/deburr.spec.ts › deburr › should convert examples correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\nexpect(deburr('Æthelred')).toBe('Aethelred');\n        expect(deburr('München')).toBe('Munchen');\n        expect(deburr('Crème brûlée')).toBe('Creme brulee');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/string/deburr.spec.ts › deburr › should convert Latin Unicode letters to basic Latin",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\nconst actual = burredLetters.map(deburr);\n        expect(actual).toEqual(deburredLetters);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/string/deburr.spec.ts › deburr › should not deburr Latin mathematical operators",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\nconst operators = ['\\xd7', '\\xf7'];\n        const actual = operators.map(deburr);\n        expect(actual).toEqual(operators);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/string/deburr.spec.ts › deburr › should deburr combining diacritical marks",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\nconst expected = comboMarks.map(() => 'ei');\n        const actual = comboMarks.map(chr => deburr(`e${chr}i`));\n        expect(actual).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/string/deburr.spec.ts › deburr › should remove combining marks from every supported range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\n// Combining Diacritical Marks (U+0300-U+036F).\n        expect(deburr('e\\u0300i')).toBe('ei');\n        expect(deburr('e\\u036fi')).toBe('ei');\n        // Combining Diacritical Marks for Symbols (U+20D0-U+20FF).\n        expect(deburr('e\\u20d0i')).toBe('ei');\n        expect(deburr('e\\u20ddi')).toBe('ei');\n        expect(deburr('e\\u20e1i')).toBe('ei');\n        expect(deburr('e\\u20ffi')).toBe('ei');\n        // Combining Half Marks (U+FE20-U+FE2F).\n        expect(deburr('e\\ufe20i')).toBe('ei');\n        expect(deburr('e\\ufe24i')).toBe('ei');\n        expect(deburr('e\\ufe26i')).toBe('ei');\n        expect(deburr('e\\ufe2fi')).toBe('ei');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/string/deburr.spec.ts › deburr › should preserve characters just outside the combining mark ranges",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\nexpect(deburr('e\\u02ffi')).toBe('e\\u02ffi');\n        expect(deburr('e\\u0370i')).toBe('e\\u0370i');\n        expect(deburr('e\\u20cfi')).toBe('e\\u20cfi');\n        expect(deburr('e\\u2100i')).toBe('e\\u2100i');\n        expect(deburr('e\\ufe1fi')).toBe('e\\ufe1fi');\n        expect(deburr('e\\ufe30i')).toBe('e\\ufe30i');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/string/deburr.spec.ts › deburr › should remove consecutive marks spanning different ranges",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deburr } from \"./src/string/deburr.js\";\nimport { burredLetters } from \"./src/_internal/burredLetters.js\";\nimport { comboMarks } from \"./src/_internal/comboMarks.js\";\nimport { deburredLetters } from \"./src/_internal/deburredLetters.js\";\n{\n{\n{\nexpect(deburr('a\\u0301\\u0327\\u20d1')).toBe('a');\n        expect(deburr('\\u00c6\\u20dd')).toBe('Ae');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

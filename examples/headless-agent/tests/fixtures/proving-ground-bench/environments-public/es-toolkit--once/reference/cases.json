@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/function/once.spec.ts › once › should preserve this context",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { once } from \"./src/function/once.js\";\n{\n{\n{\nconst object = {\n            value: 42,\n            getValue: once(function () {\n                return this.value;\n            }),\n        };\n        expect(object.getValue()).toBe(42);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

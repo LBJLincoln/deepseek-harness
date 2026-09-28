@@ -1,0 +1,52 @@
+{
+  "id": "code:change-case--implement-pascalCase",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "change-case",
+    "url": "https://github.com/blakeembrey/change-case",
+    "commit": "9d5505c7e807544a18d98052802985069ac190d0",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "4eeb3271453a891df609e5a9f4ee79a68307f730c13417a3bfeffa604ac8cf25",
+    "copyright": "Copyright (c) 2014 Blake Embrey (hello@blakeembrey.com)",
+    "module": "packages/change-case/src/index.ts",
+    "tests": [
+      "packages/change-case/src/index.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/change-case/src/index.js",
+    "function": "pascalCase"
+  },
+  "title": "Implement pascalCase from change-case",
+  "prompt": "`src/change-case/src/index.js` is the JavaScript build of `packages/change-case/src/index.ts` from change-case (https://github.com/blakeembrey/change-case at commit 9d5505c7e807, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `pascalCase`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Convert a string to pascal case (`FooBar`).\n */\nexport function pascalCase(input: string, options?: PascalCaseOptions)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

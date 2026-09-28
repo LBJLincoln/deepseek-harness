@@ -1,0 +1,47 @@
+{
+  "id": "T-0027",
+  "title": "Drop the oxlint metadata overrides the installed manifests now answer",
+  "division": "governance",
+  "seat": "governance-third-party-notices-standard-author",
+  "kind": "chore",
+  "source": {
+    "path": "scripts/gen-third-party-notices.ts",
+    "anchor": "// Rust workspaces publishing npm bins without `license` in package.json."
+  },
+  "task": "Problem: scripts/gen-third-party-notices.ts:69-71 overrides `oxlint` and `oxlint-tsgolint` with `{ license: 'MIT', repo }` under the comment \"Rust workspaces publishing npm bins without `license` in package.json.\" The installed manifests now carry both fields: oxlint 1.76.0 declares `\"license\": \"MIT\"` and `repository: { type: 'git', url: 'git+https://github.com/oxc-project/oxc', directory: 'npm/oxlint' }`, and oxlint-tsgolint 7.0.2001 declares `\"license\": \"MIT\"` and `repository: { url: 'github:oxc-project/tsgolint' }` (read them with `node -e` over the paths `ls -d node_modules/.pnpm/*/node_modules/oxlint/package.json node_modules/.pnpm/*/node_modules/oxlint-tsgolint/package.json` print). scripts/gen-third-party-notices.ts:63-66 states the rule for `OVERRIDES`: an entry exists only where the installed manifest is wrong or unreachable, and each entry documents why. The reason for these two no longer holds, so the override masks what the store says and would keep masking a future relicensing. The `@modelcontextprotocol/server-*` entries (still `SEE LICENSE IN LICENSE`) and the `node-addon-require-builtin` entry (still no `repository` field) remain justified.\n\nRequired: delete the two oxlint entries and their comment from `OVERRIDES`; run `pnpm run gen-third-party-notices` and commit the regenerated THIRD_PARTY_NOTICES.md if the repository URL rendering changes (the generator may normalize `git+https://` and `github:` forms differently from the hand-written override); keep every other override.\n\nConstraints: no change to tier policy, `DEV_ONLY_AREAS`, or other entries; `pnpm run verify-third-party-notices` and the generator's spec must pass on the result; mechanical, no Agent Note. The generator spec and the freshness check are the gates for this change; the queue's mandatory coverage run names dsh-skill-filesystem, a package this change cannot affect, and passes before and after.",
+  "scope": [
+    "scripts/gen-third-party-notices.ts",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "acceptance": [
+    {
+      "id": "oxlint-override-gone",
+      "run": "! grep -q \"'oxlint':\" scripts/gen-third-party-notices.ts"
+    },
+    {
+      "id": "tsgolint-override-gone",
+      "run": "! grep -q \"'oxlint-tsgolint':\" scripts/gen-third-party-notices.ts"
+    },
+    {
+      "id": "notices-fresh",
+      "run": "pnpm run verify-third-party-notices"
+    },
+    {
+      "id": "generator-spec",
+      "run": "pnpm exec vitest run scripts/gen-third-party-notices.spec.ts"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 2
+}

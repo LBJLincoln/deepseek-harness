@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/addProp.test.ts › data first › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { addProp } from \"./src/addProp.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst actual = addProp({ a: 1 }, \"b\", 2);\n        expect(actual).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "packages/remeda/src/addProp.test.ts › data last › simple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { addProp } from \"./src/addProp.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst actual = pipe({ a: 1 }, addProp(\"b\", 2));\n        expect(actual).toStrictEqual({ a: 1, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

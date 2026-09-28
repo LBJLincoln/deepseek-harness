@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isBuffer.spec.ts › isBuffer › should return true for Buffer instances",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBuffer } from \"./src/predicate/isBuffer.js\";\n{\n{\n{\nconst buffer = Buffer.from('test');\n        expect(isBuffer(buffer)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isBuffer.spec.ts › isBuffer › should return false for non-Buffer instances",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBuffer } from \"./src/predicate/isBuffer.js\";\n{\n{\n{\nexpect(isBuffer(null)).toBe(false);\n        expect(isBuffer(undefined)).toBe(false);\n        expect(isBuffer(123)).toBe(false);\n        expect(isBuffer('string')).toBe(false);\n        expect(isBuffer([])).toBe(false);\n        expect(isBuffer({})).toBe(false);\n        expect(isBuffer(new Uint8Array(2))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isBuffer.spec.ts › isBuffer › should return false when Buffer is not defined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isBuffer } from \"./src/predicate/isBuffer.js\";\n{\n{\n{\nconst originalBuffer = global.Buffer;\n        // eslint-disable-next-line\n        // @ts-ignore\n        delete global.Buffer;\n        expect(isBuffer(new Uint8Array())).toBe(false);\n        global.Buffer = originalBuffer; // Restore Buffer\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

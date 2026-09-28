@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isJSON.spec.ts › isJSON › returns true if the value is a valid JSON string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSON } from \"./src/predicate/isJSON.js\";\n{\n{\n{\nexpect(isJSON('{\"name\":\"John\",\"age\":30}')).toBe(true);\n        expect(isJSON('[1,2,3]')).toBe(true);\n        expect(isJSON('\"string\"')).toBe(true);\n        expect(isJSON('123')).toBe(true);\n        expect(isJSON('true')).toBe(true);\n        expect(isJSON('false')).toBe(true);\n        expect(isJSON('null')).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isJSON.spec.ts › isJSON › returns false if the value is not a valid JSON string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSON } from \"./src/predicate/isJSON.js\";\n{\n{\n{\nexpect(isJSON('invalid json')).toBe(false);\n        expect(isJSON('{\"unclosed\": \"object\"')).toBe(false);\n        expect(isJSON('[1,2,')).toBe(false);\n        expect(isJSON('undefined')).toBe(false);\n        expect(isJSON('')).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isJSON.spec.ts › isJSON › returns false if the value is not a string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isJSON } from \"./src/predicate/isJSON.js\";\n{\n{\n{\nexpect(isJSON(null)).toBe(false);\n        expect(isJSON(undefined)).toBe(false);\n        expect(isJSON(123)).toBe(false);\n        expect(isJSON(true)).toBe(false);\n        expect(isJSON({})).toBe(false);\n        expect(isJSON([])).toBe(false);\n        expect(isJSON(new Date())).toBe(false);\n        expect(isJSON(() => { })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

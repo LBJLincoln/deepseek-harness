@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/omitBy.spec.ts › omitBy › should omit properties based on the predicate function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = { a: 1, b: 'omit', c: 3 };\n        const shouldOmit = (value) => typeof value === 'string';\n        const result = omitBy(obj, shouldOmit);\n        expect(result).toEqual({ a: 1, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/omitBy.spec.ts › omitBy › should return an empty object if all properties are omitted",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = { a: 'omit', b: 'omit' };\n        const shouldOmit = (value) => typeof value === 'string';\n        const result = omitBy(obj, shouldOmit);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/omitBy.spec.ts › omitBy › should return the same object if no properties are omitted",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = { a: 1, b: 2, c: 3 };\n        const shouldOmit = (value) => typeof value === 'string';\n        const result = omitBy(obj, shouldOmit);\n        expect(result).toEqual(obj);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/omitBy.spec.ts › omitBy › should work with an empty object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = {};\n        const shouldOmit = (value) => value;\n        const result = omitBy(obj, shouldOmit);\n        expect(result).toEqual({});\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/omitBy.spec.ts › omitBy › should work with nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = { a: 1, b: { nested: 'omit' }, c: 3 };\n        const shouldOmit = (_, key) => key === 'b';\n        const result = omitBy(obj, shouldOmit);\n        expect(result).toEqual({ a: 1, c: 3 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/omitBy.spec.ts › omitBy › should pass numeric keys as strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = { 1: 'keep', 2: 'omit' };\n        const keys = [];\n        const result = omitBy(obj, (value, key) => {\n            expectTypeOf(key).toEqualTypeOf();\n            keys.push(key);\n            return value === 'omit';\n        });\n        expect(keys).toEqual(['1', '2']);\n        expect(result).toEqual({ 1: 'keep' });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/omitBy.spec.ts › omitBy › should type number index signature keys as numeric strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nconst obj = { 1: 'keep', 2: 'omit' };\n        omitBy(obj, (_value, key) => {\n            expectTypeOf(key).toEqualTypeOf();\n            return key === '2';\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/omitBy.spec.ts › omitBy › should preserve string literal key types",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { omitBy } from \"./src/object/omitBy.js\";\n{\n{\n{\nomitBy({ a: 1, b: 2 }, (_value, key) => {\n            expectTypeOf(key).toEqualTypeOf();\n            return false;\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

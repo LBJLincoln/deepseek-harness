@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-002",
+    "title": "test/resolve.test.ts › resolveURL › invalid URL (null)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { resolveURL } from \"./src/utils.js\";\n{\n{\n{\nexpect(() => resolveURL(null)).toThrow(\"URL input should be string received object (null)\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "test/resolve.test.ts › resolveURL › invalid URL (array)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { resolveURL } from \"./src/utils.js\";\n{\n{\n{\nexpect(() => resolveURL([])).toThrow(\"URL input should be string received object ()\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "test/resolve.test.ts › resolveURL › no arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { resolveURL } from \"./src/utils.js\";\n{\n{\n{\nexpect(resolveURL()).toBe(\"\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

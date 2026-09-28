@@ -1,0 +1,52 @@
+{
+  "id": "code:es-toolkit--implement-maxBy",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "es-toolkit",
+    "url": "https://github.com/toss/es-toolkit",
+    "commit": "d6f796064886b6229385c5f3e6165dab584ebfb6",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "51f3674294d988d89dbebd31273baaeb3c697a15482d9699b14d1fded2e132a7",
+    "copyright": "Copyright (c) 2024 Viva Republica, Inc.",
+    "module": "src/array/maxBy.ts",
+    "tests": [
+      "src/array/maxBy.spec.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/array/maxBy.js",
+    "function": "maxBy"
+  },
+  "title": "Implement maxBy from es-toolkit",
+  "prompt": "`src/array/maxBy.js` is the JavaScript build of `src/array/maxBy.ts` from es-toolkit (https://github.com/toss/es-toolkit at commit d6f796064886, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `maxBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Finds the element in an array that has the maximum value when applying\n * the `getValue` function to each element.\n *\n * @template T - The type of elements in the array.\n * @param items The array of elements to search.\n * @param getValue A function that selects a numeric value from each element.\n * @returns The element with the maximum value as determined by the `getValue` function,\n * or `undefined` if the array is empty.\n * @example\n * maxBy([{ a: 1 }, { a: 2 }, { a: 3 }], x => x.a); // Returns: { a: 3 }\n * maxBy([], x => x.a); // Returns: undefined\n * maxBy([3, NaN, 1], x => x); // Returns: NaN (NaN propagates, matching Math.max)\n * maxBy(\n *   [\n *     { name: 'john', age: 30 },\n *     { name: 'jane', age: 28 },\n *     { name: 'joe', age: 26 },\n *   ],\n *   x => x.age\n * ); // Returns: { name: 'john', age: 30 }\n */\nexport function maxBy<T>(\n  items: readonly T[],\n  getValue: (element: T, index: number, array: readonly T[]) => number\n): T | undefined\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

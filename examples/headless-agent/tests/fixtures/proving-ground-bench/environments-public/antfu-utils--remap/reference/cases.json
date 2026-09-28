@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-003",
+    "title": "src/math.test.ts › remap",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { lerp, remap, sum } from \"./src/math.js\";\n{\n{\nexpect(remap(0, 0, 1, 0, 10)).toEqual(0);\n    expect(remap(1, 0, 1, 0, 10)).toEqual(10);\n    expect(remap(0.5, 0, 1, 0, 10)).toEqual(5);\n    expect(remap(0.5, -1, 1, 0, 1)).toEqual(0.75);\n    expect(remap(0.25, 0, 1, -1, 1)).toEqual(-0.5);\n    expect(remap(2, 0, 1, 5, 10)).toEqual(10);\n    expect(remap(-1, 0, 1, 5, 10)).toEqual(5);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

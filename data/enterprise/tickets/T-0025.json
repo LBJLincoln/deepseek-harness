@@ -1,0 +1,50 @@
+{
+  "id": "T-0025",
+  "title": "Retire the message-feedback README claim that no client aggregate or UI exists",
+  "division": "program-departments",
+  "seat": "program-departments-feedback-coordinator",
+  "kind": "docs",
+  "source": {
+    "path": "packages/feedback/message-feedback/README.md",
+    "anchor": "**Client aggregate and UI are absent**"
+  },
+  "task": "Problem: packages/feedback/message-feedback/README.md:78 lists \"Client aggregate and UI are absent — the Host Remote contract ships, but the Client Remote aggregate contribution and any UI consumer are separately owned and deferred\", packages/feedback/message-feedback/README.md:48 says \"The Client Remote aggregate does not mount the generated client contribution yet; Host callers can use the service/Remote contract without that client assembly.\", and the family README repeats it at packages/feedback/README.md:14 (\"the client Remote aggregate mount and UI consumer are separately owned and deferred\"). All three are false on the current tree: packages/api/remotes/src/client/index.ts mounts the `messageFeedback` client contribution in the Client Remote aggregate (`grep -n messageFeedback packages/api/remotes/src/client/index.ts`), and packages/client/ui-message-feedback is the shipped UI consumer — its README.md:5-9 describes the Like/Dislike pair contributed as the `feedback` entry of the `conversation.chat.assistant-actions` strip, mutating through `ctx.remote.messageFeedback` with the per-item `version` compare-and-set this package documents. The Chinese counterparts carry the same statements at packages/feedback/message-feedback/README.zh.md:48, README.zh.md:78, and packages/feedback/README.zh.md:14.\n\nRequired: delete the bullet at message-feedback/README.md:78; replace the sentence at message-feedback/README.md:48 and the clause at packages/feedback/README.md:14 with one clause each that names the client aggregate (`@deepseek-ai/dsh-api-remotes`) and links the UI consumer (`../../client/ui-message-feedback/README.md` from the package README, `../client/ui-message-feedback/README.md` from the family README) as the shipped consumers; mirror the edits in both README.zh.md files; re-record with `pnpm run verify-translation-pairing --write packages/feedback/message-feedback/README.md packages/feedback/README.md`; run `pnpm run doc-sync` and regenerate only what it reports stale.\n\nConstraints: documentation only, no source change; keep the other Known Limitations bullets (they remain true); do not edit the client package, the remotes aggregate, or command-feedback; mechanical, local edit under the Agent Note exemption.",
+  "scope": [
+    "packages/feedback/"
+  ],
+  "acceptance": [
+    {
+      "id": "stale-bullet-gone",
+      "run": "! grep -q 'Client aggregate and UI are absent' packages/feedback/message-feedback/README.md"
+    },
+    {
+      "id": "stale-sentence-gone",
+      "run": "! grep -q 'does not mount the generated client contribution yet' packages/feedback/message-feedback/README.md"
+    },
+    {
+      "id": "family-readme-current",
+      "run": "! grep -q 'separately owned and deferred' packages/feedback/README.md"
+    },
+    {
+      "id": "ui-consumer-linked-in-both",
+      "run": "test \"$(grep -l 'ui-message-feedback' packages/feedback/message-feedback/README.md packages/feedback/README.md | wc -l)\" = 2"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/feedback/message-feedback/ --coverage --coverage.include='packages/feedback/message-feedback/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 1
+}

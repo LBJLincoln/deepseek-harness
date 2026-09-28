@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/maxBy.spec.ts › maxBy › maxBy selects one max value in array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'Mark', age: 25 },\n            { name: 'Nunu', age: 30 },\n            { name: 'Overmars', age: 20 },\n        ];\n        const result = maxBy(people, person => person.age);\n        expect(result).toEqual({ name: 'Nunu', age: 30 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/maxBy.spec.ts › maxBy › if there are two max values, first one is selected",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nconst people = [\n            { name: 'Mark', age: 25 },\n            { name: 'Nunu', age: 30 },\n            { name: 'Overmars', age: 30 },\n        ];\n        const result = maxBy(people, person => person.age);\n        expect(result).toEqual({ name: 'Nunu', age: 30 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/maxBy.spec.ts › maxBy › if array is single-element, return unique element of array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nconst people = [{ name: 'Mark', age: 25 }];\n        const result = maxBy(people, person => person.age);\n        expect(result).toEqual({ name: 'Mark', age: 25 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/maxBy.spec.ts › maxBy › if array is empty, return undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nconst people = [];\n        const result = maxBy(people, person => person.age);\n        expect(result).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/maxBy.spec.ts › maxBy › should propagate NaN regardless of its position, matching Math.max",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nexpect(maxBy([Number.NaN, 1, 3, 2], x => x)).toBeNaN();\n        expect(maxBy([1, Number.NaN, 3, 2], x => x)).toBeNaN();\n        expect(maxBy([1, 3, 2, Number.NaN], x => x)).toBeNaN();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/maxBy.spec.ts › maxBy › should provide index parameter to getValue function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nconst items = [{ value: 10 }, { value: 20 }, { value: 15 }];\n        const result = maxBy(items, (item, index) => item.value + index);\n        expect(result).toEqual({ value: 20 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/maxBy.spec.ts › maxBy › should provide array parameter to getValue function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { maxBy } from \"./src/array/maxBy.js\";\n{\n{\n{\nconst items = [{ value: 10 }, { value: 20 }, { value: 15 }];\n        const result = maxBy(items, (item, _index, array) => item.value * array.length);\n        expect(result).toEqual({ value: 20 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

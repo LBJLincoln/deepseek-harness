@@ -1,0 +1,722 @@
+[
+  {
+    "id": "case-001",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › countBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(countBy([1, 2, 3, 2, 1, 5], identity())).toStrictEqual({\n            1: 2,\n            2: 2,\n            3: 1,\n            5: 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "packages/remeda/src/countBy.test.ts › dataFirst › symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbolA = Symbol(\"mySymbolA\");\n        const mySymbolB = Symbol(\"mySymbolB\");\n        expect(countBy([mySymbolA, mySymbolB, mySymbolA], identity())).toStrictEqual({\n            [mySymbolA]: 2,\n            [mySymbolB]: 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › countBy",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3, 2, 1, 5], countBy(identity()))).toStrictEqual({\n            1: 2,\n            2: 2,\n            3: 1,\n            5: 1,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-010",
+    "title": "packages/remeda/src/countBy.test.ts › dataLast › symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { countBy } from \"./src/countBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { isString } from \"./src/isString.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { toLowerCase } from \"./src/toLowerCase.js\";\nimport { when } from \"./src/when.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { constant } from \"./src/constant.js\";\n{\n{\n{\nconst mySymbolA = Symbol(\"mySymbolA\");\n        const mySymbolB = Symbol(\"mySymbolB\");\n        expect(pipe([mySymbolA, mySymbolB, mySymbolA], countBy(identity()))).toStrictEqual({ [mySymbolA]: 2, [mySymbolB]: 1 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-016",
+    "title": "packages/remeda/src/debounce.test.ts › main functionality › subsequent debounced calls return the last `func` result",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        debouncer.call(\"a\");\n        await sleep(64);\n        expect(debouncer.call(\"b\")).toBe(\"a\");\n        await sleep(128);\n        expect(debouncer.call(\"c\")).toBe(\"b\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "packages/remeda/src/debounce.test.ts › main functionality › subsequent leading debounced calls return the last `func` result",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32, timing: \"leading\" });\n        expect([debouncer.call(\"a\"), debouncer.call(\"b\")]).toStrictEqual([\n            \"a\",\n            \"a\",\n        ]);\n        await sleep(64);\n        expect([debouncer.call(\"c\"), debouncer.call(\"d\")]).toStrictEqual([\n            \"c\",\n            \"c\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can cancel before the timer starts",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(() => {\n            debouncer.cancel();\n        }).not.toThrow();\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-020",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can cancel maxWait timer",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 16, maxWaitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(1);\n        debouncer.cancel();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can return a cached value",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { timing: \"leading\", waitMs: 32 });\n        expect(debouncer.cachedValue).toBeUndefined();\n        expect(debouncer.call(\"hello\")).toBe(\"hello\");\n        expect(debouncer.cachedValue).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-022",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can check for inflight timers (trailing)",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.isPending).toBe(false);\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        expect(debouncer.isPending).toBe(true);\n        await sleep(1);\n        expect(debouncer.isPending).toBe(true);\n        await sleep(32);\n        expect(debouncer.isPending).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-024",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can flush before a cool-down",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.flush()).toBeUndefined();\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.call(\"world\")).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-025",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can flush during a cool-down",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(1);\n        expect(debouncer.call(\"world\")).toBeUndefined();\n        await sleep(1);\n        expect(debouncer.flush()).toBe(\"world\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-026",
+    "title": "packages/remeda/src/debounce.test.ts › additional functionality › can flush after a cool-down",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nconst debouncer = debounce(identity(), { waitMs: 32 });\n        expect(debouncer.call(\"hello\")).toBeUndefined();\n        await sleep(32);\n        expect(debouncer.flush()).toBe(\"hello\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-027",
+    "title": "packages/remeda/src/debounce.test.ts › errors › prevents maxWaitMs to be less than waitMs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { debounce } from \"./src/debounce.js\";\nimport { identity } from \"./src/identity.js\";\n{\nasync function sleep(ms) {\n    await new Promise((resolve) => {\n        setTimeout(resolve, ms);\n    });\n}\n{\n{\nexpect(() => debounce(identity(), { waitMs: 32, maxWaitMs: 16 })).toThrow(\"debounce: maxWaitMs (16) cannot be less than waitMs (32)\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-041",
+    "title": "packages/remeda/src/dropFirstBy.test.ts › runtime (dataFirst) › handles empty arrays gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropFirstBy } from \"./src/dropFirstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [];\n        expect(dropFirstBy(data, 1, identity())).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "packages/remeda/src/dropFirstBy.test.ts › runtime (dataFirst) › handles negative numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropFirstBy } from \"./src/dropFirstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(dropFirstBy(data, -3, identity())).toHaveLength(data.length);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-043",
+    "title": "packages/remeda/src/dropFirstBy.test.ts › runtime (dataFirst) › handles overflowing numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropFirstBy } from \"./src/dropFirstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(dropFirstBy(data, 100, identity())).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-045",
+    "title": "packages/remeda/src/dropFirstBy.test.ts › runtime (dataFirst) › works with complex compare rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropFirstBy } from \"./src/dropFirstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\n            \"a\",\n            \"aaa\",\n            \"bbbbb\",\n            \"aa\",\n            \"bb\",\n            \"bbb\",\n            \"bbbb\",\n            \"aaaa\",\n            \"b\",\n            \"aaaaa\",\n        ];\n        expect(dropFirstBy(data, 3, (x) => x.length, identity())).toStrictEqual([\n            \"bbbbb\",\n            \"aaa\",\n            \"bbb\",\n            \"bbbb\",\n            \"aaaa\",\n            \"bb\",\n            \"aaaaa\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-057",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › returns undefined on empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([], identity())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-058",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › returns the item on a single item array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([1], identity())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-061",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › finds the max with 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([2, 1, 4, 3, 5], [identity(), \"desc\"])).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-062",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › finds the max with non-trivial 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([\"aa\", \"a\", \"aaaa\", \"aaa\", \"aaaaa\"], [identity(), \"desc\"])).toBe(\"aaaaa\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-063",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › breaks ties with multiple order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"a\", \"bb\", \"b\", \"aaaa\", \"bbb\", \"aa\", \"aaa\", \"bbbb\"];\n        expect(firstBy(data, (x) => x.length, identity())).toBe(\"a\");\n        expect(firstBy(data, [(x) => x.length, \"desc\"], identity())).toBe(\"aaaa\");\n        expect(firstBy(data, (x) => x.length, [identity(), \"desc\"])).toBe(\"b\");\n        expect(firstBy(data, [(x) => x.length, \"desc\"], [identity(), \"desc\"])).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-064",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([\"b\", \"a\", \"c\"], identity())).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-066",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([true, false, true, true, false], identity())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-067",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataFirst) › can compare valueOfs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(firstBy([new Date(), new Date(1), new Date(2)], identity())).toStrictEqual(new Date(1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-068",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › returns undefined on empty",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([], firstBy(identity()))).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-070",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the minimum",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 4, 3, 5], firstBy(identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-072",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the max with 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 4, 3, 5], firstBy([identity(), \"desc\"]))).toBe(5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-073",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › finds the max with non-trivial 'desc' order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"aa\", \"a\", \"aaaa\", \"aaa\", \"aaaaa\"], firstBy([identity(), \"desc\"]))).toBe(\"aaaaa\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-075",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare strings",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([\"b\", \"a\", \"c\"], firstBy(identity()))).toBe(\"a\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-076",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([2, 1, 3], firstBy(identity()))).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-077",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare booleans",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([true, false, true, true, false], firstBy(identity()))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-078",
+    "title": "packages/remeda/src/firstBy.test.ts › runtime (dataLast) › can compare valueOfs",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { firstBy } from \"./src/firstBy.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([new Date(), new Date(1), new Date(2)], firstBy(identity()))).toStrictEqual(new Date(1));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-080",
+    "title": "packages/remeda/src/identity.test.ts › works with more than one argument",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nconst id = identity();\n    expect(id(1)).toBe(1);\n    expect(id(1, 2)).toBe(1);\n    expect(id(1, \"a\")).toBe(1);\n    expect(id(undefined)).toBeUndefined();\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-081",
+    "title": "packages/remeda/src/identity.test.ts › works with variadic arguments",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nconst data = [1, 2, 3];\n    const id = identity();\n    expect(id(...data)).toBe(data[0]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-082",
+    "title": "packages/remeda/src/identity.test.ts › can be put in a pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(pipe([1, 2, 3], identity(), map(add(1)))).toStrictEqual([2, 3, 4]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-099",
+    "title": "packages/remeda/src/map.test.ts › complex variadic number array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nconst input = [\n        \"hello\",\n        \"world\",\n        1,\n        \"testing\",\n        \"testing\",\n        \"testing\",\n        123,\n        true,\n    ];\n    expect(map(input, identity())).toStrictEqual(input);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-104",
+    "title": "packages/remeda/src/meanBy.test.ts › data first › should handle empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { meanBy } from \"./src/meanBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nexpect(meanBy([], identity())).toBeNaN();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-107",
+    "title": "packages/remeda/src/meanBy.test.ts › data last › should handle empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { meanBy } from \"./src/meanBy.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\n{\n{\n{\nexpect(pipe([], meanBy(identity()))).toBeNaN();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-109",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › handles negative indexes",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [2, 1, 3];\n        expect(nthBy(data, -1, identity())).toBe(3);\n        expect(nthBy(data, -2, identity())).toBe(2);\n        expect(nthBy(data, -3, identity())).toBe(1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-110",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › handles overflows gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(nthBy([1, 2, 3], 100, identity())).toBeUndefined();\n        expect(nthBy([1, 2, 3], -100, identity())).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-111",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataFirst) › works with complex order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"aaaa\", \"b\", \"bb\", \"a\", \"aaa\", \"bbbb\", \"aa\", \"bbb\"];\n        expect(nthBy(data, 0, (a) => a.length, identity())).toBe(\"a\");\n        expect(nthBy(data, 1, (a) => a.length, identity())).toBe(\"b\");\n        expect(nthBy(data, 2, (a) => a.length, identity())).toBe(\"aa\");\n        expect(nthBy(data, 3, (a) => a.length, identity())).toBe(\"bb\");\n        expect(nthBy(data, 4, (a) => a.length, identity())).toBe(\"aaa\");\n        expect(nthBy(data, 5, (a) => a.length, identity())).toBe(\"bbb\");\n        expect(nthBy(data, 6, (a) => a.length, identity())).toBe(\"aaaa\");\n        expect(nthBy(data, 7, (a) => a.length, identity())).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-112",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [2, 1, 3];\n        expect(pipe(data, nthBy(0, identity()))).toBe(1);\n        expect(pipe(data, nthBy(1, identity()))).toBe(2);\n        expect(pipe(data, nthBy(2, identity()))).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-114",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › handles overflows gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], nthBy(100, identity()))).toBeUndefined();\n        expect(pipe([1, 2, 3], nthBy(-100, identity()))).toBeUndefined();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-115",
+    "title": "packages/remeda/src/nthBy.test.ts › runtime (dataLast) › works with complex order rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { nthBy } from \"./src/nthBy.js\";\nimport { pipe } from \"./src/pipe.js\";\n{\n{\n{\nconst data = [\"aaaa\", \"b\", \"bb\", \"a\", \"aaa\", \"bbbb\", \"aa\", \"bbb\"];\n        expect(pipe(data, nthBy(0, (a) => a.length, identity()))).toBe(\"a\");\n        expect(pipe(data, nthBy(1, (a) => a.length, identity()))).toBe(\"b\");\n        expect(pipe(data, nthBy(2, (a) => a.length, identity()))).toBe(\"aa\");\n        expect(pipe(data, nthBy(3, (a) => a.length, identity()))).toBe(\"bb\");\n        expect(pipe(data, nthBy(4, (a) => a.length, identity()))).toBe(\"aaa\");\n        expect(pipe(data, nthBy(5, (a) => a.length, identity()))).toBe(\"bbb\");\n        expect(pipe(data, nthBy(6, (a) => a.length, identity()))).toBe(\"aaaa\");\n        expect(pipe(data, nthBy(7, (a) => a.length, identity()))).toBe(\"bbbb\");\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-124",
+    "title": "packages/remeda/src/pullObject.test.ts › dataFirst › number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pullObject([\"a\", \"aa\"], (item) => item.length, identity())).toStrictEqual({\n            1: \"a\",\n            2: \"aa\",\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-131",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › number keys",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\"a\", \"aa\"], pullObject((item) => item.length, identity()))).toStrictEqual({ 1: \"a\", 2: \"aa\" });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-132",
+    "title": "packages/remeda/src/pullObject.test.ts › dataLast › undefined values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { pullObject } from \"./src/pullObject.js\";\n{\n{\n{\nexpect(pipe([\"a\"], pullObject(identity(), constant(undefined)))).toStrictEqual({\n            a: undefined,\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-135",
+    "title": "packages/remeda/src/rankBy.test.ts › runtime (dataFirst) › maintains the rank for items already in the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { rankBy } from \"./src/rankBy.js\";\n{\n{\n{\nconst data = [5, 1, 3];\n        const sorted = [...data].sort((a, b) => a - b);\n        for (const [index, item] of sorted.entries()) {\n            expect(rankBy(data, item, identity())).toBe(index);\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-137",
+    "title": "packages/remeda/src/rankBy.test.ts › runtime (dataFirst) › finds items ranked at the end of the array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { rankBy } from \"./src/rankBy.js\";\n{\n{\n{\nconst data = [5, 1, 3];\n        expect(rankBy(data, 6, identity())).toBe(3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-138",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › works",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(takeFirstBy(data, 2, identity())).toStrictEqual([2, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-139",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › handles empty arrays gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [];\n        expect(takeFirstBy(data, 1, identity())).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-140",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › handles negative numbers gracefully",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        expect(takeFirstBy(data, -3, identity())).toHaveLength(0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-142",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › clones the array when needed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [4, 5, 1, 6, 2, 3, 7];\n        const result = takeFirstBy(data, 100, identity());\n        expect(result).not.toBe(data);\n        expect(result).toStrictEqual(data);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-143",
+    "title": "packages/remeda/src/takeFirstBy.test.ts › runtime (dataFirst) › works with complex compare rules",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { identity } from \"./src/identity.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { takeFirstBy } from \"./src/takeFirstBy.js\";\n{\n{\n{\nconst data = [\n            \"a\",\n            \"aaa\",\n            \"bbbbb\",\n            \"aa\",\n            \"bb\",\n            \"bbb\",\n            \"bbbb\",\n            \"aaaa\",\n            \"b\",\n            \"aaaaa\",\n        ];\n        expect(takeFirstBy(data, 3, (x) => x.length, identity())).toStrictEqual([\n            \"aa\",\n            \"b\",\n            \"a\",\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-150",
+    "title": "packages/remeda/src/times.test.ts › data_first › returns a trivial empty array for non-positive values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nconst zeroResult = times(0, identity());\n        expect(zeroResult).toStrictEqual([]);\n        const negativeResult = times(-1000, identity());\n        expect(negativeResult).toStrictEqual([]);\n        // Make sure that the array returned is new, and not the same copy.\n        expect(zeroResult).not.toBe(negativeResult);\n        expect(times(-5.5, identity())).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-153",
+    "title": "packages/remeda/src/times.test.ts › data_first › rounds down non-integer numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(times(5.5, identity())).toStrictEqual([0, 1, 2, 3, 4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-154",
+    "title": "packages/remeda/src/times.test.ts › data_last › returns a trivial empty array for non-positive values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nconst zeroResult = pipe(0, times(identity()));\n        expect(zeroResult).toStrictEqual([]);\n        const negativeResult = pipe(-1000, times(identity()));\n        expect(negativeResult).toStrictEqual([]);\n        // Make sure that the array returned is new, and not the same copy.\n        expect(zeroResult).not.toBe(negativeResult);\n        expect(pipe(-5.5, times(identity()))).toStrictEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-156",
+    "title": "packages/remeda/src/times.test.ts › data_last › returns fn results as arr",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { identity } from \"./src/identity.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\n{\nexpect(pipe(5, times(identity()))).toStrictEqual([0, 1, 2, 3, 4]);\n        expect(pipe(5, times(multiply(2)))).toStrictEqual([0, 2, 4, 6, 8]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

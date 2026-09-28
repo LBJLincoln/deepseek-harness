@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/dropRightWhile.spec.ts › dropRightWhile › should drop elements from an array until `canContinueDropping` returns false, from the end",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { dropRightWhile } from \"./src/array/dropRightWhile.js\";\n{\n{\n{\nexpect(dropRightWhile([1.2, 2.3, 3.4], x => x < 2)).toEqual([1.2, 2.3, 3.4]);\n        const items = [\n            { id: 1, enabled: false },\n            { id: 2, enabled: true },\n            { id: 3, enabled: false },\n        ];\n        expect(dropRightWhile(items, x => !x.enabled)).toEqual([\n            {\n                id: 1,\n                enabled: false,\n            },\n            {\n                id: 2,\n                enabled: true,\n            },\n        ]);\n        expect(dropRightWhile([1, 2, 3], x => x < 4)).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

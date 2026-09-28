@@ -1,0 +1,52 @@
+{
+  "id": "code:simple-statistics--implement-errorFunction",
+  "tier": 2,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/error_function.js",
+    "tests": [
+      "test/cumulative.test.js",
+      "test/error_function.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/error_function.js",
+    "function": "errorFunction"
+  },
+  "title": "Implement errorFunction from simple-statistics",
+  "prompt": "`src/error_function.js` is the JavaScript build of `src/error_function.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `errorFunction`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * **[Gaussian error function](http://en.wikipedia.org/wiki/Error_function)**\n *\n * The `errorFunction(x/(sd * Math.sqrt(2)))` is the probability that a value in a\n * normal distribution with standard deviation sd is within x of the mean.\n *\n * This function returns a numerical approximation to the exact value.\n * It uses Horner's method to evaluate the polynomial of τ (tau).\n *\n * @param {number} x input\n * @return {number} error estimation\n * @example\n * errorFunction(1).toFixed(2); // => '0.84'\n */\nfunction errorFunction(x)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/cumulative_std_logistic_probability.js`, `src/cumulative_std_normal_probability.js`, `src/epsilon.js`, `src/inverse_error_function.js`, `src/probit.js`, `src/standard_normal_table.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "code:date-fns--implement-isAfter",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "date-fns",
+    "url": "https://github.com/date-fns/date-fns",
+    "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+    "license": "MIT",
+    "licenseFile": "pkgs/core/LICENSE.md",
+    "licenseSha256": "8d3951c38967b964b1fe259bfd200c2647cc04c858b55a4414e3122a60f1ef4b",
+    "copyright": "Copyright (c) 2021 Sasha Koss and Lesha Koss https://kossnocorp.mit-license.org",
+    "module": "pkgs/core/src/isAfter/index.ts",
+    "tests": [
+      "pkgs/core/src/isAfter/test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/isAfter/index.js",
+    "function": "isAfter"
+  },
+  "title": "Implement isAfter from date-fns",
+  "prompt": "`src/isAfter/index.js` is the JavaScript build of `pkgs/core/src/isAfter/index.ts` from date-fns (https://github.com/date-fns/date-fns at commit 717ce0a807ea, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `isAfter`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * @name isAfter\n * @category Common Helpers\n * @summary Is the first date after the second one?\n *\n * @description\n * Is the first date after the second one?\n *\n * @param date - The date that should be after the other one to return true\n * @param dateToCompare - The date to compare with\n *\n * @returns The first date is after the second date\n *\n * @example\n * // Is 10 July 1989 after 11 February 1987?\n * const result = isAfter(new Date(1989, 6, 10), new Date(1987, 1, 11))\n * //=> true\n */\nexport function isAfter(\n  date: DateArg<Date> & {},\n  dateToCompare: DateArg<Date> & {},\n): boolean\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/constants/index.js`, `src/constructFrom/index.js`, `src/toDate/index.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

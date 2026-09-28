@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isEmptyObject.spec.ts › isEmptyObject › returns true for empty plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyObject } from \"./src/predicate/isEmptyObject.js\";\n{\n{\n{\nexpect(isEmptyObject({})).toBe(true);\n        expect(isEmptyObject(new Object())).toBe(true);\n        expect(isEmptyObject(Object.create(null))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isEmptyObject.spec.ts › isEmptyObject › returns false for non-empty plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyObject } from \"./src/predicate/isEmptyObject.js\";\n{\n{\n{\nexpect(isEmptyObject({ a: 1 })).toBe(false);\n        expect(isEmptyObject({ key: 'value' })).toBe(false);\n        expect(isEmptyObject({ nested: { key: true } })).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/predicate/isEmptyObject.spec.ts › isEmptyObject › returns false for non-plain objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyObject } from \"./src/predicate/isEmptyObject.js\";\n{\n{\n{\nexpect(isEmptyObject([])).toBe(false);\n        expect(isEmptyObject([1, 2, 3])).toBe(false);\n        expect(isEmptyObject(new Date())).toBe(false);\n        expect(isEmptyObject(new Map())).toBe(false);\n        expect(isEmptyObject(new Set())).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/predicate/isEmptyObject.spec.ts › isEmptyObject › returns false for non-objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isEmptyObject } from \"./src/predicate/isEmptyObject.js\";\n{\n{\n{\nexpect(isEmptyObject(null)).toBe(false);\n        expect(isEmptyObject(undefined)).toBe(false);\n        expect(isEmptyObject(0)).toBe(false);\n        expect(isEmptyObject('')).toBe(false);\n        expect(isEmptyObject(true)).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

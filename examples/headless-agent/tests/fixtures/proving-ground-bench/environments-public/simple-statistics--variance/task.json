@@ -1,0 +1,53 @@
+{
+  "id": "code:simple-statistics--implement-variance",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "simple-statistics",
+    "url": "https://github.com/simple-statistics/simple-statistics",
+    "commit": "5ee3e8be581ffd4a4b372d5da11cda8c53a0e6bd",
+    "license": "ISC",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "63b5b6a85bc21476ebee13febd48d0a52056a695754a73aaed1ed7eafb059f29",
+    "copyright": "Copyright (c) 2014, Tom MacWright",
+    "module": "src/variance.js",
+    "tests": [
+      "test/combine_variances.test.js",
+      "test/variance.test.js",
+      "test/weighted_variance.test.js"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/variance.js",
+    "function": "variance"
+  },
+  "title": "Implement variance from simple-statistics",
+  "prompt": "`src/variance.js` is the JavaScript build of `src/variance.js` from simple-statistics (https://github.com/simple-statistics/simple-statistics at commit 5ee3e8be581f, ISC licence, whose text is in `LICENSE`). Every export of the module is in place except `variance`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * The [variance](http://en.wikipedia.org/wiki/Variance)\n * is the sum of squared deviations from the mean.\n *\n * This is an implementation of variance, not sample variance:\n * see the `sampleVariance` method if you want a sample measure.\n *\n * @param {Array<number>} x a population of one or more data points\n * @returns {number} variance: a value greater than or equal to zero.\n * zero indicates that all values are identical.\n * @throws {Error} if x's length is 0\n * @example\n * variance([1, 2, 3, 4, 5, 6]); // => 2.9166666666666665\n */\nfunction variance(x)\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/combine_means.js`, `src/combine_variances.js`, `src/mean.js`, `src/sum.js`, `src/sum_nth_power_deviations.js`, `src/validate_weighted_input.js`, `src/weighted_mean.js`, `src/weighted_variance.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

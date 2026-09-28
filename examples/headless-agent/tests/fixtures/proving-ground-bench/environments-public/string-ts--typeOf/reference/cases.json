@@ -1,0 +1,50 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/internal/internals.test.ts › typeOf › null",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCaseAll, typeOf } from \"./src/internal/internals.js\";\n{\n{\n{\nexpect(typeOf(null)).toEqual('null');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/internal/internals.test.ts › typeOf › object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCaseAll, typeOf } from \"./src/internal/internals.js\";\n{\n{\n{\nexpect(typeOf({})).toEqual('object');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/internal/internals.test.ts › typeOf › object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCaseAll, typeOf } from \"./src/internal/internals.js\";\n{\n{\n{\nexpect(typeOf(['a', 'b', 'c'])).toEqual('array');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/internal/internals.test.ts › typeOf › string",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { pascalCaseAll, typeOf } from \"./src/internal/internals.js\";\n{\n{\n{\nexpect(typeOf('hello')).toEqual('string');\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

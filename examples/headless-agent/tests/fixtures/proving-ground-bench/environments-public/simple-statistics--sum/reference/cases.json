@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-002",
+    "title": "test/binomial_distribution.test.js › binomialDistribution › describes the whole distribution for a large number of trials",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, binomialDistribution: __ns1_binomialDistribution, epsilon: __ns1_epsilon, max: __ns1_max, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nconst cases = [\n            [1020, 0.5],\n            [1021, 0.5],\n            [2000, 0.5],\n            [10000, 0.5],\n            [10000, 0.999],\n            [100000, 0.001]\n        ];\n        for (const parameters of cases) {\n            const label = parameters[0] + \", \" + parameters[1];\n            const cells = ss.binomialDistribution(parameters[0], parameters[1]);\n            assert.ok(cells.every(Number.isFinite), label + \" has a cell that is not a number\");\n            assert.ok(ss.sum(cells) >= 1 - ss.epsilon, label + \" stops short of the distribution\");\n            assert.ok(cells.length <= parameters[0] + 1, label + \" runs past the last possible outcome\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "test/binomial_distribution.test.js › binomialDistribution › keeps the certain outcomes at the ends of the probability range",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_binomialDistribution } from \"./src/binomial_distribution.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, binomialDistribution: __ns1_binomialDistribution, epsilon: __ns1_epsilon, max: __ns1_max, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nassert.deepEqual(ss.binomialDistribution(10, 0), [1]);\n        const allSuccesses = ss.binomialDistribution(10, 1);\n        assert.equal(allSuccesses.length, 11);\n        assert.equal(allSuccesses[10], 1);\n        assert.equal(ss.sum(allSuccesses), 1);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-013",
+    "title": "test/poisson_distribution.test.js › poissonDistribution › describes the whole distribution for a large lambda",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_approxEqual } from \"./src/approx_equal.js\";\nimport { default as __ns1_epsilon } from \"./src/epsilon.js\";\nimport { default as __ns1_max } from \"./src/max.js\";\nimport { default as __ns1_poissonDistribution } from \"./src/poisson_distribution.js\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nconst ss = Object.freeze({ approxEqual: __ns1_approxEqual, epsilon: __ns1_epsilon, max: __ns1_max, poissonDistribution: __ns1_poissonDistribution, sum: __ns1_sum });\n{\nfunction rnd(n) {\n    return Number.parseFloat(n.toFixed(4));\n}\n{\n{\nfor (const lambda of [1, 50, 110, 111, 150, 200, 745, 746, 1000]) {\n            const cells = ss.poissonDistribution(lambda);\n            assert.ok(cells.every(Number.isFinite), \"lambda \" + lambda + \" has a cell that is not a number\");\n            assert.ok(ss.sum(cells) >= 1 - ss.epsilon, \"lambda \" + lambda + \" stops short of the distribution\");\n            assert.ok(cells.length > lambda, \"lambda \" + lambda + \" stops before its own mean\");\n        }\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-017",
+    "title": "test/sum.test.js › sum › can get the sum of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.equal(ss.sum([1, 2]), 3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-018",
+    "title": "test/sum.test.js › sum › the sum of no numbers is zero",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.equal(ss.sum([]), 0);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-019",
+    "title": "test/sum.test.js › sum › returns NaN if a non-number is given",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.ok(Number.isNaN(ss.sum([1, null])));\n        assert.ok(Number.isNaN(ss.sum([null, 1])));\n        assert.ok(Number.isNaN(ss.sum([1, 2, null])));\n        assert.ok(Number.isNaN(ss.sum([1, 2, true])));\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-021",
+    "title": "test/sum.test.js › sumSimple › can get the sum of two numbers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import assert from \"node:assert/strict\";\nimport { default as __ns1_sum } from \"./src/sum.js\";\nimport { default as __ns1_sumSimple } from \"./src/sum_simple.js\";\nconst ss = Object.freeze({ sum: __ns1_sum, sumSimple: __ns1_sumSimple });\n{\n{\n{\nassert.equal(ss.sumSimple([\n            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3,\n            1.4, 1.5, 1.6, 1.7\n        ]), 15.299999999999999);\n        assert.equal(ss.sum([\n            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3,\n            1.4, 1.5, 1.6, 1.7\n        ]), 15.3);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

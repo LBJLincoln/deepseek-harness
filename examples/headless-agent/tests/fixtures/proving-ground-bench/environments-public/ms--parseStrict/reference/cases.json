@@ -1,0 +1,386 @@
+[
+  {
+    "id": "case-087",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should not throw an error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(() => {\n            parseStrict('1m');\n        }).not.toThrow();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-088",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should preserve ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('100')).toBe(100);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-089",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert from m to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1m')).toBe(60000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-090",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert from h to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1h')).toBe(3600000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-091",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert d to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('2d')).toBe(172800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-092",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert w to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('3w')).toBe(1814400000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-093",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert s to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1s')).toBe(1000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-094",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert ms to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('100ms')).toBe(100);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-095",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert mo to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1mo')).toBe(2629800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-096",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should convert y to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1y')).toBe(31557600000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-097",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should work with ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1.5h')).toBe(5400000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-098",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should work with multiple spaces",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1   s')).toBe(1000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-099",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should return NaN if invalid",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\n// @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(Number.isNaN(parseStrict('☃'))).toBe(true);\n        // @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(Number.isNaN(parseStrict('10-.5'))).toBe(true);\n        // @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(Number.isNaN(parseStrict('foo'))).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-100",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should be case-insensitive",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\n// @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(parseStrict('53 YeArS')).toBe(1672552800000);\n        // @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(parseStrict('53 WeEkS')).toBe(32054400000);\n        // @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(parseStrict('53 DaYS')).toBe(4579200000);\n        // @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(parseStrict('53 HoUrs')).toBe(190800000);\n        // @ts-expect-error - we expect the types to fail but JS users can still use this\n        expect(parseStrict('53 MiLliSeCondS')).toBe(53);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-101",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should work with numbers starting with .",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('.5ms')).toBe(0.5);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-102",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should work with negative integers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('-100ms')).toBe(-100);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-103",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should work with negative decimals",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('-1.5h')).toBe(-5400000);\n        expect(parseStrict('-10.5h')).toBe(-37800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-104",
+    "title": "src/parse-strict.test.ts › parseStrict(string) › should work with negative decimals starting with \".\"",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('-.5h')).toBe(-1800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-105",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should not throw an error",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(() => {\n            parseStrict('53 milliseconds');\n        }).not.toThrow();\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-106",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert milliseconds to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('53 milliseconds')).toBe(53);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-107",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert msecs to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('17 msecs')).toBe(17);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-108",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert sec to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1 sec')).toBe(1000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-109",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert from min to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1 min')).toBe(60000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-110",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert from hr to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1 hr')).toBe(3600000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-111",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert days to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('2 days')).toBe(172800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-112",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert weeks to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1 week')).toBe(604800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-113",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert months to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1 month')).toBe(2629800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-114",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should convert years to ms",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1 year')).toBe(31557600000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-115",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should work with decimals",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('1.5 hours')).toBe(5400000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-116",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should work with negative integers",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('-100 milliseconds')).toBe(-100);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-117",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should work with negative decimals",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('-1.5 hours')).toBe(-5400000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-118",
+    "title": "src/parse-strict.test.ts › parseStrict(long string) › should work with negative decimals starting with \".\"",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { parseStrict } from \"./src/index.js\";\n{\n{\n{\nexpect(parseStrict('-.5 hr')).toBe(-1800000);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

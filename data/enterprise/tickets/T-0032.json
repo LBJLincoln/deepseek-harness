@@ -1,0 +1,48 @@
+{
+  "id": "T-0032",
+  "title": "Point the web GUI e2e-lane note at the bundles the web scaffold boots today",
+  "division": "curation-data",
+  "seat": "curation-data-testing-curator",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md",
+    "anchor": "boots the real web composition from the shipped `apps/cli/config/base.cordis.yml` plus `apps/cli/config/web.cordis.yml`"
+  },
+  "task": "Problem: .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md:19 states in present tense that `launchWebScaffold()` \"boots the real web composition from the shipped `apps/cli/config/base.cordis.yml` plus `apps/cli/config/web.cordis.yml` through the vendored Loader's include mechanism\", and line 71 repeats that the in-process scaffold \"already loads the same `apps/cli/config/base.cordis.yml` plus `apps/cli/config/web.cordis.yml`\"; the .zh.md counterpart carries both sentences at the same lines. `apps/cli/config/` holds only `agent-presets/` today; the shared rows live in packages/bundle/base/cordis.patch.yml and the web surface's rows in packages/bundle/web-app/cordis.patch.yml, the `dsh --profile` patch-layer bundles that packages/bundle/README.md documents. `launchWebScaffold` is still the scaffold the lane uses (`grep -rln launchWebScaffold apps/web/tests` lists its callers), so the note's mechanism is current and only its paths are stale. .agents/notes/README.md:13 requires an implemented note's paths to be kept current with what shipped.\n\nRequired: read the scaffold's source (follow the import from one of the apps/web/tests callers) to see which bundles it composes today, then replace the two stale path pairs with the current bundle files, citing packages/bundle/README.md for the include and patch mechanics instead of restating them; update the Chinese counterpart minimally; re-record the pair with `pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md`.\n\nConstraints: facts only — paths and names — never the decision, its rejected alternatives, or its consequences; do not touch the scaffold, the bundles, other notes, or anything under .agents/notes/archived/; no new Agent Note. The queue's mandatory coverage run names dsh-app-boot, the plugin that applies the bundles the note now cites; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md",
+    ".agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.zh.md",
+    ".agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.i18n.yaml"
+  ],
+  "acceptance": [
+    {
+      "id": "stale-paths-gone",
+      "run": "! grep -q 'apps/cli/config/' .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.zh.md"
+    },
+    {
+      "id": "bundles-cited",
+      "run": "grep -q 'packages/bundle/' .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md"
+    },
+    {
+      "id": "pair-recorded",
+      "run": "pnpm run verify-translation-pairing .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/boot/app-boot/ --coverage --coverage.include='packages/boot/app-boot/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 3
+}

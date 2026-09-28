@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/utils/object-keys/deep-transform-keys.test.ts › deepTransformKeys › should deeply transform the keys of an object",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepTransformKeys } from \"./src/utils/object-keys/deep-transform-keys.js\";\n{\n{\n{\nconst expected = {\n            SOME: [{ 'DEEP-NESTED': { VALUE: true } }],\n            'OTHER-VALUE': true,\n        };\n        const result = deepTransformKeys({\n            some: [{ 'deep-nested': { value: true } }],\n            'other-value': true,\n        }, (key) => key.toUpperCase());\n        expect(result).toEqual(expected);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/orderBy.spec.ts › orderBy › should order objects by a single property in ascending order",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nexpect(orderBy(users, ['user'], ['asc'])).toEqual([\n            { user: 'barney', age: 34 },\n            { user: 'barney', age: 36 },\n            { user: 'fred', age: 48 },\n            { user: 'fred', age: 40 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/orderBy.spec.ts › orderBy › should order objects by a single property in descending order",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nexpect(orderBy(users, ['user'], ['desc'])).toEqual([\n            { user: 'fred', age: 48 },\n            { user: 'fred', age: 40 },\n            { user: 'barney', age: 34 },\n            { user: 'barney', age: 36 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/orderBy.spec.ts › orderBy › should order objects by multiple properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nexpect(orderBy(users, ['user', 'age'], ['asc', 'desc'])).toEqual([\n            { user: 'barney', age: 36 },\n            { user: 'barney', age: 34 },\n            { user: 'fred', age: 48 },\n            { user: 'fred', age: 40 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/array/orderBy.spec.ts › orderBy › should extend orders if orders length is less than keys length",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nexpect(orderBy(users2, ['user', 'age'], ['asc'])).toEqual([\n            { user: 'barney', age: 34 },\n            { user: 'barney', age: 36 },\n            { user: 'fred', age: 40 },\n            { user: 'fred', age: 48 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/array/orderBy.spec.ts › orderBy › should order objects by criteria functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nexpect(orderBy(users2, [obj => obj.user, obj => obj.age], ['asc'])).toEqual([\n            { user: 'barney', age: 34 },\n            { user: 'barney', age: 36 },\n            { user: 'fred', age: 40 },\n            { user: 'fred', age: 48 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/array/orderBy.spec.ts › orderBy › should place null and undefined values at the end when ascending",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nconst items = [\n            { name: 'a', value: 3 },\n            { name: 'b', value: null },\n            { name: 'c', value: 1 },\n            { name: 'd', value: undefined },\n            { name: 'e', value: 2 },\n        ];\n        expect(orderBy(items, ['value'], ['asc'])).toEqual([\n            { name: 'c', value: 1 },\n            { name: 'e', value: 2 },\n            { name: 'a', value: 3 },\n            { name: 'b', value: null },\n            { name: 'd', value: undefined },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/array/orderBy.spec.ts › orderBy › should place null and undefined values at the beginning when descending",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { orderBy } from \"./src/array/orderBy.js\";\n{\n{\nconst users = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 34 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 36 },\n    ];\nconst users2 = [\n        { user: 'fred', age: 48 },\n        { user: 'barney', age: 36 },\n        { user: 'fred', age: 40 },\n        { user: 'barney', age: 34 },\n    ];\n{\nconst items = [\n            { name: 'a', value: 3 },\n            { name: 'b', value: null },\n            { name: 'c', value: 1 },\n            { name: 'd', value: undefined },\n            { name: 'e', value: 2 },\n        ];\n        expect(orderBy(items, ['value'], ['desc'])).toEqual([\n            { name: 'd', value: undefined },\n            { name: 'b', value: null },\n            { name: 'a', value: 3 },\n            { name: 'e', value: 2 },\n            { name: 'c', value: 1 },\n        ]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

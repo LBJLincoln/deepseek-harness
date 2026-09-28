@@ -1,0 +1,48 @@
+{
+  "id": "T-0034",
+  "title": "List the four shipped client packages the client/ group README omits",
+  "division": "program-departments",
+  "seat": "program-departments-client-coordinator",
+  "kind": "docs",
+  "source": {
+    "path": "packages/client/README.md",
+    "anchor": "| [`ui-permission/`](ui-permission-presets/README.md) |"
+  },
+  "task": "Problem: packages/client/README.md:7-44 is the group's package table, and packages/client/README.md:46 says every child reference owns its own contract, so the table is the family's index. `ls -d packages/client/*/` lists 39 packages; the table names 35 of them. Missing: `ui-deliverables/`, `ui-directory-picker-browse/`, `ui-directory-picker-native/`, and `ui-message-feedback/` (each has a README.md and a package.json in the `@deepseek-ai/dsh-client-*` family; `comm -23 <(ls -d packages/client/*/ | xargs -n1 basename | sort) <(grep -o '](\\([a-z0-9-]*\\)/README.md)' packages/client/README.md | sed 's/](\\(.*\\)\\/README.md)/\\1/' | sort -u)` prints exactly those four). The row at packages/client/README.md:36 labels `ui-permission-presets/` as `ui-permission/`, a directory that does not exist, while its link already points at `ui-permission-presets/README.md`. packages/client/README.zh.md carries the same table with the same four omissions and the same label at README.zh.md:36. The sibling family index packages/host/README.md lists every host package; this one falls short of the standard it links.\n\nRequired: add one row per missing package, with a one-clause purpose taken from that package's README opening paragraph (ui-deliverables, ui-directory-picker-browse, ui-directory-picker-native, ui-message-feedback), placed beside the rows they relate to (the picker rows near `ui-workspace/`, feedback near `ui-conversation/`, deliverables near `ui-trajectory/`); correct the label at README.md:36 to `ui-permission-presets/`; mirror every change in README.zh.md with the purpose clauses translated under docs/i18n/terminology.md; re-record with `pnpm run verify-translation-pairing --write packages/client/README.md`; run `pnpm run doc-sync`.\n\nConstraints: documentation only; do not reorder the existing rows or change their purpose text; do not touch the child READMEs; mechanical index maintenance under the Agent Note exemption. The queue's mandatory coverage run names dsh-client-ui-message-feedback, one of the packages the table gains; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    "packages/client/README.md",
+    "packages/client/README.zh.md",
+    "packages/client/README.i18n.yaml"
+  ],
+  "acceptance": [
+    {
+      "id": "missing-rows-added",
+      "run": "test \"$(grep -c '](ui-deliverables/README.md)\\|](ui-directory-picker-browse/README.md)\\|](ui-directory-picker-native/README.md)\\|](ui-message-feedback/README.md)' packages/client/README.md)\" = 4"
+    },
+    {
+      "id": "zh-rows-added",
+      "run": "test \"$(grep -c '](ui-deliverables/README.md)\\|](ui-directory-picker-browse/README.md)\\|](ui-directory-picker-native/README.md)\\|](ui-message-feedback/README.md)' packages/client/README.zh.md)\" = 4"
+    },
+    {
+      "id": "permission-label-fixed",
+      "run": "! grep -q 'ui-permission/' packages/client/README.md packages/client/README.zh.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/client/ui-message-feedback/ --coverage --coverage.include='packages/client/ui-message-feedback/src/**/*.{ts,tsx}'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 3
+}

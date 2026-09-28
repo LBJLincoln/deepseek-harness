@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/predicate/isSymbol.spec.ts › isSymbol › returns `true` for symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSymbol } from \"./src/predicate/isSymbol.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nexpect(isSymbol(Symbol())).toBe(true);\n        expect(isSymbol(Symbol('a'))).toBe(true);\n        expect(isSymbol(Symbol.for('a'))).toBe(true);\n        expect(isSymbol(Symbol.iterator)).toBe(true);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/predicate/isSymbol.spec.ts › isSymbol › returns `false` for values that are not symbols",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { isSymbol } from \"./src/predicate/isSymbol.js\";\nimport { args } from \"./src/compat/_internal/args.js\";\nimport { falsey } from \"./src/compat/_internal/falsey.js\";\n{\n{\n{\nconst expected = falsey.map(() => false);\n        const actual = falsey.map(isSymbol);\n        expect(actual).toEqual(expected);\n        expect(isSymbol(1)).toBe(false);\n        expect(isSymbol('a')).toBe(false);\n        expect(isSymbol(args)).toBe(false);\n        expect(isSymbol([1, 2, 3])).toBe(false);\n        expect(isSymbol(Object(false))).toBe(false);\n        expect(isSymbol(new Date())).toBe(false);\n        expect(isSymbol(new Error())).toBe(false);\n        expect(isSymbol({ a: 1 })).toBe(false);\n        expect(isSymbol(Object(0))).toBe(false);\n        expect(isSymbol(/x/)).toBe(false);\n        expect(isSymbol(Object('a'))).toBe(false);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

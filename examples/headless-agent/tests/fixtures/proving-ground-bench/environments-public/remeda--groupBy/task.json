@@ -1,0 +1,52 @@
+{
+  "id": "code:remeda--implement-groupBy",
+  "tier": 3,
+  "domain": "public",
+  "public": {
+    "source": "remeda",
+    "url": "https://github.com/remeda/remeda",
+    "commit": "e8292ddf03f8a334cf8b048983d518f89fe6be97",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
+    "licenseSha256": "acf30083045d768ce20640237313ee31a45d548d66ef76df5bb5fb0745479535",
+    "copyright": "Copyright (c) 2018 remeda",
+    "module": "packages/remeda/src/groupBy.ts",
+    "tests": [
+      "packages/remeda/src/groupBy.test.ts"
+    ]
+  },
+  "terms": {
+    "purposes": [
+      "delivery",
+      "training",
+      "evaluation"
+    ],
+    "attribution": "LICENSE"
+  },
+  "completion": {
+    "file": "src/groupBy.js",
+    "function": "groupBy"
+  },
+  "title": "Implement groupBy from remeda",
+  "prompt": "`src/groupBy.js` is the JavaScript build of `packages/remeda/src/groupBy.ts` from remeda (https://github.com/remeda/remeda at commit e8292ddf03f8, MIT licence, whose text is in `LICENSE`). Every export of the module is in place except `groupBy`, whose body currently throws 'not implemented'. Implement only that function's body so that it fulfills its own documentation, which the source carries as follows:\n\n/**\n * Groups the elements of a given iterable according to the string values\n * returned by a provided callback function. The returned object has separate\n * properties for each group, containing arrays with the elements in the group.\n * Unlike the built in `Object.groupBy` this function also allows the callback to\n * return `undefined` in order to exclude the item from being added to any\n * group.\n *\n * If you are grouping objects by a property of theirs (e.g.\n * `groupBy(data, ({ myProp }) => myProp)` or `groupBy(data, prop('myProp'))`)\n * consider using `groupByProp` (e.g. `groupByProp(data, 'myProp')`) instead,\n * as it would provide better typing.\n *\n * @param data - The items to group.\n * @param callbackfn - A function to execute for each element in the iterable.\n * It should return a value indicating the group of the current element, or\n * `undefined` when the item should be excluded from any group.\n * @returns An object with properties for all groups, each assigned to an array\n * containing the elements of the associated group.\n * @signature\n *    groupBy(data, callbackfn)\n * @example\n *    groupBy([{a: 'cat'}, {a: 'dog'}] as const, prop('a')) // => {cat: [{a: 'cat'}], dog: [{a: 'dog'}]}\n *    groupBy([0, 1], x => x % 2 === 0 ? 'even' : undefined) // => {even: [0]}\n * @dataFirst\n * @category Array\n */\nexport function groupBy(...args: readonly unknown[]): unknown\n\nKeep the signature exactly as given, and do not edit any other file, export, or function; `README.md` states the types the signature and the documentation name. The other files under `src/` (`src/internal/lazyDataLastImpl.js`, `src/internal/utilityEvaluators.js`, `src/pipe.js`, `src/prop.js`, `src/purry.js`) are the module's own dependencies, unchanged; read them as you need, edit none. Add no dependencies: `package.json` is fixed and `node_modules` must not exist. This task is judged on inputs you do not see: a validator runs the module's own test suite, which this workspace does not contain, against your implementation. `test/expect-shim.mjs` is the assertion library those cases run under; it holds no case and is fixed. Implement the documented contract, including every corner it states, rather than the behaviour a guessed test would pin down.",
+  "heldOut": false,
+  "immutable": [
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "test/expect-shim.mjs"
+  ],
+  "checks": [
+    {
+      "id": "spec-cases",
+      "outcome": "the function satisfies the module's own test suite, which the validator holds back",
+      "run": "node --input-type=module",
+      "cases": "reference/cases.json"
+    },
+    {
+      "id": "no-dependencies",
+      "outcome": "no packages were installed",
+      "run": "test ! -e node_modules"
+    }
+  ]
+}

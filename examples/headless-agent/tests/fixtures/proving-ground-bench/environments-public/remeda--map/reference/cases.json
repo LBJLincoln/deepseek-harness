@@ -1,0 +1,254 @@
+[
+  {
+    "id": "case-005",
+    "title": "packages/remeda/src/constant.test.ts › can be put in a pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { sliceString } from \"./src/sliceString.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(pipe([1, 2, 3], constant([2, 3, 4]), map(add(1)))).toStrictEqual([\n        3, 4, 5,\n    ]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-034",
+    "title": "packages/remeda/src/evolve.test.ts › data first › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(evolve({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, {\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        })).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-042",
+    "title": "packages/remeda/src/evolve.test.ts › data last › can handle data that is complex nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { evolve } from \"./src/evolve.js\";\nimport { length } from \"./src/length.js\";\nimport { map } from \"./src/map.js\";\nimport { omit } from \"./src/omit.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { reduce } from \"./src/reduce.js\";\nimport { set } from \"./src/set.js\";\n{\nconst sum = reduce((a, b) => add(a, b), 0);\n{\n{\nexpect(pipe({\n            array: [\"1\", \"2\", \"3\"],\n            nestedObj: { a: { b: \"c\" } },\n            objAry: [\n                { a: 0, b: 0 },\n                { a: 1, b: 1 },\n            ],\n        }, evolve({\n            array: length(),\n            nestedObj: { a: (x) => set(x, \"b\", \"Set\") },\n            objAry: (x) => map(x, omit([\"b\"])),\n        }))).toStrictEqual({\n            array: 3,\n            nestedObj: { a: { b: \"Set\" } },\n            objAry: [{ a: 0 }, { a: 1 }],\n        });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-052",
+    "title": "packages/remeda/src/identity.test.ts › can be put in a pipe",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { times } from \"./src/times.js\";\n{\n{\nexpect(pipe([1, 2, 3], identity(), map(add(1)))).toStrictEqual([2, 3, 4]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-082",
+    "title": "packages/remeda/src/map.test.ts › data_first › map",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(map([1, 2, 3], multiply(2))).toStrictEqual([2, 4, 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-083",
+    "title": "packages/remeda/src/map.test.ts › data_first › map indexed",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(map([0, 0, 0], (_, i) => i)).toStrictEqual([0, 1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-084",
+    "title": "packages/remeda/src/map.test.ts › data-last › passes the value to the mapper as its first argument",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([1, 2, 3], map(multiply(2)))).toStrictEqual([2, 4, 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-085",
+    "title": "packages/remeda/src/map.test.ts › data-last › passes the index to the mapper as its second argument",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(pipe([0, 0, 0], map((_, index) => index))).toStrictEqual([0, 1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-086",
+    "title": "packages/remeda/src/map.test.ts › number array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nexpect(map([1, 2, 3], add(1))).toStrictEqual([2, 3, 4]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-087",
+    "title": "packages/remeda/src/map.test.ts › mixed type tuple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nexpect(map([1, \"2\", true], constant(1))).toStrictEqual([1, 1, 1]);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-088",
+    "title": "packages/remeda/src/map.test.ts › complex variadic number array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\nconst input = [\n        \"hello\",\n        \"world\",\n        1,\n        \"testing\",\n        \"testing\",\n        \"testing\",\n        123,\n        true,\n    ];\n    expect(map(input, identity())).toStrictEqual(input);\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-089",
+    "title": "packages/remeda/src/map.test.ts › indexed › number array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(map([1, 2, 3], (x, index) => x + index)).toStrictEqual([1, 3, 5]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-090",
+    "title": "packages/remeda/src/map.test.ts › indexed › mixed type tuple",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { add } from \"./src/add.js\";\nimport { constant } from \"./src/constant.js\";\nimport { filter } from \"./src/filter.js\";\nimport { identity } from \"./src/identity.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { take } from \"./src/take.js\";\n{\n{\n{\nexpect(map([1, \"2\", true], (_, index) => index)).toStrictEqual([0, 1, 2]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-135",
+    "title": "packages/remeda/src/sortBy.test.ts › data last › sort objects correctly",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { sortBy } from \"./src/sortBy.js\";\n{\nconst DATA = [\n    { id: 1, color: \"red\", weight: 2, active: true, date: new Date(2021, 1, 1) },\n    {\n        id: 2,\n        color: \"blue\",\n        weight: 3,\n        active: false,\n        date: new Date(2021, 1, 2),\n    },\n    {\n        id: 3,\n        color: \"green\",\n        weight: 1,\n        active: false,\n        date: new Date(2021, 1, 3),\n    },\n    {\n        id: 4,\n        color: \"purple\",\n        weight: 1,\n        active: true,\n        date: new Date(2021, 1, 4),\n    },\n];\n{\n{\nexpect(pipe(DATA, sortBy(prop(\"weight\"), prop(\"color\")), map(prop(\"color\")))).toStrictEqual([\"green\", \"purple\", \"red\", \"blue\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-136",
+    "title": "packages/remeda/src/sortBy.test.ts › data last › sort objects correctly by weight asc then color desc",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { prop } from \"./src/prop.js\";\nimport { sortBy } from \"./src/sortBy.js\";\n{\nconst DATA = [\n    { id: 1, color: \"red\", weight: 2, active: true, date: new Date(2021, 1, 1) },\n    {\n        id: 2,\n        color: \"blue\",\n        weight: 3,\n        active: false,\n        date: new Date(2021, 1, 2),\n    },\n    {\n        id: 3,\n        color: \"green\",\n        weight: 1,\n        active: false,\n        date: new Date(2021, 1, 3),\n    },\n    {\n        id: 4,\n        color: \"purple\",\n        weight: 1,\n        active: true,\n        date: new Date(2021, 1, 4),\n    },\n];\n{\n{\nexpect(pipe(DATA, sortBy([prop(\"weight\"), \"asc\"], [prop(\"color\"), \"desc\"]), map(prop(\"color\")))).toStrictEqual([\"purple\", \"green\", \"red\", \"blue\"]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-148",
+    "title": "packages/remeda/src/tap.test.ts › data last › should work in the middle of pipe sequence",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap((data) => {\n            expect(data).toStrictEqual([2]);\n        }), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-149",
+    "title": "packages/remeda/src/tap.test.ts › data last › should infer types after tapping function reference with parameter type any",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { filter } from \"./src/filter.js\";\nimport { map } from \"./src/map.js\";\nimport { multiply } from \"./src/multiply.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { tap } from \"./src/tap.js\";\n{\nconst DATA = [1];\nfunction foo(x) {\n    return x;\n}\n{\n{\nexpect(pipe([-1, 2], filter((n) => n > 0), tap(foo), map(multiply(2)))).toStrictEqual([4]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-158",
+    "title": "packages/remeda/src/when.test.ts › dataLast › without else › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n{\nexpect(map([1, 2, 3, 4], when((x) => x % 2 === 0, (x, index) => x + index))).toStrictEqual([1, 3, 3, 7]);\n}\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-161",
+    "title": "packages/remeda/src/when.test.ts › dataLast › passes extra args to the functions",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\nexpect(map([1, 2, 3, 4], when((x) => x % 2 === 0, {\n            onTrue: (x, index) => x + index,\n            onFalse: (x, index) => `${x}${index}`,\n        }))).toStrictEqual([\"10\", 3, \"32\", 7]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-163",
+    "title": "packages/remeda/src/when.test.ts › recipes › acts as a coalesce tool",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\nexpect(map([0, 1, 2, undefined, 4, undefined, 6], when(isNot(isDefined), constant(\"missing\")))).toStrictEqual([0, 1, 2, \"missing\", 4, \"missing\", 6]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-164",
+    "title": "packages/remeda/src/when.test.ts › recipes › can replace defaultTo",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { constant } from \"./src/constant.js\";\nimport { isDefined } from \"./src/isDefined.js\";\nimport { isNot } from \"./src/isNot.js\";\nimport { isNullish } from \"./src/isNullish.js\";\nimport { isStrictEqual } from \"./src/isStrictEqual.js\";\nimport { isString } from \"./src/isString.js\";\nimport { map } from \"./src/map.js\";\nimport { pipe } from \"./src/pipe.js\";\nimport { when } from \"./src/when.js\";\n{\n{\n{\n// Nullish\n        expect(map([undefined, null, 1], when(isNullish, constant(42)))).toStrictEqual([42, 42, 1]);\n        // NaN\n        expect(map([NaN, 1], when(Number.isNaN, constant(42)))).toStrictEqual([\n            42, 1,\n        ]);\n        // All\n        expect(map([NaN, undefined, null, 1], when((x) => Number.isNaN(x) || x === null || x === undefined, constant(42)))).toStrictEqual([42, 42, 42, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

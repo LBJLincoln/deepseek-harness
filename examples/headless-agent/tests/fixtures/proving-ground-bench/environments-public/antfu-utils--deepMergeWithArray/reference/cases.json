@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-007",
+    "title": "src/object.test.ts › deepMergeWithArray › should merge array values",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { deepMerge, deepMergeWithArray, objectId, objectMap } from \"./src/object.js\";\n{\n{\n{\nconst obj1 = { a: ['A', 'B'] };\n        const obj2 = { a: ['C'], b: ['D'] };\n        expect(deepMergeWithArray({}, obj1, obj2)).toEqual({ a: ['A', 'B', 'C'], b: ['D'] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

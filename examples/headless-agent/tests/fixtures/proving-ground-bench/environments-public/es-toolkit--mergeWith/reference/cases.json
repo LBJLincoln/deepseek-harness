@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should merge properties from source object into target object using custom merge function",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target1 = { a: 1, b: 2 };\n        const source1 = { b: 3, c: 4 };\n        const result1 = mergeWith(target1, source1, (targetValue, sourceValue) => {\n            if (typeof targetValue === 'number' && typeof sourceValue === 'number') {\n                return targetValue + sourceValue;\n            }\n        });\n        expect(result1).toEqual({ a: 1, b: 5, c: 4 });\n        const target2 = { a: [1], b: [2] };\n        const source2 = { a: [3], b: [4] };\n        const result2 = mergeWith(target2, source2, (objValue, srcValue) => {\n            if (Array.isArray(objValue)) {\n                return objValue.concat(srcValue);\n            }\n        });\n        expect(result2).toEqual({ a: [1, 3], b: [2, 4] });\n        const target3 = { a: { x: 1, y: 1 }, b: [2] };\n        const source3 = { a: { x: 2, y: 3 }, b: [4] };\n        const result3 = mergeWith(target3, source3, (objValue, srcValue) => {\n            if (objValue.x && srcValue.x) {\n                return objValue.x + srcValue.x;\n            }\n        });\n        expect(result3).toEqual({ a: 3, b: [4] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should use custom merge function for nested objects",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target = { a: { x: 1, y: 1 }, b: 2 };\n        const source = { a: { y: 2 }, b: 3 };\n        const result = mergeWith(target, source, (targetValue, sourceValue) => {\n            if (typeof targetValue === 'number' && typeof sourceValue === 'number') {\n                return targetValue + sourceValue;\n            }\n        });\n        expect(result).toEqual({ a: { x: 1, y: 3 }, b: 5 });\n        const target2 = { a: { c: [1] }, b: [2] };\n        const source2 = { a: { c: [3] }, b: [4] };\n        const result2 = mergeWith(target2, source2, (objValue, srcValue) => {\n            if (Array.isArray(objValue)) {\n                return objValue.concat(srcValue);\n            }\n        });\n        expect(result2).toEqual({ a: { c: [1, 3] }, b: [2, 4] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should respect `null` returned from `customizer`",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst obj = { prop: null };\n        const source = { prop: { foo: 'bar' } };\n        expect(mergeWith(cloneDeep(obj), cloneDeep(source), targetValue => {\n            if (targetValue === null) {\n                return null;\n            }\n            return undefined;\n        })).toEqual({ prop: null });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-004",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should skip unsafe properties like __proto__",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target = { a: 1 };\n        const source = Object.create(null);\n        source.__proto__ = { b: 2 };\n        source.a = 2;\n        const result = mergeWith(target, source, (targetValue, sourceValue) => {\n            return sourceValue;\n        });\n        expect(result).toEqual({ a: 2 });\n        expect(result.__proto__).toBe(Object.prototype);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-005",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should merge arrays when targetValue is undefined and merge function returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target = {};\n        const source = { a: [1, 2, 3] };\n        const result = mergeWith(target, source, () => undefined);\n        expect(result).toEqual({ a: [1, 2, 3] });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-006",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should not overwrite targetValue when sourceValue is undefined and merge function returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target = { a: 1, b: 2 };\n        const source = { a: 3, b: undefined };\n        const result = mergeWith(target, source, () => undefined);\n        expect(result).toEqual({ a: 3, b: 2 });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-007",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should replace non-plain-object target value with plain object from source when merge returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target = { a: 'string', b: 123, c: true };\n        const source = { a: { x: 1 }, b: { y: 2 }, c: { z: 3 } };\n        const result = mergeWith(target, source, () => undefined);\n        expect(result).toEqual({ a: { x: 1 }, b: { y: 2 }, c: { z: 3 } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-008",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should handle nested case where non-plain-object is replaced with plain object when merge returns undefined",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst target = { a: { b: null, c: undefined, d: 'text' } };\n        const source = { a: { b: { x: 1 }, c: { y: 2 }, d: { z: 3 } } };\n        const result = mergeWith(target, source, () => undefined);\n        expect(result).toEqual({ a: { b: { x: 1 }, c: { y: 2 }, d: { z: 3 } } });\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-009",
+    "title": "src/object/mergeWith.spec.ts › mergeWith › should behave like recursive Object.assign, applying the same logic to nested properties",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { cloneDeep } from \"./src/object/cloneDeep.js\";\nimport { mergeWith } from \"./src/object/mergeWith.js\";\n{\n{\n{\nconst noop = () => undefined;\n        const topLevelArray = mergeWith(['1'], { a: 2 }, noop);\n        const topLevelObject = mergeWith({ a: 2 }, ['1'], noop);\n        const nestedArray = mergeWith({ x: ['1'] }, { x: { a: 2 } }, noop);\n        const nestedObject = mergeWith({ x: { a: 2 } }, { x: ['1'] }, noop);\n        expect(Array.isArray(topLevelArray)).toBe(true);\n        expect(topLevelArray[0]).toBe('1');\n        expect(topLevelArray.a).toBe(2);\n        expect(typeof topLevelObject).toBe('object');\n        expect(topLevelObject).toEqual({ a: 2, 0: '1' });\n        expect(typeof nestedObject.x).toBe('object');\n        expect(nestedObject.x).toEqual({ a: 2, 0: '1' });\n        expect(nestedObject.x[0]).toBe('1');\n        expect(Array.isArray(nestedArray.x)).toBe(true);\n        expect(nestedArray.x[0]).toBe('1');\n        expect(nestedArray.x.a).toBe(2);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]

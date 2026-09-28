@@ -1,0 +1,38 @@
+[
+  {
+    "id": "case-001",
+    "title": "src/array/forEachRight.spec.ts › forEachRight › should iterate over elements from right to left",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { forEachRight } from \"./src/array/forEachRight.js\";\n{\n{\n{\nconst array = [1, 2, 3];\n        const result = [];\n        forEachRight(array, value => {\n            result.push(value);\n        });\n        expect(result).toEqual([3, 2, 1]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-002",
+    "title": "src/array/forEachRight.spec.ts › forEachRight › should provide correct index and array for arrays",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { forEachRight } from \"./src/array/forEachRight.js\";\n{\n{\n{\nconst array = [1, 2, 3];\n        const indices = [];\n        const arrays = [];\n        forEachRight(array, (_, index, arr) => {\n            indices.push(index);\n            arrays.push(arr);\n        });\n        expect(indices).toEqual([2, 1, 0]);\n        expect(arrays).toEqual([array, array, array]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  },
+  {
+    "id": "case-003",
+    "title": "src/array/forEachRight.spec.ts › forEachRight › should handle an empty array",
+    "weight": 1,
+    "argv": [],
+    "stdin": "import { expect, expectTypeOf, assertType } from \"./test/expect-shim.mjs\";\nimport { forEachRight } from \"./src/array/forEachRight.js\";\n{\n{\n{\nconst array = [];\n        const result = [];\n        forEachRight(array, value => {\n            result.push(value);\n        });\n        expect(result).toEqual([]);\n}\n}\n}\n",
+    "exitCode": 0,
+    "stdout": "",
+    "channels": [
+      "exit"
+    ]
+  }
+]
