@@ -2,7 +2,15 @@
 
 [English](README.md) | 中文
 
-本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时状态与证据后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是 feed 在 `GET /programs` 上提供的项目运行台账，每次已记录的项目运行一条，列出其各部门、各部门的证书、整合的结论以及各项签署。Harness Core 各位包管家领取工作的队列位于 [tickets/](tickets/README.md)。
+本目录下的 `roster.json` 是为企业概念验证生成的花名册，包含 147 个席位定义：由本仓库真实定义的来源构建出的"角色 x 事业部 x 专精方向"组合，每个席位都附带已提交的会话记录为它提供的证据。[`scripts/enterprise-roster.ts`](../../scripts/enterprise-roster.ts) 生成该文件（`pnpm run roster`）；[`scripts/harness-feed.ts`](../../scripts/harness-feed.ts) 在重新计算实时状态与证据后提供服务（`pnpm run feed`）。花名册不是记录在案的组织：记录在案的组织是 feed 在 `GET /programs` 上提供的项目运行台账，每次已记录的项目运行一条，列出其各部门、各部门的证书、整合的结论以及各项签署。各位包管家领取工作的队列位于 [tickets/](tickets/README.md)；处理这个队列的班次写入 `ledger.jsonl` 与 `shifts/`，见下文。
+
+## 台账与班次
+
+一个班次是 [enterprise-shift 引擎](../../examples/headless-agent/tests/fixtures/enterprise-shift/README.md)的一次运行（`pnpm run enterprise -- shift --next <n> --push`）：它克隆开发分支的顶端，让选中的未关闭工单在各自的工作树里经由程序工作流完成，由一位独立评审员对每个已认证的修改作出裁定，把获批的修改装配为每张工单一次提交，重新认证，再连同班次自己的提交一起快进推送到分支。那次提交携带班次的台账行与记录，因此分支是班次唯一的汇报之处。
+
+`ledger.jsonl` 每班次每工单新增一行：`{ "type": "ticket", "at", "shift", "ticket", "seat", "division", "programId", "implementer", "model", "department": { "outcome", "sessionId" }, "checks": [{ "id", "ok" }], "review": { "verdict", "sessionId" }, "integration": { "outcome" }, "shipped": { "commit" } | null, "reason", "tokens", "seconds" }`：`department.outcome` 取 `certified`、`failed`、`blocked`、`abandoned`、`pending` 或 `halted`；`review.verdict` 取 `approve`、`reject` 或 `none`；`integration.outcome` 取 `merged`、`skipped`、`conflict`、`checks-failed`、`digest-mismatch` 或 `not-shipped`；`shipped.commit` 是分支上承载该工单修改的提交。工单最近一行为已发运或被评审驳回即告关闭；其余任何一行都让它留给后续班次，验收失败的部门正是这样得到再次尝试。被路由用量上限停机的班次，会把 `halted: limit (resets at <instant>)` 写为它未完成的每张工单的原因。
+
+`shifts/<UTC 日期>-<班次 id>/` 是班次的记录：`result.json`（班次、程序报告、每张工单的台账行连同评审员的理由、停机信息）、`manifest.json`（基准修订、分支、组合、每个文件的 SHA-256）以及班次运行的每个会话的 `sessions/<会话 id>.jsonl`——程序台账、每个部门、每次评审、整合——其中形似凭据的字符串已剪除并计数。记录由运行它的班次写入，此后不再改写。
 
 ## 诚实原则
 
