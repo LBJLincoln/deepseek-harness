@@ -116,8 +116,16 @@ describe('buildRoster', () => {
   })
 
   it('activates a seat by a recorded session dated inside the window, by the record\'s own time', () => {
-    const inside = buildRoster(root, { generatedAt: '2026-09-23T00:00:00.000Z', recorded, ledger: EMPTY })
-    const outside = buildRoster(root, { generatedAt: '2026-09-25T00:00:00.000Z', recorded, ledger: EMPTY })
+    // The window is anchored to the newest seated session in the committed records, so a later record moves it with the data.
+    const probe = buildRoster(root, { generatedAt: STAMP, recorded, ledger: EMPTY })
+    const lastSeen = probe.agents.reduce(
+      (max, agent) => agent.evidence.lastSeen === undefined ? max : Math.max(max, Date.parse(agent.evidence.lastSeen)),
+      0,
+    )
+    expect(lastSeen).toBeGreaterThan(0)
+    const HOUR_MS = 60 * 60 * 1000
+    const inside = buildRoster(root, { generatedAt: new Date(lastSeen + HOUR_MS).toISOString(), recorded, ledger: EMPTY })
+    const outside = buildRoster(root, { generatedAt: new Date(lastSeen + 25 * HOUR_MS).toISOString(), recorded, ledger: EMPTY })
     const newest = recorded.flatMap(run => run.sessions).reduce((max, session) => Math.max(max, session.lastSeenMs ?? 0), 0)
     expect(new Date(newest).toISOString() > inside.activeWindow.since).toBe(true)
     expect(inside.counts.active).toBeGreaterThan(0)
