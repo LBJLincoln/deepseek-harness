@@ -1,0 +1,46 @@
+{
+  "id": "T-0029",
+  "title": "Drop the caller-less title parameter from WorkspaceRegistry.create",
+  "division": "program-departments",
+  "seat": "program-departments-workspace-coordinator",
+  "kind": "chore",
+  "source": {
+    "path": "packages/workspace/workspace/src/index.ts",
+    "anchor": "TODO: `title` lost its last production caller"
+  },
+  "task": "Problem: packages/workspace/workspace/src/index.ts:153-157 carries a TODO stating that `create(path, title?)`'s `title` lost its last production caller when the gateway's create-by-name branch was deleted (.agents/notes/implemented/simplification/2026-07-31-one-route-to-add-a-workspace.md). The tree confirms it: the only production caller is packages/host/apiproxy/src/api-proxy.ts:1714, `ctx.workspaceRegistry.create(path)`, and every call that passes a title is in packages/workspace/workspace/tests/workspace.spec.ts:361-389 (`grep -rn 'workspaceRegistry.create\\|registry.create(' packages apps --include=*.ts`). `createCanonical` at packages/workspace/workspace/src/index.ts:285-297 derives the record's name as `title ?? basename(canonical)`. The README pair documents the parameter at packages/workspace/workspace/README.md:11 and packages/workspace/workspace/README.zh.md:11 (`create(path, title?)`, \"Repeated calls for that path return the existing workspace without changing its title; different paths may share a display title\").\n\nRequired: remove the parameter from `create()` and `createCanonical()` so the display title is always `basename(canonical)`; delete the TODO and the `@param title` clause and keep the rest of the JSDoc contract (realpath canonicalization, rejection of a missing or non-directory path, one record per canonical path, prepend to durable order); rewrite the tests that passed a title so they assert the derived title while still pinning reuse of an existing record, the concurrent create of one path, and two different paths sharing one basename — the package's per-file coverage must stay at 100%; update packages/workspace/workspace/README.md:11 and README.zh.md:11 to `create(path)` and drop the title clauses, then `pnpm run verify-translation-pairing --write packages/workspace/workspace/README.md`; run `pnpm run doc-sync` and regenerate only what it reports stale.\n\nConstraints: do not touch dsh-host-apiproxy or the client `workspaces` remote (its `create` is a different API); do not change the persisted `Workspace` record's `title` field or the header-index refresh; mechanical API removal under the Agent Note exemption — cite the one-route simplification note in the commit message instead of adding a note.",
+  "scope": [
+    "packages/workspace/workspace/"
+  ],
+  "acceptance": [
+    {
+      "id": "title-parameter-gone",
+      "run": "! grep -q 'title?: string' packages/workspace/workspace/src/index.ts"
+    },
+    {
+      "id": "todo-gone",
+      "run": "! grep -q 'lost its last production caller' packages/workspace/workspace/src/index.ts"
+    },
+    {
+      "id": "readme-signature-current",
+      "run": "! grep -q 'create(path, title?)' packages/workspace/workspace/README.md packages/workspace/workspace/README.zh.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/workspace/workspace/ --coverage --coverage.include='packages/workspace/workspace/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 2
+}

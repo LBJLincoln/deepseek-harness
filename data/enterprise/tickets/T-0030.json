@@ -1,0 +1,42 @@
+{
+  "id": "T-0030",
+  "title": "Name the archive verifier's focused test in the archive-agent-notes skill",
+  "division": "knowledge",
+  "seat": "knowledge-dsh-archive-agent-notes-skill-keeper",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/skills/dsh-archive-agent-notes/SKILL.md",
+    "anchor": "Run the archive verifier's focused test"
+  },
+  "task": "Problem: .agents/skills/dsh-archive-agent-notes/SKILL.md:66 instructs \"Run the archive verifier's focused test, `pnpm run verify-archived-agent-notes`, `pnpm run doc-sync`, `pnpm run lint`, and `git diff --check`\" without naming the test. The verifier is scripts/verify-archived-agent-notes.ts and its spec is scripts/archived-agent-notes.spec.ts — a name that does not contain `verify`, so `ls scripts | grep verify-archived` finds no spec and an agent following the skill either skips the step or runs every script spec. The same spec is what pins the `--write` behavior SKILL.md:60 relies on (\"Its append-only mode first proves every existing seal still matches, then adds only the new triplet hashes\"), so the skill's claim rests on a test it never names.\n\nRequired: at SKILL.md:66 name the command (`pnpm exec vitest run scripts/archived-agent-notes.spec.ts`) and link the spec with a relative link; at SKILL.md:60 link the same spec as the pin for the append-only guarantee. Leave the workflow otherwise unchanged.\n\nConstraints: skill markdown only; do not rename the spec (a rename is a separate decision that would also move the pin); the skills tree has no Chinese counterparts; mechanical, local doc edit under the Agent Note exemption. The queue's mandatory coverage run names dsh-skill-filesystem, the package that loads skill directories; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/skills/dsh-archive-agent-notes/"
+  ],
+  "acceptance": [
+    {
+      "id": "focused-test-named",
+      "run": "grep -q 'archived-agent-notes.spec.ts' .agents/skills/dsh-archive-agent-notes/SKILL.md"
+    },
+    {
+      "id": "focused-test-passes",
+      "run": "pnpm exec vitest run scripts/archived-agent-notes.spec.ts"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 3
+}

@@ -1,0 +1,46 @@
+{
+  "id": "T-0026",
+  "title": "Describe every pre-commit hook job in the pre-push-checks skill",
+  "division": "knowledge",
+  "seat": "knowledge-dsh-pre-push-checks-skill-keeper",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/skills/dsh-pre-push-checks/SKILL.md",
+    "anchor": "pre-commit fixes staged lint, checks staged whitespace, and guards vendored-source metadata"
+  },
+  "task": "Problem: .agents/skills/dsh-pre-push-checks/SKILL.md:8 describes the git hooks as \"pre-commit fixes staged lint, checks staged whitespace, and guards vendored-source metadata; pre-push runs only the incremental repository typecheck\", and SKILL.md:99 tells the author to \"inspect any files changed by the pre-commit fixer before continuing\". lefthook.yml:5-40 installs six pre-commit jobs: staged translation-pairing records (`verify-translation-pairing --cached`, lefthook.yml:7-11), the archived-notes verifier (lefthook.yml:13-15), staged lint with `stage_fixed: true` (lefthook.yml:17-22), regeneration of THIRD_PARTY_NOTICES.md followed by `git add` whenever a manifest, lockfile, vendor/README.md, or pyproject is staged (lefthook.yml:24-33), staged whitespace (lefthook.yml:35-36), and the vendor manifest guard (lefthook.yml:38-39); a `pre-merge-commit` set repeats the first two (lefthook.yml:42-51). The skill omits three of the six, one of which rewrites a tracked file during the commit — the case its own step at SKILL.md:99 asks the author to watch for — so an agent following the skill attributes a changed THIRD_PARTY_NOTICES.md to itself or misses it.\n\nRequired: rewrite the hook sentence at SKILL.md:8 to name every pre-commit job by its effect (pairing records checked, archive seals checked, staged lint fixed and restaged, third-party notices regenerated and restaged, whitespace checked, vendor manifest guarded) and the pre-merge-commit pair, keeping the statement that CI owns exhaustive coverage; at SKILL.md:99 name the two jobs that restage files (lint, third-party notices). Link lefthook.yml with a relative link rather than copying command lines.\n\nConstraints: skill markdown only; no lefthook change; the skills tree has no Chinese counterparts; mechanical, local doc edit under the Agent Note exemption. The queue's mandatory coverage run names dsh-skill-filesystem, the package that loads skill directories; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/skills/dsh-pre-push-checks/"
+  ],
+  "acceptance": [
+    {
+      "id": "notices-job-named",
+      "run": "grep -q 'THIRD_PARTY_NOTICES\\|third-party notices' .agents/skills/dsh-pre-push-checks/SKILL.md"
+    },
+    {
+      "id": "archive-job-named",
+      "run": "grep -qi 'archived' .agents/skills/dsh-pre-push-checks/SKILL.md"
+    },
+    {
+      "id": "pairing-job-named",
+      "run": "grep -q 'pairing' .agents/skills/dsh-pre-push-checks/SKILL.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 2
+}

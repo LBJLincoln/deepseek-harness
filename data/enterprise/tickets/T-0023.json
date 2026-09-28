@@ -1,0 +1,55 @@
+{
+  "id": "T-0023",
+  "title": "Stop the translation-prompt snapshot from embedding the gold-pair documents",
+  "division": "governance",
+  "seat": "governance-translation-pairing-standard-author",
+  "kind": "test",
+  "source": {
+    "path": "scripts/verify-translation-prompt.ts",
+    "anchor": "const examplePaths = ["
+  },
+  "task": "Problem: scripts/verify-translation-prompt.ts:27-40 reads five live gold pairs (README.md, docs/development.md, docs/i18n/README.md, docs/i18n/translation-rules.md, and .agents/notes/implemented/process/2026-07-02-bilingual-docs-and-pairing-gate.md with their .zh.md sides) as the reviewed examples, and scripts/verify-translation-prompt.ts:89 prints the whole assembled request in `--snapshot` mode. scripts/snapshots/translation-prompt-v4/request-response.expected.json therefore embeds every byte of those ten documents: its example messages are 4852, 3729, 18191, 10323, 13129, 6387, 9364, 4327, 9713 and 4488 characters of gold-pair text, and the file is 145,899 bytes. scripts/translation-prompt.snapshot.ts:30 compares that file byte for byte, so an edit to any of the ten documents fails the snapshot although nothing about the prompt changed. The expected file was re-recorded for exactly that reason in a8b4eff3e and 21f6aa1f5 (both 2026-09-27), 58558b5ba (2026-09-19), cd40049b4 (2026-09-06), a20497072 and d3f69e20a (2026-08-12 and 2026-08-13); `git log --format='%h %ad %s' --date=short -- scripts/snapshots/translation-prompt-v4/` lists them.\n\nRequired: make the recorded snapshot independent of the example documents' bodies while it still proves what it proves today: that the request assembles as system, five example pairs, then the source document (scripts/verify-translation-prompt.ts:69-72), that the rendered system prompt is stable, and that the recorded response is consumed correctly. In `--snapshot` mode, print each example message as `{ \"role\": \"user\" | \"assistant\", \"example\": \"<repository path of that side>\" }` in place of its `content` (a byte count or hash would change with the documents and defeat the purpose), keep the system message and the source-document message verbatim, and keep the `response` object unchanged; the non-snapshot verify mode keeps reading and checking the live pairs. Re-record the expected file with `pnpm run test:snapshot:refresh -- scripts/translation-prompt.snapshot.ts`, update the header JSDoc of scripts/verify-translation-prompt.ts and the test name in scripts/translation-prompt.snapshot.ts to state what the snapshot pins, and record the change in the note that owns the snapshot, .agents/notes/implemented/process/2026-07-23-translation-prompt-v4-contract.md (it names the snapshot as verification; state the new content of the recorded request in one present-tense sentence), with its Chinese counterpart updated minimally and the pair re-recorded with `pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-07-23-translation-prompt-v4-contract.md`.\n\nConstraints: do not change scripts/translation-prompt.ts, the renderer, or any of the ten documents; do not add fixture copies of the documents; do not widen the snapshot to other scenarios. The coverage run pairs the renderer's own spec, which guards the untouched renderer, with the queue's mandatory package coverage run (dsh-skill-filesystem, which this change cannot affect); both pass before and after, and the snapshot and verify-mode checks are the gates that turn green with the change.",
+  "scope": [
+    "scripts/verify-translation-prompt.ts",
+    "scripts/translation-prompt.snapshot.ts",
+    "scripts/snapshots/translation-prompt-v4/",
+    ".agents/notes/implemented/process/2026-07-23-translation-prompt-v4-contract.md",
+    ".agents/notes/implemented/process/2026-07-23-translation-prompt-v4-contract.zh.md",
+    ".agents/notes/implemented/process/2026-07-23-translation-prompt-v4-contract.i18n.yaml"
+  ],
+  "acceptance": [
+    {
+      "id": "example-bodies-not-embedded",
+      "run": "! grep -q '# Development guide' scripts/snapshots/translation-prompt-v4/request-response.expected.json"
+    },
+    {
+      "id": "example-paths-recorded",
+      "run": "grep -q '\"example\": \"docs/development.zh.md\"' scripts/snapshots/translation-prompt-v4/request-response.expected.json"
+    },
+    {
+      "id": "snapshot-passes",
+      "run": "pnpm exec vitest run --config vitest.snapshot.config.ts scripts/translation-prompt.snapshot.ts"
+    },
+    {
+      "id": "verify-mode-passes",
+      "run": "pnpm run verify-translation-prompt"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run scripts/translation-prompt.spec.ts packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 1
+}

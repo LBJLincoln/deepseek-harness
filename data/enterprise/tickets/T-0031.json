@@ -1,0 +1,38 @@
+{
+  "id": "T-0031",
+  "title": "Ratchet the docs/architecture.md word ceiling down to the policy headroom",
+  "division": "governance",
+  "seat": "governance-doc-budgets-standard-author",
+  "kind": "chore",
+  "source": {
+    "path": "scripts/doc-budgets.manifest.json",
+    "anchor": "\"docs/architecture.md\": 2400"
+  },
+  "task": "Problem: scripts/doc-budgets.manifest.json:4 sets `docs/architecture.md` at 2400 words while `pnpm run verify-doc-budgets --list` reads 1288 words, 46% slack. scripts/verify-doc-budgets.ts:4-5 states the rule the manifest follows: \"Ceilings ratchet down with at least 5% headroom; raising one requires the justification defined in docs/AGENTS.md\", and docs/AGENTS.md:57 sets the target for architecture.md at 1,800 words or fewer, with \"At or below target, retain at least 5% headroom\" and \"Lower a ceiling only when the document still has room\". architecture.md is below its target with room, so its ceiling is the one manifest entry the ratchet applies to: of the other eight, AGENTS.md (1900/1900), docs/AGENTS.md (1320/1320), packages/README.md (1067/1067) and packages/AGENTS.md (672/675) are above their targets and therefore frozen, and docs/cordis-primer.md, docs/defensive-patterns.md, docs/testing.md and examples/AGENTS.md sit within 4-24% of their ceilings.\n\nRequired: lower `docs/architecture.md` to a ceiling with at least 5% headroom over the current count (1288 x 1.05 = 1353; choose a round value between 1360 and 1400) and change nothing else; `pnpm run verify-doc-budgets` must pass. State the `--list` numbers in the commit message.\n\nConstraints: no prose change to any budgeted document; do not touch other ceilings; a one-line manifest edit, no Agent Note. The budget gate is the gate for this change; the queue's mandatory coverage run names dsh-skill-filesystem, a package this change cannot affect, and passes before and after.",
+  "scope": [
+    "scripts/doc-budgets.manifest.json"
+  ],
+  "acceptance": [
+    {
+      "id": "architecture-ceiling-ratcheted",
+      "run": "node -e \"const m=require('./scripts/doc-budgets.manifest.json'); const c=m['docs/architecture.md']; process.exit(Number.isInteger(c) && c>=1353 && c<=1400 ? 0 : 1)\""
+    },
+    {
+      "id": "budgets-pass",
+      "run": "pnpm run verify-doc-budgets"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 3
+}

@@ -1,0 +1,46 @@
+{
+  "id": "T-0022",
+  "title": "Bring the doc-site-sync skill's manifest guidance back in line with website/docs.ts",
+  "division": "knowledge",
+  "seat": "knowledge-dsh-doc-site-sync-skill-keeper",
+  "kind": "docs",
+  "source": {
+    "path": ".agents/skills/dsh-doc-site-sync/SKILL.md",
+    "anchor": "reuse `zh-guide`, `zh-develop`, or `en-docs`"
+  },
+  "task": "Problem: .agents/skills/dsh-doc-site-sync/SKILL.md:36 tells the author to set a manifest entry's `sidebar` to `zh-guide`, `zh-develop`, or `en-docs`, and SKILL.md:37 to place a new section in `sectionOrder` in the VitePress config. Neither matches the code the skill describes. website/docs.ts:14-20 declares `DocsSidebar` as six ids (`zh-guide`, `zh-develop`, `zh-reference`, `en-guide`, `en-develop`, `en-reference`); `en-docs` does not exist. A paired or mirrored entry's `sidebar`, `label`, and `section` are per-locale records `{ root, en }` (website/docs.ts:47-56, used at website/docs.ts:120 and website/docs.ts:148), not the single strings SKILL.md:33-38 describes. No `sectionOrder` exists anywhere under website/ (`grep -rn sectionOrder website/` prints nothing): section placement is the per-locale `sections` table in website/docs.ts (the `{ label, collapsed }` lists ending at website/docs.ts:459), read by `sectionSpec()` at website/docs.ts:470, which throws for a label the locale does not declare. An agent following the skill today writes an invalid sidebar id and looks for a config key that is not there.\n\nRequired: rewrite the field list under `## Add or update a manifest entry` so that every field matches the current `DocsPage`, `MirroredPage`, and `PairedPage` declarations: `sidebar` and `section` as per-locale records over the six sidebar ids, `label` as a per-locale record, `outline` as the optional outline override, and a new section registered in the `sections` table of website/docs.ts for both locales (the VitePress config is touched only when the sidebar or locale model itself changes, as SKILL.md:25 already says). Keep every other section of the skill as it is.\n\nConstraints: skill markdown only; no change to website/ code; read website/docs.ts before writing rather than relying on this ticket's line numbers; the skills tree has no Chinese counterparts, so no pairing record is involved; mechanical, local doc edit under the Agent Note exemption. The queue's mandatory coverage run names dsh-skill-filesystem, the package that loads skill directories; it guards that package, not this edit, and passes before and after.",
+  "scope": [
+    ".agents/skills/dsh-doc-site-sync/"
+  ],
+  "acceptance": [
+    {
+      "id": "stale-sidebar-id-gone",
+      "run": "! grep -q 'en-docs' .agents/skills/dsh-doc-site-sync/SKILL.md"
+    },
+    {
+      "id": "section-order-gone",
+      "run": "! grep -q 'sectionOrder' .agents/skills/dsh-doc-site-sync/SKILL.md"
+    },
+    {
+      "id": "reference-sidebar-named",
+      "run": "grep -q 'en-reference' .agents/skills/dsh-doc-site-sync/SKILL.md"
+    },
+    {
+      "id": "coverage",
+      "run": "pnpm exec vitest run packages/skill/skill-filesystem/ --coverage --coverage.include='packages/skill/skill-filesystem/src/**/*.ts'"
+    },
+    {
+      "id": "typecheck",
+      "run": "pnpm run typecheck"
+    },
+    {
+      "id": "doc-sync",
+      "run": "pnpm run doc-sync"
+    }
+  ],
+  "budget": {
+    "maxTotalTokens": 6000000,
+    "maxWallMs": 1800000
+  },
+  "priority": 1
+}
